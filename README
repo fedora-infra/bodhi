@@ -1,0 +1,63 @@
+Bodhi
+=====
+
+    http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem
+
+
+Setting up the updates system environment
+=========================================
+
+(Note: all of the global settings for this project are in ./bodhi/config/app.cfg)
+
+1. Install the necessary software
+
+        # yum install TurboGears python-TurboMail createrepo
+
+2. Install the identity provider (we're authenticating against bugzilla
+   until we get the Fedora Accounts System into shape)
+
+        # cp bodhi/identity/sobzprovider.py /usr/lib/python2.4/site-packages/turbogears/identity/
+
+   Add the plugin to the TurboGears entry points file:
+
+        # vim `rpm -ql TurboGears | grep entry_points.txt`
+
+   Under the [turbogears.identity.provider] section, add the following line:
+
+        bugzilla  = turbogears.identity.sobzprovider:SoBugzillaIdentityProvider
+
+3. Create the database tables
+
+        $ tg-admin sql create
+
+4. Initialize the database with our distribution settings such as Releases, Arches, Multilib, etc.
+
+        $ ./bodhi/model.py
+
+5.  Add yourself to the Administrators group
+
+    - Since this system currently authenticates against Bugzilla, it creates
+      each User upon a successful login.  So you must login first.
+    - Hop into into the TurboGears shell
+
+        $ tg-admin shell
+        >>> me = User.get(1)
+        >>> admin = Group.get(1)
+        >>> me.addGroup(admin)
+
+    - While we're here, create an identity for the system itself
+
+        >>> me = User(user_name='updates@fedora.redhat.com')
+        >>> me.password = '?' # password for bugzilla and SMTP authentication
+        (^D and save the changes)
+
+
+Running the bodhi system test suite
+=====================================
+
+    All tests are stored in the 'tests' module in this project, and can be
+    run by executing the command `nosetests` in top level of the project.
+
+    For more information on Nose unit tests, please see:
+
+            http://somethingaboutorange.com/mrl/projects/nose/

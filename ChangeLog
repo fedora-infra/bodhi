@@ -1,0 +1,7 @@
+- Rename project to Bodhi
+- Cleaned up model initialization
+- Add repo path to Release table
+- Extended metadata code
+- Updated README
+- Get bugzilla model working
+- Check bugs for security keyword and force 'security' status
