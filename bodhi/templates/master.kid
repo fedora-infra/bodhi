@@ -29,7 +29,7 @@
 
         <div id="fedora-header-items">
             <span class="fedora-header-icon">
-                <a href="https://admin.fedoraproject.org/tickets"><img src="/static/images/header-projects.png" alt="Bugs"/>Report a Bug</a>
+                <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket"><img src="/static/images/header-projects.png" alt="Bugs"/>Report a Bug</a>
             </span>
         </div>
     </div>
@@ -50,7 +50,7 @@
             </div>
             <ul id="fedora-side-nav">
                 <li><a href="/new">New update</a></li>
-                <li><a href="/list">List updates</a></li>
+                <li><a href="/list">Released updates</a></li>
                 <li><a href="/pending">Pending updates</a></li>
                 <li><a href="/mine">My updates</a></li>
                 <!-- <li><a href="/search">Search</a></li> -->

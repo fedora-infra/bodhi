@@ -18,8 +18,8 @@ class comet:
                    "Content-type: %(type)s\r\n\r\n" +
                    "%(part)s" +
                    "--%(delim)s\r\n") % {
-                                           'delim' : self.delim,
-                                           'part':str(part),
-                                           'type':self.type
+                                           'delim'  : self.delim,
+                                           'part'   : str(part),
+                                           'type'   : self.type
                                         }
       return wrapper

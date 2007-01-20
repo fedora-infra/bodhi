@@ -105,10 +105,23 @@ class Root(controllers.RootController):
 
     @expose()
     @identity.require(identity.not_anonymous())
+    def revoke(self, nvr):
+        """ Revoke a push request for a specified update """
+        try:
+            update = PackageUpdate.byNvr(nvr)
+            update.needs_push = False
+            mail.send_admin('revoke', update)
+            log.info("%s push revoked" % nvr)
+        except SQLObjectNotFound:
+            flash("Update %s not found" % update)
+            raise redirect("/list")
+        flash("Push request revoked")
+        raise redirect('/show/%s' % nvr)
+
+    @expose()
+    @identity.require(identity.not_anonymous())
     def push(self, nvr):
-        """
-        Submit an update for pushing.
-        """
+        """ Submit an update for pushing """
         try:
             up = PackageUpdate.byNvr(nvr)
             up.needs_push = True
@@ -121,9 +134,7 @@ class Root(controllers.RootController):
     @expose()
     @identity.require(identity.not_anonymous())
     def unpush(self, nvr):
-        """
-        Submit an update for unpushing
-        """
+        """ Submit an update for unpushing """
         try:
             up = PackageUpdate.byNvr(nvr)
             up.needs_unpush = True
@@ -137,9 +148,7 @@ class Root(controllers.RootController):
     @expose()
     @identity.require(identity.not_anonymous())
     def delete(self, update):
-        """
-        Delete a pending update
-        """
+        """ Delete a pending update """
         try:
             up = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
@@ -157,9 +166,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.form')
     def edit(self, update):
-        """
-        Edit an update
-        """
+        """ Edit an update """
         try:
             up = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
@@ -185,8 +192,8 @@ class Root(controllers.RootController):
     def save(self, release, bugs, cves, edited, **kw):
         """
         Save an update.  This includes new updates and edited.
-        Most of these checks should eventually make their way into the NewUpdateSchema
-        validators.
+        Most of these checks should eventually make their way into the
+        NewUpdateSchema validators.
         """
         kw['nvr'] = kw['nvr']['text']
 
@@ -244,7 +251,6 @@ class Root(controllers.RootController):
                 flash("Invalid bug number")
                 raise redirect('/')
             if bz.security:
-                log.info("Bug #s tagged with Security keyword; changing update type")
                 p.type = 'security'
                 note += '; Security bugs found, changed update type to security'
             p.addBugzilla(bz)

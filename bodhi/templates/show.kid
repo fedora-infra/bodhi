@@ -33,40 +33,56 @@ for item in update.filelist.items():
 ?>
 
 <body>
-    <center>
-        <table width="97%">
-            <tr>
-                <td><div class="show">${update.nvr}</div></td>
-                <td align="right">
-                    [ <a href="/push/${update.nvr}">Request Push</a> <span py:if="update.pushed"> or <a href="/unpush/${update.nvr}">Unpush</a></span> | <a href="/edit/${update.nvr}">Edit</a><span py:if="not update.pushed"> | <a href="/delete/${update.nvr}">Delete</a></span> ]
-                </td>
-            </tr>
-        </table>
-    </center>
-    <table class="show">
-        <tr py:for="field in (['Release', update.release.long_name],
-                              ['Update ID', update.update_id],
-                              ['Status', update.testing and 'Testing' or 'Final'],
-                              ['Type', update.type],
-                              ['Bugs', (bugs) and XML(bugs) or ''],
-                              ['CVEs', (cves) and XML(cves) or ''],
-                              ['Embargo', update.type == 'security' and update.embargo or ''],
-                              ['Pushed', update.pushed],
-                              ['Needs Push', update.needs_push],
-                              ['Date Pushed', update.date_pushed],
-                              ['Mail Sent', update.mail_sent],
-                              ['Submitter', update.submitter],
-                              ['Date Submitted', update.date_submitted],
-                              ['Date Modified', update.date_modified],
-                              ['Archived Mail', update.archived_mail],
-                              ['Notes', update.notes],
-                              ['Files', XML(filelist)])">
 
+    <center><table width="97%">
+        <tr>
+            <td><div class="show">${update.nvr}</div></td>
+
+            <!-- update options -->
+            <td align="right">
+                [
+                <span py:if="not update.needs_push">
+                    <a href="/push/${update.nvr}">Push</a> | 
+                </span>
+                <span py:if="update.needs_push">
+                    <a href="/revoke/${update.nvr}">Revoke Push Request</a> | 
+                </span>
+                <span py:if="update.pushed">
+                    <a href="/unpush/${update.nvr}">Unpush</a> | 
+                </span>
+                <span py:if="not update.pushed">
+                    <a href="/delete/${update.nvr}">Delete</a> | 
+                </span>
+                <a href="/edit/${update.nvr}">Edit</a>
+                ]
+            </td>
+        </tr>
+    </table></center>
+
+    <table class="show">
+        <tr py:for="field in (
+            ['Release',       update.release.long_name],
+            ['Update ID',     update.update_id],
+            ['Status',        update.testing and 'Testing' or 'Final'],
+            ['Type',          update.type],
+            ['Bugs',          (bugs) and XML(bugs) or ''],
+            ['CVEs',          (cves) and XML(cves) or ''],
+            ['Embargo',       update.type == 'security' and update.embargo or ''],
+            ['Pushed',        update.pushed],
+            ['Needs Push',    update.needs_push],
+            ['Date Pushed',   update.date_pushed],
+            ['Mail Sent',     update.mail_sent],
+            ['Submitter',     update.submitter],
+            ['Submitted',     update.date_submitted],
+            ['Modified',      update.date_modified],
+            ['Archived Mail', update.archived_mail],
+            ['Notes',         update.notes],
+            ['Files',         XML(filelist)]
+        )">
                 <span py:if="field[1] != None and field[1] != ''">
                     <td class="show-title"><b>${field[0]}:</b></td>
                     <td class="show-value">${field[1]}</td>
                 </span>
-
         </tr>
         <tr><td class="show-title"></td></tr>
     </table>

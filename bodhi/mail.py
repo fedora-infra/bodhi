@@ -19,23 +19,16 @@ from turbogears import config
 release_team = config.get('release_team_address')
 from_addr = config.get('from_address')
 
-# this should probably go into model.PackageUpdate.__str__
-def update_str(update):
-    return """\
-        Package: %(package)s
-           Type: %(type)s
-           Bugs: %(bugs)s
-           CVES: %(cves)s
-          Notes: %(notes)s
-    """ % ({
-                'package'   : update.nvr,
-                'type'      : update.type,
-                'notes'     : update.notes,
-                'email'     : update.submitter,
-                'bugs'      : update.get_bugstring(),
-                'cves'      : update.get_cvestring()
-          })
-
+##
+## All of the email messages that bodhi is going to be sending around, not
+## including the update notifications.
+##
+## Right now this is a bit scary; the 'fields' field represents all of the 
+## update fields in the body of the message that need to be expanded.
+##
+## TODO: we might want to think about pulling this stuff out into a separate
+## configurationf file (using ConfigObj?)
+##
 messages = {
     'new' : {
         'subject' : '[Fedora Update] [new] %(package)s',
@@ -47,7 +40,7 @@ messages = {
         'fields'  : lambda x: {
                         'email'     : x.submitter,
                         'release'   : x.release.long_name,
-                        'updatestr' : update_str(x)
+                        'updatestr' : str(x)
                     }
         },
 
@@ -74,7 +67,7 @@ messages = {
                         'package'   : x.nvr,
                         'email'     : x.submitter,
                         'release'   : x.release.long_name,
-                        'updatestr' : update_str(x)
+                        'updatestr' : str(x)
                     }
         },
 
@@ -96,7 +89,7 @@ messages = {
 """,
         'fields'  : lambda x: {
                         'submitter' : x.submitter,
-                        'updatestr' : update_str(x)
+                        'updatestr' : str(x)
                     }
     },
 
@@ -107,7 +100,7 @@ messages = {
 """,
         'fields'  : lambda x: {
                         'submitter' : x.submitter,
-                        'updatestr' : update_str(x)
+                        'updatestr' : str(x)
                     }
     },
 
@@ -117,9 +110,20 @@ messages = {
 The following update has been unpushed\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'updatestr' : update_str(x)
+                        'updatestr' : str(x)
                     }
-    }
+    },
+
+    'revoke' : {
+        'subject' : '[Fedora Update] [revoked] %(package)s',
+        'body'    : """\
+%(submitter)s has revoked the pushing of the following update:\n%(updatestr)s
+""",
+        'fields'  : lambda x: {
+                        'submitter' : x.submitter,
+                        'updatestr' : str(x)
+                    }
+        }
 }
 
 def send(to, msg_type, update):

@@ -1,13 +1,12 @@
 Bodhi
 =====
 
-    http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem
+    https://hosted.fedoraproject.org/projects/bodhi
 
+Setting up the development environment
+======================================
 
-Setting up the updates system environment
-=========================================
-
-(Note: all of the global settings for this project are in ./bodhi/config/app.cfg)
+0. Review/modify global settings in 'bodhi/config/app.cfg'
 
 1. Install the necessary software
 

@@ -76,15 +76,21 @@ class ExtendedMetadata:
         parent.appendChild(child)
         return child
 
-    def remove_update(self, update):
-        doc = self._get_updateinfo(update.get_repo())
+    def _get_notice(self, doc, update):
         for elem in doc.getElementsByTagName('update'):
             for child in elem.childNodes:
+                print child.toprettyxml()
                 if child.nodeName == 'id' and \
                    child.firstChild.nodeValue == update.update_id:
-                    log.debug("Removing update %s from updateinfo" % update.update_id)
-                    doc.firstChild.removeChild(elem)
-                    return True
+                       return elem
+        return None
+
+    def remove_update(self, update):
+        doc = self._get_updateinfo(update.get_repo())
+        elem = self._get_notice(doc, update)
+        if elem:
+            doc.firstChild.removeChild(elem)
+            return True
         return False
 
     def add_update(self, update):
@@ -92,6 +98,11 @@ class ExtendedMetadata:
         log.debug("Generating extended metadata for %s" % update.nvr)
 
         doc = self._get_updateinfo(update.get_repo())
+
+        ## Make sure this update doesn't already exist
+        if self._get_notice(doc, update):
+            log.debug("Update %s already in updateinfo" % update.nvr)
+            return
 
         root = self._insert(doc, doc.firstChild, 'update', attrs={
                 'type'      : update.type,
@@ -163,7 +174,8 @@ class ExtendedMetadata:
     def insert_updateinfo(self):
         """ insert the updateinfo.xml.gz metadata into the repo """
         for (repo, doc) in self.docs.items():
-            release = Release.select(OR(Release.q.repo==repo, Release.q.testrepo==repo))
+            release = Release.select(OR(Release.q.repo==repo,
+                                        Release.q.testrepo==repo))
             for arch in release[0].arches:
                 repomd = RepoMetadata(join(repo, arch.name, 'repodata'))
                 repomd.add(doc)

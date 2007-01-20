@@ -9,28 +9,22 @@
 </head>
 
 <body>
-    <blockquote>
-        <h2>Push Console</h2>
-        <textarea id="push_console" rows="30" cols="100" wrap="hard"></textarea>
-    </blockquote>
-
     <script lang="javascript">
         function handler(evt){
-          //logDebug("onLoad handler");
-          var t = evt.target.responseText;
-          var console = getElement("push_console");
-          console.value += '\n' + t;
-          console.scrollTop = console.scrollHeight;
+          $('push_console').value += '\n' + evt.target.responseText;
+          $('push_console').scrollTop = $('push_console').scrollHeight;
         }
-        //createLoggingPane(true);
-        //logDebug("Creating new XMLHttpRequest");
         var req = new XMLHttpRequest();
         req.multipart = true;
         req.onload = handler;
-        //req.open("GET", "/admin/push/push_updates", true);
         req.open("GET", "${callback}", true);
         req.send(null);
-        //logDebug("send req" + req);
    </script>
+
+    <blockquote>
+        <h2>Push Console</h2>
+        <textarea id="push_console" rows="30" cols="100"></textarea>
+    </blockquote>
+
 </body>
 </html>

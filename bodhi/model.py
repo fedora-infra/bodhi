@@ -76,7 +76,7 @@ class PackageUpdate(SQLObject):
     archived_mail   = UnicodeCol(default=None)
     needs_push      = BoolCol(default=False)
     needs_unpush    = BoolCol(default=False)
-    comments        = MultipleJoin('Comment', joinColumn='update_id')
+    comments        = MultipleJoin('Comment')
 
     ## TODO: create File table ?
     filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
@@ -152,11 +152,31 @@ class PackageUpdate(SQLObject):
                             continue
         self.filelist = filelist
 
-#class Comment(SQLObject):
-#    """ Table of comments on updates. """
-#    update  = ForeignKey('PackageUpdate', notNone=True)
-#    user    = UnicodeCol(notNone=True)
-#    text    = UnicodeCol(notNone=True)
+    def __str__(self):
+        """
+        Return a string representation of this update.
+        TODO: eventually put the URL of this update
+        """
+        return """\
+            Package: %(package)s
+               Type: %(type)s
+               Bugs: %(bugs)s
+               CVES: %(cves)s
+              Notes: %(notes)s
+        """ % ({
+                    'package'   : self.nvr,
+                    'type'      : self.type,
+                    'notes'     : self.notes,
+                    'email'     : self.submitter,
+                    'bugs'      : self.get_bugstring(),
+                    'cves'      : self.get_cvestring()
+              })
+
+class Comment(SQLObject):
+    """ Table of comments on updates. """
+    update  = ForeignKey('PackageUpdate')
+    user    = ForeignKey('User')
+    text    = UnicodeCol(notNone=True)
 
 class CVE(SQLObject):
     """ Table of CVEs fixed within updates that we know of. """

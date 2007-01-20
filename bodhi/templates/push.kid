@@ -10,18 +10,20 @@
 
 <body>
 
-<form name="push_form" method="post" action="/admin/push/console">
-    <table>
-        <tr py:for="update in updates">
-            <td>
-                <input type="checkbox" name="updates" value="${update.nvr}" checed="True"/>
-                <a href="/show/${update.nvr}">${update.nvr}</a>
-            </td>
-        </tr>
-    </table>
-    <input type="hidden" name="callback" value="${callback}" />
-    <input type="submit" name="push" value="${label}" />
-</form>
+<blockquote>
+    <form name="push_form" method="post" action="/admin/push/console">
+        <table>
+            <tr py:for="update in updates">
+                <td>
+                <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
+                    <a href="/show/${update.nvr}">${update.nvr}</a>
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" name="callback" value="${callback}" />
+        <input type="submit" name="push" value="${label}" />
+    </form>
+</blockquote>
 
 </body>
 </html>
