@@ -249,8 +249,9 @@ class Root(controllers.RootController):
                 bz = Bugzilla(bz_id=int(bug))
             except ValueError:
                 flash("Invalid bug number")
+                # TODO: redirect back to the previous page
                 raise redirect('/')
-            if bz.security:
+            if bz.security and p.type != 'security':
                 p.type = 'security'
                 note += '; Security bugs found, changed update type to security'
             p.addBugzilla(bz)
@@ -261,8 +262,8 @@ class Root(controllers.RootController):
             except SQLObjectNotFound:
                 cve = CVE(cve_id=cve_id)
             p.addCVE(cve)
-        if p.cves != [] and not p.security:
-            p.security = True
+        if p.cves != [] and (p.type != 'security'):
+            p.type = 'security'
             note += '; CVEs provided, changed update type to security'
 
         if edited:

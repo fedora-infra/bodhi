@@ -44,7 +44,7 @@ class PushController(controllers.Controller):
         self.createrepo_cache = config.get('createrepo_cache_dir')
         self.stage_dir = config.get('stage_dir')
         self.lockfile = join(self.stage_dir, '.lock')
-        self.header = lambda x: "%s\n%s\n%s" % ('=' * 100, x, '=' * 100)
+        self.header = lambda x: "%s\n     %s\n%s" % ('=' * 100, x, '=' * 100)
         if isfile(self.lockfile):
             log.debug("Removing stale repository lockfile")
             self._unlock_repo()
@@ -213,7 +213,7 @@ class PushController(controllers.Controller):
                 else:
                     destfile = join(dest, filename)
                 if isfile(destfile):
-                    yield "Removing already pushed file: %s" % filename
+                    yield " * Removing already pushed file: %s" % filename
                     os.unlink(destfile)
                 yield " * %s" % join(update.testing and 'testing' or '',
                                      update.release.name, arch, filename)

@@ -101,9 +101,10 @@ class PackageUpdate(SQLObject):
 
     def assign_id(self):
         """
-        Assign an update ID to this update.  This function finds the next number in the
-        sequence of pushed updates for this release, increments it and prefixes it
-        with 'prefix_id' (configurable in app.cfg) and the year (ie FEDORA-2007-0001)
+        Assign an update ID to this update.  This function finds the next number
+        in the sequence of pushed updates for this release, increments it and
+        prefixes it with 'prefix_id' (configurable in app.cfg) and the year
+        (ie FEDORA-2007-0001)
         """
         import time
         if self.update_id != None: # maintain assigned ID for repushes
@@ -113,7 +114,8 @@ class PackageUpdate(SQLObject):
             id = int(update[0].update_id.split('-')[-1]) + 1
         except AttributeError: # no other updates; this is the first
             id = 1
-        self.update_id = '%s-%s-%0.4d' % (config.get('id_prefix'),time.localtime()[0],id)
+        self.update_id = '%s-%s-%0.4d' % (config.get('id_prefix'),
+                                          time.localtime()[0],id)
         log.debug("Setting update_id for %s to %s" % (self.nvr, self.update_id))
 
     def _build_filelist(self):
@@ -191,12 +193,14 @@ class Bugzilla(SQLObject):
     security = BoolCol(default=False)
 
     _bz_server = config.get("bz_server")
-    _default_closemsg = "%(package)s has been released for %(release)s.  If problems still persist, please make note of it in this bug report."
+    _default_closemsg = "%(package)s has been released for %(release)s.  " + \
+                        "If problems still persist, please make note of it " + \
+                        "in this bug report."
 
     def _set_bz_id(self, bz_id):
         """
-        When the ID for this bug is set (upon creation), go out and fetch the details
-        and check if this bug is security related.
+        When the ID for this bug is set (upon creation), go out and fetch the
+        details and check if this bug is security related.
         """
         self._SO_set_bz_id(bz_id)
         self._fetch_details()
@@ -204,24 +208,29 @@ class Bugzilla(SQLObject):
     def _fetch_details(self):
         import xmlrpclib
         try:
-            log.debug("Fetching bugzilla title for bug #%d" % self.bz_id)
+            log.debug("Fetching bugzilla #%d" % self.bz_id)
             server = xmlrpclib.Server(self._bz_server)
             me = User.by_user_name(config.get('from_address'))
+            if not me.password:
+                log.error("No password stored for %s" % me.user_name)
+                return
             bug = server.bugzilla.getBug(self.bz_id, me.user_name, me.password)
             del server
             self.title = bug['short_desc']
             if bug['keywords'].lower().find('security') != -1:
                 self.security = True
+        except xmlrpclib.Fault:
+            self.title = 'Invalid bug number'
         except Exception, e:
-            log.error("Unable to fetch Bugzilla title")
-            raise e
+            self.title = 'Unable to fetch bug title'
+            log.error(self.title)
 
     def _add_comment(self, comment):
         me = User.by_user_name(config.get('from_address'))
         server = xmlrpclib.Server(self._bz_server)
-        server.bugzilla.addComment(self.bz_id, comment, me.user_name, me.password, 0)
+        server.bugzilla.addComment(self.bz_id, comment, me.user_name,
+                                   me.password, 0)
         del server
-        pass
 
     def _close_bug(self):
         pass

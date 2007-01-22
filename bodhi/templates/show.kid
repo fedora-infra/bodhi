@@ -12,7 +12,7 @@
 <?python
 bugs = ''
 cves = ''
-bzlink = '<a href="https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%s">%s</a> '
+bzlink = '<a href="https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%d">%d</a> '
 cvelink = '<a href="http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s">%s</a> '
 
 ## Build our reference links
@@ -20,6 +20,7 @@ for bug in update.bugs:
     bugs += bzlink % (bug.bz_id, bug.bz_id)
     if bug.title:
         bugs += '- %s<br/>' % (bug.title)
+bugs = bugs.replace('&', '&amp;')
 for cve in update.cves:
     cves += cvelink % (cve.cve_id, cve.cve_id)
 
