@@ -34,11 +34,7 @@ class SoBugzillaIdentityProvider(SqlObjectIdentityProvider):
         self.bz_server = config.get('bz_server')
 
     def validate_identity(self, user_name, password, visit_key):
-        if not self.validate_password(None, user_name, password):
-            log.warning("Invalid password for %s" % user_name)
-            return None
-        log.info("Login successful for %s" % user_name)
-
+        newuser = False
         user_name = to_db_encoding(user_name, self.user_class_db_encoding)
 
         try:
@@ -46,6 +42,14 @@ class SoBugzillaIdentityProvider(SqlObjectIdentityProvider):
         except SQLObjectNotFound:
             log.info("Creating new user %s" % user_name)
             user = User(user_name=user_name)
+            newuser = True
+
+        if not self.validate_password(user, user_name, password):
+            log.warning("Invalid password for %s" % user_name)
+            if newuser:
+                user.destroySelf()
+            return None
+        log.info("Login successful for %s" % user_name)
 
         try:
             link = VisitIdentity.by_visit_key(visit_key)
@@ -61,6 +65,14 @@ class SoBugzillaIdentityProvider(SqlObjectIdentityProvider):
         Request bug #1 with the given username and password.  If a Fault is
         thrown, the username/pass is invalid; else, we're good to go.
         """
+        # if there is a password in our local database, then authenticate
+        # against it (ie, guest, admin, etc)
+        if user.password:
+            log.debug("Authenticating against local password for %s" %user_name)
+            return user.password == self.encrypt_password(password)
+
+        # if there is no password stored, then try the supplied password against
+        # bugzilla by attempting to fetch bug #1
         try:
             server = xmlrpclib.Server(self.bz_server)
             server.bugzilla.getBugSimple('1', user_name, password)

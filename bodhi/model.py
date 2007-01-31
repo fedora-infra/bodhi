@@ -35,10 +35,10 @@ class Release(SQLObject):
     updates     = MultipleJoin('PackageUpdate', joinColumn='release_id')
     arches      = RelatedJoin('Arch')
     multilib    = RelatedJoin('Multilib')
-    repo        = UnicodeCol(notNone=True)
-    testrepo    = UnicodeCol(notNone=True)
+    repodir     = UnicodeCol(notNone=True)
 
 class Arch(SQLObject):
+    """ Table of supported architectures """
     name            = UnicodeCol(alternateID=True, notNone=True)
     subarches       = PickleCol()
     releases        = RelatedJoin('Release')
@@ -46,6 +46,10 @@ class Arch(SQLObject):
     multilib        = RelatedJoin('Multilib')
 
 class Multilib(SQLObject):
+    """
+    Table of multilib packages (ie x86_64 packages that need to pull down
+    the i386 version as well, or ppc that needs ppc64).
+    """
     package     = UnicodeCol(alternateID=True, notNone=True)
     releases    = RelatedJoin('Release')
     arches      = RelatedJoin('Arch')
@@ -67,7 +71,7 @@ class PackageUpdate(SQLObject):
     cves            = RelatedJoin("CVE")
     bugs            = RelatedJoin("Bugzilla")
     release         = ForeignKey('Release')
-    testing         = BoolCol()
+    testing         = BoolCol(default=True)
     pushed          = BoolCol(default=False)
     date_pushed     = DateTimeCol(default=None)
     notes           = UnicodeCol()
@@ -77,8 +81,6 @@ class PackageUpdate(SQLObject):
     needs_push      = BoolCol(default=False)
     needs_unpush    = BoolCol(default=False)
     comments        = MultipleJoin('Comment')
-
-    ## TODO: create File table ?
     filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
 
     def _set_nvr(self, nvr):
@@ -97,7 +99,8 @@ class PackageUpdate(SQLObject):
         return ' '.join([cve.cve_id for cve in self.cves])
 
     def get_repo(self):
-        return self.testing and self.release.testrepo or self.release.repo
+        from os.path import join
+        return join(self.testing and 'testing' or '', self.release.repodir)
 
     def assign_id(self):
         """
@@ -109,9 +112,9 @@ class PackageUpdate(SQLObject):
         import time
         if self.update_id != None: # maintain assigned ID for repushes
             return
-        update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id).reversed()
+        update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id)
         try:
-            id = int(update[0].update_id.split('-')[-1]) + 1
+            id = int(update.reversed()[0].update_id.split('-')[-1]) + 1
         except AttributeError: # no other updates; this is the first
             id = 1
         self.update_id = '%s-%s-%0.4d' % (config.get('id_prefix'),
@@ -334,7 +337,7 @@ def init_updates_stage():
     os.mkdir(join(stage_dir, 'testing'))
     for release in Release.select():
         for status in ('', 'testing'):
-            dir = join(stage_dir, status, release.name)
+            dir = join(stage_dir, status, release.repodir)
             os.mkdir(dir)
             mkmetadatadir(join(dir, 'SRPMS'))
             for arch in release.arches:
@@ -351,36 +354,32 @@ def import_releases():
             'name'      : 'FC7',
             'long_name' : 'Fedora Core 7',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repo'      : join(config.get('stage_dir'), 'FC7'),
-            'testrepo'  : join(config.get('stage_dir'), 'testing', 'FC7')
+            'repodir'   : '7'
         },
         {
             'name'      : 'FC6',
             'long_name' : 'Fedora Core 6',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repo'      : join(config.get('stage_dir'), 'FC6'),
-            'testrepo'  : join(config.get('stage_dir'), 'testing', 'FC6')
+            'repodir'    : '6'
         },
         {
             'name'      : 'FC5',
             'long_name' : 'Fedora Core 5',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repo'      : join(config.get('stage_dir'), 'FC5'),
-            'testrepo'  : join(config.get('stage_dir'), 'testing', 'FC5')
+            'repodir'   : '5'
         },
         {
             'name'      : 'EPEL5',
             'long_name' : 'EPEL5 Enterprise Extras',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repo'      : join(config.get('stage_dir'), 'EPEL5'),
-            'testrepo'  : join(config.get('stage_dir'), 'testing', 'EPEL5')
+            'repodir'   : 'EPEL5'
         }
     )
 
     for release in releases:
         num_multilib = 0
         rel = Release(name=release['name'], long_name=release['long_name'],
-                      repo=release['repo'], testrepo=release['testrepo'])
+                      repodir=release['repodir'])
         map(rel.addArch, release['arches'])
         for arch in biarch.keys():
             if not biarch[arch].has_key(release['name'][-1]):

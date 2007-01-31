@@ -17,26 +17,5 @@
             </tr>
         </table>
     </div>
-
-<script language="javascript">
-    function newType() {
-        log("newType()");
-        var val = getElement("form_type").value;
-        logDebug("val = " + val);
-        toggle("form_embargo");
-        if (val == "security") {
-            logDebug("val is security");
-            toggle("form_embargo");
-            //showElement(getElement("form_embargo"));
-            //showElement(getElement("form_embargo_trigger"));
-        } else {
-            hideElement(getElement("form_embargo"));
-            //showElement(getElement("form_embargo_trigger"));
-        }
-    }
-
-    //createLoggingPane(true);
-    logDebug("done");
-</script>
 </body>
 </html>

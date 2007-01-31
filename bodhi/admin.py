@@ -15,7 +15,9 @@
 from push import PushController
 from model import Release
 
-from turbogears import expose, identity
+from os.path import join
+
+from turbogears import expose, identity, config
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
 from turbogears.toolbox.catwalk import CatWalk
@@ -35,7 +37,8 @@ class AdminController(Controller, SecureResource):
         import os
         output = ''
         for release in Release.select():
-            for repo in [release.repo, release.testrepo]:
+            for branch in ('', 'testing'):
+                repo = join(config.get('stage_dir'), branch, release.repodir)
                 tree = os.popen('/usr/bin/tree -s %s' % repo)
                 output += tree.read() + '\n'
                 tree.close()

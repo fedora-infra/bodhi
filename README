@@ -10,7 +10,7 @@ Setting up the development environment
 
 1. Install the necessary software
 
-        # yum install TurboGears python-TurboMail createrepo
+        # yum install TurboGears python-TurboMail createrepo yum-utils
 
 2. Install the identity provider (we're authenticating against bugzilla
    until we get the Fedora Accounts System into shape)
@@ -44,7 +44,9 @@ Setting up the development environment
         >>> admin = Group.get(1)
         >>> me.addGroup(admin)
 
-    - While we're here, create an identity for the system itself
+    - While we're here, create an identity for the system itself.  This user
+      is currently used for fetching Bugzilla information, as well as sending
+      emails around.
 
         >>> me = User(user_name='updates@fedora.redhat.com')
         >>> me.password = '?' # password for bugzilla and SMTP authentication
@@ -53,6 +55,9 @@ Setting up the development environment
 
 Running the bodhi system test suite
 =====================================
+
+Note: At the moment these tests will most likely not work.  A lot of the core
+API has changed under them, and they need to be updated to reflect it.
 
     All tests are stored in the 'tests' module in this project, and can be
     run by executing the command `nosetests` in top level of the project.

@@ -26,6 +26,7 @@ from xml.dom import minidom
 from os.path import join, basename, isdir, exists
 from datetime import datetime
 from sqlobject import OR
+from turbogears import config
 from modifyrepo import RepoMetadata
 
 log = logging.getLogger(__name__)
@@ -41,14 +42,16 @@ rebootpkgs = ("kernel", "kernel-smp", "kernel-xen-hypervisor", "kernel-PAE",
 class ExtendedMetadata:
 
     def __init__(self):
-        self.docs = {} # {repodir : xml.Document}
+        self.docs = {} # {repodir : [Release, xml.Document]}
+        self.stage_dir = config.get('stage_dir')
 
-    def _get_updateinfo(self, repo):
+    def _get_updateinfo(self, update):
         """
         Return the updateinfo metadata Document for the repository at a given
         path.  If the updateinfo.xml.gz is not present, then it will create
         a new Document and return it.
         """
+        repo = join(self.stage_dir, update.get_repo())
         if self.docs.has_key(repo):
             return self.docs[repo]
         uinfo = join(repo, 'i386', 'repodata', 'updateinfo.xml.gz')
@@ -62,7 +65,7 @@ class ExtendedMetadata:
             doc = minidom.Document()
             updates = doc.createElement('updates')
             doc.appendChild(updates)
-        self.docs[repo] = doc
+        self.docs[repo] = [update.release, doc]
         return doc
 
     def _insert(self, doc, parent, name, attrs={}, text=None):
@@ -86,7 +89,7 @@ class ExtendedMetadata:
         return None
 
     def remove_update(self, update):
-        doc = self._get_updateinfo(update.get_repo())
+        doc = self._get_updateinfo(update)
         elem = self._get_notice(doc, update)
         if elem:
             doc.firstChild.removeChild(elem)
@@ -97,7 +100,7 @@ class ExtendedMetadata:
         """ Build the extended metdata for a given update """
         log.debug("Generating extended metadata for %s" % update.nvr)
 
-        doc = self._get_updateinfo(update.get_repo())
+        doc = self._get_updateinfo(update)
 
         ## Make sure this update doesn't already exist
         if self._get_notice(doc, update):
@@ -173,10 +176,8 @@ class ExtendedMetadata:
 
     def insert_updateinfo(self):
         """ insert the updateinfo.xml.gz metadata into the repo """
-        for (repo, doc) in self.docs.items():
-            release = Release.select(OR(Release.q.repo==repo,
-                                        Release.q.testrepo==repo))
-            for arch in release[0].arches:
+        for (repo, data) in self.docs.items():
+            for arch in data[0].arches:
                 repomd = RepoMetadata(join(repo, arch.name, 'repodata'))
-                repomd.add(doc)
+                repomd.add(data[1])
             log.debug("Inserted updateinfo.xml.gz into %s" % repo)

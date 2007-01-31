@@ -134,17 +134,24 @@ class PushController(controllers.Controller):
                     for msg in self.unpush_files(update):
                         yield msg
                         log.info(msg)
+                    self._unlock_repo()
                     return
 
             yield self.header("Generating repository metadata")
-            for (testing, releases) in releases.items():
-                for release in releases:
-                    for output in self.generate_metadata(release, testing):
-                        yield output
-                        log.info(output)
+            try:
+                for (testing, releases) in releases.items():
+                    for release in releases:
+                        for output in self.generate_metadata(release, testing):
+                            yield output
+                            log.info(output)
+                yield " * Inserting updateinfo.xml into repositories"
+                updateinfo.insert_updateinfo()
+            except Exception, e:
+                msg = "Exception thrown: " + str(e)
+                log.error(msg)
+                yield "ERROR: " + msg
+                raise e
 
-            yield " * Inserting updateinfo.xml into repositories"
-            updateinfo.insert_updateinfo()
 
             self._unlock_repo()
             cherrypy.session['updates'] = []
@@ -205,7 +212,7 @@ class PushController(controllers.Controller):
         Go through the updates filelist and copy the files to updates stage.
         """
         for arch in update.filelist.keys():
-            dest = join(update.get_repo(), arch)
+            dest = join(self.stage_dir, update.get_repo(), arch)
             for file in update.filelist[arch]:
                 filename = basename(file)
                 if filename.find('debuginfo') != -1:
@@ -225,7 +232,7 @@ class PushController(controllers.Controller):
         updates stage.
         """
         for arch in update.filelist.keys():
-            dest = join(update.get_repo(), arch)
+            dest = join(self.stage_dir, update.get_repo(), arch)
             for file in update.filelist[arch]:
                 filename = basename(file)
                 if file.find('debuginfo') != -1:
@@ -243,7 +250,8 @@ class PushController(controllers.Controller):
         """
         Generate repository metadata for a given release.
         """
-        baserepo = testing and release.testrepo or release.repo
+        baserepo = join(self.stage_dir, testing and 'testing' or '',
+                        release.repodir)
         for arch in release.arches:
             repo = join(baserepo, arch.name)
 

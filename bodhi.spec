@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        1.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        TODO
 
 Group:          Applications/Internet
@@ -14,7 +14,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
 BuildRequires:  python-setuptools
-Requires:       TurboGears createrepo python-TurboMail tree
+Requires:       TurboGears createrepo python-TurboMail tree yum-utils
 
 %description
 TODO.

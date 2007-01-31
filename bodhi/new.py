@@ -72,10 +72,12 @@ class UpdateFields(WidgetsList):
                             search_param='name', result_name='pkgs')
     release = SingleSelectField(options=get_releases,
                                 validator=validators.OneOf(get_releases()))
-    testing = CheckBox(validator=validators.Bool)
+    # do we want all updates to get pushed as testing first?
+    #testing = CheckBox(validator=validators.Bool)
     type = SingleSelectField(options=update_types,
                              validator=validators.OneOf(update_types))
-    embargo = CalendarDateTimePicker(validator=validators.DateTimeConverter())
+    # do we even want an embargo?
+    #embargo = CalendarDateTimePicker(validator=validators.DateTimeConverter())
     bugs = TextField(validator=validators.String())
     cves = TextField(validator=validators.String())
     notes = TextArea(validator=validators.String())
