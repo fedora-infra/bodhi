@@ -7,19 +7,16 @@ import os
 execfile(os.path.join("bodhi", "release.py"))
 
 setup(
-    name="Fedora-Updates-System",
+    name="bodhi",
     version=version,
     
-    # uncomment the following lines if you fill them out in release.py
-    #description=description,
-    #author=author,
-    #author_email=email,
-    #url=url,
-    #download_url=download_url,
-    #license=license,
+    description=description,
+    authors=authors,
+    url=url,
+    license=license,
     
     install_requires = [
-        "TurboGears >= 1.0b1",
+        "TurboGears >= 1.0.1",
     ],
     scripts = ["start-bodhi.py"],
     zip_safe=False,

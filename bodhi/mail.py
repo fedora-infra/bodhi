@@ -123,6 +123,16 @@ The following update has been unpushed\n\n%(updatestr)s
                         'submitter' : x.submitter,
                         'updatestr' : str(x)
                     }
+        },
+
+    'moved' : {
+        'subject' : '[Fedora Update] [moved] %(package)s',
+        'body'    : """\
+The following update has been moved from Testing to Final:\n%(updatestr)s
+""",
+        'fields'  : lambda x: {
+                        'updatestr' : str(x)
+                    }
         }
 }
 

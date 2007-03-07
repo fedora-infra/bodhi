@@ -61,17 +61,10 @@ class PushController(controllers.Controller):
 
     @expose(template='bodhi.templates.push')
     def index(self):
-        """ List updates that need to be pushed """
-        updates = PackageUpdate.select(PackageUpdate.q.needs_push == True)
+        """ List updates tagged with a push/unpush/move request """
+        updates = PackageUpdate.select(PackageUpdate.q.request != None)
         return dict(updates=updates, label='Push Updates',
-                    callback='/admin/push/push_updates')
-
-    @expose(template='bodhi.templates.push')
-    def unpush(self):
-        """ List updates that need to be unpushed """
-        updates = PackageUpdate.select(PackageUpdate.q.needs_unpush == True)
-        return dict(updates=updates, label='Unpush Updates',
-                    callback='/admin/push/unpush_updates')
+                    callback='/admin/push/run_requests')
 
     @expose(template='bodhi.templates.pushconsole')
     def console(self, updates, callback, **kw):
@@ -85,58 +78,47 @@ class PushController(controllers.Controller):
         return dict(callback=callback)
 
     @expose()
-    def push_updates(self):
+    def run_requests(self):
         """
-        This method is called by the pushconsole template.
-        It returns a generator that spits out the push results.  We're using
-        comet here, so the results will be pushed out to the client
-        asynchronously.
-
-        TODO: find out why this is broke in konqueror
+        Run all of the appropriate requests for a list of selected updates
         """
         @comet(content_type='text/plain')
-        def _do_push():
+        def _run_requests():
+            log.debug("_run_requests()")
             start_time = datetime.now()
             yield "Starting push at %s" % start_time
             try:
                 self._lock_repo()
-                yield "Acquired lock for repository"
+                yield "Acquired repository lock"
             except RepositoryLocked:
                 err = "Unable to acquire lock for repository"
-                log.info(err)
+                log.warning(err)
                 yield err
-                return
+                # TODO: block somehow until it becomes available
+                # (or even attach to a current push console)
 
-            updateinfo = ExtendedMetadata()
+            # We need to keep track of the repos that we are proding so we
+            # can regenerate the appropriate metadata
             releases = { True : set(), False : set() } # testing : releases
 
+            # All of your updateinfo.xml.gz are belong to us
+            updateinfo = ExtendedMetadata()
+
+            # Execute each updates request
             for package in cherrypy.session['updates']:
+                log.debug("Running request on %s" % package)
                 update = PackageUpdate.byNvr(package)
                 releases[update.testing].add(update.release)
-                try:
-                    yield self.header("Pushing %s" % update.nvr)
-                    for output in self.push_files(update):
-                        yield output
-                        log.info(output)
-                    update.assign_id()
-                    yield " * Setting update ID to %s" % update.update_id
-                    yield " * Generating extended update metadata"
+                for msg in update.do_request():
+                    yield msg
+                if update.request == 'push':
+                    log.debug("Adding update metadata to repo")
                     updateinfo.add_update(update)
-                    update.needs_push = False
-                    update.pushed = True
-                    yield " * Sending notification to %s" % update.submitter
-                    mail.send(update.submitter, 'pushed', update)
-                    update.sync()
-                except Exception, e:
-                    log.error("Exception during push: %s" % e)
-                    yield "ERROR: Exception thrown during push: %s" % e
-                    yield self.header("Unpushing %s" % update.nvr)
-                    for msg in self.unpush_files(update):
-                        yield msg
-                        log.info(msg)
-                    self._unlock_repo()
-                    return
+                elif update.request == 'unpush':
+                    updateinfo.remove_update(update)
+                # TODO: figure out how to remove the metadata for 'move's
 
+            # Regenerate the repository metadata
             yield self.header("Generating repository metadata")
             try:
                 for (testing, releases) in releases.items():
@@ -152,99 +134,13 @@ class PushController(controllers.Controller):
                 yield "ERROR: " + msg
                 raise e
 
-
+            # Clean up
             self._unlock_repo()
             cherrypy.session['updates'] = []
             yield self.header("Push completed in %s" % str(datetime.now() -
-                                                          start_time))
-        return _do_push()
+                                                           start_time))
+        return _run_requests()
 
-    @expose()
-    def unpush_updates(self):
-
-        @comet(content_type='text/plain')
-        def _do_unpush():
-            start_time = datetime.now()
-            yield "Starting unpush on %s" % start_time
-            try:
-                self._lock_repo()
-                yield "Acquired lock for repository"
-            except RepositoryLocked:
-                err = "Unable to acquire lock for repository"
-                log.debug(err)
-                yield err
-                return
-
-            updateinfo = ExtendedMetadata()
-            releases = { True : set(), False : set() } # testing : releases
-
-            for package in cherrypy.session['updates']:
-                update = PackageUpdate.byNvr(package)
-                releases[update.testing].add(update.release)
-                yield self.header("Unpushing %s" % update.nvr)
-                for msg in self.unpush_files(update):
-                    log.info(msg)
-                    yield msg
-                update.pushed = False
-                update.needs_unpush = False
-                yield " * Removing extended metadata from updateinfo.xml"
-                updateinfo.remove_update(update)
-                mail.send(update.submitter, 'unpushed', update)
-
-            yield self.header("Generating repository metadata")
-            for (testing, releases) in releases.items():
-                for release in releases:
-                    for output in self.generate_metadata(release, testing):
-                        yield output
-                        log.info(output)
-
-            yield " * Re-inserting updated updateinfo.xml"
-            updateinfo.insert_updateinfo()
-
-            yield self.header("Unpush completed in %s" % str(datetime.now() -
-                                                             start_time))
-            self._unlock_repo()
-
-        return _do_unpush()
-
-    def push_files(self, update):
-        """
-        Go through the updates filelist and copy the files to updates stage.
-        """
-        for arch in update.filelist.keys():
-            dest = join(self.stage_dir, update.get_repo(), arch)
-            for file in update.filelist[arch]:
-                filename = basename(file)
-                if filename.find('debuginfo') != -1:
-                    destfile = join(dest, 'debug', filename)
-                else:
-                    destfile = join(dest, filename)
-                if isfile(destfile):
-                    yield " * Removing already pushed file: %s" % filename
-                    os.unlink(destfile)
-                yield " * %s" % join(update.testing and 'testing' or '',
-                                     update.release.name, arch, filename)
-                os.link(file, destfile)
-
-    def unpush_files(self, update):
-        """
-        Remove all files for a given update that may or may not exist in the
-        updates stage.
-        """
-        for arch in update.filelist.keys():
-            dest = join(self.stage_dir, update.get_repo(), arch)
-            for file in update.filelist[arch]:
-                filename = basename(file)
-                if file.find('debuginfo') != -1:
-                    destfile = join(dest, 'debug', filename)
-                else:
-                    destfile = join(dest, filename)
-                if isfile(destfile):
-                    yield " * %s" % join(update.testing and 'testing' or '',
-                                         update.release.name, arch, filename)
-                    os.unlink(destfile)
-                else:
-                    yield "Cannot find file in update: %s" % destfile
 
     def generate_metadata(self, release, testing):
         """
@@ -294,5 +190,4 @@ class PushController(controllers.Controller):
                                       '-q', str(debugrepo)])
 
 ## Allow us to return a generator for streamed responses
-cherrypy.config.update({'/admin/push/push_updates':{'stream_response':True}})
-cherrypy.config.update({'/admin/push/unpush_updates':{'stream_response':True}})
+cherrypy.config.update({'/admin/push/run_requests':{'stream_response':True}})

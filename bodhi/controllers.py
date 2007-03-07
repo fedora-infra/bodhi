@@ -109,7 +109,7 @@ class Root(controllers.RootController):
         """ Revoke a push request for a specified update """
         try:
             update = PackageUpdate.byNvr(nvr)
-            update.needs_push = False
+            update.request = None
             mail.send_admin('revoke', update)
             log.info("%s push revoked" % nvr)
         except SQLObjectNotFound:
@@ -123,10 +123,12 @@ class Root(controllers.RootController):
     def push(self, nvr):
         """ Submit an update for pushing """
         try:
-            up = PackageUpdate.byNvr(nvr)
-            up.needs_push = True
-            flash("%s has been submitted for pushing" % nvr)
-            mail.send_admin('push', up)
+            update = PackageUpdate.byNvr(nvr)
+            update.request = 'push'
+            msg = "%s has been submitted for pushing" % nvr
+            log.debug(msg)
+            flash(msg)
+            mail.send_admin('push', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
         raise redirect('/show/%s' % nvr)
@@ -136,11 +138,12 @@ class Root(controllers.RootController):
     def unpush(self, nvr):
         """ Submit an update for unpushing """
         try:
-            up = PackageUpdate.byNvr(nvr)
-            up.needs_unpush = True
-            up.sync()
-            flash("%s has been submitted for unpushing" % nvr)
-            mail.send_admin('unpush', up)
+            update = PackageUpdate.byNvr(nvr)
+            update.request = 'unpush'
+            msg = "%s has been submitted for pushing" % nvr
+            log.debug(msg)
+            flash(msg)
+            mail.send_admin('unpush', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
         raise redirect('/show/%s' % nvr)
@@ -150,15 +153,16 @@ class Root(controllers.RootController):
     def delete(self, update):
         """ Delete a pending update """
         try:
-            up = PackageUpdate.byNvr(update)
+            update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
             raise redirect("/list")
-        if not up.pushed:
-            log.debug("Deleting update %s" % up.nvr)
-            up.destroySelf()
-            mail.send_admin('deleted', up)
-            flash("%s deleted" % update)
+        if not update.pushed:
+            update.destroySelf()
+            mail.send_admin('deleted', update)
+            msg = "Deleted %s" % update.nvr
+            log.debug(msg)
+            flash(msg)
         else:
             flash("Cannot delete a pushed update")
         raise redirect("/list")
@@ -168,20 +172,20 @@ class Root(controllers.RootController):
     def edit(self, update):
         """ Edit an update """
         try:
-            up = PackageUpdate.byNvr(update)
+            update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found")
             raise redirect("/list")
         values = {
-                'nvr'       : {'text': up.nvr, 'hidden' : up.nvr},
-                'release'   : up.release.long_name,
-                'testing'   : up.testing,
-                'type'      : up.type,
-                'embargo'   : up.embargo,
-                'notes'     : up.notes,
-                'bugs'      : up.get_bugstring(),
-                'cves'      : up.get_cvestring(),
-                'edited'    : up.nvr
+                'nvr'       : {'text': update.nvr, 'hidden' : update.nvr},
+                'release'   : update.release.long_name,
+                'testing'   : update.testing,
+                'type'      : update.type,
+                'embargo'   : update.embargo,
+                'notes'     : update.notes,
+                'bugs'      : update.get_bugstring(),
+                'cves'      : update.get_cvestring(),
+                'edited'    : update.nvr
         }
         return dict(form=update_form, values=values, action='/save')
 

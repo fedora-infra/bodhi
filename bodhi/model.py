@@ -13,6 +13,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import os
+import mail
 import logging
 
 from sqlobject import *
@@ -20,6 +22,8 @@ from datetime import datetime
 
 from turbogears import identity, config, flash
 from turbogears.database import PackageHub
+
+from os.path import isdir, isfile, join, basename
 
 log = logging.getLogger(__name__)
 hub = PackageHub("bodhi")
@@ -76,10 +80,9 @@ class PackageUpdate(SQLObject):
     date_pushed     = DateTimeCol(default=None)
     notes           = UnicodeCol()
     mail_sent       = BoolCol(default=False)
-    #close_bugs      = BoolCol(default=False)
+    #close_bugs     = BoolCol(default=False)
     archived_mail   = UnicodeCol(default=None)
-    needs_push      = BoolCol(default=False)
-    needs_unpush    = BoolCol(default=False)
+    request         = EnumCol(enumValues=['push', 'unpush', 'move', None], default=None)
     comments        = MultipleJoin('Comment')
     filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
 
@@ -99,7 +102,6 @@ class PackageUpdate(SQLObject):
         return ' '.join([cve.cve_id for cve in self.cves])
 
     def get_repo(self):
-        from os.path import join
         return join(self.testing and 'testing' or '', self.release.repodir)
 
     def assign_id(self):
@@ -122,9 +124,8 @@ class PackageUpdate(SQLObject):
         log.debug("Setting update_id for %s to %s" % (self.nvr, self.update_id))
 
     def _build_filelist(self):
-        """ Build and store the filelist for this update. """
-        import os, util
-        from os.path import isdir, join, basename
+        """Build and store the filelist for this update. """
+        import util
         from buildsys import buildsys
         log.debug("Building filelist for %s" % self.nvr)
         filelist = {}
@@ -157,6 +158,57 @@ class PackageUpdate(SQLObject):
                             continue
         self.filelist = filelist
 
+    def do_request(self):
+        """
+        Based on the request property, do one of a few things:
+
+              'push' : push this update's files to the updates stage
+            'unpush' : remove this update's files from the updates stage
+              'move' : move this packages files from testing to final
+        """
+        log.debug("Running %s request for %s" % (self.request, self.nvr))
+
+        # iterate over each of this update's files by arch
+        for arch in self.filelist.keys():
+            dest = join(config.get('stage_dir'), self.get_repo(), arch)
+            for file in self.filelist[arch]:
+                filename = basename(file)
+                if filename.find('debuginfo') != -1:
+                    destfile = join(dest, 'debug', filename)
+                else:
+                    destfile = join(dest, filename)
+
+                # regardless of request, delete any pushed files that exist
+                if isfile(destfile):
+                    log.debug("Deleting %s" % destfile)
+                    os.unlink(destfile)
+                    yield "Removed %s" % join(self.get_repo(), arch, filename)
+
+                if self.request == 'unpush':
+                    # we've already removed any existing files from the stage,
+                    # and unpushing doesn't entail anything more
+                    continue
+
+                elif self.request == 'push' or self.request == 'move':
+                    log.debug("Pushing %s" % destfile)
+                    yield " * %s" % join(self.get_repo(), arch, filename)
+                    os.link(file, destfile)
+
+        # post-request actions
+        if self.request == 'push':
+            self.pushed = True
+            self.assign_id()
+            mail.send(self.submitter, 'pushed', self)
+        elif self.request == 'unpush':
+            self.pushed = False
+            mail.send(self.submitter, 'unpushed', self)
+        elif self.request == 'move':
+            mail.send(self.submitter, 'moved', self)
+        self.request = None
+
+        ## TODO: make sure to obey excludearch for pushes
+        ## -- add to build_filelist ?
+
     def __str__(self):
         """
         Return a string representation of this update.
@@ -187,6 +239,9 @@ class CVE(SQLObject):
     """ Table of CVEs fixed within updates that we know of. """
     cve_id  = UnicodeCol(alternateID=True, notNone=True)
     updates = RelatedJoin("PackageUpdate")
+
+    def get_url(self):
+        return "http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s" % self.cve_id
 
 class Bugzilla(SQLObject):
     """ Table of Bugzillas that we know about. """
@@ -237,6 +292,9 @@ class Bugzilla(SQLObject):
 
     def _close_bug(self):
         pass
+
+    def get_url(self):
+        return "https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%s" % self.bz_id
 
 ##
 ## Identity tables
@@ -325,6 +383,7 @@ def init_updates_stage():
         os.mkdir(dir)
         genpkgmetadata.main(['-q', str(dir)])
 
+    # Move the current stage_dir out of the way, if it exists
     if isdir(stage_dir):
         import shutil
         olddir = stage_dir + '.old'
@@ -335,6 +394,7 @@ def init_updates_stage():
 
     os.mkdir(stage_dir)
     os.mkdir(join(stage_dir, 'testing'))
+
     for release in Release.select():
         for status in ('', 'testing'):
             dir = join(stage_dir, status, release.repodir)
