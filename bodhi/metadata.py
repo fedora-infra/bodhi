@@ -21,7 +21,7 @@ import time
 import gzip
 import logging
 
-from model import Release
+from model import Release, Bugzilla, CVE
 from xml.dom import minidom
 from os.path import join, basename, isdir, exists
 from datetime import datetime
@@ -32,8 +32,6 @@ from modifyrepo import RepoMetadata
 log = logging.getLogger(__name__)
 
 ## TODO: These should eventually make their way into the model
-BZ_URL = "https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%s"
-CVE_URL = "http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s"
 FILE_URL = 'http://download.fedoraproject.org/pub/fedora/linux/core/updates%s/%s/%s/%s'
 rebootpkgs = ("kernel", "kernel-smp", "kernel-xen-hypervisor", "kernel-PAE",
               "kernel-xen0", "kernel-xenU", "kernel-xen", "kernel-xen-guest",
@@ -124,13 +122,13 @@ class ExtendedMetadata:
         for cve in update.cves:
             self._insert(doc, refs, 'reference', attrs={
                     'type' : 'cve',
-                    'href' : CVE_URL % cve.cve_id,
+                    'href' : cve.get_url(),
                     'id'   : cve.cve_id
             })
         for bug in update.bugs:
             self._insert(doc, refs, 'reference', attrs={
                     'type' : 'bugzilla',
-                    'href' : BZ_URL % bug.bz_id,
+                    'href' : bug.get_url(),
                     'id'   : bug.bz_id
             })
         root.appendChild(refs)

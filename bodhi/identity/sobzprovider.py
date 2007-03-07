@@ -49,6 +49,7 @@ class SoBugzillaIdentityProvider(SqlObjectIdentityProvider):
             if newuser:
                 user.destroySelf()
             return None
+
         log.info("Login successful for %s" % user_name)
 
         try:

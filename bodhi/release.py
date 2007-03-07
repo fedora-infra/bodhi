@@ -16,10 +16,8 @@
 
 version = "1.0"
 
-# description = "Your plan to rule the world"
-# long_description = "More description about your plan"
-authors = "Luke Macken"
-email = "lmacken@fedoraproject.org"
+description = ""
+authors = ("Luke Macken <lmacken@fedoraproject.org>",)
 copyright = "Red Hat, Inc.  2006"
 url = "http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem"
 license = "GPL"

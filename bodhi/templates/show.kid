@@ -42,17 +42,19 @@ for item in update.filelist.items():
             <!-- update options -->
             <td align="right">
                 [
-                <span py:if="not update.needs_push">
-                    <a href="/push/${update.nvr}">Push</a> | 
-                </span>
-                <span py:if="update.needs_push">
-                    <a href="/revoke/${update.nvr}">Revoke Push Request</a> | 
+                <span py:if="not update.pushed">
+                    <span py:if="update.request != 'push'">
+                        <a href="/push/${update.nvr}">Push</a> | 
+                    </span>
+                    <span py:if="update.request == 'push'">
+                        <a href="/revoke/${update.nvr}">Revoke Push Request</a> | 
+                    </span>
+                    <span py:if="not update.pushed">
+                        <a href="/delete/${update.nvr}">Delete</a> | 
+                    </span>
                 </span>
                 <span py:if="update.pushed">
                     <a href="/unpush/${update.nvr}">Unpush</a> | 
-                </span>
-                <span py:if="not update.pushed">
-                    <a href="/delete/${update.nvr}">Delete</a> | 
                 </span>
                 <a href="/edit/${update.nvr}">Edit</a>
                 ]
@@ -69,8 +71,8 @@ for item in update.filelist.items():
             ['Bugs',          (bugs) and XML(bugs) or ''],
             ['CVEs',          (cves) and XML(cves) or ''],
             ['Embargo',       update.type == 'security' and update.embargo or ''],
+            ['Requested',     update.request],
             ['Pushed',        update.pushed],
-            ['Needs Push',    update.needs_push],
             ['Date Pushed',   update.date_pushed],
             ['Mail Sent',     update.mail_sent],
             ['Submitter',     update.submitter],

@@ -36,7 +36,11 @@ Setting up the development environment
 5.  Add yourself to the Administrators group
 
     - Since this system currently authenticates against Bugzilla, it creates
-      each User upon a successful login.  So you must login first.
+      each User upon a successful login.  So you must login first.  Start the
+      application and then direct your browser to http://localhost:8080
+
+        $ ./start-bodhi.py
+
     - Hop into into the TurboGears shell
 
         $ tg-admin shell
