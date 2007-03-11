@@ -31,7 +31,7 @@ Setting up the development environment
 
 4. Initialize the database with our distribution settings such as Releases, Arches, Multilib, etc.
 
-        $ ./bodhi/model.py
+        $ ./init.py
 
 5.  Add yourself to the Administrators group
 
@@ -44,16 +44,16 @@ Setting up the development environment
     - Hop into into the TurboGears shell
 
         $ tg-admin shell
-        >>> me = User.get(1)
+        >>> me = User.get(2)
         >>> admin = Group.get(1)
         >>> me.addGroup(admin)
 
-    - While we're here, create an identity for the system itself.  This user
-      is currently used for fetching Bugzilla information, as well as sending
-      emails around.
+    - While we're here, system itself.  Set the password for the bodhi user
+      itself.  This user is currently used for fetching Bugzilla information,
+      as well as sending emails around.
 
-        >>> me = User(user_name='updates@fedora.redhat.com')
-        >>> me.password = '?' # password for bugzilla and SMTP authentication
+        >>> bodhi = User.select(User.q.user_name==config.get('bodhi_user'))[0]
+        >>> bodhi.password = '?' # password for bugzilla and SMTP authentication
         (^D and save the changes)
 
 

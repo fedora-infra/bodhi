@@ -5,7 +5,7 @@ import turbogears
 
 from turbogears import testutil, database
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla,
-                                 Comment, CVE, Arch)
+                         Comment, CVE, Arch)
 
 database.set_db_uri("sqlite:///:memory:")
 
