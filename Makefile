@@ -11,8 +11,8 @@ test:
 
 .PHONY: todo
 todo:
-	grep -r TODO .
-	grep -r FIXME .
+	grep -r TODO bodhi/ || :
+	grep -r FIXME bodhi/ || :
 
 .PHONY: clean
 clean:
