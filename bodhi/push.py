@@ -109,7 +109,7 @@ class PushController(controllers.Controller):
                 log.debug("Running request on %s" % package)
                 update = PackageUpdate.byNvr(package)
                 releases[update.testing].add(update.release)
-                for msg in update.do_request():
+                for msg in update.run_request():
                     yield msg
                 if update.request == 'push':
                     log.debug("Adding update metadata to repo")

@@ -52,7 +52,7 @@ class Arch(SQLObject):
 class Multilib(SQLObject):
     """
     Table of multilib packages (ie x86_64 packages that need to pull down
-    the i386 version as well, or ppc that needs ppc64).
+    the i386 version as well).
     """
     package     = UnicodeCol(alternateID=True, notNone=True)
     releases    = RelatedJoin('Release')
@@ -80,8 +80,7 @@ class PackageUpdate(SQLObject):
     date_pushed     = DateTimeCol(default=None)
     notes           = UnicodeCol()
     mail_sent       = BoolCol(default=False)
-    #close_bugs     = BoolCol(default=False)
-    archived_mail   = UnicodeCol(default=None)
+    archived_mail   = UnicodeCol(default=None) # URL of archived update announce mail
     request         = EnumCol(enumValues=['push', 'unpush', 'move', None], default=None)
     comments        = MultipleJoin('Comment')
     filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
@@ -158,7 +157,7 @@ class PackageUpdate(SQLObject):
                             continue
         self.filelist = filelist
 
-    def do_request(self, stage=None):
+    def run_request(self, stage=None):
         """
         Based on the request property, do one of a few things:
 
@@ -170,6 +169,10 @@ class PackageUpdate(SQLObject):
         but an alternate can be specified (for use in testing dep closure in
         a lookaside repo)
         """
+        if self.request == None:
+            log.error("%s attempting to run None request" % self.nvr)
+            return
+
         log.debug("Running %s request for %s" % (self.request, self.nvr))
 
         # iterate over each of this update's files by arch
@@ -196,7 +199,7 @@ class PackageUpdate(SQLObject):
                     continue
 
                 elif self.request == 'push' or self.request == 'move':
-                    log.debug("Pushing %s" % destfile)
+                    log.debug("Pushing %s to %s" % (file, destfile))
                     yield " * %s" % join(self.get_repo(), arch, filename)
                     os.link(file, destfile)
 
@@ -220,13 +223,13 @@ class PackageUpdate(SQLObject):
         Return a string representation of this update.
         TODO: eventually put the URL of this update
         """
-        return """\
-            Package: %(package)s
-               Type: %(type)s
-               Bugs: %(bugs)s
-               CVES: %(cves)s
-              Notes: %(notes)s
-        """ % ({
+        val = """\
+    Package: %(package)s
+       Type: %(type)s
+       Bugs: %(bugs)s
+       CVES: %(cves)s
+      Notes: %(notes)s
+      Files:\n""" % ({
                     'package'   : self.nvr,
                     'type'      : self.type,
                     'notes'     : self.notes,
@@ -234,6 +237,11 @@ class PackageUpdate(SQLObject):
                     'bugs'      : self.get_bugstring(),
                     'cves'      : self.get_cvestring()
               })
+
+        for files in self.filelist.values():
+            for file in files:
+                val += "\t     %s\n" % basename(file)
+        return val.rstrip()
 
 class Comment(SQLObject):
     """ Table of comments on updates. """

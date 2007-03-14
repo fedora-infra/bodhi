@@ -21,10 +21,9 @@ class TestExtendedMetadata(testutil.DBTest):
         """
         pkg = Package(name='foobar')
         arch = Arch(name='i386', subarches=['i686', 'athlon'])
-        rel = Release(name='fc5', long_name='Fedora Core 5',
-                      codename='Bordeaux')
+        rel = Release(name='fc7', long_name='Fedora Core 7', repodir='7')
         rel.addArch(arch)
-        up = PackageUpdate(nvr='foobar-1.2-3', package=pkg, release=rel,
+        up = PackageUpdate(nvr='mutt-1.4.2.2-4.fc7', package=pkg, release=rel,
                            submitter='lmacken@fedoraproject.org',
                            testing=True, type='security',
                            notes='Update notes and such')
@@ -32,5 +31,8 @@ class TestExtendedMetadata(testutil.DBTest):
         cve = CVE(cve_id="CVE-2006-1234")
         up.addBugzilla(bug)
         up.addCVE(cve)
-        md = ExtendedMetadata('/home/lmacken/code/cvs.fedoraproject.org/fedora-updates-system/updates-stage/6/i386/')
+        md = ExtendedMetadata()
         md.add_update(up)
+
+        # TODO
+        # write updateinfo.xml.gz and verify content
