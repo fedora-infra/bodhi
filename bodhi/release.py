@@ -18,6 +18,6 @@ version = "1.0"
 
 description = ""
 authors = ("Luke Macken <lmacken@fedoraproject.org>",)
-copyright = "Red Hat, Inc.  2006"
+copyright = "Red Hat, Inc.  2007"
 url = "http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem"
 license = "GPL"
