@@ -3,69 +3,15 @@ Bodhi
 
     https://hosted.fedoraproject.org/projects/bodhi
 
-Setting up the development environment
+Setting up a development environment
 ======================================
 
-0. Review/modify global settings in 'bodhi/config/app.cfg'
+    https://hosted.fedoraproject.org/projects/bodhi/wiki/Development
 
-1. Install the necessary software
+Running the test suite
+======================
 
-        # yum install TurboGears python-TurboMail createrepo yum-utils
+    All tests are stored in the 'bodhi/tests' module in this project, and can
+    be run by executing:
 
-2. Install the identity provider (we're authenticating against bugzilla
-   until we get the Fedora Accounts System into shape)
-
-        # cp bodhi/identity/sobzprovider.py /usr/lib/python2.4/site-packages/turbogears/identity/
-
-   Add the plugin to the TurboGears entry points file:
-
-        # vim `rpm -ql TurboGears | grep entry_points.txt`
-
-   Under the [turbogears.identity.provider] section, add the following line:
-
-        bugzilla  = turbogears.identity.sobzprovider:SoBugzillaIdentityProvider
-
-3. Create the database tables
-
-        $ tg-admin sql create
-
-4. Initialize the database with our distribution settings such as Releases, Arches, Multilib, etc.
-
-        $ ./init.py
-
-5.  Add yourself to the Administrators group
-
-    - Since this system currently authenticates against Bugzilla, it creates
-      each User upon a successful login.  So you must login first.  Start the
-      application and then direct your browser to http://localhost:8080
-
-        $ ./start-bodhi.py
-
-    - Hop into into the TurboGears shell
-
-        $ tg-admin shell
-        >>> me = User.get(2)
-        >>> admin = Group.get(1)
-        >>> me.addGroup(admin)
-
-    - While we're here, system itself.  Set the password for the bodhi user
-      itself.  This user is currently used for fetching Bugzilla information,
-      as well as sending emails around.
-
-        >>> bodhi = User.select(User.q.user_name==config.get('bodhi_user'))[0]
-        >>> bodhi.password = '?' # password for bugzilla and SMTP authentication
-        (^D and save the changes)
-
-
-Running the bodhi system test suite
-=====================================
-
-Note: At the moment these tests will most likely not work.  A lot of the core
-API has changed under them, and they need to be updated to reflect it.
-
-    All tests are stored in the 'tests' module in this project, and can be
-    run by executing the command `nosetests` in top level of the project.
-
-    For more information on Nose unit tests, please see:
-
-            http://somethingaboutorange.com/mrl/projects/nose/
+        $ make test
