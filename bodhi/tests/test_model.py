@@ -1,10 +1,13 @@
 # $Id: test_model.py,v 1.5 2006/12/31 09:10:25 lmacken Exp $
 
+import os
 import sys
 import time
+import shutil
+import tempfile
 import turbogears
 
-from os.path import join
+from os.path import join, exists
 from turbogears import testutil, database, config
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla,
                          Comment, CVE, Arch)
@@ -36,7 +39,7 @@ class TestPackageUpdate(testutil.DBTest):
         }
         for arch in arches.keys():
             self.arches.append(Arch(name=arch, subarches=arches[arch],
-                               compatarches=biarches[arch]))
+                                    compatarches=biarches[arch]))
         return self.arches
 
     def get_rel(self):
@@ -98,20 +101,23 @@ class TestPackageUpdate(testutil.DBTest):
                     '%s.src.rpm' % update.nvr) in update.filelist['SRPMS']
 
     def test_push(self):
-        import os
-        import tempfile
         push_stage = tempfile.mkdtemp('bodhi')
         update = self.get_update()
         for arch in update.release.arches:
-            os.makedirs(join(push_stage, update.get_repo(), arch.name))
+            os.makedirs(join(push_stage, update.get_repo(), arch.name, 'debug'))
+        os.mkdir(join(push_stage, update.get_repo(), 'SRPMS'))
         update.request = 'push'
-        print update
         print "Pushing to temp stage: %s" % push_stage
-        # TODO: WHY DOESN'T THIS GET CALLED?!
-        update.run_request(stage=push_stage)
-        print dir(update)
-        assert False
-
+        for msg in update.run_request(stage=push_stage): pass
+        for arch in update.release.arches:
+            assert exists(join(push_stage, update.get_repo(), arch.name,
+                               "%s.%s.rpm" % (update.nvr, arch.name)))
+            assert exists(join(push_stage, update.get_repo(), arch.name,
+                               'debug', "mutt-debuginfo-1.4.2.2-4.fc7.%s.rpm" %
+                               arch.name))
+        assert exists(join(push_stage, update.get_repo(), 'SRPMS',
+                           "%s.src.rpm" % update.nvr))
+        shutil.rmtree(push_stage)
 
 class TestCVE(testutil.DBTest):
 
@@ -128,3 +134,5 @@ class TestBugzilla(testutil.DBTest):
 
     def test_creation(self):
         bug = Bugzilla(bz_id=1)
+        # TODO: make sure title was fetched properly, and 
+        # any security flags
