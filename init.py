@@ -23,7 +23,7 @@ import shutil
 import turbogears
 
 from os.path import join, isdir, isfile
-from bodhi.model import Release, Package, Arch, Group, Multilib, User
+from bodhi.model import Release, Package, Arch, Multilib
 from bodhi.deprecated.biarch import biarch
 from sqlobject import SQLObjectNotFound
 from turbogears import config
@@ -143,14 +143,12 @@ def clean_tables():
     Release.dropTable(ifExists=True, cascade=True)
     Package.dropTable(ifExists=True, cascade=True)
     Arch.dropTable(ifExists=True, cascade=True)
-    Group.dropTable(ifExists=True, cascade=True)
     Multilib.dropTable(ifExists=True, cascade=True)
     hub.commit()
     Release.createTable(ifNotExists=True)
     Package.createTable(ifNotExists=True)
     Arch.createTable(ifNotExists=True)
     Multilib.createTable(ifNotExists=True)
-    Group.createTable(ifNotExists=True)
 
 def load_config():
     """ Load the appropriate configuration so we can get at the values """
@@ -164,26 +162,10 @@ def load_config():
 ## Initialize the package/release/multilib tables
 ##
 if __name__ == '__main__':
-
     load_config()
     hub.begin()
     clean_tables()
     init_arches()
     import_releases()
     init_updates_stage()
-
-    ##
-    ## Create the admin group
-    ##
-    print "\nCreating admin group"
-    admin = Group(display_name='Administrators', group_name='admin')
-    print admin
-
-    ##
-    ## Give yourself an identity
-    ##
-    print "\nCreating my own identity"
-    me = User(user_name=config.get('bodhi_user'))
-    print me
-
     hub.commit()
