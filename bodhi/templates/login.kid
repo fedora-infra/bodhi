@@ -17,7 +17,7 @@
         <table class="login">
             <tr>
                 <td class="login-title">
-                    <a href="https://bugzilla.redhat.com">Bugzilla</a> Login:
+                    Login:
                 </td>
                 <td class="login-value">
                     <input type="text" size="25" name="user_name" />
