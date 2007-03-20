@@ -103,11 +103,9 @@ class NewUpdateController(controllers.Controller):
         package-version-release's that are found
         """
         matches = []
-        for package in self.packages:
-            if package == name:
-                for version in os.listdir(join(self.build_dir, package)):
-                    for release in os.listdir(join(self.build_dir, package,
-                                                   version)):
-                        matches.append('-'.join((package, version, release)))
+        if name in self.packages:
+            for version in os.listdir(join(self.build_dir, name)):
+                for release in os.listdir(join(self.build_dir, name, version)):
+                    matches.append('-'.join((name, version, release)))
         matches.reverse() # newer version-releases first
         return dict(pkgs = matches)
