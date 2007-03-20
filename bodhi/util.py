@@ -14,9 +14,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import rpm
+
 def rpm_fileheader(pkgpath):
     import os
-    import rpm
     is_oldrpm = hasattr(rpm, 'opendb')
     fd = os.open(pkgpath,0)
     try:
@@ -30,6 +31,16 @@ def rpm_fileheader(pkgpath):
     finally:
         os.close(fd)
     return h
+
+def excluded_arch(rpmheader, arch):
+    """
+    Determine if an RPM should be excluded from a given architecture, either
+    if it is explicitly marked as ExcludeArch, or if it is Exclusive to another
+    """
+    excluded = rpmheader[rpm.RPMTAG_EXCLUDEARCH]
+    exclusive = rpmheader[rpm.RPMTAG_EXCLUSIVEARCH]
+    return (excluded and arch in excluded) or \
+           (exclusive and arch not in exclusive)
 
 def sha1sum(file):
     import sha

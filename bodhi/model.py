@@ -130,15 +130,22 @@ class PackageUpdate(SQLObject):
         filelist = {}
         filelist['SRPMS'] = [buildsys.get_srpm_path(self)]
         sourcepath = buildsys.get_source_path(self)
+        rpmheader = util.rpm_fileheader(filelist['SRPMS'][0])
         for arch in self.release.arches:
             filelist[arch.name] = []
             for subarch in arch.subarches:
+                if subarch == 'noarch':
+                    # Check for excluded/exclusive archs
+                    if util.excluded_arch(rpmheader, arch.name):
+                        log.debug("Excluding arch %s for %s" % (arch.name,
+                                                                self.nvr))
+                        continue
                 path = join(sourcepath, subarch)
                 if isdir(path):
                     for file in os.listdir(path):
                         filelist[arch.name].append(join(path, file))
                         log.debug(" * %s" % file)
-            ## Check for multilib packages
+            # Check for multilib packages
             for compatarch in arch.compatarches:
                 path = join(sourcepath, compatarch)
                 if isdir(path):

@@ -27,10 +27,11 @@ for cve in update.cves:
 ## Build our file list
 from os.path import basename
 filelist = ''
-for item in update.filelist.items():
-    filelist += '<b>%s</b><br/>' % item[0]
-    for pkg in isinstance(item[1], list) and item[1] or [item[1]]:
-        filelist += '|-- %s<br/>' % basename(pkg)
+for arch in update.filelist.keys():
+    if len(update.filelist[arch]):
+        filelist += '<b>%s</b><br/>' % arch
+        for pkg in update.filelist[arch]:
+            filelist += '|-- %s<br/>' % basename(pkg)
 ?>
 
 <body>
