@@ -217,16 +217,21 @@ class PackageUpdate(SQLObject):
                     yield " * %s" % join(self.get_repo(), arch, filename)
                     os.link(file, destfile)
 
-        # post-request actions
-        if self.request == 'push':
-            self.pushed = True
-            self.assign_id()
-            mail.send(self.submitter, 'pushed', self)
-        elif self.request == 'unpush':
-            self.pushed = False
-            mail.send(self.submitter, 'unpushed', self)
-        elif self.request == 'move':
-            mail.send(self.submitter, 'moved', self)
+        # Post-request actions
+        # We only want to execute these when this update has been pushed to
+        # our default stage.  If an alternate stage has been supplied (ie,
+        # for dependency closure tests), we don't want to assign an official
+        # update ID to this update, or send an notifications around.
+        if not stage:
+            if self.request == 'push':
+                self.pushed = True
+                self.assign_id()
+                mail.send(self.submitter, 'pushed', self)
+            elif self.request == 'unpush':
+                self.pushed = False
+                mail.send(self.submitter, 'unpushed', self)
+            elif self.request == 'move':
+                mail.send(self.submitter, 'moved', self)
         self.request = None
 
     def __str__(self):
