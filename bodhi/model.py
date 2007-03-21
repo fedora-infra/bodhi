@@ -95,12 +95,19 @@ class PackageUpdate(SQLObject):
             self._build_filelist()
 
     def get_bugstring(self):
+        """ Return a space-delimited string of bug numbers for this update """
         return ' '.join([str(bug.bz_id) for bug in self.bugs])
 
     def get_cvestring(self):
+        """ Return a space-delimited string of CVE ids for this update """
         return ' '.join([cve.cve_id for cve in self.cves])
 
     def get_repo(self):
+        """
+        Return the relative path to the repository in which this update
+        is to be pushed.  The absolute path can be created by prepending
+        this value with the stage_dir and appending the architecture
+        """
         return join(self.testing and 'testing' or '', self.release.repodir)
 
     def assign_id(self):
@@ -221,9 +228,6 @@ class PackageUpdate(SQLObject):
         elif self.request == 'move':
             mail.send(self.submitter, 'moved', self)
         self.request = None
-
-        ## TODO: make sure to obey excludearch for pushes
-        ## -- add to build_filelist ?
 
     def __str__(self):
         """
