@@ -33,9 +33,6 @@ log = logging.getLogger(__name__)
 
 update_types = ('security', 'bugfix', 'enhancement')
 
-def get_releases():
-    return [rel.long_name for rel in Release.select()]
-
 class PackageValidator(validators.FancyValidator):
     messages = {
             'bad_name' : 'Invalid package name; must be in package-version-'
@@ -70,8 +67,9 @@ class PackageValidator(validators.FancyValidator):
 class UpdateFields(WidgetsList):
     nvr = AutoCompleteField(label='Package', search_controller='/new/pkgsearch',
                             search_param='name', result_name='pkgs')
-    release = SingleSelectField(options=get_releases,
-                                validator=validators.OneOf(get_releases()))
+    release = SingleSelectField(options=Release.get_release_names,
+                                validator=validators.OneOf(
+                                    Release.get_release_names()))
     # do we want all updates to get pushed as testing first?
     #testing = CheckBox(validator=validators.Bool)
     type = SingleSelectField(options=update_types,
