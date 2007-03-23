@@ -245,7 +245,7 @@ class PackageUpdate(SQLObject):
        Bugs: %(bugs)s
        CVES: %(cves)s
       Notes: %(notes)s
-      Files:\n""" % ({
+      Files:""" % ({
                     'package'   : self.nvr,
                     'type'      : self.type,
                     'notes'     : self.notes,
@@ -256,7 +256,7 @@ class PackageUpdate(SQLObject):
 
         for files in self.filelist.values():
             for file in files:
-                val += "\t     %s\n" % basename(file)
+                val += " %s\n\t    " % basename(file)
         return val.rstrip()
 
 class Comment(SQLObject):
