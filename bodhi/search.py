@@ -66,4 +66,4 @@ class SearchController(Controller):
             map(lambda cve: map(results.add, cve.updates),
                 CVE.select(CVE.q.cve_id==search))
 
-        return dict(updates=list(results), tg_template="bodhi.templates.list")
+        return dict(updates=list(results))
