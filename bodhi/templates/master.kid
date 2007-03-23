@@ -52,7 +52,7 @@
                 <li><a href="/list">Released updates</a></li>
                 <li><a href="/pending">Pending updates</a></li>
                 <li><a href="/mine">My updates</a></li>
-                <!-- <li><a href="/search">Search</a></li> -->
+                <li><a href="/search">Search</a></li>
                 <li><a href="/logout">Logout</a></li>
             </ul>
         </div>

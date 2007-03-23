@@ -472,3 +472,17 @@ p.padded {
     padding-left: 10px;
 }
 
+td.search-title {
+    text-align: right;
+    vertical-align: top;
+    background-color: #f1f1f1;
+    width: 25%;
+    padding-right: 5px;
+}
+
+td.search-value {
+    text-align: left;
+    padding-left: 5px;
+}
+
+

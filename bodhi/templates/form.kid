@@ -9,7 +9,7 @@
 
 <body>
     <div>
-        <table cellspacing="10">
+        <table class="show" cellpadding="0" cellspacing="0">
             <tr>
                 <td>
                     ${form(value=values, action=action)}
