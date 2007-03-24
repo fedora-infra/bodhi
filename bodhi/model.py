@@ -41,15 +41,6 @@ class Release(SQLObject):
     multilib    = RelatedJoin('Multilib')
     repodir     = UnicodeCol(notNone=True)
 
-    @staticmethod
-    def get_release_names():
-        """
-        Return a list of all release names.  This is used to populate our
-        SingleSelectField widgets.
-        """
-        return [rel.long_name for rel in Release.select()]
-
-
 class Arch(SQLObject):
     """ Table of supported architectures """
     name            = UnicodeCol(alternateID=True, notNone=True)

@@ -64,12 +64,14 @@ class PackageValidator(validators.FancyValidator):
 
 ## TODO: get package schema/validation working
 
+def get_releases():
+    return [rel.long_name for rel in Release.select()]
+
 class UpdateFields(WidgetsList):
     nvr = AutoCompleteField(label='Package', search_controller='/new/pkgsearch',
                             search_param='name', result_name='pkgs')
-    release = SingleSelectField(options=Release.get_release_names,
-                                validator=validators.OneOf(
-                                    Release.get_release_names()))
+    release = SingleSelectField(options=get_releases,
+                                validator=validators.OneOf(get_releases()))
     # do we want all updates to get pushed as testing first?
     #testing = CheckBox(validator=validators.Bool)
     type = SingleSelectField(options=update_types,
