@@ -62,6 +62,15 @@ class Package(SQLObject):
     name    = UnicodeCol(alternateID=True, notNone=True)
     updates = MultipleJoin('PackageUpdate', joinColumn='package_id')
 
+    def __str__(self):
+        x = "[ %s ]\n== Pending Updates ==\n" % self.name
+        for update in filter(lambda x: not x.pushed, self.updates):
+            x += "  o %s" % update.nvr
+        x += "\n\n== Available Updates ==\n"
+        for update in filter(lambda x: x.pushed, self.updates):
+            x += "  o %s" % update.nvr
+        return x
+
 class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """
     nvr             = UnicodeCol(notNone=True, alternateID=True, unique=True)
