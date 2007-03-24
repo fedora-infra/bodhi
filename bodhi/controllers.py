@@ -21,6 +21,7 @@ from new import NewUpdateController, update_form
 from admin import AdminController
 from model import Package, PackageUpdate, Release, Bugzilla, CVE
 from search import SearchController
+from xmlrpc import XmlRpcController
 from buildsys import SRPMNotFound
 from sqlobject import SQLObjectNotFound
 from turbogears import (controllers, expose, validate, redirect, identity,
@@ -35,6 +36,7 @@ class Root(controllers.RootController):
     new = NewUpdateController()
     admin = AdminController()
     search = SearchController()
+    rpc = XmlRpcController()
 
     @expose()
     @identity.require(identity.not_anonymous())
