@@ -21,13 +21,14 @@ import time
 import gzip
 import logging
 
-from model import Release, Bugzilla, CVE
 from xml.dom import minidom
 from os.path import join, basename, isdir, exists
 from datetime import datetime
 from sqlobject import OR
 from turbogears import config
-from modifyrepo import RepoMetadata
+
+from bodhi.model import Release, Bugzilla, CVE
+from bodhi.modifyrepo import RepoMetadata
 
 log = logging.getLogger(__name__)
 

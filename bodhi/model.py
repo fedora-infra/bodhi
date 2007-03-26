@@ -23,6 +23,7 @@ from datetime import datetime
 from turbogears import identity, config, flash
 from turbogears.database import PackageHub
 
+from bodhi.util import get_nvr, excluded_arch, rpm_fileheader
 from os.path import isdir, isfile, join, basename
 
 log = logging.getLogger(__name__)
@@ -140,19 +141,17 @@ class PackageUpdate(SQLObject):
 
     def _build_filelist(self):
         """Build and store the filelist for this update. """
-        import util
-        from buildsys import buildsys
         log.debug("Building filelist for %s" % self.nvr)
         filelist = {}
-        filelist['SRPMS'] = [buildsys.get_srpm_path(self)]
-        sourcepath = buildsys.get_source_path(self)
-        rpmheader = util.rpm_fileheader(filelist['SRPMS'][0])
+        filelist['SRPMS'] = [self.get_srpm_path()]
+        sourcepath = self.get_source_path()
+        rpmheader = rpm_fileheader(filelist['SRPMS'][0])
         for arch in self.release.arches:
             filelist[arch.name] = []
             for subarch in arch.subarches:
                 if subarch == 'noarch':
                     # Check for excluded/exclusive archs
-                    if util.excluded_arch(rpmheader, arch.name):
+                    if excluded_arch(rpmheader, arch.name):
                         log.debug("Excluding arch %s for %s" % (arch.name,
                                                                 self.nvr))
                         continue
@@ -167,7 +166,7 @@ class PackageUpdate(SQLObject):
                 if isdir(path):
                     for file in os.listdir(path):
                         try:
-                            nvr = util.get_nvr(basename(file))
+                            nvr = get_nvr(basename(file))
                             multilib = Multilib.byPackage(nvr[:-2])
                             if arch in multilib.arches and \
                                self.release in multilib.releases:
@@ -242,6 +241,17 @@ class PackageUpdate(SQLObject):
             elif self.request == 'move':
                 mail.send(self.submitter, 'moved', self)
         self.request = None
+
+    def get_source_path(self):
+        """ Return the path of this built update """
+        return join(config.get('build_dir'), *get_nvr(self.nvr))
+
+    def get_srpm_path(self):
+        """ Return the path to the SRPM for this update """
+        srpm = join(self.get_source_path(), "src", "%s.src.rpm" % self.nvr)
+        if not isfile(srpm):
+            raise SRPMNotFound
+        return srpm
 
     def __str__(self):
         """

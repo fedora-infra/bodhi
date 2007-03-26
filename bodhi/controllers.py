@@ -17,15 +17,16 @@ import util
 import logging
 import cherrypy
 
-from new import NewUpdateController, update_form
-from admin import AdminController
-from model import Package, PackageUpdate, Release, Bugzilla, CVE
-from search import SearchController
-from xmlrpc import XmlRpcController
-from buildsys import SRPMNotFound
 from sqlobject import SQLObjectNotFound
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler)
+
+from bodhi.new import NewUpdateController, update_form
+from bodhi.admin import AdminController
+from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE
+from bodhi.search import SearchController
+from bodhi.xmlrpc import XmlRpcController
+from bodhi.exceptions import SRPMNotFound
 
 from pysqlite2.dbapi2 import IntegrityError
 

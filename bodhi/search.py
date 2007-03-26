@@ -15,13 +15,13 @@
 
 import logging
 
-from model import PackageUpdate, Bugzilla, CVE
-from exceptions import ValueError
 from sqlobject.sqlbuilder import LIKE
 from turbogears import (expose, identity, paginate, validate,
                         validators, redirect)
 from turbogears.widgets import TextField, Form, Button
 from turbogears.controllers import Controller
+
+from bodhi.model import PackageUpdate, Bugzilla, CVE
 
 log = logging.getLogger(__name__)
 

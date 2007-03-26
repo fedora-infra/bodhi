@@ -15,10 +15,11 @@
 import logging
 import cherrypy
 
-from model import PackageUpdate, Package
 from sqlobject import SQLObjectNotFound
 from turbogears import expose
 from turbogears.controllers import Controller
+
+from bodhi.model import PackageUpdate, Package
 
 log = logging.getLogger(__name__)
 

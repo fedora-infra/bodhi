@@ -29,7 +29,7 @@ import tempfile
 import turbogears
 
 from os.path import join, exists, walk, normpath, isdir
-from model import PackageUpdate
+from bodhi.model import PackageUpdate
 from turbogears import config
 from yum.constants import *
 

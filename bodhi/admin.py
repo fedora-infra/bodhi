@@ -12,8 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from push import PushController
-from model import Release
+from bodhi.push import PushController
+from bodhi.model import Release
 
 from os.path import join
 
@@ -43,4 +43,3 @@ class AdminController(Controller, SecureResource):
                 output += tree.read() + '\n'
                 tree.close()
         return dict(title='Repository Tree', text=output)
-

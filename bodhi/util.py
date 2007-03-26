@@ -51,6 +51,5 @@ def sha1sum(file):
 
 def get_nvr(nvr):
     """ Return the [ name, version, release ] a given name-ver-rel. """
-    import string
     x = nvr.split('-')
-    return [string.join(x[:-2], '-'), x[-2], x[-1]]
+    return [''.join(x[:-2]), x[-2], x[-1]]

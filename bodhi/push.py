@@ -20,12 +20,12 @@ import tempfile
 import cherrypy
 
 from Comet import comet
-from model import PackageUpdate
-from buildsys import buildsys
 from datetime import datetime
-from metadata import ExtendedMetadata
-from modifyrepo import RepoMetadata
 from turbogears import controllers, expose, flash, redirect, config, identity
+
+from bodhi.model import PackageUpdate
+from bodhi.metadata import ExtendedMetadata
+from bodhi.modifyrepo import RepoMetadata
 
 from os.path import isfile, isdir, basename, join
 

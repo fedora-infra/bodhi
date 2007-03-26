@@ -18,13 +18,10 @@ import logging
 import formencode
 
 from os.path import join
-
-from model import Release, Package, PackageUpdate, Bugzilla, CVE
 from sqlobject import SQLObjectNotFound
-
+from bodhi.model import Release, Package, PackageUpdate, Bugzilla, CVE
 from turbogears import (expose, controllers, validate, validators, flash,
                         error_handler, redirect, identity, config)
-
 from turbogears.widgets import (WidgetsList, TextField, SingleSelectField,
                                 CheckBox, TextArea, CalendarDateTimePicker,
                                 TableForm, HiddenField, AutoCompleteField)
