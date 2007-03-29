@@ -16,6 +16,7 @@
 import os
 import mail
 import logging
+import xmlrpclib
 
 from sqlobject import *
 from datetime import datetime
@@ -23,8 +24,9 @@ from datetime import datetime
 from turbogears import identity, config, flash
 from turbogears.database import PackageHub
 
-from bodhi.util import get_nvr, excluded_arch, rpm_fileheader
 from os.path import isdir, isfile, join, basename
+from bodhi.util import get_nvr, excluded_arch, rpm_fileheader
+from bodhi.exceptions import SRPMNotFound
 
 log = logging.getLogger(__name__)
 hub = PackageHub("bodhi")
@@ -253,6 +255,41 @@ class PackageUpdate(SQLObject):
             raise SRPMNotFound
         return srpm
 
+    def get_latest(self):
+        """
+        Return the path to the last released srpm of this package
+        """
+        koji = xmlrpclib.ServerProxy(config.get('koji_hub'), allow_none=True)
+        latest = None
+        tagged = []
+
+        try:
+            tagged = koji.listTagged("dist-%s-updates" %
+                                     self.release.name.lower(), None, False,
+                                     None, False, self.package.name)
+        except xmlrpclib.Fault, f:
+            log.warning(str(f))
+        if len(tagged) > 1:  # We have tagged updates
+            latest = tagged[1]['nvr']
+        else:  # No updates (other than this one) tagged
+            try:
+                tagged = koji.listTagged("dist-%s" % self.release.name.lower(),
+                                         None, False, None, False,
+                                         self.package.name)
+            except xmlrpclib.Fault, f:
+                log.warning(str(f))
+            if len(tagged):
+                latest = tagged[0]['nvr']
+        if latest:
+            nvr = util.get_nvr(latest)
+            latest = join(config.get('build_dir'), nvr[0], nvr[1], nvr[2],
+                          'src', '%s.src.rpm' % latest)
+        else:
+            log.error("Cannot find latest-pkg for %s" % self.nvr)
+
+        del koji
+        return latest
+
     def __str__(self):
         """
         Return a string representation of this update.
@@ -273,7 +310,7 @@ class PackageUpdate(SQLObject):
                     'email'     : self.submitter,
                     'bugs'      : self.get_bugstring(),
                     'cves'      : self.get_cvestring()
-              })
+                  })
 
         for files in self.filelist.values():
             for file in files:
@@ -315,7 +352,6 @@ class Bugzilla(SQLObject):
         self._fetch_details()
 
     def _fetch_details(self):
-        import xmlrpclib
         try:
             log.debug("Fetching bugzilla #%d" % self.bz_id)
             server = xmlrpclib.Server(self._bz_server)

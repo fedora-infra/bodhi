@@ -14,10 +14,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import os
 import rpm
+import time
 
 def rpm_fileheader(pkgpath):
-    import os
     is_oldrpm = hasattr(rpm, 'opendb')
     fd = os.open(pkgpath,0)
     try:
@@ -25,12 +26,29 @@ def rpm_fileheader(pkgpath):
             h = rpm.headerFromPackage(fd)[0]
         else:
             ts = rpm.TransactionSet()
-            #ts.setVSFlags(~rpm._RPMVSF_NOSIGNATURES)
             h = ts.hdrFromFdno(fd)
             del ts
     finally:
         os.close(fd)
     return h
+
+def getChangeLog(header, timelimit=0):
+    descrip = header[rpm.RPMTAG_CHANGELOGTEXT]
+    if not descrip: return ""
+
+    who = header[rpm.RPMTAG_CHANGELOGNAME]
+    when = header[rpm.RPMTAG_CHANGELOGTIME]
+
+    num = len(descrip)
+    if num == 1: when = [when]
+
+    str = ""
+    i = 0
+    while (i < num) and (when[i] > timelimit):
+        str += '* %s %s\n%s\n' % (time.strftime("%a %b %e %Y",
+                                  time.localtime(when[i])), who[i], descrip[i])
+        i += 1
+    return str
 
 def excluded_arch(rpmheader, arch):
     """

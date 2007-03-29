@@ -12,10 +12,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import re
+import rpm
+import time
+import logging
 import turbomail
+
+from os.path import join, basename
+from bodhi.util import rpm_fileheader, sha1sum, getChangeLog
 from turbogears import config
 
+log = logging.getLogger(__name__)
 release_team = config.get('release_team_address')
 from_addr = config.get('from_address')
 
@@ -27,9 +33,10 @@ from_addr = config.get('from_address')
 ## update fields in the body of the message that need to be expanded.
 ##
 ## TODO: we might want to think about pulling this stuff out into a separate
-## configurationf file (using ConfigObj?)
+## configuration file (using ConfigObj?)
 ##
 messages = {
+
     'new' : {
         'subject' : '[Fedora Update] [new] %(package)s',
         'body'    : """\
@@ -135,6 +142,87 @@ The following update has been moved from Testing to Final:\n%(updatestr)s
                     }
         }
 }
+
+errata_template = """
+Subject: %(subject)s
+
+--------------------------------------------------------------------------------
+Fedora%(testing)s Update Notification
+%(update_id)s
+%(date)s
+--------------------------------------------------------------------------------
+
+Name        : %(name)s
+Product     : %(product)s
+Version     : %(version)s
+Release     : %(release)s
+Summary     : %(summary)s
+Description :
+%(description)s
+
+--------------------------------------------------------------------------------
+%(notes)s%(changelog)s
+--------------------------------------------------------------------------------
+This update can be downloaded from:
+    http://download.fedoraproject.org/pub/fedora/linux/core/updates/%(updatepath)s/
+
+%(filelist)s
+
+This update can be installed with the 'yum' update program.  Use 'yum update
+package-name' at the command line.  For more information, refer to 'Managing
+Software with yum,' available at http://fedora.redhat.com/docs/yum/.
+--------------------------------------------------------------------------------
+"""
+
+def get_template(update):
+    h = rpm_fileheader(update.get_srpm_path())
+    info = {}
+    info['date'] = time.strftime("%Y-%m-%d", time.localtime())
+    info['name'] = h[rpm.RPMTAG_NAME]
+    info['summary'] = h[rpm.RPMTAG_SUMMARY]
+    info['version'] = h[rpm.RPMTAG_VERSION]
+    info['release'] = h[rpm.RPMTAG_RELEASE]
+    info['testing'] = update.testing and ' Test' or ''
+    info['subject'] = "%s%s%s Update: %s" % (
+            update.type == 'security' and '[SECURITY] ' or '',
+            update.release.long_name, info['testing'], update.nvr)
+    info['update_id'] = update.update_id
+    info['description'] = h[rpm.RPMTAG_DESCRIPTION]
+    info['updatepath'] = update.get_repo()
+    info['product'] = update.release.long_name
+    info['notes'] = ""
+    if update.notes and len(update.notes):
+        info['notes'] = "Update Information:\n\n%s" % update.notes
+
+    # Build the list of SHA1SUMs and packages
+    filelist = []
+    for arch in update.filelist.keys():
+        for pkg in update.filelist[arch]:
+            filelist.append("%s  %s" % (sha1sum(pkg), join(arch,
+                            pkg.find('debuginfo') != -1 and 'debug' or '',
+                            basename(pkg))))
+    info['filelist'] = '\n'.join(filelist)
+
+    info['changelog'] = ""
+    lastpkg = update.get_latest()
+    log.debug("lastpkg = %s" % lastpkg)
+
+    # For testing purposes until koji's tags are created
+    #lastpkg ='/mnt/koji/packages/mutt/1.4.2.2/4.fc7/src/mutt-1.4.2.2-4.fc7.src.rpm'
+
+    if lastpkg:
+        oldh = rpm_fileheader(lastpkg)
+        oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
+        text = oldh[rpm.RPMTAG_CHANGELOGTEXT]
+        if not text:
+            oldtime = 0
+        elif len(text) != 1:
+            oldtime = oldtime[0]
+        info['changelog'] = "\n%s%s" % ((update.notes and len(update.notes))
+                                        and ('-' * 80) + '\n\n' or '',
+                                        str(getChangeLog(h, oldtime)))
+
+    return errata_template % info
 
 def send(to, msg_type, update):
     """ Send an update notification email to a given recipient """

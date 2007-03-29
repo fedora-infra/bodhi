@@ -13,10 +13,8 @@ from bodhi.model import (Release, Package, PackageUpdate, Bugzilla,
                          Comment, CVE, Arch)
 
 database.set_db_uri("sqlite:///:memory:")
-
 turbogears.update_config(configfile='dev.cfg',
                          modulename='bodhi.config')
-
 
 class TestPackageUpdate(testutil.DBTest):
 
@@ -51,7 +49,7 @@ class TestPackageUpdate(testutil.DBTest):
         return  PackageUpdate(nvr=name, package=self.get_pkg(),
                               release=self.get_rel(), submitter='foo@bar.com',
                               testing=True, type='security',
-                              notes='Blah blah blah')
+                              notes='foobar')
 
     def get_bug(self):
         return Bugzilla(bz_id=1)
@@ -67,6 +65,7 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.release.updates[0] == update
         assert update.testing == True
         assert update.type == 'security'
+        assert update.notes == 'foobar'
         bug = self.get_bug()
         cve = self.get_cve()
         update.addBugzilla(bug)
@@ -118,6 +117,27 @@ class TestPackageUpdate(testutil.DBTest):
         assert exists(join(push_stage, update.get_repo(), 'SRPMS',
                            "%s.src.rpm" % update.nvr))
         shutil.rmtree(push_stage)
+
+    def test_email(self):
+        from bodhi import mail
+        update = self.get_update(name='mutt-1.5.13-2.20070212cvs.fc7')
+        bug = self.get_bug()
+        cve = self.get_cve()
+        update.addBugzilla(bug)
+        update.addCVE(cve)
+        update.assign_id()
+        template = mail.get_template(update)
+        # TODO: assert template against known correct templaet
+        #assert False
+
+    def test_no_srpm(self):
+        from bodhi.exceptions import SRPMNotFound
+        try:
+            update = self.get_update(name='foobar-1.2-3')
+        except SRPMNotFound:
+            pass
+        except Exception:
+            assert False
 
 class TestCVE(testutil.DBTest):
 
