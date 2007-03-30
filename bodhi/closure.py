@@ -24,7 +24,6 @@ import time
 import glob
 import string
 import logging
-import buildsys
 import tempfile
 import turbogears
 
