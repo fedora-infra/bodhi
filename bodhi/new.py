@@ -19,6 +19,7 @@ import formencode
 
 from os.path import join
 from sqlobject import SQLObjectNotFound
+from formencode import Invalid
 from bodhi.model import Release, Package, PackageUpdate, Bugzilla, CVE
 from turbogears import (expose, controllers, validate, validators, flash,
                         error_handler, redirect, identity, config)
@@ -27,8 +28,10 @@ from turbogears.widgets import (WidgetsList, TextField, SingleSelectField,
                                 TableForm, HiddenField, AutoCompleteField)
 
 log = logging.getLogger(__name__)
-
 update_types = ('security', 'bugfix', 'enhancement')
+
+def get_releases():
+    return [rel.long_name for rel in Release.select()]
 
 class PackageValidator(validators.FancyValidator):
     messages = {
@@ -43,38 +46,40 @@ class PackageValidator(validators.FancyValidator):
     def validate_python(self, value, state):
         """
         Run basic QA checks on the provided package name
+
+        TODO: (waiting for koji to acquire proper tags)
+
+            - make sure tag matches release
+            - make sure version is newer than previously released, as well
+              as in other releases
         """
         # Make sure the package is in name-version-release format
-        if len(value.split('-') < 3):
-            raise Invalid(self.message('bad_name'), value, state)
+        if len(value.split('-')) < 3:
+            raise Invalid(self.message('bad_name', state), value, state)
 
+        # Make sure this update doesn't already exist
+        try:
+            update = PackageUpdate.byNvr(value)
+            raise Invalid(self.message('dupe', state, nvr=value), value, state)
+        except SQLObjectNotFound:
+            pass
 
-#class NewUpdateSchema(formencode.Schema):
-    #nvr = PackageValidator()
-    #release = validators.OneOf(get_releases())
-    #testing = validators.Bool()
-    #type = validators.OneOf(update_types)
-    #embargo = validators.DateTimeConverter()
-    #bugs = validators.String()
-    #cves = validators.String()
-    #notes = validators.String()
+pkg_validator = PackageValidator()
 
-## TODO: get package schema/validation working
-
-def get_releases():
-    return [rel.long_name for rel in Release.select()]
+class AutoCompleteValidator(validators.Schema):
+    def _to_python(self, value, state):
+        text = value['text']
+        value['text'] = pkg_validator.to_python(text)
+        return value
 
 class UpdateFields(WidgetsList):
     nvr = AutoCompleteField(label='Package', search_controller='/new/pkgsearch',
-                            search_param='name', result_name='pkgs')
-    release = SingleSelectField(options=get_releases,
-                                validator=validators.OneOf(get_releases()))
-    # do we want all updates to get pushed as testing first?
-    #testing = CheckBox(validator=validators.Bool)
-    type = SingleSelectField(options=update_types,
-                             validator=validators.OneOf(update_types))
-    # do we even want an embargo?
-    #embargo = CalendarDateTimePicker(validator=validators.DateTimeConverter())
+                            search_param='name', result_name='pkgs', validator=
+                            AutoCompleteValidator())
+    release = SingleSelectField(options=get_releases, validator=
+                                validators.OneOf(get_releases()))
+    type = SingleSelectField(options=update_types, validator=
+                             validators.OneOf(update_types))
     bugs = TextField(validator=validators.String())
     cves = TextField(validator=validators.String())
     notes = TextArea(validator=validators.String())

@@ -201,15 +201,11 @@ class Root(controllers.RootController):
     def save(self, release, bugs, cves, edited, **kw):
         """
         Save an update.  This includes new updates and edited.
-        Most of these checks should eventually make their way into the
-        NewUpdateSchema validators.
         """
         kw['nvr'] = kw['nvr']['text']
-
         if not kw['nvr'] or kw['nvr'] == '':
             flash("Please enter a package-version-release")
             raise redirect('/new')
-
         if edited and kw['nvr'] != edited:
             flash("You cannot change the package n-v-r after submission")
             raise redirect('/edit/%s' % edited)
@@ -226,12 +222,6 @@ class Root(controllers.RootController):
                     package = Package(name=name)
                 p = PackageUpdate(package=package, release=release,
                                   submitter=identity.current.user_name, **kw)
-            except IndexError:
-                flash("Package needs to be in name-ver-rel format")
-                raise redirect('/new')
-            except IntegrityError:
-                flash("Update for %s already exists" % kw['nvr'])
-                raise redirect('/new')
             except SRPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')
