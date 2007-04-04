@@ -273,4 +273,6 @@ class Root(controllers.RootController):
             flash("Update successfully added" + note)
             mail.send_admin('new', p)
 
+        PackageUpdate._connection.commit()
+
         raise redirect('/show/%s' % p.nvr)
