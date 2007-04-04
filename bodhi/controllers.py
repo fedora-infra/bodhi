@@ -222,6 +222,7 @@ class Root(controllers.RootController):
                     package = Package(name=name)
                 p = PackageUpdate(package=package, release=release,
                                   submitter=identity.current.user_name, **kw)
+                p._build_filelist()
             except SRPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')

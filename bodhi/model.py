@@ -15,6 +15,7 @@
 
 import os
 import mail
+import shutil
 import logging
 import xmlrpclib
 
@@ -97,14 +98,20 @@ class PackageUpdate(SQLObject):
     comments        = MultipleJoin('Comment')
     filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
 
-    def _set_nvr(self, nvr):
-        """
-        Called when the a PackageUpdate is created. Here we do some
-        initialization such as building the filelist
-        """
-        self._SO_set_nvr(nvr)
-        if self.filelist == {}:
-            self._build_filelist()
+    ##
+    ## On publictest2 this makes SQLObject explode (concurrency issues).
+    ## TODO: figure out how to automatically build the filelist when a
+    ## PackageUpdate is created (for now we'll just call _build_filelist by
+    ## hand).
+    ##
+    #def _set_nvr(self, nvr):
+    #    """
+    #    Called when the a PackageUpdate is created. Here we do some
+    #    initialization such as building the filelist
+    #    """
+    #    self._SO_set_nvr(nvr)
+    #    if self.filelist == {}:
+    #        self._build_filelist()
 
     def get_bugstring(self):
         """ Return a space-delimited string of bug numbers for this update """
@@ -142,7 +149,7 @@ class PackageUpdate(SQLObject):
         log.debug("Setting update_id for %s to %s" % (self.nvr, self.update_id))
 
     def _build_filelist(self):
-        """Build and store the filelist for this update. """
+        """ Build and store the filelist for this update. """
         log.debug("Building filelist for %s" % self.nvr)
         filelist = {}
         filelist['SRPMS'] = [self.get_srpm_path()]
@@ -225,7 +232,7 @@ class PackageUpdate(SQLObject):
                 elif self.request == 'push' or self.request == 'move':
                     log.debug("Pushing %s to %s" % (file, destfile))
                     yield " * %s" % join(self.get_repo(), arch, filename)
-                    os.link(file, destfile)
+                    shutil.copy2(file, destfile)
 
         # Post-request actions
         # We only want to execute these when this update has been pushed to
@@ -423,7 +430,7 @@ class User(SQLObject):
     class sqlmeta:
         table = "tg_user"
 
-    user_name = UnicodeCol(length=16, alternateID=True,
+    user_name = UnicodeCol(length=30, alternateID=True,
                            alternateMethodName="by_user_name")
     password = UnicodeCol(length=40, default=None)
     groups = RelatedJoin("Group", intermediateTable="user_group",
