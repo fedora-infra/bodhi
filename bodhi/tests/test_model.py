@@ -45,11 +45,13 @@ class TestPackageUpdate(testutil.DBTest):
         map(rel.addArch, self.get_arches())
         return rel
 
-    def get_update(self, name='mutt-1.4.2.2-4.fc7'):
-        return  PackageUpdate(nvr=name, package=self.get_pkg(),
-                              release=self.get_rel(), submitter='foo@bar.com',
-                              testing=True, type='security',
-                              notes='foobar')
+    def get_update(self, name='mutt-1.5.14-1.fc7'):
+        update = PackageUpdate(nvr=name, package=self.get_pkg(),
+                               release=self.get_rel(), submitter='foo@bar.com',
+                               testing=True, type='security',
+                               notes='foobar')
+        update._build_filelist()
+        return update
 
     def get_bug(self):
         return Bugzilla(bz_id=1)
@@ -59,7 +61,7 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_creation(self):
         update = self.get_update()
-        assert update.nvr == 'mutt-1.4.2.2-4.fc7'
+        assert update.nvr == 'mutt-1.5.14-1.fc7'
         assert update.package.name == 'mutt'
         assert update.release.name == 'fc7'
         assert update.release.updates[0] == update
@@ -88,15 +90,15 @@ class TestPackageUpdate(testutil.DBTest):
         for arch in ('i386', 'ppc', 'x86_64'):
             assert update.filelist.has_key(arch)
             assert len(update.filelist[arch]) == 2
-            assert join(pkg_dir, update.package.name, '1.4.2.2', '4.fc7',
+            assert join(pkg_dir, update.package.name, '1.5.14', '1.fc7',
                         arch, '%s.%s.rpm' % (update.nvr, arch)) in \
                     update.filelist[arch]
-            assert join(pkg_dir, update.package.name, '1.4.2.2', '4.fc7',
-                        arch, 'mutt-debuginfo-1.4.2.2-4.fc7.%s.rpm' % arch) \
+            assert join(pkg_dir, update.package.name, '1.5.14', '1.fc7',
+                        arch, 'mutt-debuginfo-1.5.14-1.fc7.%s.rpm' % arch) \
                     in update.filelist[arch]
         assert update.filelist.has_key('SRPMS')
         assert len(update.filelist['SRPMS']) == 1
-        assert join(pkg_dir, update.package.name, '1.4.2.2', '4.fc7', 'src',
+        assert join(pkg_dir, update.package.name, '1.5.14', '1.fc7', 'src',
                     '%s.src.rpm' % update.nvr) in update.filelist['SRPMS']
 
     def test_push(self):
@@ -112,7 +114,7 @@ class TestPackageUpdate(testutil.DBTest):
             assert exists(join(push_stage, update.get_repo(), arch.name,
                                "%s.%s.rpm" % (update.nvr, arch.name)))
             assert exists(join(push_stage, update.get_repo(), arch.name,
-                               'debug', "mutt-debuginfo-1.4.2.2-4.fc7.%s.rpm" %
+                               'debug', "mutt-debuginfo-1.5.14-1.fc7.%s.rpm" %
                                arch.name))
         assert exists(join(push_stage, update.get_repo(), 'SRPMS',
                            "%s.src.rpm" % update.nvr))
@@ -120,7 +122,7 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_email(self):
         from bodhi import mail
-        update = self.get_update(name='mutt-1.5.13-2.20070212cvs.fc7')
+        update = self.get_update(name='mutt-1.5.14-1.fc7')
         bug = self.get_bug()
         cve = self.get_cve()
         update.addBugzilla(bug)
