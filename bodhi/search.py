@@ -38,7 +38,9 @@ class SearchController(Controller):
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
-    def index(self, search=None, *args, **kw):
+    def index(self, search=None, tg_errors=None, *args, **kw):
+        if tg_errors:
+            flash(tg_errors)
         if search:
             raise redirect('/search/%s' % search)
         return dict(form=self.search_form, values={}, action='/search/')
@@ -46,6 +48,7 @@ class SearchController(Controller):
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
     @validate(validators={ "search"  : validators.String() })
+    @error_handler(index)
     @paginate('updates', default_order='update_id', limit=15)
     def default(self, search, *args, **kw):
         results = set()
