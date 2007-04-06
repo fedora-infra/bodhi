@@ -78,7 +78,7 @@ class Root(controllers.RootController):
     @paginate('updates', default_order='update_id', limit=15)
     def list(self):
         """ List all pushed updates """
-        updates=PackageUpdate.select(PackageUpdate.q.pushed==True).reversed()
+        updates = PackageUpdate.select(PackageUpdate.q.pushed==True).reversed()
         return dict(updates=updates)
 
     @identity.require(identity.not_anonymous())
@@ -121,7 +121,7 @@ class Root(controllers.RootController):
             flash("Update %s not found" % update)
             raise redirect("/list")
         flash("Push request revoked")
-        raise redirect('/show/%s' % nvr)
+        raise redirect('/%s/%s' % (update.release.name, nvr))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -136,7 +136,7 @@ class Root(controllers.RootController):
             mail.send_admin('push', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-        raise redirect('/show/%s' % nvr)
+        raise redirect('/%s/%s' % (update.release.name, nvr))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -151,7 +151,7 @@ class Root(controllers.RootController):
             mail.send_admin('unpush', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-        raise redirect('/show/%s' % nvr)
+        raise redirect('/%s/%s' % (update.release.name, nvr))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -273,6 +273,33 @@ class Root(controllers.RootController):
             flash("Update successfully added" + note)
             mail.send_admin('new', p)
 
-        PackageUpdate._connection.commit()
+        try:
+            PackageUpdate._connection.commit()
+        except AttributeError:
+            # This means that we're using SQLite
+            pass
 
-        raise redirect('/show/%s' % p.nvr)
+        raise redirect('/%s/%s' % (p.release.name, p.nvr))
+
+    @expose()
+    @paginate('updates', default_order='update_id', limit=15)
+    def default(self, *args, **kw):
+        """
+        This method allows for /<release>[/update] requests.
+        """
+        try:
+            release = Release.byName(args[0])
+            try:
+                update = PackageUpdate.byNvr(args[1])
+                return dict(tg_template='bodhi.templates.show',
+                            update=update, updates=[])
+            except SQLObjectNotFound:
+                flash("Update %s not found" % args[1])
+                raise redirect('/')
+            except IndexError:
+                updates = release.updates
+                return dict(tg_template='bodhi.templates.list',
+                            updates=release.updates)
+        except SQLObjectNotFound:
+            flash("The path %s cannot be found" % cherrypy.request.path)
+        raise redirect("/")

@@ -8,7 +8,6 @@
 </head>
 
 <body>
-
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
@@ -47,7 +46,7 @@
             testing = update.testing and 'Testing' or 'Final'
             ?>
             <td class="list">
-                <a class="list" href="/show/${update.nvr}">${update.nvr}</a>
+                <a class="list" href="/${update.release.name}/${update.nvr}">${update.nvr}</a>
             </td>
             <td class="list">
                 ${update.release.long_name}

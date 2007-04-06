@@ -24,7 +24,7 @@
     <!-- header BEGIN -->
     <div id="fedora-header">
         <div id="fedora-header-logo">
-            <a href="/fedora-updates/"><img src="/static/images/header-fedora_logo.png" alt="Fedora Project"/></a>
+            <a href="/"><img src="/static/images/header-fedora_logo.png" alt="Fedora Project"/></a>
         </div>
 
         <div id="fedora-header-items">
@@ -49,7 +49,13 @@
             </div>
             <ul id="fedora-side-nav">
                 <li><a href="/new">New update</a></li>
-                <li><a href="/list">Released updates</a></li>
+                <li><a href="/list">Released updates</a>
+                    <ul>
+                        <li><a href="/FC7">Fedora Core 7</a></li>
+                        <li><a href="/FC6">Fedora Core 6</a></li>
+                        <li><a href="/EPEL5">Enterprise Extras 5</a></li>
+                    </ul>
+                </li>
                 <li><a href="/pending">Pending updates</a></li>
                 <li><a href="/mine">My updates</a></li>
                 <li><a href="/search">Search</a></li>
