@@ -32,6 +32,11 @@ for arch in update.filelist.keys():
         filelist += '<b>%s</b><br/>' % arch
         for pkg in update.filelist[arch]:
             filelist += '|-- %s<br/>' % basename(pkg)
+
+comments = ''
+for comment in update.comments:
+    comments += "<b>%s</b> - %s<br/>%s<br/>" % (comment.user, comment.timestamp,
+                                                comment.text)
 ?>
 
 <body>
@@ -87,6 +92,18 @@ for arch in update.filelist.keys():
                     <td class="show-title"><b>${field[0]}:</b></td>
                     <td class="show-value">${field[1]}</td>
                 </span>
+        </tr>
+        <tr>
+            <td class="show-title"><b>Comments:</b></td>
+            <td class="show-value">
+                ${XML(comments)}
+            </td>
+        </tr>
+        <tr>
+            <td class="show-title"></td>
+            <td class="show-value">
+                ${comment_form.display(value=values)}
+            </td>
         </tr>
         <tr><td class="show-title"></td></tr>
     </table>

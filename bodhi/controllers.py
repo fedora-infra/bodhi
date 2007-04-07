@@ -19,11 +19,12 @@ import cherrypy
 
 from sqlobject import SQLObjectNotFound
 from turbogears import (controllers, expose, validate, redirect, identity,
-                        paginate, flash, error_handler)
+                        paginate, flash, error_handler, validators)
+from turbogears.widgets import TableForm, TextArea, WidgetsList, HiddenField
 
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
-from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE
+from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE, Comment
 from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
 from bodhi.exceptions import SRPMNotFound
@@ -39,6 +40,11 @@ class Root(controllers.RootController):
     search = SearchController()
     rpc = XmlRpcController()
 
+    comment_form = TableForm(fields=[TextArea(name='text', label='',
+                                              validator=validators.NotEmpty(),
+                                              rows=3, cols=40),
+                                     HiddenField(name='nvr')],
+                             submit_text='Add Comment', action='/comment')
     @expose()
     @identity.require(identity.not_anonymous())
     def index(self):
@@ -106,7 +112,7 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
             raise redirect("/list")
-        return dict(update=update)
+        return dict(update=update, comment_form=self.comment_form)
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -292,7 +298,9 @@ class Root(controllers.RootController):
             try:
                 update = PackageUpdate.byNvr(args[1])
                 return dict(tg_template='bodhi.templates.show',
-                            update=update, updates=[])
+                            update=update, updates=[],
+                            comment_form=self.comment_form,
+                            values={'nvr' : update.nvr})
             except SQLObjectNotFound:
                 flash("Update %s not found" % args[1])
                 raise redirect('/')
@@ -303,3 +311,18 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             flash("The path %s cannot be found" % cherrypy.request.path)
         raise redirect("/")
+
+    @expose()
+    @error_handler()
+    @validate(form=comment_form)
+    @identity.require(identity.not_anonymous())
+    def comment(self, text, nvr, tg_errors=None):
+        update = PackageUpdate.byNvr(nvr)
+        if tg_errors:
+            flash(tg_errors['text'])
+        else:
+            comment = Comment(text=text, user=identity.current.user_name,
+                              update=update)
+            mail.send(update.submitter, 'comment', update)
+            flash("Successfully added comment to %s update" % nvr)
+        raise redirect("/%s/%s" % (update.release.name, nvr))

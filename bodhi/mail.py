@@ -140,7 +140,20 @@ The following update has been moved from Testing to Final:\n%(updatestr)s
         'fields'  : lambda x: {
                         'updatestr' : str(x)
                     }
-        }
+        },
+
+    'comment' : {
+        'subject' : '[Fedora Update] [comment] %(package)s',
+        'body'    : """\
+The following comment has been added to your %(package)s update:
+
+%(comment)s
+""",
+        'fields' : lambda x: {
+                        'package' : x.nvr,
+                        'comment' : x.comments[-1]
+                    }
+    }
 }
 
 errata_template = """
@@ -230,6 +243,7 @@ def send(to, msg_type, update):
                                 {'package': update.nvr})
     message.plain = messages[msg_type]['body'] % \
                     messages[msg_type]['fields'](update)
+    log.debug("Sending mail: %s" % message.plain)
     # TODO: uncomment me when we have the password situation figured out
     # and can actually auth for outgoing mail
     #turbomail.enqueue(message)

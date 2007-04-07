@@ -34,7 +34,8 @@ hub = PackageHub("bodhi")
 __connection__ = hub
 
 soClasses=('Release', 'Arch', 'Multilib', 'Package', 'PackageUpdate', 'CVE',
-           'Bugzilla', 'Visit', 'VisitIdentity', 'User', 'Group', 'Permission')
+           'Bugzilla', 'Visit', 'VisitIdentity', 'User', 'Group', 'Permission',
+           'Comment')
 
 class Release(SQLObject):
     """ Table of releases that we will be pushing updates for """
@@ -95,7 +96,7 @@ class PackageUpdate(SQLObject):
     mail_sent       = BoolCol(default=False)
     archived_mail   = UnicodeCol(default=None) # URL of archived update announce mail
     request         = EnumCol(enumValues=['push', 'unpush', 'move', None], default=None)
-    comments        = MultipleJoin('Comment')
+    comments        = MultipleJoin('Comment', joinColumn='update_id')
     filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
 
     ##
@@ -326,10 +327,13 @@ class PackageUpdate(SQLObject):
         return val.rstrip()
 
 class Comment(SQLObject):
-    """ Table of comments on updates. """
-    update  = ForeignKey('PackageUpdate')
-    user    = ForeignKey('User')
-    text    = UnicodeCol(notNone=True)
+    timestamp   = DateTimeCol(default=datetime.now)
+    update      = ForeignKey("PackageUpdate")
+    text        = UnicodeCol(notNone=True)
+    user        = UnicodeCol(notNone=True)
+
+    def __str__(self):
+        return "%s - %s\n%s" % (self.user, self.timestamp, self.text)
 
 class CVE(SQLObject):
     """ Table of CVEs fixed within updates that we know of. """
