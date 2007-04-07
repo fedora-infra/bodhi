@@ -35,7 +35,8 @@ for arch in update.filelist.keys():
 
 comments = ''
 for comment in update.comments:
-    comments += "<b>%s</b> - %s<br/>%s<br/>" % (comment.user, comment.timestamp,
+    comments += "<b>%s</b> - %s<br/>%s<br/>" % (comment.author,
+                                                comment.timestamp,
                                                 comment.text)
 ?>
 
