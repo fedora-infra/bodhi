@@ -67,10 +67,10 @@ class Package(SQLObject):
     updates = MultipleJoin('PackageUpdate', joinColumn='package_id')
 
     def __str__(self):
-        x = "[ %s ]\n== Pending Updates ==\n" % self.name
+        x = "[ %s ]\n[ Pending Updates ]\n" % self.name
         for update in filter(lambda x: not x.pushed, self.updates):
             x += "  o %s" % update.nvr
-        x += "\n\n== Available Updates ==\n"
+        x += "\n\n[ Available Updates ]\n"
         for update in filter(lambda x: x.pushed, self.updates):
             x += "  o %s" % update.nvr
         return x
@@ -80,6 +80,7 @@ class PackageUpdate(SQLObject):
     nvr             = UnicodeCol(notNone=True, alternateID=True, unique=True)
     date_submitted  = DateTimeCol(default=datetime.now, notNone=True)
     date_modified   = DateTimeCol(default=None)
+    date_pushed     = DateTimeCol(default=None)
     package         = ForeignKey('Package')
     submitter       = UnicodeCol(notNone=True)
     update_id       = UnicodeCol(default=None)
@@ -90,7 +91,6 @@ class PackageUpdate(SQLObject):
     release         = ForeignKey('Release')
     testing         = BoolCol(default=True)
     pushed          = BoolCol(default=False)
-    date_pushed     = DateTimeCol(default=None)
     notes           = UnicodeCol()
     mail_sent       = BoolCol(default=False)
     archived_mail   = UnicodeCol(default=None) # URL of archived update announce mail
@@ -242,6 +242,7 @@ class PackageUpdate(SQLObject):
         if not stage:
             if self.request == 'push':
                 self.pushed = True
+                self.date_pushed = datetime.now()
                 self.assign_id()
                 mail.send(self.submitter, 'pushed', self)
             elif self.request == 'unpush':

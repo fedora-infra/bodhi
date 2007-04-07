@@ -17,7 +17,7 @@ import logging
 
 from sqlobject.sqlbuilder import LIKE
 from turbogears import (expose, identity, paginate, validate,
-                        validators, redirect)
+                        validators, redirect, error_handler)
 from turbogears.widgets import TextField, Form, Button
 from turbogears.controllers import Controller
 
