@@ -329,11 +329,11 @@ class PackageUpdate(SQLObject):
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
     update      = ForeignKey("PackageUpdate")
+    author      = UnicodeCol(notNone=True)
     text        = UnicodeCol(notNone=True)
-    user        = UnicodeCol(notNone=True)
 
     def __str__(self):
-        return "%s - %s\n%s" % (self.user, self.timestamp, self.text)
+        return "%s - %s\n%s" % (self.author, self.timestamp, self.text)
 
 class CVE(SQLObject):
     """ Table of CVEs fixed within updates that we know of. """
