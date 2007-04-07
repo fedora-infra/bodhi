@@ -57,13 +57,6 @@ class PackageValidator(validators.FancyValidator):
         if len(value.split('-')) < 3:
             raise Invalid(self.message('bad_name', state), value, state)
 
-        # Make sure this update doesn't already exist
-        try:
-            update = PackageUpdate.byNvr(value)
-            raise Invalid(self.message('dupe', state, nvr=value), value, state)
-        except SQLObjectNotFound:
-            pass
-
 pkg_validator = PackageValidator()
 
 class AutoCompleteValidator(validators.Schema):
