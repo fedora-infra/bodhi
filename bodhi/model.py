@@ -204,6 +204,8 @@ class PackageUpdate(SQLObject):
         if self.request == None:
             log.error("%s attempting to run None request" % self.nvr)
             return
+        elif self.request == 'move':
+            self.testing = False
 
         log.debug("Running %s request for %s" % (self.request, self.nvr))
 

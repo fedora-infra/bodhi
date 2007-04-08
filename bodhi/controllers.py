@@ -127,6 +127,18 @@ class Root(controllers.RootController):
 
     @expose()
     @identity.require(identity.not_anonymous())
+    def move(self, nvr):
+        try:
+            update = PackageUpdate.byNvr(nvr)
+            update.request = 'move'
+            flash("Requested that %s be pushed to Final" % nvr)
+        except SQLObjectNotFound:
+            flash("Update %s not found" % nvr)
+            raise redirect("/")
+        raise redirect(update.get_path())
+
+    @expose()
+    @identity.require(identity.not_anonymous())
     def push(self, nvr):
         """ Submit an update for pushing """
         try:
@@ -147,7 +159,7 @@ class Root(controllers.RootController):
         try:
             update = PackageUpdate.byNvr(nvr)
             update.request = 'unpush'
-            msg = "%s has been submitted for pushing" % nvr
+            msg = "%s has been submitted for unpushing" % nvr
             log.debug(msg)
             flash(msg)
             mail.send_admin('unpush', update)

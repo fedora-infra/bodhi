@@ -62,6 +62,9 @@ for comment in update.comments:
                 </span>
                 <span py:if="update.pushed">
                     <a href="/unpush/${update.nvr}">Unpush</a> | 
+                    <span py:if="update.testing">
+                        <a href="/move/${update.nvr}">Mark as Stable</a> | 
+                    </span>
                 </span>
                 <a href="/edit/${update.nvr}">Edit</a>
                 ]
