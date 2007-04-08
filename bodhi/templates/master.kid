@@ -49,7 +49,7 @@
             </div>
             <ul id="fedora-side-nav">
                 <li><a href="/new">New update</a></li>
-                <li><a href="/list">Released updates</a>
+                <li><a href="/list">Stable updates</a>
                     <ul>
                         <li><a href="/FC7">Fedora Core 7</a></li>
                         <li><a href="/FC6">Fedora Core 6</a></li>
