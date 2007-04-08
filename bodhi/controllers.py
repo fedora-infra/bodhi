@@ -86,7 +86,9 @@ class Root(controllers.RootController):
     @paginate('updates', default_order='update_id', limit=15)
     def list(self):
         """ List all pushed updates """
-        updates = PackageUpdate.select(PackageUpdate.q.pushed==True).reversed()
+        updates = PackageUpdate.select(
+                    AND(PackageUpdate.q.pushed == True,
+                        PackageUpdate.q.testing == False)).reversed()
         return dict(updates=updates)
 
     @expose(template="bodhi.templates.list")
@@ -275,12 +277,6 @@ class Root(controllers.RootController):
         else:
             flash("Update successfully added" + note)
             mail.send_admin('new', p)
-
-        try:
-            PackageUpdate._connection.commit()
-        except AttributeError:
-            # This means that we're using SQLite
-            pass
 
         raise redirect(p.get_path())
 
