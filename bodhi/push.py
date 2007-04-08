@@ -109,6 +109,14 @@ class PushController(controllers.Controller):
                 log.debug("Running request on %s" % package)
                 update = PackageUpdate.byNvr(package)
                 releases[update.testing].add(update.release)
+
+                req = "Pushing"
+                if update.request == "unpush":
+                    req = "Unpushing"
+                elif update.request == "move":
+                    req = "Moving"
+                yield self.header(req + " " + update.nvr)
+
                 for msg in update.run_request():
                     yield msg
                 if update.request == 'push':
@@ -137,8 +145,9 @@ class PushController(controllers.Controller):
             # Clean up
             self._unlock_repo()
             cherrypy.session['updates'] = []
-            yield self.header("Push completed in %s" % str(datetime.now() -
-                                                           start_time))
+            msg = "Push completed %s" % str(datetime.now() - start_time)
+            log.debug(msg)
+            yield self.header(msg)
         return _run_requests()
 
 
