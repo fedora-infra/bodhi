@@ -18,6 +18,7 @@ import logging
 import cherrypy
 
 from sqlobject import SQLObjectNotFound
+from sqlobject.sqlbuilder import AND
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators)
 from turbogears.widgets import TableForm, TextArea, WidgetsList, HiddenField
@@ -88,14 +89,6 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(PackageUpdate.q.pushed==True).reversed()
         return dict(updates=updates)
 
-    @identity.require(identity.not_anonymous())
-    @expose(template="bodhi.templates.list")
-    @paginate('updates', default_order='update_id', limit=15)
-    def pending(self):
-        """ List all updates that are in a pending state """
-        updates = PackageUpdate.select(PackageUpdate.q.pushed==False)
-        return dict(updates=updates)
-
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
     @paginate('updates', default_order='update_id', limit=15)
@@ -128,7 +121,7 @@ class Root(controllers.RootController):
             flash("Update %s not found" % update)
             raise redirect("/list")
         flash("Push request revoked")
-        raise redirect('/%s/%s' % (update.release.name, nvr))
+        raise redirect(update.get_path())
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -143,7 +136,7 @@ class Root(controllers.RootController):
             mail.send_admin('push', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-        raise redirect('/%s/%s' % (update.release.name, nvr))
+        raise redirect(update.get_path())
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -158,7 +151,7 @@ class Root(controllers.RootController):
             mail.send_admin('unpush', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-        raise redirect('/%s/%s' % (update.release.name, nvr))
+        raise redirect(update.get_path())
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -289,18 +282,40 @@ class Root(controllers.RootController):
             # This means that we're using SQLite
             pass
 
-        raise redirect('/%s/%s' % (p.release.name, p.nvr))
+        raise redirect(p.get_path())
 
-    @expose()
+    @expose(template='bodhi.templates.list')
     @paginate('updates', default_order='update_id', limit=15)
     def default(self, *args, **kw):
         """
-        This method allows for /<release>[/update] requests.
+        This method allows for /[(pending|testing)/]<release>[/<update>]
+        requests.
         """
+        args = [arg for arg in args]
+        testing = False
+        pushed = True
+
+        if len(args) and args[0] == 'testing':
+            testing = True
+            del args[0]
+        if len(args) and args[0] == 'pending':
+            pushed = False
+            testing = True
+            del args[0]
+        if not len(args): # /(testing|pending)
+            updates = PackageUpdate.select(
+                        AND(PackageUpdate.q.testing == testing,
+                            PackageUpdate.q.pushed == pushed))
+            return dict(updates=updates)
+
         try:
             release = Release.byName(args[0])
             try:
-                update = PackageUpdate.byNvr(args[1])
+                update = PackageUpdate.select(
+                            AND(PackageUpdate.q.releaseID == release.id,
+                                PackageUpdate.q.nvr == args[1],
+                                PackageUpdate.q.testing == testing,
+                                PackageUpdate.q.pushed == pushed))[0]
                 return dict(tg_template='bodhi.templates.show',
                             update=update, updates=[],
                             comment_form=self.comment_form,
@@ -308,12 +323,16 @@ class Root(controllers.RootController):
             except SQLObjectNotFound:
                 flash("Update %s not found" % args[1])
                 raise redirect('/')
-            except IndexError:
-                updates = release.updates
-                return dict(tg_template='bodhi.templates.list',
-                            updates=release.updates)
+            except IndexError: # /[testing/]<release>
+                updates = PackageUpdate.select(
+                            AND(PackageUpdate.q.releaseID == release.id,
+                                PackageUpdate.q.testing == testing,
+                                PackageUpdate.q.pushed == pushed))
+                return dict(updates=updates)
         except SQLObjectNotFound:
-            flash("The path %s cannot be found" % cherrypy.request.path)
+            pass
+
+        flash("The path %s cannot be found" % cherrypy.request.path)
         raise redirect("/")
 
     @expose()
@@ -329,4 +348,4 @@ class Root(controllers.RootController):
                               update=update)
             mail.send(update.submitter, 'comment', update)
             flash("Successfully added comment to %s update" % nvr)
-        raise redirect("/%s/%s" % (update.release.name, nvr))
+        raise redirect(update.get_path())

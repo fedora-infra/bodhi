@@ -56,6 +56,13 @@
                         <li><a href="/EPEL5">Enterprise Extras 5</a></li>
                     </ul>
                 </li>
+                 <li><a href="/testing">Testing updates</a>
+                    <ul>
+                        <li><a href="/testing/FC7">Fedora Core 7</a></li>
+                        <li><a href="/testing/FC6">Fedora Core 6</a></li>
+                        <li><a href="/testing/EPEL5">Enterprise Extras 5</a></li>
+                    </ul>
+                </li>
                 <li><a href="/pending">Pending updates</a></li>
                 <li><a href="/mine">My updates</a></li>
                 <li><a href="/search">Search</a></li>

@@ -261,6 +261,7 @@ class PackageUpdate(SQLObject):
         """ Return the path to the SRPM for this update """
         srpm = join(self.get_source_path(), "src", "%s.src.rpm" % self.nvr)
         if not isfile(srpm):
+            log.debug("Cannot find SRPM: %s" % srpm)
             raise SRPMNotFound
         return srpm
 
@@ -298,6 +299,15 @@ class PackageUpdate(SQLObject):
 
         del koji
         return latest
+
+    def get_path(self):
+        """ Return the relative path to this update """
+        status = self.testing and 'testing/' or ''
+        if not self.pushed: status = 'pending/'
+        return '/%s%s/%s' % (status, self.release.name, self.nvr)
+
+    def get_url(self):
+        return config.get('base_url') + self.get_path()
 
     def __str__(self):
         """
