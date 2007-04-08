@@ -251,7 +251,9 @@ class PackageUpdate(SQLObject):
                 mail.send(self.submitter, 'unpushed', self)
             elif self.request == 'move':
                 mail.send(self.submitter, 'moved', self)
+
         self.request = None
+        hub.commit()
 
     def get_source_path(self):
         """ Return the path of this built update """
@@ -338,7 +340,7 @@ class PackageUpdate(SQLObject):
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
-    update      = ForeignKey("PackageUpdate")
+    update      = ForeignKey("PackageUpdate", notNone=True)
     author      = UnicodeCol(notNone=True)
     text        = UnicodeCol(notNone=True)
 
