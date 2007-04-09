@@ -16,7 +16,17 @@
 
 import os
 import rpm
+import sys
 import time
+import logging
+
+from os.path import isdir
+from turbogears import config
+
+sys.path.append('/usr/share/createrepo')
+import genpkgmetadata
+
+log = logging.getLogger(__name__)
 
 def rpm_fileheader(pkgpath):
     is_oldrpm = hasattr(rpm, 'opendb')
@@ -71,3 +81,14 @@ def get_nvr(nvr):
     """ Return the [ name, version, release ] a given name-ver-rel. """
     x = nvr.split('-')
     return ['-'.join(x[:-2]), x[-2], x[-1]]
+
+def mkmetadatadir(dir):
+    """
+    Generate package metadata for a given directory; if it doesn't exist, then
+    create it.
+    """
+    log.debug("mkmetadatadir(%s)" % dir)
+    if not isdir(dir):
+        os.mkdir(dir)
+    cache = config.get('createrepo_cache_dir')
+    genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])

@@ -23,8 +23,10 @@ import shutil
 import turbogears
 
 from os.path import join, isdir, isfile
+from bodhi.util import mkmetadatadir
 from bodhi.model import Release, Package, Arch, Multilib
 from bodhi.deprecated.biarch import biarch
+
 from sqlobject import SQLObjectNotFound
 from turbogears import config
 from turbogears.database import PackageHub
@@ -42,26 +44,14 @@ def init_updates_stage():
     stage_dir = config.get('stage_dir')
     print "\nInitializing the staging directory"
 
-    def mkmetadatadir(dir):
-        print dir
-        os.mkdir(dir)
-        genpkgmetadata.main(['-q', str(dir)])
-
-    # Move the current stage_dir out of the way, if it exists
-    if isdir(stage_dir):
-        olddir = stage_dir + '.old'
-        if isdir(olddir):
-            shutil.rmtree(olddir)
-        print "Moving existing stage_dir to stage_dir.old"
-        shutil.move(stage_dir, olddir)
-
-    os.mkdir(stage_dir)
-    os.mkdir(join(stage_dir, 'testing'))
+    if not isdir(stage_dir):
+        os.mkdir(stage_dir)
+    if not isdir(join(stage_dir, 'testing')):
+        os.mkdir(join(stage_dir, 'testing'))
 
     for release in Release.select():
         for status in ('', 'testing'):
             dir = join(stage_dir, status, release.repodir)
-            os.mkdir(dir)
             mkmetadatadir(join(dir, 'SRPMS'))
             for arch in release.arches:
                 mkmetadatadir(join(dir, arch.name))

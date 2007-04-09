@@ -23,15 +23,12 @@ from Comet import comet
 from datetime import datetime
 from turbogears import controllers, expose, flash, redirect, config, identity
 
+from bodhi.util import mkmetadatadir
 from bodhi.model import PackageUpdate
 from bodhi.metadata import ExtendedMetadata
 from bodhi.modifyrepo import RepoMetadata
 
 from os.path import isfile, isdir, basename, join
-
-import sys
-sys.path.append('/usr/share/createrepo')
-import genpkgmetadata
 
 log = logging.getLogger(__name__)
 
@@ -137,6 +134,7 @@ class PushController(controllers.Controller):
                 yield " * Inserting updateinfo.xml into repositories"
                 updateinfo.insert_updateinfo()
             except Exception, e:
+                log.error(e)
                 msg = "Exception thrown: " + str(e)
                 log.error(msg)
                 yield "ERROR: " + msg
@@ -177,8 +175,7 @@ class PushController(controllers.Controller):
 
             yield ' * %s' % join(testing and 'testing' or '', release.name,
                                  arch.name)
-            genpkgmetadata.main(['--cachedir', str(self.createrepo_cache),
-                                 '-q', str(repo)])
+            mkmetadatadir(repo)
 
             ## Insert the updateinfo.xml.gz back into the repodata
             if tmpmd:
@@ -195,8 +192,7 @@ class PushController(controllers.Controller):
             if isdir(debugrepo):
                  yield ' * %s' % join(testing and 'testing' or '',
                                       release.name, arch.name, 'debug')
-                 genpkgmetadata.main(['--cachedir', str(self.createrepo_cache),
-                                      '-q', str(debugrepo)])
+                 mkmetadatadir(debugrepo)
 
 ## Allow us to return a generator for streamed responses
 cherrypy.config.update({'/admin/push/run_requests':{'stream_response':True}})
