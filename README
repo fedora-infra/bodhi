@@ -8,6 +8,11 @@ Setting up a development environment
 
     https://hosted.fedoraproject.org/projects/bodhi/wiki/Development
 
+Documentation
+=============
+
+    $ make docs     # generate Epydocs
+
 Running the test suite
 ======================
 
