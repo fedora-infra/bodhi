@@ -141,6 +141,8 @@ class PushController(controllers.Controller):
                     req = "Unpushing"
                 elif update.request == "move":
                     req = "Moving"
+                    # force regeneration of stable repo metadata
+                    releases[False].add(update.release)
                 yield self.header(req + " " + update.nvr)
 
                 for msg in update.run_request():
