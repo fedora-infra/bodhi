@@ -137,9 +137,11 @@ class PackageUpdate(SQLObject):
         (ie FEDORA-2007-0001)
         """
         import time
-        if self.update_id != None: # maintain assigned ID for repushes
+        if self.update_id: # maintain assigned ID for repushes
+            log.debug("Retaining current id")
             return
-        update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id)
+        update = PackageUpdate.select(PackageUpdate.q.update_id != None,
+                                      orderBy=PackageUpdate.q.update_id)
         try:
             id = int(update.reversed()[0].update_id.split('-')[-1]) + 1
         except AttributeError: # no other updates; this is the first
@@ -224,7 +226,7 @@ class PackageUpdate(SQLObject):
                 if isfile(destfile):
                     log.debug("Deleting %s" % destfile)
                     os.unlink(destfile)
-                    yield "Removed %s" % join(self.get_repo(), arch, filename)
+                    yield " * Removed %s" % join(self.get_repo(),arch,filename)
 
                 if self.request == 'unpush':
                     # we've already removed any existing files from the stage,

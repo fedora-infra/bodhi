@@ -88,7 +88,8 @@ class Root(controllers.RootController):
         """ List all pushed updates """
         updates = PackageUpdate.select(
                     AND(PackageUpdate.q.pushed == True,
-                        PackageUpdate.q.testing == False)).reversed()
+                        PackageUpdate.q.testing == False),
+                    orderBy=PackageUpdate.q.update_id).reversed()
         return dict(updates=updates)
 
     @expose(template="bodhi.templates.list")
@@ -313,7 +314,8 @@ class Root(controllers.RootController):
         if not len(args): # /(testing|pending)
             updates = PackageUpdate.select(
                         AND(PackageUpdate.q.testing == testing,
-                            PackageUpdate.q.pushed == pushed))
+                            PackageUpdate.q.pushed == pushed),
+                        orderBy=PackageUpdate.q.update_id).reversed()
             return dict(updates=updates)
 
         try:
@@ -335,7 +337,8 @@ class Root(controllers.RootController):
                 updates = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
                                 PackageUpdate.q.testing == testing,
-                                PackageUpdate.q.pushed == pushed))
+                                PackageUpdate.q.pushed == pushed),
+                            orderBy=PackageUpdate.q.update_id).reversed()
                 return dict(updates=updates)
         except SQLObjectNotFound:
             pass
