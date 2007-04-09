@@ -42,9 +42,7 @@
         <div id="fedora-side-nav-label">Site Navigation:</div>
             <div py:if="'admin' in tg.identity.groups">
                 <ul id="fedora-side-nav">
-                    <li><a href="/admin/push">Admin Requests</a></li>
-                    <li><a href="/admin/catwalk">Database</a></li>
-                    <li><a href="/admin/repotree">Repository Tree</a></li>
+                    <li><a href="/admin">Administration</a></li>
                 </ul>
             </div>
             <ul id="fedora-side-nav">
