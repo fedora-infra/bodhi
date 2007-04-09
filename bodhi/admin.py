@@ -12,10 +12,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from bodhi.push import PushController
-from bodhi.model import Release
+import os
 
-from os.path import join
+from os.path import join, isfile
+from bodhi.push import PushController
 
 from turbogears import expose, identity, config
 from turbogears.identity import SecureResource
@@ -32,14 +32,18 @@ class AdminController(Controller, SecureResource):
     def index(self):
         return dict()
 
-    @expose(template='bodhi.templates.text')
-    def repotree(self):
-        import os
-        output = ''
-        for release in Release.select():
-            for branch in ('', 'testing'):
-                repo = join(config.get('stage_dir'), branch, release.repodir)
-                tree = os.popen('/usr/bin/tree -s %s' % repo)
-                output += tree.read() + '\n'
-                tree.close()
-        return dict(title='Repository Tree', text=output)
+    @expose(template='bodhi.templates.repodiff')
+    def repodiff(self, diff=None):
+        if not diff:
+            return dict(diffs=os.listdir(config.get('repodiff_dir')))
+        else:
+            diff_file = join(config.get('repodiff_dir'), diff)
+            if isfile(diff_file):
+                diff_file = open(diff_file, 'r')
+                output = diff_file.read()
+                diff_file.close()
+                return dict(tg_template='bodhi.templates.diff', diff=output,
+                            title="repodiff - %s" % diff)
+            else:
+                flash("Invalid repodiff specified: %s" % diff)
+        raise redirect('/admin')

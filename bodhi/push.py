@@ -18,6 +18,7 @@ import shutil
 import logging
 import tempfile
 import cherrypy
+import commands
 
 from Comet import comet
 from datetime import datetime
@@ -42,6 +43,7 @@ class PushController(controllers.Controller):
         self.stage_dir = config.get('stage_dir')
         self.lockfile = join(self.stage_dir, '.lock')
         self.header = lambda x: "%s\n     %s\n%s" % ('=' * 100, x, '=' * 100)
+        self.orig_repo = None
         if isfile(self.lockfile):
             log.debug("Removing stale repository lockfile")
             self._unlock_repo()
@@ -55,6 +57,33 @@ class PushController(controllers.Controller):
     def _unlock_repo(self):
         if isfile(self.lockfile):
             os.unlink(self.lockfile)
+
+    def repodiff(self):
+        """
+        When this method is first called, it saves a snapshot of the
+        updates-stage tree (tree -s output).  When called a second time,
+        it takes another snapshot, diffs it with the original, and stores
+        the diff in 'repodiff_dir'.
+        """
+        if not self.orig_repo:
+            self.orig_repo = tempfile.mkstemp()
+            tree = commands.getoutput("tree -s %s" % self.stage_dir)
+            os.write(self.orig_repo[0], tree)
+        else:
+            self.new_repo = tempfile.mkstemp()
+            tree = commands.getoutput("tree -s %s" % self.stage_dir)
+            os.write(self.new_repo[0], tree)
+            os.close(self.new_repo[0])
+            os.close(self.orig_repo[0])
+            diff = join(config.get('repodiff_dir'), '%s' %
+                        datetime.now().strftime("%Y%m%d-%H%M%S"))
+            diff = open(diff, 'w')
+            diff.write(commands.getoutput("diff -u %s %s" % (self.orig_repo[1],
+                                                             self.new_repo[1])))
+            diff.close()
+            os.unlink(self.orig_repo[1])
+            os.unlink(self.new_repo[1])
+            self.orig_repo = None
 
     @expose(template='bodhi.templates.push')
     def index(self):
@@ -81,9 +110,9 @@ class PushController(controllers.Controller):
         """
         @comet(content_type='text/plain')
         def _run_requests():
-            log.debug("_run_requests()")
             start_time = datetime.now()
             yield "Starting push at %s" % start_time
+            self.repodiff()
             try:
                 self._lock_repo()
                 yield "Acquired repository lock"
@@ -146,6 +175,7 @@ class PushController(controllers.Controller):
             msg = "Push completed %s" % str(datetime.now() - start_time)
             log.debug(msg)
             yield self.header(msg)
+            self.repodiff()
         return _run_requests()
 
 
