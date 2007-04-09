@@ -15,7 +15,6 @@
 
 import os
 import mail
-import shutil
 import logging
 import xmlrpclib
 
@@ -235,7 +234,7 @@ class PackageUpdate(SQLObject):
                 elif self.request == 'push' or self.request == 'move':
                     log.debug("Pushing %s to %s" % (file, destfile))
                     yield " * %s" % join(self.get_repo(), arch, filename)
-                    shutil.copy2(file, destfile)
+                    os.link(file, destfile)
 
         # Post-request actions
         # We only want to execute these when this update has been pushed to
