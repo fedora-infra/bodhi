@@ -89,6 +89,6 @@ def mkmetadatadir(dir):
     """
     log.debug("mkmetadatadir(%s)" % dir)
     if not isdir(dir):
-        os.mkdir(dir)
+        os.makedirs(dir)
     cache = config.get('createrepo_cache_dir')
     genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])

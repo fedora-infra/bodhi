@@ -51,11 +51,11 @@ def init_updates_stage():
 
     for release in Release.select():
         for status in ('', 'testing'):
-            dir = join(stage_dir, status, release.repodir)
-            mkmetadatadir(join(dir, 'SRPMS'))
+            stage = join(stage_dir, status, release.repodir)
+            mkmetadatadir(join(stage, 'SRPMS'))
             for arch in release.arches:
-                mkmetadatadir(join(dir, arch.name))
-                mkmetadatadir(join(dir, arch.name, 'debug'))
+                mkmetadatadir(join(stage, arch.name))
+                mkmetadatadir(join(stage, arch.name, 'debug'))
 
 def import_releases():
     """ Import the releases and multilib  """

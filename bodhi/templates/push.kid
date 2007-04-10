@@ -16,7 +16,7 @@
             <tr py:for="update in updates">
                 <td>
                 <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
-                <a href="/${update.release.name}/${update.nvr}">${update.nvr}</a>
+                <a href="/${update.get_path()}">${update.nvr}</a>
                 </td>
             </tr>
         </table>
