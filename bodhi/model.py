@@ -144,7 +144,7 @@ class PackageUpdate(SQLObject):
                                       orderBy=PackageUpdate.q.update_id)
         try:
             id = int(update.reversed()[0].update_id.split('-')[-1]) + 1
-        except AttributeError: # no other updates; this is the first
+        except IndexError: # no other updates; this is the first
             id = 1
         self.update_id = '%s-%s-%0.4d' % (config.get('id_prefix'),
                                           time.localtime()[0],id)
