@@ -43,7 +43,7 @@ class AdminController(Controller, SecureResource):
                 output = diff_file.read()
                 diff_file.close()
                 return dict(tg_template='bodhi.templates.diff', diff=output,
-                            title="repodiff - %s" % diff)
+                            title=diff)
             else:
                 flash("Invalid repodiff specified: %s" % diff)
         raise redirect('/admin')
