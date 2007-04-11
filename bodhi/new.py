@@ -83,12 +83,18 @@ update_form = TableForm(fields=UpdateFields(), submit_text='Submit')
 class NewUpdateController(controllers.Controller):
 
     build_dir = config.get('build_dir')
+    packages  = None
+
+    def build_pkglist(self):
+        """ Cache a list of packages used for the package AutoCompleteField """
+        self.packages = os.listdir(self.build_dir)
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
     def index(self, *args, **kw):
-        self.packages = os.listdir(self.build_dir)
+        self.build_pkglist()
         return dict(form=update_form, values={}, action="/save")
+
 
     @expose(format="json")
     def pkgsearch(self, name):
@@ -98,6 +104,7 @@ class NewUpdateController(controllers.Controller):
         package-version-release's that are found
         """
         matches = []
+        if not self.packages: self.build_pkglist()
         if name in self.packages:
             for version in os.listdir(join(self.build_dir, name)):
                 for release in os.listdir(join(self.build_dir, name, version)):
