@@ -251,6 +251,7 @@ class PackageUpdate(SQLObject):
                 mail.send(self.submitter, 'pushed', self)
             elif self.request == 'unpush':
                 self.pushed = False
+                self.testing = True
                 mail.send(self.submitter, 'unpushed', self)
             elif self.request == 'move':
                 mail.send(self.submitter, 'moved', self)
