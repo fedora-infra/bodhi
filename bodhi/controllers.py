@@ -31,7 +31,8 @@ from bodhi.xmlrpc import XmlRpcController
 from bodhi.exceptions import SRPMNotFound
 
 from psycopg2 import IntegrityError as PostgresIntegrityError
-from pysqlite2.dbapi2 import IntegrityError as SQLiteIntegrityError
+from pysqlite2.dbapi2 import IntegrityError as SQLite2IntegrityError
+from sqlite import IntegrityError as SQLiteIntegrityError
 
 log = logging.getLogger(__name__)
 
@@ -241,7 +242,8 @@ class Root(controllers.RootController):
             except SRPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')
-            except PostgresIntegrityError, SQLiteIntegrityError:
+            except (PostgresIntegrityError, SQLite2IntegrityError,
+                    SQLiteIntegrityError):
                 flash("Update for %s already exists" % kw['nvr'])
                 raise redirect('/new')
             except Exception, e:
