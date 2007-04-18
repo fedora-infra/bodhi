@@ -27,7 +27,6 @@ from datetime import datetime
 from sqlobject import OR
 from turbogears import config
 
-from bodhi.model import Release, Bugzilla, CVE
 from bodhi.modifyrepo import RepoMetadata
 
 log = logging.getLogger(__name__)
@@ -40,9 +39,9 @@ rebootpkgs = ("kernel", "kernel-smp", "kernel-xen-hypervisor", "kernel-PAE",
 
 class ExtendedMetadata:
 
-    def __init__(self):
+    def __init__(self, stage=None):
         self.docs = {} # {repodir : [Release, xml.Document]}
-        self.stage_dir = config.get('stage_dir')
+        self.stage_dir = stage and stage or config.get('stage_dir')
 
     def _get_updateinfo(self, update):
         """
@@ -52,8 +51,8 @@ class ExtendedMetadata:
         """
         repo = join(self.stage_dir, update.get_repo())
         if self.docs.has_key(repo):
-            return self.docs[repo]
-        uinfo = join(repo, 'i386', 'repodata', 'updateinfo.xml.gz')
+            return self.docs[repo][1]
+        uinfo = join(repo, 'SRPMS', 'repodata', 'updateinfo.xml.gz')
         if exists(uinfo):
             log.debug("Grabbing existing updateinfo: %s" % uinfo)
             uinfo = gzip.open(uinfo)
@@ -81,8 +80,7 @@ class ExtendedMetadata:
     def _get_notice(self, doc, update):
         for elem in doc.getElementsByTagName('update'):
             for child in elem.childNodes:
-                print child.toprettyxml()
-                if child.nodeName == 'id' and \
+                if child.nodeName == 'id' and child.firstChild and \
                    child.firstChild.nodeValue == update.update_id:
                        return elem
         return None
@@ -91,20 +89,22 @@ class ExtendedMetadata:
         doc = self._get_updateinfo(update)
         elem = self._get_notice(doc, update)
         if elem:
+            log.debug("Removing %s from updateinfo.xml" % update)
             doc.firstChild.removeChild(elem)
             return True
+        log.warning("Couldn't find update %s in updateinfo" % update)
         return False
 
     def add_update(self, update):
         """ Build the extended metdata for a given update """
-        log.debug("Generating extended metadata for %s" % update.nvr)
-
-        doc = self._get_updateinfo(update)
 
         ## Make sure this update doesn't already exist
+        doc = self._get_updateinfo(update)
         if self._get_notice(doc, update):
             log.debug("Update %s already in updateinfo" % update.nvr)
             return
+
+        log.debug("Generating extended metadata for %s" % update.nvr)
 
         root = self._insert(doc, doc.firstChild, 'update', attrs={
                 'type'      : update.type,
@@ -176,7 +176,12 @@ class ExtendedMetadata:
     def insert_updateinfo(self):
         """ insert the updateinfo.xml.gz metadata into the repo """
         for (repo, data) in self.docs.items():
+            log.debug("Inserting updateinfo into %s" % join(repo, 'SRPMS',
+                                                            'repodata'))
+            repomd = RepoMetadata(join(repo, 'SRPMS', 'repodata'))
+            repomd.add(data[1])
             for arch in data[0].arches:
+                log.debug("Inserting updateinfo into %s" % join(repo, arch.name,
+                                                                'repodata'))
                 repomd = RepoMetadata(join(repo, arch.name, 'repodata'))
                 repomd.add(data[1])
-            log.debug("Inserted updateinfo.xml.gz into %s" % repo)
