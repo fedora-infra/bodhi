@@ -21,12 +21,14 @@ import xmlrpclib
 from sqlobject import *
 from datetime import datetime
 
-from turbogears import identity, config, flash
+from turbogears import config, flash
 from turbogears.database import PackageHub
 
 from os.path import isdir, isfile, join, basename
-from bodhi.util import get_nvr, excluded_arch, rpm_fileheader
+from bodhi.util import get_nvr, excluded_arch, rpm_fileheader, header
+from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import SRPMNotFound
+from bodhi.identity.tables import *
 
 log = logging.getLogger(__name__)
 hub = PackageHub("bodhi")
@@ -140,11 +142,10 @@ class PackageUpdate(SQLObject):
         if self.update_id: # maintain assigned ID for repushes
             log.debug("Retaining current id")
             return
-        update = PackageUpdate.select(PackageUpdate.q.update_id != None,
-                                      orderBy=PackageUpdate.q.update_id)
+        update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id)
         try:
             id = int(update.reversed()[0].update_id.split('-')[-1]) + 1
-        except IndexError: # no other updates; this is the first
+        except (AttributeError, IndexError):
             id = 1
         self.update_id = '%s-%s-%0.4d' % (config.get('id_prefix'),
                                           time.localtime()[0],id)
@@ -190,7 +191,7 @@ class PackageUpdate(SQLObject):
                             continue
         self.filelist = filelist
 
-    def run_request(self, stage=None):
+    def run_request(self, stage=None, updateinfo=None):
         """
         Based on the request property, do one of a few things:
 
@@ -200,15 +201,26 @@ class PackageUpdate(SQLObject):
 
         By default we stage to the 'stage_dir' variable set in your app.cfg,
         but an alternate can be specified (for use in testing dep closure in
-        a lookaside repo)
+        a lookaside repo).
+
+        If an optinal updateinfo is supplied, then this update will add/remove
+        itself accordingly.  If not, then we will create our own and insert
+        it before we return.
         """
+        if updateinfo: uinfo = updateinfo
+        else: uinfo = ExtendedMetadata(stage)
         if self.request == None:
             log.error("%s attempting to run None request" % self.nvr)
             return
         elif self.request == 'move':
+            uinfo.remove_update(self)
+            # disable testing status now so that we can simply push to
+            # self.get_repo() later in this method
             self.testing = False
 
-        log.debug("Running %s request for %s" % (self.request, self.nvr))
+        action = {'move':'Moving', 'push':'Pushing', 'unpush':'Unpushing'}
+        log.debug("%s %s" % (action[self.request], self.nvr))
+        yield header("%s %s" % (action[self.request], self.nvr))
 
         # iterate over each of this update's files by arch
         for arch in self.filelist.keys():
@@ -232,7 +244,6 @@ class PackageUpdate(SQLObject):
                     # we've already removed any existing files from the stage,
                     # and unpushing doesn't entail anything more
                     continue
-
                 elif self.request == 'push' or self.request == 'move':
                     log.debug("Pushing %s to %s" % (file, destfile))
                     yield " * %s" % join(self.get_repo(), arch, filename)
@@ -249,12 +260,20 @@ class PackageUpdate(SQLObject):
                 self.date_pushed = datetime.now()
                 self.assign_id()
                 mail.send(self.submitter, 'pushed', self)
+                uinfo.add_update(self)
             elif self.request == 'unpush':
                 self.pushed = False
                 self.testing = True
                 mail.send(self.submitter, 'unpushed', self)
+                uinfo.remove_update(self)
             elif self.request == 'move':
                 mail.send(self.submitter, 'moved', self)
+
+        # If we created our own UpdateMetadata, then insert it into the repo
+        if not updateinfo:
+            log.debug("Inserting updateinfo by hand")
+            uinfo.insert_updateinfo()
+            del uinfo
 
         self.request = None
         hub.commit()
@@ -279,6 +298,8 @@ class PackageUpdate(SQLObject):
         latest = None
         tagged = []
 
+        # TODO: check -candidates first??
+
         try:
             tagged = koji.listTagged("dist-%s-updates" %
                                      self.release.name.lower(), None, False,
@@ -297,7 +318,7 @@ class PackageUpdate(SQLObject):
             if len(tagged):
                 latest = tagged[0]['nvr']
         if latest:
-            nvr = util.get_nvr(latest)
+            nvr = get_nvr(latest)
             latest = join(config.get('build_dir'), nvr[0], nvr[1], nvr[2],
                           'src', '%s.src.rpm' % latest)
         else:
@@ -321,6 +342,7 @@ class PackageUpdate(SQLObject):
         TODO: eventually put the URL of this update
         """
         val = """\
+  Update ID: %(update_id)s
     Package: %(package)s
     Release: %(release)s
        Type: %(type)s
@@ -328,6 +350,7 @@ class PackageUpdate(SQLObject):
        CVES: %(cves)s
       Notes: %(notes)s
       Files:""" % ({
+                    'update_id' : self.update_id,
                     'package'   : self.nvr,
                     'release'   : self.release.long_name,
                     'type'      : self.type,
@@ -410,75 +433,3 @@ class Bugzilla(SQLObject):
 
     def get_url(self):
         return "https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%s" % self.bz_id
-
-##
-## Identity tables
-##
-
-class Visit(SQLObject):
-    visit_key = StringCol(length=40, alternateID=True,
-                          alternateMethodName="by_visit_key")
-    created = DateTimeCol(default=datetime.now)
-    expiry = DateTimeCol()
-
-    def lookup_visit(cls, visit_key):
-        try:
-            return cls.by_visit_key(visit_key)
-        except SQLObjectNotFound:
-            return None
-    lookup_visit = classmethod(lookup_visit)
-
-class VisitIdentity(SQLObject):
-    visit_key = StringCol(length=40, alternateID=True,
-                          alternateMethodName="by_visit_key")
-    user_id = IntCol()
-
-class Group(SQLObject):
-    class sqlmeta:
-        table = "tg_group"
-
-    group_name = UnicodeCol(length=16, alternateID=True,
-                            alternateMethodName="by_group_name")
-    display_name = UnicodeCol(length=255)
-    created = DateTimeCol(default=datetime.now)
-    users = RelatedJoin("User", intermediateTable="user_group",
-                        joinColumn="group_id", otherColumn="user_id")
-    permissions = RelatedJoin("Permission", joinColumn="group_id", 
-                              intermediateTable="group_permission",
-                              otherColumn="permission_id")
-
-class User(SQLObject):
-    class sqlmeta:
-        table = "tg_user"
-
-    user_name = UnicodeCol(length=30, alternateID=True,
-                           alternateMethodName="by_user_name")
-    password = UnicodeCol(length=40, default=None)
-    groups = RelatedJoin("Group", intermediateTable="user_group",
-                         joinColumn="user_id", otherColumn="group_id")
-    created = DateTimeCol(default=datetime.now)
-
-    def _get_permissions(self):
-        perms = set()
-        for g in self.groups:
-            perms = perms | set(g.permissions)
-        return perms
-
-    def _set_password(self, cleartext_password):
-        "Runs cleartext_password through the hash algorithm before saving."
-        hash = identity.encrypt_password(cleartext_password)
-        self._SO_set_password(hash)
-
-    def set_password_raw(self, password):
-        "Saves the password as-is to the database."
-        self._SO_set_password(password)
-
-class Permission(SQLObject):
-    permission_name = UnicodeCol(length=16, alternateID=True,
-                                 alternateMethodName="by_permission_name")
-    description = UnicodeCol(length=255)
-
-    groups = RelatedJoin("Group",
-                         intermediateTable="group_permission",
-                         joinColumn="permission_id", 
-                         otherColumn="group_id")
