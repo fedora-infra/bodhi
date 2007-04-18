@@ -9,6 +9,7 @@ import turbogears
 
 from os.path import join, exists
 from turbogears import testutil, database, config
+from bodhi.util import mkmetadatadir
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla,
                          Comment, CVE, Arch)
 
@@ -105,8 +106,9 @@ class TestPackageUpdate(testutil.DBTest):
         push_stage = tempfile.mkdtemp('bodhi')
         update = self.get_update()
         for arch in update.release.arches:
-            os.makedirs(join(push_stage, update.get_repo(), arch.name, 'debug'))
-        os.mkdir(join(push_stage, update.get_repo(), 'SRPMS'))
+            mkmetadatadir(join(push_stage, update.get_repo(), arch.name))
+            mkmetadatadir(join(push_stage, update.get_repo(),arch.name,'debug'))
+        mkmetadatadir(join(push_stage, update.get_repo(), 'SRPMS'))
         update.request = 'push'
         print "Pushing to temp stage: %s" % push_stage
         for msg in update.run_request(stage=push_stage): pass
