@@ -46,6 +46,7 @@ class TestExtendedMetadata(testutil.DBTest):
         push_stage = tempfile.mkdtemp('bodhi')
         for arch in up.release.arches:
             mkmetadatadir(join(push_stage, up.get_repo(), arch.name))
+        mkmetadatadir(join(push_stage, up.get_repo(), 'SRPMS'))
 
         ## Add update and insert updateinfo.xml.gz into repo
         md = ExtendedMetadata(stage=push_stage)
