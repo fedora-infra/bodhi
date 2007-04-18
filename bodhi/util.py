@@ -92,3 +92,6 @@ def mkmetadatadir(dir):
         os.makedirs(dir)
     cache = config.get('createrepo_cache_dir')
     genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
+
+## Display a given message as a heading
+header = lambda x: "%s\n     %s\n%s" % ('=' * 100, x, '=' * 100)

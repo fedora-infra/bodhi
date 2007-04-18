@@ -24,7 +24,7 @@ from Comet import comet
 from datetime import datetime
 from turbogears import controllers, expose, flash, redirect, config, identity
 
-from bodhi.util import mkmetadatadir
+from bodhi.util import mkmetadatadir, header
 from bodhi.model import PackageUpdate
 from bodhi.metadata import ExtendedMetadata
 from bodhi.modifyrepo import RepoMetadata
@@ -42,7 +42,6 @@ class PushController(controllers.Controller):
         self.createrepo_cache = config.get('createrepo_cache_dir')
         self.stage_dir = config.get('stage_dir')
         self.lockfile = join(self.stage_dir, '.lock')
-        self.header = lambda x: "%s\n     %s\n%s" % ('=' * 100, x, '=' * 100)
         self.orig_repo = None
         if isfile(self.lockfile):
             log.debug("Removing stale repository lockfile")
@@ -136,26 +135,14 @@ class PushController(controllers.Controller):
                 update = PackageUpdate.byNvr(package)
                 releases[update.testing].add(update.release)
 
-                req = "Pushing"
-                if update.request == "unpush":
-                    req = "Unpushing"
-                elif update.request == "move":
-                    req = "Moving"
-                    # force regeneration of stable repo metadata
-                    releases[False].add(update.release)
-                yield self.header(req + " " + update.nvr)
-
-                for msg in update.run_request():
+                for msg in update.run_request(updateinfo=updateinfo):
                     yield msg
-                if update.request == 'push':
-                    log.debug("Adding update metadata to repo")
-                    updateinfo.add_update(update)
-                elif update.request == 'unpush':
-                    updateinfo.remove_update(update)
-                # TODO: figure out how to remove the metadata for 'move's
+
+                if update.request == 'move':
+                    releases[False].add(update.release)
 
             # Regenerate the repository metadata
-            yield self.header("Generating repository metadata")
+            yield header("Generating repository metadata")
             try:
                 for (testing, releases) in releases.items():
                     for release in releases:
@@ -176,7 +163,7 @@ class PushController(controllers.Controller):
             cherrypy.session['updates'] = []
             msg = "Push completed %s" % str(datetime.now() - start_time)
             log.debug(msg)
-            yield self.header(msg)
+            yield header(msg)
             self.repodiff()
         return _run_requests()
 
@@ -187,8 +174,9 @@ class PushController(controllers.Controller):
         """
         baserepo = join(self.stage_dir, testing and 'testing' or '',
                         release.repodir)
-        for arch in release.arches:
-            repo = join(baserepo, arch.name)
+
+        for arch in [arch.name for arch in release.arches] + [u'SRPMS']:
+            repo = join(baserepo, arch)
 
             ## Move the updateinfo.xml.gz out of the way
             tmpmd = None
@@ -206,7 +194,7 @@ class PushController(controllers.Controller):
                 os.remove(updateinfo)
 
             yield ' * %s' % join(testing and 'testing' or '', release.name,
-                                 arch.name)
+                                 arch)
             mkmetadatadir(repo)
 
             ## Insert the updateinfo.xml.gz back into the repodata
@@ -223,7 +211,7 @@ class PushController(controllers.Controller):
             debugrepo = join(repo, 'debug')
             if isdir(debugrepo):
                  yield ' * %s' % join(testing and 'testing' or '',
-                                      release.name, arch.name, 'debug')
+                                      release.name, arch, 'debug')
                  mkmetadatadir(debugrepo)
 
 ## Allow us to return a generator for streamed responses
