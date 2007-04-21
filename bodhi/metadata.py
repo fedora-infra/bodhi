@@ -31,12 +31,6 @@ from bodhi.modifyrepo import RepoMetadata
 
 log = logging.getLogger(__name__)
 
-## TODO: These should eventually make their way into the model
-FILE_URL = 'http://download.fedoraproject.org/pub/fedora/linux/core/updates%s/%s/%s/%s'
-rebootpkgs = ("kernel", "kernel-smp", "kernel-xen-hypervisor", "kernel-PAE",
-              "kernel-xen0", "kernel-xenU", "kernel-xen", "kernel-xen-guest",
-              "glibc", "hal", "dbus")
-
 class ExtendedMetadata:
 
     def __init__(self, stage=None):
@@ -154,18 +148,17 @@ class ExtendedMetadata:
                     'release'   : rpmhdr[rpm.RPMTAG_RELEASE],
                     'epoch'     : rpmhdr[rpm.RPMTAG_EPOCH],
                     'arch'      : arch,
-                    'src'       : FILE_URL % (update.testing and
-                                              '-testing' or '',
-                                              update.release.name[-1],
-                                              arch, filename)
+                    'src'       : config.get('file_url') % (update.testing and
+                                                            '-testing' or '',
+                                                            update.release.name[-1],
+                                                            arch, filename)
                 })
 
                 self._insert(doc, pkg, 'filename', text=filename)
                 self._insert(doc, pkg, 'sum', attrs={'type':'sha1'},
                              text=util.sha1sum(package))
 
-                ## TODO: add reboot_suggested field to Packages
-                if nvr[0] in rebootpkgs:
+                if update.package.suggest_reboot:
                     self._insert(doc, pkg, 'reboot_suggested', text='True')
 
                 collection.appendChild(pkg)
