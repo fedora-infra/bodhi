@@ -108,6 +108,14 @@ def import_releases():
         print rel
         print " - Added %d multilib packages for %s" % (num_multilib, rel.name)
 
+def import_rebootpkgs():
+    """
+    Add packages that should suggest a reboot.  Other than these packages, we
+    add a package to the database when its first update is added to the system
+    """
+    for pkg in config.get('reboot_pkgs').split():
+        Package(name=pkg, suggest_reboot=True)
+
 def init_arches():
     """ Initialize the arch tables """
     arches = {
@@ -157,5 +165,6 @@ if __name__ == '__main__':
     clean_tables()
     init_arches()
     import_releases()
+    import_rebootpkgs()
     init_updates_stage()
     hub.commit()
