@@ -22,6 +22,7 @@ import logging
 
 from os.path import isdir
 from turbogears import config
+from bodhi.exceptions import RPMNotFound
 
 sys.path.append('/usr/share/createrepo')
 import genpkgmetadata
@@ -29,36 +30,20 @@ import genpkgmetadata
 log = logging.getLogger(__name__)
 
 def rpm_fileheader(pkgpath):
+    log.debug("Grabbing the rpm header of %s" % pkgpath)
     is_oldrpm = hasattr(rpm, 'opendb')
-    fd = os.open(pkgpath,0)
     try:
+        fd = os.open(pkgpath,0)
         if is_oldrpm:
             h = rpm.headerFromPackage(fd)[0]
         else:
             ts = rpm.TransactionSet()
             h = ts.hdrFromFdno(fd)
             del ts
-    finally:
-        os.close(fd)
+    except OSError:
+        raise RPMNotFound
+    os.close(fd)
     return h
-
-def getChangeLog(header, timelimit=0):
-    descrip = header[rpm.RPMTAG_CHANGELOGTEXT]
-    if not descrip: return ""
-
-    who = header[rpm.RPMTAG_CHANGELOGNAME]
-    when = header[rpm.RPMTAG_CHANGELOGTIME]
-
-    num = len(descrip)
-    if num == 1: when = [when]
-
-    str = ""
-    i = 0
-    while (i < num) and (when[i] > timelimit):
-        str += '* %s %s\n%s\n' % (time.strftime("%a %b %e %Y",
-                                  time.localtime(when[i])), who[i], descrip[i])
-        i += 1
-    return str
 
 def excluded_arch(rpmheader, arch):
     """

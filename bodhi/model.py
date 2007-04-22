@@ -14,7 +14,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import os
+import rpm
 import mail
+import time
 import logging
 import xmlrpclib
 
@@ -27,7 +29,7 @@ from turbogears.database import PackageHub
 from os.path import isdir, isfile, join, basename
 from bodhi.util import get_nvr, excluded_arch, rpm_fileheader, header
 from bodhi.metadata import ExtendedMetadata
-from bodhi.exceptions import SRPMNotFound
+from bodhi.exceptions import RPMNotFound
 from bodhi.identity.tables import *
 
 log = logging.getLogger(__name__)
@@ -65,16 +67,23 @@ class Multilib(SQLObject):
     arches      = RelatedJoin('Arch')
 
 class Package(SQLObject):
-    name    = UnicodeCol(alternateID=True, notNone=True)
-    updates = MultipleJoin('PackageUpdate', joinColumn='package_id')
+    name           = UnicodeCol(alternateID=True, notNone=True)
+    updates        = MultipleJoin('PackageUpdate', joinColumn='package_id')
+    suggest_reboot = BoolCol(default=False)
 
     def __str__(self):
-        x = "[ %s ]\n[ Pending Updates ]\n" % self.name
-        for update in filter(lambda x: not x.pushed, self.updates):
-            x += "  o %s" % update.nvr
-        x += "\n\n[ Available Updates ]\n"
-        for update in filter(lambda x: x.pushed, self.updates):
-            x += "  o %s" % update.nvr
+        x = '[ %s ]' % self.name
+        if len(self.updates):
+            pending = filter(lambda u: not u.pushed, self.updates)
+            if len(pending):
+                x += "\n[ %d Pending Updates ]\n" % len(pending)
+                for update in pending:
+                    x += "  o %s\n" % update.nvr
+            available = filter(lambda u: u.pushed, self.updates)
+            if len(available):
+                x += "\n[ %d Available Updates ]\n" % len(available)
+                for update in available:
+                    x += "  o %s\n" % update.nvr
         return x
 
 class PackageUpdate(SQLObject):
@@ -287,7 +296,7 @@ class PackageUpdate(SQLObject):
         srpm = join(self.get_source_path(), "src", "%s.src.rpm" % self.nvr)
         if not isfile(srpm):
             log.debug("Cannot find SRPM: %s" % srpm)
-            raise SRPMNotFound
+            raise RPMNotFound
         return srpm
 
     def get_latest(self):
@@ -296,35 +305,37 @@ class PackageUpdate(SQLObject):
         """
         koji = xmlrpclib.ServerProxy(config.get('koji_hub'), allow_none=True)
         latest = None
-        tagged = []
+        builds = []
 
-        # TODO: check -candidates first??
-
-        try:
-            tagged = koji.listTagged("dist-%s-updates" %
-                                     self.release.name.lower(), None, False,
-                                     None, False, self.package.name)
-        except xmlrpclib.Fault, f:
-            log.warning(str(f))
-        if len(tagged) > 1:  # We have tagged updates
-            latest = tagged[1]['nvr']
-        else:  # No updates (other than this one) tagged
+        # Grab a list of builds tagged with dist-$RELEASE-updates, and find
+        # the most recent update for this package, other than this one.  If
+        # nothing is tagged for -updates, then grab the first thing in
+        # dist-$RELEASE.  We aren't checking -updates-candidate first, because
+        # there could potentially be packages that never make their way over
+        # -updates, so we don't want to generate ChangeLogs against those.
+        for tag in ['dist-%s-updates', 'dist-%s']:
             try:
-                tagged = koji.listTagged("dist-%s" % self.release.name.lower(),
-                                         None, False, None, False,
-                                         self.package.name)
-            except xmlrpclib.Fault, f:
-                log.warning(str(f))
-            if len(tagged):
-                latest = tagged[0]['nvr']
-        if latest:
-            nvr = get_nvr(latest)
-            latest = join(config.get('build_dir'), nvr[0], nvr[1], nvr[2],
-                          'src', '%s.src.rpm' % latest)
-        else:
-            log.error("Cannot find latest-pkg for %s" % self.nvr)
+                builds = koji.getLatestBuilds(tag % self.release.name.lower(),
+                                              None, self.package.name)
 
+                log.debug("builds: %s" % builds)
+
+                # Find the first build that is older than us
+                for build in builds:
+                    if rpm.labelCompare(get_nvr(self.nvr),
+                                        get_nvr(build['nvr'])):
+                        log.debug("%s > %s" % (self.nvr, build['nvr']))
+                        latest = build['nvr']
+
+            except xmlrpclib.Fault, f:
+                # Nothing built and tagged with -updates, so try dist instead
+                log.warning(str(f))
+                continue
+            break
+
+        log.debug("latest = %s" % latest)
         del koji
+
         return latest
 
     def get_path(self):
@@ -342,8 +353,10 @@ class PackageUpdate(SQLObject):
         TODO: eventually put the URL of this update
         """
         val = """\
+================================================================================
+  %(package)s
+================================================================================
   Update ID: %(update_id)s
-    Package: %(package)s
     Release: %(release)s
        Type: %(type)s
        Bugs: %(bugs)s
@@ -364,6 +377,35 @@ class PackageUpdate(SQLObject):
             for file in files:
                 val += " %s\n\t    " % basename(file)
         return val.rstrip()
+
+    def get_rpm_header(self):
+        """
+        Get the rpm header of this update
+        """
+        return rpm_fileheader(self.get_srpm_path())
+
+    def get_changelog(self, timelimit=0):
+        """
+        Retrieve the RPM changelog of this package since it's last update
+        """
+        header = self.get_rpm_header()
+        descrip = header[rpm.RPMTAG_CHANGELOGTEXT]
+        if not descrip: return ""
+
+        who = header[rpm.RPMTAG_CHANGELOGNAME]
+        when = header[rpm.RPMTAG_CHANGELOGTIME]
+
+        num = len(descrip)
+        if num: when = [when]
+
+        str = ""
+        i = 0
+        while (i < num) and (when[i] > timelimit):
+            str += '* %s %s\n%s\n' % (time.strftime("%a %b %e %Y",
+                                      time.localtime(when[i])), who[i],
+                                      descrip[i])
+            i += 1
+        return str
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)

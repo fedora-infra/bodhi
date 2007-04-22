@@ -18,12 +18,11 @@ import logging
 import turbomail
 
 from os.path import join, basename
-from bodhi.util import rpm_fileheader, sha1sum, getChangeLog
+from bodhi.util import sha1sum, rpm_fileheader
+from bodhi.exceptions import RPMNotFound
 from turbogears import config
 
 log = logging.getLogger(__name__)
-release_team = config.get('release_team_address')
-from_addr = config.get('from_address')
 
 ##
 ## All of the email messages that bodhi is going to be sending around, not
@@ -156,6 +155,7 @@ The following comment has been added to your %(package)s update:
     }
 }
 
+## TODO: subject isn't necessary?
 errata_template = """
 Subject: %(subject)s
 
@@ -165,17 +165,17 @@ Fedora%(testing)s Update Notification
 %(date)s
 --------------------------------------------------------------------------------
 
-Name        : %(name)s
-Product     : %(product)s
-Version     : %(version)s
-Release     : %(release)s
-Summary     : %(summary)s
+       Name : %(name)s
+    Product : %(product)s
+    Version : %(version)s
+    Release : %(release)s
+    Summary : %(summary)s
 Description :
 %(description)s
 
 --------------------------------------------------------------------------------
-%(notes)s%(changelog)s
---------------------------------------------------------------------------------
+%(notes)s%(changelog)s%(references)s
+
 This update can be downloaded from:
     http://download.fedoraproject.org/pub/fedora/linux/core/updates/%(updatepath)s/
 
@@ -188,9 +188,10 @@ Software with yum,' available at http://fedora.redhat.com/docs/yum/.
 """
 
 def get_template(update):
-    h = rpm_fileheader(update.get_srpm_path())
+    h = update.get_rpm_header()
+    line = '\n' + '-' * 80
     info = {}
-    info['date'] = time.strftime("%Y-%m-%d", time.localtime())
+    info['date'] = update.date_pushed
     info['name'] = h[rpm.RPMTAG_NAME]
     info['summary'] = h[rpm.RPMTAG_SUMMARY]
     info['version'] = h[rpm.RPMTAG_VERSION]
@@ -206,6 +207,7 @@ def get_template(update):
     info['notes'] = ""
     if update.notes and len(update.notes):
         info['notes'] = "Update Information:\n\n%s" % update.notes
+    info['notes'] += line
 
     # Build the list of SHA1SUMs and packages
     filelist = []
@@ -216,14 +218,25 @@ def get_template(update):
                             basename(pkg))))
     info['filelist'] = '\n'.join(filelist)
 
-    info['changelog'] = ""
+    # Add this updates referenced Bugzillas and CVEs
+    info['references'] = ""
+    if len(update.bugs) or len(update.cves):
+        info['references'] = "References:\n\n"
+        for bug in update.bugs:
+            info['references'] += "  Bug #%d - %s\n  - %s\n" % (bug.bz_id,
+                                                                bug.title,
+                                                                bug.get_url())
+        for cve in update.cves:
+            info['references'] += "  %s\n  - %s\n" % (cve.cve_id, cve.get_url())
+    info['references'] += line
+
+    # Find the most recent update for this package, other than this one
     lastpkg = update.get_latest()
     log.debug("lastpkg = %s" % lastpkg)
 
-    # For testing purposes until koji's tags are created
-    #lastpkg ='/mnt/koji/packages/mutt/1.4.2.2/4.fc7/src/mutt-1.4.2.2-4.fc7.src.rpm'
-
-    if lastpkg:
+    # Grab the RPM header of the previous update, and generate a ChangeLog
+    info['changelog'] = ""
+    try:
         oldh = rpm_fileheader(lastpkg)
         oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
         text = oldh[rpm.RPMTAG_CHANGELOGTEXT]
@@ -233,14 +246,18 @@ def get_template(update):
             oldtime = oldtime[0]
         info['changelog'] = "\n%s%s" % ((update.notes and len(update.notes))
                                         and ('-' * 80) + '\n\n' or '',
-                                        str(getChangeLog(h, oldtime)))
+                                        str(update.get_changelog(oldtime)))
+    except RPMNotFound:
+        log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
+                  lastpkg)
 
     return errata_template % info
 
 def send(to, msg_type, update):
     """ Send an update notification email to a given recipient """
-    message = turbomail.Message(from_addr, to, messages[msg_type]['subject'] %
-                                {'package': update.nvr})
+    message = turbomail.Message(config.get('from_address'), to,
+                                messages[msg_type]['subject'] %
+                                { 'package' : update.nvr })
     message.plain = messages[msg_type]['body'] % \
                     messages[msg_type]['fields'](update)
     log.debug("Sending mail: %s" % message.plain)
@@ -250,4 +267,4 @@ def send(to, msg_type, update):
 
 def send_admin(msg_type, update):
     """ Send an update notification to the admins/release team. """
-    send(release_team, msg_type, update)
+    send(config.get('release_team_address'), msg_type, update)

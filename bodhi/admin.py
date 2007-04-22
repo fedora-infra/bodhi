@@ -34,6 +34,9 @@ class AdminController(Controller, SecureResource):
 
     @expose(template='bodhi.templates.repodiff')
     def repodiff(self, diff=None):
+        """
+        If a diff is specified, display it; if not, show a list of diffs.
+        """
         if not diff:
             return dict(diffs=os.listdir(config.get('repodiff_dir')))
         else:

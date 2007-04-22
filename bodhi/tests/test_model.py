@@ -135,10 +135,10 @@ class TestPackageUpdate(testutil.DBTest):
         #assert False
 
     def test_no_srpm(self):
-        from bodhi.exceptions import SRPMNotFound
+        from bodhi.exceptions import RPMNotFound
         try:
             update = self.get_update(name='foobar-1.2-3')
-        except SRPMNotFound:
+        except RPMNotFound:
             pass
         except Exception:
             assert False
