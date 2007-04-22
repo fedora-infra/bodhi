@@ -11,11 +11,7 @@ from turbogears import testutil, database
 from bodhi.util import mkmetadatadir
 from bodhi.model import Release, Package, PackageUpdate, Bugzilla, CVE, Arch
 from bodhi.metadata import ExtendedMetadata
-
-import sys
-sys.path.append('/home/lmacken/code/cvs.duke/yum/yum/')
-from update_md import UpdateMetadata
-#from yum.update_md import UpdateMetadata
+from yum.update_md import UpdateMetadata
 
 database.set_db_uri("sqlite:///:memory:")
 turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
@@ -62,6 +58,9 @@ class TestExtendedMetadata(testutil.DBTest):
         uinfo = UpdateMetadata()
         uinfo.add(updateinfo)
         notice = uinfo.get_notice('mutt-1.4.2.2-4.fc7')
+
+        print notice
+        assert False
 
         assert notice['description'] == up.notes
         assert notice['update_id'] == up.update_id
