@@ -28,7 +28,7 @@ from bodhi.admin import AdminController
 from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE, Comment
 from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
-from bodhi.exceptions import SRPMNotFound
+from bodhi.exceptions import RPMNotFound
 
 from psycopg2 import IntegrityError as PostgresIntegrityError
 from pysqlite2.dbapi2 import IntegrityError as SQLite2IntegrityError
@@ -239,7 +239,7 @@ class Root(controllers.RootController):
                 p = PackageUpdate(package=package, release=release,
                                   submitter=identity.current.user_name, **kw)
                 p._build_filelist()
-            except SRPMNotFound:
+            except RPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')
             except (PostgresIntegrityError, SQLite2IntegrityError,
