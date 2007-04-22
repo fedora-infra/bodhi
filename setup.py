@@ -5,9 +5,10 @@ from turbogears.finddata import find_package_data
 
 setup(
     name="bodhi",
-    version="0.1",
+    version="1.0",
     description="",
-    authors=("Luke Macken <lmacken@fedoraproject.org>",),
+    author="Luke Macken",
+    author_email="lmacken@fedoraproject.org",
     url="https://hosted.fedoraproject.org/projects/bodhi",
     license="GPL",
 

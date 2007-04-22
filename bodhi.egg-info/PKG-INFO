@@ -1,12 +1,13 @@
 Metadata-Version: 1.0
-Name: Fedora-Updates-System
+Name: bodhi
 Version: 1.0
 Summary: UNKNOWN
-Home-page: UNKNOWN
-Author: UNKNOWN
-Author-email: UNKNOWN
-License: UNKNOWN
+Home-page: https://hosted.fedoraproject.org/projects/bodhi
+Author: Luke Macken
+Author-email: lmacken@fedoraproject.org
+License: GPL
 Description: UNKNOWN
+Keywords: turbogears.app
 Platform: UNKNOWN
 Classifier: Development Status :: 3 - Alpha
 Classifier: Operating System :: OS Independent

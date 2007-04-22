@@ -17,3 +17,16 @@ todo:
 .PHONY: clean
 clean:
 	find . -name '*.pyc' | xargs rm
+
+.PHONY: dist
+dist:
+	python setup.py sdist --formats=bztar
+
+.PHONY: build
+build:
+	python setup.py build
+
+.PHONY: install
+install:
+	python setup.py install -O1 --skip-build --root $(DESTDIR)
+	install -D tools/bodhi-client.py $(DESTDIR)/usr/bin/bodhi
