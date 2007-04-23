@@ -56,11 +56,8 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Attempt to read the metadata
         uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
-        notice = uinfo.get_notice('mutt-1.4.2.2-4.fc7')
-
-        print notice
-        assert False
+        uinfo.add(str(updateinfo))
+        notice = uinfo.get_notice(('mutt', '1.4.2.2', '4.fc7'))
 
         assert notice['description'] == up.notes
         assert notice['update_id'] == up.update_id
@@ -79,7 +76,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert md.remove_update(up)
         md.insert_updateinfo()
         uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
+        uinfo.add(str(updateinfo))
         notice = uinfo.get_notice('mutt-1.4.2.2-4.fc7')
         assert not notice
 
