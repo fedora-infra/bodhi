@@ -26,9 +26,9 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Create an update
         pkg = Package(name='foobar')
         arch = Arch(name='i386', subarches=['i386'])
-        rel = Release(name='fc7', long_name='Fedora Core 7', repodir='7')
+        rel = Release(name='fc6', long_name='Fedora Core 6', repodir='6')
         rel.addArch(arch)
-        up = PackageUpdate(nvr='mutt-1.4.2.2-4.fc7', package=pkg, release=rel,
+        up = PackageUpdate(nvr='mutt-1.4.2.2-4.fc6', package=pkg, release=rel,
                            submitter='foo@bar.com', testing=True,
                            type='security', notes='Update notes and such')
         bug = Bugzilla(bz_id=1234)
@@ -57,7 +57,8 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Attempt to read the metadata
         uinfo = UpdateMetadata()
         uinfo.add(str(updateinfo))
-        notice = uinfo.get_notice(('mutt', '1.4.2.2', '4.fc7'))
+        notice = uinfo.get_notice(('mutt', '1.4.2.2', '4.fc6'))
+        assert notice
 
         assert notice['description'] == up.notes
         assert notice['update_id'] == up.update_id
@@ -77,7 +78,7 @@ class TestExtendedMetadata(testutil.DBTest):
         md.insert_updateinfo()
         uinfo = UpdateMetadata()
         uinfo.add(str(updateinfo))
-        notice = uinfo.get_notice('mutt-1.4.2.2-4.fc7')
+        notice = uinfo.get_notice('mutt-1.4.2.2-4.fc6')
         assert not notice
 
         ## Clean up
