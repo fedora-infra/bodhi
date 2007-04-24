@@ -256,7 +256,13 @@ class PackageUpdate(SQLObject):
                 elif self.request == 'push' or self.request == 'move':
                     log.debug("Pushing %s to %s" % (file, destfile))
                     yield " * %s" % join(self.get_repo(), arch, filename)
-                    os.link(file, destfile)
+                    try:
+                        os.link(file, destfile)
+                    except OSError, e:
+                        if e.errno == 18: # cross-device-link
+                            log.debug("Cross-device link; copying file instead")
+                            import shutil
+                            shutil.copyfile(file, destfile)
 
         # Post-request actions
         # We only want to execute these when this update has been pushed to
