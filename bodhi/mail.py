@@ -182,7 +182,7 @@ This update can be downloaded from:
 
 This update can be installed with the 'yum' update program.  Use 'yum update
 package-name' at the command line.  For more information, refer to 'Managing
-Software with yum,' available at http://fedora.redhat.com/docs/yum/.
+Software with yum,' available at http://docs.fedoraproject.org/yum/.
 --------------------------------------------------------------------------------
 """
 
