@@ -177,7 +177,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
-            raise redirect("/list")
+            raise redirect("/pending")
         if not update.pushed:
             update.destroySelf()
             mail.send_admin('deleted', update)
@@ -186,7 +186,7 @@ class Root(controllers.RootController):
             flash(msg)
         else:
             flash("Cannot delete a pushed update")
-        raise redirect("/list")
+        raise redirect("/pending")
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.form')
