@@ -165,17 +165,16 @@ Fedora%(testing)s Update Notification
 %(date)s
 --------------------------------------------------------------------------------
 
-       Name : %(name)s
-    Product : %(product)s
-    Version : %(version)s
-    Release : %(release)s
-    Summary : %(summary)s
+Name        : %(name)s
+Product     : %(product)s
+Version     : %(version)s
+Release     : %(release)s
+Summary     : %(summary)s
 Description :
 %(description)s
 
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
-
 This update can be downloaded from:
     http://download.fedoraproject.org/pub/fedora/linux/core/updates/%(updatepath)s/
 
@@ -189,7 +188,7 @@ Software with yum,' available at http://fedora.redhat.com/docs/yum/.
 
 def get_template(update):
     h = update.get_rpm_header()
-    line = '\n' + '-' * 80
+    line = str('-' * 80) + '\n'
     info = {}
     info['date'] = update.date_pushed
     info['name'] = h[rpm.RPMTAG_NAME]
@@ -206,8 +205,8 @@ def get_template(update):
     info['product'] = update.release.long_name
     info['notes'] = ""
     if update.notes and len(update.notes):
-        info['notes'] = "Update Information:\n\n%s" % update.notes
-    info['notes'] += line
+        info['notes'] = "Update Information:\n\n%s\n" % update.notes
+        info['notes'] += line
 
     # Build the list of SHA1SUMs and packages
     filelist = []
@@ -223,12 +222,11 @@ def get_template(update):
     if len(update.bugs) or len(update.cves):
         info['references'] = "References:\n\n"
         for bug in update.bugs:
-            info['references'] += "  Bug #%d - %s\n  - %s\n" % (bug.bz_id,
-                                                                bug.title,
-                                                                bug.get_url())
+            info['references'] += "  Bug #%d - %s\n" % (bug.bz_id,
+                                                        bug.get_url())
         for cve in update.cves:
-            info['references'] += "  %s\n  - %s\n" % (cve.cve_id, cve.get_url())
-    info['references'] += line
+            info['references'] += "  %s - %s\n" % (cve.cve_id, cve.get_url())
+        info['references'] += line
 
     # Find the most recent update for this package, other than this one
     lastpkg = update.get_latest()
@@ -240,13 +238,13 @@ def get_template(update):
         oldh = rpm_fileheader(lastpkg)
         oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
         text = oldh[rpm.RPMTAG_CHANGELOGTEXT]
+        del oldh
         if not text:
             oldtime = 0
         elif len(text) != 1:
             oldtime = oldtime[0]
-        info['changelog'] = "\n%s%s" % ((update.notes and len(update.notes))
-                                        and ('-' * 80) + '\n\n' or '',
-                                        str(update.get_changelog(oldtime)))
+        info['changelog'] = "ChangeLog:\n\n%s%s" % \
+                (str(update.get_changelog(oldtime)), line)
     except RPMNotFound:
         log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
                   lastpkg)
