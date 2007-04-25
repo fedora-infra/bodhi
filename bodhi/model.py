@@ -329,9 +329,11 @@ class PackageUpdate(SQLObject):
                 # Find the first build that is older than us
                 for build in builds:
                     if rpm.labelCompare(get_nvr(self.nvr),
-                                        get_nvr(build['nvr'])):
+                                        get_nvr(build['nvr'])) > 0:
                         log.debug("%s > %s" % (self.nvr, build['nvr']))
-                        latest = build['nvr']
+                        latest = get_nvr(build['nvr'])
+                if not latest:
+                    continue
 
             except xmlrpclib.Fault, f:
                 # Nothing built and tagged with -updates, so try dist instead
@@ -339,8 +341,12 @@ class PackageUpdate(SQLObject):
                 continue
             break
 
-        log.debug("latest = %s" % latest)
         del koji
+        latest = join(config.get('build_dir'), latest[0], latest[1], latest[2],
+                      'src', '%s.src.rpm' % '-'.join(latest))
+        if not isfile(latest):
+            log.error("Cannot find latest-pkg: %s" % latest)
+            latest = None
 
         return latest
 
@@ -402,7 +408,7 @@ class PackageUpdate(SQLObject):
         when = header[rpm.RPMTAG_CHANGELOGTIME]
 
         num = len(descrip)
-        if num: when = [when]
+        if num == 1: when = [when]
 
         str = ""
         i = 0
