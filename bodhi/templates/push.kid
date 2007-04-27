@@ -5,21 +5,60 @@
 
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
-        <title>Fedora Updates</title>
+        <title>Fedora Update Requests</title>
 </head>
 
 <body>
 
+<?python
+needmove = filter(lambda x: x.request == 'move', updates)
+needpush = filter(lambda x: x.request == 'push', updates)
+needunpush = filter(lambda x: x.request == 'unpush', updates)
+?>
+
 <blockquote>
     <form name="push_form" method="post" action="/admin/push/console">
-        <table>
-            <tr py:for="update in updates">
-                <td>
-                <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
-                <a href="/${update.get_path()}">${update.nvr}</a>
-                </td>
-            </tr>
-        </table>
+        <span py:if="len(needpush)">
+            <b>Push</b>
+            <table>
+                <tr py:for="update in needpush">
+                    <td>
+                        <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
+                    </td>
+                    <td>
+                        <a href="${update.get_path()}">${update.nvr}</a>
+                    </td>
+                </tr>
+            </table>
+        </span>
+        <span py:if="len(needmove)">
+            <b>Move</b>
+            <table>
+                <tr py:for="update in needmove">
+                    <td>
+                        <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
+                    </td>
+                    <td>
+                        <a href="${update.get_path()}">${update.nvr}</a>
+                    </td>
+                </tr>
+            </table>
+        </span>
+        <span py:if="len(needunpush)">
+            <b>Unpush</b>
+            <table>
+                <tr py:for="update in needunpush">
+                    <td>
+                        <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
+                    </td>
+                    <td>
+                        <a href="${update.get_path()}">${update.nvr}</a>
+                    </td>
+                </tr>
+            </table>
+        </span>
+
+
         <input type="hidden" name="callback" value="${callback}" />
         <input type="submit" name="push" value="${label}" />
     </form>
