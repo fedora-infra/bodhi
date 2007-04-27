@@ -324,8 +324,6 @@ class PackageUpdate(SQLObject):
                 builds = koji.getLatestBuilds(tag % self.release.name.lower(),
                                               None, self.package.name)
 
-                log.debug("builds: %s" % builds)
-
                 # Find the first build that is older than us
                 for build in builds:
                     if rpm.labelCompare(get_nvr(self.nvr),
@@ -334,7 +332,6 @@ class PackageUpdate(SQLObject):
                         latest = get_nvr(build['nvr'])
                 if not latest:
                     continue
-
             except xmlrpclib.Fault, f:
                 # Nothing built and tagged with -updates, so try dist instead
                 log.warning(str(f))
