@@ -147,13 +147,12 @@ class PackageUpdate(SQLObject):
         prefixes it with 'prefix_id' (configurable in app.cfg) and the year
         (ie FEDORA-2007-0001)
         """
-        import time
         if self.update_id: # maintain assigned ID for repushes
             log.debug("Retaining current id")
             return
         update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id)
         try:
-            id = int(update.reversed()[0].update_id.split('-')[-1]) + 1
+            id = int(update[0].update_id.split('-')[-1]) + 1
         except (AttributeError, IndexError):
             id = 1
         self.update_id = '%s-%s-%0.4d' % (config.get('id_prefix'),
@@ -235,7 +234,7 @@ class PackageUpdate(SQLObject):
         for arch in self.filelist.keys():
             dest = join(stage and stage or config.get('stage_dir'),
                         self.get_repo(), arch)
-            log.debug("Pushing %s packages to %s" % (arch, dest))
+
             for file in self.filelist[arch]:
                 filename = basename(file)
                 if filename.find('debuginfo') != -1:
@@ -283,6 +282,7 @@ class PackageUpdate(SQLObject):
                 uinfo.remove_update(self)
             elif self.request == 'move':
                 mail.send(self.submitter, 'moved', self)
+                uinfo.add_update(self)
 
         # If we created our own UpdateMetadata, then insert it into the repo
         if not updateinfo:
@@ -339,8 +339,12 @@ class PackageUpdate(SQLObject):
             break
 
         del koji
+        if not latest:
+            return None
+
         latest = join(config.get('build_dir'), latest[0], latest[1], latest[2],
                       'src', '%s.src.rpm' % '-'.join(latest))
+
         if not isfile(latest):
             log.error("Cannot find latest-pkg: %s" % latest)
             latest = None
