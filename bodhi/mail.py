@@ -234,20 +234,21 @@ def get_template(update):
 
     # Grab the RPM header of the previous update, and generate a ChangeLog
     info['changelog'] = ""
-    try:
-        oldh = rpm_fileheader(lastpkg)
-        oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
-        text = oldh[rpm.RPMTAG_CHANGELOGTEXT]
-        del oldh
-        if not text:
-            oldtime = 0
-        elif len(text) != 1:
-            oldtime = oldtime[0]
-        info['changelog'] = "ChangeLog:\n\n%s%s" % \
-                (str(update.get_changelog(oldtime)), line)
-    except RPMNotFound:
-        log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
-                  lastpkg)
+    if lastpkg:
+        try:
+            oldh = rpm_fileheader(lastpkg)
+            oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
+            text = oldh[rpm.RPMTAG_CHANGELOGTEXT]
+            del oldh
+            if not text:
+                oldtime = 0
+            elif len(text) != 1:
+                oldtime = oldtime[0]
+            info['changelog'] = "ChangeLog:\n\n%s%s" % \
+                    (str(update.get_changelog(oldtime)), line)
+        except RPMNotFound:
+            log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
+                      lastpkg)
 
     return errata_template % info
 
