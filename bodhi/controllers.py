@@ -16,11 +16,12 @@ import mail
 import util
 import logging
 import cherrypy
+import xmlrpclib
 
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
 from turbogears import (controllers, expose, validate, redirect, identity,
-                        paginate, flash, error_handler, validators)
+                        paginate, flash, error_handler, validators, config)
 from turbogears.widgets import TableForm, TextArea, WidgetsList, HiddenField
 
 from bodhi.new import NewUpdateController, update_form
@@ -230,12 +231,36 @@ class Root(controllers.RootController):
         note = ''
 
         if not edited: # new update
+            name = util.get_nvr(kw['nvr'])[0]
+
+            # Make sure selected release matches tag for this build
+            koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
+                                         allow_none=True)
+            tag_matches = False
+            candidate = 'dist-%s-updates-candidate' % release.name.lower()
             try:
-                name = util.get_nvr(kw['nvr'])[0]
-                try:
-                    package = Package.byName(name)
-                except SQLObjectNotFound:
-                    package = Package(name=name)
+                for tag in koji.listTags(kw['nvr']):
+                    log.debug(" * %s" % tag['name'])
+                    if tag['name'] == candidate:
+                        log.debug("%s built with tag %s" % (kw['nvr'],
+                                                            tag['name']))
+                        tag_matches = True
+                        break
+            except xmlrpclib.Fault:
+                flash("Invalid build: %s" % kw['nvr'])
+                raise redirect('/new')
+            if not tag_matches:
+                flash("%s build is not tagged with %s" % (kw['nvr'], candidate))
+                raise redirect('/new')
+
+            # Get the package; if it doesn't exist, create it.
+            try:
+                package = Package.byName(name)
+            except SQLObjectNotFound:
+                package = Package(name=name)
+
+            try:
+                # Create a new update
                 p = PackageUpdate(package=package, release=release,
                                   submitter=identity.current.user_name, **kw)
                 p._build_filelist()
@@ -246,11 +271,11 @@ class Root(controllers.RootController):
                     SQLiteIntegrityError):
                 flash("Update for %s already exists" % kw['nvr'])
                 raise redirect('/new')
-            except Exception, e:
-                msg = "Unknown exception thrown: %s" % str(e)
-                log.error(msg)
-                flash(msg)
-                raise redirect('/new')
+            #except Exception, e:
+            #    msg = "Unknown exception thrown: %s" % str(e)
+            #    log.error(msg)
+            #    flash(msg)
+            #    raise redirect('/new')
             log.info("Adding new update %s" % kw['nvr'])
         else: # edited update
             from datetime import datetime
