@@ -13,6 +13,10 @@ from bodhi.model import Release, Package, PackageUpdate, Bugzilla, CVE, Arch
 from bodhi.metadata import ExtendedMetadata
 from yum.update_md import UpdateMetadata
 
+import sys
+sys.path.append('/home/lmacken/Desktop/cvs.duke/yum/yum')
+from update_md import UpdateMetadata
+
 database.set_db_uri("sqlite:///:memory:")
 turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
 
@@ -26,15 +30,16 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Create an update
         pkg = Package(name='foobar')
         arch = Arch(name='i386', subarches=['i386'])
-        rel = Release(name='fc6', long_name='Fedora Core 6', repodir='6')
+        rel = Release(name='fc7', long_name='Fedora Core 7', repodir='7')
         rel.addArch(arch)
-        up = PackageUpdate(nvr='mutt-1.4.2.2-4.fc6', package=pkg, release=rel,
+        up = PackageUpdate(nvr='mutt-1.5.14-1.fc7', package=pkg, release=rel,
                            submitter='foo@bar.com', testing=True,
-                           type='security', notes='Update notes and such')
-        bug = Bugzilla(bz_id=1234)
-        cve = CVE(cve_id="CVE-2006-1234")
-        up.addBugzilla(bug)
-        up.addCVE(cve)
+                           type='security', notes='This is a long update advisory because I need to test the yum.update_md.UpdateNotice.__str__ to make sure it can wrap this properly and whatnot.  blah.')
+
+        ## Add some references
+        map(up.addBugzilla, map(lambda x: Bugzilla(bz_id=x), (1234, 4321, 1)))
+        map(up.addCVE, map(lambda x: CVE(cve_id=x), ("CVE-2006-1234",
+                                                     "CVE-2007-4321")))
         up._build_filelist()
         up.assign_id()
 
@@ -57,8 +62,11 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Attempt to read the metadata
         uinfo = UpdateMetadata()
         uinfo.add(str(updateinfo))
-        notice = uinfo.get_notice(('mutt', '1.4.2.2', '4.fc6'))
+        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
         assert notice
+
+        print notice
+        assert False
 
         assert notice['description'] == up.notes
         assert notice['update_id'] == up.update_id
@@ -73,12 +81,13 @@ class TestExtendedMetadata(testutil.DBTest):
         for pkg in notice['pkglist'][0]['packages']:
             assert pkg['filename'] in files
 
+        ## Remove the update and verify
         del uinfo
         assert md.remove_update(up)
         md.insert_updateinfo()
         uinfo = UpdateMetadata()
         uinfo.add(str(updateinfo))
-        notice = uinfo.get_notice('mutt-1.4.2.2-4.fc6')
+        notice = uinfo.get_notice('mutt-1.5.14-1.fc7')
         assert not notice
 
         ## Clean up

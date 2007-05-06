@@ -12,7 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-__version__ = '1.2'
+__version__ = '1.3'
 
 import os
 import rpm
@@ -106,11 +106,11 @@ class ExtendedMetadata:
                 'version'   : __version__,
                 'from'      : 'updates@fedora.redhat.com'
         })
+
         self._insert(doc, root, 'id', text=update.update_id)
-        self._insert(doc, root, 'title', text='%s Update: %s' % 
-                     (update.release.long_name, update.nvr))
+        self._insert(doc, root, 'title', text=update.nvr)
+        self._insert(doc, root, 'release', text=update.release.long_name)
         self._insert(doc, root, 'issued', attrs={ 'date' : datetime.now() })
-        #self._insert(doc, root, 'updated', attrs={ 'date' : datetime.now() })
 
         ## Build the references
         refs = doc.createElement('references')
@@ -124,7 +124,8 @@ class ExtendedMetadata:
             self._insert(doc, refs, 'reference', attrs={
                     'type' : 'bugzilla',
                     'href' : bug.get_url(),
-                    'id'   : bug.bz_id
+                    'id'   : bug.bz_id,
+                    'title': bug.title
             })
         root.appendChild(refs)
 
@@ -148,10 +149,9 @@ class ExtendedMetadata:
                     'release'   : rpmhdr[rpm.RPMTAG_RELEASE],
                     'epoch'     : rpmhdr[rpm.RPMTAG_EPOCH],
                     'arch'      : arch,
-                    'src'       : config.get('file_url') % (update.testing and
-                                                            '-testing' or '',
-                                                            update.release.name[-1],
-                                                            arch, filename)
+                    'src'       : config.get('file_url') % (
+                                        update.testing and '-testing' or '',
+                                        update.release.name[-1], arch, filename)
                 })
 
                 self._insert(doc, pkg, 'filename', text=filename)
