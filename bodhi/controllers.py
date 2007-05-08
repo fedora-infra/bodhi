@@ -19,7 +19,9 @@ import cherrypy
 import xmlrpclib
 
 from sqlobject import SQLObjectNotFound
+from sqlobject.dberrors import DuplicateEntryError
 from sqlobject.sqlbuilder import AND
+
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config)
 from turbogears.widgets import TableForm, TextArea, WidgetsList, HiddenField
@@ -32,8 +34,10 @@ from bodhi.xmlrpc import XmlRpcController
 from bodhi.exceptions import RPMNotFound
 
 from psycopg2 import IntegrityError as PostgresIntegrityError
-from pysqlite2.dbapi2 import IntegrityError as SQLite2IntegrityError
-from sqlite import IntegrityError as SQLiteIntegrityError
+try:
+    from pysqlite2.dbapi2 import IntegrityError as SQLiteIntegrityError
+except:
+    from sqlite import IntegrityError as SQLiteIntegrityError
 
 log = logging.getLogger(__name__)
 
@@ -267,8 +271,8 @@ class Root(controllers.RootController):
             except RPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')
-            except (PostgresIntegrityError, SQLite2IntegrityError,
-                    SQLiteIntegrityError):
+            except (PostgresIntegrityError, SQLiteIntegrityError,
+                    DuplicateEntryError):
                 flash("Update for %s already exists" % kw['nvr'])
                 raise redirect('/new')
             #except Exception, e:
