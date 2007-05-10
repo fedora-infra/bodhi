@@ -315,6 +315,10 @@ class Root(controllers.RootController):
             p.type = 'security'
             note += '; CVEs provided, changed update type to security'
 
+        # If we're dealing with a security update, bypass updates-testing
+        if p.type == 'security':
+            p.testing = False
+
         if edited:
             flash("Update successfully edited" + note)
             mail.send_admin('edited', p)
