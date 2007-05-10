@@ -30,7 +30,8 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Create an update
         pkg = Package(name='foobar')
         arch = Arch(name='i386', subarches=['i386'])
-        rel = Release(name='fc7', long_name='Fedora Core 7', repodir='7')
+        rel = Release(name='fc7', long_name='Fedora Core 7', repodir='7',
+                      id_prefix='FEDORA')
         rel.addArch(arch)
         up = PackageUpdate(nvr='mutt-1.5.14-1.fc7', package=pkg, release=rel,
                            submitter='foo@bar.com', testing=True,
@@ -42,6 +43,8 @@ class TestExtendedMetadata(testutil.DBTest):
                                                      "CVE-2007-4321")))
         up._build_filelist()
         up.assign_id()
+
+        assert up.update_id == 'FEDORA-2007-0001'
 
         ## Initialize our temporary repo
         push_stage = tempfile.mkdtemp('bodhi')

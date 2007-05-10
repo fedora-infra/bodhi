@@ -48,6 +48,7 @@ class Release(SQLObject):
     arches      = RelatedJoin('Arch')
     multilib    = RelatedJoin('Multilib')
     repodir     = UnicodeCol(notNone=True)
+    id_prefix   = UnicodeCol(notNone=True)
 
 class Arch(SQLObject):
     """ Table of supported architectures """
@@ -144,7 +145,7 @@ class PackageUpdate(SQLObject):
         """
         Assign an update ID to this update.  This function finds the next number
         in the sequence of pushed updates for this release, increments it and
-        prefixes it with 'prefix_id' (configurable in app.cfg) and the year
+        prefixes it with the id_prefix of the release and the year
         (ie FEDORA-2007-0001)
         """
         if self.update_id: # maintain assigned ID for repushes
@@ -155,7 +156,7 @@ class PackageUpdate(SQLObject):
             id = int(update[0].update_id.split('-')[-1]) + 1
         except (AttributeError, IndexError):
             id = 1
-        self.update_id = '%s-%s-%0.4d' % (config.get('id_prefix'),
+        self.update_id = '%s-%s-%0.4d' % (self.release.id_prefix,
                                           time.localtime()[0],id)
         log.debug("Setting update_id for %s to %s" % (self.nvr, self.update_id))
 

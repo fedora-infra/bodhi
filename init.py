@@ -67,32 +67,36 @@ def import_releases():
             'name'      : 'FC7',
             'long_name' : 'Fedora Core 7',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repodir'   : '7'
+            'repodir'   : '7',
+            'id_prefix' : 'FEDORA'
         },
         {
             'name'      : 'FC6',
             'long_name' : 'Fedora Core 6',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repodir'    : '6'
+            'repodir'   : '6',
+            'id_prefix' : 'FEDORA'
         },
         {
             'name'      : 'FC5',
             'long_name' : 'Fedora Core 5',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repodir'   : '5'
+            'repodir'   : '5',
+            'id_prefix' : 'FEDORA'
         },
         {
             'name'      : 'EPEL5',
             'long_name' : 'EPEL5 Enterprise Extras',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repodir'   : 'EPEL5'
+            'repodir'   : 'EPEL5',
+            'id_prefix' : 'EPEL'
         }
     )
 
     for release in releases:
         num_multilib = 0
         rel = Release(name=release['name'], long_name=release['long_name'],
-                      repodir=release['repodir'])
+                      repodir=release['repodir'],id_prefix=release['id_prefix'])
         map(rel.addArch, release['arches'])
         for arch in biarch.keys():
             if not biarch[arch].has_key(release['name'][-1]):

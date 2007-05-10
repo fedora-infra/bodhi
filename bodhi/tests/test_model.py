@@ -42,7 +42,8 @@ class TestPackageUpdate(testutil.DBTest):
         return self.arches
 
     def get_rel(self):
-        rel = Release(name='fc7', long_name='Fedora 7', repodir='7')
+        rel = Release(name='fc7', long_name='Fedora 7', repodir='7',
+                      id_prefix='FEDORA')
         map(rel.addArch, self.get_arches())
         return rel
 
