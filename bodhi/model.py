@@ -283,6 +283,17 @@ class PackageUpdate(SQLObject):
             elif self.request == 'move':
                 mail.send(self.submitter, 'moved', self)
                 uinfo.add_update(self)
+                koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
+                                             allow_none=True)
+                log.debug("Moving %s from dist-%s-updates-candidates to "
+                          "dist-%s-updates" % (self.nvr,
+                                               self.release.name.lower(),
+                                               self.release.name.lower()))
+                koji.moveBuild('dist-%s-updates-candidate' %
+                               self.release.name.lower(), 'dist-%s-updates' %
+                               self.release.name.lower(), self.nvr)
+                del koji
+
 
         # If we created our own UpdateMetadata, then insert it into the repo
         if not updateinfo:
