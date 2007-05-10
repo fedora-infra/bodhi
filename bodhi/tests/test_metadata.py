@@ -63,11 +63,8 @@ class TestExtendedMetadata(testutil.DBTest):
         uinfo = UpdateMetadata()
         uinfo.add(str(updateinfo))
         notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
+
         assert notice
-
-        print notice
-        assert False
-
         assert notice['description'] == up.notes
         assert notice['update_id'] == up.update_id
         assert notice['status'] == 'testing'
