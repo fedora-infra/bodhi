@@ -290,11 +290,14 @@ class PackageUpdate(SQLObject):
                           "dist-%s-updates" % (self.nvr,
                                                self.release.name.lower(),
                                                self.release.name.lower()))
-                koji.moveBuild('dist-%s-updates-candidate' %
-                               self.release.name.lower(), 'dist-%s-updates' %
-                               self.release.name.lower(), self.nvr)
+                try:
+                    koji.moveBuild('dist-%s-updates-candidate' %
+                                   self.release.name.lower(),
+                                   'dist-%s-updates' %
+                                   self.release.name.lower(), self.nvr)
+                except xmlrpclib.Fault, f:
+                    log.error("ERROR: %s" % str(f))
                 del koji
-
 
         # If we created our own UpdateMetadata, then insert it into the repo
         if not updateinfo:
@@ -342,6 +345,7 @@ class PackageUpdate(SQLObject):
                                         get_nvr(build['nvr'])) > 0:
                         log.debug("%s > %s" % (self.nvr, build['nvr']))
                         latest = get_nvr(build['nvr'])
+                        # break?
                 if not latest:
                     continue
             except xmlrpclib.Fault, f:
@@ -387,6 +391,8 @@ class PackageUpdate(SQLObject):
        Bugs: %(bugs)s
        CVES: %(cves)s
       Notes: %(notes)s
+  Submitter: %(submitter)s
+  Submitted: %(submitted)s
       Files:""" % ({
                     'update_id' : self.update_id,
                     'package'   : self.nvr,
@@ -395,7 +401,9 @@ class PackageUpdate(SQLObject):
                     'notes'     : self.notes,
                     'email'     : self.submitter,
                     'bugs'      : self.get_bugstring(),
-                    'cves'      : self.get_cvestring()
+                    'cves'      : self.get_cvestring(),
+                    'submitted' : self.date_submitted,
+                    'submitter' : self.submitter
                   })
 
         for files in self.filelist.values():
