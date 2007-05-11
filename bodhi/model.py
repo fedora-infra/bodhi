@@ -283,6 +283,7 @@ class PackageUpdate(SQLObject):
                 mail.send(self.submitter, 'unpushed', self)
                 uinfo.remove_update(self)
             elif self.request == 'move':
+                self.pushed = True
                 mail.send(self.submitter, 'moved', self)
                 uinfo.add_update(self)
                 koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
