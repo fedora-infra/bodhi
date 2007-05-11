@@ -17,9 +17,24 @@
     <style type="text/css" media="screen">
 @import "/static/css/layout.css";
     </style>
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/MochiKit.js')}" />
 </head>
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
+
+<script type="text/javascript">
+addLoadEvent(function(){
+    connect($('stable'), 'onclick', function (e) {
+        MochiKit.Visual.toggle($('stablelist'), 'slide');
+    });
+    connect($('testing'), 'onclick', function (e) {
+        MochiKit.Visual.toggle($('testinglist'), 'slide');
+    });
+    connect($('administration'), 'onclick', function (e) {
+        MochiKit.Visual.toggle($('adminlist'), 'slide');
+    });
+});
+</script>
 
     <!-- header BEGIN -->
     <div id="fedora-header">
@@ -42,24 +57,35 @@
         <div id="fedora-side-nav-label">Site Navigation:</div>
             <div py:if="'admin' in tg.identity.groups">
                 <ul id="fedora-side-nav">
-                    <li><a href="${tg.url('/admin')}">Administration</a></li>
+                    <li><a id="administration" href="#">Administration</a></li>
+                    <div id="adminlist" style="display: none">
+                        <ul>
+                            <li><a href="${tg.url('/admin/push')}">Admin Requests</a></li>
+                            <li><a href="${tg.url('/admin/catwalk')}">Database</a></li>
+                            <li><a href="${tg.url('/admin/repodiff')}">Repodiff</a></li>
+                        </ul>
+                    </div>
                 </ul>
             </div>
             <ul id="fedora-side-nav">
                 <li><a href="${tg.url('/new')}">New update</a></li>
-                <li><a href="${tg.url('/list')}">Stable updates</a>
+                <li><a id="stable" href="#">Stable updates</a>
+                <div id="stablelist" style="display: none">
                     <ul>
                         <li><a href="${tg.url('/FC7')}">Fedora Core 7</a></li>
                         <li><a href="${tg.url('/FC6')}">Fedora Core 6</a></li>
                         <li><a href="${tg.url('/EPEL5')}">Enterprise Extras 5</a></li>
                     </ul>
+                </div>
                 </li>
-                <li><a href="${tg.url('/testing')}">Testing updates</a>
-                    <ul>
-                        <li><a href="${tg.url('/testing/FC7')}">Fedora Core 7</a></li>
-                        <li><a href="${tg.url('/testing/FC6')}">Fedora Core 6</a></li>
-                        <li><a href="${tg.url('/testing/EPEL5')}">Enterprise Extras 5</a></li>
-                    </ul>
+                <li><a id="testing" href="#">Testing updates</a>
+                <div id="testinglist" style="display: none">
+                        <ul>
+                            <li><a href="${tg.url('/testing/FC7')}">Fedora Core 7</a></li>
+                            <li><a href="${tg.url('/testing/FC6')}">Fedora Core 6</a></li>
+                            <li><a href="${tg.url('/testing/EPEL5')}">Enterprise Extras 5</a></li>
+                        </ul>
+                    </div>
                 </li>
                 <li><a href="${tg.url('/pending')}">Pending updates</a></li>
                 <li><a href="${tg.url('/pkgs')}">Packages</a></li>
