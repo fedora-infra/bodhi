@@ -12,6 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import rpm
 import mail
 import util
 import logging
@@ -139,6 +140,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byNvr(nvr)
             update.request = 'move'
             flash("Requested that %s be pushed to Final" % nvr)
+            mail.send_admin('move', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
             raise redirect("/")
@@ -150,7 +152,11 @@ class Root(controllers.RootController):
         """ Submit an update for pushing """
         try:
             update = PackageUpdate.byNvr(nvr)
-            update.request = 'push'
+            if update.type == 'security':
+                # Bypass updates-testing
+                update.request = 'move'
+            else:
+                update.request = 'push'
             msg = "%s has been submitted for pushing" % nvr
             log.debug(msg)
             flash(msg)
@@ -263,6 +269,27 @@ class Root(controllers.RootController):
             except SQLObjectNotFound:
                 package = Package(name=name)
 
+            # Check for broken update paths.  Make sure this package is newer
+            # than the previously released package on this release, as
+            # well as on all older releases
+            rel = release
+            while True:
+                log.debug("Checking for broken update paths in %s" % rel.name)
+                for up in PackageUpdate.select(
+                        AND(PackageUpdate.q.releaseID == rel.id,
+                            PackageUpdate.q.packageID == package.id)):
+                    if rpm.labelCompare(util.get_nvr(kw['nvr']),
+                                        util.get_nvr(up.nvr)) < 0:
+                        msg = "Broken update path: %s is older than %s" % (
+                                kw['nvr'], up.nvr)
+                        log.debug(msg)
+                        flash(msg)
+                        raise redirect('/new')
+                try:
+                    rel = Release.byName(int(rel.name[-1]) - 1)
+                except SQLObjectNotFound:
+                    break
+
             try:
                 # Create a new update
                 p = PackageUpdate(package=package, release=release,
@@ -315,10 +342,6 @@ class Root(controllers.RootController):
             p.type = 'security'
             note += '; CVEs provided, changed update type to security'
 
-        # If we're dealing with a security update, bypass updates-testing
-        if p.type == 'security':
-            p.testing = False
-
         if edited:
             flash("Update successfully edited" + note)
             mail.send_admin('edited', p)
@@ -329,6 +352,7 @@ class Root(controllers.RootController):
         raise redirect(p.get_path())
 
     @expose(template='bodhi.templates.list')
+    @identity.require(identity.not_anonymous())
     @paginate('updates', default_order='update_id', limit=15)
     def default(self, *args, **kw):
         """
