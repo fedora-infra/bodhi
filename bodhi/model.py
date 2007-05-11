@@ -374,7 +374,7 @@ class PackageUpdate(SQLObject):
         return '/%s%s/%s' % (status, self.release.name, self.nvr)
 
     def get_url(self):
-        return config.get('base_url') + self.get_path()
+        return turbogears.url(self.get_path())
 
     def __str__(self):
         """
