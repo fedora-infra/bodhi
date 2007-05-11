@@ -149,8 +149,8 @@ class PackageUpdate(SQLObject):
         prefixes it with the id_prefix of the release and the year
         (ie FEDORA-2007-0001)
         """
-        if self.update_id: # maintain assigned ID for repushes
-            log.debug("Retaining current id")
+        if self.update_id != None or self.update_id != u'None':
+            log.debug("Keeping current update id %s" % self.update_id)
             return
         update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id)
         try:
