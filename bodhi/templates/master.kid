@@ -17,7 +17,7 @@
     <style type="text/css" media="screen">
 @import "/static/css/layout.css";
     </style>
-    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/MochiKit.js')}" />
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/MochiKit.js')}"></script>
 </head>
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
@@ -33,6 +33,10 @@ addLoadEvent(function(){
     connect($('administration'), 'onclick', function (e) {
         MochiKit.Visual.toggle($('adminlist'), 'slide');
     });
+    if( $('flash') != null ){
+        MochiKit.Visual.roundElement($('flash'), null);
+        MochiKit.Visual.toggle($('flash'), 'blind');
+    }
 });
 </script>
 
@@ -105,7 +109,9 @@ addLoadEvent(function(){
 
             <div id="page-main">
 
-                <div py:if="tg_flash" class="flash" py:content="tg_flash"></div>
+                <center>
+                    <div style="display: none" id="flash" py:if="tg_flash" class="flash" py:content="tg_flash"></div>
+                </center>
                 <div py:replace="[item.text]+item[:]"/>
 
             </div>

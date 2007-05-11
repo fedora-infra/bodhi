@@ -431,7 +431,11 @@ div.alert {
 }
 
 div.flash {
-    padding-left: 20px;
+    /*padding-left: 20px;
+     */
+    width: 40%;
+    font-weight: bold;
+    background: yellow;
 }
 
 /*
