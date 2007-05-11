@@ -19,6 +19,7 @@ import mail
 import time
 import logging
 import xmlrpclib
+import turbogears
 
 from sqlobject import *
 from datetime import datetime
