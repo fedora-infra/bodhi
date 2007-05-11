@@ -38,13 +38,17 @@ for comment in update.comments:
     comments += "<b>%s</b> - %s<br/>%s<br/>" % (comment.author,
                                                 comment.timestamp,
                                                 comment.text)
+
+from bodhi.util import get_nvr
+nvr = get_nvr(update.nvr)
+title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]))
 ?>
 
 <body>
 
     <center><table width="97%">
         <tr>
-            <td><div class="show">${update.nvr}</div></td>
+            <td><div class="show">${title}</div></td>
 
             <!-- update options -->
             <td align="right">
