@@ -131,6 +131,17 @@ The following update has been unpushed\n\n%(updatestr)s
                     }
         },
 
+    'move' : {
+        'subject' : '[Fedora Update] [move] %(package)s',
+        'body'    : """\
+%(submitter)s has requested the moving of the following update from Testing to Final:\n%(updatestr)s
+""",
+        'fields'  : lambda x: {
+                        'submitter' : x.submitter,
+                        'updatestr' : str(x)
+                    }
+    },
+
     'moved' : {
         'subject' : '[Fedora Update] [moved] %(package)s',
         'body'    : """\
