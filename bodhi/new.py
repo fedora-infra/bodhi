@@ -47,8 +47,6 @@ class PackageValidator(validators.FancyValidator):
         """
         Run basic QA checks on the provided package name
 
-        TODO: (waiting for koji to acquire proper tags)
-
             - make sure tag matches release
             - make sure version is newer than previously released, as well
               as in other releases
