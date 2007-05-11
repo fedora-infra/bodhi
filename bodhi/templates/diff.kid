@@ -10,7 +10,7 @@
 
 <body>
     <blockquote>
-        <h1><a href="/admin/repodiff">Repodiff</a> - ${title}</h1>
+        <h1><a href="${tg.url('/admin/repodiff')}">Repodiff</a> - ${title}</h1>
     <pre>
         <table>
             <tr py:for="line in diff.split('\n')">

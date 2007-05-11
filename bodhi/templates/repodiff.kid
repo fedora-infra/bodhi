@@ -13,7 +13,7 @@
         <table>
             <tr py:for="diff in diffs">
                 <td>
-                    <a href="/admin/repodiff/${diff}">${diff}</a>
+                    <a href="${tg.url('/admin/repodiff/' + diff)}">${diff}</a>
                 </td>
             </tr>
         </table>

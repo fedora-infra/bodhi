@@ -17,7 +17,7 @@
         var req = new XMLHttpRequest();
         req.multipart = true;
         req.onload = handler;
-        req.open("GET", "${callback}", true);
+        req.open("GET", "${tg.url(callback)}", true);
         req.send(null);
    </script>
 

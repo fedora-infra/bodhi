@@ -13,7 +13,7 @@
 <body>
     <h1 class="padded">Login</h1>
     <p class="padded">${message}</p>
-    <form action="${previous_url}" method="POST">
+    <form action="${tg.url(previous_url)}" method="POST">
         <table class="login">
             <tr>
                 <td class="login-title">

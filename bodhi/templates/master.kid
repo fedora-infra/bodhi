@@ -24,7 +24,7 @@
     <!-- header BEGIN -->
     <div id="fedora-header">
         <div id="fedora-header-logo">
-            <a href="/"><img src="/static/images/header-fedora_logo.png" alt="Fedora Project"/></a>
+            <a href="${tg.url('/')}"><img src="/static/images/header-fedora_logo.png" alt="Fedora Project"/></a>
         </div>
 
         <div id="fedora-header-items">
@@ -42,29 +42,30 @@
         <div id="fedora-side-nav-label">Site Navigation:</div>
             <div py:if="'admin' in tg.identity.groups">
                 <ul id="fedora-side-nav">
-                    <li><a href="/admin">Administration</a></li>
+                    <li><a href="${tg.url('/admin')}">Administration</a></li>
                 </ul>
             </div>
             <ul id="fedora-side-nav">
-                <li><a href="/new">New update</a></li>
-                <li><a href="/list">Stable updates</a>
+                <li><a href="${tg.url('/new')}">New update</a></li>
+                <li><a href="${tg.url('/list')}">Stable updates</a>
                     <ul>
-                        <li><a href="/FC7">Fedora Core 7</a></li>
-                        <li><a href="/FC6">Fedora Core 6</a></li>
-                        <li><a href="/EPEL5">Enterprise Extras 5</a></li>
+                        <li><a href="${tg.url('/FC7')}">Fedora Core 7</a></li>
+                        <li><a href="${tg.url('/FC6')}">Fedora Core 6</a></li>
+                        <li><a href="${tg.url('/EPEL5')}">Enterprise Extras 5</a></li>
                     </ul>
                 </li>
-                 <li><a href="/testing">Testing updates</a>
+                <li><a href="${tg.url('/testing')}">Testing updates</a>
                     <ul>
-                        <li><a href="/testing/FC7">Fedora Core 7</a></li>
-                        <li><a href="/testing/FC6">Fedora Core 6</a></li>
-                        <li><a href="/testing/EPEL5">Enterprise Extras 5</a></li>
+                        <li><a href="${tg.url('/testing/FC7')}">Fedora Core 7</a></li>
+                        <li><a href="${tg.url('/testing/FC6')}">Fedora Core 6</a></li>
+                        <li><a href="${tg.url('/testing/EPEL5')}">Enterprise Extras 5</a></li>
                     </ul>
                 </li>
-                <li><a href="/pending">Pending updates</a></li>
-                <li><a href="/mine">My updates</a></li>
-                <li><a href="/search">Search</a></li>
-                <li><a href="/logout">Logout</a></li>
+                <li><a href="${tg.url('/pending')}">Pending updates</a></li>
+                <li><a href="${tg.url('/pkgs')}">Packages</a></li>
+                <li><a href="${tg.url('/mine')}">My updates</a></li>
+                <li><a href="${tg.url('/search')}">Search</a></li>
+                <li><a href="${tg.url('/logout')}">Logout</a></li>
             </ul>
         </div>
 

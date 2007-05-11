@@ -51,22 +51,23 @@ for comment in update.comments:
                 [
                 <span py:if="not update.pushed">
                     <span py:if="update.request != 'push'">
-                        <a href="/push/${update.nvr}">Push</a> | 
+                        <a href="${tg.url('/push/%s' % update.nvr)}">Push</a> | 
                     </span>
                     <span py:if="update.request == 'push'">
-                        <a href="/revoke/${update.nvr}">Revoke Push Request</a> | 
+                        <a href="${tg.url('/revoke/%s' % update.nvr)}">
+                            Revoke Push Request</a> | 
                     </span>
                     <span py:if="not update.pushed">
-                        <a href="/delete/${update.nvr}">Delete</a> | 
+                        <a href="${tg.url('/delete/%s' % update.nvr)}">Delete</a> | 
                     </span>
                 </span>
                 <span py:if="update.pushed">
-                    <a href="/unpush/${update.nvr}">Unpush</a> | 
+                    <a href="${tg.url('/unpush/%s' % update.nvr)}">Unpush</a> | 
                     <span py:if="update.testing">
-                        <a href="/move/${update.nvr}">Mark as Stable</a> | 
+                        <a href="${tg.url('/move/%s' % update.nvr)}">Mark as Stable</a> | 
                     </span>
                 </span>
-                <a href="/edit/${update.nvr}">Edit</a>
+                <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
                 ]
             </td>
         </tr>

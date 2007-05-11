@@ -26,7 +26,7 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
                         <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${update.get_path()}">${update.nvr}</a>
+                        <a href="${tg.url(update.get_path())}">${update.nvr}</a>
                     </td>
                 </tr>
             </table>
@@ -39,7 +39,7 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
                         <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${update.get_path()}">${update.nvr}</a>
+                        <a href="${tg.url(update.get_path())}">${update.nvr}</a>
                     </td>
                 </tr>
             </table>
@@ -52,7 +52,7 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
                         <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${update.get_path()}">${update.nvr}</a>
+                        <a href="${tg.url(update.get_path())}">${update.nvr}</a>
                     </td>
                 </tr>
             </table>

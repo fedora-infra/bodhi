@@ -12,9 +12,9 @@
     <blockquote>
     <h1>Administration</h1>
     <ul>
-        <li><a href="/admin/push">Admin Requests</a></li>
-        <li><a href="/admin/catwalk">Database</a></li>
-        <li><a href="/admin/repodiff">Repodiff</a></li>
+        <li><a href="${tg.url('/admin/push')}">Admin Requests</a></li>
+        <li><a href="${tg.url('/admin/catwalk')}">Database</a></li>
+        <li><a href="${tg.url('/admin/repodiff')}">Repodiff</a></li>
     </ul>
 </blockquote>
 </body>
