@@ -59,6 +59,11 @@ class Root(controllers.RootController):
     def index(self):
         raise redirect('/list')
 
+    @expose(template='bodhi.templates.pkgs')
+    @paginate('pkgs', default_order='name', limit=15)
+    def pkgs(self):
+        return dict(pkgs=Package.select())
+
     @expose(template="bodhi.templates.login")
     def login(self, forward_url=None, previous_url=None, *args, **kw):
         if not identity.current.anonymous \
@@ -399,6 +404,13 @@ class Root(controllers.RootController):
                                 PackageUpdate.q.pushed == pushed),
                             orderBy=PackageUpdate.q.update_id).reversed()
                 return dict(updates=updates)
+        except SQLObjectNotFound:
+            pass
+
+        # /pkg
+        try:
+            pkg = Package.byName(args[0])
+            return dict(tg_template='bodhi.templates.pkg', pkg=pkg, updates=[])
         except SQLObjectNotFound:
             pass
 
