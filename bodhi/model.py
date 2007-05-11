@@ -284,7 +284,7 @@ class PackageUpdate(SQLObject):
                 uinfo.remove_update(self)
             elif self.request == 'move':
                 self.pushed = True
-                if self.update_id == None:
+                if self.update_id == None or self.update_id == u'None':
                     self.assign_id()
                 mail.send(self.submitter, 'moved', self)
                 uinfo.add_update(self)
