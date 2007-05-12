@@ -7,8 +7,16 @@
     <title>Fedora Updates</title>
 </head>
 
+<?python
+from sqlobject.sresults import SelectResults
+if isinstance(updates, SelectResults):
+    num_items = updates.count()
+else:
+    num_items = len(updates)
+?>
+
 <body>
-    &nbsp;&nbsp;${updates.count()} updates found
+    <p class="padded">${num_items} updates found</p>
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
