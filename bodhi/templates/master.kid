@@ -22,6 +22,12 @@
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
 
+<?python
+from bodhi.model import Release
+releases = [(rel.name, rel.long_name) for rel in Release.select()]
+?>
+
+<!-- Shiny stuff.  We should eventually put this somewhere else -->
 <script type="text/javascript">
 addLoadEvent(function(){
     connect($('stable'), 'onclick', function (e) {
@@ -76,18 +82,18 @@ addLoadEvent(function(){
                 <li><a id="stable" href="#">Stable updates</a>
                 <div id="stablelist" style="display: none">
                     <ul>
-                        <li><a href="${tg.url('/FC7')}">Fedora Core 7</a></li>
-                        <li><a href="${tg.url('/FC6')}">Fedora Core 6</a></li>
-                        <li><a href="${tg.url('/EPEL5')}">Enterprise Extras 5</a></li>
+                        <li py:for="release in releases">
+                            <a href="${tg.url('/%s' % release[0])}">${release[1]}</a>
+                        </li>
                     </ul>
                 </div>
                 </li>
                 <li><a id="testing" href="#">Testing updates</a>
                 <div id="testinglist" style="display: none">
                         <ul>
-                            <li><a href="${tg.url('/testing/FC7')}">Fedora Core 7</a></li>
-                            <li><a href="${tg.url('/testing/FC6')}">Fedora Core 6</a></li>
-                            <li><a href="${tg.url('/testing/EPEL5')}">Enterprise Extras 5</a></li>
+                            <li py:for="release in releases">
+                                <a href="${tg.url('/%s' % release[0])}">${release[1]}</a>
+                            </li>
                         </ul>
                     </div>
                 </li>

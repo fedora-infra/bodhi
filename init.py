@@ -86,7 +86,7 @@ def import_releases():
         },
         {
             'name'      : 'EPEL5',
-            'long_name' : 'EPEL5 Enterprise Extras',
+            'long_name' : 'Enterprise Extras 5',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
             'repodir'   : 'EPEL5',
             'id_prefix' : 'EPEL'
@@ -154,9 +154,9 @@ def clean_tables():
 
 def load_config():
     """ Load the appropriate configuration so we can get at the values """
-    configfile = 'dev.cfg'
+    configfile = 'prod.cfg'
     if not isfile(configfile):
-        configfile = 'prod.cfg'
+        configfile = 'dev.cfg'
     turbogears.update_config(configfile=configfile,
                              modulename='bodhi.config')
 

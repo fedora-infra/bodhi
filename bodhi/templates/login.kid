@@ -11,8 +11,24 @@
 </head>
 
 <body>
-    <h1 class="padded">Login</h1>
-    <p class="padded">${message}</p>
+    <table width="80%">
+        <tr>
+            <td>
+                <h1 class="padded">Bodhi</h1>
+            </td>
+            <td rowspan="2">
+                <img align="right" src="${tg.url('/static/images/bodhi1.jpg')}" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <blockquote>
+                    <p class="padded">Welcome to <a href="https://hosted.fedoraproject.org/projects/bodhi">bodhi</a>.  You may log into this test instance with the username and password <b>guest</b></p>
+                    <p class="padded">${message}</p>
+                </blockquote>
+            </td>
+        </tr>
+    </table>
     <form action="${previous_url}" method="POST">
         <table class="login">
             <tr>
