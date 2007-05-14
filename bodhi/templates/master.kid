@@ -92,7 +92,7 @@ addLoadEvent(function(){
                 <div id="testinglist" style="display: none">
                         <ul>
                             <li py:for="release in releases">
-                                <a href="${tg.url('/%s' % release[0])}">${release[1]}</a>
+                                <a href="${tg.url('/testing/%s' % release[0])}">${release[1]}</a>
                             </li>
                         </ul>
                     </div>
