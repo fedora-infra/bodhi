@@ -367,6 +367,7 @@ class Root(controllers.RootController):
         args = [arg for arg in args]
         testing = False
         pushed = True
+        template = 'bodhi.templates.list'
 
         if len(args) and args[0] == 'testing':
             testing = True
@@ -374,13 +375,14 @@ class Root(controllers.RootController):
         if len(args) and args[0] == 'pending':
             pushed = False
             testing = True
+            template = 'bodhi.templates.pending'
             del args[0]
         if not len(args): # /(testing|pending)
             updates = PackageUpdate.select(
                         AND(PackageUpdate.q.testing == testing,
                             PackageUpdate.q.pushed == pushed),
                         orderBy=PackageUpdate.q.update_id).reversed()
-            return dict(updates=updates)
+            return dict(updates=updates, tg_template=template)
 
         try:
             release = Release.byName(args[0])
