@@ -50,7 +50,7 @@ else:
         <tr class="list" bgcolor="${row_color}" py:for="update in updates">
             <?python
             testing = update.testing and 'Testing' or 'Final'
-            submitted = (update.request == None) and 'tick' or 'null'
+            submitted = update.request == None and 'null' or 'tick'
             ?>
             <td class="list">
                 <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
