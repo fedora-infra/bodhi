@@ -433,3 +433,10 @@ class Root(controllers.RootController):
             mail.send(update.submitter, 'comment', update)
             flash("Successfully added comment to %s update" % nvr)
         raise redirect(update.get_path())
+
+    @expose(template='bodhi.templates.text')
+    def mail_notice(self, nvr, *args, **kw):
+        log.debug(args)
+        log.debug(kw)
+        update = PackageUpdate.byNvr(nvr)
+        return dict(text=mail.get_template(update), title=update.nvr)
