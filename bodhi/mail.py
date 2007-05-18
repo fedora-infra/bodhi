@@ -271,9 +271,7 @@ def send(to, msg_type, update):
     message.plain = messages[msg_type]['body'] % \
                     messages[msg_type]['fields'](update)
     log.debug("Sending mail: %s" % message.plain)
-    # TODO: uncomment me when we have the password situation figured out
-    # and can actually auth for outgoing mail
-    #turbomail.enqueue(message)
+    turbomail.enqueue(message)
 
 def send_admin(msg_type, update):
     """ Send an update notification to the admins/release team. """
