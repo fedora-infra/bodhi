@@ -13,10 +13,6 @@ from bodhi.model import Release, Package, PackageUpdate, Bugzilla, CVE, Arch
 from bodhi.metadata import ExtendedMetadata
 from yum.update_md import UpdateMetadata
 
-import sys
-sys.path.append('/home/lmacken/Desktop/cvs.duke/yum/yum')
-from update_md import UpdateMetadata
-
 database.set_db_uri("sqlite:///:memory:")
 turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
 
