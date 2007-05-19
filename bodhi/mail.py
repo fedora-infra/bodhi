@@ -39,9 +39,7 @@ messages = {
     'new' : {
         'subject' : '[Fedora Update] [new] %(package)s',
         'body'    : """\
-%(email)s has submitted a new update for %(release)s
-
-%(updatestr)s
+%(email)s has submitted a new update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'email'     : x.submitter,
@@ -53,21 +51,20 @@ messages = {
     'deleted' : {
         'subject' : '[Fedora Update] [deleted] %(package)s',
         'body'    : """\
-%(email)s has deleted the %(package)s update for %(release)s
+%(email)s has deleted the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.nvr,
                         'email'     : x.submitter,
-                        'release'   : x.release.long_name
+                        'release'   : x.release.long_name,
+                        'updatestr' : str(x)
                     }
         },
 
     'edited' : {
         'subject' : '[Fedora Update] [edited] %(package)s',
         'body'    : """\
-%(email)s has edited the %(package)s update for %(release)s
-
-%(updatestr)s
+%(email)s has edited the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.nvr,
@@ -80,18 +77,19 @@ messages = {
     'pushed' : {
         'subject' : '[Fedora Update] [pushed] %(package)s',
         'body'    : """\
-%(package)s has been successfully pushed for %(release)s.
+%(package)s has been successfully pushed for %(release)s.\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'package' : x.nvr,
-                        'release' : x.release.long_name
+                        'package'   : x.nvr,
+                        'release'   : x.release.long_name,
+                        'updatestr' : str(x)
                     }
     },
 
     'push' : {
         'subject' : '[Fedora Update] [push] %(package)s',
         'body'    : """\
-%(submitter)s has requested the pushing of the following update:\n%(updatestr)s
+%(submitter)s has requested the pushing of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : x.submitter,
@@ -102,7 +100,7 @@ messages = {
     'unpush' : {
         'subject' : '[Fedora Update] [unpush] %(package)s',
         'body'    : """\
-%(submitter)s has requested the unpushing of the following update:\n%(updatestr)s
+%(submitter)s has requested the unpushing of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : x.submitter,
@@ -123,7 +121,7 @@ The following update has been unpushed\n\n%(updatestr)s
     'revoke' : {
         'subject' : '[Fedora Update] [revoked] %(package)s',
         'body'    : """\
-%(submitter)s has revoked the pushing of the following update:\n%(updatestr)s
+%(submitter)s has revoked the pushing of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : x.submitter,
@@ -134,7 +132,7 @@ The following update has been unpushed\n\n%(updatestr)s
     'move' : {
         'subject' : '[Fedora Update] [move] %(package)s',
         'body'    : """\
-%(submitter)s has requested the moving of the following update from Testing to Final:\n%(updatestr)s
+%(submitter)s has requested the moving of the following update from Testing to Final:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : x.submitter,
@@ -145,7 +143,7 @@ The following update has been unpushed\n\n%(updatestr)s
     'moved' : {
         'subject' : '[Fedora Update] [moved] %(package)s',
         'body'    : """\
-The following update has been moved from Testing to Final:\n%(updatestr)s
+The following update has been moved from Testing to Final:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'updatestr' : str(x)
