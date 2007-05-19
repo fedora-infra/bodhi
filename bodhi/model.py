@@ -17,6 +17,7 @@ import os
 import rpm
 import mail
 import time
+import shutil
 import logging
 import xmlrpclib
 import turbogears
@@ -228,7 +229,10 @@ class PackageUpdate(SQLObject):
             uinfo.remove_update(self)
             # disable testing status now so that we can simply push to
             # self.get_repo() later in this method
+            current_repo = self.get_repo()
             self.testing = False
+        else:
+            current_repo = self.get_repo()
 
         action = {'move':'Moving', 'push':'Pushing', 'unpush':'Unpushing'}
         log.debug("%s %s" % (action[self.request], self.nvr))
@@ -250,7 +254,7 @@ class PackageUpdate(SQLObject):
                 if isfile(destfile):
                     log.debug("Deleting %s" % destfile)
                     os.unlink(destfile)
-                    yield " * Removed %s" % join(self.get_repo(),arch,filename)
+                    yield " * Removed %s" % join(current_repo, arch,filename)
 
                 if self.request == 'unpush':
                     # we've already removed any existing files from the stage,
@@ -264,7 +268,6 @@ class PackageUpdate(SQLObject):
                     except OSError, e:
                         if e.errno == 18: # cross-device-link
                             log.debug("Cross-device link; copying file instead")
-                            import shutil
                             shutil.copyfile(file, destfile)
 
         # Post-request actions
