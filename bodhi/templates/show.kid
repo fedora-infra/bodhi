@@ -54,15 +54,13 @@ title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '
             <td align="right">
                 [
                 <span py:if="not update.pushed">
-                    <span py:if="update.request != 'push'">
+                    <span py:if="update.request == None">
                         <a href="${tg.url('/push/%s' % update.nvr)}">Push</a> | 
-                    </span>
-                    <span py:if="update.request == 'push'">
-                        <a href="${tg.url('/revoke/%s' % update.nvr)}">
-                            Revoke Push Request</a> | 
-                    </span>
-                    <span py:if="not update.pushed">
                         <a href="${tg.url('/delete/%s' % update.nvr)}">Delete</a> | 
+                    </span>
+                    <span py:if="update.request in ('push', 'move')">
+                        <a href="${tg.url('/revoke/%s' % update.nvr)}">
+                            Revoke ${update.request} request</a> | 
                     </span>
                 </span>
                 <span py:if="update.pushed">
