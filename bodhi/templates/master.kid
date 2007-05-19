@@ -54,7 +54,7 @@ addLoadEvent(function(){
 
         <div id="fedora-header-items">
             <span class="fedora-header-icon">
-                <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket"><img src="/static/images/header-projects.png" alt="Bugs"/>Report a Bug</a>
+                <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" alt="Bugs"/>Report a Bug</a>
             </span>
         </div>
     </div>
@@ -79,6 +79,16 @@ addLoadEvent(function(){
             </div>
             <ul id="fedora-side-nav">
                 <li><a href="${tg.url('/new')}">New update</a></li>
+                <li><a href="${tg.url('/pending')}">Pending updates</a></li>
+                <li><a id="testing" href="#">Testing updates</a>
+                    <div id="testinglist" style="display: none">
+                        <ul>
+                            <li py:for="release in releases">
+                                <a href="${tg.url('/testing/%s' % release[0])}">${release[1]}</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
                 <li><a id="stable" href="#">Stable updates</a>
                 <div id="stablelist" style="display: none">
                     <ul>
@@ -88,23 +98,12 @@ addLoadEvent(function(){
                     </ul>
                 </div>
                 </li>
-                <li><a id="testing" href="#">Testing updates</a>
-                <div id="testinglist" style="display: none">
-                        <ul>
-                            <li py:for="release in releases">
-                                <a href="${tg.url('/testing/%s' % release[0])}">${release[1]}</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li><a href="${tg.url('/pending')}">Pending updates</a></li>
                 <li><a href="${tg.url('/pkgs')}">Packages</a></li>
                 <li><a href="${tg.url('/mine')}">My updates</a></li>
                 <li><a href="${tg.url('/search')}">Search</a></li>
                 <li><a href="${tg.url('/logout')}">Logout</a></li>
             </ul>
         </div>
-
         <!-- leftside END -->
         <!-- content BEGIN -->
 
