@@ -86,7 +86,6 @@ class ExtendedMetadata:
             log.debug("Removing %s from updateinfo.xml" % update)
             doc.firstChild.removeChild(elem)
             return True
-        log.warning("Couldn't find update %s in updateinfo" % update)
         return False
 
     def add_update(self, update):

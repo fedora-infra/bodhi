@@ -165,8 +165,8 @@ class PushController(controllers.Controller):
             log.debug(msg)
             yield header(msg)
             self.repodiff()
-        return _run_requests()
 
+        return _run_requests()
 
     def generate_metadata(self, release, testing):
         """
