@@ -17,7 +17,7 @@
                 <h1 class="padded">Bodhi</h1>
             </td>
             <td rowspan="2">
-                <img align="right" src="${tg.url('/static/images/bodhi1.jpg')}" />
+                <img align="right" src="${tg.url('/static/images/bodhi-icon-48.png')}" />
             </td>
         </tr>
         <tr>
