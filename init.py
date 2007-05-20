@@ -88,7 +88,14 @@ def import_releases():
             'name'      : 'EPEL5',
             'long_name' : 'Enterprise Extras 5',
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repodir'   : 'EPEL5',
+            'repodir'   : 'EL-5',
+            'id_prefix' : 'EPEL'
+        },
+        {
+            'name'      : 'EPEL4',
+            'long_name' : 'Enterprise Extras 5',
+            'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
+            'repodir'   : 'EL-4',
             'id_prefix' : 'EPEL'
         }
     )
@@ -99,9 +106,9 @@ def import_releases():
                       repodir=release['repodir'],id_prefix=release['id_prefix'])
         map(rel.addArch, release['arches'])
         for arch in biarch.keys():
-            if not biarch[arch].has_key(release['name'][-1]):
+            if not biarch[arch].has_key(release['name']):
                 continue
-            for pkg in biarch[arch][release['name'][-1]]:
+            for pkg in biarch[arch][release['name']]:
                 try:
                     multilib = Multilib.byPackage(pkg)
                     num_multilib += 1
