@@ -280,7 +280,10 @@ class PackageUpdate(SQLObject):
                 self.pushed = True
                 self.date_pushed = datetime.now()
                 self.assign_id()
+                yield " * Assigned ID %s" % self.update_id
+                yield " * Notifying %s" % self.submitter
                 mail.send(self.submitter, 'pushed', self)
+                yield " * Generating extended metadata"
                 uinfo.add_update(self)
             elif self.request == 'unpush':
                 self.pushed = False
@@ -291,7 +294,9 @@ class PackageUpdate(SQLObject):
                 self.pushed = True
                 if self.update_id == None or self.update_id == u'None':
                     self.assign_id()
+                yield " * Notifying %s" % self.submitter
                 mail.send(self.submitter, 'moved', self)
+                yield " * Generating extended metadata"
                 uinfo.add_update(self)
                 koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
                                              allow_none=True)
