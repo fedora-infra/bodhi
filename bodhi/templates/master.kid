@@ -49,13 +49,22 @@ addLoadEvent(function(){
     <!-- header BEGIN -->
     <div id="fedora-header">
         <div id="fedora-header-logo">
-            <a href="${tg.url('/')}"><img src="/static/images/header-fedora_logo.png" alt="Fedora Project"/></a>
+            <a href="${tg.url('/')}"><img src="${tg.url('/static/images/header-fedora_logo.png')}" /></a>
         </div>
 
-        <div id="fedora-header-items">
-            <span class="fedora-header-icon">
-                <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" alt="Bugs"/>Report a Bug</a>
-            </span>
+        <div id="wait" style="display: none">
+            <div id="fedora-header-items">
+                <span class="fedora-header-icon">
+                    <img src="${tg.url('/static/images/wait.gif')}" height="48" width="48"/>
+                </span>
+            </div>
+        </div>
+        <div id="bodhi-logo">
+            <div id="fedora-header-items">
+                <span class="fedora-header-icon">
+                    <a href="${tg.url('/')}"><img src="${tg.url('/static/images/bodhi-icon-48.png')}" /></a>
+                </span>
+            </div>
         </div>
     </div>
 

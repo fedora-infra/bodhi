@@ -39,14 +39,15 @@ a[name] {
 	z-index: 3;
 }
 #fedora-header-logo img {
+    /*
 	width: 110px;
-	/* height: 40; */
+	height: 40; */
 }
 #fedora-header-items {
 	/* position is offset by the header padding amount */
 	position: absolute;
 	right: 10px;
-	top: 15px;
+	top: 8px;
 	text-align: right;
 	display: inline;
 }
@@ -62,8 +63,9 @@ a[name] {
 }
 #fedora-header-items img {
 	margin-right: 1px;
+    /*
 	width: 36px;
-	height: 36px;
+	height: 36px;*/
 }
 #fedora-header-search {
 	height: 25px;
