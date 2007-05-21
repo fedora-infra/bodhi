@@ -54,10 +54,11 @@ class Root(controllers.RootController):
                                               rows=3, cols=40),
                                      HiddenField(name='nvr')],
                              submit_text='Add Comment', action='/comment')
-    @expose()
+
     @identity.require(identity.not_anonymous())
+    @expose(template='bodhi.templates.welcome')
     def index(self):
-        raise redirect('/list')
+        return dict()
 
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=15)
@@ -234,6 +235,7 @@ class Root(controllers.RootController):
         """
         Save an update.  This includes new updates and edited.
         """
+        log.debug("save(%s, %s, %s, %s, %s)" % (release, bugs, cves, edited,kw))
         kw['nvr'] = kw['nvr']['text']
         if not kw['nvr'] or kw['nvr'] == '':
             flash("Please enter a package-version-release")
