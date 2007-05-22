@@ -21,6 +21,7 @@ from os.path import join, basename
 from bodhi.util import sha1sum, rpm_fileheader
 from bodhi.exceptions import RPMNotFound
 from turbogears import config
+from turbomail import MailNotEnabledException
 
 log = logging.getLogger(__name__)
 
@@ -269,7 +270,10 @@ def send(to, msg_type, update):
     message.plain = messages[msg_type]['body'] % \
                     messages[msg_type]['fields'](update)
     log.debug("Sending mail: %s" % message.plain)
-    turbomail.enqueue(message)
+    try:
+        turbomail.enqueue(message)
+    except MailNotEnabledException:
+        log.warning("TurboMail is not enabled!")
 
 def send_admin(msg_type, update):
     """ Send an update notification to the admins/release team. """
