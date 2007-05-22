@@ -83,16 +83,16 @@ class ExtendedMetadata:
         doc = self._get_updateinfo(update)
         elem = self._get_notice(doc, update)
         if elem:
-            log.debug("Removing %s from updateinfo.xml" % update)
+            log.debug("Removing %s from updateinfo.xml" % update.nvr)
             doc.firstChild.removeChild(elem)
             return True
         return False
 
     def add_update(self, update):
         """ Build the extended metdata for a given update """
+        doc = self._get_updateinfo(update)
 
         ## Make sure this update doesn't already exist
-        doc = self._get_updateinfo(update)
         if self._get_notice(doc, update):
             log.debug("Update %s already in updateinfo" % update.nvr)
             return
