@@ -38,11 +38,12 @@ hub = PackageHub("bodhi")
 __connection__ = hub
 
 
-def init_updates_stage():
+def init_updates_stage(stage_dir=None):
     """ Initialize the updates-stage """
+    if not stage_dir:
+        stage_dir = config.get('stage_dir')
 
-    stage_dir = config.get('stage_dir')
-    print "\nInitializing the staging directory"
+    print "\nInitializing the staging directory %s" % stage_dir
 
     if not isdir(stage_dir):
         os.mkdir(stage_dir)
