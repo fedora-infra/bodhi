@@ -26,12 +26,13 @@ for cve in update.cves:
 
 ## Build our file list
 from os.path import basename
-filelist = ''
+filelist = '<div id="showfiles"><a href="#" onClick="MochiKit.Visual.toggle($(\'filelist\'))">Toggle filelist</a></div><div id="filelist" style="display: none">'
 for arch in update.filelist.keys():
     if len(update.filelist[arch]):
         filelist += '<b>%s</b><br/>' % arch
         for pkg in update.filelist[arch]:
             filelist += '|-- %s<br/>' % basename(pkg)
+filelist += "</div>"
 
 comments = ''
 for comment in update.comments:
