@@ -33,7 +33,7 @@ else:
             <th class="list" width="30%">
                 <b>Package</b>
             </th>
-            <th class="list" width="15%">
+            <th class="list" width="20%">
                 <b>Release</b>
             </th>
             <th class="list" width="5%">
@@ -42,7 +42,7 @@ else:
             <th class="list" width="10%">
                 <center><b>Status</b></center>
             </th>
-            <th class="list" width="40%">
+            <th class="list" width="20%">
                 <b>Submitted</b>
             </th>
         </tr>

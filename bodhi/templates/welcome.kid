@@ -17,7 +17,7 @@
                 </tr>
                 <tr>
                     <td valign="middle">
-                        <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket" class="list"><img src="${tg.url('/static/images/header-projects.png')}" border="0" align="middle" alt="Bugs"/>Report a Bug</a>
+                        <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket" class="list"><img src="${tg.url('/static/images/header-projects.png')}" border="0" align="middle" alt="Bugs"/>File a bug or feature request</a>
                     </td>
                 </tr>
             </table>
