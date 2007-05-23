@@ -55,10 +55,10 @@ else:
             testing = update.testing and 'Testing' or 'Final'
             ?>
             <td class="list">
-                <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
+                <a class="list" href="${update.get_url()}">${update.nvr}</a>
             </td>
             <td class="list">
-                <a class="list" href="${tg.url(update.release.name)}">${update.release.long_name}</a>
+                <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>
             </td>
             <td class="list" align="center">
                 <img src="${tg.url('/static/images/%s.png' % update.type)}"/>

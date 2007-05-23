@@ -11,13 +11,14 @@
 <body>
 
 <?python
+## Build a few lists of updates that that outstanding requests
 needmove = filter(lambda x: x.request == 'move', updates)
 needpush = filter(lambda x: x.request == 'push', updates)
 needunpush = filter(lambda x: x.request == 'unpush', updates)
 ?>
 
 <blockquote>
-    <form name="push_form" method="post" action="/admin/push/console">
+    <form name="push_form" method="post" action="${tg.url('/admin/push/console')}">
         <span py:if="len(needpush)">
             <b>Push</b>
             <table>
@@ -26,7 +27,7 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
                         <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${tg.url(update.get_path())}">${update.nvr}</a>
+                        <a href="${update.get_url()}">${update.nvr}</a>
                     </td>
                 </tr>
             </table>
@@ -39,7 +40,7 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
                         <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${tg.url(update.get_path())}">${update.nvr}</a>
+                        <a href="${update.get_url()}">${update.nvr}</a>
                     </td>
                 </tr>
             </table>
@@ -52,7 +53,7 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
                         <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${tg.url(update.get_path())}">${update.nvr}</a>
+                        <a href="${update.get_url()}">${update.nvr}</a>
                     </td>
                 </tr>
             </table>
