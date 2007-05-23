@@ -22,7 +22,8 @@ import commands
 
 from Comet import comet
 from datetime import datetime
-from turbogears import controllers, expose, flash, redirect, config, identity
+from turbogears import (controllers, expose, flash, redirect, config,
+                        identity, url)
 
 from bodhi.util import mkmetadatadir, header
 from bodhi.model import PackageUpdate
@@ -95,7 +96,7 @@ class PushController(controllers.Controller):
     def console(self, updates, callback, **kw):
         if not updates:
             flash("No updates selected for pushing")
-            raise redirect("/push")
+            raise redirect(url("/push"))
         if not isinstance(updates, list):
             updates = [updates]
         log.debug("Setting updates in session: %s" % updates)
@@ -146,7 +147,7 @@ class PushController(controllers.Controller):
             try:
                 for (testing, releases) in releases.items():
                     for release in releases:
-                        for output in self.generate_metadata(release, testing):
+                        for output in generate_metadata(release, testing):
                             yield output
                             log.info(output)
                 yield " * Inserting updateinfo.xml into repositories"
@@ -168,51 +169,51 @@ class PushController(controllers.Controller):
 
         return _run_requests()
 
-    def generate_metadata(self, release, testing):
-        """
-        Generate repository metadata for a given release.
-        """
-        baserepo = join(self.stage_dir, testing and 'testing' or '',
-                        release.repodir)
+def generate_metadata(release, testing, stage=None):
+    """
+    Generate repository metadata for a given release.
+    """
+    if not stage: stage = config.get('stage_dir')
+    baserepo = join(stage, testing and 'testing' or '', release.repodir)
 
-        for arch in [arch.name for arch in release.arches] + [u'SRPMS']:
-            repo = join(baserepo, arch)
+    for arch in [arch.name for arch in release.arches] + [u'SRPMS']:
+        repo = join(baserepo, arch)
 
-            ## Move the updateinfo.xml.gz out of the way
+        ## Move the updateinfo.xml.gz out of the way
+        tmpmd = None
+        updateinfo = join(repo, 'repodata', 'updateinfo.xml.gz')
+        if isfile(updateinfo):
+            import gzip
+            tmpmd = tempfile.mktemp()
+            tmp = open(tmpmd, 'w')
+            md = gzip.open(updateinfo, 'r')
+            tmp.write(md.read())
+            tmp.close()
+            md.close()
+            log.debug("Copying update updateinfo from %s to %s" %
+                      (repo,tmpmd))
+            os.remove(updateinfo)
+
+        yield ' * %s' % join(testing and 'testing' or '', release.name,
+                             arch)
+        mkmetadatadir(repo)
+
+        ## Insert the updateinfo.xml.gz back into the repodata
+        if tmpmd:
+            tmpxml = join(repo, 'repodata', 'updateinfo.xml')
+            shutil.move(tmpmd, tmpxml)
+            repomd = RepoMetadata(join(repo, 'repodata'))
+            repomd.add(str(tmpxml))
+            os.remove(tmpxml)
             tmpmd = None
-            updateinfo = join(repo, 'repodata', 'updateinfo.xml.gz')
-            if isfile(updateinfo):
-                import gzip
-                tmpmd = tempfile.mktemp()
-                tmp = open(tmpmd, 'w')
-                md = gzip.open(updateinfo, 'r')
-                tmp.write(md.read())
-                tmp.close()
-                md.close()
-                log.debug("Copying update updateinfo from %s to %s" %
-                          (repo,tmpmd))
-                os.remove(updateinfo)
+            log.debug("Inserted updateinfo.xml into %s" %
+                      join(repo, 'repodata'))
 
-            yield ' * %s' % join(testing and 'testing' or '', release.name,
-                                 arch)
-            mkmetadatadir(repo)
-
-            ## Insert the updateinfo.xml.gz back into the repodata
-            if tmpmd:
-                tmpxml = join(repo, 'repodata', 'updateinfo.xml')
-                shutil.move(tmpmd, tmpxml)
-                repomd = RepoMetadata(join(repo, 'repodata'))
-                repomd.add(str(tmpxml))
-                os.remove(tmpxml)
-                tmpmd = None
-                log.debug("Inserted updateinfo.xml into %s" %
-                          join(repo, 'repodata'))
-
-            debugrepo = join(repo, 'debug')
-            if isdir(debugrepo):
-                 yield ' * %s' % join(testing and 'testing' or '',
-                                      release.name, arch, 'debug')
-                 mkmetadatadir(debugrepo)
+        debugrepo = join(repo, 'debug')
+        if isdir(debugrepo):
+             yield ' * %s' % join(testing and 'testing' or '',
+                                  release.name, arch, 'debug')
+             mkmetadatadir(debugrepo)
 
 ## Allow us to return a generator for streamed responses
 cherrypy.config.update({'/admin/push/run_requests':{'stream_response':True}})
