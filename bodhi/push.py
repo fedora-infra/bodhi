@@ -135,12 +135,10 @@ class PushController(controllers.Controller):
                 log.debug("Running request on %s" % package)
                 update = PackageUpdate.byNvr(package)
                 releases[update.testing].add(update.release)
-
-                for msg in update.run_request(updateinfo=updateinfo):
-                    yield msg
-
                 if update.request == 'move':
                     releases[False].add(update.release)
+                for msg in update.run_request(updateinfo=updateinfo):
+                    yield msg
 
             # Regenerate the repository metadata
             yield header("Generating repository metadata")
