@@ -138,6 +138,7 @@ class PushController(controllers.Controller):
                 if update.request == 'move':
                     releases[False].add(update.release)
                 for msg in update.run_request(updateinfo=updateinfo):
+                    log.debug(msg)
                     yield msg
 
             # Regenerate the repository metadata
@@ -192,8 +193,7 @@ def generate_metadata(release, testing, stage=None):
                       (repo,tmpmd))
             os.remove(updateinfo)
 
-        yield ' * %s' % join(testing and 'testing' or '', release.name,
-                             arch)
+        yield ' * %s' % join(testing and 'testing' or '', release.name, arch)
         mkmetadatadir(repo)
 
         ## Insert the updateinfo.xml.gz back into the repodata
