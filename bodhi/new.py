@@ -21,8 +21,7 @@ from os.path import join
 from sqlobject import SQLObjectNotFound
 from formencode import Invalid
 from bodhi.model import Release, Package, PackageUpdate, Bugzilla, CVE
-from turbogears import (expose, controllers, validate, validators, flash,
-                        error_handler, redirect, identity, config)
+from turbogears import expose, controllers, validators, identity, config, url
 from turbogears.widgets import (WidgetsList, TextField, SingleSelectField,
                                 CheckBox, TextArea, CalendarDateTimePicker,
                                 TableForm, HiddenField, AutoCompleteField)
@@ -64,7 +63,8 @@ class AutoCompleteValidator(validators.Schema):
         return value
 
 class UpdateFields(WidgetsList):
-    nvr = AutoCompleteField(label='Package', search_controller='/new/pkgsearch',
+    nvr = AutoCompleteField(label='Package',
+                            search_controller=url('/new/pkgsearch'),
                             search_param='name', result_name='pkgs', validator=
                             AutoCompleteValidator())
     release = SingleSelectField(options=get_releases, validator=
@@ -91,7 +91,7 @@ class NewUpdateController(controllers.Controller):
     @expose(template="bodhi.templates.form")
     def index(self, *args, **kw):
         self.build_pkglist()
-        return dict(form=update_form, values={}, action="/save")
+        return dict(form=update_form, values={}, action=url("/save"))
 
 
     @expose(format="json")

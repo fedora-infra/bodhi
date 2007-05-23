@@ -15,7 +15,7 @@
         }
     </style>
     <style type="text/css" media="screen">
-@import "/static/css/layout.css";
+        @import "${tg.url('/static/css/layout.css')}";
     </style>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/MochiKit.js')}"></script>
 </head>

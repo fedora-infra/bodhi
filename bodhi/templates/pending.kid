@@ -59,7 +59,7 @@ else:
                 <a class="list" href="${tg.url(update.release.name)}">${update.release.long_name}</a>
             </td>
             <td class="list" align="center">
-                <img src="/static/images/${update.type}.png"/>
+                <img src="${tg.url('/static/images/%s.png' % update.type)}"/>
             </td>
             <td class="list" align="center">
                 ${testing}

@@ -24,7 +24,7 @@ from sqlobject.dberrors import DuplicateEntryError
 from sqlobject.sqlbuilder import AND
 
 from turbogears import (controllers, expose, validate, redirect, identity,
-                        paginate, flash, error_handler, validators, config)
+                        paginate, flash, error_handler, validators, config, url)
 from turbogears.widgets import TableForm, TextArea, WidgetsList, HiddenField
 
 from bodhi.new import NewUpdateController, update_form
@@ -70,7 +70,7 @@ class Root(controllers.RootController):
         if not identity.current.anonymous \
             and identity.was_login_attempted() \
             and not identity.get_identity_errors():
-            raise redirect(forward_url)
+            raise redirect(url(forward_url))
 
         forward_url=None
         previous_url= cherrypy.request.path
@@ -92,7 +92,7 @@ class Root(controllers.RootController):
     @expose()
     def logout(self):
         identity.current.logout()
-        raise redirect("/")
+        raise redirect(url('/'))
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.list")
@@ -121,7 +121,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
-            raise redirect("/list")
+            raise redirect(url('/list'))
         return dict(update=update, comment_form=self.comment_form)
 
     @expose()
@@ -135,9 +135,9 @@ class Root(controllers.RootController):
             log.info("%s push revoked" % nvr)
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
-            raise redirect("/list")
+            raise redirect(url('/list'))
         flash("Push request revoked")
-        raise redirect(update.get_path())
+        raise redirect(url(update.get_path()))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -149,8 +149,8 @@ class Root(controllers.RootController):
             mail.send_admin('move', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-            raise redirect("/")
-        raise redirect(update.get_path())
+            raise redirect(url('/'))
+        raise redirect(url(update.get_path()))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -169,7 +169,7 @@ class Root(controllers.RootController):
             mail.send_admin('push', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-        raise redirect(update.get_path())
+        raise redirect(url(update.get_path()))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -184,7 +184,7 @@ class Root(controllers.RootController):
             mail.send_admin('unpush', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-        raise redirect(update.get_path())
+        raise redirect(url(update.get_path()))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -194,7 +194,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
-            raise redirect("/pending")
+            raise redirect(url("/pending"))
         if not update.pushed:
             update.destroySelf()
             mail.send_admin('deleted', update)
@@ -203,7 +203,7 @@ class Root(controllers.RootController):
             flash(msg)
         else:
             flash("Cannot delete a pushed update")
-        raise redirect("/pending")
+        raise redirect(url("/pending"))
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.form')
@@ -213,7 +213,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found")
-            raise redirect("/list")
+            raise redirect(url("/list"))
         values = {
                 'nvr'       : {'text': update.nvr, 'hidden' : update.nvr},
                 'release'   : update.release.long_name,
@@ -239,10 +239,10 @@ class Root(controllers.RootController):
         kw['nvr'] = kw['nvr']['text']
         if not kw['nvr'] or kw['nvr'] == '':
             flash("Please enter a package-version-release")
-            raise redirect('/new')
+            raise redirect(url('/new'))
         if edited and kw['nvr'] != edited:
             flash("You cannot change the package n-v-r after submission")
-            raise redirect('/edit/%s' % edited)
+            raise redirect(url('/edit/%s' % edited))
 
         release = Release.select(Release.q.long_name == release)[0]
         note = ''
@@ -265,10 +265,10 @@ class Root(controllers.RootController):
                         break
             except xmlrpclib.Fault:
                 flash("Invalid build: %s" % kw['nvr'])
-                raise redirect('/new')
+                raise redirect(url('/new'))
             if not tag_matches:
                 flash("%s build is not tagged with %s" % (kw['nvr'], candidate))
-                raise redirect('/new')
+                raise redirect(url('/new'))
 
             # Get the package; if it doesn't exist, create it.
             try:
@@ -291,7 +291,7 @@ class Root(controllers.RootController):
                                 kw['nvr'], up.nvr)
                         log.debug(msg)
                         flash(msg)
-                        raise redirect('/new')
+                        raise redirect(url('/new'))
                 try:
                     rel = Release.byName(int(rel.name[-1]) - 1)
                 except SQLObjectNotFound:
@@ -304,11 +304,11 @@ class Root(controllers.RootController):
                 p._build_filelist()
             except RPMNotFound:
                 flash("Cannot find SRPM for update")
-                raise redirect('/new')
+                raise redirect(url('/new'))
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
                 flash("Update for %s already exists" % kw['nvr'])
-                raise redirect('/new')
+                raise redirect(url('/new'))
             #except Exception, e:
             #    msg = "Unknown exception thrown: %s" % str(e)
             #    log.error(msg)
@@ -333,7 +333,7 @@ class Root(controllers.RootController):
             except ValueError:
                 flash("Invalid bug number")
                 # TODO: redirect back to the previous page
-                raise redirect('/')
+                raise redirect(url('/'))
             if bz.security and p.type != 'security':
                 p.type = 'security'
                 note += '; Security bugs found, changed update type to security'
@@ -356,7 +356,7 @@ class Root(controllers.RootController):
             flash("Update successfully added" + note)
             mail.send_admin('new', p)
 
-        raise redirect(p.get_path())
+        raise redirect(url(p.get_path()))
 
     @expose(template='bodhi.templates.list')
     @identity.require(identity.not_anonymous())
@@ -400,7 +400,7 @@ class Root(controllers.RootController):
                             values={'nvr' : update.nvr})
             except SQLObjectNotFound:
                 flash("Update %s not found" % args[1])
-                raise redirect('/')
+                raise redirect(url('/'))
             except IndexError: # /[testing/]<release>
                 updates = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
@@ -419,7 +419,7 @@ class Root(controllers.RootController):
             pass
 
         flash("The path %s cannot be found" % cherrypy.request.path)
-        raise redirect("/")
+        raise redirect(url("/"))
 
     @expose()
     @error_handler()
@@ -434,7 +434,7 @@ class Root(controllers.RootController):
                               update=update)
             mail.send(update.submitter, 'comment', update)
             flash("Successfully added comment to %s update" % nvr)
-        raise redirect(update.get_path())
+        raise redirect(url(update.get_path()))
 
     @expose(template='bodhi.templates.text')
     def mail_notice(self, nvr, *args, **kw):
