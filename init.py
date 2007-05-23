@@ -84,21 +84,25 @@ def import_releases():
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
             'repodir'   : '5',
             'id_prefix' : 'FEDORA'
-        },
-        {
-            'name'      : 'EPEL5',
-            'long_name' : 'Enterprise Extras 5',
-            'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repodir'   : 'EL-5',
-            'id_prefix' : 'EPEL'
-        },
-        {
-            'name'      : 'EPEL4',
-            'long_name' : 'Enterprise Extras 5',
-            'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repodir'   : 'EL-4',
-            'id_prefix' : 'EPEL'
         }
+
+        ##
+        ## Disabled until either koji can build for EPEL, or we can access
+        ## plagues build results.
+        #{
+        #    'name'      : 'EPEL5',
+        #    'long_name' : 'Enterprise Extras 5',
+        #    'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
+        #    'repodir'   : 'EL-5',
+        #    'id_prefix' : 'EPEL'
+        #},
+        #{
+        #    'name'      : 'EPEL4',
+        #    'long_name' : 'Enterprise Extras 4',
+        #    'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
+        #    'repodir'   : 'EL-4',
+        #    'id_prefix' : 'EPEL'
+        #}
     )
 
     for release in releases:
