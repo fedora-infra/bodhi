@@ -314,9 +314,10 @@ html>body .fedora-corner-br { background: #d9d9d9 url("/static/images/corner-br.
 
 #fedora-footer {
 	font-size: 0.75em;
-	text-align: center;
+	text-align: right;
 	color: #777;
 	margin-bottom: 2em;
+    margin-right: 2em;
 }
 #fedora-printable {
 	text-align: center;
