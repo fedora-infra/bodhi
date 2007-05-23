@@ -36,13 +36,17 @@ addLoadEvent(function(){
     connect($('testing'), 'onclick', function (e) {
         MochiKit.Visual.toggle($('testinglist'), 'slide');
     });
-    connect($('administration'), 'onclick', function (e) {
-        MochiKit.Visual.toggle($('adminlist'), 'slide');
-    });
     if( $('flash') != null ){
         MochiKit.Visual.roundElement($('flash'), null);
         MochiKit.Visual.toggle($('flash'), 'blind');
     }
+});
+</script>
+<script type="text/javascript" py:if="'admin' in tg.identity.groups">
+addLoadEvent(function(){
+    connect($('administration'), 'onclick', function (e) {
+        MochiKit.Visual.toggle($('adminlist'), 'slide');
+    });
 });
 </script>
 
@@ -114,8 +118,8 @@ addLoadEvent(function(){
             </ul>
         </div>
         <!-- leftside END -->
-        <!-- content BEGIN -->
 
+        <!-- content BEGIN -->
         <div py:attrs="{'id' : tg.identity.anonymous and 'fedora-middle-three' or 'fedora-middle-two'}">
             <div class="fedora-corner-tr">&nbsp;</div>
             <div class="fedora-corner-tl">&nbsp;</div>
@@ -134,12 +138,11 @@ addLoadEvent(function(){
         <div class="fedora-corner-br">&nbsp;</div>
         <div class="fedora-corner-bl">&nbsp;</div>
     </div>
-
     <!-- content END -->
+
     <!-- footer BEGIN -->
-    <div id="fedora-footer"></div>
+    <div id="fedora-footer">Copyright © 2007 Red Hat, Inc.</div>
     <!-- footer END -->
 
 </body>
-
 </html>
