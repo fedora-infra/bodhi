@@ -156,6 +156,8 @@ class PackageUpdate(SQLObject):
             repo = self.release.repodir
         elif self.request == 'push':
             repo = join('testing', self.release.repodir)
+        elif self.request == 'unpush':
+            repo = '/dev/null' # not used during run_request
         return repo
 
     def assign_id(self):
@@ -245,15 +247,14 @@ class PackageUpdate(SQLObject):
             uinfo.remove_update(self)
 
         action = {'move':'Moving', 'push':'Pushing', 'unpush':'Unpushing'}
-        log.debug("%s %s" % (action[self.request], self.nvr))
         yield header("%s %s" % (action[self.request], self.nvr))
 
         # iterate over each of this update's files by arch
         for arch in self.filelist.keys():
             dest = join(stage, self.get_dest_repo(), arch)
 
-            for file in self.filelist[arch]:
-                filename = basename(file)
+            for pkg in self.filelist[arch]:
+                filename = basename(pkg)
                 if filename.find('debuginfo') != -1:
                     destfile = join(dest, 'debug', filename)
                     current_file = join(stage, self.get_repo(), arch,
@@ -265,23 +266,21 @@ class PackageUpdate(SQLObject):
                 # regardless of request, delete any pushed files that exist
                 for pushed_file in (current_file, destfile):
                     if isfile(pushed_file):
-                        log.debug("Deleting %s" % pushed_file)
                         os.unlink(pushed_file)
-                        yield " * Removed %s" % pushed_file 
+                        yield " * Removed %s" % pushed_file.split(stage)[-1][1:]
 
                 if self.request == 'unpush':
                     # we've already removed any existing files from the stage,
                     # and unpushing doesn't entail anything more
                     continue
-                elif self.request == 'push' or self.request == 'move':
-                    log.debug("Pushing %s to %s" % (file, destfile))
-                    yield " * %s" % join(self.get_dest_repo(), arch, filename)
+                elif self.request in ('push', 'move'):
+                    yield " * %s" % destfile.split(stage)[-1][1:]
                     try:
-                        os.link(file, destfile)
+                        os.link(pkg, destfile)
                     except OSError, e:
                         if e.errno == 18: # cross-device-link
                             log.debug("Cross-device link; copying file instead")
-                            shutil.copyfile(file, destfile)
+                            shutil.copyfile(pkg, destfile)
 
         # Post-request actions
         if self.request == 'push':
@@ -289,15 +288,18 @@ class PackageUpdate(SQLObject):
             self.date_pushed = datetime.now()
             self.assign_id()
             yield " * Assigned ID %s" % self.update_id
-            yield " * Notifying %s" % self.submitter
-            mail.send(self.submitter, 'pushed', self)
             yield " * Generating extended metadata"
             uinfo.add_update(self)
+            yield " * Notifying %s" % self.submitter
+            mail.send(self.submitter, 'pushed', self)
         elif self.request == 'unpush':
+            mail.send(self.submitter, 'unpushed', self)
+            if uinfo.remove_update(self):
+                yield " * Removed extended metadata from updateinfo"
+            else:
+                yield " * Unable to remove extended metadata from updateinfo"
             self.pushed = False
             self.testing = True
-            mail.send(self.submitter, 'unpushed', self)
-            uinfo.remove_update(self)
         elif self.request == 'move':
             self.pushed = True
             self.testing = False
@@ -309,13 +311,11 @@ class PackageUpdate(SQLObject):
             koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
                                          allow_none=True)
             log.debug("Moving %s from dist-%s-updates-candidates to "
-                      "dist-%s-updates" % (self.nvr,
-                                           self.release.name.lower(),
+                      "dist-%s-updates" % (self.nvr, self.release.name.lower(),
                                            self.release.name.lower()))
             try:
                 koji.moveBuild('dist-%s-updates-candidate' %
-                               self.release.name.lower(),
-                               'dist-%s-updates' %
+                               self.release.name.lower(), 'dist-%s-updates' %
                                self.release.name.lower(), self.nvr)
             except xmlrpclib.Fault, f:
                 log.error("ERROR: %s" % str(f))
@@ -389,45 +389,37 @@ class PackageUpdate(SQLObject):
 
         return latest
 
-    def get_path(self):
-        """ Return the relative path to this update """
+    def get_url(self):
+        """ Return the relative URL to this update """
         status = self.testing and 'testing/' or ''
         if not self.pushed: status = 'pending/'
-        return '/%s%s/%s' % (status, self.release.name, self.nvr)
-
-    def get_url(self):
-        return turbogears.url(self.get_path())
+        return turbogears.url('/%s%s/%s' % (status,self.release.name,self.nvr))
 
     def __str__(self):
         """
         Return a string representation of this update.
-        TODO: eventually put the URL of this update
         """
         val = """\
 ================================================================================
-  %(package)s
+  %s
 ================================================================================
-  Update ID: %(update_id)s
-    Release: %(release)s
-       Type: %(type)s
-       Bugs: %(bugs)s
-       CVES: %(cves)s
-      Notes: %(notes)s
-  Submitter: %(submitter)s
-  Submitted: %(submitted)s
-      Files:""" % ({
-                    'update_id' : self.update_id,
-                    'package'   : self.nvr,
-                    'release'   : self.release.long_name,
-                    'type'      : self.type,
-                    'notes'     : self.notes,
-                    'email'     : self.submitter,
-                    'bugs'      : self.get_bugstring(),
-                    'cves'      : self.get_cvestring(),
-                    'submitted' : self.date_submitted,
-                    'submitter' : self.submitter
-                  })
-
+""" % self.nvr
+        if self.update_id:
+            val += "  Update ID: %s\n" % self.update_id
+        val += """    Release: %s
+     Status: %s
+       Type: %s""" % (self.release.long_name, self.testing and 'Testing' or
+                      'Final', self.type)
+        if len(self.bugs):
+           val += "\n       Bugs: %s" % self.get_bugstring()
+        if len(self.cves):
+            val += "\n       CVES: %s" % self.get_cvestring()
+        if self.notes:
+            val += "\n      Notes: %s" % self.notes
+        val += """
+  Submitter: %s
+  Submitted: %s
+      Files:""" % (self.submitter, self.date_submitted)
         for files in self.filelist.values():
             for file in files:
                 val += " %s\n\t    " % basename(file)
