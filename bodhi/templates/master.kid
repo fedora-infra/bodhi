@@ -28,7 +28,7 @@ releases = [(rel.name, rel.long_name) for rel in Release.select()]
 ?>
 
 <!-- Shiny stuff.  We should eventually put this somewhere else -->
-<script type="text/javascript">
+<script type="text/javascript" py:if="not tg.identity.anonymous">
 addLoadEvent(function(){
     connect($('stable'), 'onclick', function (e) {
         MochiKit.Visual.toggle($('stablelist'), 'slide');
