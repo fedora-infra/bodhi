@@ -14,7 +14,6 @@
 <?python
 bugs = "https://bugzilla.redhat.com/bugzilla/buglist.cgi?component=%s&bug_status=NEW&bug_status=ASSIGNED&bug_status=NEEDINFO&bug_status=MODIFIED" % pkg.name
 pkgdb = "https://admin.fedoraproject.org/pkgdb/packages/name/%s" % pkg.name
-updates = pkg.updates
 ?>
 
 <blockquote>
@@ -25,7 +24,7 @@ updates = pkg.updates
     </ul>
 </blockquote>
 
-&nbsp;&nbsp;${len(updates)} updates found
+&nbsp;&nbsp;${len(pkg.updates)} updates found
 <div class="list">
     <span py:for="page in tg.paginate.pages">
         <a py:if="page != tg.paginate.current_page"
@@ -42,7 +41,7 @@ updates = pkg.updates
         <th class="list" width="30%">
             <b>Package</b>
         </th>
-        <th class="list" width="15%">
+        <th class="list" width="25%">
             <b>Release</b>
         </th>
         <th class="list" width="5%">
@@ -51,12 +50,12 @@ updates = pkg.updates
         <th class="list" width="10%">
             <center><b>Status</b></center>
         </th>
-        <th class="list" width="40%">
+        <th class="list" width="20%">
             <b>Submitted</b>
         </th>
     </tr>
     <?python row_color = "#FFFFFF" ?>
-    <tr class="list" bgcolor="${row_color}" py:for="update in updates">
+    <tr class="list" bgcolor="${row_color}" py:for="update in pkg.updates">
         <td class="list">
             ${update.update_id}
         </td>
@@ -64,10 +63,10 @@ updates = pkg.updates
         testing = update.testing and 'Testing' or 'Final'
         ?>
         <td class="list">
-            <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
+            <a class="list" href="${update.get_url()}">${update.nvr}</a>
         </td>
         <td class="list">
-            <a class="list" href="${tg.url(update.release.name)}">${update.release.long_name}</a>
+            <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>
         </td>
         <td class="list" align="center">
             <img src="${tg.url('/static/images/%s.png' % update.type)}"/>
