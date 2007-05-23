@@ -130,6 +130,9 @@ class Root(controllers.RootController):
         """ Revoke a push request for a specified update """
         try:
             update = PackageUpdate.byNvr(nvr)
+            if isfile(join(config.get('stage_dir'), '.lock')):
+                flash('Repo locked; cannot revoke push request during push')
+                raise redirect(update.get_url())
             update.request = None
             mail.send_admin('revoke', update)
             log.info("%s push revoked" % nvr)

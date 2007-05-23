@@ -90,7 +90,7 @@ class PushController(controllers.Controller):
         """ List updates tagged with a push/unpush/move request """
         updates = PackageUpdate.select(PackageUpdate.q.request != None)
         return dict(updates=updates, label='Push Updates',
-                    callback='/admin/push/run_requests')
+                    callback=url('/admin/push/run_requests'))
 
     @expose(template='bodhi.templates.pushconsole')
     def console(self, updates, callback, **kw):
