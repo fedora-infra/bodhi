@@ -3,7 +3,7 @@
     py:extends="'master.kid'">
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-<title>Fedora Updates</title>
+<title>Fedora Update System</title>
 </head>
 <body>
     <blockquote>
@@ -12,7 +12,7 @@
             <table cellpadding="5">
                 <tr>
                     <td valign="middle">
-                        <a href="http://fedoraproject.org/wiki/KevinFenzi/Bodhi-info-DRAFT" class="list"><img src="${tg.url('/static/images/header-faq.png')}" align="middle" border="0" />Bodhi workflow and Q&amp;A draft</a>
+                        <a href="http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem/Bodhi-info-DRAFT" class="list"><img src="${tg.url('/static/images/header-faq.png')}" align="middle" border="0" />Bodhi workflow and Q&amp;A draft</a>
                     </td>
                 </tr>
                 <tr>
