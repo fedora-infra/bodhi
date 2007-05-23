@@ -16,8 +16,8 @@
 import logging
 
 from sqlobject.sqlbuilder import LIKE
-from turbogears import (expose, identity, paginate, validate,
-                        validators, redirect, error_handler)
+from turbogears import (expose, identity, paginate, validate, validators,
+                        redirect, error_handler, url)
 from turbogears.widgets import TextField, Form, Button
 from turbogears.controllers import Controller
 
@@ -47,7 +47,7 @@ class SearchController(Controller):
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
-    @validate(validators={ "search"  : validators.String() })
+    @validate(validators={ "search" : validators.String() })
     @error_handler(index)
     @paginate('updates', default_order='update_id', limit=15)
     def default(self, search, *args, **kw):
