@@ -25,7 +25,7 @@ from sqlobject.sqlbuilder import AND
 
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config, url)
-from turbogears.widgets import TableForm, TextArea, WidgetsList, HiddenField
+from turbogears.widgets import TableForm, TextArea, HiddenField
 
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
@@ -137,7 +137,7 @@ class Root(controllers.RootController):
             flash("Update %s not found" % update)
             raise redirect(url('/list'))
         flash("Push request revoked")
-        raise redirect(url(update.get_path()))
+        raise redirect(update.get_url())
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -150,7 +150,7 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
             raise redirect(url('/'))
-        raise redirect(url(update.get_path()))
+        raise redirect(update.get_url())
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -169,7 +169,7 @@ class Root(controllers.RootController):
             mail.send_admin('push', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-        raise redirect(url(update.get_path()))
+        raise redirect(update.get_url())
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -184,7 +184,7 @@ class Root(controllers.RootController):
             mail.send_admin('unpush', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-        raise redirect(url(update.get_path()))
+        raise redirect(update.get_url())
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -225,7 +225,7 @@ class Root(controllers.RootController):
                 'cves'      : update.get_cvestring(),
                 'edited'    : update.nvr
         }
-        return dict(form=update_form, values=values, action='/save')
+        return dict(form=update_form, values=values, action=url('/save'))
 
     @expose()
     @error_handler(new.index)
@@ -309,16 +309,14 @@ class Root(controllers.RootController):
                     DuplicateEntryError):
                 flash("Update for %s already exists" % kw['nvr'])
                 raise redirect(url('/new'))
-            #except Exception, e:
-            #    msg = "Unknown exception thrown: %s" % str(e)
-            #    log.error(msg)
-            #    flash(msg)
-            #    raise redirect('/new')
             log.info("Adding new update %s" % kw['nvr'])
         else: # edited update
             from datetime import datetime
             log.info("Edited update %s" % edited)
             p = PackageUpdate.byNvr(edited)
+            if p.release != release:
+                flash("Cannot change update release after submission")
+                raise redirect(p.get_url())
             p.set(release=release, date_modified=datetime.now(), **kw)
             map(p.removeBugzilla, p.bugs)
             map(p.removeCVE, p.cves)
@@ -356,7 +354,7 @@ class Root(controllers.RootController):
             flash("Update successfully added" + note)
             mail.send_admin('new', p)
 
-        raise redirect(url(p.get_path()))
+        raise redirect(p.get_url())
 
     @expose(template='bodhi.templates.list')
     @identity.require(identity.not_anonymous())
@@ -434,7 +432,7 @@ class Root(controllers.RootController):
                               update=update)
             mail.send(update.submitter, 'comment', update)
             flash("Successfully added comment to %s update" % nvr)
-        raise redirect(url(update.get_path()))
+        raise redirect(update.get_url())
 
     @expose(template='bodhi.templates.text')
     def mail_notice(self, nvr, *args, **kw):
