@@ -92,7 +92,6 @@ title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '
             ['Submitter',     update.submitter],
             ['Submitted',     update.date_submitted],
             ['Modified',      update.date_modified],
-            ['Archived Mail', update.archived_mail],
             ['Notes',         update.notes],
             ['Files',         XML(filelist)]
         )">
