@@ -26,7 +26,7 @@ for cve in update.cves:
 
 ## Build our file list
 from os.path import basename
-filelist = '<div id="showfiles"><a href="#" onClick="MochiKit.Visual.toggle($(\'filelist\'))">Toggle filelist</a></div><div id="filelist" style="display: none">'
+filelist = '<div id="showfiles"><a href="#" onClick="$(\'showfiles\').style.display = \'none\'; MochiKit.Visual.slideDown($(\'filelist\'))">Show filelist</a></div><div id="filelist" style="display: none">'
 for arch in update.filelist.keys():
     if len(update.filelist[arch]):
         filelist += '<b>%s</b><br/>' % arch
@@ -34,15 +34,20 @@ for arch in update.filelist.keys():
             filelist += '|-- %s<br/>' % basename(pkg)
 filelist += "</div>"
 
+## Create the list of comments
 comments = ''
 for comment in update.comments:
     comments += "<b>%s</b> - %s<br/>%s<br/>" % (comment.author,
                                                 comment.timestamp,
                                                 comment.text)
 
+## Make the package name linkable in the n-v-r
 from bodhi.util import get_nvr
 nvr = get_nvr(update.nvr)
 title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]))
+
+release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
+                                   update.release.long_name)
 ?>
 
 <body>
@@ -63,14 +68,17 @@ title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '
                         <a href="${tg.url('/revoke/%s' % update.nvr)}">
                             Revoke ${update.request} request</a> | 
                     </span>
+                    <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
                 </span>
                 <span py:if="update.pushed">
-                    <a href="${tg.url('/unpush/%s' % update.nvr)}">Unpush</a> | 
+                    <a href="${tg.url('/unpush/%s' % update.nvr)}">Unpush</a>
                     <span py:if="update.testing">
-                        <a href="${tg.url('/move/%s' % update.nvr)}">Mark as Stable</a> | 
+                         | <a href="${tg.url('/move/%s' % update.nvr)}">Mark as Stable</a> | 
+                        <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
                     </span>
                 </span>
-                <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
+                <span py:if="not update.pushed or update.testing">
+                </span>
                 ]
             </td>
         </tr>
@@ -78,7 +86,7 @@ title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '
 
     <table class="show">
         <tr py:for="field in (
-            ['Release',       update.release.long_name],
+            ['Release',       XML(release)],
             ['Update ID',     update.update_id],
             ['Status',        update.testing and 'Testing' or 'Final'],
             ['Type',          update.type],
