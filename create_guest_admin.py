@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from init import load_config
 from bodhi.model import User, Group
 from turbogears.database import PackageHub
