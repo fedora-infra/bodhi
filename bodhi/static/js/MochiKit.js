@@ -1599,7 +1599,7 @@ throw MochiKit.Iter.StopIteration;
 return rval;
 }};
 }});
-MochiKit.Iter.EXPORT_OK=["iteratorRegistry","arrayLikeIter","hasIterateNext","iterateNextIter",];
+MochiKit.Iter.EXPORT_OK=["iteratorRegistry","arrayLikeIter","hasIterateNext","iterateNextIter"];
 MochiKit.Iter.EXPORT=["StopIteration","registerIteratorFactory","iter","count","cycle","repeat","next","izip","ifilter","ifilterfalse","islice","imap","applymap","chain","takewhile","dropwhile","tee","list","reduce","range","sum","exhaust","forEach","every","sorted","reversed","some","iextend","groupby","groupby_as_array"];
 MochiKit.Iter.__new__=function(){
 var m=MochiKit.Base;
@@ -2146,7 +2146,7 @@ MochiKit.Format.percentFormat=function(_270){
 return MochiKit.Format.twoDigitFloat(100*_270)+"%";
 };
 MochiKit.Format.EXPORT=["truncToFixed","roundToFixed","numberFormatter","formatLocale","twoDigitAverage","twoDigitFloat","percentFormat","lstrip","rstrip","strip"];
-MochiKit.Format.LOCALE={en_US:{separator:",",decimal:".",percent:"%"},de_DE:{separator:".",decimal:",",percent:"%"},fr_FR:{separator:" ",decimal:",",percent:"%"},"default":"en_US"};
+MochiKit.Format.LOCALE={en_US:{separator:",",decimal:".",percent:"%"},de_DE:{separator:".",decimal:",",percent:"%"},pt_BR:{separator:".",decimal:",",percent:"%"},fr_FR:{separator:" ",decimal:",",percent:"%"},"default":"en_US"};
 MochiKit.Format.EXPORT_OK=[];
 MochiKit.Format.EXPORT_TAGS={":all":MochiKit.Format.EXPORT,":common":MochiKit.Format.EXPORT};
 MochiKit.Format.__new__=function(){
@@ -2464,6 +2464,7 @@ req.open(opts.method,url,true);
 if(req.overrideMimeType&&opts.mimeType){
 req.overrideMimeType(opts.mimeType);
 }
+req.setRequestHeader("X-Requested-With","XMLHttpRequest");
 if(opts.headers){
 var _2a9=opts.headers;
 if(!m.isArrayLike(_2a9)){
