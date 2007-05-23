@@ -107,8 +107,8 @@ class PackageUpdate(SQLObject):
     pushed          = BoolCol(default=False)
     notes           = UnicodeCol()
     mail_sent       = BoolCol(default=False)
-    archived_mail   = UnicodeCol(default=None) # URL of archived update announce mail
-    request         = EnumCol(enumValues=['push', 'unpush', 'move', None], default=None)
+    request         = EnumCol(enumValues=['push', 'unpush', 'move', None],
+                              default=None)
     comments        = MultipleJoin('Comment', joinColumn='update_id')
     filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
 
@@ -137,11 +137,26 @@ class PackageUpdate(SQLObject):
 
     def get_repo(self):
         """
-        Return the relative path to the repository in which this update
-        is to be pushed.  The absolute path can be created by prepending
-        this value with the stage_dir and appending the architecture
+        Return the relative path to the repo in which this update should/does
+        reside, depending on if it has been pushed or not.  The absolute path
+        can be created by prepending this value with the stage_dir and appending
+        the architecture.
         """
         return join(self.testing and 'testing' or '', self.release.repodir)
+
+    def get_dest_repo(self):
+        """
+        Return the relative path to the repo that this update is destined for.
+        This means that based on the request (push, move), this method returns
+        the value of the repo that this update should be pushed to when
+        executing its request.
+        """
+        repo = None
+        if self.request == 'move':
+            repo = self.release.repodir
+        elif self.request == 'push':
+            repo = join('testing', self.release.repodir)
+        return repo
 
     def assign_id(self):
         """
@@ -220,6 +235,7 @@ class PackageUpdate(SQLObject):
         itself accordingly.  If not, then we will create our own and insert
         it before we return.
         """
+        if not stage: stage = config.get('stage_dir')
         if updateinfo: uinfo = updateinfo
         else: uinfo = ExtendedMetadata(stage)
         if self.request == None:
@@ -227,12 +243,6 @@ class PackageUpdate(SQLObject):
             return
         elif self.request == 'move':
             uinfo.remove_update(self)
-            # disable testing status now so that we can simply push to
-            # self.get_repo() later in this method
-            current_repo = self.get_repo()
-            self.testing = False
-        else:
-            current_repo = self.get_repo()
 
         action = {'move':'Moving', 'push':'Pushing', 'unpush':'Unpushing'}
         log.debug("%s %s" % (action[self.request], self.nvr))
@@ -240,21 +250,24 @@ class PackageUpdate(SQLObject):
 
         # iterate over each of this update's files by arch
         for arch in self.filelist.keys():
-            dest = join(stage and stage or config.get('stage_dir'),
-                        self.get_repo(), arch)
+            dest = join(stage, self.get_dest_repo(), arch)
 
             for file in self.filelist[arch]:
                 filename = basename(file)
                 if filename.find('debuginfo') != -1:
                     destfile = join(dest, 'debug', filename)
+                    current_file = join(stage, self.get_repo(), arch,
+                                        'debug', filename)
                 else:
                     destfile = join(dest, filename)
+                    current_file = join(stage, self.get_repo(), arch, filename)
 
                 # regardless of request, delete any pushed files that exist
-                if isfile(destfile):
-                    log.debug("Deleting %s" % destfile)
-                    os.unlink(destfile)
-                    yield " * Removed %s" % join(current_repo, arch,filename)
+                for pushed_file in (current_file, destfile):
+                    if isfile(pushed_file):
+                        log.debug("Deleting %s" % pushed_file)
+                        os.unlink(pushed_file)
+                        yield " * Removed %s" % pushed_file 
 
                 if self.request == 'unpush':
                     # we've already removed any existing files from the stage,
@@ -262,7 +275,7 @@ class PackageUpdate(SQLObject):
                     continue
                 elif self.request == 'push' or self.request == 'move':
                     log.debug("Pushing %s to %s" % (file, destfile))
-                    yield " * %s" % join(self.get_repo(), arch, filename)
+                    yield " * %s" % join(self.get_dest_repo(), arch, filename)
                     try:
                         os.link(file, destfile)
                     except OSError, e:
@@ -271,47 +284,42 @@ class PackageUpdate(SQLObject):
                             shutil.copyfile(file, destfile)
 
         # Post-request actions
-        # We only want to execute these when this update has been pushed to
-        # our default stage.  If an alternate stage has been supplied (ie,
-        # for dependency closure tests), we don't want to assign an official
-        # update ID to this update, or send an notifications around.
-        if not stage:
-            if self.request == 'push':
-                self.pushed = True
-                self.date_pushed = datetime.now()
-                self.assign_id()
-                yield " * Assigned ID %s" % self.update_id
-                yield " * Notifying %s" % self.submitter
-                mail.send(self.submitter, 'pushed', self)
-                yield " * Generating extended metadata"
-                uinfo.add_update(self)
-            elif self.request == 'unpush':
-                self.pushed = False
-                self.testing = True
-                mail.send(self.submitter, 'unpushed', self)
-                uinfo.remove_update(self)
-            elif self.request == 'move':
-                self.pushed = True
-                if self.update_id == None or self.update_id == u'None':
-                    self.assign_id()
-                yield " * Notifying %s" % self.submitter
-                mail.send(self.submitter, 'moved', self)
-                yield " * Generating extended metadata"
-                uinfo.add_update(self)
-                koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
-                                             allow_none=True)
-                log.debug("Moving %s from dist-%s-updates-candidates to "
-                          "dist-%s-updates" % (self.nvr,
-                                               self.release.name.lower(),
-                                               self.release.name.lower()))
-                try:
-                    koji.moveBuild('dist-%s-updates-candidate' %
-                                   self.release.name.lower(),
-                                   'dist-%s-updates' %
-                                   self.release.name.lower(), self.nvr)
-                except xmlrpclib.Fault, f:
-                    log.error("ERROR: %s" % str(f))
-                del koji
+        if self.request == 'push':
+            self.pushed = True
+            self.date_pushed = datetime.now()
+            self.assign_id()
+            yield " * Assigned ID %s" % self.update_id
+            yield " * Notifying %s" % self.submitter
+            mail.send(self.submitter, 'pushed', self)
+            yield " * Generating extended metadata"
+            uinfo.add_update(self)
+        elif self.request == 'unpush':
+            self.pushed = False
+            self.testing = True
+            mail.send(self.submitter, 'unpushed', self)
+            uinfo.remove_update(self)
+        elif self.request == 'move':
+            self.pushed = True
+            self.testing = False
+            self.assign_id()
+            yield " * Notifying %s" % self.submitter
+            mail.send(self.submitter, 'moved', self)
+            yield " * Generating extended metadata"
+            uinfo.add_update(self)
+            koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
+                                         allow_none=True)
+            log.debug("Moving %s from dist-%s-updates-candidates to "
+                      "dist-%s-updates" % (self.nvr,
+                                           self.release.name.lower(),
+                                           self.release.name.lower()))
+            try:
+                koji.moveBuild('dist-%s-updates-candidate' %
+                               self.release.name.lower(),
+                               'dist-%s-updates' %
+                               self.release.name.lower(), self.nvr)
+            except xmlrpclib.Fault, f:
+                log.error("ERROR: %s" % str(f))
+            del koji
 
         # If we created our own UpdateMetadata, then insert it into the repo
         if not updateinfo:
