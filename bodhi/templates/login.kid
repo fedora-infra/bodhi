@@ -11,21 +11,11 @@
 </head>
 
 <body onload="document.login.user_name.focus()">
-    <table width="100%">
-        <tr>
-            <td>
-                <h1 class="padded">Bodhi</h1>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <blockquote>
-                <p class="padded">Welcome to <a href="https://hosted.fedoraproject.org/projects/bodhi">bodhi</a>.  You may log into this test instance with the username and password <b>guest</b></p>
-                    <p class="padded">${message}</p>
-                </blockquote>
-            </td>
-        </tr>
-    </table>
+    <blockquote>
+        <h1 class="padded">Fedora Update System</h1>
+        <p class="padded">Welcome to <a href="https://hosted.fedoraproject.org/projects/bodhi">bodhi</a>.  You may log into this test instance with the username and password <b>guest</b></p>
+        <p class="padded">${message}</p>
+    </blockquote>
     <form action="${previous_url}" method="POST" name="login">
         <table class="login">
             <tr>
