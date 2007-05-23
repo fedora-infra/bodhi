@@ -109,7 +109,7 @@ class ExtendedMetadata:
         self._insert(doc, root, 'id', text=update.update_id)
         self._insert(doc, root, 'title', text=update.nvr)
         self._insert(doc, root, 'release', text=update.release.long_name)
-        self._insert(doc, root, 'issued', attrs={ 'date' : datetime.now() })
+        self._insert(doc, root, 'issued', attrs={ 'date' : update.date_pushed })
 
         ## Build the references
         refs = doc.createElement('references')
