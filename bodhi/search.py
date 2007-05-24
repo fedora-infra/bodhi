@@ -43,7 +43,7 @@ class SearchController(Controller):
             flash(tg_errors)
         if search:
             raise redirect(url('/search/%s' % search))
-        return dict(form=self.search_form, values={}, action='/search/')
+        return dict(form=self.search_form, values={}, action=url('/search/'))
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
