@@ -70,7 +70,7 @@ class Root(controllers.RootController):
         if not identity.current.anonymous \
             and identity.was_login_attempted() \
             and not identity.get_identity_errors():
-            raise redirect(url(forward_url))
+            raise redirect(forward_url)
 
         forward_url=None
         previous_url= cherrypy.request.path
@@ -92,7 +92,7 @@ class Root(controllers.RootController):
     @expose()
     def logout(self):
         identity.current.logout()
-        raise redirect(url('/'))
+        raise redirect('/')
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.list")
@@ -121,7 +121,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
-            raise redirect(url('/list'))
+            raise redirect('/list')
         return dict(update=update, comment_form=self.comment_form)
 
     @expose()
@@ -138,7 +138,7 @@ class Root(controllers.RootController):
             log.info("%s push revoked" % nvr)
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
-            raise redirect(url('/list'))
+            raise redirect('/list')
         flash("Push request revoked")
         raise redirect(update.get_url())
 
@@ -152,7 +152,7 @@ class Root(controllers.RootController):
             mail.send_admin('move', update)
         except SQLObjectNotFound:
             flash("Update %s not found" % nvr)
-            raise redirect(url('/'))
+            raise redirect('/')
         raise redirect(update.get_url())
 
     @expose()
@@ -197,7 +197,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found" % update)
-            raise redirect(url("/pending"))
+            raise redirect("/pending")
         if not update.pushed:
             update.destroySelf()
             mail.send_admin('deleted', update)
@@ -206,7 +206,7 @@ class Root(controllers.RootController):
             flash(msg)
         else:
             flash("Cannot delete a pushed update")
-        raise redirect(url("/pending"))
+        raise redirect("/pending")
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.form')
@@ -216,7 +216,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byNvr(update)
         except SQLObjectNotFound:
             flash("Update %s not found")
-            raise redirect(url("/list"))
+            raise redirect("/list")
         values = {
                 'nvr'       : {'text': update.nvr, 'hidden' : update.nvr},
                 'release'   : update.release.long_name,
@@ -242,10 +242,10 @@ class Root(controllers.RootController):
         kw['nvr'] = kw['nvr']['text']
         if not kw['nvr'] or kw['nvr'] == '':
             flash("Please enter a package-version-release")
-            raise redirect(url('/new'))
+            raise redirect('/new')
         if edited and kw['nvr'] != edited:
             flash("You cannot change the package n-v-r after submission")
-            raise redirect(url('/edit/%s' % edited))
+            raise redirect('/edit/%s' % edited)
 
         release = Release.select(Release.q.long_name == release)[0]
         note = ''
@@ -268,10 +268,10 @@ class Root(controllers.RootController):
                         break
             except xmlrpclib.Fault:
                 flash("Invalid build: %s" % kw['nvr'])
-                raise redirect(url('/new'))
+                raise redirect('/new')
             if not tag_matches:
                 flash("%s build is not tagged with %s" % (kw['nvr'], candidate))
-                raise redirect(url('/new'))
+                raise redirect('/new')
 
             # Get the package; if it doesn't exist, create it.
             try:
@@ -294,7 +294,7 @@ class Root(controllers.RootController):
                                 kw['nvr'], up.nvr)
                         log.debug(msg)
                         flash(msg)
-                        raise redirect(url('/new'))
+                        raise redirect('/new')
                 try:
                     rel = Release.byName(int(rel.name[-1]) - 1)
                 except SQLObjectNotFound:
@@ -307,11 +307,11 @@ class Root(controllers.RootController):
                 p._build_filelist()
             except RPMNotFound:
                 flash("Cannot find SRPM for update")
-                raise redirect(url('/new'))
+                raise redirect('/new')
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
                 flash("Update for %s already exists" % kw['nvr'])
-                raise redirect(url('/new'))
+                raise redirect('/new')
             log.info("Adding new update %s" % kw['nvr'])
         else: # edited update
             from datetime import datetime
@@ -334,7 +334,7 @@ class Root(controllers.RootController):
             except ValueError:
                 flash("Invalid bug number")
                 # TODO: redirect back to the previous page
-                raise redirect(url('/'))
+                raise redirect('/')
             if bz.security and p.type != 'security':
                 p.type = 'security'
                 note += '; Security bugs found, changed update type to security'
@@ -401,7 +401,7 @@ class Root(controllers.RootController):
                             values={'nvr' : update.nvr})
             except SQLObjectNotFound:
                 flash("Update %s not found" % args[1])
-                raise redirect(url('/'))
+                raise redirect('/')
             except IndexError: # /[testing/]<release>
                 updates = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
@@ -420,7 +420,7 @@ class Root(controllers.RootController):
             pass
 
         flash("The path %s cannot be found" % cherrypy.request.path)
-        raise redirect(url("/"))
+        raise redirect("/")
 
     @expose()
     @error_handler()

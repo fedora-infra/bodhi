@@ -53,7 +53,7 @@ else:
             submitted = update.request == None and 'null' or 'tick'
             ?>
             <td class="list">
-                <a class="list" href="${update.get_url()}">${update.nvr}</a>
+                <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
             </td>
             <td class="list">
                 <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>

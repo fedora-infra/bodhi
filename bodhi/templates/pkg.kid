@@ -63,7 +63,7 @@ pkgdb = "https://admin.fedoraproject.org/pkgdb/packages/name/%s" % pkg.name
         testing = update.testing and 'Testing' or 'Final'
         ?>
         <td class="list">
-            <a class="list" href="${update.get_url()}">${update.nvr}</a>
+            <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
         </td>
         <td class="list">
             <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>

@@ -393,7 +393,7 @@ class PackageUpdate(SQLObject):
         """ Return the relative URL to this update """
         status = self.testing and 'testing/' or ''
         if not self.pushed: status = 'pending/'
-        return turbogears.url('/%s%s/%s' % (status,self.release.name,self.nvr))
+        return '/%s%s/%s' % (status,self.release.name,self.nvr)
 
     def __str__(self):
         """
