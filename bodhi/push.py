@@ -22,8 +22,7 @@ import commands
 
 from Comet import comet
 from datetime import datetime
-from turbogears import (controllers, expose, flash, redirect, config,
-                        identity, url)
+from turbogears import controllers, expose, flash, redirect, config, identity
 
 from bodhi.util import mkmetadatadir, header
 from bodhi.model import PackageUpdate
@@ -90,13 +89,13 @@ class PushController(controllers.Controller):
         """ List updates tagged with a push/unpush/move request """
         updates = PackageUpdate.select(PackageUpdate.q.request != None)
         return dict(updates=updates, label='Push Updates',
-                    callback=url('/admin/push/run_requests'))
+                    callback='/admin/push/run_requests')
 
     @expose(template='bodhi.templates.pushconsole')
     def console(self, updates, callback, **kw):
         if not updates:
             flash("No updates selected for pushing")
-            raise redirect(url("/push"))
+            raise redirect("/push")
         if not isinstance(updates, list):
             updates = [updates]
         log.debug("Setting updates in session: %s" % updates)

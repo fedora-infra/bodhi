@@ -49,4 +49,4 @@ class AdminController(Controller, SecureResource):
                             title=diff)
             else:
                 flash("Invalid repodiff specified: %s" % diff)
-        raise redirect(url('/admin'))
+        raise redirect('/admin')
