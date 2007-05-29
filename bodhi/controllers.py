@@ -57,7 +57,7 @@ class Root(controllers.RootController):
                                               validator=validators.NotEmpty(),
                                               rows=3, cols=40),
                                      HiddenField(name='nvr')],
-                             submit_text='Add Comment', action='/comment')
+                             submit_text='Add Comment', action=url('/comment'))
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
