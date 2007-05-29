@@ -103,7 +103,8 @@ class PackageUpdate(SQLObject):
     cves            = RelatedJoin("CVE")
     bugs            = RelatedJoin("Bugzilla")
     release         = ForeignKey('Release')
-    testing         = BoolCol(default=True)
+    status          = EnumCol(enumValues=['pending', 'testing', 'stable'],
+                              default='pending')
     pushed          = BoolCol(default=False)
     notes           = UnicodeCol()
     mail_sent       = BoolCol(default=False)
@@ -142,7 +143,8 @@ class PackageUpdate(SQLObject):
         can be created by prepending this value with the stage_dir and appending
         the architecture.
         """
-        return join(self.testing and 'testing' or '', self.release.repodir)
+        return join(self.status == 'testing' and 'testing' or '',
+                    self.release.repodir)
 
     def get_dest_repo(self):
         """
@@ -299,10 +301,10 @@ class PackageUpdate(SQLObject):
             else:
                 yield " * Unable to remove extended metadata from updateinfo"
             self.pushed = False
-            self.testing = True
+            self.status = 'testing'
         elif self.request == 'move':
             self.pushed = True
-            self.testing = False
+            self.status = 'stable'
             self.assign_id()
             yield " * Notifying %s" % self.submitter
             mail.send(self.submitter, 'moved', self)
@@ -391,7 +393,7 @@ class PackageUpdate(SQLObject):
 
     def get_url(self):
         """ Return the relative URL to this update """
-        status = self.testing and 'testing/' or ''
+        status = self.status == 'testing' and 'testing/' or ''
         if not self.pushed: status = 'pending/'
         return '/%s%s/%s' % (status,self.release.name,self.nvr)
 
@@ -408,8 +410,7 @@ class PackageUpdate(SQLObject):
             val += "  Update ID: %s\n" % self.update_id
         val += """    Release: %s
      Status: %s
-       Type: %s""" % (self.release.long_name, self.testing and 'Testing' or
-                      'Final', self.type)
+       Type: %s""" % (self.release.long_name, self.status, self.type)
         if len(self.bugs):
            val += "\n       Bugs: %s" % self.get_bugstring()
         if len(self.cves):

@@ -205,7 +205,7 @@ def get_template(update):
     info['summary'] = h[rpm.RPMTAG_SUMMARY]
     info['version'] = h[rpm.RPMTAG_VERSION]
     info['release'] = h[rpm.RPMTAG_RELEASE]
-    info['testing'] = update.testing and ' Test' or ''
+    info['testing'] = update.status == 'testing' and ' Test' or ''
     info['subject'] = "%s%s%s Update: %s" % (
             update.type == 'security' and '[SECURITY] ' or '',
             update.release.long_name, info['testing'], update.nvr)

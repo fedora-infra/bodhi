@@ -101,7 +101,7 @@ class ExtendedMetadata:
 
         root = self._insert(doc, doc.firstChild, 'update', attrs={
                 'type'      : update.type,
-                'status'    : update.testing and 'testing' or 'final',
+                'status'    : update.status,
                 'version'   : __version__,
                 'from'      : 'updates@fedora.redhat.com'
         })
@@ -149,7 +149,7 @@ class ExtendedMetadata:
                     'epoch'     : rpmhdr[rpm.RPMTAG_EPOCH],
                     'arch'      : arch,
                     'src'       : config.get('file_url') % (
-                                        update.testing and '-testing' or '',
+                                        update.status == 'testing' and '-testing' or '',
                                         update.release.name[-1], arch, filename)
                 })
 

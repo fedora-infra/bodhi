@@ -30,7 +30,7 @@ class TestExtendedMetadata(testutil.DBTest):
                       id_prefix='FEDORA')
         rel.addArch(arch)
         up = PackageUpdate(nvr='mutt-1.5.14-1.fc7', package=pkg, release=rel,
-                           submitter='foo@bar.com', testing=True,
+                           submitter='foo@bar.com', status='testing',
                            type='security', notes='This is a long update advisory because I need to test the yum.update_md.UpdateNotice.__str__ to make sure it can wrap this properly and whatnot.  blah.')
 
         ## Add some references

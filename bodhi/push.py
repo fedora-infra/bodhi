@@ -133,7 +133,7 @@ class PushController(controllers.Controller):
             for package in cherrypy.session['updates']:
                 log.debug("Running request on %s" % package)
                 update = PackageUpdate.byNvr(package)
-                releases[update.testing].add(update.release)
+                releases[update.status == 'testing'].add(update.release)
                 if update.request == 'move':
                     releases[False].add(update.release)
                 for msg in update.run_request(updateinfo=updateinfo):

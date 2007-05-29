@@ -49,7 +49,6 @@ else:
         <?python row_color = "#FFFFFF" ?>
         <tr class="list" bgcolor="${row_color}" py:for="update in updates">
             <?python
-            testing = update.testing and 'Testing' or 'Final'
             submitted = update.request == None and 'null' or 'tick'
             ?>
             <td class="list">
@@ -62,7 +61,7 @@ else:
                 <img src="${tg.url('/static/images/%s.png' % update.type)}"/>
             </td>
             <td class="list" align="center">
-                ${testing}
+                ${update.status}
             </td>
             <td class="list">
                 <center>

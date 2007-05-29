@@ -100,9 +100,8 @@ class Root(controllers.RootController):
     def list(self):
         """ List all pushed updates """
         updates = PackageUpdate.select(
-                    AND(PackageUpdate.q.pushed == True,
-                        PackageUpdate.q.testing == False),
-                    orderBy=PackageUpdate.q.update_id).reversed()
+                       PackageUpdate.q.status == 'stable',
+                       orderBy=PackageUpdate.q.update_id).reversed()
         return dict(updates=updates)
 
     @expose(template="bodhi.templates.list")
@@ -220,7 +219,7 @@ class Root(controllers.RootController):
         values = {
                 'nvr'       : {'text': update.nvr, 'hidden' : update.nvr},
                 'release'   : update.release.long_name,
-                'testing'   : update.testing,
+                'testing'   : update.status == 'testing',
                 'type'      : update.type,
                 'embargo'   : update.embargo,
                 'notes'     : update.notes,
@@ -368,23 +367,20 @@ class Root(controllers.RootController):
         requests.
         """
         args = [arg for arg in args]
-        testing = False
-        pushed = True
+        status = 'stable'
         template = 'bodhi.templates.list'
 
         if len(args) and args[0] == 'testing':
-            testing = True
+            status = 'testing'
             del args[0]
         if len(args) and args[0] == 'pending':
-            pushed = False
-            testing = True
+            status = 'pending'
             template = 'bodhi.templates.pending'
             del args[0]
         if not len(args): # /(testing|pending)
             updates = PackageUpdate.select(
-                        AND(PackageUpdate.q.testing == testing,
-                            PackageUpdate.q.pushed == pushed),
-                        orderBy=PackageUpdate.q.update_id).reversed()
+                            PackageUpdate.q.status == status,
+                            orderBy=PackageUpdate.q.update_id).reversed()
             return dict(updates=updates, tg_template=template)
 
         try:
@@ -393,8 +389,7 @@ class Root(controllers.RootController):
                 update = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
                                 PackageUpdate.q.nvr == args[1],
-                                PackageUpdate.q.testing == testing,
-                                PackageUpdate.q.pushed == pushed))[0]
+                                PackageUpdate.q.status == status))[0]
                 return dict(tg_template='bodhi.templates.show',
                             update=update, updates=[],
                             comment_form=self.comment_form,
@@ -405,8 +400,7 @@ class Root(controllers.RootController):
             except IndexError: # /[testing/]<release>
                 updates = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
-                                PackageUpdate.q.testing == testing,
-                                PackageUpdate.q.pushed == pushed),
+                                PackageUpdate.q.status == status),
                             orderBy=PackageUpdate.q.update_id).reversed()
                 return dict(updates=updates)
         except SQLObjectNotFound:

@@ -72,12 +72,10 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                 </span>
                 <span py:if="update.pushed">
                     <a href="${tg.url('/unpush/%s' % update.nvr)}">Unpush</a>
-                    <span py:if="update.testing">
+                    <span py:if="update.status == 'testing'">
                          | <a href="${tg.url('/move/%s' % update.nvr)}">Mark as Stable</a> | 
                         <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
                     </span>
-                </span>
-                <span py:if="not update.pushed or update.testing">
                 </span>
                 ]
             </td>
@@ -88,7 +86,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
         <tr py:for="field in (
             ['Release',       XML(release)],
             ['Update ID',     update.update_id],
-            ['Status',        update.testing and 'Testing' or 'Final'],
+            ['Status',        update.status],
             ['Type',          update.type],
             ['Bugs',          (bugs) and XML(bugs) or ''],
             ['CVEs',          (cves) and XML(cves) or ''],

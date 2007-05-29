@@ -51,9 +51,6 @@ else:
             <td class="list">
                 ${update.update_id}
             </td>
-            <?python
-            testing = update.testing and 'Testing' or 'Final'
-            ?>
             <td class="list">
                 <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
             </td>
@@ -64,7 +61,7 @@ else:
                 <img src="${tg.url('/static/images/%s.png' % update.type)}"/>
             </td>
             <td class="list" align="center">
-                ${testing}
+                ${update.status}
             </td>
             <td class="list">
                 ${update.date_submitted}

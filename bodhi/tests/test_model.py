@@ -56,7 +56,7 @@ class TestPackageUpdate(testutil.DBTest):
     def get_update(self, name='mutt-1.5.14-1.fc7'):
         update = PackageUpdate(nvr=name, package=self.get_pkg(),
                                release=self.get_rel(), submitter='foo@bar.com',
-                               testing=True, type='security',
+                               status='testing', type='security',
                                notes='foobar')
         update._build_filelist()
         return update
@@ -81,7 +81,7 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.package.name == 'mutt'
         assert update.release.name == 'fc7'
         assert update.release.updates[0] == update
-        assert update.testing == True
+        assert update.status == 'testing'
         assert update.type == 'security'
         assert update.notes == 'foobar'
         bug = self.get_bug()
@@ -143,7 +143,7 @@ class TestPackageUpdate(testutil.DBTest):
         assert notice['title'] == update.nvr
         assert notice['release'] == update.release.long_name
         assert notice['type'] == update.type
-        assert notice['status'] == update.testing and 'testing' or 'final'
+        assert notice['status'] == update.status
         assert notice['update_id'] == update.update_id
         assert notice['issued'] == str(update.date_pushed)
         assert notice['description'] == update.notes
@@ -179,7 +179,7 @@ class TestPackageUpdate(testutil.DBTest):
 
         # Generate repo metadata
         from bodhi.push import generate_metadata
-        for x in generate_metadata(update.release, update.testing,
+        for x in generate_metadata(update.release, update.status == 'testing',
                                    stage=push_stage): pass
 
         # Verify the updateinfo.xml.gz
@@ -194,7 +194,7 @@ class TestPackageUpdate(testutil.DBTest):
 
         # Generate repo metadata
         from bodhi.push import generate_metadata
-        for x in generate_metadata(update.release, update.testing,
+        for x in generate_metadata(update.release, update.status == 'testing',
                                    stage=push_stage): pass
 
         # Make sure we're in a different repo now
