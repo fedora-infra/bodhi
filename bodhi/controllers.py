@@ -20,7 +20,6 @@ import cherrypy
 import xmlrpclib
 
 from sqlobject import SQLObjectNotFound
-from sqlobject.dberrors import DuplicateEntryError
 from sqlobject.sqlbuilder import AND
 
 from turbogears import (controllers, expose, validate, redirect, identity,
@@ -33,6 +32,11 @@ from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE, Comment
 from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
 from bodhi.exceptions import RPMNotFound
+
+try:
+    from sqlobject.dberrors import DuplicateEntryError
+except ImportError:
+    DuplicateEntryError = Exception()
 
 from psycopg2 import IntegrityError as PostgresIntegrityError
 try:
@@ -433,7 +437,5 @@ class Root(controllers.RootController):
 
     @expose(template='bodhi.templates.text')
     def mail_notice(self, nvr, *args, **kw):
-        log.debug(args)
-        log.debug(kw)
         update = PackageUpdate.byNvr(nvr)
         return dict(text=mail.get_template(update), title=update.nvr)
