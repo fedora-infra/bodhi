@@ -33,6 +33,8 @@ from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
 from bodhi.exceptions import RPMNotFound
 
+from os.path import isfile, join
+
 try:
     from sqlobject.dberrors import DuplicateEntryError
 except ImportError:
