@@ -14,7 +14,7 @@
 
 import os
 
-from os.path import join, isfile
+from os.path import join, isfile, isdir
 from bodhi.push import PushController
 
 from turbogears import expose, identity, config
@@ -37,6 +37,8 @@ class AdminController(Controller, SecureResource):
         """
         If a diff is specified, display it; if not, show a list of diffs.
         """
+        if not isdir(config.get('repodiff_dir')):
+            os.mkdir(config.get('repodiff_dir'))
         if not diff:
             return dict(diffs=os.listdir(config.get('repodiff_dir')))
         else:
