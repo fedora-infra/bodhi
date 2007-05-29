@@ -1,0 +1,5 @@
+[turbogears.extensions]
+masher = bodhi.masher
+
+[turbogears.identity.provider]
+bugzilla  = bodhi.identity.sobzprovider:SoBugzillaIdentityProvider

@@ -19,7 +19,7 @@ This plugin provides authentication of passwords against Bugzilla via XML-RPC
 import logging
 import xmlrpclib
 
-from soprovider import *
+from turbogears.identity.soprovider import *
 from turbogears import config
 from bodhi.model import User, VisitIdentity
 
