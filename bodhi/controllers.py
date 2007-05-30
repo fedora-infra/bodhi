@@ -17,7 +17,6 @@ import mail
 import util
 import logging
 import cherrypy
-import xmlrpclib
 
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
@@ -31,6 +30,7 @@ from bodhi.admin import AdminController
 from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE, Comment
 from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
+from bodhi import buildsys
 from bodhi.exceptions import RPMNotFound
 
 from os.path import isfile, join
@@ -259,8 +259,7 @@ class Root(controllers.RootController):
             name = util.get_nvr(kw['nvr'])[0]
 
             # Make sure selected release matches tag for this build
-            koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
-                                         allow_none=True)
+            koji = buildsys.get_session()
             tag_matches = False
             candidate = 'dist-%s-updates-candidate' % release.name.lower()
             try:

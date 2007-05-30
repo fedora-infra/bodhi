@@ -29,6 +29,7 @@ from turbogears import config, flash
 from turbogears.database import PackageHub
 
 from os.path import isdir, isfile, join, basename
+from bodhi import buildsys
 from bodhi.util import get_nvr, excluded_arch, rpm_fileheader, header
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import RPMNotFound
@@ -75,18 +76,18 @@ class Package(SQLObject):
     suggest_reboot = BoolCol(default=False)
 
     def __str__(self):
-        x = '[ %s ]' % self.name
+        x = header(self.name)
         if len(self.updates):
             pending = filter(lambda u: not u.pushed, self.updates)
             if len(pending):
-                x += "\n[ %d Pending Updates ]\n" % len(pending)
+                x += "\n  Pending Updates (%d) \n" % len(pending)
                 for update in pending:
-                    x += "  o %s\n" % update.nvr
+                    x += "    o %s\n" % update.nvr
             available = filter(lambda u: u.pushed, self.updates)
             if len(available):
-                x += "\n[ %d Available Updates ]\n" % len(available)
+                x += "\n  Available Updates (%d)\n" % len(available)
                 for update in available:
-                    x += "  o %s\n" % update.nvr
+                    x += "    o %s\n" % update.nvr
         return x
 
 class PackageUpdate(SQLObject):
@@ -310,18 +311,14 @@ class PackageUpdate(SQLObject):
             mail.send(self.submitter, 'moved', self)
             yield " * Generating extended metadata"
             uinfo.add_update(self)
-            koji = xmlrpclib.ServerProxy(config.get('koji_hub'),
-                                         allow_none=True)
+            koji_session = buildsys.get_session()
             log.debug("Moving %s from dist-%s-updates-candidates to "
                       "dist-%s-updates" % (self.nvr, self.release.name.lower(),
                                            self.release.name.lower()))
-            try:
-                koji.moveBuild('dist-%s-updates-candidate' %
-                               self.release.name.lower(), 'dist-%s-updates' %
-                               self.release.name.lower(), self.nvr)
-            except xmlrpclib.Fault, f:
-                log.error("ERROR: %s" % str(f))
-            del koji
+            koji_session.moveBuild('dist-%s-updates-candidate' %
+                                   self.release.name.lower(),
+                                   'dist-%s-updates' %
+                                   self.release.name.lower(), self.nvr)
 
         # If we created our own UpdateMetadata, then insert it into the repo
         if not updateinfo:
@@ -348,9 +345,9 @@ class PackageUpdate(SQLObject):
         """
         Return the path to the last released srpm of this package
         """
-        koji = xmlrpclib.ServerProxy(config.get('koji_hub'), allow_none=True)
         latest = None
         builds = []
+        koji_session = buildsys.get_session()
 
         # Grab a list of builds tagged with dist-$RELEASE-updates, and find
         # the most recent update for this package, other than this one.  If
@@ -360,8 +357,9 @@ class PackageUpdate(SQLObject):
         # -updates, so we don't want to generate ChangeLogs against those.
         for tag in ['dist-%s-updates', 'dist-%s']:
             try:
-                builds = koji.getLatestBuilds(tag % self.release.name.lower(),
-                                              None, self.package.name)
+                builds = koji_session.getLatestBuilds(tag % 
+                                                      self.release.name.lower(),
+                                                      None, self.package.name)
 
                 # Find the first build that is older than us
                 for build in builds:
@@ -378,7 +376,6 @@ class PackageUpdate(SQLObject):
                 continue
             break
 
-        del koji
         if not latest:
             return None
 
@@ -411,6 +408,8 @@ class PackageUpdate(SQLObject):
         val += """    Release: %s
      Status: %s
        Type: %s""" % (self.release.long_name, self.status, self.type)
+        if self.request != None:
+            val += "\n    Request: %s" % self.request
         if len(self.bugs):
            val += "\n       Bugs: %s" % self.get_bugstring()
         if len(self.cves):
@@ -436,12 +435,12 @@ class PackageUpdate(SQLObject):
         """
         Retrieve the RPM changelog of this package since it's last update
         """
-        header = self.get_rpm_header()
-        descrip = header[rpm.RPMTAG_CHANGELOGTEXT]
+        rpm_header = self.get_rpm_header()
+        descrip = rpm_header[rpm.RPMTAG_CHANGELOGTEXT]
         if not descrip: return ""
 
-        who = header[rpm.RPMTAG_CHANGELOGNAME]
-        when = header[rpm.RPMTAG_CHANGELOGTIME]
+        who = rpm_header[rpm.RPMTAG_CHANGELOGNAME]
+        when = rpm_header[rpm.RPMTAG_CHANGELOGTIME]
 
         num = len(descrip)
         if num == 1: when = [when]
