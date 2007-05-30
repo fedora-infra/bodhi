@@ -38,7 +38,8 @@ from os.path import isfile, join
 try:
     from sqlobject.dberrors import DuplicateEntryError
 except ImportError:
-    DuplicateEntryError = Exception()
+    # Handle pre-DuplicateEntryError versions of SQLObject
+    class DuplicateEntryError(Exception): pass
 
 from psycopg2 import IntegrityError as PostgresIntegrityError
 try:
