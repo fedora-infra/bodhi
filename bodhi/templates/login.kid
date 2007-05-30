@@ -13,7 +13,6 @@
 <body onload="document.login.user_name.focus()">
     <blockquote>
         <h1 class="padded">Fedora Update System</h1>
-        <p class="padded">Welcome to <a href="https://hosted.fedoraproject.org/projects/bodhi">bodhi</a>.  You may log into this test instance with the username and password <b>guest</b></p>
         <p class="padded">${message}</p>
     </blockquote>
     <form action="${previous_url}" method="POST" name="login">
