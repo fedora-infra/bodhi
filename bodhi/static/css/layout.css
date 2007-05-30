@@ -88,7 +88,7 @@ a[name] {
 	margin-top: 0.2em;
 	border: 0;
 	padding: 7px;
-	background: #fff url('/static/images/header-search.png') no-repeat left;
+	background: #fff url('/updates/static/images/header-search.png') no-repeat left;
 	padding-left: 21px;
 }
 #fedora-header-items form {
@@ -258,10 +258,10 @@ a[name] {
 .fedora-corner-tl, .fedora-corner-tr { top: 0px; }
 .fedora-corner-bl, .fedora-corner-br { bottom: 0px; margin-top: -19px; /* Opera fix (part 1) */ top: -18px;}
 
-html>body .fedora-corner-tl { background: #d9d9d9 url("/static/images/corner-tl.png") no-repeat left top; }
-html>body .fedora-corner-tr { background: #d9d9d9 url("/static/images/corner-tr.png") no-repeat right top; }
-html>body .fedora-corner-bl { background: #d9d9d9 url("/static/images/corner-bl.png") no-repeat left bottom; }
-html>body .fedora-corner-br { background: #d9d9d9 url("/static/images/corner-br.png") no-repeat right bottom; }
+html>body .fedora-corner-tl { background: #d9d9d9 url("/updates/static/images/corner-tl.png") no-repeat left top; }
+html>body .fedora-corner-tr { background: #d9d9d9 url("/updates/static/images/corner-tr.png") no-repeat right top; }
+html>body .fedora-corner-bl { background: #d9d9d9 url("/updates/static/images/corner-bl.png") no-repeat left bottom; }
+html>body .fedora-corner-br { background: #d9d9d9 url("/updates/static/images/corner-br.png") no-repeat right bottom; }
 
 .fedora-corner-tl, .fedora-corner-tr, .fedora-corner-bl, .fedora-corner-br {
 	/* Restore the view for everything but IE6/Mac (part 2 of the "IE/Mac fix") */
