@@ -77,14 +77,14 @@ def import_releases():
             'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
             'repodir'   : '6',
             'id_prefix' : 'FEDORA'
-        },
-        {
-            'name'      : 'FC5',
-            'long_name' : 'Fedora Core 5',
-            'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
-            'repodir'   : '5',
-            'id_prefix' : 'FEDORA'
         }
+        #{
+        #    'name'      : 'FC5',
+        #    'long_name' : 'Fedora Core 5',
+        #    'arches'    : map(Arch.byName, ('i386', 'x86_64', 'ppc')),
+        #    'repodir'   : '5',
+        #    'id_prefix' : 'FEDORA'
+        #}
 
         ##
         ## Disabled until either koji can build for EPEL, or we can access
@@ -154,6 +154,7 @@ def init_arches():
         print a
 
 def clean_tables():
+    print "Cleaning out tables"
     Release.dropTable(ifExists=True, cascade=True)
     Package.dropTable(ifExists=True, cascade=True)
     Arch.dropTable(ifExists=True, cascade=True)
@@ -182,5 +183,5 @@ if __name__ == '__main__':
     init_arches()
     import_releases()
     import_rebootpkgs()
-    init_updates_stage()
+    #init_updates_stage()
     hub.commit()
