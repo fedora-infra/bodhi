@@ -1,6 +1,4 @@
 # $Id: util.py,v 1.2 2006/12/31 09:10:14 lmacken Exp $
-# Random functions that don't fit elsewhere.
-#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; version 2 of the License.
@@ -14,6 +12,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+"""
+Random functions that don't fit elsewhere
+"""
+
 import os
 import rpm
 import sys
@@ -24,10 +26,14 @@ from os.path import isdir
 from turbogears import config
 from bodhi.exceptions import RPMNotFound
 
+## TODO: give createrepo a competent API
 sys.path.append('/usr/share/createrepo')
 import genpkgmetadata
 
 log = logging.getLogger(__name__)
+
+## Display a given message as a heading
+header = lambda x: "%s\n     %s\n%s" % ('=' * 80, x, '=' * 80)
 
 def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)
@@ -78,5 +84,14 @@ def mkmetadatadir(dir):
     cache = config.get('createrepo_cache_dir')
     genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
 
-## Display a given message as a heading
-header = lambda x: "%s\n     %s\n%s" % ('=' * 100, x, '=' * 100)
+def synchronized(lock):
+    """ Synchronization decorator """
+    def wrap(f):
+        def new(*args, **kw):
+            lock.acquire()
+            try:
+                return f(*args, **kw)
+            finally:
+                lock.release()
+        return new
+    return wrap
