@@ -7,7 +7,7 @@
 </head>
 <body>
     <blockquote>
-        <h1>Welcome to Bodhi!</h1>
+        <h1>Welcome, ${tg.identity.user.display_name}</h1>
         <blockquote>
             <table cellpadding="5">
                 <tr>
