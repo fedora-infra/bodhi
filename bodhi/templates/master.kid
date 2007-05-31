@@ -42,7 +42,7 @@ addLoadEvent(function(){
     }
 });
 </script>
-<script type="text/javascript" py:if="'admin' in tg.identity.groups">
+<script type="text/javascript" py:if="'releng' in tg.identity.groups">
 addLoadEvent(function(){
     connect($('administration'), 'onclick', function (e) {
         MochiKit.Visual.toggle($('adminlist'), 'slide');
@@ -78,13 +78,13 @@ addLoadEvent(function(){
    <!-- leftside BEGIN -->
     <div id="fedora-side-left" py:if="not tg.identity.anonymous">
         <div id="fedora-side-nav-label">Site Navigation:</div>
-            <div py:if="'admin' in tg.identity.groups">
+            <div py:if="'releng' in tg.identity.groups">
                 <ul id="fedora-side-nav">
                     <li><a id="administration" href="#">Administration</a></li>
                     <div id="adminlist" style="display: none">
                         <ul>
                             <li><a href="${tg.url('/admin/push')}">Admin Requests</a></li>
-                            <li><a href="${tg.url('/admin/catwalk')}">Database</a></li>
+                            <!-- <li><a href="${tg.url('/admin/catwalk')}">Database</a></li> -->
                             <li><a href="${tg.url('/admin/repodiff')}">Repodiff</a></li>
                         </ul>
                     </div>
