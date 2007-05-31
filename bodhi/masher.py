@@ -12,15 +12,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import os
+import time
 import logging
 import commands
 
 from time import sleep
-from koji import TASK_STATES 
+from koji import TASK_STATES
 from bodhi import buildsys
 from bodhi.util import synchronized
+from bodhi.exceptions import RepositoryLocked
 from threading import Thread, Lock
 from turbogears import config
+from os.path import exists, join
 
 log = logging.getLogger(__name__)
 masher = None
@@ -31,8 +35,8 @@ class Masher:
     The Masher.  This is a TurboGears extension that runs alongside bodhi that
     is in charge of queueing and dispatching mash composes.
     """
-    def __init__(self, numThreads=3):
-        log.info("Starting the Masher (%d threads)" % numThreads)
+    def __init__(self):
+        log.info("Starting the Masher")
         self._queue = []
         self._threads = []
         self.thread_id = 0
@@ -43,7 +47,6 @@ class Masher:
         self.thread_id += 1
         if len(self._queue) == 1:
             self._mash(self._queue.pop())
-        return True
 
     @synchronized(lock)
     def done(self, thread):
@@ -63,8 +66,6 @@ class Masher:
 
 class MashThread(Thread):
 
-    cmd = 'mash -o /home/fedora/lmacken/mashed -c bodhi/config/mash.conf %s'
-
     def __init__(self, id, updates):
         Thread.__init__(self)
         log.debug("MashThread(%d, %s)" % (id, updates))
@@ -75,13 +76,15 @@ class MashThread(Thread):
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = set()
         self.success = False
+        self.cmd = 'mash -o %s -c bodhi/config/mash.conf '
 
     def move_builds(self):
-        log.debug("Moving builds")
+        tasks = []
         for update in self.updates:
             release = update.release.name.lower()
             if update.request == 'move':
                 self.repos.add('%s-updates' % release)
+                self.repos.add('%s-updates-testing' % release)
                 self.tag = update.release.dist_tag + '-updates'
             elif update.request == 'push':
                 self.repos.add('%s-updates-testing' % release)
@@ -97,24 +100,37 @@ class MashThread(Thread):
                                                    self.tag))
             task_id = self.koji.moveBuild(current_tag, self.tag,
                                           update.nvr, force=True)
-            while 1:
-                if self.koji.taskFinished(task_id):
-                    task_info = self.koji.getTaskInfo(task_id)
-                    return task_info['state'] == TASK_STATES['CLOSED']
+            tasks.append(task_id)
+
+        # Wait for tasks to complete
+        log.debug("Waiting tasks to complete: %s" % tasks)
+        for task in tasks:
+            while not self.koji.taskFinished(task_id):
                 sleep(2)
+            task_info = self.koji.getTaskInfo(task_id)
+            if task_info['state'] != TASK_STATES['CLOSED']:
+                return False
+        return True
 
     def mash(self):
-        log.debug("Mashing repos")
         for repo in self.repos:
+            mashdir = join(config.get('mashed_dir'), repo + '-' + \
+                           time.strftime("%y%m%d.%H%M"))
+            self.cmd %= mashdir
             log.info("Running mash on %s" % repo)
-            (status, output) = commands.getstatusoutput(self.cmd % repo)
+            (status, output) = commands.getstatusoutput(self.cmd + repo)
             log.info("status = %s" % status)
             if status == 0:
                 self.success = True
-            out = file('/home/fedora/lmacken/mash.out', 'w')
+
+            out = file('%s/mash.out' % mashdir, 'w')
             out.write(output)
             out.close()
-            log.debug("mash output written to mash.out")
+
+            link = join(config.get('mashed_dir'), repo)
+            if exists(link):
+                os.unlink(link)
+            os.symlink(join(mashdir, repo), link)
 
     def run(self):
         if self.move_builds():
@@ -128,7 +144,7 @@ class MashThread(Thread):
 
 def start_extension():
     global masher
-    masher = Masher(config.get('masher.threads', 1))
+    masher = Masher()
 
 def shutdown_extension():
     log.info("Stopping Masher")
