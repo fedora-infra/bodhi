@@ -152,7 +152,8 @@ class Root(controllers.RootController):
     def move(self, nvr):
         update = PackageUpdate.byNvr(nvr)
         update.request = 'move'
-        flash("Requested that %s be pushed to Final" % nvr)
+        flash("Requested that %s be pushed to %s-updates" % (nvr,
+              update.release.name))
         mail.send_admin('move', update)
         raise redirect(update.get_url())
 
