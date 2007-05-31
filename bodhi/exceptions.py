@@ -14,3 +14,6 @@
 
 class RPMNotFound(Exception):
     pass
+
+class RepositoryLocked(Exception):
+    pass
