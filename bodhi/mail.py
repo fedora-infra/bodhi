@@ -269,8 +269,12 @@ def get_template(update):
 
 def send(to, msg_type, update):
     """ Send an update notification email to a given recipient """
-    message = turbomail.Message(config.get('bodhi_email'), to,
-                                messages[msg_type]['subject'] %
+    bodhi = config.get('bodhi_email')
+    if not bodhi:
+        log.warning("bodhi_email not defined in app.cfg; unable to send mail")
+        return
+
+    message = turbomail.Message(bodhi, to, messages[msg_type]['subject'] %
                                 { 'package' : update.nvr })
     message.plain = messages[msg_type]['body'] % \
                     messages[msg_type]['fields'](update)

@@ -132,7 +132,7 @@ class PackageUpdate(SQLObject):
             return
         update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id)
         try:
-            id = int(update.reversed()[0].update_id.split('-')[-1]) + 1
+            id = int(update[0].update_id.split('-')[-1]) + 1
         except (AttributeError, IndexError):
             id = 1
         self.update_id = u'%s-%s-%0.4d' % (self.release.id_prefix,
@@ -251,10 +251,11 @@ class PackageUpdate(SQLObject):
         """
         if self.request == 'push':
             self.pushed = True
-            self.status = 'testing'
             self.date_pushed = datetime.now()
-            #self.assign_id()
+            self.status = 'testing'
+            self.assign_id()
             #uinfo.add_update(self)
+            self.send_update_notice()
             mail.send(self.submitter, 'pushed', self)
         elif self.request == 'unpush':
             mail.send(self.submitter, 'unpushed', self)
@@ -263,6 +264,7 @@ class PackageUpdate(SQLObject):
             self.status = 'pending'
         elif self.request == 'move':
             self.pushed = True
+            self.date_pushed = datetime.now()
             self.status = 'stable'
             self.assign_id()
             mail.send(self.submitter, 'moved', self)
@@ -280,12 +282,17 @@ class PackageUpdate(SQLObject):
         if self.status == 'stable':
             list = config.get('%s_announce_list' %
                               self.release.id_prefix.lower())
-        #elif self.status == 'testing':
-        #	list = config.get('%s_test_announce_list' %
-        #					  self.release.id_prefix.lower())
+        elif self.status == 'testing':
+            list = config.get('%s_test_announce_list' %
+                              self.release.id_prefix.lower())
         if list:
             (subject, body) = mail.get_template(self)
-            message = turbomail.Message(config.get('bodhi_email'),list,subject)
+            bodhi = config.get('bodhi_email')
+            if not bodhi:
+                log.warning("bodhi_email not defined in app.cfg; unable to "
+                            "send update notice")
+                return
+            message = turbomail.Message(bodhi, list, subject)
             message.plain = body
             try:
                 turbomail.enqueue(message)
