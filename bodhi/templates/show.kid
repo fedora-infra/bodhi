@@ -25,14 +25,14 @@ for cve in update.cves:
     cves += cvelink % (cve.cve_id, cve.cve_id)
 
 ## Build our file list
-from os.path import basename
-filelist = '<div id="showfiles"><a href="#" onClick="$(\'showfiles\').style.display = \'none\'; MochiKit.Visual.slideDown($(\'filelist\'))">Show filelist</a></div><div id="filelist" style="display: none">'
-for arch in update.filelist.keys():
-    if len(update.filelist[arch]):
-        filelist += '<b>%s</b><br/>' % arch
-        for pkg in update.filelist[arch]:
-            filelist += '|-- %s<br/>' % basename(pkg)
-filelist += "</div>"
+#from os.path import basename
+#filelist = '<div id="showfiles"><a href="#" onClick="$(\'showfiles\').style.display = \'none\'; MochiKit.Visual.slideDown($(\'filelist\'))">Show filelist</a></div><div id="filelist" style="display: none">'
+#for arch in update.filelist.keys():
+#    if len(update.filelist[arch]):
+#        filelist += '<b>%s</b><br/>' % arch
+#        for pkg in update.filelist[arch]:
+#            filelist += '|-- %s<br/>' % basename(pkg)
+#filelist += "</div>"
 
 ## Create the list of comments
 comments = ''
@@ -61,7 +61,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                 [
                 <span py:if="not update.pushed">
                     <span py:if="update.request == None">
-                        <a href="${tg.url('/push/%s' % update.nvr)}">Push to testing</a> | 
+                        <a href="${tg.url('/push/%s' % update.nvr)}">Push</a> | 
                         <a href="${tg.url('/delete/%s' % update.nvr)}">Delete</a> | 
                     </span>
                     <span py:if="update.request in ('push', 'move')">
@@ -98,8 +98,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
             ['Submitter',     update.submitter],
             ['Submitted',     update.date_submitted],
             ['Modified',      update.date_modified],
-            ['Notes',         update.notes],
-            ['Files',         XML(filelist)]
+            ['Notes',         update.notes]
         )">
                 <span py:if="field[1] != None and field[1] != ''">
                     <td class="show-title"><b>${field[0]}:</b></td>
