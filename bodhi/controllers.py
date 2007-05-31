@@ -18,6 +18,7 @@ import util
 import logging
 import cherrypy
 
+from koji import GenericError
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
 
@@ -259,7 +260,7 @@ class Root(controllers.RootController):
                                                             tag['name']))
                         tag_matches = True
                         break
-            except xmlrpclib.Fault:
+            except GenericError, e:
                 flash("Invalid build: %s" % kw['nvr'])
                 raise redirect('/new')
             if not tag_matches:
