@@ -120,32 +120,6 @@ class PackageUpdate(SQLObject):
         """ Return a space-delimited string of CVE ids for this update """
         return ' '.join([cve.cve_id for cve in self.cves])
 
-    def get_repo(self):
-        """
-        Return the relative path to the repo in which this update should/does
-        reside, depending on if it has been pushed or not.  The absolute path
-        can be created by prepending this value with the stage_dir and appending
-        the architecture.
-        """
-        return join(self.status == 'testing' and 'testing' or '',
-                    self.release.repodir)
-
-    def get_dest_repo(self):
-        """
-        Return the relative path to the repo that this update is destined for.
-        This means that based on the request (push, move), this method returns
-        the value of the repo that this update should be pushed to when
-        executing its request.
-        """
-        repo = None
-        if self.request == 'move':
-            repo = self.release.repodir
-        elif self.request == 'push':
-            repo = join('testing', self.release.repodir)
-        elif self.request == 'unpush':
-            repo = '/dev/null' # not used during run_request
-        return repo
-
     def assign_id(self):
         """
         Assign an update ID to this update.  This function finds the next number
@@ -292,11 +266,32 @@ class PackageUpdate(SQLObject):
             self.status = 'stable'
             self.assign_id()
             mail.send(self.submitter, 'moved', self)
+            self.send_update_notice()
             #uinfo.add_update(self)
 
         log.info("%s request on %s complete!" % (self.request, self.nvr))
         self.request = None
         hub.commit()
+
+    def send_update_notice(self):
+        log.debug("Sending update notice for %s" % self.nvr)
+        import turbomail
+        list = None
+        if self.status == 'stable':
+            list = config.get('%s_announce_list' %
+                              self.release.id_prefix.lower())
+        #elif self.status == 'testing':
+        #	list = config.get('%s_test_announce_list' %
+        #					  self.release.id_prefix.lower())
+        if list:
+            (subject, body) = mail.get_template(self)
+            message = turbomail.Message(config.get('bodhi_email'),list,subject)
+            message.plain = body
+            try:
+                turbomail.enqueue(message)
+                log.debug("Sending mail: %s" % message.plain)
+            except turbomail.MailNotEnabledException:
+                log.warning("TurboMail is not enabled!")
 
     def get_source_path(self):
         """ Return the path of this built update """
@@ -325,25 +320,18 @@ class PackageUpdate(SQLObject):
         # there could potentially be packages that never make their way over
         # -updates, so we don't want to generate ChangeLogs against those.
         for tag in ['%s-updates', '%s']:
-            try:
-                builds = koji_session.getLatestBuilds(tag % 
-                                                      self.release.dist_tag,
-                                                      None, self.package.name)
+			builds = koji_session.getLatestBuilds(tag % self.release.dist_tag,
+												  None, self.package.name)
 
-                # Find the first build that is older than us
-                for build in builds:
-                    if rpm.labelCompare(get_nvr(self.nvr),
-                                        get_nvr(build['nvr'])) > 0:
-                        log.debug("%s > %s" % (self.nvr, build['nvr']))
-                        latest = get_nvr(build['nvr'])
-                        # break?
-                if not latest:
-                    continue
-            except xmlrpclib.Fault, f:
-                # Nothing built and tagged with -updates, so try dist instead
-                log.warning(str(f))
-                continue
-            break
+			# Find the first build that is older than us
+			for build in builds:
+				if rpm.labelCompare(get_nvr(self.nvr),
+									get_nvr(build['nvr'])) > 0:
+					log.debug("%s > %s" % (self.nvr, build['nvr']))
+					latest = get_nvr(build['nvr'])
+					break
+			if not latest:
+				continue
 
         if not latest:
             return None

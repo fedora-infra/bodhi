@@ -285,8 +285,8 @@ class Root(controllers.RootController):
                             PackageUpdate.q.packageID == package.id)):
                     if rpm.labelCompare(util.get_nvr(kw['nvr']),
                                         util.get_nvr(up.nvr)) < 0:
-                        msg = "Broken update path: %s is older than %s" % (
-                                kw['nvr'], up.nvr)
+                        msg = "Broken update path: %s is older than existing" \
+                              " update %s" % (kw['nvr'], up.nvr)
                         log.debug(msg)
                         flash(msg)
                         raise redirect('/new')
@@ -435,4 +435,5 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.text')
     def mail_notice(self, nvr, *args, **kw):
         update = PackageUpdate.byNvr(nvr)
-        return dict(text=mail.get_template(update), title=update.nvr)
+        (subject, body) = mail.get_template(update)
+        return dict(text=body, title=subject)

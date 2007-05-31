@@ -166,9 +166,7 @@ The following comment has been added to your %(package)s update:
 }
 
 ## TODO: subject isn't necessary?
-errata_template = """
-Subject: %(subject)s
-
+errata_template = """\
 --------------------------------------------------------------------------------
 Fedora%(testing)s Update Notification
 %(update_id)s
@@ -184,9 +182,7 @@ Description :
 %(description)s
 
 --------------------------------------------------------------------------------
-%(notes)s%(changelog)s%(references)s
-This update can be downloaded from:
-    http://download.fedoraproject.org/pub/fedora/linux/core/updates/%(updatepath)s/
+%(notes)s%(changelog)s%(references)sUpdated packages:
 
 %(filelist)s
 
@@ -211,7 +207,7 @@ def get_template(update):
             update.release.long_name, info['testing'], update.nvr)
     info['update_id'] = update.update_id
     info['description'] = h[rpm.RPMTAG_DESCRIPTION]
-    info['updatepath'] = update.get_repo()
+    #info['updatepath'] = update.get_repo()
     info['product'] = update.release.long_name
     info['notes'] = ""
     if update.notes and len(update.notes):
@@ -220,11 +216,20 @@ def get_template(update):
 
     # Build the list of SHA1SUMs and packages
     filelist = []
-    for arch in update.filelist.keys():
-        for pkg in update.filelist[arch]:
-            filelist.append("%s  %s" % (sha1sum(pkg), join(arch,
-                            pkg.find('debuginfo') != -1 and 'debug' or '',
-                            basename(pkg))))
+    #for arch in update.filelist.keys():
+    #    for pkg in update.filelist[arch]:
+    #        filelist.append("%s  %s" % (sha1sum(pkg), join(arch,
+    #                        pkg.find('debuginfo') != -1 and 'debug' or '',
+    #                        basename(pkg))))
+    #info['filelist'] = '\n'.join(filelist)
+
+    from bodhi.buildsys import get_session
+    koji = get_session()
+    for pkg in koji.listBuildRPMs(update.nvr):
+        filename = "%s.%s.rpm" % (pkg['nvr'], pkg['arch'])
+        path = join(config.get('build_dir'), info['name'], info['version'],
+                    info['release'], pkg['arch'])
+        filelist.append("%s %s" % (sha1sum(join(path, filename)), filename))
     info['filelist'] = '\n'.join(filelist)
 
     # Add this updates referenced Bugzillas and CVEs
@@ -260,7 +265,7 @@ def get_template(update):
             log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
                       lastpkg)
 
-    return errata_template % info
+    return (info['subject'], errata_template % info)
 
 def send(to, msg_type, update):
     """ Send an update notification email to a given recipient """
