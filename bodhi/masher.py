@@ -101,7 +101,7 @@ class MashThread(Thread):
                                                    self.tag))
             task_id = self.koji.moveBuild(current_tag, self.tag,
                                           update.nvr, force=True)
-            self.actions.append((update.nvr, current, self.tag))
+            self.actions.append((update.nvr, current_tag, self.tag))
             tasks.append(task_id)
 
         # Wait for tasks to complete
