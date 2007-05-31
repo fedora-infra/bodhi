@@ -142,8 +142,8 @@ class Root(controllers.RootController):
         """ Revoke a push request for a specified update """
         update = PackageUpdate.byNvr(nvr)
         flash("%s request revoked" % update.request)
-        update.request = None
         mail.send_admin('revoke', update)
+        update.request = None
         raise redirect(update.get_url())
 
     @expose()
