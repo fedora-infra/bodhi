@@ -15,11 +15,10 @@
 import logging
 import cherrypy
 
+from bodhi.model import PackageUpdate, Package
 from sqlobject import SQLObjectNotFound
 from turbogears import expose
 from turbogears.controllers import Controller
-
-from bodhi.model import PackageUpdate, Package
 
 log = logging.getLogger(__name__)
 
@@ -37,15 +36,22 @@ class XmlRpcController(Controller):
         """
         if package:
             # check for existing update as pkg-ver-rel
-            log.debug("Checking for existing update as pkg-ver-rel")
             try:
                 update = PackageUpdate.byNvr(package)
                 return str(update)
             except SQLObjectNotFound:
                 # check for package
-                log.debug("Checking for package %s" % package)
                 try:
                     pkg = Package.byName(package)
                     return str(pkg)
                 except SQLObjectNotFound:
                     return "Cannot find package %s" % package
+
+    @expose()
+    def login(self, cert, clientca, serverca):
+        """
+        Authenticates the user against 
+        - call buildsys.login() with certs
+        - session.logged_in
+        - session.getLoggedInUser()
+        """

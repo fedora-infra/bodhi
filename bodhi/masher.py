@@ -16,6 +16,7 @@ import logging
 import commands
 
 from time import sleep
+from koji import TASK_STATES 
 from bodhi import buildsys
 from bodhi.util import synchronized
 from threading import Thread, Lock
@@ -96,15 +97,11 @@ class MashThread(Thread):
                                                    self.tag))
             task_id = self.koji.moveBuild(current_tag, self.tag,
                                           update.nvr, force=True)
-            print "task =", task_id
             while 1:
                 if self.koji.taskFinished(task_id):
-                    print "Task complete.. result = "
-                    print self.koji.getTaskInfo(task_id)
-                    break
-                else:
-                    print "move task #d not finished. sleeping" % task_id
-                sleep(1)
+                    task_info = self.koji.getTaskInfo(task_id)
+                    return task_info['state'] == TASK_STATES['CLOSED']
+                sleep(2)
 
     def mash(self):
         log.debug("Mashing repos")
@@ -120,12 +117,14 @@ class MashThread(Thread):
             log.debug("mash output written to mash.out")
 
     def run(self):
-        self.move_builds()
-        self.mash()
-        if self.success:
-            masher.done(self)
+        if self.move_builds():
+            self.mash()
+            if self.success:
+                masher.done(self)
+            else:
+                log.error("Error mashing.. skipping post-request actions")
         else:
-            log.error("Error mashing.. not performing post-request actions")
+            log.error("Unable to move build")
 
 def start_extension():
     global masher

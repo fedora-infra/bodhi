@@ -1,0 +1,13 @@
+# mash config file
+
+[f7-updates]
+rpm_path = %(arch)s/
+source_path = SRPMS/
+debuginfo = True
+multilib = True
+multilib_method = devel
+tag = dist-fc7-updates
+inherit = False
+strict_keys = False
+keys = 4F2A6FD2, 1AC70CE6, 30C9ECF8, DB42A60E, 897DA07A
+arches = i386 x86_64 ppc ppc64
