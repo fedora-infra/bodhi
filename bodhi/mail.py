@@ -269,9 +269,9 @@ def send(to, msg_type, update):
                                 { 'package' : update.nvr })
     message.plain = messages[msg_type]['body'] % \
                     messages[msg_type]['fields'](update)
-    log.debug("Sending mail: %s" % message.plain)
     try:
         turbomail.enqueue(message)
+        log.debug("Sending mail: %s" % message.plain)
     except MailNotEnabledException:
         log.warning("TurboMail is not enabled!")
 
