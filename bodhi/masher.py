@@ -122,15 +122,20 @@ class MashThread(Thread):
             log.info("status = %s" % status)
             if status == 0:
                 self.success = True
+                out = file('%s/mash.out' % mashdir, 'w')
+                out.write(output)
+                out.close()
 
-            out = file('%s/mash.out' % mashdir, 'w')
-            out.write(output)
-            out.close()
-
-            link = join(config.get('mashed_dir'), repo)
-            if exists(link):
-                os.unlink(link)
-            os.symlink(join(mashdir, repo), link)
+                # create a symlink to new repo
+                link = join(config.get('mashed_dir'), repo)
+                if exists(link):
+                    os.unlink(link)
+                os.symlink(join(mashdir, repo), link)
+            else:
+                out = file(join(config.get('mashed_dir'), 'mash-failed-%s' %
+                           time.strftime("%y%m%d.%H%M")), 'w')
+                out.write(output)
+                out.close()
 
     def run(self):
         if self.move_builds():
