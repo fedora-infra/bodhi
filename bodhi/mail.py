@@ -122,7 +122,7 @@ The following update has been unpushed\n\n%(updatestr)s
     'revoke' : {
         'subject' : '[Fedora Update] [revoked] %(package)s',
         'body'    : """\
-%(submitter)s has revoked the pushing of the following update:\n\n%(updatestr)s
+%(submitter)s has revoked the request of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : x.submitter,
