@@ -7,14 +7,6 @@
     <title>Fedora Updates</title>
 </head>
 
-<?python
-from sqlobject.sresults import SelectResults
-if isinstance(updates, SelectResults):
-    num_items = updates.count()
-else:
-    num_items = len(updates)
-?>
-
 <body>
     <p class="padded">${num_items} updates found</p>
     <div class="list">

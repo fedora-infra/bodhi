@@ -117,7 +117,7 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(
                        PackageUpdate.q.status == 'stable',
                        orderBy=PackageUpdate.q.update_id).reversed()
-        return dict(updates=updates)
+        return dict(updates=updates, num_items=updates.count())
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
@@ -126,7 +126,7 @@ class Root(controllers.RootController):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(PackageUpdate.q.submitter ==
                                        identity.current.user_name)
-        return dict(updates=updates)
+        return dict(updates=updates, num_items=updates.count())
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.show')
@@ -380,7 +380,8 @@ class Root(controllers.RootController):
             updates = PackageUpdate.select(
                             PackageUpdate.q.status == status,
                             orderBy=PackageUpdate.q.update_id).reversed()
-            return dict(updates=updates, tg_template=template)
+            return dict(updates=updates, tg_template=template,
+                        num_items=updates.count())
 
         try:
             release = Release.byName(args[0])
@@ -401,7 +402,7 @@ class Root(controllers.RootController):
                             AND(PackageUpdate.q.releaseID == release.id,
                                 PackageUpdate.q.status == status),
                             orderBy=PackageUpdate.q.update_id).reversed()
-                return dict(updates=updates)
+                return dict(updates=updates, num_items=updates.count())
         except SQLObjectNotFound:
             pass
 
