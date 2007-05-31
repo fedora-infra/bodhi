@@ -18,7 +18,7 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
 ?>
 
 <blockquote>
-    <form name="push_form" method="post" action="${tg.url('/admin/push/console')}">
+    <form name="push_form" method="post" action="${tg.url('/admin/push/mash')}">
         <span py:if="len(needpush)">
             <b>Push</b>
             <table>
@@ -60,8 +60,8 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
         </span>
 
 
-        <input type="hidden" name="callback" value="${callback}" />
-        <input type="submit" name="push" value="${label}" />
+        <!-- <input type="hidden" name="callback" value="${callback}" /> -->
+        <input type="submit" name="push" value="Mash Repository" />
     </form>
 </blockquote>
 
