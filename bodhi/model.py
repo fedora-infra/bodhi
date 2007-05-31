@@ -39,36 +39,35 @@ log = logging.getLogger(__name__)
 hub = PackageHub("bodhi")
 __connection__ = hub
 
-soClasses=('Release', 'Arch', 'Multilib', 'Package', 'PackageUpdate', 'CVE',
-           'Bugzilla', 'Visit', 'VisitIdentity', 'User', 'Group', 'Permission',
-           'Comment')
+soClasses=('Release', 'Package', 'PackageUpdate', 'CVE', 'Bugzilla', 'Comment')
 
 class Release(SQLObject):
     """ Table of releases that we will be pushing updates for """
     name        = UnicodeCol(alternateID=True, notNone=True)
     long_name   = UnicodeCol(notNone=True)
     updates     = MultipleJoin('PackageUpdate', joinColumn='release_id')
-    arches      = RelatedJoin('Arch')
-    multilib    = RelatedJoin('Multilib')
-    repodir     = UnicodeCol(notNone=True)
     id_prefix   = UnicodeCol(notNone=True)
+    dist_tag    = UnicodeCol(notNone=True) # ie dist-fc7
+    #arches      = RelatedJoin('Arch')
+    #multilib    = RelatedJoin('Multilib')
+    #repodir     = UnicodeCol(notNone=True)
 
-class Arch(SQLObject):
-    """ Table of supported architectures """
-    name            = UnicodeCol(alternateID=True, notNone=True)
-    subarches       = PickleCol()
-    releases        = RelatedJoin('Release')
-    compatarches    = PickleCol(default=[])
-    multilib        = RelatedJoin('Multilib')
+#class Arch(SQLObject):
+#    """ Table of supported architectures """
+#    name            = UnicodeCol(alternateID=True, notNone=True)
+#    subarches       = PickleCol()
+#    releases        = RelatedJoin('Release')
+#    compatarches    = PickleCol(default=[])
+#    multilib        = RelatedJoin('Multilib')
 
-class Multilib(SQLObject):
-    """
-    Table of multilib packages (ie x86_64 packages that need to pull down
-    the i386 version as well).
-    """
-    package     = UnicodeCol(alternateID=True, notNone=True)
-    releases    = RelatedJoin('Release')
-    arches      = RelatedJoin('Arch')
+#class Multilib(SQLObject):
+#    """
+#    Table of multilib packages (ie x86_64 packages that need to pull down
+#    the i386 version as well).
+#    """
+#    package     = UnicodeCol(alternateID=True, notNone=True)
+#    releases    = RelatedJoin('Release')
+#    arches      = RelatedJoin('Arch')
 
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
@@ -112,7 +111,7 @@ class PackageUpdate(SQLObject):
     request         = EnumCol(enumValues=['push', 'unpush', 'move', None],
                               default=None)
     comments        = MultipleJoin('Comment', joinColumn='update_id')
-    filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
+    #filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
 
     ##
     ## On publictest2 this makes SQLObject explode (concurrency issues).
@@ -184,148 +183,182 @@ class PackageUpdate(SQLObject):
         log.debug("Setting update_id for %s to %s" % (self.nvr, self.update_id))
         hub.commit()
 
-    def _build_filelist(self):
-        """ Build and store the filelist for this update. """
-        log.debug("Building filelist for %s" % self.nvr)
-        filelist = {}
-        filelist['SRPMS'] = [self.get_srpm_path()]
-        sourcepath = self.get_source_path()
-        rpmheader = rpm_fileheader(filelist['SRPMS'][0])
-        for arch in self.release.arches:
-            filelist[arch.name] = []
-            for subarch in arch.subarches:
-                if subarch == 'noarch':
-                    # Check for excluded/exclusive archs
-                    if excluded_arch(rpmheader, arch.name):
-                        log.debug("Excluding arch %s for %s" % (arch.name,
-                                                                self.nvr))
-                        continue
-                path = join(sourcepath, subarch)
-                if isdir(path):
-                    for file in os.listdir(path):
-                        filelist[arch.name].append(join(path, file))
-                        log.debug(" * %s" % file)
-            # Check for multilib packages
-            for compatarch in arch.compatarches:
-                path = join(sourcepath, compatarch)
-                if isdir(path):
-                    for file in os.listdir(path):
-                        try:
-                            nvr = get_nvr(basename(file))
-                            multilib = Multilib.byPackage(nvr[:-2])
-                            if arch in multilib.arches and \
-                               self.release in multilib.releases:
-                                filelist[arch.name].append(join(path, file))
-                                log.debug(" * %s" % file)
-                        except SQLObjectNotFound:
-                            continue
-                        except IndexError:
-                            log.debug("Unknown file: %s" % file)
-                            continue
-        self.filelist = filelist
+#    def _build_filelist(self):
+#        """ Build and store the filelist for this update. """
+#        log.debug("Building filelist for %s" % self.nvr)
+#        filelist = {}
+#        filelist['SRPMS'] = [self.get_srpm_path()]
+#        sourcepath = self.get_source_path()
+#        rpmheader = rpm_fileheader(filelist['SRPMS'][0])
+#        for arch in self.release.arches:
+#            filelist[arch.name] = []
+#            for subarch in arch.subarches:
+#                if subarch == 'noarch':
+#                    # Check for excluded/exclusive archs
+#                    if excluded_arch(rpmheader, arch.name):
+#                        log.debug("Excluding arch %s for %s" % (arch.name,
+#                                                                self.nvr))
+#                        continue
+#                path = join(sourcepath, subarch)
+#                if isdir(path):
+#                    for file in os.listdir(path):
+#                        filelist[arch.name].append(join(path, file))
+#                        log.debug(" * %s" % file)
+#            # Check for multilib packages
+#            for compatarch in arch.compatarches:
+#                path = join(sourcepath, compatarch)
+#                if isdir(path):
+#                    for file in os.listdir(path):
+#                        try:
+#                            nvr = get_nvr(basename(file))
+#                            multilib = Multilib.byPackage(nvr[:-2])
+#                            if arch in multilib.arches and \
+#                               self.release in multilib.releases:
+#                                filelist[arch.name].append(join(path, file))
+#                                log.debug(" * %s" % file)
+#                        except SQLObjectNotFound:
+#                            continue
+#                        except IndexError:
+#                            log.debug("Unknown file: %s" % file)
+#                            continue
+#        self.filelist = filelist
+#
+#    def run_request(self, stage=None, updateinfo=None):
+#        """
+#        Based on the request property, do one of a few things:
+#
+#              'push' : push this update's files to the updates stage
+#            'unpush' : remove this update's files from the updates stage
+#              'move' : move this packages files from testing to final
+#
+#        By default we stage to the 'stage_dir' variable set in your app.cfg,
+#        but an alternate can be specified (for use in testing dep closure in
+#        a lookaside repo).
+#
+#        If an optinal updateinfo is supplied, then this update will add/remove
+#        itself accordingly.  If not, then we will create our own and insert
+#        it before we return.
+#        """
+#        if not stage: stage = config.get('stage_dir')
+#        if updateinfo: uinfo = updateinfo
+#        else: uinfo = ExtendedMetadata(stage)
+#        if self.request == None:
+#            log.error("%s attempting to run None request" % self.nvr)
+#            return
+#        elif self.request == 'move':
+#            uinfo.remove_update(self)
+#
+#        action = {'move':'Moving', 'push':'Pushing', 'unpush':'Unpushing'}
+#        yield header("%s %s" % (action[self.request], self.nvr))
+#
+#        # iterate over each of this update's files by arch
+#        for arch in self.filelist.keys():
+#            dest = join(stage, self.get_dest_repo(), arch)
+#
+#            for pkg in self.filelist[arch]:
+#                filename = basename(pkg)
+#                if filename.find('debuginfo') != -1:
+#                    destfile = join(dest, 'debug', filename)
+#                    current_file = join(stage, self.get_repo(), arch,
+#                                        'debug', filename)
+#                else:
+#                    destfile = join(dest, filename)
+#                    current_file = join(stage, self.get_repo(), arch, filename)
+#
+#                # regardless of request, delete any pushed files that exist
+#                for pushed_file in (current_file, destfile):
+#                    if isfile(pushed_file):
+#                        os.unlink(pushed_file)
+#                        yield " * Removed %s" % pushed_file.split(stage)[-1][1:]
+#
+#                if self.request == 'unpush':
+#                    # we've already removed any existing files from the stage,
+#                    # and unpushing doesn't entail anything more
+#                    continue
+#                elif self.request in ('push', 'move'):
+#                    yield " * %s" % destfile.split(stage)[-1][1:]
+#                    try:
+#                        os.link(pkg, destfile)
+#                    except OSError, e:
+#                        if e.errno == 18: # cross-device-link
+#                            log.debug("Cross-device link; copying file instead")
+#                            shutil.copyfile(pkg, destfile)
+#
+#        # Post-request actions
+#        if self.request == 'push':
+#            self.pushed = True
+#            self.date_pushed = datetime.now()
+#            self.assign_id()
+#            yield " * Assigned ID %s" % self.update_id
+#            yield " * Generating extended metadata"
+#            uinfo.add_update(self)
+#            yield " * Notifying %s" % self.submitter
+#            mail.send(self.submitter, 'pushed', self)
+#        elif self.request == 'unpush':
+#            mail.send(self.submitter, 'unpushed', self)
+#            if uinfo.remove_update(self):
+#                yield " * Removed extended metadata from updateinfo"
+#            else:
+#                yield " * Unable to remove extended metadata from updateinfo"
+#            self.pushed = False
+#            self.status = 'testing'
+#        elif self.request == 'move':
+#            self.pushed = True
+#            self.status = 'stable'
+#            self.assign_id()
+#            yield " * Notifying %s" % self.submitter
+#            mail.send(self.submitter, 'moved', self)
+#            yield " * Generating extended metadata"
+#            uinfo.add_update(self)
+#            koji_session = buildsys.get_session()
+#            log.debug("Moving %s from %s-updates-candidates to "
+#                      "%s-updates" % (self.nvr, self.release.dist_tag,
+#                                      self.release.dist_tag))
+#            koji_session.moveBuild('%s-updates-candidate' %
+#                                   self.release.dist_tag,
+#                                   '%s-updates' %
+#                                   self.release.dist_tag, self.nvr)
+#
+#        # If we created our own UpdateMetadata, then insert it into the repo
+#        if not updateinfo:
+#            log.debug("Inserting updateinfo by hand")
+#            uinfo.insert_updateinfo()
+#            del uinfo
+#
+#        self.request = None
+#        hub.commit()
 
-    def run_request(self, stage=None, updateinfo=None):
+    def request_complete(self):
         """
-        Based on the request property, do one of a few things:
-
-              'push' : push this update's files to the updates stage
-            'unpush' : remove this update's files from the updates stage
-              'move' : move this packages files from testing to final
-
-        By default we stage to the 'stage_dir' variable set in your app.cfg,
-        but an alternate can be specified (for use in testing dep closure in
-        a lookaside repo).
-
-        If an optinal updateinfo is supplied, then this update will add/remove
-        itself accordingly.  If not, then we will create our own and insert
-        it before we return.
+        Perform post-request actions.
         """
-        if not stage: stage = config.get('stage_dir')
-        if updateinfo: uinfo = updateinfo
-        else: uinfo = ExtendedMetadata(stage)
-        if self.request == None:
-            log.error("%s attempting to run None request" % self.nvr)
-            return
-        elif self.request == 'move':
-            uinfo.remove_update(self)
-
-        action = {'move':'Moving', 'push':'Pushing', 'unpush':'Unpushing'}
-        yield header("%s %s" % (action[self.request], self.nvr))
-
-        # iterate over each of this update's files by arch
-        for arch in self.filelist.keys():
-            dest = join(stage, self.get_dest_repo(), arch)
-
-            for pkg in self.filelist[arch]:
-                filename = basename(pkg)
-                if filename.find('debuginfo') != -1:
-                    destfile = join(dest, 'debug', filename)
-                    current_file = join(stage, self.get_repo(), arch,
-                                        'debug', filename)
-                else:
-                    destfile = join(dest, filename)
-                    current_file = join(stage, self.get_repo(), arch, filename)
-
-                # regardless of request, delete any pushed files that exist
-                for pushed_file in (current_file, destfile):
-                    if isfile(pushed_file):
-                        os.unlink(pushed_file)
-                        yield " * Removed %s" % pushed_file.split(stage)[-1][1:]
-
-                if self.request == 'unpush':
-                    # we've already removed any existing files from the stage,
-                    # and unpushing doesn't entail anything more
-                    continue
-                elif self.request in ('push', 'move'):
-                    yield " * %s" % destfile.split(stage)[-1][1:]
-                    try:
-                        os.link(pkg, destfile)
-                    except OSError, e:
-                        if e.errno == 18: # cross-device-link
-                            log.debug("Cross-device link; copying file instead")
-                            shutil.copyfile(pkg, destfile)
-
-        # Post-request actions
         if self.request == 'push':
             self.pushed = True
             self.date_pushed = datetime.now()
             self.assign_id()
-            yield " * Assigned ID %s" % self.update_id
-            yield " * Generating extended metadata"
-            uinfo.add_update(self)
-            yield " * Notifying %s" % self.submitter
+            log.info("Assigned ID %s" % self.update_id)
+            log.info("Generating extended metadata")
+            #uinfo.add_update(self)
+            log.info("Notifying %s" % self.submitter)
             mail.send(self.submitter, 'pushed', self)
         elif self.request == 'unpush':
             mail.send(self.submitter, 'unpushed', self)
-            if uinfo.remove_update(self):
-                yield " * Removed extended metadata from updateinfo"
-            else:
-                yield " * Unable to remove extended metadata from updateinfo"
+            #if uinfo.remove_update(self):
+            #    yield " * Removed extended metadata from updateinfo"
+            #else:
+            #    yield " * Unable to remove extended metadata from updateinfo"
             self.pushed = False
-            self.status = 'testing'
+            self.status = 'pending'
         elif self.request == 'move':
             self.pushed = True
             self.status = 'stable'
             self.assign_id()
-            yield " * Notifying %s" % self.submitter
+            log.info("Notifying %s" % self.submitter)
             mail.send(self.submitter, 'moved', self)
-            yield " * Generating extended metadata"
-            uinfo.add_update(self)
-            koji_session = buildsys.get_session()
-            log.debug("Moving %s from dist-%s-updates-candidates to "
-                      "dist-%s-updates" % (self.nvr, self.release.name.lower(),
-                                           self.release.name.lower()))
-            koji_session.moveBuild('dist-%s-updates-candidate' %
-                                   self.release.name.lower(),
-                                   'dist-%s-updates' %
-                                   self.release.name.lower(), self.nvr)
+            #log.info(" * Generating extended metadata")
+            #uinfo.add_update(self)
 
-        # If we created our own UpdateMetadata, then insert it into the repo
-        if not updateinfo:
-            log.debug("Inserting updateinfo by hand")
-            uinfo.insert_updateinfo()
-            del uinfo
-
+        log.info("%s request on %s complete!" % (self.request, self.nvr))
         self.request = None
         hub.commit()
 
@@ -355,10 +388,10 @@ class PackageUpdate(SQLObject):
         # dist-$RELEASE.  We aren't checking -updates-candidate first, because
         # there could potentially be packages that never make their way over
         # -updates, so we don't want to generate ChangeLogs against those.
-        for tag in ['dist-%s-updates', 'dist-%s']:
+        for tag in ['%s-updates', '%s']:
             try:
                 builds = koji_session.getLatestBuilds(tag % 
-                                                      self.release.name.lower(),
+                                                      self.release.dist_tag,
                                                       None, self.package.name)
 
                 # Find the first build that is older than us
@@ -392,7 +425,7 @@ class PackageUpdate(SQLObject):
         """ Return the relative URL to this update """
         status = self.status == 'testing' and 'testing/' or ''
         if not self.pushed: status = 'pending/'
-        return '/%s%s/%s' % (status,self.release.name,self.nvr)
+        return '/%s%s/%s' % (status, self.release.name, self.nvr)
 
     def __str__(self):
         """
@@ -419,10 +452,10 @@ class PackageUpdate(SQLObject):
         val += """
   Submitter: %s
   Submitted: %s
-      Files:""" % (self.submitter, self.date_submitted)
-        for files in self.filelist.values():
-            for file in files:
-                val += " %s\n\t    " % basename(file)
+        """ % (self.submitter, self.date_submitted)
+        #for files in self.filelist.values():
+        #    for file in files:
+        #        val += " %s\n\t    " % basename(file)
         return val.rstrip()
 
     def get_rpm_header(self):
@@ -453,6 +486,18 @@ class PackageUpdate(SQLObject):
                                       descrip[i])
             i += 1
         return str
+
+    def get_build_tag(self):
+        """
+        Get the tag that this build is currently tagged with.
+        TODO: we should probably get this stuff from koji instead of guessing
+        """
+        tag = '%s-updates' % self.release.dist_tag
+        if self.status == 'pending':
+            tag += '-candidate'
+        elif self.status == 'testing':
+            tag += '-testing'
+        return tag
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
@@ -495,11 +540,12 @@ class Bugzilla(SQLObject):
         try:
             log.debug("Fetching bugzilla #%d" % self.bz_id)
             server = xmlrpclib.Server(self._bz_server)
-            me = User.by_user_name(config.get('from_address'))
-            if not me.password:
-                log.error("No password stored for %s" % me.user_name)
+            me = config.get('bodhi_email')
+            password = config.get('bodhi_password')
+            if not password:
+                log.error("No password stored for %s" % me)
                 return
-            bug = server.bugzilla.getBug(self.bz_id, me.user_name, me.password)
+            bug = server.bugzilla.getBug(self.bz_id, me, password)
             del server
             self.title = bug['short_desc']
             if bug['keywords'].lower().find('security') != -1:
@@ -511,13 +557,15 @@ class Bugzilla(SQLObject):
             log.error(self.title)
 
     def _add_comment(self, comment):
-        me = User.by_user_name(config.get('from_address'))
-        server = xmlrpclib.Server(self._bz_server)
-        server.bugzilla.addComment(self.bz_id, comment, me.user_name,
-                                   me.password, 0)
-        del server
+        me = config.get('bodhi_email')
+        password = config.get('bodhi_password', None)
+        if password:
+            server = xmlrpclib.Server(self._bz_server)
+            server.bugzilla.addComment(self.bz_id, comment, me, password, 0)
+            del server
 
     def _close_bug(self):
+        """ TODO """
         pass
 
     def get_url(self):
