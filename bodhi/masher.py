@@ -116,9 +116,9 @@ class MashThread(Thread):
         for repo in self.repos:
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
-            self.cmd %= mashdir
+            mashcmd = self.cmd % mashdir
             log.info("Running mash on %s" % repo)
-            (status, output) = commands.getstatusoutput(self.cmd + repo)
+            (status, output) = commands.getstatusoutput(mashcmd + repo)
             log.info("status = %s" % status)
             if status == 0:
                 self.success = True
