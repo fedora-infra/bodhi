@@ -14,6 +14,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+"""
+TODO: ability to fetch srpms for any given nvr?
+submit and update
+request a push/move/unpush
++1/-1 or comment on test updates
+"""
+
 import sys
 import xmlrpclib
 
@@ -22,7 +29,7 @@ from optparse import OptionParser
 __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
-BODHI_RPC = 'http://192.168.0.122:8081/rpc'
+BODHI_RPC = 'http://admin.fedoraproject.org/updates/rpc'
 
 class BodhiClient:
     """
