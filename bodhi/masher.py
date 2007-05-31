@@ -77,6 +77,7 @@ class MashThread(Thread):
         self.repos = set()
         self.success = False
         self.cmd = 'mash -o %s -c bodhi/config/mash.conf '
+        self.actions = []
 
     def move_builds(self):
         tasks = []
@@ -100,14 +101,35 @@ class MashThread(Thread):
                                                    self.tag))
             task_id = self.koji.moveBuild(current_tag, self.tag,
                                           update.nvr, force=True)
+            self.actions.append((update.nvr, current, self.tag))
             tasks.append(task_id)
 
         # Wait for tasks to complete
-        log.debug("Waiting tasks to complete: %s" % tasks)
+        log.debug("Waiting for tasks to complete: %s" % tasks)
         for task in tasks:
-            while not self.koji.taskFinished(task_id):
+            while not self.koji.taskFinished(task):
                 sleep(2)
-            task_info = self.koji.getTaskInfo(task_id)
+            task_info = self.koji.getTaskInfo(task)
+            if task_info['state'] != TASK_STATES['CLOSED']:
+                return False
+        return True
+
+    def undo_move(self):
+        """
+        Move the builds back to their original tag
+        """
+        log.debug("Rolling back updates to their original tag")
+        tasks = []
+        for action in self.actions:
+            log.debug("Moving %s from %s to %s" % (action[0], action[2],
+                                                   action[1]))
+            task_id = self.koji.moveBuild(action[2], action[1], action[0],
+                                          force=True)
+            tasks.append(task_id)
+        log.debug("Wating for tasks to complete: %s" % tasks)
+        for task in tasks:
+            while not self.koji.taskFinished(task):
+                sleep(2)
             if task_info['state'] != TASK_STATES['CLOSED']:
                 return False
         return True
@@ -144,6 +166,10 @@ class MashThread(Thread):
                 masher.done(self)
             else:
                 log.error("Error mashing.. skipping post-request actions")
+                if self.undo_move():
+                    log.debug("Tag rollback successful!")
+                else:
+                    log.debug("Tag rollback failed!")
         else:
             log.error("Unable to move build")
 
