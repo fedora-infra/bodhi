@@ -33,9 +33,6 @@ from os.path import isfile, isdir, basename, join
 
 log = logging.getLogger(__name__)
 
-class RepositoryLocked(Exception):
-    pass
-
 class PushController(controllers.Controller):
 
     def __init__(self):
@@ -46,16 +43,6 @@ class PushController(controllers.Controller):
         if isfile(self.lockfile):
             log.debug("Removing stale repository lockfile")
             self._unlock_repo()
-
-    def _lock_repo(self):
-        if isfile(self.lockfile):
-            raise RepositoryLocked
-        lock = file(self.lockfile, 'w')
-        lock.close()
-
-    def _unlock_repo(self):
-        if isfile(self.lockfile):
-            os.unlink(self.lockfile)
 
     def repodiff(self):
         """
@@ -89,8 +76,6 @@ class PushController(controllers.Controller):
         """ List updates tagged with a push/unpush/move request """
         updates = PackageUpdate.select(PackageUpdate.q.request != None)
         return dict(updates=updates)
-        #return dict(updates=updates, label='Push Updates',
-        #            callback='/admin/push/run_requests')
 
     @expose(template='bodhi.templates.text')
     def mash(self, updates, **kw):
@@ -100,17 +85,6 @@ class PushController(controllers.Controller):
         masher.queue([PackageUpdate.byNvr(nvr) for nvr in updates])
         return dict(title='Mashing',text='Updates have been queued for mashing')
 
-    #@expose(template='bodhi.templates.pushconsole')
-    #def console(self, updates, callback, **kw):
-    #    if not updates:
-    #        flash("No updates selected for pushing")
-    #        raise redirect("/push")
-    #    if not isinstance(updates, list):
-    #        updates = [updates]
-    #    log.debug("Setting updates in session: %s" % updates)
-    #    cherrypy.session['updates'] = updates
-    #    return dict(callback=callback)
-#
 #    @expose()
 #    def run_requests(self):
 #        """

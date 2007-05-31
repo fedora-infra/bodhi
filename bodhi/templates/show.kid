@@ -64,16 +64,18 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                         <a href="${tg.url('/push/%s' % update.nvr)}">Push</a> | 
                         <a href="${tg.url('/delete/%s' % update.nvr)}">Delete</a> | 
                     </span>
-                    <span py:if="update.request in ('push', 'move')">
-                        <a href="${tg.url('/revoke/%s' % update.nvr)}">
-                            Revoke ${update.request} request</a> | 
-                    </span>
-                    <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
+                                        <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
+                </span>
+                <span py:if="update.request in ('push', 'move')">
+                    <a href="${tg.url('/revoke/%s' % update.nvr)}">Revoke ${update.request} request</a> | 
                 </span>
                 <span py:if="update.pushed">
                     <a href="${tg.url('/unpush/%s' % update.nvr)}">Unpush</a>
                     <span py:if="update.status == 'testing'">
-                         | <a href="${tg.url('/move/%s' % update.nvr)}">Mark as Stable</a> | 
+                        |
+                        <span py:if="update.request == None">
+                            <a href="${tg.url('/move/%s' % update.nvr)}">Mark as Stable</a> | 
+                        </span>
                         <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
                     </span>
                 </span>

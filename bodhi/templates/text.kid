@@ -8,9 +8,7 @@
 <body>
     <blockquote>
         <h1>${title}</h1>
-        <pre>
         ${text}
-        </pre>
     </blockquote>
 </body>
 </html>

@@ -111,22 +111,6 @@ class PackageUpdate(SQLObject):
     request         = EnumCol(enumValues=['push', 'unpush', 'move', None],
                               default=None)
     comments        = MultipleJoin('Comment', joinColumn='update_id')
-    #filelist        = PickleCol(default={}) # { 'arch' : [file1, file2, ..] }
-
-    ##
-    ## On publictest2 this makes SQLObject explode (concurrency issues).
-    ## TODO: figure out how to automatically build the filelist when a
-    ## PackageUpdate is created (for now we'll just call _build_filelist by
-    ## hand).
-    ##
-    #def _set_nvr(self, nvr):
-    #    """
-    #    Called when the a PackageUpdate is created. Here we do some
-    #    initialization such as building the filelist
-    #    """
-    #    self._SO_set_nvr(nvr)
-    #    if self.filelist == {}:
-    #        self._build_filelist()
 
     def get_bugstring(self):
         """ Return a space-delimited string of bug numbers for this update """
@@ -172,57 +156,16 @@ class PackageUpdate(SQLObject):
         if self.update_id != None and self.update_id != u'None':
             log.debug("Keeping current update id %s" % self.update_id)
             return
-        update = PackageUpdate.select(PackageUpdate.q.update_id != None,
-                                      orderBy=PackageUpdate.q.update_id)
+        update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id)
         try:
             id = int(update.reversed()[0].update_id.split('-')[-1]) + 1
-        except IndexError:
+        except (AttributeError, IndexError):
             id = 1
         self.update_id = u'%s-%s-%0.4d' % (self.release.id_prefix,
                                           time.localtime()[0],id)
         log.debug("Setting update_id for %s to %s" % (self.nvr, self.update_id))
         hub.commit()
 
-#    def _build_filelist(self):
-#        """ Build and store the filelist for this update. """
-#        log.debug("Building filelist for %s" % self.nvr)
-#        filelist = {}
-#        filelist['SRPMS'] = [self.get_srpm_path()]
-#        sourcepath = self.get_source_path()
-#        rpmheader = rpm_fileheader(filelist['SRPMS'][0])
-#        for arch in self.release.arches:
-#            filelist[arch.name] = []
-#            for subarch in arch.subarches:
-#                if subarch == 'noarch':
-#                    # Check for excluded/exclusive archs
-#                    if excluded_arch(rpmheader, arch.name):
-#                        log.debug("Excluding arch %s for %s" % (arch.name,
-#                                                                self.nvr))
-#                        continue
-#                path = join(sourcepath, subarch)
-#                if isdir(path):
-#                    for file in os.listdir(path):
-#                        filelist[arch.name].append(join(path, file))
-#                        log.debug(" * %s" % file)
-#            # Check for multilib packages
-#            for compatarch in arch.compatarches:
-#                path = join(sourcepath, compatarch)
-#                if isdir(path):
-#                    for file in os.listdir(path):
-#                        try:
-#                            nvr = get_nvr(basename(file))
-#                            multilib = Multilib.byPackage(nvr[:-2])
-#                            if arch in multilib.arches and \
-#                               self.release in multilib.releases:
-#                                filelist[arch.name].append(join(path, file))
-#                                log.debug(" * %s" % file)
-#                        except SQLObjectNotFound:
-#                            continue
-#                        except IndexError:
-#                            log.debug("Unknown file: %s" % file)
-#                            continue
-#        self.filelist = filelist
-#
 #    def run_request(self, stage=None, updateinfo=None):
 #        """
 #        Based on the request property, do one of a few things:
@@ -334,28 +277,21 @@ class PackageUpdate(SQLObject):
         """
         if self.request == 'push':
             self.pushed = True
+            self.status = 'testing'
             self.date_pushed = datetime.now()
-            self.assign_id()
-            log.info("Assigned ID %s" % self.update_id)
-            log.info("Generating extended metadata")
+            #self.assign_id()
             #uinfo.add_update(self)
-            log.info("Notifying %s" % self.submitter)
             mail.send(self.submitter, 'pushed', self)
         elif self.request == 'unpush':
             mail.send(self.submitter, 'unpushed', self)
-            #if uinfo.remove_update(self):
-            #    yield " * Removed extended metadata from updateinfo"
-            #else:
-            #    yield " * Unable to remove extended metadata from updateinfo"
+            #uinfo.remove_update(self):
             self.pushed = False
             self.status = 'pending'
         elif self.request == 'move':
             self.pushed = True
             self.status = 'stable'
             self.assign_id()
-            log.info("Notifying %s" % self.submitter)
             mail.send(self.submitter, 'moved', self)
-            #log.info(" * Generating extended metadata")
             #uinfo.add_update(self)
 
         log.info("%s request on %s complete!" % (self.request, self.nvr))

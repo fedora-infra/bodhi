@@ -27,7 +27,7 @@ from turbogears.widgets import (WidgetsList, TextField, SingleSelectField,
                                 TableForm, HiddenField, AutoCompleteField)
 
 log = logging.getLogger(__name__)
-update_types = ('security', 'bugfix', 'enhancement')
+update_types = ('bugfix', 'enhancement', 'security')
 
 def get_releases():
     return [rel.long_name for rel in Release.select()]
