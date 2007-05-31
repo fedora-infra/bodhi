@@ -22,7 +22,8 @@ from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
 
 from turbogears import (controllers, expose, validate, redirect, identity,
-                        paginate, flash, error_handler, validators, config, url)
+                        paginate, flash, error_handler, validators, config, url,
+                        exception_handler)
 from turbogears.widgets import TableForm, TextArea, HiddenField
 
 from bodhi.new import NewUpdateController, update_form
@@ -61,6 +62,12 @@ class Root(controllers.RootController):
                                               rows=3, cols=40),
                                      HiddenField(name='nvr')],
                              submit_text='Add Comment', action=url('/comment'))
+
+    def exception(self, tg_exceptions=None):
+        """ Generic exception handler """
+        log.error("Exception thrown: %s" % str(tg_exceptions))
+        flash(str(tg_exceptions))
+        raise redirect("/")
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
@@ -122,89 +129,72 @@ class Root(controllers.RootController):
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.show')
+    @exception_handler(exception)
     def show(self, update):
-        try:
-            update = PackageUpdate.byNvr(update)
-        except SQLObjectNotFound:
-            flash("Update %s not found" % update)
-            raise redirect('/list')
+        update = PackageUpdate.byNvr(update)
         return dict(update=update, comment_form=self.comment_form)
 
     @expose()
     @identity.require(identity.not_anonymous())
+    @exception_handler(exception)
     def revoke(self, nvr):
         """ Revoke a push request for a specified update """
-        try:
-            update = PackageUpdate.byNvr(nvr)
-            if isfile(join(config.get('stage_dir'), '.lock')):
-                flash('Repo locked; cannot revoke push request during push')
-                raise redirect(update.get_url())
-            update.request = None
-            mail.send_admin('revoke', update)
-            log.info("%s push revoked" % nvr)
-        except SQLObjectNotFound:
-            flash("Update %s not found" % update)
-            raise redirect('/list')
-        flash("Push request revoked")
+        update = PackageUpdate.byNvr(nvr)
+        flash("%s request revoked" % update.request)
+        update.request = None
+        mail.send_admin('revoke', update)
         raise redirect(update.get_url())
 
     @expose()
     @identity.require(identity.not_anonymous())
+    @exception_handler(exception)
     def move(self, nvr):
-        try:
-            update = PackageUpdate.byNvr(nvr)
-            update.request = 'move'
-            flash("Requested that %s be pushed to Final" % nvr)
-            mail.send_admin('move', update)
-        except SQLObjectNotFound:
-            flash("Update %s not found" % nvr)
-            raise redirect('/')
+        update = PackageUpdate.byNvr(nvr)
+        update.request = 'move'
+        flash("Requested that %s be pushed to Final" % nvr)
+        mail.send_admin('move', update)
         raise redirect(update.get_url())
 
     @expose()
     @identity.require(identity.not_anonymous())
+    @exception_handler(exception)
     def push(self, nvr):
         """ Submit an update for pushing """
-        try:
-            update = PackageUpdate.byNvr(nvr)
-            if update.type == 'security':
-                # Bypass updates-testing
-                update.request = 'move'
-            else:
-                update.request = 'push'
-            msg = "%s has been submitted for pushing" % nvr
-            log.debug(msg)
-            flash(msg)
-            mail.send_admin('push', update)
-        except SQLObjectNotFound:
-            flash("Update %s not found" % nvr)
+        update = PackageUpdate.byNvr(nvr)
+        repo = '%s updates' % update.release.name
+        if update.type == 'security':
+            # Bypass updates-testing
+            update.request = 'move'
+        else:
+            update.request = 'push'
+            repo += '-testing'
+        msg = "%s has been submitted for pushing to %s" % (nvr, repo)
+        log.debug(msg)
+        flash(msg)
+        mail.send_admin('push', update)
         raise redirect(update.get_url())
 
     @expose()
     @identity.require(identity.not_anonymous())
+    @exception_handler(exception)
     def unpush(self, nvr):
         """ Submit an update for unpushing """
-        try:
-            update = PackageUpdate.byNvr(nvr)
-            update.request = 'unpush'
-            msg = "%s has been submitted for unpushing" % nvr
-            log.debug(msg)
-            flash(msg)
-            mail.send_admin('unpush', update)
-        except SQLObjectNotFound:
-            flash("Update %s not found" % nvr)
+        update = PackageUpdate.byNvr(nvr)
+        update.request = 'unpush'
+        msg = "%s has been submitted for unpushing" % nvr
+        log.debug(msg)
+        flash(msg)
+        mail.send_admin('unpush', update)
         raise redirect(update.get_url())
 
     @expose()
     @identity.require(identity.not_anonymous())
+    @exception_handler(exception)
     def delete(self, update):
         """ Delete a pending update """
-        try:
-            update = PackageUpdate.byNvr(update)
-        except SQLObjectNotFound:
-            flash("Update %s not found" % update)
-            raise redirect("/pending")
+        update = PackageUpdate.byNvr(update)
         if not update.pushed:
+            map(lambda x: x.destroySelf(), update.comments)
             update.destroySelf()
             mail.send_admin('deleted', update)
             msg = "Deleted %s" % update.nvr
@@ -216,13 +206,10 @@ class Root(controllers.RootController):
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.form')
+    @exception_handler(exception)
     def edit(self, update):
         """ Edit an update """
-        try:
-            update = PackageUpdate.byNvr(update)
-        except SQLObjectNotFound:
-            flash("Update %s not found")
-            raise redirect("/list")
+        update = PackageUpdate.byNvr(update)
         values = {
                 'nvr'       : {'text': update.nvr, 'hidden' : update.nvr},
                 'release'   : update.release.long_name,
@@ -240,6 +227,7 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
+    @exception_handler(exception)
     def save(self, release, bugs, cves, edited, **kw):
         """
         Save an update.  This includes new updates and edited.
@@ -262,7 +250,7 @@ class Root(controllers.RootController):
             # Make sure selected release matches tag for this build
             koji = buildsys.get_session()
             tag_matches = False
-            candidate = 'dist-%s-updates-candidate' % release.name.lower()
+            candidate = '%s-updates-candidate' % release.dist_tag
             try:
                 for tag in koji.listTags(kw['nvr']):
                     log.debug(" * %s" % tag['name'])
@@ -301,7 +289,9 @@ class Root(controllers.RootController):
                         flash(msg)
                         raise redirect('/new')
                 try:
-                    rel = Release.byName(int(rel.name[-1]) - 1)
+                    # Check the the previous release
+                    rel = Release.byName(rel.name[:-1] +
+                                         str(int(rel.name[-1]) - 1))
                 except SQLObjectNotFound:
                     break
 
@@ -309,7 +299,7 @@ class Root(controllers.RootController):
                 # Create a new update
                 p = PackageUpdate(package=package, release=release,
                                   submitter=identity.current.user_name, **kw)
-                p._build_filelist()
+                #p._build_filelist()
             except RPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')
@@ -367,6 +357,7 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.list')
     @identity.require(identity.not_anonymous())
     @paginate('updates', default_order='update_id', limit=15)
+    @exception_handler(exception)
     def default(self, *args, **kw):
         """
         This method allows for /[(pending|testing)/]<release>[/<update>]
@@ -426,6 +417,7 @@ class Root(controllers.RootController):
     @error_handler()
     @validate(form=comment_form)
     @identity.require(identity.not_anonymous())
+    @exception_handler(exception)
     def comment(self, text, nvr, tg_errors=None):
         update = PackageUpdate.byNvr(nvr)
         if tg_errors:
