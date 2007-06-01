@@ -20,6 +20,12 @@
                         <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket" class="list"><img src="${tg.url('/static/images/header-projects.png')}" border="0" align="middle" alt="Bugs"/>File a bug or feature request</a>
                     </td>
                 </tr>
+                <tr>
+                    <td valign="middle">
+                        <a href="http://mugshot.org/group?who=yWstkV2xGz93rQ" class="list"><img src="${tg.url('/static/images/mugshot.png')}" border="0" align="middle" alt="Fedora Infrastructure Mugshot Group"/>Join the Fedora Infrastructure Mugshot group to keep up with our evolving infrastructure</a>
+                    </td>
+                </tr>
+
             </table>
         </blockquote>
     </blockquote>
