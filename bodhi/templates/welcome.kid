@@ -9,7 +9,7 @@
     <blockquote>
         <h1>Welcome, ${tg.identity.user.display_name}</h1>
         <blockquote>
-            <table cellpadding="5">
+            <table cellpadding="5" cellspacing="5">
                 <tr>
                     <td valign="middle">
                         <a href="http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem/Bodhi-info-DRAFT" class="list"><img src="${tg.url('/static/images/header-faq.png')}" align="middle" border="0" />Bodhi workflow and Q&amp;A draft</a>
@@ -22,7 +22,7 @@
                 </tr>
                 <tr>
                     <td valign="middle">
-                        <a href="http://mugshot.org/group?who=yWstkV2xGz93rQ" class="list"><img src="${tg.url('/static/images/mugshot.png')}" border="0" align="middle" alt="Fedora Infrastructure Mugshot Group"/>Join the Fedora Infrastructure Mugshot group to keep up with our evolving infrastructure</a>
+                        <a href="http://mugshot.org/group?who=yWstkV2xGz93rQ" class="list"><img src="${tg.url('/static/images/mugshot.png')}" border="0" align="middle" alt="Fedora Infrastructure Mugshot Group"/>Join the Fedora Infrastructure Mugshot group</a>
                     </td>
                 </tr>
 
