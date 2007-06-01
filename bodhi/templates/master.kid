@@ -87,7 +87,8 @@ addLoadEvent(function(){
                         <ul>
                             <li><a href="${tg.url('/admin/push')}">Requests</a></li>
                             <!-- <li><a href="${tg.url('/admin/catwalk')}">Database</a></li> -->
-                            <li><a href="${tg.url('/admin/repodiff')}">Repodiff</a></li>
+                            <!-- <li><a href="${tg.url('/admin/repodiff')}">Repodiff</a></li> -->
+                            <li><a href="${tg.url('/admin/masher')}">Masher</a></li>
                         </ul>
                     </div>
                 </ul>
