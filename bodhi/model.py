@@ -130,13 +130,14 @@ class PackageUpdate(SQLObject):
         if self.update_id != None and self.update_id != u'None':
             log.debug("Keeping current update id %s" % self.update_id)
             return
-        update = PackageUpdate.select(orderBy=PackageUpdate.q.update_id)
+        update = PackageUpdate.select(PackageUpdate.q.update_id != 'None',
+                                      orderBy=PackageUpdate.q.update_id)
         try:
-            id = int(update[0].update_id.split('-')[-1]) + 1
+            id = int(update[-1].update_id.split('-')[-1]) + 1
         except (AttributeError, IndexError):
             id = 1
         self.update_id = u'%s-%s-%0.4d' % (self.release.id_prefix,
-                                          time.localtime()[0],id)
+                                           time.localtime()[0],id)
         log.debug("Setting update_id for %s to %s" % (self.nvr, self.update_id))
         hub.commit()
 
