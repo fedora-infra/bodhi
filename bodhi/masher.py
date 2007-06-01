@@ -17,11 +17,8 @@ import time
 import logging
 import commands
 
-from time import sleep
-from koji import TASK_STATES
 from bodhi import buildsys
 from bodhi.util import synchronized
-from bodhi.exceptions import RepositoryLocked
 from threading import Thread, Lock
 from turbogears import config
 from os.path import exists, join
@@ -29,6 +26,10 @@ from os.path import exists, join
 log = logging.getLogger(__name__)
 masher = None
 lock = Lock()
+
+def get_masher():
+    global masher
+    return masher
 
 class Masher:
     """
@@ -40,48 +41,104 @@ class Masher:
         self._queue = []
         self._threads = []
         self.thread_id = 0
+        self.mashing = 0
+        self.last_log = None
 
     @synchronized(lock)
-    def queue(self, updates):
-        self._queue.append((self.thread_id, updates))
+    def queue(self, updates, repos=set()):
+        self._queue.append((self.thread_id, updates, repos))
         self.thread_id += 1
-        if len(self._queue) == 1:
-            self._mash(self._queue.pop())
+        if len(self._threads) == 0:
+            if len(self._queue):
+                self._mash(self._queue.pop())
 
     @synchronized(lock)
-    def done(self, thread):
-        log.debug("Thread %d done!" % thread.id)
-        self._threads.remove(thread)
+    def success(self, thread):
+        log.debug("MashTask %d successful!" % thread.id)
         for update in thread.updates:
             log.debug("Doing post-request stuff for %s" % update.nvr)
             update.request_complete()
-        log.info("Push complete!")
-        if len(self._queue):
-            self._mash(self._queue.pop())
+
+    @synchronized(lock)
+    def done(self, thread):
+        log.info("MashTask %d done!" % thread.id)
+        self.last_log = thread.log
+        self._threads.remove(thread)
+        if len(self._threads) == 0:
+            if len(self._queue):
+                self._mash(self._queue.pop())
+        else:
+            self.mashing = 0
 
     def _mash(self, task):
-        log.debug("Dispatching!")
-        thread = MashThread(task[0], task[1])
+        """ Dispatch a given MashTask """
+        thread = MashTask(task[0], task[1], task[2])
         self._threads.append(thread)
         thread.start()
+        self.mashing = 1
 
-class MashThread(Thread):
+    def lastlog(self):
+        """
+        Return the most recent mash log
+        """
+        log = 'Previous mash log not available'
+        if self.last_log and exists(self.last_log):
+            logfile = file(self.last_log, 'r')
+            log = logfile.read()
+            logfile.close()
+        return (self.last_log, log)
 
-    def __init__(self, id, updates):
+    def mash_tags(self, tags):
+        """
+        Run mash on a list of tags
+        """
+        self.queue([], tags)
+
+    def __str__(self):
+        """
+        Return a string representation of the Masher, including the current
+        queue and updates that are getting moved/mashed
+        """
+        val = 'Currently Mashing: %s\n\n' % (self.mashing and 'Yes' or 'No')
+        if self.mashing:
+            for thread in self._threads:
+                val += str(thread)
+            if len(self._queue):
+                val += "\n[ Queue ]\n"
+                for item in self._queue:
+                    if len(item[1]):
+                        val += "  Move tags\n"
+                        for update in item[1]:
+                            val += "  - %s (%s)" % (update.nvr, update.request)
+                    if len(item[2]):
+                        val += "  Mash repos\n"
+                        for repo in item[2]:
+                            val += "  - %s" % repo
+        return val
+
+
+class MashTask(Thread):
+
+    def __init__(self, id, updates, repos=set()):
         Thread.__init__(self)
-        log.debug("MashThread(%d, %s)" % (id, updates))
+        log.debug("MashTask(%d, %s)" % (id, updates))
         self.id = id
         self.tag = None
         self.updates = updates
         self.koji = buildsys.get_session()
         # which repos do we want to compose? (updates|updates-testing)
-        self.repos = set()
+        self.repos = repos
         self.success = False
         self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + ' '
         self.actions = []
+        self.mashing = False
+        self.moving = False
+        self.log = None
 
     def move_builds(self):
         tasks = []
+        success = False
+        self.moving = True
         for update in self.updates:
             release = update.release.name.lower()
             if update.request == 'move':
@@ -104,7 +161,10 @@ class MashThread(Thread):
                                           update.nvr, force=True)
             self.actions.append((update.nvr, current_tag, self.tag))
             tasks.append(task_id)
-        buildsys.wait_for_tasks(tasks)
+        if buildsys.wait_for_tasks(tasks) == 0:
+            success = True
+        self.moving = False
+        return success
 
     def undo_move(self):
         """
@@ -121,6 +181,7 @@ class MashThread(Thread):
         buildsys.wait_for_tasks(tasks)
 
     def mash(self):
+        self.mashing = True
         for repo in self.repos:
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
@@ -131,10 +192,11 @@ class MashThread(Thread):
             if status == 0:
                 self.success = True
                 mash_output = '%s/mash.out' % mashdir
-                out = file(mash_outpu, 'w')
+                out = file(mash_output, 'w')
                 out.write(output)
                 out.close()
                 log.info("Wrote mash output to %s" % mash_output)
+                self.log = mash_output
 
                 # create a symlink to new repo
                 link = join(config.get('mashed_dir'), repo)
@@ -148,12 +210,18 @@ class MashThread(Thread):
                 out.write(output)
                 out.close()
                 log.info("Wrote failed mash output to %s" % failed_output)
+                self.log = failed_output
+        self.mashing = False
 
     def run(self):
+        """
+        Move all of the builds to the appropriate tag, and then run mash.  If
+        anything fails, undo any tag moves.
+        """
         if self.move_builds():
             self.mash()
             if self.success:
-                masher.done(self)
+                masher.success(self)
             else:
                 log.error("Error mashing.. skipping post-request actions")
                 if self.undo_move():
@@ -163,7 +231,21 @@ class MashThread(Thread):
         else:
             log.error("Error with build moves.. rolling back")
             self.undo_move()
-        log.debug("MashThread done")
+        masher.done(self)
+
+    def __str__(self):
+        val = '[ Mash Task #%d ]\n' % self.id
+        if self.moving:
+            val += '  Moving Updates\n'
+            for action in self.actions:
+                val += '   %s :: %s => %s\n' % (action[0], action[1], action[2])
+        elif self.mashing:
+            val += '  Mashing Repos %s\n' % self.repos
+            for update in self.updates:
+                val += '   %s (%s)\n' % (update.nvr, update.request)
+        else:
+            val += '  Not doing anything?'
+        return val
 
 def start_extension():
     global masher

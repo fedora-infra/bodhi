@@ -77,13 +77,13 @@ class PushController(controllers.Controller):
         updates = PackageUpdate.select(PackageUpdate.q.request != None)
         return dict(updates=updates)
 
-    @expose(template='bodhi.templates.text')
+    @expose()
     def mash(self, updates, **kw):
         from bodhi.masher import masher
         if not isinstance(updates, list):
             updates = [updates]
         masher.queue([PackageUpdate.byNvr(nvr) for nvr in updates])
-        return dict(title='Mashing',text='Updates have been queued for mashing')
+        raise redirect('/admin/masher')
 
 #    @expose()
 #    def run_requests(self):

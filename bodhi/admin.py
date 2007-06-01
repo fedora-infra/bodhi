@@ -13,11 +13,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import os
+import bodhi.masher
 
 from os.path import join, isfile, isdir
 from bodhi.push import PushController
 
-from turbogears import expose, identity, config
+from turbogears import expose, identity, config, redirect
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
 #from turbogears.toolbox.catwalk import CatWalk
@@ -26,6 +27,8 @@ class AdminController(Controller, SecureResource):
     require = identity.in_group("releng")
 
     push = PushController()
+
+    # Disable CatWalk until we can get it to work with server.webpath
     #catwalk = CatWalk()
 
     @expose(template='bodhi.templates.admin')
@@ -52,3 +55,21 @@ class AdminController(Controller, SecureResource):
             else:
                 flash("Invalid repodiff specified: %s" % diff)
         raise redirect('/admin')
+
+    @expose(template='bodhi.templates.masher')
+    def masher(self, lastlog=None):
+        """
+        Display the current status of the Masher
+        """
+        m = bodhi.masher.get_masher()
+        if lastlog:
+            (logfile, data) = m.lastlog()
+            return dict(title=logfile, text=data,
+                        tg_template='bodhi.templates.text')
+        return dict()
+
+    @expose()
+    def mash(self, tag):
+        m = bodhi.masher.get_masher()
+        m.mash_tags([tag])
+        raise redirect('/admin/masher')
