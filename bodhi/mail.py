@@ -14,6 +14,7 @@
 
 import rpm
 import time
+import koji
 import logging
 import turbomail
 
@@ -224,8 +225,8 @@ def get_template(update):
     #info['filelist'] = '\n'.join(filelist)
 
     from bodhi.buildsys import get_session
-    koji = get_session()
-    for pkg in koji.listBuildRPMs(update.nvr):
+    koji_session = get_session()
+    for pkg in koji_session.listBuildRPMs(update.nvr):
         filename = "%s.%s.rpm" % (pkg['nvr'], pkg['arch'])
         path = join(config.get('build_dir'), info['name'], info['version'],
                     info['release'], pkg['arch'])
@@ -264,6 +265,7 @@ def get_template(update):
         except RPMNotFound:
             log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
                       lastpkg)
+    info['changelog'] = koji.fixEncoding(info['changelog'])
 
     return (info['subject'], errata_template % info)
 
