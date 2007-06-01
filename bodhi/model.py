@@ -298,6 +298,7 @@ class PackageUpdate(SQLObject):
             try:
                 turbomail.enqueue(message)
                 log.debug("Sending mail: %s" % message.plain)
+                self.mail_sent = True
             except turbomail.MailNotEnabledException:
                 log.warning("TurboMail is not enabled!")
 
