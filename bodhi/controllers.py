@@ -76,7 +76,7 @@ class Root(controllers.RootController):
         return dict()
 
     @expose(template='bodhi.templates.pkgs')
-    @paginate('pkgs', default_order='name', limit=15)
+    @paginate('pkgs', default_order='name', limit=20)
     def pkgs(self):
         return dict(pkgs=Package.select())
 
@@ -111,7 +111,7 @@ class Root(controllers.RootController):
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.list")
-    @paginate('updates', default_order='update_id', limit=15)
+    @paginate('updates', default_order='update_id', limit=20)
     def list(self):
         """ List all pushed updates """
         updates = PackageUpdate.select(
@@ -121,7 +121,7 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
-    @paginate('updates', default_order='update_id', limit=15)
+    @paginate('updates', default_order='update_id', limit=20)
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(PackageUpdate.q.submitter ==
@@ -346,19 +346,19 @@ class Root(controllers.RootController):
         if p.cves != [] and (p.type != 'security'):
             p.type = 'security'
             note += '; CVEs provided, changed update type to security'
+        if p.type == 'security':
+            mail.send(config.get('security_team'), 'new', p)
 
         if edited:
             flash("Update successfully edited" + note)
-            mail.send_admin('edited', p)
         else:
             flash("Update successfully added" + note)
-            mail.send_admin('new', p)
 
         raise redirect(p.get_url())
 
     @expose(template='bodhi.templates.list')
     @identity.require(identity.not_anonymous())
-    @paginate('updates', default_order='update_id', limit=15)
+    @paginate('updates', default_order='update_id', limit=20)
     @exception_handler(exception)
     def default(self, *args, **kw):
         """
