@@ -55,6 +55,7 @@ class Masher:
         for update in thread.updates:
             log.debug("Doing post-request stuff for %s" % update.nvr)
             update.request_complete()
+        log.info("Push complete!")
         if len(self._queue):
             self._mash(self._queue.pop())
 
@@ -76,7 +77,7 @@ class MashThread(Thread):
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = set()
         self.success = False
-        self.cmd = 'mash -o %s -c bodhi/config/mash.conf '
+        self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + ' '
         self.actions = []
 
     def move_builds(self):
@@ -167,11 +168,12 @@ class MashThread(Thread):
             else:
                 log.error("Error mashing.. skipping post-request actions")
                 if self.undo_move():
-                    log.debug("Tag rollback successful!")
+                    log.info("Tag rollback successful!")
                 else:
-                    log.debug("Tag rollback failed!")
+                    log.error("Tag rollback failed!")
         else:
-            log.error("Unable to move build")
+            log.error("Error with build moves.. rolling back")
+            self.undo_move():
 
 def start_extension():
     global masher
