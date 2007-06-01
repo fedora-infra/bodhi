@@ -379,7 +379,7 @@ class Root(controllers.RootController):
         if not len(args): # /(testing|pending)
             updates = PackageUpdate.select(
                             PackageUpdate.q.status == status,
-                            orderBy=PackageUpdate.q.update_id)
+                            orderBy=PackageUpdate.q.date_pushed).reversed()
             return dict(updates=updates, tg_template=template,
                         num_items=updates.count())
 
@@ -401,7 +401,7 @@ class Root(controllers.RootController):
                 updates = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
                                 PackageUpdate.q.status == status),
-                            orderBy=PackageUpdate.q.update_id)
+                            orderBy=PackageUpdate.q.date_pushed).reversed()
                 return dict(updates=updates, num_items=updates.count())
         except SQLObjectNotFound:
             pass
