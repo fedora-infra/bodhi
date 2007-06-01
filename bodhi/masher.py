@@ -104,16 +104,7 @@ class MashThread(Thread):
                                           update.nvr, force=True)
             self.actions.append((update.nvr, current_tag, self.tag))
             tasks.append(task_id)
-
-        # Wait for tasks to complete
-        log.debug("Waiting for tasks to complete: %s" % tasks)
-        for task in tasks:
-            while not self.koji.taskFinished(task):
-                sleep(2)
-            task_info = self.koji.getTaskInfo(task)
-            if task_info['state'] != TASK_STATES['CLOSED']:
-                return False
-        return True
+        buildsys.wait_for_tasks(tasks)
 
     def undo_move(self):
         """
@@ -127,13 +118,7 @@ class MashThread(Thread):
             task_id = self.koji.moveBuild(action[2], action[1], action[0],
                                           force=True)
             tasks.append(task_id)
-        log.debug("Wating for tasks to complete: %s" % tasks)
-        for task in tasks:
-            while not self.koji.taskFinished(task):
-                sleep(2)
-            if task_info['state'] != TASK_STATES['CLOSED']:
-                return False
-        return True
+        buildsys.wait_for_tasks(tasks)
 
     def mash(self):
         for repo in self.repos:
@@ -145,9 +130,11 @@ class MashThread(Thread):
             log.info("status = %s" % status)
             if status == 0:
                 self.success = True
-                out = file('%s/mash.out' % mashdir, 'w')
+                mash_output = '%s/mash.out' % mashdir
+                out = file(mash_outpu, 'w')
                 out.write(output)
                 out.close()
+                log.info("Wrote mash output to %s" % mash_output)
 
                 # create a symlink to new repo
                 link = join(config.get('mashed_dir'), repo)
@@ -155,10 +142,12 @@ class MashThread(Thread):
                     os.unlink(link)
                 os.symlink(join(mashdir, repo), link)
             else:
-                out = file(join(config.get('mashed_dir'), 'mash-failed-%s' %
-                           time.strftime("%y%m%d.%H%M")), 'w')
+                failed_output = join(config.get('mashed_dir'), 'mash-failed-%s'
+                                     % time.strftime("%y%m%d.%H%M"))
+                out = file(failed_output, 'w')
                 out.write(output)
                 out.close()
+                log.info("Wrote failed mash output to %s" % failed_output)
 
     def run(self):
         if self.move_builds():
@@ -173,7 +162,8 @@ class MashThread(Thread):
                     log.error("Tag rollback failed!")
         else:
             log.error("Error with build moves.. rolling back")
-            self.undo_move():
+            self.undo_move()
+        log.debug("MashThread done")
 
 def start_extension():
     global masher

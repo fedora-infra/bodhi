@@ -38,3 +38,18 @@ def login(client=join(expanduser('~'), '.koji/client.crt'),
     koji_session = koji.ClientSession(config.get('koji_hub'), {})
     koji_session.ssl_login(client, clientca, serverca)
     return koji_session
+
+def wait_for_tasks(tasks):
+    """
+    Wait for a list of koji tasks to complete.  Return the first task number
+    to fail, otherwise zero.
+    """
+    log.debug("Waiting for tasks to complete: %s" % tasks)
+    for task in tasks:
+        while not self.koji.taskFinished(task):
+            sleep(2)
+        task_info = self.koji.getTaskInfo(task)
+        if task_info['state'] != TASK_STATES['CLOSED']:
+            log.error("Koji task %d failed" % task)
+            return task
+    return 0
