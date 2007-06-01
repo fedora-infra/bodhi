@@ -265,7 +265,9 @@ def get_template(update):
         except RPMNotFound:
             log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
                       lastpkg)
-    info['changelog'] = koji.fixEncoding(info['changelog'])
+
+    for (key, value) in info.items():
+        info[key] = koji.fixEncoding(value)
 
     return (info['subject'], errata_template % info)
 
