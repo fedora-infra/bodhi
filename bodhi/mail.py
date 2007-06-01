@@ -197,7 +197,7 @@ def get_template(update):
     h = update.get_rpm_header()
     line = str('-' * 80) + '\n'
     info = {}
-    info['date'] = update.date_pushed
+    info['date'] = str(update.date_pushed)
     info['name'] = h[rpm.RPMTAG_NAME]
     info['summary'] = h[rpm.RPMTAG_SUMMARY]
     info['version'] = h[rpm.RPMTAG_VERSION]
