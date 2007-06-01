@@ -13,9 +13,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import koji
+import logging
 
+from time import sleep
 from os.path import join, expanduser
 from turbogears import config
+
+log = logging.getLogger(__name__)
 
 # Our singleton koji ClientSession
 session = None
@@ -46,10 +50,10 @@ def wait_for_tasks(tasks):
     """
     log.debug("Waiting for tasks to complete: %s" % tasks)
     for task in tasks:
-        while not self.koji.taskFinished(task):
+        while not session.taskFinished(task):
             sleep(2)
-        task_info = self.koji.getTaskInfo(task)
-        if task_info['state'] != TASK_STATES['CLOSED']:
+        task_info = session.getTaskInfo(task)
+        if task_info['state'] != koji.TASK_STATES['CLOSED']:
             log.error("Koji task %d failed" % task)
             return task
     return 0
