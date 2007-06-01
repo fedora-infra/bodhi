@@ -96,7 +96,7 @@ addLoadEvent(function(){
                 <li><a href="${tg.url('/new')}">New update</a></li>
                 <li><a href="${tg.url('/pending')}">Pending updates</a></li>
                 <li><a id="testing" href="#">Testing updates</a>
-                    <div id="testinglist" style="display: none">
+                    <div id="testinglist"> 
                         <ul>
                             <li py:for="release in releases">
                                 <a href="${tg.url('/testing/%s' % release[0])}">${release[1]}</a>
@@ -105,7 +105,7 @@ addLoadEvent(function(){
                     </div>
                 </li>
                 <li><a id="stable" href="#">Stable updates</a>
-                <div id="stablelist" style="display: none">
+                <div id="stablelist">
                     <ul>
                         <li py:for="release in releases">
                             <a href="${tg.url('/%s' % release[0])}">${release[1]}</a>
