@@ -13,14 +13,12 @@
 
 <?python
 bugs = "https://bugzilla.redhat.com/bugzilla/buglist.cgi?component=%s&bug_status=NEW&bug_status=ASSIGNED&bug_status=NEEDINFO&bug_status=MODIFIED" % pkg.name
-pkgdb = "https://admin.fedoraproject.org/pkgdb/packages/name/%s" % pkg.name
 ?>
 
 <blockquote>
     <h1>${pkg.name}</h1>
     <ul>
         <li><a href="${bugs}">Open Bugs</a></li>
-        <li><a href="${pkgdb}">Package Details</a></li>
     </ul>
 </blockquote>
 
