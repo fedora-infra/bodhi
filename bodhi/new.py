@@ -65,18 +65,39 @@ class AutoCompleteValidator(validators.Schema):
 class UpdateFields(WidgetsList):
     nvr = AutoCompleteField(label='Package',
                             search_controller=url('/new/pkgsearch'),
-                            search_param='name', result_name='pkgs', validator=
-                            AutoCompleteValidator())
+                            search_param='name', result_name='pkgs',
+                            validator=AutoCompleteValidator(),
+                            template="""\
+<div xmlns:py="http://purl.org/kid/ns#">
+    <script language="JavaScript" type="text/JavaScript">
+        AutoCompleteManager${field_id} = new AutoCompleteManager('${field_id}',
+        '${text_field.field_id}', '${hidden_field.field_id}',
+        '${search_controller}', '${search_param}', '${result_name}',${str(only_suggest).lower()},
+        '${tg.widgets}/turbogears.widgets/spinner.gif', 0.2);
+        addLoadEvent(AutoCompleteManager${field_id}.initialize);
+    </script>
+
+    ${text_field.display(value_for(text_field), **params_for(text_field))}
+    <img name="autoCompleteSpinner${name}" id="autoCompleteSpinner${field_id}" src="${tg.widgets}/turbogears.widgets/spinnerstopped.png" alt="" />
+    <div class="autoTextResults" id="autoCompleteResults${field_id}"/>
+    ${hidden_field.display(value_for(hidden_field), **params_for(hidden_field))}
+    </div>
+    """)
     release = SingleSelectField(options=get_releases, validator=
                                 validators.OneOf(get_releases()))
     type = SingleSelectField(options=update_types, validator=
                              validators.OneOf(update_types))
     bugs = TextField(validator=validators.String())
-    cves = TextField(validator=validators.String())
+    cves = TextField(label='CVEs', validator=validators.String())
     notes = TextArea(validator=validators.String())
     edited = HiddenField(default=None)
 
-update_form = TableForm(fields=UpdateFields(), submit_text='Submit')
+update_form = TableForm(fields=UpdateFields(), submit_text='Submit',
+                        form_attrs={
+                            'onclick' :
+                                "$('bodhi-logo').style.display = 'none';"
+                                "$('wait').style.display = 'block';"
+                        })
 
 class NewUpdateController(controllers.Controller):
 
