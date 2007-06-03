@@ -50,7 +50,7 @@
                 <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>
             </td>
             <td class="list" align="center">
-                <img src="${tg.url('/static/images/%s.png' % update.type)}"/>
+                <img src="${tg.url('/static/images/%s.png' % update.type)}" title="${update.type}" />
             </td>
             <td class="list" align="center">
                 ${update.status}
