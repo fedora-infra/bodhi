@@ -29,6 +29,8 @@ from turbogears import config, flash
 from turbogears.database import PackageHub
 
 from os.path import isdir, isfile, join, basename
+from textwrap import wrap
+
 from bodhi import buildsys
 from bodhi.util import get_nvr, excluded_arch, rpm_fileheader, header
 from bodhi.metadata import ExtendedMetadata
@@ -92,9 +94,19 @@ class PackageUpdate(SQLObject):
                               default=None)
     comments        = MultipleJoin('Comment', joinColumn='update_id')
 
-    def get_bugstring(self):
+    def get_bugstring(self, show_titles=False):
         """ Return a space-delimited string of bug numbers for this update """
-        return ' '.join([str(bug.bz_id) for bug in self.bugs])
+        val = ''
+        if show_titles:
+            i = 0
+            for bug in self.bugs:
+                val += '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
+                                        bug.bz_id, bug.title)
+                i += 1
+            val = val[:-1] # remove trailing newline
+        else:
+            val = ' '.join([str(bug.bz_id) for bug in self.bugs])
+        return val
 
     def get_cvestring(self):
         """ Return a space-delimited string of CVE ids for this update """
@@ -132,6 +144,7 @@ class PackageUpdate(SQLObject):
             self.assign_id()
             #uinfo.add_update(self)
             self.send_update_notice()
+            map(lambda bug: bug.close_bug(self), self.bugs)
             mail.send(self.submitter, 'pushed', self)
         elif self.request == 'unpush':
             mail.send(self.submitter, 'unpushed', self)
@@ -145,6 +158,7 @@ class PackageUpdate(SQLObject):
             self.assign_id()
             mail.send(self.submitter, 'moved', self)
             self.send_update_notice()
+            map(lambda bug: bug.add_comment(self), self.bugs)
             #uinfo.add_update(self)
 
         log.info("%s request on %s complete!" % (self.request, self.nvr))
@@ -163,12 +177,7 @@ class PackageUpdate(SQLObject):
                               self.release.id_prefix.lower())
         if list:
             (subject, body) = mail.get_template(self)
-            bodhi = config.get('bodhi_email')
-            if not bodhi:
-                log.warning("bodhi_email not defined in app.cfg; unable to "
-                            "send update notice")
-                return
-            message = turbomail.Message(bodhi, list, subject)
+            message = turbomail.Message(self.submitter, list, subject)
             message.plain = body
             try:
                 turbomail.enqueue(message)
@@ -239,11 +248,7 @@ class PackageUpdate(SQLObject):
         """
         Return a string representation of this update.
         """
-        val = """\
-================================================================================
-  %s
-================================================================================
-""" % self.nvr
+        val = "%s\n%s\n%s\n" % ('=' * 80, self.nvr, '=' * 80)
         if self.update_id:
             val += "  Update ID: %s\n" % self.update_id
         val += """    Release: %s
@@ -252,7 +257,7 @@ class PackageUpdate(SQLObject):
         if self.request != None:
             val += "\n    Request: %s" % self.request
         if len(self.bugs):
-           val += "\n       Bugs: %s" % self.get_bugstring()
+           val += "\n       Bugs: %s" % self.get_bugstring(show_titles=True)
         if len(self.cves):
             val += "\n       CVES: %s" % self.get_cvestring()
         if self.notes:
@@ -261,9 +266,6 @@ class PackageUpdate(SQLObject):
   Submitter: %s
   Submitted: %s
         """ % (self.submitter, self.date_submitted)
-        #for files in self.filelist.values():
-        #    for file in files:
-        #        val += " %s\n\t    " % basename(file)
         return val.rstrip()
 
     def get_rpm_header(self):
@@ -307,6 +309,48 @@ class PackageUpdate(SQLObject):
             tag += '-testing'
         return tag
 
+    def update_bugs(self, bugs):
+        """
+        Create any new bugs, and remove any missing ones.  Destroy removed bugs
+        that are no longer referenced anymore
+        """
+        for bug in self.bugs:
+            if bug.bz_id not in bugs:
+                self.removeBugzilla(bug)
+                if len(bug.updates) == 0:
+                    log.debug("Destroying stray Bugzilla #%d" % bug.bz_id)
+                    bug.destroySelf()
+        for bug in bugs:
+            try:
+                bz = Bugzilla.byBz_id(bug)
+                if bz not in self.bugs:
+                    self.addBugzilla(bz)
+            except SQLObjectNotFound:
+                bz = Bugzilla(bz_id=bug)
+                self.addBugzilla(bz)
+
+    def update_cves(self, cves):
+        """
+        Create any new CVES, and remove any missing ones.  Destroy removed CVES 
+        that are no longer referenced anymore.
+        """
+        for cve in self.cves:
+            if cve.cve_id not in cves:
+                log.debug("Removing CVE %s from %s" % (cve.cve_id, self.nvr))
+                self.removeCVE(cve)
+                if cve.cve_id not in cves and len(cve.updates) == 0:
+                    log.debug("Destroying stray CVE #%s" % cve.cve_id)
+                    cve.destroySelf()
+        for cve_id in cves:
+            try:
+                cve = CVE.byCve_id(cve_id)
+                if cve not in self.cves:
+                    self.addCVE(cve)
+            except SQLObjectNotFound:
+                log.debug("Creating new CVE: %s" % cve_id)
+                cve = CVE(cve_id=cve_id)
+                self.addCVE(cve)
+
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
     update      = ForeignKey("PackageUpdate", notNone=True)
@@ -332,9 +376,8 @@ class Bugzilla(SQLObject):
     security = BoolCol(default=False)
 
     _bz_server = config.get("bz_server")
-    _default_closemsg = "%(package)s has been released for %(release)s.  " + \
-                        "If problems still persist, please make note of it " + \
-                        "in this bug report."
+    default_msg = "%s has been pushed to the %s repository.  If problems " + \
+                  "still persist, please make note of it in this bug report."
 
     def _set_bz_id(self, bz_id):
         """
@@ -364,16 +407,38 @@ class Bugzilla(SQLObject):
             self.title = 'Unable to fetch bug title'
             log.error(self.title)
 
-    def _add_comment(self, comment):
+    def default_message(self, update):
+        return self.default_msg % (update.nvr, "%s %s" % 
+                                   update.release.long_name, update.status)
+
+    def add_comment(self, update, comment=None):
         me = config.get('bodhi_email')
         password = config.get('bodhi_password', None)
         if password:
-            server = xmlrpclib.Server(self._bz_server)
-            server.bugzilla.addComment(self.bz_id, comment, me, password, 0)
+            if not comment:
+                comment = self.default_message(update)
+            try:
+                server = xmlrpclib.Server(self._bz_server)
+                server.bugzilla.addComment(self.bz_id, comment, me, password, 0)
+            except Exception, e:
+                log.error("Unable to add comment to bug #s\n%s" % (self.bz_id,
+                                                                   str(e)))
             del server
 
-    def _close_bug(self):
-        """ TODO """
+    def close_bug(self, update, resolution=None):
+        me = config.get('bodhi_email')
+        password = config.get('bodhi_password')
+        if password:
+            if not resolution:
+                resolution = self.default_message(update)
+            ver = util.get_nvr(update.nvr)[-2]
+            try:
+                server = xmlrpclib.Server(self._bz_server)
+                server.bugzilla.closeBug(self.bz_id, resolution, me, password,
+                                         0, ver)
+            except Exception, e:
+                log.error("Cannot close bug #$s with resolution: %s" %
+                          (self.bz_id, resolution))
         pass
 
     def get_url(self):
