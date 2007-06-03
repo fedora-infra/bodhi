@@ -20,7 +20,7 @@ import cherrypy
 
 from koji import GenericError
 from sqlobject import SQLObjectNotFound
-from sqlobject.sqlbuilder import AND
+from sqlobject.sqlbuilder import AND, OR
 
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config, url,
@@ -124,8 +124,11 @@ class Root(controllers.RootController):
     @paginate('updates', default_order='update_id', limit=20)
     def mine(self):
         """ List all updates submitted by the current user """
-        updates = PackageUpdate.select(PackageUpdate.q.submitter ==
-                                       identity.current.user_name)
+        updates = PackageUpdate.select(
+                    OR(PackageUpdate.q.submitter == '%s <%s>' % (
+                            identity.current.user.display_name,
+                            identity.current.user.user['email']),
+                       PackageUpdate.q.submitter == identity.current.user_name))
         return dict(updates=updates, num_items=updates.count())
 
     @identity.require(identity.not_anonymous())
@@ -208,7 +211,6 @@ class Root(controllers.RootController):
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.form')
-    @exception_handler(exception)
     def edit(self, update):
         """ Edit an update """
         update = PackageUpdate.byNvr(update)
@@ -229,7 +231,6 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    @exception_handler(exception)
     def save(self, release, bugs, cves, edited, **kw):
         """
         Save an update.  This includes new updates and edited.
@@ -244,6 +245,8 @@ class Root(controllers.RootController):
             raise redirect('/edit/%s' % edited)
 
         release = Release.select(Release.q.long_name == release)[0]
+        bugs = map(int, bugs.replace(',', ' ').split())
+        cves = cves.replace(',', ' ').split()
         note = ''
 
         if not edited: # new update
@@ -300,8 +303,10 @@ class Root(controllers.RootController):
             try:
                 # Create a new update
                 p = PackageUpdate(package=package, release=release,
-                                  submitter=identity.current.user_name, **kw)
-                #p._build_filelist()
+                                  submitter='%s <%s>' % (
+                                      identity.current.user.display_name,
+                                      identity.current.user.user['email']),
+                                  **kw)
             except RPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')
@@ -318,41 +323,28 @@ class Root(controllers.RootController):
                 flash("Cannot change update release after submission")
                 raise redirect(p.get_url())
             p.set(release=release, date_modified=datetime.now(), **kw)
-            map(p.removeBugzilla, p.bugs)
-            map(p.removeCVE, p.cves)
+            p.update_bugs(bugs)
+            p.update_cves(cves)
 
-        # Add each bug and CVE to this package
-        for bug in bugs.replace(',', ' ').split():
-            bz = None
-            try:
-                bz = Bugzilla.byBz_id(int(bug))
-            except SQLObjectNotFound:
-                bz = Bugzilla(bz_id=int(bug))
-            except ValueError:
-                flash("Invalid bug number")
-                # TODO: redirect back to the previous page
-                raise redirect('/')
-            if bz.security and p.type != 'security':
-                p.type = 'security'
-                note += '; Security bugs found, changed update type to security'
-            p.addBugzilla(bz)
-        for cve_id in cves.replace(',', ' ').split():
-            cve = None
-            try:
-                cve = CVE.byCve_id(cve_id)
-            except SQLObjectNotFound:
-                cve = CVE(cve_id=cve_id)
-            p.addCVE(cve)
+        if p.type != 'security':
+            for bug in p.bugs:
+                if bug.security:
+                    p.type = 'security'
+                    note += '; Security bug provided, changed update type ' + \
+                            'to security'
         if p.cves != [] and (p.type != 'security'):
             p.type = 'security'
             note += '; CVEs provided, changed update type to security'
-        if p.type == 'security':
-            mail.send(config.get('security_team'), 'new', p)
 
         if edited:
+            mail.send(p.submitter, 'edited', p)
             flash("Update successfully edited" + note)
         else:
-            flash("Update successfully added" + note)
+            if p.type == 'security':
+                mail.send(config.get('security_team'), 'new', p,
+                          sender=p.submitter)
+            mail.send(p.submitter, 'new', p)
+            flash("Update successfully created" + note)
 
         raise redirect(p.get_url())
 
