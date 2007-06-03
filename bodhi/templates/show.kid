@@ -62,7 +62,9 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                 [
                 <span py:if="not update.pushed">
                     <span py:if="update.request == None">
-                        <a href="${tg.url('/push/%s' % update.nvr)}">Push</a> | 
+                        <a href="${tg.url('/push/%s' % update.nvr)}">
+                            <span py:if="update.type == 'security'">Push to Stable</span>
+                            <span py:if="update.type != 'security'">Push to Testing</span></a> | 
                         <a href="${tg.url('/delete/%s' % update.nvr)}">Delete</a> | 
                     </span>
                     <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
@@ -78,7 +80,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                     </span>
                 </span>
                 <span py:if="update.request != None">
-                    | <a href="${tg.url('/revoke/%s' % update.nvr)}">Revoke ${update.request} request</a>
+                    | <a href="${tg.url('/revoke/%s' % update.nvr)}">Revoke request</a>
                 </span>
                 ]
             </td>
