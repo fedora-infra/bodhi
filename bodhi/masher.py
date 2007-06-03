@@ -266,9 +266,10 @@ class MashTask(Thread):
         val += '  Mashed the following repositories:'
         for repo in self.repos:
             val += '  - %s' % repo
-        mashlog = file(self.log, 'r')
-        val += '\nMash Output:\n\n%s' % mashlog.read()
-        mashlog.close()
+        if self.log:
+            mashlog = file(self.log, 'r')
+            val += '\nMash Output:\n\n%s' % mashlog.read()
+            mashlog.close()
         return val
 
 def start_extension():
