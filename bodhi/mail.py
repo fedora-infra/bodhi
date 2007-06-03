@@ -196,6 +196,11 @@ Software with yum,' available at http://docs.fedoraproject.org/yum/.
 def get_template(update):
     h = update.get_rpm_header()
     line = str('-' * 80) + '\n'
+
+    ##
+    ## TODO: get this info from Koji
+    ##
+
     info = {}
     info['date'] = str(update.date_pushed)
     info['name'] = h[rpm.RPMTAG_NAME]
@@ -234,14 +239,18 @@ def get_template(update):
     info['filelist'] = '\n'.join(filelist)
 
     # Add this updates referenced Bugzillas and CVEs
+    i = 1
     info['references'] = ""
     if len(update.bugs) or len(update.cves):
         info['references'] = "References:\n\n"
         for bug in update.bugs:
-            info['references'] += "  Bug #%d - %s\n" % (bug.bz_id,
-                                                        bug.get_url())
+            info['references'] += "  [ %d ] Bug #%d\n         %s\n" % (i,
+                    bug.bz_id, bug.get_url())
+            i += 1
         for cve in update.cves:
-            info['references'] += "  %s - %s\n" % (cve.cve_id, cve.get_url())
+            info['references'] += "  [ %d ] %s\n         %s\n" % (i, cve.cve_id,
+                                                                  cve.get_url())
+            i += 1
         info['references'] += line
 
     # Find the most recent update for this package, other than this one
@@ -271,23 +280,31 @@ def get_template(update):
 
     return (info['subject'], errata_template % info)
 
-def send(to, msg_type, update):
-    """ Send an update notification email to a given recipient """
-    bodhi = config.get('bodhi_email')
-    if not bodhi:
-        log.warning("bodhi_email not defined in app.cfg; unable to send mail")
-        return
-
-    message = turbomail.Message(bodhi, to, messages[msg_type]['subject'] %
-                                { 'package' : update.nvr })
-    message.plain = messages[msg_type]['body'] % \
-                    messages[msg_type]['fields'](update)
+def send_mail(sender, to, subject, body):
+    message = turbomail.Message(sender, to, subject)
+    message.plain = body
     try:
         turbomail.enqueue(message)
         log.debug("Sending mail: %s" % message.plain)
     except MailNotEnabledException:
         log.warning("TurboMail is not enabled!")
 
-def send_admin(msg_type, update):
+def send(to, msg_type, update, sender=None):
+    """ Send an update notification email to a given recipient """
+    if not sender:
+        sender = config.get('bodhi_email')
+    if not sender:
+        log.warning("bodhi_email not defined in app.cfg; unable to send mail")
+        return
+    send_mail(sender, to, messages[msg_type]['subject'] %
+              {'package':update.nvr}, messages[msg_type]['body'] %
+              messages[msg_type]['fields'](update))
+
+def send_releng(subject, body):
+    """ Send the Release Engineering team a message """
+    send_mail(config.get('bodhi_email'), config.get('release_team_address'),
+              subject, body)
+
+def send_admin(msg_type, update, sender=None):
     """ Send an update notification to the admins/release team. """
-    send(config.get('release_team_address'), msg_type, update)
+    send(config.get('release_team_address'), msg_type, update, sender)
