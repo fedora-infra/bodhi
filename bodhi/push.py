@@ -22,7 +22,7 @@ import commands
 
 from Comet import comet
 from datetime import datetime
-from turbogears import controllers, expose, flash, redirect, config, identity
+from turbogears import expose, redirect, config, identity, controllers
 
 from bodhi.util import mkmetadatadir, header
 from bodhi.model import PackageUpdate
@@ -33,16 +33,11 @@ from os.path import isfile, isdir, basename, join
 
 log = logging.getLogger(__name__)
 
-class PushController(controllers.Controller):
+class PushController(controllers.Controller, identity.SecureResource):
+    require = identity.in_group("releng")
 
     def __init__(self):
-        self.createrepo_cache = config.get('createrepo_cache_dir')
-        self.stage_dir = config.get('stage_dir')
-        self.lockfile = join(self.stage_dir, '.lock')
         self.orig_repo = None
-        if isfile(self.lockfile):
-            log.debug("Removing stale repository lockfile")
-            self._unlock_repo()
 
     def repodiff(self):
         """
@@ -84,116 +79,3 @@ class PushController(controllers.Controller):
             updates = [updates]
         masher.queue([PackageUpdate.byNvr(nvr) for nvr in updates])
         raise redirect('/admin/masher')
-
-#    @expose()
-#    def run_requests(self):
-#        """
-#        Run all of the appropriate requests for a list of selected updates
-#        """
-#        @comet(content_type='text/plain')
-#        def _run_requests():
-#            start_time = datetime.now()
-#            yield "Starting push at %s" % start_time
-#            self.repodiff()
-#            try:
-#                self._lock_repo()
-#                yield "Acquired repository lock"
-#            except RepositoryLocked:
-#                err = "Unable to acquire lock for repository"
-#                log.warning(err)
-#                yield err
-#                # TODO: block somehow until it becomes available
-#                # (or even attach to a current push console)
-#
-#            # We need to keep track of the repos that we are proding so we
-#            # can regenerate the appropriate metadata
-#            releases = { True : set(), False : set() } # testing : releases
-#
-#            # All of your updateinfo.xml.gz are belong to us
-#            updateinfo = ExtendedMetadata()
-#
-#            # Execute each updates request
-#            for package in cherrypy.session['updates']:
-#                log.debug("Running request on %s" % package)
-#                update = PackageUpdate.byNvr(package)
-#                releases[update.status == 'testing'].add(update.release)
-#                if update.request == 'move':
-#                    releases[False].add(update.release)
-#                for msg in update.run_request(updateinfo=updateinfo):
-#                    log.debug(msg)
-#                    yield msg
-#
-#            # Regenerate the repository metadata
-#            yield header("Generating repository metadata")
-#            try:
-#                for (testing, releases) in releases.items():
-#                    for release in releases:
-#                        for output in generate_metadata(release, testing):
-#                            yield output
-#                            log.info(output)
-#                yield " * Inserting updateinfo.xml into repositories"
-#                updateinfo.insert_updateinfo()
-#            except Exception, e:
-#                log.error(e)
-#                msg = "Exception thrown: " + str(e)
-#                log.error(msg)
-#                yield "ERROR: " + msg
-#                raise e
-#
-#            # Clean up
-#            self._unlock_repo()
-#            cherrypy.session['updates'] = []
-#            msg = "Push completed %s" % str(datetime.now() - start_time)
-#            log.debug(msg)
-#            yield header(msg)
-#            self.repodiff()
-#
-#        return _run_requests()
-#
-#def generate_metadata(release, testing, stage=None):
-#    """
-#    Generate repository metadata for a given release.
-#    """
-#    if not stage: stage = config.get('stage_dir')
-#    baserepo = join(stage, testing and 'testing' or '', release.repodir)
-#
-#    for arch in [arch.name for arch in release.arches] + [u'SRPMS']:
-#        repo = join(baserepo, arch)
-#
-#        ## Move the updateinfo.xml.gz out of the way
-#        tmpmd = None
-#        updateinfo = join(repo, 'repodata', 'updateinfo.xml.gz')
-#        if isfile(updateinfo):
-#            import gzip
-#            tmpmd = tempfile.mktemp()
-#            tmp = open(tmpmd, 'w')
-#            md = gzip.open(updateinfo, 'r')
-#            tmp.write(md.read())
-#            tmp.close()
-#            md.close()
-#            log.debug("Copying update updateinfo from %s to %s" %
-#                      (repo,tmpmd))
-#            os.remove(updateinfo)
-#
-#        yield ' * %s' % join(testing and 'testing' or '', release.name, arch)
-#        mkmetadatadir(repo)
-#
-#        ## Insert the updateinfo.xml.gz back into the repodata
-#        if tmpmd:
-#            tmpxml = join(repo, 'repodata', 'updateinfo.xml')
-#            shutil.move(tmpmd, tmpxml)
-#            repomd = RepoMetadata(join(repo, 'repodata'))
-#            repomd.add(str(tmpxml))
-#            os.remove(tmpxml)
-#            tmpmd = None
-#            log.debug("Inserted updateinfo.xml into %s" %
-#                      join(repo, 'repodata'))
-#
-#        debugrepo = join(repo, 'debug')
-#        if isdir(debugrepo):
-#             yield ' * %s' % join(testing and 'testing' or '',
-#                                  release.name, arch, 'debug')
-#             mkmetadatadir(debugrepo)
-#
-### Allow us to return a generator for streamed responses
-#cherrypy.config.update({'/admin/push/run_requests':{'stream_response':True}})
