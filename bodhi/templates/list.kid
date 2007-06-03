@@ -47,7 +47,7 @@
                 <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
             </td>
             <td class="list">
-                <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>
+                <a class="list" href="${tg.url('/%s%s' % (update.status=='testing' and 'testing/' or '', update.release.name))}">${"%s%s" % (update.release.long_name, update.status=='testing' and ' Testing' or '')}</a>
             </td>
             <td class="list" align="center">
                 <img src="${tg.url('/static/images/%s.png' % update.type)}" title="${update.type}" />
