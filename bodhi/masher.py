@@ -17,11 +17,11 @@ import time
 import logging
 import commands
 
-from bodhi import buildsys
+from bodhi import buildsys, mail
 from bodhi.util import synchronized
 from threading import Thread, Lock
 from turbogears import config
-from os.path import exists, join
+from os.path import exists, join, islink
 
 log = logging.getLogger(__name__)
 masher = None
@@ -61,14 +61,20 @@ class Masher:
 
     @synchronized(lock)
     def done(self, thread):
+        """
+        Called by each MashTask upon completion.  If there are more in the
+        queue, then dispatch them.
+        """
         log.info("MashTask %d done!" % thread.id)
+        self.mashing = 0
         self.last_log = thread.log
+        mail.send_releng('Bodhi Masher Report %s' % 
+                         time.strftime("%y%m%d.%H%M"), "The following tasks " +
+                         "were successful.\n\n" + thread.report())
         self._threads.remove(thread)
         if len(self._threads) == 0:
             if len(self._queue):
                 self._mash(self._queue.pop())
-        else:
-            self.mashing = 0
 
     def _mash(self, task):
         """ Dispatch a given MashTask """
@@ -79,7 +85,7 @@ class Masher:
 
     def lastlog(self):
         """
-        Return the most recent mash log
+        Return the most recent mash (log_filename, log_data)
         """
         log = 'Previous mash log not available'
         if self.last_log and exists(self.last_log):
@@ -130,10 +136,10 @@ class MashTask(Thread):
         self.repos = repos
         self.success = False
         self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + ' '
-        self.actions = []
-        self.mashing = False
-        self.moving = False
-        self.log = None
+        self.actions = [] # [(nvr, current_tag, new_tag), ...]
+        self.mashing = False # are we currently mashing?
+        self.moving = False # are we currently moving build tags?
+        self.log = None # filename that we wrote mash output to
 
     def move_builds(self):
         tasks = []
@@ -200,7 +206,7 @@ class MashTask(Thread):
 
                 # create a symlink to new repo
                 link = join(config.get('mashed_dir'), repo)
-                if exists(link):
+                if islink(link):
                     os.unlink(link)
                 os.symlink(join(mashdir, repo), link)
             else:
@@ -212,6 +218,7 @@ class MashTask(Thread):
                 log.info("Wrote failed mash output to %s" % failed_output)
                 self.log = failed_output
         self.mashing = False
+        log.info("Mashing complete")
 
     def run(self):
         """
@@ -231,6 +238,7 @@ class MashTask(Thread):
         else:
             log.error("Error with build moves.. rolling back")
             self.undo_move()
+            self.success = False
         masher.done(self)
 
     def __str__(self):
@@ -240,11 +248,27 @@ class MashTask(Thread):
             for action in self.actions:
                 val += '   %s :: %s => %s\n' % (action[0], action[1], action[2])
         elif self.mashing:
-            val += '  Mashing Repos %s\n' % self.repos
+            val += '  Mashing Repos %s\n' % ([str(repo) for repo in self.repos])
             for update in self.updates:
                 val += '   %s (%s)\n' % (update.nvr, update.request)
         else:
             val += '  Not doing anything?'
+        return val
+
+    def report(self):
+        val = '[ Mash Task #%d ]' % self.id
+        val += 'The following actions were %ssuccessful.' % (self.success and ''
+                                                             or '*NOT* ')
+        if len(self.actions):
+            val += '\n  Moved the following package tags:'
+            for action in self.actions:
+                val += '   %s :: %s => %s\n' % (action[0], action[1], action[2])
+        val += '  Mashed the following repositories:'
+        for repo in self.repos:
+            val += '  - %s' % repo
+        mashlog = file(self.log, 'r')
+        val += '\nMash Output:\n\n%s' % mashlog.read()
+        mashlog.close()
         return val
 
 def start_extension():
