@@ -23,19 +23,22 @@
             <th class="list">
                 <b>ID</b>
             </th>
-            <th class="list" width="30%">
+            <th class="list">
                 <b>Package</b>
             </th>
-            <th class="list" width="20%">
+            <th class="list">
                 <b>Release</b>
             </th>
-            <th class="list" width="5%">
+            <th class="list">
                 <center><b>Type</b></center>
             </th>
-            <th class="list" width="10%">
+            <th class="list">
                 <center><b>Status</b></center>
             </th>
-            <th class="list" width="20%">
+            <th class="list">
+                <center><b>Stable</b></center>
+            </th>
+            <th class="list">
                 <b>Date Pushed</b>
             </th>
         </tr>
@@ -55,6 +58,12 @@
             </td>
             <td class="list" align="center">
                 ${update.status}
+            </td>
+            <?python
+            submitted = update.request == None and 'null' or 'tick'
+            ?>
+            <td class="list" align="center">
+                <img src="${tg.url('/static/images/%s.png' % (update.request == 'move' and 'tick' or 'null'))}"/>
             </td>
             <td class="list">
                 ${update.date_pushed}

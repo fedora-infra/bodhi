@@ -76,7 +76,7 @@ class Root(controllers.RootController):
         return dict()
 
     @expose(template='bodhi.templates.pkgs')
-    @paginate('pkgs', default_order='name', limit=20)
+    @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
     def pkgs(self):
         return dict(pkgs=Package.select())
 
@@ -111,7 +111,8 @@ class Root(controllers.RootController):
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.list")
-    @paginate('updates', default_order='update_id', limit=20)
+    @paginate('updates', default_order='update_id', limit=20,
+              allow_limit_override=True)
     def list(self):
         """ List all pushed updates """
         updates = PackageUpdate.select(
@@ -121,7 +122,8 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
-    @paginate('updates', default_order='update_id', limit=20)
+    @paginate('updates', default_order='update_id', limit=20,
+              allow_limit_override=True)
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
@@ -133,7 +135,6 @@ class Root(controllers.RootController):
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.show')
-    @exception_handler(exception)
     def show(self, update):
         update = PackageUpdate.byNvr(update)
         return dict(update=update, comment_form=self.comment_form)
@@ -335,6 +336,8 @@ class Root(controllers.RootController):
         if p.cves != [] and (p.type != 'security'):
             p.type = 'security'
             note += '; CVEs provided, changed update type to security'
+        if p.type == 'security' and p.request == 'push':
+            p.request = 'move'
 
         if edited:
             mail.send(p.submitter, 'edited', p)
@@ -348,10 +351,11 @@ class Root(controllers.RootController):
 
         raise redirect(p.get_url())
 
+    #@exception_handler(exception)
     @expose(template='bodhi.templates.list')
     @identity.require(identity.not_anonymous())
-    @paginate('updates', default_order='update_id', limit=20)
-    @exception_handler(exception)
+    @paginate('updates', default_order='date_pushed', limit=20,
+              allow_limit_override=True)
     def default(self, *args, **kw):
         """
         This method allows for /[(pending|testing)/]<release>[/<update>]
@@ -359,21 +363,22 @@ class Root(controllers.RootController):
         """
         args = [arg for arg in args]
         status = 'stable'
+        order = 'date_pushed'
         template = 'bodhi.templates.list'
 
         if len(args) and args[0] == 'testing':
             status = 'testing'
+            template = 'bodhi.templates.testing'
             del args[0]
         if len(args) and args[0] == 'pending':
             status = 'pending'
             template = 'bodhi.templates.pending'
+            order = 'date_submitted'
             del args[0]
         if not len(args): # /(testing|pending)
-            updates = PackageUpdate.select(
-                            PackageUpdate.q.status == status,
-                            orderBy=PackageUpdate.q.date_pushed).reversed()
+            updates = PackageUpdate.select(PackageUpdate.q.status == status)
             return dict(updates=updates, tg_template=template,
-                        num_items=updates.count())
+                        num_items=updates.count(), tg_paginate_order=order)
 
         try:
             release = Release.byName(args[0])
@@ -392,9 +397,9 @@ class Root(controllers.RootController):
             except IndexError: # /[testing/]<release>
                 updates = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
-                                PackageUpdate.q.status == status),
-                            orderBy=PackageUpdate.q.date_pushed).reversed()
-                return dict(updates=updates, num_items=updates.count())
+                                PackageUpdate.q.status == status))
+                return dict(updates=updates, num_items=updates.count(),
+                            tg_template=template)
         except SQLObjectNotFound:
             pass
 
