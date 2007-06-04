@@ -170,6 +170,11 @@ class PackageUpdate(SQLObject):
         log.debug("Sending update notice for %s" % self.nvr)
         import turbomail
         list = None
+        sender = config.get('notice_sender')
+        if not sender:
+            log.error("notice_sender not defined in configuration!  Unable " +
+                      "to send update notice")
+            return
         if self.status == 'stable':
             list = config.get('%s_announce_list' %
                               self.release.id_prefix.lower())
@@ -178,7 +183,7 @@ class PackageUpdate(SQLObject):
                               self.release.id_prefix.lower())
         if list:
             (subject, body) = mail.get_template(self)
-            message = turbomail.Message(self.submitter, list, subject)
+            message = turbomail.Message(sender, list, subject)
             message.plain = body
             try:
                 turbomail.enqueue(message)
@@ -186,6 +191,8 @@ class PackageUpdate(SQLObject):
                 self.mail_sent = True
             except turbomail.MailNotEnabledException:
                 log.warning("TurboMail is not enabled!")
+        else:
+            log.error("Cannot find mailing list address for update notice")
 
     def get_source_path(self):
         """ Return the path of this built update """
