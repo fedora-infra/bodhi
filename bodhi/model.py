@@ -170,9 +170,9 @@ class PackageUpdate(SQLObject):
         log.debug("Sending update notice for %s" % self.nvr)
         import turbomail
         list = None
-        sender = config.get('notice_sender')
+        sender = config.get('bodhi_email')
         if not sender:
-            log.error("notice_sender not defined in configuration!  Unable " +
+            log.error("bodhi_email not defined in configuration!  Unable " +
                       "to send update notice")
             return
         if self.status == 'stable':
