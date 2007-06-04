@@ -43,6 +43,7 @@ title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '
 
 release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                                    update.release.long_name)
+user = '%s <%s>' % (tg.identity.user.display_name, tg.identity.user.user['email'])
 ?>
 
 <body>
@@ -52,7 +53,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
             <td><div class="show">${title}</div></td>
 
             <!-- update options -->
-            <span py:if="tg.identity.user_name == update.submitter or 'releng' in tg.identity.groups">
+            <span py:if="user == update.submitter or tg.identity.user_name == update.submitter or 'releng' in tg.identity.groups">
             <td align="right">
                 [
                 <span py:if="not update.pushed">
