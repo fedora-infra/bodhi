@@ -20,7 +20,6 @@ import tempfile
 import cherrypy
 import commands
 
-from Comet import comet
 from datetime import datetime
 from turbogears import expose, redirect, config, identity, controllers
 
