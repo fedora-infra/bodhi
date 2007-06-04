@@ -111,26 +111,25 @@ class Root(controllers.RootController):
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.list")
-    @paginate('updates', default_order='update_id', limit=20,
-              allow_limit_override=True)
+    @paginate('updates', limit=20, allow_limit_override=True)
     def list(self):
         """ List all pushed updates """
         updates = PackageUpdate.select(
                        PackageUpdate.q.status == 'stable',
-                       orderBy=PackageUpdate.q.update_id)
+                       orderBy=PackageUpdate.q.update_id).reversed()
         return dict(updates=updates, num_items=updates.count())
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
-    @paginate('updates', default_order='update_id', limit=20,
-              allow_limit_override=True)
+    @paginate('updates', limit=20, allow_limit_override=True)
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
                     OR(PackageUpdate.q.submitter == '%s <%s>' % (
                             identity.current.user.display_name,
                             identity.current.user.user['email']),
-                       PackageUpdate.q.submitter == identity.current.user_name))
+                       PackageUpdate.q.submitter == identity.current.user_name),
+                    orderBy=PackageUpdate.q.date_pushed).reversed()
         return dict(updates=updates, num_items=updates.count())
 
     @identity.require(identity.not_anonymous())
@@ -354,8 +353,7 @@ class Root(controllers.RootController):
     #@exception_handler(exception)
     @expose(template='bodhi.templates.list')
     @identity.require(identity.not_anonymous())
-    @paginate('updates', default_order='date_pushed', limit=20,
-              allow_limit_override=True)
+    @paginate('updates', limit=20, allow_limit_override=True)
     def default(self, *args, **kw):
         """
         This method allows for /[(pending|testing)/]<release>[/<update>]
@@ -363,7 +361,7 @@ class Root(controllers.RootController):
         """
         args = [arg for arg in args]
         status = 'stable'
-        order = 'date_pushed'
+        order = PackageUpdate.q.date_pushed
         template = 'bodhi.templates.list'
 
         if len(args) and args[0] == 'testing':
@@ -373,12 +371,13 @@ class Root(controllers.RootController):
         if len(args) and args[0] == 'pending':
             status = 'pending'
             template = 'bodhi.templates.pending'
-            order = 'date_submitted'
+            order = PackageUpdate.q.date_submitted
             del args[0]
         if not len(args): # /(testing|pending)
-            updates = PackageUpdate.select(PackageUpdate.q.status == status)
+            updates = PackageUpdate.select(PackageUpdate.q.status == status,
+                                           orderBy=order).reversed()
             return dict(updates=updates, tg_template=template,
-                        num_items=updates.count(), tg_paginate_order=order)
+                        num_items=updates.count())
 
         try:
             release = Release.byName(args[0])
@@ -397,7 +396,8 @@ class Root(controllers.RootController):
             except IndexError: # /[testing/]<release>
                 updates = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
-                                PackageUpdate.q.status == status))
+                                PackageUpdate.q.status == status),
+                            orderBy=order).reversed()
                 return dict(updates=updates, num_items=updates.count(),
                             tg_template=template)
         except SQLObjectNotFound:
