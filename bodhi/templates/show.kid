@@ -24,22 +24,17 @@ bugs = bugs.replace('&', '&amp;')
 for cve in update.cves:
     cves += cvelink % (cve.cve_id, cve.cve_id)
 
-## Build our file list
-#from os.path import basename
-#filelist = '<div id="showfiles"><a href="#" onClick="$(\'showfiles\').style.display = \'none\'; MochiKit.Visual.slideDown($(\'filelist\'))">Show filelist</a></div><div id="filelist" style="display: none">'
-#for arch in update.filelist.keys():
-#    if len(update.filelist[arch]):
-#        filelist += '<b>%s</b><br/>' % arch
-#        for pkg in update.filelist[arch]:
-#            filelist += '|-- %s<br/>' % basename(pkg)
-#filelist += "</div>"
-
 ## Create the list of comments
 comments = ''
 for comment in update.comments:
     comments += "<b>%s</b> - %s<br/>%s<br/>" % (comment.author,
                                                 comment.timestamp,
                                                 comment.text)
+
+## Link to build logs
+from bodhi import util
+nvr = util.get_nvr(update.nvr)
+buildlog = '<a href="http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs">http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs</a>' % (nvr[0], nvr[1], nvr[2], nvr[0], nvr[1], nvr[2])
 
 ## Make the package name linkable in the n-v-r
 from bodhi.util import get_nvr
@@ -104,6 +99,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
             ['Submitter',     update.submitter],
             ['Submitted',     update.date_submitted],
             ['Modified',      update.date_modified],
+            ['Build Logs',    XML(buildlog)],
             ['Notes',         update.notes]
         )">
                 <span py:if="field[1] != None and field[1] != ''">
