@@ -103,7 +103,7 @@ class PackageUpdate(SQLObject):
                 val += '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
                                         bug.bz_id, bug.title)
                 i += 1
-            val = val[:-1] # remove trailing newline
+            val = val[:-1]
         else:
             val = ' '.join([str(bug.bz_id) for bug in self.bugs])
         return val
@@ -144,7 +144,7 @@ class PackageUpdate(SQLObject):
             self.assign_id()
             #uinfo.add_update(self)
             self.send_update_notice()
-            map(lambda bug: bug.close_bug(self), self.bugs)
+            map(lambda bug: bug.add_comment(self), self.bugs)
             mail.send(self.submitter, 'pushed', self)
         elif self.request == 'unpush':
             mail.send(self.submitter, 'unpushed', self)
@@ -159,6 +159,7 @@ class PackageUpdate(SQLObject):
             mail.send(self.submitter, 'moved', self)
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
+            map(lambda bug: bug.close_bug(self), self.bugs)
             #uinfo.add_update(self)
 
         log.info("%s request on %s complete!" % (self.request, self.nvr))
@@ -248,7 +249,7 @@ class PackageUpdate(SQLObject):
         """
         Return a string representation of this update.
         """
-        val = "%s\n%s\n%s\n" % ('=' * 80, self.nvr, '=' * 80)
+        val = "%s\n  %s\n%s\n" % ('=' * 80, self.nvr, '=' * 80)
         if self.update_id:
             val += "  Update ID: %s\n" % self.update_id
         val += """    Release: %s
@@ -259,7 +260,7 @@ class PackageUpdate(SQLObject):
         if len(self.bugs):
            val += "\n       Bugs: %s" % self.get_bugstring(show_titles=True)
         if len(self.cves):
-            val += "\n       CVES: %s" % self.get_cvestring()
+            val += "\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
             val += "\n      Notes: %s" % self.notes
         val += """
@@ -409,7 +410,7 @@ class Bugzilla(SQLObject):
 
     def default_message(self, update):
         return self.default_msg % (update.nvr, "%s %s" % 
-                                   update.release.long_name, update.status)
+                                   (update.release.long_name, update.status))
 
     def add_comment(self, update, comment=None):
         me = config.get('bodhi_email')
@@ -417,6 +418,7 @@ class Bugzilla(SQLObject):
         if password:
             if not comment:
                 comment = self.default_message(update)
+            log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
             try:
                 server = xmlrpclib.Server(self._bz_server)
                 server.bugzilla.addComment(self.bz_id, comment, me, password, 0)
@@ -424,22 +426,23 @@ class Bugzilla(SQLObject):
                 log.error("Unable to add comment to bug #s\n%s" % (self.bz_id,
                                                                    str(e)))
             del server
+        else:
+            log.warning("bodhi_password not defined; unable to modify bug")
 
-    def close_bug(self, update, resolution=None):
+    def close_bug(self, update):
         me = config.get('bodhi_email')
         password = config.get('bodhi_password')
         if password:
-            if not resolution:
-                resolution = self.default_message(update)
-            ver = util.get_nvr(update.nvr)[-2]
+            log.debug("Closing Bug #%d" % self.bz_id)
+            ver = get_nvr(update.nvr)[-2]
             try:
                 server = xmlrpclib.Server(self._bz_server)
-                server.bugzilla.closeBug(self.bz_id, resolution, me, password,
-                                         0, ver)
+                server.bugzilla.closeBug(self.bz_id, 'NEXTRELEASE', me,
+                                         password, 0, ver)
             except Exception, e:
-                log.error("Cannot close bug #$s with resolution: %s" %
-                          (self.bz_id, resolution))
-        pass
+                log.error("Cannot close bug #%d" % self.bz_id)
+        else:
+            log.warning("bodhi_password not defined; unable to close bug")
 
     def get_url(self):
         return "https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%s" % self.bz_id
