@@ -39,7 +39,6 @@ log = logging.getLogger(__name__)
 messages = {
 
     'new' : {
-        'subject' : '[Fedora Update] [new] %(package)s',
         'body'    : """\
 %(email)s has submitted a new update for %(release)s\n\n%(updatestr)s
 """,
@@ -51,45 +50,41 @@ messages = {
         },
 
     'deleted' : {
-        'subject' : '[Fedora Update] [deleted] %(package)s',
         'body'    : """\
 %(email)s has deleted the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.nvr,
                         'email'     : x.submitter,
-                        'release'   : x.release.long_name,
+                        'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : str(x)
                     }
         },
 
     'edited' : {
-        'subject' : '[Fedora Update] [edited] %(package)s',
         'body'    : """\
 %(email)s has edited the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.nvr,
                         'email'     : x.submitter,
-                        'release'   : x.release.long_name,
+                        'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : str(x)
                     }
         },
 
     'pushed' : {
-        'subject' : '[Fedora Update] [pushed] %(package)s',
         'body'    : """\
 %(package)s has been successfully pushed for %(release)s.\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.nvr,
-                        'release'   : x.release.long_name,
+                        'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : str(x)
                     }
     },
 
     'push' : {
-        'subject' : '[Fedora Update] [push] %(package)s',
         'body'    : """\
 %(submitter)s has requested the pushing of the following update:\n\n%(updatestr)s
 """,
@@ -100,7 +95,6 @@ messages = {
     },
 
     'unpush' : {
-        'subject' : '[Fedora Update] [unpush] %(package)s',
         'body'    : """\
 %(submitter)s has requested the unpushing of the following update:\n\n%(updatestr)s
 """,
@@ -111,7 +105,6 @@ messages = {
     },
 
     'unpushed' : {
-        'subject' : '[Fedora Update] [unpushed] %(package)s',
         'body'    : """\
 The following update has been unpushed\n\n%(updatestr)s
 """,
@@ -121,7 +114,6 @@ The following update has been unpushed\n\n%(updatestr)s
     },
 
     'revoke' : {
-        'subject' : '[Fedora Update] [revoked] %(package)s',
         'body'    : """\
 %(submitter)s has revoked the request of the following update:\n\n%(updatestr)s
 """,
@@ -132,9 +124,8 @@ The following update has been unpushed\n\n%(updatestr)s
         },
 
     'move' : {
-        'subject' : '[Fedora Update] [move] %(package)s',
         'body'    : """\
-%(submitter)s has requested the moving of the following update from Testing to Final:\n\n%(updatestr)s
+%(submitter)s has requested the moving of the following update from Testing to Stable:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : x.submitter,
@@ -143,9 +134,8 @@ The following update has been unpushed\n\n%(updatestr)s
     },
 
     'moved' : {
-        'subject' : '[Fedora Update] [moved] %(package)s',
         'body'    : """\
-The following update has been moved from Testing to Final:\n\n%(updatestr)s
+The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'updatestr' : str(x)
@@ -153,7 +143,6 @@ The following update has been moved from Testing to Final:\n\n%(updatestr)s
         },
 
     'comment' : {
-        'subject' : '[Fedora Update] [comment] %(package)s',
         'body'    : """\
 The following comment has been added to your %(package)s update:
 
@@ -166,7 +155,6 @@ The following comment has been added to your %(package)s update:
     }
 }
 
-## TODO: subject isn't necessary?
 errata_template = """\
 --------------------------------------------------------------------------------
 Fedora%(testing)s Update Notification
@@ -244,11 +232,11 @@ def get_template(update):
     if len(update.bugs) or len(update.cves):
         info['references'] = "References:\n\n"
         for bug in update.bugs:
-            info['references'] += "  [ %d ] Bug #%d\n         %s\n" % (i,
+            info['references'] += "  [ %d ] Bug #%d\n        %s\n" % (i,
                     bug.bz_id, bug.get_url())
             i += 1
         for cve in update.cves:
-            info['references'] += "  [ %d ] %s\n         %s\n" % (i, cve.cve_id,
+            info['references'] += "  [ %d ] %s\n        %s\n" % (i, cve.cve_id,
                                                                   cve.get_url())
             i += 1
         info['references'] += line
@@ -296,9 +284,8 @@ def send(to, msg_type, update, sender=None):
     if not sender:
         log.warning("bodhi_email not defined in app.cfg; unable to send mail")
         return
-    send_mail(sender, to, messages[msg_type]['subject'] %
-              {'package':update.nvr}, messages[msg_type]['body'] %
-              messages[msg_type]['fields'](update))
+    send_mail(sender, to, '[Fedora Update] [%s] %s' % (msg_type, update.nvr),
+              messages[msg_type]['body'] % messages[msg_type]['fields'](update))
 
 def send_releng(subject, body):
     """ Send the Release Engineering team a message """
