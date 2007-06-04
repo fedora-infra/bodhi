@@ -78,7 +78,8 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
     def pkgs(self):
-        return dict(pkgs=Package.select())
+        pkgs = Package.select()
+        return dict(pkgs=pkgs, num_pkgs=pkgs.count())
 
     @expose(template="bodhi.templates.login")
     def login(self, forward_url=None, previous_url=None, *args, **kw):
