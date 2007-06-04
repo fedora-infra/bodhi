@@ -264,7 +264,8 @@ def get_template(update):
                       lastpkg)
 
     for (key, value) in info.items():
-        info[key] = koji.fixEncoding(value)
+        if value:
+            info[key] = value.decode('utf8')
 
     return (info['subject'], errata_template % info)
 
@@ -276,6 +277,8 @@ def send_mail(sender, to, subject, body):
         log.debug("Sending mail: %s" % message.plain)
     except MailNotEnabledException:
         log.warning("TurboMail is not enabled!")
+    except Exception, e:
+        log.error("Exception thrown when trying to send mail: %s" % str(e))
 
 def send(to, msg_type, update, sender=None):
     """ Send an update notification email to a given recipient """
