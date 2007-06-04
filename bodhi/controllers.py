@@ -423,7 +423,9 @@ class Root(controllers.RootController):
         if tg_errors:
             flash(tg_errors['text'])
         else:
-            comment = Comment(text=text, author=identity.current.user_name,
+            comment = Comment(text=text, author='%s &lt;%s&gt;' % (
+                              identity.current.user.display_name,
+                              identity.current.user.user['email']),
                               update=update)
             mail.send(update.submitter, 'comment', update)
             flash("Successfully added comment to %s update" % nvr)
