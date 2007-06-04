@@ -55,7 +55,7 @@ addLoadEvent(function(){
         <div id="fedora-header-logo">
             <a href="${tg.url('/')}"><img src="${tg.url('/static/images/header-fedora_logo.png')}" /></a>
         </div>
-
+    <!--
         <div id="wait" style="display: none">
             <div id="fedora-header-items">
                 <span class="fedora-header-icon">
@@ -63,6 +63,7 @@ addLoadEvent(function(){
                 </span>
             </div>
         </div>
+        -->
         <div id="bodhi-logo">
             <div id="fedora-header-items">
                 <span class="fedora-header-icon">

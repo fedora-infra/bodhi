@@ -92,12 +92,12 @@ class UpdateFields(WidgetsList):
     notes = TextArea(validator=validators.String())
     edited = HiddenField(default=None)
 
-update_form = TableForm(fields=UpdateFields(), submit_text='Submit',
-                        form_attrs={
-                            'onclick' :
-                                "$('bodhi-logo').style.display = 'none';"
-                                "$('wait').style.display = 'block';"
-                        })
+update_form = TableForm(fields=UpdateFields(), submit_text='Submit')
+                        #form_attrs={
+                        #    'onclick' :
+                        #        "$('bodhi-logo').style.display = 'none';"
+                        #        "$('wait').style.display = 'block';"
+                        #})
 
 class NewUpdateController(controllers.Controller):
 
