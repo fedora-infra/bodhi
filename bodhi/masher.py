@@ -69,8 +69,7 @@ class Masher:
         self.mashing = 0
         self.last_log = thread.log
         mail.send_releng('Bodhi Masher Report %s' % 
-                         time.strftime("%y%m%d.%H%M"), "The following tasks " +
-                         "were successful.\n\n" + thread.report())
+                         time.strftime("%y%m%d.%H%M"), thread.report())
         self._threads.remove(thread)
         if len(self._threads) == 0:
             if len(self._queue):
@@ -210,6 +209,7 @@ class MashTask(Thread):
                     os.unlink(link)
                 os.symlink(join(mashdir, repo), link)
             else:
+                self.success = False
                 failed_output = join(config.get('mashed_dir'), 'mash-failed-%s'
                                      % time.strftime("%y%m%d.%H%M"))
                 out = file(failed_output, 'w')
@@ -226,6 +226,7 @@ class MashTask(Thread):
         anything fails, undo any tag moves.
         """
         if self.move_builds():
+            self.success = True
             self.mash()
             if self.success:
                 masher.success(self)
@@ -256,16 +257,17 @@ class MashTask(Thread):
         return val
 
     def report(self):
-        val = '[ Mash Task #%d ]' % self.id
-        val += 'The following actions were %ssuccessful.' % (self.success and ''
-                                                             or '*NOT* ')
+        val = '[ Mash Task #%d ]\n' % self.id
+        val += 'The following actions were %ssuccessful.' % (self.success and
+                                                             [''] or 
+                                                             ['*NOT* '])[0]
         if len(self.actions):
-            val += '\n  Moved the following package tags:'
+            val += '\n  Moved the following package tags:\n'
             for action in self.actions:
                 val += '   %s :: %s => %s\n' % (action[0], action[1], action[2])
-        val += '  Mashed the following repositories:'
+        val += '\n  Mashed the following repositories:\n'
         for repo in self.repos:
-            val += '  - %s' % repo
+            val += '  - %s\n' % repo
         if self.log:
             mashlog = file(self.log, 'r')
             val += '\nMash Output:\n\n%s' % mashlog.read()
