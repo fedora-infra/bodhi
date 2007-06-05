@@ -269,7 +269,8 @@ class PackageUpdate(SQLObject):
         if len(self.cves):
             val += "\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
-            val += "\n      Notes: %s" % self.notes
+            notes = wrap(self.notes, width=67, subsequent_indent=' '*11 +': ')
+            val += "\n      Notes: %s" % '\n'.join(notes)
         val += """
   Submitter: %s
   Submitted: %s
@@ -441,10 +442,10 @@ class Bugzilla(SQLObject):
         password = config.get('bodhi_password')
         if password:
             log.debug("Closing Bug #%d" % self.bz_id)
-            ver = get_nvr(update.nvr)[-2]
+            ver = '-'.join(get_nvr(update.nvr)[-2:])
             try:
                 server = xmlrpclib.Server(self._bz_server)
-                server.bugzilla.closeBug(self.bz_id, 'NEXTRELEASE', me,
+                server.bugzilla.closeBug(self.bz_id, 'ERRATA', me,
                                          password, 0, ver)
             except Exception, e:
                 log.error("Cannot close bug #%d" % self.bz_id)
