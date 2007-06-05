@@ -126,9 +126,7 @@ class Root(controllers.RootController):
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
-                    OR(PackageUpdate.q.submitter == '%s <%s>' % (
-                            identity.current.user.display_name,
-                            identity.current.user.user['email']),
+                    OR(PackageUpdate.q.submitter == util.displayname(),
                        PackageUpdate.q.submitter == identity.current.user_name),
                     orderBy=PackageUpdate.q.date_pushed).reversed()
         return dict(updates=updates, num_items=updates.count())
@@ -304,10 +302,7 @@ class Root(controllers.RootController):
             try:
                 # Create a new update
                 p = PackageUpdate(package=package, release=release,
-                                  submitter='%s <%s>' % (
-                                      identity.current.user.display_name,
-                                      identity.current.user.user['email']),
-                                  **kw)
+                                  submitter=util.displayname(), **kw)
             except RPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')

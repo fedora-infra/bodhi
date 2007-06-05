@@ -23,7 +23,7 @@ import time
 import logging
 
 from os.path import isdir
-from turbogears import config
+from turbogears import config, identity
 from bodhi.exceptions import RPMNotFound
 
 ## TODO: give createrepo a competent API
@@ -95,3 +95,11 @@ def synchronized(lock):
                 lock.release()
         return new
     return wrap
+
+
+def displayname():
+    """
+    Return the Full Name <email@address> of the current identity
+    """
+    return unicode('%s <%s>' % (identity.current.user.display_name,
+                                identity.current.user.user['email']), 'utf8')
