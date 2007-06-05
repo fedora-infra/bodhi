@@ -52,7 +52,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
             <td><div class="show">${title}</div></td>
 
             <!-- update options -->
-            <span py:if="util.displayname() == update.submitter or tg.identity.user_name == update.submitter or 'releng' in tg.identity.groups">
+            <span py:if="util.displayname().decode('utf8') == update.submitter or tg.identity.user_name == update.submitter or 'releng' in tg.identity.groups">
             <td align="right">
                 [
                 <span py:if="not update.pushed">

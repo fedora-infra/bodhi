@@ -190,7 +190,7 @@ class PackageUpdate(SQLObject):
                 log.debug("Sending mail: %s" % message.plain)
                 self.mail_sent = True
             except turbomail.MailNotEnabledException:
-                log.warning("TurboMail is not enabled!")
+                log.warning("mail.on is not True!")
         else:
             log.error("Cannot find mailing list address for update notice")
 

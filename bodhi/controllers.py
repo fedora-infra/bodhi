@@ -139,7 +139,6 @@ class Root(controllers.RootController):
 
     @expose()
     @identity.require(identity.not_anonymous())
-    @exception_handler(exception)
     def revoke(self, nvr):
         """ Revoke a push request for a specified update """
         update = PackageUpdate.byNvr(nvr)
@@ -150,7 +149,6 @@ class Root(controllers.RootController):
 
     @expose()
     @identity.require(identity.not_anonymous())
-    @exception_handler(exception)
     def move(self, nvr):
         update = PackageUpdate.byNvr(nvr)
         update.request = 'move'
@@ -161,7 +159,6 @@ class Root(controllers.RootController):
 
     @expose()
     @identity.require(identity.not_anonymous())
-    @exception_handler(exception)
     def push(self, nvr):
         """ Submit an update for pushing """
         update = PackageUpdate.byNvr(nvr)
@@ -180,7 +177,6 @@ class Root(controllers.RootController):
 
     @expose()
     @identity.require(identity.not_anonymous())
-    @exception_handler(exception)
     def unpush(self, nvr):
         """ Submit an update for unpushing """
         update = PackageUpdate.byNvr(nvr)
@@ -193,7 +189,6 @@ class Root(controllers.RootController):
 
     @expose()
     @identity.require(identity.not_anonymous())
-    @exception_handler(exception)
     def delete(self, update):
         """ Delete a pending update """
         update = PackageUpdate.byNvr(update)
@@ -302,7 +297,7 @@ class Root(controllers.RootController):
             try:
                 # Create a new update
                 p = PackageUpdate(package=package, release=release,
-                                  submitter=util.displayname(), **kw)
+                                  submitter=identity.current.user_name, **kw)
             except RPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')
@@ -345,7 +340,6 @@ class Root(controllers.RootController):
 
         raise redirect(p.get_url())
 
-    #@exception_handler(exception)
     @expose(template='bodhi.templates.list')
     @identity.require(identity.not_anonymous())
     @paginate('updates', limit=20, allow_limit_override=True)
@@ -412,15 +406,12 @@ class Root(controllers.RootController):
     @error_handler()
     @validate(form=comment_form)
     @identity.require(identity.not_anonymous())
-    @exception_handler(exception)
     def comment(self, text, nvr, tg_errors=None):
         update = PackageUpdate.byNvr(nvr)
         if tg_errors:
             flash(tg_errors['text'])
         else:
-            comment = Comment(text=text, author=unicode('%s &lt;%s&gt;' % (
-                                  identity.current.user.display_name,
-                                  identity.current.user.user['email']), 'utf8'),
+            comment = Comment(text=text, author=identity.current.user_name,
                               update=update)
             mail.send(update.submitter, 'comment', update)
             flash("Successfully added comment to %s update" % nvr)
