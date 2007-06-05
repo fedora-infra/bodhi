@@ -22,6 +22,7 @@ import sys
 import time
 import logging
 
+from koji import fixEncoding
 from os.path import isdir
 from turbogears import config, identity
 from bodhi.exceptions import RPMNotFound
@@ -101,5 +102,5 @@ def displayname():
     """
     Return the Full Name <email@address> of the current identity
     """
-    return unicode('%s <%s>' % (identity.current.user.display_name,
-                                identity.current.user.user['email']), 'utf8')
+    return fixEncoding('%s <%s>' % (identity.current.user.display_name,
+                                    identity.current.user.user['email']))
