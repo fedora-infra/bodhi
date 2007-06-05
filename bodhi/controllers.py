@@ -344,8 +344,7 @@ class Root(controllers.RootController):
             flash("Update successfully edited" + note)
         else:
             if p.type == 'security':
-                mail.send(config.get('security_team'), 'new', p,
-                          sender=p.submitter)
+                mail.send(config.get('security_team'), 'new', p)
             mail.send(p.submitter, 'new', p)
             flash("Update successfully created" + note)
 
