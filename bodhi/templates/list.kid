@@ -23,19 +23,19 @@
             <th class="list">
                 <b>ID</b>
             </th>
-            <th class="list" width="30%">
+            <th class="list">
                 <b>Package</b>
             </th>
-            <th class="list" width="20%">
+            <th class="list">
                 <b>Release</b>
             </th>
-            <th class="list" width="5%">
+            <th class="list">
                 <center><b>Type</b></center>
             </th>
-            <th class="list" width="10%">
+            <th class="list">
                 <center><b>Status</b></center>
             </th>
-            <th class="list" width="20%">
+            <th class="list">
                 <b>Date Pushed</b>
             </th>
         </tr>
