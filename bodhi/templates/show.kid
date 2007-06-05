@@ -43,7 +43,9 @@ title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '
 
 release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                                    update.release.long_name)
-user = '%s <%s>' % (tg.identity.user.display_name, tg.identity.user.user['email'])
+
+user = unicode('%s <%s>' % (tg.identity.user.display_name,
+                            tg.identity.user.user['email']), 'utf8')
 ?>
 
 <body>
