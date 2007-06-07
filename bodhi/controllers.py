@@ -314,8 +314,9 @@ class Root(controllers.RootController):
                 flash("Cannot change update release after submission")
                 raise redirect(p.get_url())
             p.set(release=release, date_modified=datetime.now(), **kw)
-            p.update_bugs(bugs)
-            p.update_cves(cves)
+
+        p.update_bugs(bugs)
+        p.update_cves(cves)
 
         if p.type != 'security':
             for bug in p.bugs:
