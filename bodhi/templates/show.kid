@@ -58,8 +58,9 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                 <span py:if="not update.pushed">
                     <span py:if="update.request == None">
                         <a href="${tg.url('/push/%s' % update.nvr)}">
-                            <span py:if="update.type == 'security'">Push to Stable</span>
-                            <span py:if="update.type != 'security'">Push to Testing</span></a> | 
+                            Push to Testing</a> | 
+                        <a href="${tg.url('/move/%s' % update.nvr)}">
+                            Push to Stable</a> | 
                         <a href="${tg.url('/delete/%s' % update.nvr)}">Delete</a> | 
                     </span>
                     <a href="${tg.url('/edit/%s' % update.nvr)}">Edit</a>
@@ -99,8 +100,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
             ['Submitter',     update.submitter],
             ['Submitted',     update.date_submitted],
             ['Modified',      update.date_modified],
-            ['Build Logs',    XML(buildlog)],
-            ['Notes',         update.notes]
+            ['Build Logs',    XML(buildlog)]
         )">
                 <span py:if="field[1] != None and field[1] != ''">
                     <td class="show-title"><b>${field[0]}:</b></td>
@@ -108,10 +108,18 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                 </span>
         </tr>
         <tr>
-            <td class="show-title"><b>Comments:</b></td>
-            <td class="show-value">
-                ${XML(comments)}
-            </td>
+            <span py:if="update.notes">
+                <td class="show-title"><b>Notes:</b></td>
+                <td class="show-value"><font size="4"><pre>${update.notes}</pre></font></td>
+            </span>
+        </tr>
+        <tr>
+            <span py:if="comments">
+                <td class="show-title"><b>Comments:</b></td>
+                <td class="show-value">
+                    ${XML(comments)}
+                </td>
+            </span>
         </tr>
         <tr>
             <td class="show-title"></td>
