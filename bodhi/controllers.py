@@ -27,12 +27,12 @@ from turbogears import (controllers, expose, validate, redirect, identity,
                         exception_handler)
 from turbogears.widgets import TableForm, TextArea, HiddenField
 
+from bodhi import buildsys
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
 from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE, Comment
 from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
-from bodhi import buildsys
 from bodhi.exceptions import RPMNotFound
 
 from os.path import isfile, join
@@ -142,6 +142,9 @@ class Root(controllers.RootController):
     def revoke(self, nvr):
         """ Revoke a push request for a specified update """
         update = PackageUpdate.byNvr(nvr)
+        if identity.current.user_name != update.submitter:
+            flash("Cannot revoke an update you did not submit")
+            raise redirect(update.get_url())
         flash("%s request revoked" % update.request)
         mail.send_admin('revoke', update)
         update.request = None
@@ -151,6 +154,9 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def move(self, nvr):
         update = PackageUpdate.byNvr(nvr)
+        if identity.current.user_name != update.submitter:
+            flash("Cannot move an update you did not submit")
+            raise redirect(update.get_url())
         update.request = 'move'
         flash("Requested that %s be pushed to %s-updates" % (nvr,
               update.release.name))
@@ -162,7 +168,10 @@ class Root(controllers.RootController):
     def push(self, nvr):
         """ Submit an update for pushing """
         update = PackageUpdate.byNvr(nvr)
-        repo = '%s updates' % update.release.name
+        repo = '%s-updates' % update.release.name
+        if identity.current.user_name != update.submitter:
+            flash("Cannot push an update you did not submit")
+            raise redirect(update.get_url())
         if update.type == 'security':
             # Bypass updates-testing
             update.request = 'move'
@@ -180,6 +189,9 @@ class Root(controllers.RootController):
     def unpush(self, nvr):
         """ Submit an update for unpushing """
         update = PackageUpdate.byNvr(nvr)
+        if identity.current.user_name != update.submitter:
+            flash("Cannot unpush an update you did not submit")
+            raise redirect(update.get_url())
         update.request = 'unpush'
         msg = "%s has been submitted for unpushing" % nvr
         log.debug(msg)
@@ -192,6 +204,9 @@ class Root(controllers.RootController):
     def delete(self, update):
         """ Delete a pending update """
         update = PackageUpdate.byNvr(update)
+        if identity.current.user_name != update.submitter:
+            flash("Cannot delete an update you did not submit")
+            raise redirect(update.get_url())
         if not update.pushed:
             map(lambda x: x.destroySelf(), update.comments)
             update.destroySelf()
@@ -208,6 +223,9 @@ class Root(controllers.RootController):
     def edit(self, update):
         """ Edit an update """
         update = PackageUpdate.byNvr(update)
+        if identity.current.user_name != update.submitter:
+            flash("Cannot edit an update you did not submit")
+            raise redirect(update.get_url())
         values = {
                 'nvr'       : {'text': update.nvr, 'hidden' : update.nvr},
                 'release'   : update.release.long_name,
