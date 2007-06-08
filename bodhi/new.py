@@ -67,6 +67,8 @@ class UpdateFields(WidgetsList):
                             search_controller=url('/new/pkgsearch'),
                             search_param='name', result_name='pkgs',
                             validator=AutoCompleteValidator(),
+# We're hardcoding the template to fix Ticket #32 until the AutoCompleteField
+# can work properly in sub-controllers
                             template="""\
 <div xmlns:py="http://purl.org/kid/ns#">
     <script language="JavaScript" type="text/JavaScript">
@@ -89,7 +91,7 @@ class UpdateFields(WidgetsList):
                              validators.OneOf(update_types))
     bugs = TextField(validator=validators.String())
     cves = TextField(label='CVEs', validator=validators.String())
-    notes = TextArea(validator=validators.String())
+    notes = TextArea(validator=validators.String(), rows=15, cols=50)
     edited = HiddenField(default=None)
 
 update_form = TableForm(fields=UpdateFields(), submit_text='Submit')
