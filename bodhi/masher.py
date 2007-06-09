@@ -217,6 +217,7 @@ class MashTask(Thread):
                 out.close()
                 log.info("Wrote failed mash output to %s" % failed_output)
                 self.log = failed_output
+                break
         self.mashing = False
         log.info("Mashing complete")
 
