@@ -10,6 +10,7 @@
 </head>
 
 <?python
+from cgi import escape
 from bodhi import util
 
 bugs = ''
@@ -37,7 +38,7 @@ title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '
 release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                                    update.release.long_name)
 
-notes = update.notes.replace('\r\n', '<br/>')
+notes = escape(update.notes).replace('\r\n', '<br/>')
 ?>
 
 <body>
