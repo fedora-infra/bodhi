@@ -26,13 +26,6 @@ bugs = bugs.replace('&', '&amp;')
 for cve in update.cves:
     cves += cvelink % (cve.cve_id, cve.cve_id)
 
-## Create the list of comments
-comments = ''
-for comment in update.comments:
-    comments += "<b>%s</b> - %s<br/>%s<br/>" % (comment.author,
-                                                comment.timestamp,
-                                                comment.text)
-
 ## Link to build logs
 nvr = util.get_nvr(update.nvr)
 buildlog = '<a href="http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs">http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs</a>' % (nvr[0], nvr[1], nvr[2], nvr[0], nvr[1], nvr[2])
@@ -116,10 +109,13 @@ notes = update.notes.replace('\r\n', '<br/>')
             </span>
         </tr>
         <tr>
-            <span py:if="comments">
+            <span py:if="update.comments">
                 <td class="show-title"><b>Comments:</b></td>
                 <td class="show-value">
-                    ${XML(comments)}
+                    <div py:for="comment in update.comments">
+                        <b>${comment.author}</b> - ${comment.timestamp}<br/>
+                        <div py:replace="comment.text">Comment</div>
+                    </div>
                 </td>
             </span>
         </tr>
