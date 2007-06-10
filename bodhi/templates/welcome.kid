@@ -30,7 +30,7 @@
         </blockquote>
     </blockquote>
     <center>
-        <a href="http://turbogears.org"><img src="${tg.url('/static/images/tg_under_the_hood.png')}" border="0" /></a>
+        <a href="http://turbogears.org"><img src="${tg.url('/static/images/under_the_hood_blue.png')}" border="0" /></a>
     </center>
 </body>
 </html>

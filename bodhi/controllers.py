@@ -14,7 +14,6 @@
 
 import rpm
 import mail
-import util
 import logging
 import cherrypy
 
@@ -27,7 +26,7 @@ from turbogears import (controllers, expose, validate, redirect, identity,
                         exception_handler)
 from turbogears.widgets import TableForm, TextArea, HiddenField
 
-from bodhi import buildsys
+from bodhi import buildsys, util
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
 from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE, Comment
@@ -142,8 +141,7 @@ class Root(controllers.RootController):
     def revoke(self, nvr):
         """ Revoke a push request for a specified update """
         update = PackageUpdate.byNvr(nvr)
-        if identity.current.user_name != update.submitter and \
-           'releng' not in identity.current.groups:
+        if not util.authorized_user(update):
             flash("Cannot revoke an update you did not submit")
             raise redirect(update.get_url())
         flash("%s request revoked" % update.request)
@@ -155,8 +153,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def move(self, nvr):
         update = PackageUpdate.byNvr(nvr)
-        if identity.current.user_name != update.submitter and \
-           'releng' not in identity.current.groups:
+        if not util.authorized_user(update):
             flash("Cannot move an update you did not submit")
             raise redirect(update.get_url())
         update.request = 'move'
@@ -171,8 +168,7 @@ class Root(controllers.RootController):
         """ Submit an update for pushing """
         update = PackageUpdate.byNvr(nvr)
         repo = '%s-updates' % update.release.name
-        if identity.current.user_name != update.submitter and \
-           'releng' not in identity.current.groups:
+        if not util.authorized_user(update):
             flash("Cannot push an update you did not submit")
             raise redirect(update.get_url())
         if update.type == 'security':
@@ -192,8 +188,7 @@ class Root(controllers.RootController):
     def unpush(self, nvr):
         """ Submit an update for unpushing """
         update = PackageUpdate.byNvr(nvr)
-        if identity.current.user_name != update.submitter and \
-           'releng' not in identity.current.groups:
+        if not util.authorized_user(update):
             flash("Cannot unpush an update you did not submit")
             raise redirect(update.get_url())
         update.request = 'unpush'
@@ -208,8 +203,7 @@ class Root(controllers.RootController):
     def delete(self, update):
         """ Delete a pending update """
         update = PackageUpdate.byNvr(update)
-        if identity.current.user_name != update.submitter and \
-           'releng' not in identity.current.groups:
+        if not util.authorized_user(update):
             flash("Cannot delete an update you did not submit")
             raise redirect(update.get_url())
         if not update.pushed:
@@ -228,8 +222,7 @@ class Root(controllers.RootController):
     def edit(self, update):
         """ Edit an update """
         update = PackageUpdate.byNvr(update)
-        if identity.current.user_name != update.submitter and \
-           'releng' not in identity.current.groups:
+        if not util.authorized_user(update):
             flash("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
         values = {

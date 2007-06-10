@@ -104,3 +104,14 @@ def displayname():
     """
     return fixEncoding('%s <%s>' % (identity.current.user.display_name,
                                     identity.current.user.user['email']))
+
+def authorized_user(update):
+    """
+    Return whether or not the current user has privileges to alter a
+    given update.
+    """
+    return update.submitter == identity.current.user_name or \
+           'releng' in identity.current.groups or \
+           displayname() == update.submitter
+
+

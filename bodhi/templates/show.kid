@@ -10,6 +10,8 @@
 </head>
 
 <?python
+from bodhi import util
+
 bugs = ''
 cves = ''
 bzlink = '<a href="https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%d">%d</a> '
@@ -32,17 +34,17 @@ for comment in update.comments:
                                                 comment.text)
 
 ## Link to build logs
-from bodhi import util
 nvr = util.get_nvr(update.nvr)
 buildlog = '<a href="http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs">http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs</a>' % (nvr[0], nvr[1], nvr[2], nvr[0], nvr[1], nvr[2])
 
 ## Make the package name linkable in the n-v-r
-from bodhi.util import get_nvr
-nvr = get_nvr(update.nvr)
+nvr = util.get_nvr(update.nvr)
 title = XML("<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]))
 
 release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                                    update.release.long_name)
+
+notes = update.notes.replace('\r\n', '<br/>')
 ?>
 
 <body>
@@ -52,7 +54,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
             <td><div class="show">${title}</div></td>
 
             <!-- update options -->
-            <span py:if="util.displayname().decode('utf8') == update.submitter or tg.identity.user_name == update.submitter or 'releng' in tg.identity.groups">
+            <span py:if="util.authorized_user(update)">
             <td align="right">
                 [
                 <span py:if="not update.pushed">
@@ -110,7 +112,7 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
         <tr>
             <span py:if="update.notes">
                 <td class="show-title"><b>Notes:</b></td>
-                <td class="show-value"><font size="4"><pre>${update.notes}</pre></font></td>
+                <td class="show-value">${XML(notes)}</td>
             </span>
         </tr>
         <tr>
