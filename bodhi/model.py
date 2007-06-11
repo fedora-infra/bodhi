@@ -167,6 +167,9 @@ class PackageUpdate(SQLObject):
         hub.commit()
 
     def send_update_notice(self):
+        if self.mail_sent:
+            log.warning("Update notice already sent for %s" % self.nvr)
+            return
         log.debug("Sending update notice for %s" % self.nvr)
         import turbomail
         list = None
