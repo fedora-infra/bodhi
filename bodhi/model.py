@@ -15,7 +15,6 @@
 
 import os
 import rpm
-import mail
 import time
 import shutil
 import logging
@@ -31,8 +30,8 @@ from turbogears.database import PackageHub
 from os.path import isdir, isfile, join, basename
 from textwrap import wrap
 
-from bodhi import buildsys
-from bodhi.util import get_nvr, excluded_arch, rpm_fileheader, header
+from bodhi import buildsys, mail
+from bodhi.util import get_nvr, rpm_fileheader, header
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import RPMNotFound
 from bodhi.identity.tables import *
@@ -41,7 +40,8 @@ log = logging.getLogger(__name__)
 hub = PackageHub("bodhi")
 __connection__ = hub
 
-soClasses=('Release', 'Package', 'PackageUpdate', 'CVE', 'Bugzilla', 'Comment')
+soClasses=('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
+           'Bugzilla', 'Comment', 'User')
 
 class Release(SQLObject):
     """ Table of releases that we will be pushing updates for """
@@ -53,46 +53,55 @@ class Release(SQLObject):
 
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
-    updates        = MultipleJoin('PackageUpdate', joinColumn='package_id')
+    #updates        = MultipleJoin('PackageUpdate', joinColumn='package_id')
+    builds         = MultipleJoin('PackageBuild', joinColumn='pkg_build_id')
     suggest_reboot = BoolCol(default=False)
 
     def __str__(self):
         x = header(self.name)
         if len(self.updates):
-            pending = filter(lambda u: not u.pushed, self.updates)
-            if len(pending):
-                x += "\n  Pending Updates (%d) \n" % len(pending)
-                for update in pending:
-                    x += "    o %s\n" % update.nvr
-            available = filter(lambda u: u.pushed, self.updates)
-            if len(available):
-                x += "\n  Available Updates (%d)\n" % len(available)
-                for update in available:
-                    x += "    o %s\n" % update.nvr
+            for state in ('pending', 'testing', 'stable'):
+                ups = filter(lambda u: u.status == state, self.updates)
+                x += "\n  %s Updates (%d)\n" % (state.title(), len(ups))
+                for update in ups:
+                    x += "    o %s\n" % update.title
         return x
+
+class PackageBuild(SQLObject):
+    nvr             = UnicodeCol(notNone=True, alternateID=True)
+    package         = ForeignKey('Package')
+    updates         = RelatedJoin("PackageUpdate")
 
 class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """
-    nvr             = UnicodeCol(notNone=True, alternateID=True, unique=True)
-    date_submitted  = DateTimeCol(default=datetime.now, notNone=True)
-    date_modified   = DateTimeCol(default=None)
-    date_pushed     = DateTimeCol(default=None)
-    package         = ForeignKey('Package')
-    submitter       = UnicodeCol(notNone=True)
-    update_id       = UnicodeCol(default=None)
-    type            = EnumCol(enumValues=['security', 'bugfix', 'enhancement'])
-    embargo         = DateTimeCol(default=None)
-    cves            = RelatedJoin("CVE")
-    bugs            = RelatedJoin("Bugzilla")
-    release         = ForeignKey('Release')
-    status          = EnumCol(enumValues=['pending', 'testing', 'stable'],
-                              default='pending')
-    pushed          = BoolCol(default=False)
-    notes           = UnicodeCol()
-    mail_sent       = BoolCol(default=False)
-    request         = EnumCol(enumValues=['push', 'unpush', 'move', None],
-                              default=None)
-    comments        = MultipleJoin('Comment', joinColumn='update_id')
+    title            = UnicodeCol(notNone=True, alternateID=True, unique=True)
+    builds           = RelatedJoin("PackageBuild")
+    date_submitted   = DateTimeCol(default=datetime.now, notNone=True)
+    date_modified    = DateTimeCol(default=None)
+    date_pushed      = DateTimeCol(default=None)
+    #package          = ForeignKey('Package')
+    submitter        = UnicodeCol(notNone=True)
+    update_id        = UnicodeCol(default=None)
+    type             = EnumCol(enumValues=['security', 'bugfix', 'enhancement'])
+    embargo          = DateTimeCol(default=None)
+    cves             = RelatedJoin("CVE")
+    bugs             = RelatedJoin("Bugzilla")
+    release          = ForeignKey('Release')
+    status           = EnumCol(enumValues=['pending', 'testing', 'stable'],
+                               default='pending')
+    pushed           = BoolCol(default=False)
+    notes            = UnicodeCol()
+    mail_sent        = BoolCol(default=False)
+    request          = EnumCol(enumValues=['push', 'unpush', 'move', None],
+                               default=None)
+    comments         = MultipleJoin('Comment', joinColumn='update_id')
+    qa_approved      = UnicodeCol(default=None)
+    qa_date_approved = DateTimeCol(default=None)
+    # sec_approved = UnicodeCol(default=None)
+    # sec_approved_date = DateTimeCol()
+
+    def get_title(self, delim=' '):
+        return delim.join([build.nvr for build in self.builds])
 
     def get_bugstring(self, show_titles=False):
         """ Return a space-delimited string of bug numbers for this update """
@@ -130,7 +139,8 @@ class PackageUpdate(SQLObject):
             id = 1
         self.update_id = u'%s-%s-%0.4d' % (self.release.id_prefix,
                                            time.localtime()[0],id)
-        log.debug("Setting update_id for %s to %s" % (self.nvr, self.update_id))
+        log.debug("Setting update_id for %s to %s" % (self.title,
+                                                      self.update_id))
         hub.commit()
 
     def request_complete(self):
@@ -162,13 +172,13 @@ class PackageUpdate(SQLObject):
             map(lambda bug: bug.close_bug(self), self.bugs)
             #uinfo.add_update(self)
 
-        log.info("%s request on %s complete!" % (self.request, self.nvr))
+        log.info("%s request on %s complete!" % (self.request, self.title))
         self.request = None
         hub.commit()
 
     def send_update_notice(self):
-        log.debug("Sending update notice for %s" % self.nvr)
         import turbomail
+        log.debug("Sending update notice for %s" % self.title)
         list = None
         sender = config.get('bodhi_email')
         if not sender:
@@ -196,15 +206,20 @@ class PackageUpdate(SQLObject):
 
     def get_source_path(self):
         """ Return the path of this built update """
-        return join(config.get('build_dir'), *get_nvr(self.nvr))
+        return [join(config.get('build_dir'), *get_nvr(build.nvr)) for build 
+                in self.builds]
 
     def get_srpm_path(self):
         """ Return the path to the SRPM for this update """
-        srpm = join(self.get_source_path(), "src", "%s.src.rpm" % self.nvr)
-        if not isfile(srpm):
-            log.debug("Cannot find SRPM: %s" % srpm)
-            raise RPMNotFound
-        return srpm
+        srpms = []
+        for src_path in self.get_source_path():
+            path = src_path.split('/')
+            srpm = join(src_path, "src", "%s.src.rpm" % ('-'.join(path[-3:])))
+            if not isfile(srpm):
+                log.debug("Cannot find SRPM: %s" % srpm)
+                raise RPMNotFound
+            srpms.append(srpm)
+        return srpms
 
     def get_latest(self):
         """
@@ -226,14 +241,16 @@ class PackageUpdate(SQLObject):
 
             # Find the first build that is older than us
             for build in builds:
-                if rpm.labelCompare(get_nvr(self.nvr),
-                                    get_nvr(build['nvr'])) > 0:
-                    log.debug("%s > %s" % (self.nvr, build['nvr']))
-                    latest = get_nvr(build['nvr'])
+                for update_build in self.builds:
+                    if rpm.labelCompare(get_nvr(update_build.nvr),
+                                        get_nvr(build['nvr'])) > 0:
+                        log.debug("%s > %s" % (update_build.nvr, build['nvr']))
+                        latest = get_nvr(build['nvr'])
+                        break
+                if latest:
                     break
             if not latest:
                 continue
-
         if not latest:
             return None
 
@@ -250,13 +267,13 @@ class PackageUpdate(SQLObject):
         """ Return the relative URL to this update """
         status = self.status == 'testing' and 'testing/' or ''
         if not self.pushed: status = 'pending/'
-        return '/%s%s/%s' % (status, self.release.name, self.nvr)
+        return '/%s%s/%s' % (status, self.release.name, self.title)
 
     def __str__(self):
         """
         Return a string representation of this update.
         """
-        val = "%s\n  %s\n%s\n" % ('=' * 80, self.nvr, '=' * 80)
+        val = "%s\n  %s\n%s\n" % ('=' * 80, self.title, '=' * 80)
         if self.update_id:
             val += "  Update ID: %s\n" % self.update_id
         val += """    Release: %s
@@ -345,7 +362,7 @@ class PackageUpdate(SQLObject):
         """
         for cve in self.cves:
             if cve.cve_id not in cves:
-                log.debug("Removing CVE %s from %s" % (cve.cve_id, self.nvr))
+                log.debug("Removing CVE %s from %s" % (cve.cve_id, self.title))
                 self.removeCVE(cve)
                 if cve.cve_id not in cves and len(cve.updates) == 0:
                     log.debug("Destroying stray CVE #%s" % cve.cve_id)
@@ -410,14 +427,15 @@ class Bugzilla(SQLObject):
             self.title = bug['short_desc']
             if bug['keywords'].lower().find('security') != -1:
                 self.security = True
-        except xmlrpclib.Fault:
+        except xmlrpclib.Fault, f:
             self.title = 'Invalid bug number'
+            log.warning("Got fault from Bugzilla: %s" % str(f))
         except Exception, e:
             self.title = 'Unable to fetch bug title'
-            log.error(self.title)
+            log.error(self.title + str(e))
 
     def default_message(self, update):
-        return self.default_msg % (update.nvr, "%s %s" % 
+        return self.default_msg % (update.get_title(delim=', '), "%s %s" % 
                                    (update.release.long_name, update.status))
 
     def add_comment(self, update, comment=None):
@@ -430,10 +448,10 @@ class Bugzilla(SQLObject):
             try:
                 server = xmlrpclib.Server(self._bz_server)
                 server.bugzilla.addComment(self.bz_id, comment, me, password, 0)
+                del server
             except Exception, e:
-                log.error("Unable to add comment to bug #s\n%s" % (self.bz_id,
-                                                                   str(e)))
-            del server
+                log.error("Unable to add comment to bug #%d\n%s" % (self.bz_id,
+                                                                    str(e)))
         else:
             log.warning("bodhi_password not defined; unable to modify bug")
 
@@ -442,11 +460,12 @@ class Bugzilla(SQLObject):
         password = config.get('bodhi_password')
         if password:
             log.debug("Closing Bug #%d" % self.bz_id)
-            ver = '-'.join(get_nvr(update.nvr)[-2:])
+            ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             try:
                 server = xmlrpclib.Server(self._bz_server)
                 server.bugzilla.closeBug(self.bz_id, 'ERRATA', me,
                                          password, 0, ver)
+                del server
             except Exception, e:
                 log.error("Cannot close bug #%d" % self.bz_id)
         else:

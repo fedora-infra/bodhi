@@ -24,7 +24,7 @@ import logging
 
 from koji import fixEncoding
 from os.path import isdir
-from turbogears import config, identity
+from turbogears import config
 from bodhi.exceptions import RPMNotFound
 
 ## TODO: give createrepo a competent API
@@ -97,10 +97,14 @@ def synchronized(lock):
         return new
     return wrap
 
-
-def displayname():
+def displayname(identity):
     """
     Return the Full Name <email@address> of the current identity
     """
     return fixEncoding('%s <%s>' % (identity.current.user.display_name,
                                     identity.current.user.user['email']))
+
+def authorized_user(update, identity):
+    return update.submitter == identity.current.user_name or \
+           'releng' in identity.current.groups or \
+           displayname() == update.submitter
