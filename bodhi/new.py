@@ -91,7 +91,7 @@ class UpdateFields(WidgetsList):
                              validators.OneOf(update_types))
     bugs = TextField(validator=validators.String())
     cves = TextField(label='CVEs', validator=validators.String())
-    notes = TextArea(validator=validators.String(), rows=15, cols=50)
+    notes = TextArea(validator=validators.String(), rows=17, cols=65)
     edited = HiddenField(default=None)
 
 update_form = TableForm(fields=UpdateFields(), submit_text='Submit')
