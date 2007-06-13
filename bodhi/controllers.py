@@ -60,7 +60,7 @@ class Root(controllers.RootController):
     comment_form = TableForm(fields=[TextArea(name='text', label='',
                                               validator=validators.NotEmpty(),
                                               rows=3, cols=40),
-                                     HiddenField(name='nvr')],
+                                     HiddenField(name='title')],
                              submit_text='Add Comment', action=url('/comment'))
 
     def exception(self, tg_exceptions=None):
@@ -125,7 +125,7 @@ class Root(controllers.RootController):
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
-                    OR(PackageUpdate.q.submitter == util.displayname(),
+                    OR(PackageUpdate.q.submitter == util.displayname(identity),
                        PackageUpdate.q.submitter == identity.current.user_name),
                     orderBy=PackageUpdate.q.date_pushed).reversed()
         return dict(updates=updates, num_items=updates.count())
@@ -141,7 +141,6 @@ class Root(controllers.RootController):
     def revoke(self, nvr):
         """ Revoke a push request for a specified update """
         update = PackageUpdate.byNvr(nvr)
-        if not util.authorized_user(update):
             flash("Cannot revoke an update you did not submit")
             raise redirect(update.get_url())
         flash("%s request revoked" % update.request)
@@ -153,7 +152,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def move(self, nvr):
         update = PackageUpdate.byNvr(nvr)
-        if not util.authorized_user(update):
+        if not util.authorized_user(update, identity):
             flash("Cannot move an update you did not submit")
             raise redirect(update.get_url())
         update.request = 'move'
@@ -168,7 +167,7 @@ class Root(controllers.RootController):
         """ Submit an update for pushing """
         update = PackageUpdate.byNvr(nvr)
         repo = '%s-updates' % update.release.name
-        if not util.authorized_user(update):
+        if not util.authorized_user(update, identity):
             flash("Cannot push an update you did not submit")
             raise redirect(update.get_url())
         if update.type == 'security':
@@ -188,7 +187,7 @@ class Root(controllers.RootController):
     def unpush(self, nvr):
         """ Submit an update for unpushing """
         update = PackageUpdate.byNvr(nvr)
-        if not util.authorized_user(update):
+        if not util.authorized_user(update, identity):
             flash("Cannot unpush an update you did not submit")
             raise redirect(update.get_url())
         update.request = 'unpush'
@@ -203,14 +202,14 @@ class Root(controllers.RootController):
     def delete(self, update):
         """ Delete a pending update """
         update = PackageUpdate.byNvr(update)
-        if not util.authorized_user(update):
+        if not util.authorized_user(update, identity):
             flash("Cannot delete an update you did not submit")
             raise redirect(update.get_url())
         if not update.pushed:
             map(lambda x: x.destroySelf(), update.comments)
-            update.destroySelf()
             mail.send_admin('deleted', update)
-            msg = "Deleted %s" % update.nvr
+            msg = "Deleted %s" % update.title()
+            update.destroySelf()
             log.debug(msg)
             flash(msg)
         else:
@@ -222,19 +221,18 @@ class Root(controllers.RootController):
     def edit(self, update):
         """ Edit an update """
         update = PackageUpdate.byNvr(update)
-        if not util.authorized_user(update):
+        if not util.authorized_user(update, identity):
             flash("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
         values = {
-                'nvr'       : {'text': update.nvr, 'hidden' : update.nvr},
+                'nvr'       : {'text':update.title(), 'hidden':update.title()},
                 'release'   : update.release.long_name,
                 'testing'   : update.status == 'testing',
                 'type'      : update.type,
-                'embargo'   : update.embargo,
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
                 'cves'      : update.get_cvestring(),
-                'edited'    : update.nvr
+                'edited'    : update.title()
         }
         return dict(form=update_form, values=values, action=url('/save'))
 
@@ -242,87 +240,97 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, release, bugs, cves, edited, **kw):
+    def save(self, nvr, release, bugs, cves, edited, **kw):
         """
         Save an update.  This includes new updates and edited.
         """
         log.debug("save(%s, %s, %s, %s, %s)" % (release, bugs, cves, edited,kw))
-        kw['nvr'] = kw['nvr']['text']
-        if not kw['nvr'] or kw['nvr'] == '':
+        builds = nvr['text']
+        if not builds:
             flash("Please enter a package-version-release")
             raise redirect('/new')
-        if edited and kw['nvr'] != edited:
+        if edited and builds != edited:
             flash("You cannot change the package n-v-r after submission")
             raise redirect('/edit/%s' % edited)
 
+        builds = builds.split()
         release = Release.select(Release.q.long_name == release)[0]
         bugs = map(int, bugs.replace(',', ' ').split())
         cves = cves.replace(',', ' ').split()
         note = ''
+        update_builds = []
 
         if not edited: # new update
-            name = util.get_nvr(kw['nvr'])[0]
-
-            # Make sure selected release matches tag for this build
             koji = buildsys.get_session()
-            tag_matches = False
-            candidate = '%s-updates-candidate' % release.dist_tag
-            try:
-                for tag in koji.listTags(kw['nvr']):
-                    log.debug(" * %s" % tag['name'])
-                    if tag['name'] == candidate:
-                        log.debug("%s built with tag %s" % (kw['nvr'],
-                                                            tag['name']))
-                        tag_matches = True
-                        break
-            except GenericError, e:
-                flash("Invalid build: %s" % kw['nvr'])
-                raise redirect('/new')
-            if not tag_matches:
-                flash("%s build is not tagged with %s" % (kw['nvr'], candidate))
-                raise redirect('/new')
+            for build in builds:
+                name = util.get_nvr(build)[0]
 
-            # Get the package; if it doesn't exist, create it.
-            try:
-                package = Package.byName(name)
-            except SQLObjectNotFound:
-                package = Package(name=name)
-
-            # Check for broken update paths.  Make sure this package is newer
-            # than the previously released package on this release, as
-            # well as on all older releases
-            rel = release
-            while True:
-                log.debug("Checking for broken update paths in %s" % rel.name)
-                for up in PackageUpdate.select(
-                        AND(PackageUpdate.q.releaseID == rel.id,
-                            PackageUpdate.q.packageID == package.id)):
-                    if rpm.labelCompare(util.get_nvr(kw['nvr']),
-                                        util.get_nvr(up.nvr)) < 0:
-                        msg = "Broken update path: %s is older than existing" \
-                              " update %s" % (kw['nvr'], up.nvr)
-                        log.debug(msg)
-                        flash(msg)
-                        raise redirect('/new')
+                # Make sure selected release matches tag for this build
+                tag_matches = False
+                candidate = '%s-updates-candidate' % release.dist_tag
                 try:
-                    # Check the the previous release
-                    rel = Release.byName(rel.name[:-1] +
-                                         str(int(rel.name[-1]) - 1))
+                    for tag in koji.listTags(build):
+                        log.debug(" * %s" % tag['name'])
+                        if tag['name'] == candidate:
+                            log.debug("%s built with tag %s" % (build,
+                                                                tag['name']))
+                            tag_matches = True
+                            break
+                except GenericError, e:
+                    flash("Invalid build: %s" % build)
+                    raise redirect('/new')
+                if not tag_matches:
+                    flash("%s build is not tagged with %s" % (build, candidate))
+                    raise redirect('/new')
+
+                # Get the package; if it doesn't exist, create it.
+                try:
+                    package = Package.byName(name)
                 except SQLObjectNotFound:
-                    break
+                    package = Package(name=name)
+
+                ## TODO: FIXME
+                #
+                # Check for broken update paths.  Make sure this package is
+                # newer than the previously released package on this release,
+                # as well as on all older releases
+                #rel = release
+                #while True:
+                #    log.debug("Checking for broken update paths in %s" %
+                #              rel.name)
+                #    for up in PackageUpdate.select(
+                #            AND(PackageUpdate.q.releaseID == rel.id,
+                #                PackageUpdate.q.packageID == package.id)):
+                #        if rpm.labelCompare(util.get_nvr(build),
+                #                            util.get_nvr(up.nvr)) < 0:
+                #            msg = "Broken update path: %s is older than "
+                #                  "existing update %s" % (build, up.nvr)
+                #            log.debug(msg)
+                #            flash(msg)
+                #            raise redirect('/new')
+                #    try:
+                #        # Check the the previous release
+                #        rel = Release.byName(rel.name[:-1] +
+                #                             str(int(rel.name[-1]) - 1))
+                #    except SQLObjectNotFound:
+                #        break
+
+                update_builds.append(PackageBuild(nvr=build, package=package))
 
             try:
                 # Create a new update
-                p = PackageUpdate(package=package, release=release,
+                p = PackageUpdate(title=','.join(builds), release=release,
                                   submitter=identity.current.user_name, **kw)
+                map(p.addPackageBuild, update_builds)
+
             except RPMNotFound:
                 flash("Cannot find SRPM for update")
                 raise redirect('/new')
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
-                flash("Update for %s already exists" % kw['nvr'])
+                flash("Update for %s already exists" % builds)
                 raise redirect('/new')
-            log.info("Adding new update %s" % kw['nvr'])
+            log.info("Adding new update %s" % builds)
         else: # edited update
             from datetime import datetime
             log.info("Edited update %s" % edited)
@@ -332,9 +340,12 @@ class Root(controllers.RootController):
                 raise redirect(p.get_url())
             p.set(release=release, date_modified=datetime.now(), **kw)
 
+        # Add/remove the necessary Bugzillas and CVEs
         p.update_bugs(bugs)
         p.update_cves(cves)
 
+        # If there are any CVEs or security bugs, make sure this update is
+        # marked as security
         if p.type != 'security':
             for bug in p.bugs:
                 if bug.security:
@@ -351,6 +362,7 @@ class Root(controllers.RootController):
             mail.send(p.submitter, 'edited', p)
             flash("Update successfully edited" + note)
         else:
+            # Notify security team of newly submitted updates
             if p.type == 'security':
                 mail.send(config.get('security_team'), 'new', p)
             mail.send(p.submitter, 'new', p)
@@ -391,12 +403,12 @@ class Root(controllers.RootController):
             try:
                 update = PackageUpdate.select(
                             AND(PackageUpdate.q.releaseID == release.id,
-                                PackageUpdate.q.nvr == args[1],
+                                PackageUpdate.q.title == args[1],
                                 PackageUpdate.q.status == status))[0]
                 return dict(tg_template='bodhi.templates.show',
                             update=update, updates=[],
                             comment_form=self.comment_form,
-                            values={'nvr' : update.nvr})
+                            values={'title' : update.title})
             except SQLObjectNotFound:
                 flash("Update %s not found" % args[1])
                 raise redirect('/')

@@ -17,21 +17,11 @@
 
 """ Bodhi Initialization """
 
-import os
-import sys
-import shutil
-import turbogears
-
-from os.path import join, isdir, isfile
-from bodhi.util import mkmetadatadir, header
+from os.path import isfile
 from bodhi.model import Release, Package
 
-from sqlobject import SQLObjectNotFound
-from turbogears import config
+from turbogears import config, update_config
 from turbogears.database import PackageHub
-
-sys.path.append('/usr/share/createrepo')
-import genpkgmetadata
 
 hub = PackageHub("bodhi")
 __connection__ = hub
@@ -77,14 +67,14 @@ def load_config():
     configfile = 'prod.cfg'
     if not isfile(configfile):
         configfile = 'dev.cfg'
-    turbogears.update_config(configfile=configfile,
+    update_config(configfile=configfile,
                              modulename='bodhi.config')
 
 ##
 ## Initialize the package/release/multilib tables
 ##
 if __name__ == '__main__':
-    print header("Initializing Bodhi")
+    print "Initializing Bodhi\n"
     load_config()
     hub.begin()
     clean_tables()

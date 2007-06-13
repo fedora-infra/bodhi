@@ -41,9 +41,6 @@
         </tr>
         <?python row_color = "#FFFFFF" ?>
         <tr class="list" bgcolor="${row_color}" py:for="update in updates">
-            <?python
-            submitted = update.request == None and 'null' or 'tick'
-            ?>
             <td class="list">
                 <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
             </td>
@@ -58,7 +55,7 @@
             </td>
             <td class="list">
                 <center>
-                    <img src="${tg.url('/static/images/%s.png' % submitted)}" />
+                    <img src="${tg.url('/static/images/%s.png' % (update.request == None and 'null' or 'tick'))}" />
                 </center>
             </td>
             <td class="list">

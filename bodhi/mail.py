@@ -13,12 +13,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import rpm
-import time
 import koji
 import logging
 import turbomail
 
-from os.path import join, basename
+from os.path import join
 from bodhi.util import sha1sum, rpm_fileheader
 from bodhi.exceptions import RPMNotFound
 from turbogears import config

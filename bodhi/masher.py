@@ -226,25 +226,21 @@ class MashTask(Thread):
         Move all of the builds to the appropriate tag, and then run mash.  If
         anything fails, undo any tag moves.
         """
-        try:
-            if self.move_builds():
-                self.success = True
-                self.mash()
-                if self.success:
-                    masher.success(self)
-                else:
-                    log.error("Error mashing.. skipping post-request actions")
-                    if self.undo_move():
-                        log.info("Tag rollback successful!")
-                    else:
-                        log.error("Tag rollback failed!")
+        if self.move_builds():
+            self.success = True
+            self.mash()
+            if self.success:
+                masher.success(self)
             else:
-                log.error("Error with build moves.. rolling back")
-                self.undo_move()
-                self.success = False
-        except Exception, e:
-            log.error("Exception thrown in MashTask %d" % self.id)
-            log.error(str(e))
+                log.error("Error mashing.. skipping post-request actions")
+                if self.undo_move():
+                    log.info("Tag rollback successful!")
+                else:
+                    log.error("Tag rollback failed!")
+        else:
+            log.error("Error with build moves.. rolling back")
+            self.undo_move()
+            self.success = False
         masher.done(self)
 
     def __str__(self):
