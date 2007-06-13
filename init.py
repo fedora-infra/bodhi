@@ -18,7 +18,6 @@
 """ Bodhi Initialization """
 
 from os.path import isfile
-from bodhi.util import header
 from bodhi.model import Release, Package
 
 from turbogears import config, update_config
@@ -75,7 +74,7 @@ def load_config():
 ## Initialize the package/release/multilib tables
 ##
 if __name__ == '__main__':
-    print header("Initializing Bodhi")
+    print "Initializing Bodhi\n"
     load_config()
     hub.begin()
     clean_tables()
