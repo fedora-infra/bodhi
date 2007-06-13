@@ -53,7 +53,7 @@ messages = {
 %(email)s has deleted the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'package'   : x.nvr,
+                        'package'   : x.title,
                         'email'     : x.submitter,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : str(x)
@@ -65,7 +65,7 @@ messages = {
 %(email)s has edited the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'package'   : x.nvr,
+                        'package'   : x.title,
                         'email'     : x.submitter,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : str(x)
@@ -77,7 +77,7 @@ messages = {
 %(package)s has been successfully pushed for %(release)s.\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'package'   : x.nvr,
+                        'package'   : x.title,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : str(x)
                     }
@@ -148,7 +148,7 @@ The following comment has been added to your %(package)s update:
 %(comment)s
 """,
         'fields' : lambda x: {
-                        'package' : x.nvr,
+                        'package' : x.title,
                         'comment' : x.comments[-1]
                     }
     }
@@ -197,7 +197,7 @@ def get_template(update):
     info['testing'] = update.status == 'testing' and ' Test' or ''
     info['subject'] = "%s%s%s Update: %s" % (
             update.type == 'security' and '[SECURITY] ' or '',
-            update.release.long_name, info['testing'], update.nvr)
+            update.release.long_name, info['testing'], update.title)
     info['update_id'] = update.update_id
     info['description'] = h[rpm.RPMTAG_DESCRIPTION]
     #info['updatepath'] = update.get_repo()
@@ -209,16 +209,9 @@ def get_template(update):
 
     # Build the list of SHA1SUMs and packages
     filelist = []
-    #for arch in update.filelist.keys():
-    #    for pkg in update.filelist[arch]:
-    #        filelist.append("%s  %s" % (sha1sum(pkg), join(arch,
-    #                        pkg.find('debuginfo') != -1 and 'debug' or '',
-    #                        basename(pkg))))
-    #info['filelist'] = '\n'.join(filelist)
-
     from bodhi.buildsys import get_session
     koji_session = get_session()
-    for pkg in koji_session.listBuildRPMs(update.nvr):
+    for pkg in koji_session.listBuildRPMs(update.title):
         filename = "%s.%s.rpm" % (pkg['nvr'], pkg['arch'])
         path = join(config.get('build_dir'), info['name'], info['version'],
                     info['release'], pkg['arch'])
@@ -286,7 +279,7 @@ def send(to, msg_type, update, sender=None):
     if not sender:
         log.warning("bodhi_email not defined in app.cfg; unable to send mail")
         return
-    send_mail(sender, to, '[Fedora Update] [%s] %s' % (msg_type, update.nvr),
+    send_mail(sender, to, '[Fedora Update] [%s] %s' % (msg_type, update.title),
               messages[msg_type]['body'] % messages[msg_type]['fields'](update))
 
 def send_releng(subject, body):

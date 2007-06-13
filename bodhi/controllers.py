@@ -133,14 +133,15 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.show')
     def show(self, update):
-        update = PackageUpdate.byNvr(update)
+        update = PackageUpdate.byTitle(update)
         return dict(update=update, comment_form=self.comment_form)
 
     @expose()
     @identity.require(identity.not_anonymous())
     def revoke(self, nvr):
         """ Revoke a push request for a specified update """
-        update = PackageUpdate.byNvr(nvr)
+        update = PackageUpdate.byTitle(nvr)
+        if not util.authorized_user(update, identity):
             flash("Cannot revoke an update you did not submit")
             raise redirect(update.get_url())
         flash("%s request revoked" % update.request)
@@ -151,7 +152,7 @@ class Root(controllers.RootController):
     @expose()
     @identity.require(identity.not_anonymous())
     def move(self, nvr):
-        update = PackageUpdate.byNvr(nvr)
+        update = PackageUpdate.byTitle(nvr)
         if not util.authorized_user(update, identity):
             flash("Cannot move an update you did not submit")
             raise redirect(update.get_url())
@@ -165,7 +166,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def push(self, nvr):
         """ Submit an update for pushing """
-        update = PackageUpdate.byNvr(nvr)
+        update = PackageUpdate.byTitle(nvr)
         repo = '%s-updates' % update.release.name
         if not util.authorized_user(update, identity):
             flash("Cannot push an update you did not submit")
@@ -186,7 +187,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def unpush(self, nvr):
         """ Submit an update for unpushing """
-        update = PackageUpdate.byNvr(nvr)
+        update = PackageUpdate.byTitle(nvr)
         if not util.authorized_user(update, identity):
             flash("Cannot unpush an update you did not submit")
             raise redirect(update.get_url())
@@ -201,7 +202,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def delete(self, update):
         """ Delete a pending update """
-        update = PackageUpdate.byNvr(update)
+        update = PackageUpdate.byTitle(update)
         if not util.authorized_user(update, identity):
             flash("Cannot delete an update you did not submit")
             raise redirect(update.get_url())
@@ -220,7 +221,7 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.form')
     def edit(self, update):
         """ Edit an update """
-        update = PackageUpdate.byNvr(update)
+        update = PackageUpdate.byTitle(update)
         if not util.authorized_user(update, identity):
             flash("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
@@ -334,7 +335,7 @@ class Root(controllers.RootController):
         else: # edited update
             from datetime import datetime
             log.info("Edited update %s" % edited)
-            p = PackageUpdate.byNvr(edited)
+            p = PackageUpdate.byTitle(edited)
             if p.release != release:
                 flash("Cannot change update release after submission")
                 raise redirect(p.get_url())
@@ -436,19 +437,19 @@ class Root(controllers.RootController):
     @error_handler()
     @validate(form=comment_form)
     @identity.require(identity.not_anonymous())
-    def comment(self, text, nvr, tg_errors=None):
-        update = PackageUpdate.byNvr(nvr)
+    def comment(self, text, title, tg_errors=None):
+        update = PackageUpdate.byTitle(title)
         if tg_errors:
             flash(tg_errors['text'])
         else:
             comment = Comment(text=text, author=identity.current.user_name,
                               update=update)
             mail.send(update.submitter, 'comment', update)
-            flash("Successfully added comment to %s update" % nvr)
+            flash("Successfully added comment to %s update" % title)
         raise redirect(update.get_url())
 
     @expose(template='bodhi.templates.text')
     def mail_notice(self, nvr, *args, **kw):
-        update = PackageUpdate.byNvr(nvr)
+        update = PackageUpdate.byTitle(nvr)
         (subject, body) = mail.get_template(update)
         return dict(text=body, title=subject)
