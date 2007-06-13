@@ -47,7 +47,7 @@ class SearchController(Controller):
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
-    @validate(validators={ "search" : validators.String() })
+    @validate(validators={ "search" : validators.UnicodeString() })
     @error_handler(index)
     @paginate('updates', default_order='update_id', limit=15)
     def default(self, search, *args, **kw):
