@@ -23,8 +23,9 @@
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
 
 <?python
-from bodhi.model import Release
-releases = [(rel.name, rel.long_name) for rel in Release.select()]
+from bodhi.model import Release, PackageUpdate
+from sqlobject.sqlbuilder import AND
+releases = [(rel.name, rel.long_name, rel.id) for rel in Release.select()]
 ?>
 
 <!-- Shiny stuff.  We should eventually put this somewhere else -->
@@ -99,7 +100,7 @@ addLoadEvent(function(){
                     <div id="testinglist"> 
                         <ul>
                             <li py:for="release in releases">
-                                <a href="${tg.url('/testing/%s' % release[0])}">${release[1]}</a>
+                            <a href="${tg.url('/testing/%s' % release[0])}">${release[1]} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == 'testing')).count()})</a>
                             </li>
                         </ul>
                     </div>
@@ -108,7 +109,7 @@ addLoadEvent(function(){
                 <div id="stablelist">
                     <ul>
                         <li py:for="release in releases">
-                            <a href="${tg.url('/%s' % release[0])}">${release[1]}</a>
+                        <a href="${tg.url('/%s' % release[0])}">${release[1]} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == 'stable')).count()})</a>
                         </li>
                     </ul>
                 </div>
