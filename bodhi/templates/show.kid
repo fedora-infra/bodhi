@@ -12,6 +12,7 @@
 <?python
 from cgi import escape
 from bodhi import util
+from turbogears import identity
 
 bugs = ''
 cves = ''
@@ -99,7 +100,6 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
             ['Requested',     update.request],
             ['Pushed',        update.pushed],
             ['Date Pushed',   update.date_pushed],
-            ['Mail Sent',     update.mail_sent],
             ['Submitter',     update.submitter],
             ['Submitted',     update.date_submitted],
             ['Modified',      update.date_modified],

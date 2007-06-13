@@ -91,7 +91,6 @@ class PackageUpdate(SQLObject):
                                default='pending')
     pushed           = BoolCol(default=False)
     notes            = UnicodeCol()
-    mail_sent        = BoolCol(default=False)
     request          = EnumCol(enumValues=['push', 'unpush', 'move', None],
                                default=None)
     comments         = MultipleJoin('Comment', joinColumn='update_id')
@@ -198,7 +197,6 @@ class PackageUpdate(SQLObject):
             try:
                 turbomail.enqueue(message)
                 log.debug("Sending mail: %s" % message.plain)
-                self.mail_sent = True
             except turbomail.MailNotEnabledException:
                 log.warning("mail.on is not True!")
         else:
