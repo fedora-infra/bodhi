@@ -13,6 +13,7 @@ from bodhi.model import PackageUpdate
 
     <blockquote>
         <h1>Welcome, ${tg.identity.user.display_name}</h1>
+        ${now}
         <table cellpadding="5" cellspacing="5">
             <tr>
                 <td>

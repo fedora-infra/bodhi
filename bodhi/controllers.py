@@ -72,7 +72,8 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
     def index(self):
-        return dict()
+        import time
+        return dict(now=time.ctime())
 
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
