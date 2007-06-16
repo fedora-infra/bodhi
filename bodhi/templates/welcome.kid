@@ -54,8 +54,13 @@ from bodhi.model import PackageUpdate
                     </td>
                     <td>
                         <table width="100%">
-                            <tr py:for="update in PackageUpdate.select(orderBy=PackageUpdate.q.date_pushed)[:5]">
+                            <tr py:for="update in latest_updates">
                                 <td><a href="${tg.url(update.get_url())}" class="list">${update.title}</a></td>
+                            </tr>
+                            <tr py:for="comment in latest_comments">
+                                <td>
+                                    <a href="${tg.url(comment.update.get_url())}">${comment.author} - ${comment.text}</a>
+                                </td>
                             </tr>
                         </table>
                     </td>

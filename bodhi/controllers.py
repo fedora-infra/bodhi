@@ -73,7 +73,11 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.welcome')
     def index(self):
         import time
-        return dict(now=time.ctime())
+        latest_updates = PackageUpdate.select(
+                            orderBy=PackageUpdate.q.date_pushed)[:5]
+        latest_comments = Comment.select(orderBy=Comment.q.timestamp)[:5]
+        return dict(now=time.ctime(), latest_updates=latest_updates,
+                    latest_comments=latest_comments)
 
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
