@@ -261,3 +261,10 @@ class TestBugzilla(testutil.DBTest):
         bug = Bugzilla(bz_id=1)
         # TODO: make sure title was fetched properly, and 
         # any security flags
+
+class TestKoji(testutil.DBTest):
+
+    def test_connectivity(self):
+        from bodhi.buildsys import get_session
+        koji = get_session()
+        assert koji
