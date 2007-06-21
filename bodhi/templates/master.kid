@@ -15,7 +15,7 @@
         }
     </style>
     <style type="text/css" media="screen">
-        @import "${tg.url('/static/css/layout.css')}";
+        @import "${tg.url('/static/css/layout-uncompressed.css')}";
     </style>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/MochiKit.js')}"></script>
 </head>
@@ -24,6 +24,7 @@
 
 <?python
 from bodhi.model import Release, PackageUpdate
+from bodhi.search import search_form
 from sqlobject.sqlbuilder import AND
 releases = [(rel.name, rel.long_name, rel.id) for rel in Release.select()]
 ?>
@@ -56,21 +57,20 @@ addLoadEvent(function(){
         <div id="fedora-header-logo">
             <a href="${tg.url('/')}"><img src="${tg.url('/static/images/header-fedora_logo.png')}" /></a>
         </div>
-    <!--
-        <div id="wait" style="display: none">
-            <div id="fedora-header-items">
-                <span class="fedora-header-icon">
-                    <img src="${tg.url('/static/images/wait.gif')}" height="48" width="48"/>
-                </span>
-            </div>
-        </div>
-        -->
-        <div id="bodhi-logo">
-            <div id="fedora-header-items">
-                <span class="fedora-header-icon">
+
+        <div id="fedora-header-items">
+            <table><tr><td>
+               <form name="form" method="post" py:if="not tg.identity.anonymous">
+                   <input id="form_search" type="text" class="textfield" name="search" />
+               </form>
+           </td><td>
+                <div id="bodhi-logo">
                     <a href="${tg.url('/')}"><img src="${tg.url('/static/images/bodhi-icon-48.png')}" /></a>
-                </span>
-            </div>
+                </div>
+                <div id="wait" style="display: none">
+                    <img src="${tg.url('/static/images/wait.gif')}" height="48" width="48"/>
+                </div>
+            </td></tr></table>
         </div>
     </div>
 
