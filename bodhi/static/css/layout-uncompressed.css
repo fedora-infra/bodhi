@@ -409,7 +409,8 @@ table.show {
     border-bottom: 1px solid #bcbcbc;
 }
 
-td.show-title {
+/*
+td.title {
     text-align: right;
     vertical-align: top;
     background-color: #f1f1f1;
@@ -417,8 +418,9 @@ td.show-title {
     padding-top: 5px;
     padding-right: 5px;
 }
+    */
 
-td.show-value {
+td.value {
     text-align: left;
     padding-top: 5px;
     padding-left: 5px;
@@ -453,7 +455,7 @@ table.login {
 }
 
 
-td.login-title {
+td.title {
     text-align: right;
     vertical-align: top;
     background-color: #f1f1f1;
@@ -464,7 +466,7 @@ td.login-title {
     padding: 5px;
 }
 
-td.login-value {
+td.value {
     text-align: left;
     padding-top: 5px;
     padding-left: 5px;
@@ -479,17 +481,17 @@ p.padded {
     padding-left: 10px;
 }
 
-td.search-title {
+/*
+td.title {
     text-align: right;
     vertical-align: top;
     background-color: #f1f1f1;
     width: 25%;
     padding-right: 5px;
 }
+    */
 
-td.search-value {
+td.value {
     text-align: left;
     padding-left: 5px;
 }
-
-
