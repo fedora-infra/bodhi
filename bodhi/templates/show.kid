@@ -107,20 +107,20 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
             ['Build Logs',    XML(buildlogs)]
         )">
                 <span py:if="field[1] != None and field[1] != ''">
-                    <td class="show-title"><b>${field[0]}:</b></td>
-                    <td class="show-value">${field[1]}</td>
+                    <td class="title"><b>${field[0]}:</b></td>
+                    <td class="value">${field[1]}</td>
                 </span>
         </tr>
         <tr>
             <span py:if="update.notes">
-                <td class="show-title"><b>Notes:</b></td>
-                <td class="show-value">${XML(notes)}</td>
+                <td class="title"><b>Notes:</b></td>
+                <td class="value">${XML(notes)}</td>
             </span>
         </tr>
         <tr>
             <span py:if="update.comments">
-                <td class="show-title"><b>Comments:</b></td>
-                <td class="show-value">
+                <td class="title"><b>Comments:</b></td>
+                <td class="value">
                     <div py:for="comment in update.comments">
                         <b>${comment.author}</b> - ${comment.timestamp}<br/>
                         <div py:replace="comment.text">Comment</div>
@@ -129,12 +129,12 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
             </span>
         </tr>
         <tr>
-            <td class="show-title"></td>
-            <td class="show-value">
+            <td class="title"></td>
+            <td class="value">
                 ${comment_form.display(value=values)}
             </td>
         </tr>
-        <tr><td class="show-title"></td></tr>
+        <tr><td class="title"></td></tr>
     </table>
 
 </body>
