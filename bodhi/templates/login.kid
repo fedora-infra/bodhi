@@ -15,27 +15,27 @@
         <h1 class="padded">Fedora Update System</h1>
         <p class="padded">${message}</p>
     </blockquote>
-    <form action="${previous_url}" method="POST" name="login">
+    <form action="${previous_url}" method="POST" name="login" onsubmit="$('bodhi-logo').style.display = 'none'; $('wait').style.display = 'block';">
         <table class="login">
             <tr>
-                <td class="login-title">
+                <td class="title">
                     Login:
                 </td>
-                <td class="login-value">
+                <td class="value">
                     <input type="text" size="25" name="user_name" />
                 </td>
             </tr>
             <tr>
-                <td class="login-title">
+                <td class="title">
                     Password:
                 </td>
-                <td class="login-value">
+                <td class="value">
                     <input type="password" size="25" name="password" />
                 </td>
             </tr>
             <tr>
-                <td class="login-title"></td>
-                <td class="login-value">
+                <td class="title"></td>
+                <td class="value">
                     <input class="button" name="login" type="submit" value="Login" />
                 </td>
             </tr>
