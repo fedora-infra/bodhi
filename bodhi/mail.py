@@ -146,10 +146,16 @@ The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 The following comment has been added to your %(package)s update:
 
 %(comment)s
+
+To reply to this comment, please visit the URL at the bottom of this mail
+
+%(updatestr)s
 """,
         'fields' : lambda x: {
-                        'package' : x.title,
-                        'comment' : x.comments[-1]
+                        'package'   : x.title,
+                        'comment'   : x.comments[-1],
+                        'updatestr' : str(x)
+
                     }
     }
 }
