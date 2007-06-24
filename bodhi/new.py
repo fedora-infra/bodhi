@@ -13,16 +13,15 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import os
-import logging
 
 from os.path import join
 from bodhi.model import Release
 from turbogears import expose, controllers, validators, identity, config, url
 from turbogears.widgets import (TextField, SingleSelectField, TextArea, Form,
-                                HiddenField, AutoCompleteField, SubmitButton)
+                                HiddenField, AutoCompleteField, SubmitButton,
+                                CheckBox)
 
-log = logging.getLogger(__name__)
-update_types = ('bugfix', 'enhancement', 'security')
+update_types = config.get('update_types', 'bugfix enhancement security').split()
 
 def get_releases():
     return [rel.long_name for rel in Release.select()]
@@ -37,18 +36,20 @@ class NewUpdateForm(Form):
                               # until the AutoCompleteField can work properly
                               # under sub-controllers
                               template='bodhi.templates.packagefield'),
+            TextField('builds', validator=validators.UnicodeString(),
+                      attrs={'style' : 'display: none'}),
             SingleSelectField('release', options=get_releases,
                               validator=validators.OneOf(get_releases())),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             TextField('bugs', validator=validators.UnicodeString()),
             TextField('cves', validator=validators.UnicodeString()),
-            TextField('builds', validator=validators.UnicodeString()),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=20, cols=75),
+            CheckBox(name='close_bugs', help_text='Automatically close bugs'),
             HiddenField('edited', default=None),
-            SubmitButton('submit', label='Add Update')
     ]
+            #SubmitButton('submit', default='Add Update')
 
 newUpdateForm = NewUpdateForm(submit_text='Add Update',
                               form_attrs={
