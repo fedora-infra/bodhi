@@ -180,9 +180,10 @@ Description :
 
 %(filelist)s
 
-This update can be installed with the 'yum' update program.  Use 'yum update
-package-name' at the command line.  For more information, refer to 'Managing
-Software with yum,' available at http://docs.fedoraproject.org/yum/.
+This update can be installed with the 'yum' update program.  Use 
+'yum update %(name)s' 
+at the command line.  For more information, refer to 'Managing Software
+with yum,' available at http://docs.fedoraproject.org/yum/.
 --------------------------------------------------------------------------------
 """
 
