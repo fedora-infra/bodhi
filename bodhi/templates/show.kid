@@ -119,9 +119,13 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
         </tr>
         <tr>
             <span py:if="update.comments">
+                <?python
+                comments = update.comments
+                comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
+                ?>
                 <td class="title"><b>Comments:</b></td>
                 <td class="value">
-                    <div py:for="comment in update.comments">
+                    <div py:for="comment in comments">
                         <b>${comment.author}</b> - ${comment.timestamp}<br/>
                         <div py:replace="comment.text">Comment</div>
                     </div>
