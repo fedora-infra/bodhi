@@ -12,11 +12,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import sys
 import rpm
 import mail
+import time
 import logging
 import cherrypy
 
+from kid import Element
 from koji import GenericError
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND, OR
@@ -24,12 +27,14 @@ from sqlobject.sqlbuilder import AND, OR
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config, url,
                         exception_handler)
-from turbogears.widgets import TableForm, TextArea, HiddenField
+from turbogears.widgets import TableForm, TextArea, HiddenField, DataGrid
 
 from bodhi import buildsys, util
+from bodhi.rss import Feed
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
-from bodhi.model import Package, PackageUpdate, Release, Bugzilla, CVE, Comment
+from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
+                         Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
 from bodhi.exceptions import RPMNotFound
@@ -50,12 +55,21 @@ except:
 
 log = logging.getLogger(__name__)
 
+from bodhi.errorcatcher import ErrorCatcher
+
+def make_update_link(obj):
+    update = hasattr(obj, 'get_url') and obj or obj.update
+    link = Element('a', href=url(update.get_url()))
+    link.text = update.title
+    return link
+
 class Root(controllers.RootController):
 
     new = NewUpdateController()
     admin = AdminController()
     search = SearchController()
     rpc = XmlRpcController()
+    rss = Feed()
 
     comment_form = TableForm(fields=[TextArea(name='text', label='',
                                               validator=validators.NotEmpty(),
@@ -66,18 +80,33 @@ class Root(controllers.RootController):
     def exception(self, tg_exceptions=None):
         """ Generic exception handler """
         log.error("Exception thrown: %s" % str(tg_exceptions))
+        from bodhi.util import ErrorFormatter
+        log.error(dir(tg_exceptions))
+        log.error(type(tg_exceptions))
+        log.error(tg_exceptions)
+        log.error(ErrorFormatter().format(sys.exc_info()))
         flash(str(tg_exceptions))
         raise redirect("/")
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
     def index(self):
-        import time
-        latest_updates = PackageUpdate.select(
-                            orderBy=PackageUpdate.q.date_pushed)[:5]
-        latest_comments = Comment.select(orderBy=Comment.q.timestamp)[:5]
-        return dict(now=time.ctime(), latest_updates=latest_updates,
-                    latest_comments=latest_comments)
+        comment_grid = DataGrid(fields=[('Update', make_update_link),
+                                        ('From', lambda row: row.author),
+                                        ('Comment', lambda row: row.text)],
+                                default=Comment.select(
+                                            orderBy=Comment.q.timestamp
+                                        )[:5])
+
+        update_grid = DataGrid(fields=[('Update', make_update_link),
+                                       ('Type', lambda row: row.type),
+                                       ('From', lambda row: row.submitter)],
+                               default=PackageUpdate.select(
+                                            orderBy=PackageUpdate.q.date_pushed
+                                       )[:5])
+
+        return dict(now=time.ctime(), update_grid=update_grid,
+                    comment_grid=comment_grid)
 
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
@@ -204,6 +233,7 @@ class Root(controllers.RootController):
         raise redirect(update.get_url())
 
     @expose()
+    @exception_handler(exception)
     @identity.require(identity.not_anonymous())
     def delete(self, update):
         """ Delete a pending update """
@@ -214,7 +244,7 @@ class Root(controllers.RootController):
         if not update.pushed:
             map(lambda x: x.destroySelf(), update.comments)
             mail.send_admin('deleted', update)
-            msg = "Deleted %s" % update.title()
+            msg = "Deleted %s" % update.title
             update.destroySelf()
             log.debug(msg)
             flash(msg)
@@ -231,35 +261,46 @@ class Root(controllers.RootController):
             flash("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
         values = {
-                'nvr'       : {'text':update.title(), 'hidden':update.title()},
+                'build'     : {'text':update.title, 'hidden':update.title},
                 'release'   : update.release.long_name,
                 'testing'   : update.status == 'testing',
                 'type'      : update.type,
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
                 'cves'      : update.get_cvestring(),
-                'edited'    : update.title()
+                'edited'    : update.title
         }
-        return dict(form=update_form, values=values, action=url('/save'))
+        return dict(form=update_form, values=values, action=url("/save"))
 
     @expose()
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, nvr, release, bugs, cves, edited, **kw):
+    def save(self, build, builds, edited, notes, bugs, release,
+             type, cves, **kw):
         """
         Save an update.  This includes new updates and edited.
         """
-        log.debug("save(%s, %s, %s, %s, %s)" % (release, bugs, cves, edited,kw))
-        builds = nvr['text']
+        print "kw = " % kw
+        print "save(%s, %s, %s, %s, %s, %s, %s, %s)" % (build, builds, edited,
+                                                        notes, bugs, release,
+                                                        type, cves)
+        if not builds: builds = []
+        builds = filter(lambda x: x != u"", [build['text']] + builds)
+        flash(builds)
+
         if not builds:
             flash("Please enter a package-version-release")
             raise redirect('/new')
-        if edited and builds != edited:
+        if edited and edited not in builds:
             flash("You cannot change the package n-v-r after submission")
             raise redirect('/edit/%s' % edited)
+        for build in builds:
+            if len(build.split('-')) < 3:
+                flash("Package must be in name-version-release format")
+                raise redirect('/new')
 
-        builds = builds.split()
+        #builds = builds.split()
         release = Release.select(Release.q.long_name == release)[0]
         bugs = map(int, bugs.replace(',', ' ').split())
         cves = cves.replace(',', ' ').split()
@@ -321,12 +362,19 @@ class Root(controllers.RootController):
                 #    except SQLObjectNotFound:
                 #        break
 
-                update_builds.append(PackageBuild(nvr=build, package=package))
+                try:
+                    pkgBuild = PackageBuild(nvr=build, package=package)
+                    update_builds.append(pkgBuild)
+                except (PostgresIntegrityError, SQLiteIntegrityError,
+                        DuplicateEntryError):
+                    flash("Update for %s already exists" % build)
+                    raise redirect('/new')
 
             try:
                 # Create a new update
                 p = PackageUpdate(title=','.join(builds), release=release,
-                                  submitter=identity.current.user_name, **kw)
+                                  submitter=identity.current.user_name,
+                                  notes=notes, type=type)
                 map(p.addPackageBuild, update_builds)
 
             except RPMNotFound:
@@ -344,7 +392,8 @@ class Root(controllers.RootController):
             if p.release != release:
                 flash("Cannot change update release after submission")
                 raise redirect(p.get_url())
-            p.set(release=release, date_modified=datetime.now(), **kw)
+            p.set(release=release, date_modified=datetime.now(), notes=notes,
+                  type=type)
 
         # Add/remove the necessary Bugzillas and CVEs
         p.update_bugs(bugs)

@@ -54,12 +54,17 @@ from bodhi.model import PackageUpdate
                     </td>
                     <td>
                         <table width="100%">
-                            <tr py:for="update in latest_updates">
-                                <td><a href="${tg.url(update.get_url())}" class="list">${update.title}</a></td>
+                            <tr>
+                                <th>Latest comments</th>
                             </tr>
-                            <tr py:for="comment in latest_comments">
+                            <tr>
                                 <td>
-                                    <a href="${tg.url(comment.update.get_url())}">${comment.author} - ${comment.text}</a>
+                                    ${comment_grid.display()}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    ${update_grid.display()}
                                 </td>
                             </tr>
                         </table>
