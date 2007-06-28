@@ -18,23 +18,24 @@ import logging
 from sqlobject.sqlbuilder import LIKE
 from turbogears import (expose, identity, paginate, validate, validators,
                         redirect, error_handler, url)
-from turbogears.widgets import TextField, Form, Button
+from turbogears.widgets import TextField, Form, SubmitButton
 from turbogears.controllers import Controller
 
 from bodhi.model import PackageUpdate, Bugzilla, CVE
 
 log = logging.getLogger(__name__)
 
+class SearchForm(Form):
+    template = "bodhi.templates.searchform"
+    fields = [
+            TextField("search", default="  Package | Bug # | CVE  ", 
+                      attrs={ 'size' : 20 }),
+            SubmitButton("submit", default="Search")
+    ]
+
+search_form = SearchForm()
+
 class SearchController(Controller):
-
-    class SearchForm(Form):
-        template = "bodhi.templates.searchform"
-        fields = [
-                TextField("search"),
-                Button("submit", default="Search", attrs={'type':'submit'})
-        ]
-
-    search_form = SearchForm()
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
@@ -43,7 +44,7 @@ class SearchController(Controller):
             flash(tg_errors)
         if search:
             raise redirect('/search/%s' % search)
-        return dict(form=self.search_form, values={}, action=url('/search/'))
+        return dict(form=search_form, values={}, action=url('/search/'))
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())

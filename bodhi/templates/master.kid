@@ -43,6 +43,7 @@ addLoadEvent(function(){
         MochiKit.Visual.toggle($('flash'), 'blind');
     }
 });
+
 </script>
 <script type="text/javascript" py:if="'releng' in tg.identity.groups">
 addLoadEvent(function(){
@@ -59,11 +60,7 @@ addLoadEvent(function(){
         </div>
 
         <div id="fedora-header-items">
-            <table><tr><td>
-               <form name="form" method="post" py:if="not tg.identity.anonymous">
-                   <input id="form_search" type="text" class="textfield" name="search" />
-               </form>
-           </td><td>
+            <table><tr><td> ${search_form.display()} </td><td>
                 <div id="bodhi-logo">
                     <a href="${tg.url('/')}"><img src="${tg.url('/static/images/bodhi-icon-48.png')}" /></a>
                 </div>
@@ -95,7 +92,7 @@ addLoadEvent(function(){
             </div>
             <ul id="fedora-side-nav">
                 <li><a href="${tg.url('/new')}">New update</a></li>
-                <li><a href="${tg.url('/pending')}">Pending updates</a></li>
+                <li><a href="${tg.url('/pending')}">Pending updates (${PackageUpdate.select(PackageUpdate.q.status=='pending').count()})</a></li>
                 <li><a id="testing" href="#">Testing updates</a>
                     <div id="testinglist"> 
                         <ul>
