@@ -49,14 +49,13 @@ class NewUpdateForm(Form):
             CheckBox(name='close_bugs', help_text='Automatically close bugs'),
             HiddenField('edited', default=None),
     ]
-            #SubmitButton('submit', default='Add Update')
 
-newUpdateForm = NewUpdateForm(submit_text='Add Update',
-                              form_attrs={
-                                  'onsubmit' :
-                                    "$('bodhi-logo').style.display = 'none';"
-                                    "$('wait').style.display = 'block';"
-                              })
+update_form = NewUpdateForm(submit_text='Add Update',
+                            form_attrs={
+                                 'onsubmit' :
+                                   "$('bodhi-logo').style.display = 'none';"
+                                   "$('wait').style.display = 'block';"
+                            })
 
 class NewUpdateController(controllers.Controller):
 
@@ -71,7 +70,7 @@ class NewUpdateController(controllers.Controller):
     @expose(template="bodhi.templates.form")
     def index(self, *args, **kw):
         self.build_pkglist()
-        return dict(form=newUpdateForm, values={}, action=url("/save"))
+        return dict(form=update_form, values={}, action=url("/save"))
 
     @expose(format="json")
     def search(self, name):
