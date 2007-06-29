@@ -171,6 +171,7 @@ Name        : %(name)s
 Product     : %(product)s
 Version     : %(version)s
 Release     : %(release)s
+URL         : %(url)s
 Summary     : %(summary)s
 Description :
 %(description)s
@@ -201,6 +202,7 @@ def get_template(update):
     info['summary'] = h[rpm.RPMTAG_SUMMARY]
     info['version'] = h[rpm.RPMTAG_VERSION]
     info['release'] = h[rpm.RPMTAG_RELEASE]
+    info['url']     = h[rpm.RPMTAG_URL]
     info['testing'] = update.status == 'testing' and ' Test' or ''
     info['subject'] = "%s%s%s Update: %s" % (
             update.type == 'security' and '[SECURITY] ' or '',
