@@ -168,6 +168,7 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.show')
     def show(self, update):
         update = PackageUpdate.byTitle(update)
+        update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
         return dict(update=update, comment_form=self.comment_form)
 
     @expose()
@@ -460,6 +461,7 @@ class Root(controllers.RootController):
                             AND(PackageUpdate.q.releaseID == release.id,
                                 PackageUpdate.q.title == args[1],
                                 PackageUpdate.q.status == status))[0]
+                update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
                 return dict(tg_template='bodhi.templates.show',
                             update=update, updates=[],
                             comment_form=self.comment_form,
