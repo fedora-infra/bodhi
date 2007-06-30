@@ -17,3 +17,15 @@ class RPMNotFound(Exception):
 
 class RepositoryLocked(Exception):
     pass
+
+try:
+    from sqlobject.dberrors import DuplicateEntryError
+except ImportError:
+    # Handle pre-DuplicateEntryError versions of SQLObject
+    class DuplicateEntryError(Exception): pass
+
+from psycopg2 import IntegrityError as PostgresIntegrityError
+try:
+    from pysqlite2.dbapi2 import IntegrityError as SQLiteIntegrityError
+except:
+    from sqlite import IntegrityError as SQLiteIntegrityError

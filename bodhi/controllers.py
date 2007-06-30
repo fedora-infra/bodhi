@@ -37,21 +37,10 @@ from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
-from bodhi.exceptions import RPMNotFound
+from bodhi.exceptions import (RPMNotFound, DuplicateEntryError,
+                              PostgresIntegrityError, SQLiteIntegrityError)
 
 from os.path import isfile, join
-
-try:
-    from sqlobject.dberrors import DuplicateEntryError
-except ImportError:
-    # Handle pre-DuplicateEntryError versions of SQLObject
-    class DuplicateEntryError(Exception): pass
-
-from psycopg2 import IntegrityError as PostgresIntegrityError
-try:
-    from pysqlite2.dbapi2 import IntegrityError as SQLiteIntegrityError
-except:
-    from sqlite import IntegrityError as SQLiteIntegrityError
 
 log = logging.getLogger(__name__)
 

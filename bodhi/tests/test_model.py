@@ -12,21 +12,13 @@ from turbogears import testutil, database, config
 from bodhi.util import mkmetadatadir
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild)
+from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
+                              PostgresIntegrityError)
+
 from yum.update_md import UpdateMetadata
 
-try:
-    from sqlobject.dberrors import DuplicateEntryError
-except ImportError:
-    class DuplicateEntryError(Exception): pass
-
-from psycopg2 import IntegrityError as PostgresIntegrityError
-try:
-    from pysqlite2.dbapi2 import IntegrityError as SQLiteIntegrityError
-except:
-    from sqlite import IntegrityError as SQLiteIntegrityError
-
 database.set_db_uri("sqlite:///:memory:")
-turbogears.update_config(configfile='dev.cfg',
+turbogears.update_config(configfile='dev-lmacken.cfg',
                          modulename='bodhi.config')
 
 
