@@ -50,6 +50,7 @@ class User(SQLObject):
 
     user_name = UnicodeCol(length=30, alternateID=True,
                            alternateMethodName="by_user_name")
+    display_name = UnicodeCol(length=30)
     password = UnicodeCol(length=40, default=None)
     groups = RelatedJoin("Group", intermediateTable="user_group",
                          joinColumn="user_id", otherColumn="group_id")
