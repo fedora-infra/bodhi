@@ -21,31 +21,29 @@ database.set_db_uri("sqlite:///:memory:")
 turbogears.update_config(configfile='dev-lmacken.cfg',
                          modulename='bodhi.config')
 
+class TestKoji(testutil.DBTest):
 
-#class TestEPEL(testutil.DBTest):
-    #def test_epel(self):
-
-
-# TOOD:
-# o test unicode on EVERYTHING
-
+    def test_connectivity(self):
+        from bodhi.buildsys import get_session
+        koji = get_session()
+        assert koji
 
 class TestPackageUpdate(testutil.DBTest):
 
     def get_pkg(self):
-        return Package(name='mutt')
+        return Package(name='yum')
 
     def get_rel(self):
         rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
-                      dist_tag='dist_fc7')
+                      dist_tag='dist-fc7')
         return rel
 
-    def get_build(self, nvr):
+    def get_build(self, nvr='yum-3.2.1-1.fc7'):
         package = self.get_pkg()
         build = PackageBuild(nvr=nvr, package=package)
         return build
 
-    def get_update(self, name='mutt-1.5.14-1.fc7'):
+    def get_update(self, name='yum-3.2.1-1.fc7'):
         update = PackageUpdate(title=name,
                                release=self.get_rel(),
                                submitter='foo@bar.com',
@@ -73,8 +71,8 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_creation(self):
         update = self.get_update()
-        assert update.title == 'mutt-1.5.14-1.fc7'
-        assert update.builds[0].package.name == 'mutt'
+        assert update.title == 'yum-3.2.1-1.fc7'
+        assert update.builds[0].package.name == 'yum'
         assert update.release.name == 'fc7'
         assert update.release.updates[0] == update
         assert update.status == 'testing'
@@ -95,7 +93,7 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_multibuild(self):
         from bodhi import util
-        builds = ('mutt-1.5.14-1.fc7', 'cairo-1.4.8-1.fc7')
+        builds = ('yum-3.2.1-1.fc7', 'httpd-2.2.4-4.1.fc7')
         pkg_builds = []
         for build in builds:
             nvr = util.get_nvr(build)
@@ -115,6 +113,19 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.status == 'pending'
         assert update.type == 'bugfix'
         assert update.notes == 'Testing!'
+
+    def test_encoding(self, buildnvr='yum-3.2.1-1.fc7'):
+        update = PackageUpdate(title=buildnvr,
+                               release=self.get_rel(),
+                               submitter=u'Foo \xc3\xa9 Bar <foo@bar.com>',
+                               notes=u'Testing \u2019t stuff',
+                               type='security')
+        assert update
+        assert update.notes == u'Testing \u2019t stuff'
+        assert update.submitter == u'Foo \xc3\xa9 Bar <foo@bar.com>'
+        build = self.get_build(buildnvr)
+        update.addPackageBuild(build)
+        return update
 
     def _verify_updateinfo(self, update, repo):
         """ Verify that the updateinfo.xml.gz for a given repo matches the
@@ -214,27 +225,29 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_email(self):
         from bodhi import mail
-        update = self.get_update(name='mutt-1.5.14-1.fc7')
+        update = self.get_update(name='yum-3.2.1-1.fc7')
         bug = self.get_bug()
         cve = self.get_cve()
         update.addBugzilla(bug)
         update.addCVE(cve)
         update.assign_id()
-        # TODO: FIXME
-        return
-        template = mail.get_template(update)
-        assert template
-        assert template == u"\nSubject: [SECURITY] Fedora 7 Test Update: mutt-1.5.14-1.fc7\n\n--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2007-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : mutt\nProduct     : Fedora 7\nVersion     : 1.5.14\nRelease     : 1.fc7\nSummary     : A text mode mail user agent\nDescription :\nMutt is a text-mode mail user agent. Mutt supports color, threading,\narbitrary key remapping, and a lot of customization.\n\nYou should install mutt if you have used it in the past and you prefer\nit, or if you are new to mail programs and have not decided which one\nyou are going to use.\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  Bug #1 - https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=1\n  CVE-2007-0000 - http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\n\nThis update can be downloaded from:\n    http://download.fedoraproject.org/pub/fedora/linux/core/updates/testing/7/\n\nf31e57d24a37a4616c397df221515f1f18d7cc58  ppc/mutt-1.5.14-1.fc7.ppc.rpm\n423bd720bb3c1b095bd67311046a62ccaadfcbc1  ppc/debug/mutt-debuginfo-1.5.14-1.fc7.ppc.rpm\nae07587736a31b7b666e4b09f47ebb7cc842bc8c  x86_64/mutt-1.5.14-1.fc7.x86_64.rpm\n22fa9519ad3a13710ce62b9983e0fe3dde6a9473  x86_64/debug/mutt-debuginfo-1.5.14-1.fc7.x86_64.rpm\n71140a390ab41e62e14fe1939b243afacb7369bf  i386/mutt-1.5.14-1.fc7.i386.rpm\n60e794cb7f99ce640bda6649ec4adc4e9b4f89c0  i386/debug/mutt-debuginfo-1.5.14-1.fc7.i386.rpm\nfe0820de7c5e10b1df28221f3b946892c27800f1  SRPMS/mutt-1.5.14-1.fc7.src.rpm\n\nThis update can be installed with the 'yum' update program.  Use 'yum update\npackage-name' at the command line.  For more information, refer to 'Managing\nSoftware with yum,' available at http://docs.fedoraproject.org/yum/.\n--------------------------------------------------------------------------------\n"
+        templates = mail.get_template(update)
+        assert templates
+        assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: yum-3.2.1-1.fc7'
+        assert templates[0][1] == u"--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2007-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : yum\nProduct     : Fedora 7\nVersion     : 3.2.1\nRelease     : 1.fc7\nURL         : http://linux.duke.edu/yum/\nSummary     : RPM installer/updater\nDescription :\nYum is a utility that can check for and automatically download and\ninstall updated RPM packages. Dependencies are obtained and downloaded\nautomatically prompting the user as necessary.\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nChangeLog:\n\n* Thu Jun 21 2007 Seth Vidal <skvidal at fedoraproject.org> - 3.2.1-1\n- bump to 3.2.1\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - test bug\n        https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\nUpdated packages:\n\na4bbb1defcc3ff182e1a4cb7a32a2972562050e7 yum-3.2.1-1.fc7.noarch.rpm\nfc5cf7008a48fade1b6526050dbd8d34c3db5467 yum-updatesd-3.2.1-1.fc7.noarch.rpm\n96380256a3f70e5ffb23892a5f4d1e6ffce3fe2e yum-3.2.1-1.fc7.src.rpm\n\nThis update can be installed with the 'yum' update program.  Use \n'yum update yum' \nat the command line.  For more information, refer to 'Managing Software\nwith yum,' available at http://docs.fedoraproject.org/yum/.\n--------------------------------------------------------------------------------\n"
 
-
-    #def test_no_srpm(self):
-    #    from bodhi.exceptions import RPMNotFound
-    #    try:
-    #        update = self.get_update(name='foobar-1.2-3')
-    #    except RPMNotFound:
-    #        pass
-    #    except Exception:
-    #        assert False
+    def test_latest(self):
+        update = self.get_update()
+        assert update.builds[0].get_latest() == '/mnt/koji/packages/yum/3.2.0/1.fc7/src/yum-3.2.0-1.fc7.src.rpm'
+    def test_changelog(self):
+        import rpm
+        from bodhi.util import rpm_fileheader
+        update = self.get_update()
+        oldh = rpm_fileheader(update.builds[0].get_latest())
+        oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
+        text = oldh[rpm.RPMTAG_CHANGELOGTEXT]
+        oldtime = oldtime[0]
+        assert update.builds[0].get_changelog(oldtime) == '* Thu Jun 21 2007 Seth Vidal <skvidal at fedoraproject.org> - 3.2.1-1\n- bump to 3.2.1\n'
 
 class TestCVE(testutil.DBTest):
 
@@ -251,12 +264,8 @@ class TestBugzilla(testutil.DBTest):
 
     def test_creation(self):
         bug = Bugzilla(bz_id=1)
-        # TODO: make sure title was fetched properly, and 
-        # any security flags
 
-class TestKoji(testutil.DBTest):
-
-    def test_connectivity(self):
-        from bodhi.buildsys import get_session
-        koji = get_session()
-        assert koji
+    def test_security_bug(self):
+        bug = Bugzilla(bz_id=237533)
+        assert bug.title == 'CVE-2007-2165: proftpd auth bypass vulnerability'
+        assert bug.security == True
