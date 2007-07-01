@@ -41,7 +41,7 @@ hub = PackageHub("bodhi")
 __connection__ = hub
 
 soClasses=('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
-           'Bugzilla', 'Comment', 'User')
+           'Bugzilla', 'Comment', 'User', 'Group')
 
 class Release(SQLObject):
     """ Table of releases that we will be pushing updates for """
@@ -72,6 +72,84 @@ class PackageBuild(SQLObject):
     package         = ForeignKey('Package')
     updates         = RelatedJoin("PackageUpdate")
 
+    def get_rpm_header(self):
+        """ Get the rpm header of this build """
+        return rpm_fileheader(self.get_srpm_path())
+
+    def get_changelog(self, timelimit=0):
+        """
+        Retrieve the RPM changelog of this package since it's last update
+        """
+        rpm_header = self.get_rpm_header()
+        descrip = rpm_header[rpm.RPMTAG_CHANGELOGTEXT]
+        if not descrip: return ""
+
+        who = rpm_header[rpm.RPMTAG_CHANGELOGNAME]
+        when = rpm_header[rpm.RPMTAG_CHANGELOGTIME]
+
+        num = len(descrip)
+        if num == 1: when = [when]
+
+        str = ""
+        i = 0
+        while (i < num) and (when[i] > timelimit):
+            str += '* %s %s\n%s\n' % (time.strftime("%a %b %e %Y",
+                                      time.localtime(when[i])), who[i],
+                                      descrip[i])
+            i += 1
+        return str
+
+    def get_srpm_path(self):
+        """ Return the path to the SRPM for this update """
+        src_path = self.get_source_path()
+        path = src_path.split('/')
+        srpm = join(src_path, "src", "%s.src.rpm" % ('-'.join(path[-3:])))
+        if not isfile(srpm):
+            log.debug("Cannot find SRPM: %s" % srpm)
+            raise RPMNotFound
+        return srpm
+
+    def get_source_path(self):
+        """ Return the path of this built update """
+        return join(config.get('build_dir'), *get_nvr(self.nvr))
+
+    def get_latest(self):
+        """ Return the path to the last released srpm of this package """
+        latest_srpm = None
+        koji_session = buildsys.get_session()
+
+        # Grab a list of builds tagged with dist-$RELEASE-updates, and find
+        # the most recent update for this package, other than this one.  If
+        # nothing is tagged for -updates, then grab the first thing in
+        # dist-$RELEASE.  We aren't checking -updates-candidate first, because
+        # there could potentially be packages that never make their way over
+        # -updates, so we don't want to generate ChangeLogs against those.
+        nvr = get_nvr(self.nvr)
+        for tag in ['%s-updates', '%s']:
+            tag %= self.updates[0].release.dist_tag
+            builds = koji_session.getLatestBuilds(tag, None, self.package.name)
+            latest = None
+
+            # Find the first build that is older than us
+            for build in builds:
+                if rpm.labelCompare(nvr, get_nvr(build['nvr'])) > 0:
+                    latest = get_nvr(build['nvr'])
+                    break
+
+            if latest:
+                srpm_path = join(config.get('build_dir'), latest[0],
+                                 latest[1], latest[2], 'src',
+                                 '%s.src.rpm' % '-'.join(latest))
+                if isfile(srpm_path):
+                    log.debug("Latest build before %s: %s" % (self.nvr,
+                                                              srpm_path))
+                    latest_srpm = srpm_path
+                else:
+                    log.warning("Latest build %s not found" % srpm_path)
+                break
+
+        return latest_srpm
+
 class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """
     title            = UnicodeCol(notNone=True, alternateID=True, unique=True)
@@ -79,7 +157,6 @@ class PackageUpdate(SQLObject):
     date_submitted   = DateTimeCol(default=datetime.now, notNone=True)
     date_modified    = DateTimeCol(default=None)
     date_pushed      = DateTimeCol(default=None)
-    #package          = ForeignKey('Package')
     submitter        = UnicodeCol(notNone=True)
     update_id        = UnicodeCol(default=None)
     type             = EnumCol(enumValues=['security', 'bugfix', 'enhancement'])
@@ -202,65 +279,6 @@ class PackageUpdate(SQLObject):
         else:
             log.error("Cannot find mailing list address for update notice")
 
-    def get_source_path(self):
-        """ Return the path of this built update """
-        return [join(config.get('build_dir'), *get_nvr(build.nvr)) for build 
-                in self.builds]
-
-    def get_srpm_path(self):
-        """ Return the path to the SRPM for this update """
-        srpms = []
-        for src_path in self.get_source_path():
-            path = src_path.split('/')
-            srpm = join(src_path, "src", "%s.src.rpm" % ('-'.join(path[-3:])))
-            if not isfile(srpm):
-                log.debug("Cannot find SRPM: %s" % srpm)
-                raise RPMNotFound
-            srpms.append(srpm)
-        return srpms
-
-    def get_latest(self):
-        """
-        Return the path to the last released srpm of this package
-        """
-        latest = None
-        builds = []
-        koji_session = buildsys.get_session()
-
-        # Grab a list of builds tagged with dist-$RELEASE-updates, and find
-        # the most recent update for this package, other than this one.  If
-        # nothing is tagged for -updates, then grab the first thing in
-        # dist-$RELEASE.  We aren't checking -updates-candidate first, because
-        # there could potentially be packages that never make their way over
-        # -updates, so we don't want to generate ChangeLogs against those.
-        for tag in ['%s-updates', '%s']:
-            builds = koji_session.getLatestBuilds(tag % self.release.dist_tag,
-                                                  None, self.package.name)
-
-            # Find the first build that is older than us
-            for build in builds:
-                for update_build in self.builds:
-                    if rpm.labelCompare(get_nvr(update_build.nvr),
-                                        get_nvr(build['nvr'])) > 0:
-                        log.debug("%s > %s" % (update_build.nvr, build['nvr']))
-                        latest = get_nvr(build['nvr'])
-                        break
-                if latest:
-                    break
-            if not latest:
-                continue
-        if not latest:
-            return None
-
-        latest = join(config.get('build_dir'), latest[0], latest[1], latest[2],
-                      'src', '%s.src.rpm' % '-'.join(latest))
-
-        if not isfile(latest):
-            log.error("Cannot find latest-pkg: %s" % latest)
-            latest = None
-
-        return latest
-
     def get_url(self):
         """ Return the relative URL to this update """
         status = self.status == 'testing' and 'testing/' or ''
@@ -292,35 +310,6 @@ class PackageUpdate(SQLObject):
         """ % (self.submitter, self.date_submitted,
                config.get('base_address') + turbogears.url(self.get_url()))
         return val.rstrip()
-
-    def get_rpm_header(self):
-        """
-        Get the rpm header of this update
-        """
-        return rpm_fileheader(self.get_srpm_path())
-
-    def get_changelog(self, timelimit=0):
-        """
-        Retrieve the RPM changelog of this package since it's last update
-        """
-        rpm_header = self.get_rpm_header()
-        descrip = rpm_header[rpm.RPMTAG_CHANGELOGTEXT]
-        if not descrip: return ""
-
-        who = rpm_header[rpm.RPMTAG_CHANGELOGNAME]
-        when = rpm_header[rpm.RPMTAG_CHANGELOGTIME]
-
-        num = len(descrip)
-        if num == 1: when = [when]
-
-        str = ""
-        i = 0
-        while (i < num) and (when[i] > timelimit):
-            str += '* %s %s\n%s\n' % (time.strftime("%a %b %e %Y",
-                                      time.localtime(when[i])), who[i],
-                                      descrip[i])
-            i += 1
-        return str
 
     def get_build_tag(self):
         """
@@ -400,7 +389,8 @@ class Bugzilla(SQLObject):
     updates  = RelatedJoin("PackageUpdate")
     security = BoolCol(default=False)
 
-    _bz_server = config.get("bz_server")
+    _bz_server = config.get("bz_server",
+                            "https://bugzilla.redhat.com/bugzilla/xmlrpc.cgi")
     default_msg = "%s has been pushed to the %s repository.  If problems " + \
                   "still persist, please make note of it in this bug report."
 
@@ -431,7 +421,7 @@ class Bugzilla(SQLObject):
             log.warning("Got fault from Bugzilla: %s" % str(f))
         except Exception, e:
             self.title = 'Unable to fetch bug title'
-            log.error(self.title + str(e))
+            log.error(self.title + ': ' + str(e))
 
     def default_message(self, update):
         return self.default_msg % (update.get_title(delim=', '), "%s %s" % 
