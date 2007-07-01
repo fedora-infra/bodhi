@@ -33,9 +33,9 @@ def get_session():
         session = login()
     return session
 
-def login(client=join(expanduser('~'), '.koji/client.crt'),
-          clientca=join(expanduser('~'), '.koji/clientca.crt'),
-          serverca=join(expanduser('~'), '.koji/serverca.crt')):
+def login(client=join(expanduser('~'), '.fedora.cert'),
+          clientca=join(expanduser('~'), '.fedora-upload-ca.cert'),
+          serverca=join(expanduser('~'), '.fedora-server-ca.cert')):
     """
     Login to Koji and return the session
     """
