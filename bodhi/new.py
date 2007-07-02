@@ -16,7 +16,8 @@ import os
 
 from os.path import join
 from bodhi.model import Release
-from turbogears import expose, controllers, validators, identity, config, url
+from turbogears import (expose, controllers, validators, identity, config, url,
+                        flash)
 from turbogears.widgets import (TextField, SingleSelectField, TextArea, Form,
                                 HiddenField, AutoCompleteField, SubmitButton,
                                 CheckBox)
@@ -60,11 +61,14 @@ update_form = NewUpdateForm(submit_text='Add Update',
 class NewUpdateController(controllers.Controller):
 
     build_dir = config.get('build_dir')
-    packages  = None
+    packages  = []
 
     def build_pkglist(self):
         """ Cache a list of packages used for the package AutoCompleteField """
-        self.packages = os.listdir(self.build_dir)
+        try:
+            self.packages = os.listdir(self.build_dir)
+        except OSError:
+            flash("Warning: build_dir not set in app.cfg")
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
