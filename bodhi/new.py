@@ -27,6 +27,10 @@ update_types = config.get('update_types', 'bugfix enhancement security').split()
 def get_releases():
     return [rel.long_name for rel in Release.select()]
 
+class AutoCompleteValidator(validators.Schema):
+    def _to_python(self, value, state):
+        return validators.UnicodeString().to_python(value['text'])
+
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     fields = [
@@ -36,7 +40,8 @@ class NewUpdateForm(Form):
                               # We're hardcoding the template to fix Ticket #32
                               # until the AutoCompleteField can work properly
                               # under sub-controllers
-                              template='bodhi.templates.packagefield'),
+                              template='bodhi.templates.packagefield',
+                              validator=AutoCompleteValidator()),
             TextField('builds', validator=validators.UnicodeString(),
                       attrs={'style' : 'display: none'}),
             SingleSelectField('release', options=get_releases,

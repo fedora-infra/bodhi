@@ -276,7 +276,7 @@ class Root(controllers.RootController):
                                                         notes, bugs, release,
                                                         type, cves)
         if not builds: builds = []
-        builds = filter(lambda x: x != u"", [build['text']] + builds)
+        builds = filter(lambda x: x != u"", [build] + builds)
         flash(builds)
 
         if not builds:
