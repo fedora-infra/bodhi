@@ -45,91 +45,133 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
 ?>
 
 <body>
+<center>
+<table width="97%">
+    <tr>
+        <td>
+            <div class="show">${XML(title)}</div>
+        </td>
 
-    <center><table width="97%">
-        <tr>
-            <td><div class="show">${XML(title)}</div></td>
-
-            <!-- update options -->
-            <span py:if="util.authorized_user(update, identity)">
+        <!-- update options -->
+        <span py:if="util.authorized_user(update, identity)">
             <td align="right">
-                <b>[</b>
-                <span py:if="not update.pushed">
-                    <span py:if="update.request == None">
-                        <a href="${tg.url('/push/%s' % update.title)}">
-                            Push to Testing</a> <b>|</b> 
-                        <a href="${tg.url('/move/%s' % update.title)}">
-                            Push to Stable</a> <b>|</b> 
-                        <a href="${tg.url('/delete/%s' % update.title)}">Delete</a> <b>|</b> 
-                    </span>
-                    <a href="${tg.url('/edit/%s' % update.title)}">Edit</a>
-                </span>
-                <span py:if="update.pushed">
-                    <a href="${tg.url('/unpush/%s' % update.title)}">Unpush</a>
-                    <span py:if="update.status == 'testing'">
-                        <b>|</b>
-                        <span py:if="update.request == None">
-                            <a href="${tg.url('/move/%s' % update.title)}">Mark as Stable</a> <b>|</b> 
+                <table cellspacing="7">
+                    <tr>
+                        <span py:if="not update.pushed">
+                            <span py:if="update.request == None">
+                                <td>
+                                    <a href="${tg.url('/push/%s' % update.title)}" class="list">
+                                        <img src="${tg.url('/static/images/testing.png')}" border="0"/>
+                                        Push to Testing
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="${tg.url('/move/%s' % update.title)}" class="list">
+                                        <img src="${tg.url('/static/images/submit.png')}" border="0"/>
+                                        Push to Stable
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="${tg.url('/delete/%s' % update.title)}" class="list">
+                                        <img src="${tg.url('/static/images/trash.png')}" border="0"/>
+                                        Delete
+                                    </a>
+                                </td>
+                            </span>
+                            <td>
+                                <a href="${tg.url('/edit/%s' % update.title)}" class="list">
+                                    <img src="${tg.url('/static/images/edit.png')}" border="0"/>
+                                    Edit
+                                </a>
+                            </td>
                         </span>
-                        <a href="${tg.url('/edit/%s' % update.title)}">Edit</a>
+                        <span py:if="update.pushed">
+                            <td>
+                                <a href="${tg.url('/unpush/%s' % update.title)}" class="list">
+                                    <img src="${tg.url('/static/images/revoke.png')}" border="0"/>
+                                    Unpush
+                                </a>
+                            </td>
+                            <span py:if="update.status == 'testing'">
+                                <span py:if="update.request == None">
+                                    <td>
+                                        <a href="${tg.url('/move/%s' % update.title)}" class="list">
+                                            <img src="${tg.url('/static/images/submit.png')}" border="0"/>
+                                            Mark as Stable
+                                        </a>
+                                    </td>
+                            </span>
+                            <td>
+                                <a href="${tg.url('/edit/%s' % update.title)}" class="list">
+                                    <img src="${tg.url('/static/images/edit.png')}" border="0"/>
+                                    Edit
+                                </a>
+                            </td>
+                        </span>
                     </span>
-                </span>
-                <span py:if="update.request != None">
-                    <b>|</b> <a href="${tg.url('/revoke/%s' % update.title)}">Revoke request</a>
-                </span>
-                <b>]</b>
-            </td>
-          </span>
-        </tr>
-    </table></center>
+                    <span py:if="update.request != None">
+                        <td>
+                            <a href="${tg.url('/revoke/%s' % update.title)}" class="list">
+                                <img src="${tg.url('/static/images/revoke.png')}" border="0"/>
+                                Revoke request
+                            </a>
+                        </td>
+                    </span>
+                </tr>
+            </table>
+        </td>
+      </span>
+    </tr>
+</table>
+</center>
 
-    <table class="show">
-        <tr py:for="field in (
-            ['Release',       XML(release)],
-            ['Update ID',     update.update_id],
-            ['Status',        update.status],
-            ['Type',          update.type],
-            ['Bugs',          (bugs) and XML(bugs) or ''],
-            ['CVEs',          (cves) and XML(cves) or ''],
-            ['Embargo',       update.type == 'security' and update.embargo or ''],
-            ['Requested',     update.request],
-            ['Pushed',        update.pushed],
-            ['Date Pushed',   update.date_pushed],
-            ['Submitter',     update.submitter],
-            ['Submitted',     update.date_submitted],
-            ['Modified',      update.date_modified],
-            ['Koji Build',    XML(buildinfo)],
-        )">
-                <span py:if="field[1] != None and field[1] != ''">
-                    <td class="title"><b>${field[0]}:</b></td>
-                    <td class="value">${field[1]}</td>
-                </span>
-        </tr>
-        <tr>
-            <span py:if="update.notes">
-                <td class="title"><b>Notes:</b></td>
-                <td class="value">${XML(notes)}</td>
+<table class="show">
+    <tr py:for="field in (
+        ['Release',       XML(release)],
+        ['Update ID',     update.update_id],
+        ['Status',        update.status],
+        ['Type',          update.type],
+        ['Bugs',          (bugs) and XML(bugs) or ''],
+        ['CVEs',          (cves) and XML(cves) or ''],
+        ['Embargo',       update.type == 'security' and update.embargo or ''],
+        ['Requested',     update.request],
+        ['Pushed',        update.pushed],
+        ['Date Pushed',   update.date_pushed],
+        ['Submitter',     update.submitter],
+        ['Submitted',     update.date_submitted],
+        ['Modified',      update.date_modified],
+        ['Koji Build',    XML(buildinfo)],
+    )">
+            <span py:if="field[1] != None and field[1] != ''">
+                <td class="title"><b>${field[0]}:</b></td>
+                <td class="value">${field[1]}</td>
             </span>
-        </tr>
-        <tr>
-            <span py:if="update.comments">
-                <td class="title"><b>Comments:</b></td>
-                <td class="value">
-                    <div py:for="comment in update.comments">
-                        <b>${comment.author}</b> - ${comment.timestamp}<br/>
-                        <div py:replace="comment.text">Comment</div>
-                    </div>
-                </td>
-            </span>
-        </tr>
-        <tr>
-            <td class="title"></td>
+    </tr>
+    <tr>
+        <span py:if="update.notes">
+            <td class="title"><b>Notes:</b></td>
+            <td class="value">${XML(notes)}</td>
+        </span>
+    </tr>
+    <tr>
+        <span py:if="update.comments">
+            <td class="title"><b>Comments:</b></td>
             <td class="value">
-                ${comment_form.display(value=values)}
+                <div py:for="comment in update.comments">
+                    <b>${comment.author}</b> - ${comment.timestamp}<br/>
+                    <div py:replace="comment.text">Comment</div>
+                </div>
             </td>
-        </tr>
-        <tr><td class="title"></td></tr>
-    </table>
+        </span>
+    </tr>
+    <tr>
+        <td class="title"></td>
+        <td class="value">
+            ${comment_form.display(value=values)}
+        </td>
+    </tr>
+    <tr><td class="title"></td></tr>
+</table>
 
 </body>
 </html>
