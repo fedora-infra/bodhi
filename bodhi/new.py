@@ -73,7 +73,7 @@ class NewUpdateController(controllers.Controller):
         try:
             self.packages = os.listdir(self.build_dir)
         except OSError:
-            flash("Warning: build_dir not set in app.cfg")
+            flash("Warning: build_dir either invalid or not set in app.cfg")
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
