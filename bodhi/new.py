@@ -16,45 +16,8 @@ import os
 
 from os.path import join
 from bodhi.model import Release
-from turbogears import (expose, controllers, validators, identity, config, url,
-                        flash)
-from turbogears.widgets import (TextField, SingleSelectField, TextArea, Form,
-                                HiddenField, AutoCompleteField, SubmitButton,
-                                CheckBox)
-
-update_types = config.get('update_types', 'bugfix enhancement security').split()
-
-def get_releases():
-    return [rel.long_name for rel in Release.select()]
-
-class AutoCompleteValidator(validators.Schema):
-    def _to_python(self, value, state):
-        return validators.UnicodeString().to_python(value['text'])
-
-class NewUpdateForm(Form):
-    template = "bodhi.templates.new"
-    fields = [
-            AutoCompleteField('build', label='Package',
-                              search_controller=url('/new/search'),
-                              search_param='name', result_name='pkgs',
-                              # We're hardcoding the template to fix Ticket #32
-                              # until the AutoCompleteField can work properly
-                              # under sub-controllers
-                              template='bodhi.templates.packagefield',
-                              validator=AutoCompleteValidator()),
-            TextField('builds', validator=validators.UnicodeString(),
-                      attrs={'style' : 'display: none'}),
-            SingleSelectField('release', options=get_releases,
-                              validator=validators.OneOf(get_releases())),
-            SingleSelectField('type', options=update_types,
-                              validator=validators.OneOf(update_types)),
-            TextField('bugs', validator=validators.UnicodeString()),
-            TextField('cves', validator=validators.UnicodeString()),
-            TextArea('notes', validator=validators.UnicodeString(),
-                     rows=20, cols=75),
-            CheckBox(name='close_bugs', help_text='Automatically close bugs'),
-            HiddenField('edited', default=None),
-    ]
+from bodhi.widgets import NewUpdateForm
+from turbogears import expose, controllers, identity, config, url, flash
 
 update_form = NewUpdateForm(submit_text='Add Update',
                             form_attrs={
