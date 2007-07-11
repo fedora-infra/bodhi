@@ -173,6 +173,7 @@ class PackageUpdate(SQLObject):
     comments         = MultipleJoin('Comment', joinColumn='update_id')
     qa_approved      = UnicodeCol(default=None)
     qa_date_approved = DateTimeCol(default=None)
+    karma            = IntCol(default=0)
     # sec_approved = UnicodeCol(default=None)
     # sec_approved_date = DateTimeCol()
 
@@ -369,6 +370,7 @@ class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
     update      = ForeignKey("PackageUpdate", notNone=True)
     author      = UnicodeCol(notNone=True)
+    karma       = IntCol(default=0)
     text        = UnicodeCol(notNone=True)
 
     def __str__(self):
