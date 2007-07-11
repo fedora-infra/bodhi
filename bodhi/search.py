@@ -18,20 +18,12 @@ import logging
 from sqlobject.sqlbuilder import LIKE
 from turbogears import (expose, identity, paginate, validate, validators,
                         redirect, error_handler, url)
-from turbogears.widgets import TextField, Form, SubmitButton
 from turbogears.controllers import Controller
 
 from bodhi.model import PackageUpdate, Bugzilla, CVE
+from bodhi.widgets import SearchForm
 
 log = logging.getLogger(__name__)
-
-class SearchForm(Form):
-    template = "bodhi.templates.searchform"
-    fields = [
-            TextField("search", default="  Package | Bug # | CVE  ", 
-                      attrs={ 'size' : 20 }),
-            SubmitButton("submit", default="Search")
-    ]
 
 search_form = SearchForm()
 
@@ -55,7 +47,7 @@ class SearchController(Controller):
         results = set()
 
         # Search name-version-release
-        map(results.add, PackageUpdate.select(LIKE(PackageUpdate.q.nvr,
+        map(results.add, PackageUpdate.select(LIKE(PackageUpdate.q.title,
                                                    '%%%s%%' % search)))
 
         # Search bug numbers
