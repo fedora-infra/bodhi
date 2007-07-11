@@ -37,6 +37,7 @@ from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
 from bodhi.xmlrpc import XmlRpcController
+from bodhi.widgets import CommentForm
 from bodhi.exceptions import (RPMNotFound, DuplicateEntryError,
                               PostgresIntegrityError, SQLiteIntegrityError)
 
@@ -60,11 +61,7 @@ class Root(controllers.RootController):
     rpc = XmlRpcController()
     rss = Feed()
 
-    comment_form = TableForm(fields=[TextArea(name='text', label='',
-                                              validator=validators.NotEmpty(),
-                                              rows=3, cols=40),
-                                     HiddenField(name='title')],
-                             submit_text='Add Comment', action=url('/comment'))
+    comment_form = CommentForm()
 
     def exception(self, tg_exceptions=None):
         """ Generic exception handler """
@@ -168,7 +165,7 @@ class Root(controllers.RootController):
         if not util.authorized_user(update, identity):
             flash("Cannot revoke an update you did not submit")
             raise redirect(update.get_url())
-        flash("%s request revoked" % update.request)
+        flash("%s request revoked" % update.request.title())
         mail.send_admin('revoke', update)
         update.request = None
         raise redirect(update.get_url())
@@ -282,6 +279,8 @@ class Root(controllers.RootController):
         if not builds:
             flash("Please enter a package-version-release")
             raise redirect('/new')
+
+        # TODO: make this possible
         if edited and edited not in builds:
             flash("You cannot change the package n-v-r after submission")
             raise redirect('/edit/%s' % edited)
@@ -290,12 +289,11 @@ class Root(controllers.RootController):
                 flash("Package must be in name-version-release format")
                 raise redirect('/new')
 
-        #builds = builds.split()
         release = Release.select(Release.q.long_name == release)[0]
         bugs = map(int, bugs.replace(',', ' ').split())
         cves = cves.replace(',', ' ').split()
-        note = ''
         update_builds = []
+        note = ''
 
         if not edited: # new update
             koji = buildsys.get_session()
@@ -364,6 +362,7 @@ class Root(controllers.RootController):
                 # Create a new update
                 p = PackageUpdate(title=','.join(builds), release=release,
                                   submitter=identity.current.user_name,
+                                  #subitter=util.displayname(identity),
                                   notes=notes, type=type)
                 map(p.addPackageBuild, update_builds)
 
@@ -481,16 +480,18 @@ class Root(controllers.RootController):
     @expose()
     @error_handler()
     @validate(form=comment_form)
+    @validate(validators={ 'karma' : validators.Int() })
     @identity.require(identity.not_anonymous())
-    def comment(self, text, title, tg_errors=None):
+    def comment(self, text, title, karma, tg_errors=None):
         update = PackageUpdate.byTitle(title)
         if tg_errors:
-            flash(tg_errors['text'])
+            flash(tg_errors)
         else:
-            comment = Comment(text=text, author=identity.current.user_name,
+            comment = Comment(text=text, karma=karma,
+                              author=identity.current.user_name,
                               update=update)
+            update.karma += karma
             mail.send(update.submitter, 'comment', update)
-            flash("Successfully added comment to %s update" % title)
         raise redirect(update.get_url())
 
     @expose(template='bodhi.templates.text')
