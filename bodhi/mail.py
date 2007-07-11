@@ -264,6 +264,9 @@ def get_template(update):
         except RPMNotFound:
             log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
                       lastpkg)
+        except Exception, e:
+            log.error("Unknown exception thrown during ChangeLog generation: %s"
+                      % str(e))
 
         for (key, value) in info.items():
             if value:
