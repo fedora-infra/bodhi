@@ -60,7 +60,7 @@ addLoadEvent(function(){
         </div>
 
         <div id="fedora-header-items">
-            <table><tr><td> ${search_form.display()} </td><td>
+            <table><tr><td py:if="not tg.identity.anonymous"> ${search_form.display()} </td><td>
                 <div id="bodhi-logo">
                     <a href="${tg.url('/')}"><img src="${tg.url('/static/images/bodhi-icon-48.png')}" /></a>
                 </div>
@@ -113,7 +113,7 @@ addLoadEvent(function(){
                 </li>
                 <li><a href="${tg.url('/pkgs')}">Packages</a></li>
                 <li><a href="${tg.url('/mine')}">My updates</a></li>
-                <li><a href="${tg.url('/search')}">Search</a></li>
+                <!-- <li><a href="${tg.url('/search')}">Search</a></li> -->
                 <li><a href="${tg.url('/logout')}">Logout</a></li>
             </ul>
         </div>
