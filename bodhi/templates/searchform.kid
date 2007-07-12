@@ -1,6 +1,6 @@
 <form xmlns:py="http://purl.org/kid/ns#"
     name="${name}"
-    action="${action}"
+    action="${tg.url('/search/')}"
     method="${method}"
     py:attrs="form_attrs" width="100%"
     onsubmit="$('bodhi-logo').style.display = 'none'; $('wait').style.display='block'">
@@ -10,6 +10,11 @@
     addLoadEvent(function(){
         connect($('form_search'), 'onclick', function (e) {
             $('form_search').value = "";
+        });
+        connect($('form_search'), 'onblur', function (e) {
+            if( $('form_search').value == "" ){
+                $('form_search').value = "  Package | Bug # | CVE  ";
+            }
         });
     });
 
