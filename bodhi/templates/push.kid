@@ -25,10 +25,10 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
             <table>
                 <tr py:for="update in needpush">
                     <td>
-                        <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
+                        <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${tg.url(update.get_url())}">${update.nvr}</a>
+                        <a href="${tg.url(update.get_url())}">${update.title}</a>
                     </td>
                 </tr>
             </table>
@@ -38,10 +38,10 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
             <table>
                 <tr py:for="update in needmove">
                     <td>
-                        <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
+                        <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${tg.url(update.get_url())}">${update.nvr}</a>
+                        <a href="${tg.url(update.get_url())}">${update.title}</a>
                     </td>
                 </tr>
             </table>
@@ -51,10 +51,10 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
             <table>
                 <tr py:for="update in needunpush">
                     <td>
-                        <input type="checkbox" name="updates" value="${update.nvr}" checked="True"/>
+                        <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
                     <td>
-                        <a href="${tg.url(update.get_url())}">${update.nvr}</a>
+                        <a href="${tg.url(update.get_url())}">${update.title}</a>
                     </td>
                 </tr>
             </table>
