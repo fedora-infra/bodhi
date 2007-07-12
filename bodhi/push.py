@@ -76,5 +76,5 @@ class PushController(controllers.Controller, identity.SecureResource):
         from bodhi.masher import masher
         if not isinstance(updates, list):
             updates = [updates]
-        masher.queue([PackageUpdate.byNvr(nvr) for nvr in updates])
+        masher.queue([PackageUpdate.byTitle(title) for title in updates])
         raise redirect('/admin/masher')
