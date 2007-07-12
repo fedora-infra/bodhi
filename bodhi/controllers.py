@@ -77,19 +77,29 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
     def index(self):
-        comment_grid = DataGrid(fields=[('Update', make_update_link),
-                                        ('From', lambda row: row.author),
-                                        ('Comment', lambda row: row.text)],
-                                default=Comment.select(
-                                            orderBy=Comment.q.timestamp
-                                        )[:5])
+        comments = Comment.select(orderBy=Comment.q.timestamp)
+        num_comments = comments.count()
+        if num_comments:
+            if num_comments > 5: comments = comments[:5]
+            else: comments = list(comments)
+            comment_grid = DataGrid(fields=[('Update', make_update_link),
+                                            ('From', lambda row: row.author),
+                                            ('Comment', lambda row: row.text)],
+                                    default=comments)
+        else:
+            comment_grid = None
 
-        update_grid = DataGrid(fields=[('Update', make_update_link),
-                                       ('Type', lambda row: row.type),
-                                       ('From', lambda row: row.submitter)],
-                               default=PackageUpdate.select(
-                                            orderBy=PackageUpdate.q.date_pushed
-                                       )[:5])
+        updates = PackageUpdate.select(orderBy=PackageUpdate.q.date_pushed)
+        num_updates = updates.count()
+        if num_updates:
+            if num_updates > 5: updates = updates[:5]
+            else: updates = list(updates)
+            update_grid = DataGrid(fields=[('Update', make_update_link),
+                                           ('Type', lambda row: row.type),
+                                           ('From', lambda row: row.submitter)],
+                                   default=updates)
+        else:
+            update_grid = None
 
         return dict(now=time.ctime(), update_grid=update_grid,
                     comment_grid=comment_grid)

@@ -54,19 +54,23 @@ from bodhi.model import PackageUpdate
                     </td>
                     <td>
                         <table width="100%">
-                            <tr>
-                                <th>Latest comments</th>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ${comment_grid.display()}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    ${update_grid.display()}
-                                </td>
-                            </tr>
+                            <span py:if="comment_grid">
+                                <tr>
+                                    <th>Latest comments</th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        ${comment_grid.display()}
+                                    </td>
+                                </tr>
+                            </span>
+                            <span py:if="update_grid">
+                                <tr>
+                                    <td>
+                                        ${update_grid.display()}
+                                    </td>
+                                </tr>
+                            </span>
                         </table>
                     </td>
                 </tr>
