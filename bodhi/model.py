@@ -371,7 +371,7 @@ class Comment(SQLObject):
     update      = ForeignKey("PackageUpdate", notNone=True)
     author      = UnicodeCol(notNone=True)
     karma       = IntCol(default=0)
-    text        = UnicodeCol(notNone=True)
+    text        = UnicodeCol()
 
     def __str__(self):
         return "%s - %s\n%s" % (self.author, self.timestamp, self.text)
