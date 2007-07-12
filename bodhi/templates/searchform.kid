@@ -6,18 +6,13 @@
     onsubmit="$('bodhi-logo').style.display = 'none'; $('wait').style.display='block'">
 
     <script type="text/javascript">
-
-    addLoadEvent(function(){
-        connect($('form_search'), 'onclick', function (e) {
-            $('form_search').value = "";
-        });
-        connect($('form_search'), 'onblur', function (e) {
-            if( $('form_search').value == "" ){
-                $('form_search').value = "  Package | Bug # | CVE  ";
-            }
-        });
-    });
-
+        $(document).ready(function() {
+            $('#form_search').click( function() { $(this).val(""); } );
+            $('#form_search').blur( function() {
+                if ( $(this).val() == "" )
+                    $(this).val("  Package | Bug # | CVE  ");
+            } );
+        } );
     </script>
 
     <table cellpadding="0" cellspacing="0">
