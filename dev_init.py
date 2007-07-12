@@ -13,7 +13,7 @@ load_config()
 hub.begin()
 print "Creating guest user and giving it administrator priviliges"
 try:
-    guest = User(user_name='guest')
+    guest = User(user_name='guest', display_name='Bodhi Guest')
     guest.password = 'guest'
     admin = Group(group_name='releng', display_name='Bodhi administrators')
     guest.addGroup(admin)
