@@ -56,7 +56,7 @@ class Masher:
     def success(self, thread):
         log.debug("MashTask %d successful!" % thread.id)
         for update in thread.updates:
-            log.debug("Doing post-request stuff for %s" % update.nvr)
+            log.debug("Doing post-request stuff for %s" % update.title)
             update.request_complete()
 
     @synchronized(lock)
@@ -114,7 +114,7 @@ class Masher:
                     if len(item[1]):
                         val += "  Move tags\n"
                         for update in item[1]:
-                            val += "  - %s (%s)" % (update.nvr, update.request)
+                            val += "  - %s (%s)" % (update.title, update.request)
                     if len(item[2]):
                         val += "  Mash repos\n"
                         for repo in item[2]:
@@ -135,7 +135,7 @@ class MashTask(Thread):
         self.repos = repos
         self.success = False
         self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + ' '
-        self.actions = [] # [(nvr, current_tag, new_tag), ...]
+        self.actions = [] # [(title, current_tag, new_tag), ...]
         self.mashing = False # are we currently mashing?
         self.moving = False # are we currently moving build tags?
         self.log = None # filename that we wrote mash output to
@@ -160,11 +160,11 @@ class MashTask(Thread):
                 elif update.status == 'stable':
                     self.repos.add('%s-updates' % release)
             current_tag = update.get_build_tag()
-            log.debug("Moving %s from %s to %s" % (update.nvr, current_tag,
+            log.debug("Moving %s from %s to %s" % (update.title, current_tag,
                                                    self.tag))
             task_id = self.koji.moveBuild(current_tag, self.tag,
-                                          update.nvr, force=True)
-            self.actions.append((update.nvr, current_tag, self.tag))
+                                          update.title, force=True)
+            self.actions.append((update.title, current_tag, self.tag))
             tasks.append(task_id)
         if buildsys.wait_for_tasks(tasks) == 0:
             success = True
@@ -256,7 +256,7 @@ class MashTask(Thread):
         elif self.mashing:
             val += '  Mashing Repos %s\n' % ([str(repo) for repo in self.repos])
             for update in self.updates:
-                val += '   %s (%s)\n' % (update.nvr, update.request)
+                val += '   %s (%s)\n' % (update.title, update.request)
         else:
             val += '  Not doing anything?'
         return val
