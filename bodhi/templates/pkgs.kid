@@ -33,7 +33,7 @@
                 <a class="list" href="${tg.url('/%s' % pkg.name)}">${pkg.name}</a>
             </td>
             <td class="list">
-                ${len(pkg.updates)}
+                ${pkg.num_updates()}
             </td>
             <?python row_color = (row_color == "#f1f1f1") and "#FFFFFF" or "#f1f1f1" ?>
         </tr>

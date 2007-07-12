@@ -22,7 +22,7 @@ bugs = "https://bugzilla.redhat.com/bugzilla/buglist.cgi?component=%s&bug_status
     </ul>
 </blockquote>
 
-&nbsp;&nbsp;${len(pkg.updates)} updates found
+&nbsp;&nbsp;${pkg.num_updates()} updates found
 <div class="list">
     <span py:for="page in tg.paginate.pages">
         <a py:if="page != tg.paginate.current_page"
@@ -53,12 +53,12 @@ bugs = "https://bugzilla.redhat.com/bugzilla/buglist.cgi?component=%s&bug_status
         </th>
     </tr>
     <?python row_color = "#FFFFFF" ?>
-    <tr class="list" bgcolor="${row_color}" py:for="update in pkg.updates">
+    <tr class="list" bgcolor="${row_color}" py:for="update in pkg.updates()">
         <td class="list">
             ${update.update_id}
         </td>
         <td class="list">
-            <a class="list" href="${tg.url(update.get_url())}">${update.nvr}</a>
+            <a class="list" href="${tg.url(update.get_url())}">${update.title}</a>
         </td>
         <td class="list">
             <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>
