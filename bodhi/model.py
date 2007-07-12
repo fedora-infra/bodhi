@@ -53,9 +53,19 @@ class Release(SQLObject):
 
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
-    #updates        = MultipleJoin('PackageUpdate', joinColumn='package_id')
-    builds         = MultipleJoin('PackageBuild', joinColumn='pkg_build_id')
+    builds         = MultipleJoin('PackageBuild', joinColumn='package_id')
     suggest_reboot = BoolCol(default=False)
+
+    def updates(self):
+        for build in self.builds:
+            for update in build.updates:
+                yield update
+
+    def num_updates(self):
+        i = 0
+        for build in self.builds:
+            i += len(build.updates)
+        return i
 
     def __str__(self):
         x = header(self.name)
