@@ -17,7 +17,7 @@
     <style type="text/css" media="screen">
         @import "${tg.url('/static/css/layout-uncompressed.css')}";
     </style>
-    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/MochiKit.js')}"></script>
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.js')}"></script>
 </head>
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
@@ -31,25 +31,14 @@ releases = [(rel.name, rel.long_name, rel.id) for rel in Release.select()]
 
 <!-- Shiny stuff.  We should eventually put this somewhere else -->
 <script type="text/javascript" py:if="not tg.identity.anonymous">
-addLoadEvent(function(){
-    connect($('stable'), 'onclick', function (e) {
-        MochiKit.Visual.toggle($('stablelist'), 'slide');
-    });
-    connect($('testing'), 'onclick', function (e) {
-        MochiKit.Visual.toggle($('testinglist'), 'slide');
-    });
-    if( $('flash') != null ){
-        MochiKit.Visual.roundElement($('flash'), null);
-        MochiKit.Visual.toggle($('flash'), 'blind');
-    }
+$(document).ready(function() {
+    $('#stable').click( function() { $('#stablelist').toggle('slow'); });
+    $('#testing').click( function() { $('#testinglist').toggle('slow'); });
 });
-
 </script>
 <script type="text/javascript" py:if="'releng' in tg.identity.groups">
-addLoadEvent(function(){
-    connect($('administration'), 'onclick', function (e) {
-        MochiKit.Visual.toggle($('adminlist'), 'slide');
-    });
+$(document).ready(function() {
+    $('#administration').click( function() { $('#adminlist').toggle('slow'); });
 });
 </script>
 
