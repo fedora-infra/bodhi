@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from init import load_config
 from turbogears.database import PackageHub
-from sqlobject.dberrors import DuplicateEntryError
+from bodhi.exceptions import DuplicateEntryError
 from bodhi.model import (User, Group, PackageUpdate, Package, Release,
                          PackageBuild)
 
