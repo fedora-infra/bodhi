@@ -104,7 +104,8 @@ def displayname(identity):
     Return the Full Name <email@address> of the current identity
     """
     return fixEncoding('%s <%s>' % (identity.current.user.display_name,
-                                    identity.current.user.user['email']))
+                                    hasattr(identity.current.user, 'user') and
+                                    identity.current.user.user['email'] or ''))
 
 def authorized_user(update, identity):
     return update.submitter == identity.current.user_name or \
