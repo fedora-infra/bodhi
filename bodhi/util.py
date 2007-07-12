@@ -110,7 +110,7 @@ def displayname(identity):
 def authorized_user(update, identity):
     return update.submitter == identity.current.user_name or \
            'releng' in identity.current.groups or \
-           displayname() == update.submitter
+           displayname(identity) == update.submitter
 
 def read_entire_file(uri):
     if (not "://" in uri): uri = "file://" + uri
