@@ -2,8 +2,7 @@
     name="${name}"
     action="${tg.url('/search/')}"
     method="${method}"
-    py:attrs="form_attrs" width="100%"
-    onsubmit="$('bodhi-logo').style.display = 'none'; $('wait').style.display='block'">
+    py:attrs="form_attrs" width="100%">
 
     <script type="text/javascript">
         $(document).ready(function() {

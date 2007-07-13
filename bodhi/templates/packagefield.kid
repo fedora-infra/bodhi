@@ -15,7 +15,7 @@
           <img name="autoCompleteSpinner${name}" id="autoCompleteSpinner${field_id}" src="${tg.widgets}/turbogears.widgets/spinnerstopped.png" alt="" />
         </td>
         <td>
-          <a href="javascript:addBuildField()">
+          <a id="addField" href="#">
             <img src="${tg.url('/static/images/plus.png')}" border="0" alt="Add another package to this update"/>
           </a>
         </td>

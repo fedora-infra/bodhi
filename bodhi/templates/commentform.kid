@@ -2,8 +2,7 @@
     name="${name}"
     action="${tg.url('/comment')}"
     method="${method}"
-    py:attrs="form_attrs" width="100%"
-    onsubmit="$('bodhi-logo').style.display = 'none'; $('wait').style.display='block'">
+    py:attrs="form_attrs" width="100%">
 
     <div py:for="field in hidden_fields"
          py:replace="field.display(value_for(field), **params_for(field))" />

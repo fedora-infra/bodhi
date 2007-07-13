@@ -15,7 +15,7 @@
         <h1 class="padded">Fedora Update System</h1>
         <p class="padded">${message}</p>
     </blockquote>
-    <form action="${previous_url}" method="POST" name="login" onsubmit="$('bodhi-logo').style.display = 'none'; $('wait').style.display = 'block';">
+    <form action="${previous_url}" method="POST" name="login">
         <table class="login">
             <tr>
                 <td class="title">
@@ -47,6 +47,5 @@
         <input py:for="name,value in original_parameters.items()"
             type="hidden" name="${name}" value="${value}"/>
     </form>
-    <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/reset-password.cgi">Fedora Accounts System</a>.</p>
 </body>
 </html>

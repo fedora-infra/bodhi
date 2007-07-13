@@ -5,6 +5,9 @@
 <head py:match="item.tag=='{http://www.w3.org/1999/xhtml}head'" py:attrs="item.items()">
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
     <title py:replace="''">Your title goes here</title>
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.js')}"></script>
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.corner.js')}"></script>
+
     <meta py:replace="item[:]"/>
     <style type="text/css">
         #pageLogin
@@ -17,7 +20,6 @@
     <style type="text/css" media="screen">
         @import "${tg.url('/static/css/layout-uncompressed.css')}";
     </style>
-    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.js')}"></script>
 </head>
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
@@ -30,10 +32,23 @@ releases = [(rel.name, rel.long_name, rel.id) for rel in Release.select()]
 ?>
 
 <!-- Shiny stuff.  We should eventually put this somewhere else -->
+<script type="text/javascript">
+$(document).ready(function() {
+    $("div[@id=fedora-content]").corner();
+
+    $("form").submit( function() {
+        $("div[@id=bodhi-logo]").hide();
+        $("div[@id=wait]").show();
+    } );
+} );
+</script>
 <script type="text/javascript" py:if="not tg.identity.anonymous">
 $(document).ready(function() {
     $('#stable').click( function() { $('#stablelist').toggle('slow'); });
     $('#testing').click( function() { $('#testinglist').toggle('slow'); });
+
+    $('div.flash').corner();
+    $('div.flash').show("slow");
 });
 </script>
 <script type="text/javascript" py:if="'releng' in tg.identity.groups">
@@ -80,7 +95,6 @@ $(document).ready(function() {
                 </ul>
             </div>
             <ul id="fedora-side-nav">
-                <li><a href="${tg.url('/')}">Home</a></li>
                 <li><a href="${tg.url('/new')}">New update</a></li>
                 <li><a href="${tg.url('/pending')}">Pending updates (${PackageUpdate.select(PackageUpdate.q.status=='pending').count()})</a></li>
                 <li><a id="testing" href="#">Testing updates</a>
@@ -111,22 +125,19 @@ $(document).ready(function() {
 
         <!-- content BEGIN -->
         <div py:attrs="{'id' : tg.identity.anonymous and 'fedora-middle-three' or 'fedora-middle-two'}">
-            <div class="fedora-corner-tr">&nbsp;</div>
-            <div class="fedora-corner-tl">&nbsp;</div>
             <div id="fedora-content">
 
             <div id="page-main">
 
                 <center>
-                    <div style="display: none" id="flash" py:if="tg_flash" class="flash" py:content="tg_flash"></div>
+                    <div style="display: none;" id="flash" py:if="tg_flash" class="flash" py:content="tg_flash"></div>
                 </center>
                 <div py:replace="[item.text]+item[:]"/>
 
             </div>
 
         </div>
-        <div class="fedora-corner-br">&nbsp;</div>
-        <div class="fedora-corner-bl">&nbsp;</div>
+
     </div>
     <!-- content END -->
 

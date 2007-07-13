@@ -5,25 +5,13 @@
     py:attrs="form_attrs" width="100%">
 
     <script type="text/javascript">
-
-    function addBuildField() {
-        var oldField = $('form_builds');
-        var newField = oldField.cloneNode(true);
-        newField.style.display = 'block';
-        oldField.parentNode.insertBefore(newField, oldField);
-        $('form_builds').value = $('form_build_text').value;
-        $('form_build_text').value = "";
-        $('form_build_text').focus();
-    }
-
-    /* For some reason when we auto-focus on the AutoCompleteWidget, it
-    ** stops working properly until we go away and then focus again 
-
-    addLoadEvent(function(e){
-        $('form_build_text').focus();
-    })
-    */
-
+    $(document).ready(function() {
+        $("#addField").click( function() {
+            o = $("input[@id=form_build_text]:eq(0)");
+            o.clone().val( o.val() ).insertAfter( o.parent().parent() ).show();
+            o.focus().val("");
+        } );
+    });
     </script>
 
     <div py:for="field in hidden_fields"
