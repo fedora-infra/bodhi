@@ -421,7 +421,7 @@ class Bugzilla(SQLObject):
             me = config.get('bodhi_email')
             password = config.get('bodhi_password')
             if not password:
-                log.error("No password stored for %s" % me)
+                log.error("No password stored for bodhi_email")
                 return
             bug = server.bugzilla.getBug(self.bz_id, me, password)
             del server
