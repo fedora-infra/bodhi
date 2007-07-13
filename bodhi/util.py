@@ -24,9 +24,10 @@ import urllib
 import logging
 import traceback
 
+from kid import Element
 from koji import fixEncoding
 from os.path import isdir, exists
-from turbogears import config
+from turbogears import config, url
 from bodhi.exceptions import RPMNotFound
 
 ## TODO: give createrepo a competent API
@@ -112,6 +113,19 @@ def authorized_user(update, identity):
     return update.submitter == identity.current.user_name or \
            'releng' in identity.current.groups or \
            displayname(identity) == update.submitter
+
+def make_update_link(obj):
+    update = hasattr(obj, 'get_url') and obj or obj.update
+    link = Element('a', href=url(update.get_url()))
+    link.text = update.title
+    return link
+
+def make_type_icon(update):
+    return Element('img', src=url('/static/images/%s.png' % update.type),
+                   title=update.type)
+
+def make_karma_icon(obj):
+    return Element('img', src=url('/static/images/%d.png' % obj.karma))
 
 def read_entire_file(uri):
     if (not "://" in uri): uri = "file://" + uri
