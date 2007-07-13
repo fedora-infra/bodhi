@@ -30,26 +30,28 @@ hub = __connection__ = PackageHub("bodhi")
 
 def main():
     load_config()
-    updates = {}
+    updates = []
 
     for update in PackageUpdate.select():
         print update.nvr
-        updates['nvr'] = update.nvr
-        updates['date_submitted'] = update.date_submitted
-        updates['date_pushed'] = update.date_pushed
-        updates['package'] = update.package.name
-        updates['release'] = update.release.name
-        updates['submitter'] = update.submitter
-        updates['update_id'] = update.update_id
-        updates['type'] = update.type
-        updates['cves'] = [cve.cve_id for cve in update.cves]
-        updates['bugs'] = [bug.bz_id for bug in update .bugs]
-        updates['status'] = update.status
-        updates['pushed'] = update.pushed
-        updates['notes'] = update.notes
-        updates['mail_sent'] = update.mail_sent
-        updates['request'] = update.request
-        updates['comments'] = [(c.timestamp, c.author, c.text) for c in update.comments]
+        data = {}
+        data['nvr'] = update.nvr
+        data['date_submitted'] = update.date_submitted
+        data['date_pushed'] = update.date_pushed
+        data['package'] = update.package.name
+        data['release'] = update.release.name
+        data['submitter'] = update.submitter
+        data['update_id'] = update.update_id
+        data['type'] = update.type
+        data['cves'] = [cve.cve_id for cve in update.cves]
+        data['bugs'] = [bug.bz_id for bug in update .bugs]
+        data['status'] = update.status
+        data['pushed'] = update.pushed
+        data['notes'] = update.notes
+        data['mail_sent'] = update.mail_sent
+        data['request'] = update.request
+        data['comments'] = [(c.timestamp, c.author, c.text) for c in update.comments]
+        updates.append(data)
 
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
     pickle.dump(updates, dump)
