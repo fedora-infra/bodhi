@@ -47,5 +47,7 @@
         <input py:for="name,value in original_parameters.items()"
             type="hidden" name="${name}" value="${value}"/>
     </form>
+    <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/reset-password.cgi">Fedora Accounts System</a>.</p>
+
 </body>
 </html>

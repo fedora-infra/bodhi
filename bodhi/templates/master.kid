@@ -95,6 +95,7 @@ $(document).ready(function() {
                 </ul>
             </div>
             <ul id="fedora-side-nav">
+                <li><a href="${tg.url('/')}">Home</a></li>
                 <li><a href="${tg.url('/new')}">New update</a></li>
                 <li><a href="${tg.url('/pending')}">Pending updates (${PackageUpdate.select(PackageUpdate.q.status=='pending').count()})</a></li>
                 <li><a id="testing" href="#">Testing updates</a>

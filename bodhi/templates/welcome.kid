@@ -4,6 +4,7 @@
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
 <title>Fedora Update System</title>
+<link media="all" href="/tg_widgets/turbogears.widgets/grid.css" type="text/css" rel="stylesheet"/>
 </head>
 <body>
 
@@ -18,6 +19,14 @@ from bodhi.model import PackageUpdate
             <tr>
                 <td>
                     <table width="100%">
+                        <tr>
+                            <td align="right">
+                                <img src="${tg.url('/static/images/bodhi-icon-36.png')}" height="36" width="36"/>
+                            </td>
+                            <td align="left">
+                                <a href="http://hosted.fedoraproject.org/projects/bodhi" class="list">Bodhi Project Homepage</a>
+                            </td>
+                        </tr>
                         <tr>
                             <td align="right">
                                 <img src="${tg.url('/static/images/header-faq.png')}" align="middle" border="0" />
@@ -52,26 +61,15 @@ from bodhi.model import PackageUpdate
                         </tr>
                         </table>
                     </td>
-                    <td>
-                        <table width="100%">
-                            <span py:if="comment_grid">
-                                <tr>
-                                    <th>Latest comments</th>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        ${comment_grid.display()}
-                                    </td>
-                                </tr>
-                            </span>
-                            <span py:if="update_grid">
-                                <tr>
-                                    <td>
-                                        ${update_grid.display()}
-                                    </td>
-                                </tr>
-                            </span>
-                        </table>
+                    <td valign="top">
+                        <div class="tabber">
+                            <div class="tabbertab" py:for="title, value in grids.items()">
+                                <h2>${title}</h2>
+                                <span py:if="value[2]">
+                                    ${value[2].display()}
+                                </span>
+                            </div>
+                        </div>
                     </td>
                 </tr>
         </table>
