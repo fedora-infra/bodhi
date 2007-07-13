@@ -240,9 +240,10 @@ class Root(controllers.RootController):
             raise redirect(update.get_url())
         if not update.pushed:
             map(lambda x: x.destroySelf(), update.comments)
+            map(lambda x: x.destroySelf(), update.builds)
+            update.destroySelf()
             mail.send_admin('deleted', update)
             msg = "Deleted %s" % update.title
-            update.destroySelf()
             log.debug(msg)
             flash(msg)
         else:
