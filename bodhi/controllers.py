@@ -19,7 +19,6 @@ import time
 import logging
 import cherrypy
 
-from kid import Element
 from koji import GenericError
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND, OR
@@ -27,7 +26,7 @@ from sqlobject.sqlbuilder import AND, OR
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config, url,
                         exception_handler)
-from turbogears.widgets import TableForm, TextArea, HiddenField, DataGrid
+from turbogears.widgets import DataGrid, Tabber
 
 from bodhi import buildsys, util
 from bodhi.rss import Feed
@@ -47,12 +46,6 @@ log = logging.getLogger(__name__)
 
 from bodhi.errorcatcher import ErrorCatcher
 
-def make_update_link(obj):
-    update = hasattr(obj, 'get_url') and obj or obj.update
-    link = Element('a', href=url(update.get_url()))
-    link.text = update.title
-    return link
-
 class Root(controllers.RootController):
 
     new = NewUpdateController()
@@ -64,7 +57,12 @@ class Root(controllers.RootController):
     comment_form = CommentForm()
 
     def exception(self, tg_exceptions=None):
-        """ Generic exception handler """
+        """ Generic exception handler
+        TODO: get this working.  The ErrorFormatter (from gDesklets) only seems
+        to display a single line traceback from _speedups.so in ruledispatch I
+        believe.  We could also try and get a CherryPy filter for handling
+        errors working, which can be found in errorcatcher.py
+        """
         log.error("Exception thrown: %s" % str(tg_exceptions))
         from bodhi.util import ErrorFormatter
         log.error(dir(tg_exceptions))
@@ -77,32 +75,69 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
     def index(self):
-        comments = Comment.select(orderBy=Comment.q.timestamp)
-        num_comments = comments.count()
-        if num_comments:
-            if num_comments > 5: comments = comments[:5]
-            else: comments = list(comments)
-            comment_grid = DataGrid(fields=[('Update', make_update_link),
-                                            ('From', lambda row: row.author),
-                                            ('Comment', lambda row: row.text)],
-                                    default=comments)
-        else:
-            comment_grid = None
+        from bodhi.util import make_update_link, make_type_icon, make_karma_icon
+        RESULTS, FIELDS, GRID = range(3)
+        tabs = Tabber()
+        grids = {
+            'Comments' : [Comment.select(
+                                orderBy=Comment.q.timestamp
+                          ),[('Update', make_update_link),
+                             ('From', lambda row: row.author),
+                             ('Comment', lambda row: row.text),
+                             ('Karma', make_karma_icon)]
+                         ],
+            'Mine'      : [PackageUpdate.select(
+                                PackageUpdate.q.submitter ==
+                                        identity.current.user_name,
+                                orderBy=PackageUpdate.q.date_pushed
+                           ), [('Name', make_update_link),
+                               ('Type', make_type_icon),
+                               ('Status', lambda row: row.status),
+                               ('Submitted', lambda row: row.date_submitted),
+                               ('Karma', make_karma_icon)]
+                          ],
+            'Testing'   : [PackageUpdate.select(
+                                PackageUpdate.q.status == 'testing',
+                                orderBy=PackageUpdate.q.date_pushed
+                           ).reversed(),
+                           [('Name', make_update_link),
+                            ('Type', make_type_icon),
+                            ('Submitter', lambda row: row.submitter),
+                            ('Date', lambda row: row.date_submitted),
+                            ('Karma', make_karma_icon)]
+                          ],
+            'Stable'    : [PackageUpdate.select(
+                                PackageUpdate.q.type == 'stable',
+                                orderBy=PackageUpdate.q.date_pushed
+                           ), [('Name', make_update_link),
+                               ('Update ID', lambda row: row.update_id),
+                               ('Type', make_type_icon),
+                               ('Submitter', lambda row: row.submitter),
+                               ('Released', lambda row: row.date_pushed)]
+                          ],
+            'Security' : [PackageUpdate.select(
+                                PackageUpdate.q.type == 'security',
+                                orderBy=PackageUpdate.q.date_pushed
+                           ), [('Name', make_update_link),
+                               ('Update ID', lambda row: row.update_id),
+                               ('Submitter', lambda row: row.submitter),
+                               ('Released', lambda row: row.date_pushed)]
+                         ],
+        }
 
-        updates = PackageUpdate.select(orderBy=PackageUpdate.q.date_pushed)
-        num_updates = updates.count()
-        if num_updates:
-            if num_updates > 5: updates = updates[:5]
-            else: updates = list(updates)
-            update_grid = DataGrid(fields=[('Update', make_update_link),
-                                           ('Type', lambda row: row.type),
-                                           ('From', lambda row: row.submitter)],
-                                   default=updates)
-        else:
-            update_grid = None
+        for key, value in grids.items():
+            if not value[RESULTS].count():
+                grids[key].append(None)
+                continue
+            elif value[RESULTS].count() > 10:
+                value[RESULTS] = value[RESULTS][:10]
+            else:
+                value[RESULTS] = list(value[RESULTS])
 
-        return dict(now=time.ctime(), update_grid=update_grid,
-                    comment_grid=comment_grid)
+            grids[key].append(DataGrid(fields=value[FIELDS],
+                                       default=value[RESULTS]))
+
+        return dict(now=time.ctime(), grids=grids, tabs=tabs)
 
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
