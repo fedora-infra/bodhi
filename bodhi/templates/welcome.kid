@@ -2,9 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#"
     py:extends="'master.kid'">
 <head>
-<meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-<title>Fedora Update System</title>
-<link media="all" href="/tg_widgets/turbogears.widgets/grid.css" type="text/css" rel="stylesheet"/>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
+    <title>Fedora Update System</title>
+    <link media="all" href="${tg.url('/tg_widgets/turbogears.widgets/grid.css')}" type="text/css" rel="stylesheet"/>
 </head>
 <body>
 
