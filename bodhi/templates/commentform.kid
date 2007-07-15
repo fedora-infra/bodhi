@@ -7,7 +7,7 @@
     <div py:for="field in hidden_fields"
          py:replace="field.display(value_for(field), **params_for(field))" />
 
-    <table cellpadding="0" cellspacing="0" width="65%">
+    <table cellpadding="0" cellspacing="0" width="45%">
         <tr>
             <td colspan="3">
                 ${display_field_for("text")}
@@ -15,13 +15,13 @@
         </tr>
         <tr>
             <td>
-                <input type="radio" name="karma" value="0">Untested</input>
+                <label for="untested"><input id="untested" type="radio" name="karma" value="0" checked="true"/>Untested</label>
             </td>
             <td>
-                <input type="radio" name="karma" value="1">Works for me</input>
+                <label for="wfm"><input type="radio" name="karma" value="1" id="wfm"/>Works for me</label>
             </td>
             <td>
-                <input type="radio" name="karma" value="-1">Does not work</input>
+                <label for="dnw"><input id="dnw" type="radio" name="karma" value="-1"/>Does not work</label>
             </td>
         </tr>
         <tr>
