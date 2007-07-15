@@ -27,6 +27,7 @@ import traceback
 from kid import Element
 from koji import fixEncoding
 from os.path import isdir, exists
+from datetime import datetime
 from turbogears import config, url
 from bodhi.exceptions import RPMNotFound
 
@@ -126,6 +127,14 @@ def make_type_icon(update):
 
 def make_karma_icon(obj):
     return Element('img', src=url('/static/images/%d.png' % obj.karma))
+
+def get_age(date):
+    age = datetime.now() - date
+    if age.days == 0:
+        if age.seconds < 60:
+            return "%d seconds" % age.seconds
+        return "%d minutes" % int(age.seconds / 60)
+    return "%s days" % age.days
 
 def read_entire_file(uri):
     if (not "://" in uri): uri = "file://" + uri
