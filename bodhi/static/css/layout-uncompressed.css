@@ -436,8 +436,8 @@ div.alert {
 }
 
 div.flash {
-    /*padding-left: 20px;
-     */
+    padding-bottom: 3px;
+    margin-bottom: 7px;
     width: 65%;
     font-weight: bold;
     background: #ffb200;
