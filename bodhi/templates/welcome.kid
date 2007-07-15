@@ -8,10 +8,6 @@
 </head>
 <body>
 
-<?python
-from bodhi.model import PackageUpdate
-?>
-
     <blockquote>
         <h1>Welcome, ${tg.identity.user.display_name}</h1>
         ${now}
