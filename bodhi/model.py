@@ -31,7 +31,7 @@ from os.path import isdir, isfile, join, basename
 from textwrap import wrap
 
 from bodhi import buildsys, mail
-from bodhi.util import get_nvr, rpm_fileheader, header
+from bodhi.util import get_nvr, rpm_fileheader, header, get_age
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import RPMNotFound
 from bodhi.identity.tables import *
@@ -375,6 +375,12 @@ class PackageUpdate(SQLObject):
                 log.debug("Creating new CVE: %s" % cve_id)
                 cve = CVE(cve_id=cve_id)
                 self.addCVE(cve)
+
+    def get_pushed_age(self):
+        return get_age(self.date_pushed)
+
+    def get_submitted_age(self):
+        return get_age(self.date_submitted)
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
