@@ -19,12 +19,7 @@ from bodhi.model import Release
 from bodhi.widgets import NewUpdateForm
 from turbogears import expose, controllers, identity, config, url, flash
 
-update_form = NewUpdateForm(submit_text='Add Update',
-                            form_attrs={
-                                 'onsubmit' :
-                                   "$('bodhi-logo').style.display = 'none';"
-                                   "$('wait').style.display = 'block';"
-                            })
+update_form = NewUpdateForm(submit_text='Add Update')
 
 class NewUpdateController(controllers.Controller):
 
