@@ -75,17 +75,21 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
     def index(self):
+        """
+        The main dashboard.  Here we generate the Tabber and all of the
+        DataGrids for the various tabs.
+        """
         from bodhi.util import make_update_link, make_type_icon, make_karma_icon
         RESULTS, FIELDS, GRID = range(3)
         tabs = Tabber()
         grids = {
-            'Comments' : [Comment.select(
+            'Comments'  : [Comment.select(
                                 orderBy=Comment.q.timestamp
-                          ),[('Update', make_update_link),
-                             ('From', lambda row: row.author),
-                             ('Comment', lambda row: row.text),
-                             ('Karma', make_karma_icon)]
-                         ],
+                           ),[('Update', make_update_link),
+                              ('From', lambda row: row.author),
+                              ('Comment', lambda row: row.text),
+                              ('Karma', make_karma_icon)]
+                          ],
             'Mine'      : [PackageUpdate.select(
                                 PackageUpdate.q.submitter ==
                                         identity.current.user_name,
@@ -93,7 +97,7 @@ class Root(controllers.RootController):
                            ), [('Name', make_update_link),
                                ('Type', make_type_icon),
                                ('Status', lambda row: row.status),
-                               ('Submitted', lambda row: row.date_submitted),
+                               ('Submitted', lambda row: row.get_submitted_age),
                                ('Karma', make_karma_icon)]
                           ],
             'Testing'   : [PackageUpdate.select(
@@ -103,36 +107,36 @@ class Root(controllers.RootController):
                            [('Name', make_update_link),
                             ('Type', make_type_icon),
                             ('Submitter', lambda row: row.submitter),
-                            ('Date', lambda row: row.date_submitted),
+                            ('Released', lambda row: row.get_pushed_age()),
                             ('Karma', make_karma_icon)]
                           ],
             'Stable'    : [PackageUpdate.select(
-                                PackageUpdate.q.type == 'stable',
+                                PackageUpdate.q.status == 'stable',
                                 orderBy=PackageUpdate.q.date_pushed
                            ), [('Name', make_update_link),
                                ('Update ID', lambda row: row.update_id),
                                ('Type', make_type_icon),
                                ('Submitter', lambda row: row.submitter),
-                               ('Released', lambda row: row.date_pushed)]
+                               ('Released', lambda row: row.get_pushed_age())]
                           ],
-            'Security' : [PackageUpdate.select(
-                                PackageUpdate.q.type == 'security',
+            'Security'  : [PackageUpdate.select(
+                                AND(PackageUpdate.q.type == 'security',
+                                    PackageUpdate.q.status == 'stable'),
                                 orderBy=PackageUpdate.q.date_pushed
                            ), [('Name', make_update_link),
                                ('Update ID', lambda row: row.update_id),
                                ('Submitter', lambda row: row.submitter),
-                               ('Released', lambda row: row.date_pushed)]
-                         ],
+                               ('Released', lambda row: row.get_pushed_age())]
+                          ],
         }
 
         for key, value in grids.items():
             if not value[RESULTS].count():
                 grids[key].append(None)
                 continue
-            elif value[RESULTS].count() > 10:
-                value[RESULTS] = value[RESULTS][:10]
-            else:
-                value[RESULTS] = list(value[RESULTS])
+            if value[RESULTS].count() > 5:
+                value[RESULTS] = list(value[RESULTS][:5])
+            value[RESULTS] = list(value[RESULTS])
 
             grids[key].append(DataGrid(fields=value[FIELDS],
                                        default=value[RESULTS]))
