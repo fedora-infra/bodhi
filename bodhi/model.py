@@ -69,11 +69,17 @@ class Package(SQLObject):
 
     def __str__(self):
         x = header(self.name)
-        if len(self.updates):
-            for state in ('pending', 'testing', 'stable'):
-                ups = filter(lambda u: u.status == state, self.updates)
-                x += "\n  %s Updates (%d)\n" % (state.title(), len(ups))
-                for update in ups:
+        states = { 'pending' : [], 'testing' : [], 'stable' : [] }
+        if len(self.builds):
+            for build in self.builds:
+                for state in states.keys():
+                    states[state] += filter(lambda u: u.status == state,
+                                            build.updates)
+        for state in states.keys():
+            if len(states[state]):
+                x += "\n %s Updates (%d)\n" % (state.title(),
+                                               len(states[state]))
+                for update in states[state]:
                     x += "    o %s\n" % update.title
         return x
 
