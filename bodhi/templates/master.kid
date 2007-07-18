@@ -34,7 +34,10 @@ releases = [(rel.name, rel.long_name, rel.id) for rel in Release.select()]
 <!-- Make any form submission change the bodhi logo into a spinner -->
 <script type="text/javascript">
 $(document).ready(function() {
-    $("div[@id=fedora-content]").corner();
+    // This kills our fedora-content border.  We'll keep using the 4 rounded
+    // corner images until we can figure out how to round them with jquery and
+    // maintain our 1px content border.
+    //$("div[@id=fedora-content]").corner();
 
     $("form").submit( function() {
         $("div[@id=bodhi-logo]").hide();
@@ -126,6 +129,8 @@ $(document).ready(function() {
 
         <!-- content BEGIN -->
         <div py:attrs="{'id' : tg.identity.anonymous and 'fedora-middle-three' or 'fedora-middle-two'}">
+            <div class="fedora-corner-tr">&nbsp;</div> 
+            <div class="fedora-corner-tl">&nbsp;</div> 
             <div id="fedora-content">
 
             <div id="page-main">
@@ -137,6 +142,8 @@ $(document).ready(function() {
 
             </div>
         </div>
+        <div class="fedora-corner-br">&nbsp;</div>
+        <div class="fedora-corner-bl">&nbsp;</div>
     </div>
     <!-- content END -->
 
