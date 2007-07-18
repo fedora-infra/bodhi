@@ -37,7 +37,7 @@ class XmlRpcController(Controller):
         if package:
             # check for existing update as pkg-ver-rel
             try:
-                update = PackageUpdate.byNvr(package)
+                update = PackageUpdate.byTitle(package)
                 return str(update)
             except SQLObjectNotFound:
                 # check for package
