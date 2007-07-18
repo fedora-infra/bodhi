@@ -31,7 +31,7 @@ from sqlobject.sqlbuilder import AND
 releases = [(rel.name, rel.long_name, rel.id) for rel in Release.select()]
 ?>
 
-<!-- Shiny stuff.  We should eventually put this somewhere else -->
+<!-- Make any form submission change the bodhi logo into a spinner -->
 <script type="text/javascript">
 $(document).ready(function() {
     $("div[@id=fedora-content]").corner();
@@ -136,9 +136,7 @@ $(document).ready(function() {
                 <div py:replace="[item.text]+item[:]"/>
 
             </div>
-
         </div>
-
     </div>
     <!-- content END -->
 
