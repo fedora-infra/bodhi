@@ -35,7 +35,6 @@ class SearchForm(Form):
     fields = [
             TextField("search", default="  Package | Bug # | CVE  ",
                       attrs={ 'size' : 20 }),
-            #SubmitButton("submit", default="Search")
     ]
 
 class AutoCompleteValidator(validators.Schema):
@@ -53,9 +52,6 @@ class NewUpdateForm(Form):
             AutoCompleteField('build', label='Package',
                               search_controller=url('/new/search'),
                               search_param='name', result_name='pkgs',
-                              # We're hardcoding the template to fix Ticket #32
-                              # until the AutoCompleteField can work properly
-                              # under sub-controllers
                               template='bodhi.templates.packagefield',
                               validator=AutoCompleteValidator()),
             TextField('builds', validator=validators.UnicodeString(),
