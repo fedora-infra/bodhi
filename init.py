@@ -67,8 +67,7 @@ def load_config():
     configfile = 'prod.cfg'
     if not isfile(configfile):
         configfile = 'dev.cfg'
-    update_config(configfile=configfile,
-                             modulename='bodhi.config')
+    update_config(configfile=configfile, modulename='bodhi.config')
 
 ##
 ## Initialize the package/release/multilib tables
