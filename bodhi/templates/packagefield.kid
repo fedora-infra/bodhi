@@ -6,7 +6,7 @@
         '${tg.widgets}/turbogears.widgets/spinner.gif', 0.2);
         addLoadEvent(AutoCompleteManager${field_id}.initialize);
     </script>
-    <table>
+    <table cellpadding="0" cellspacing="0" border="0">
       <tr>
         <td>
           ${text_field.display(value_for(text_field), **params_for(text_field))}
@@ -17,14 +17,16 @@
       </tr>
       <tr>
         <td>
+          <div class="autoTextResults" id="autoCompleteResults${field_id}">${hidden_field.display(value_for(hidden_field), **params_for(hidden_field))}</div>
+        </td>
+      </tr>
+      <tr>
+        <td>
           <a id="addField" href="#" class="list">
             <img src="${tg.url('/static/images/plus.png')}" border="0" alt="Add another package to this update"/>
           Add another build
           </a>
         </td>
-      </tr>
+     </tr>
     </table>
-    <div class="autoTextResults" id="autoCompleteResults${field_id}">
-      ${hidden_field.display(value_for(hidden_field), **params_for(hidden_field))}
-    </div>
 </div>
