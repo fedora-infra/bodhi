@@ -19,7 +19,7 @@ from bodhi.model import Release
 from bodhi.widgets import NewUpdateForm
 from turbogears import expose, controllers, identity, config, url, flash
 
-update_form = NewUpdateForm(submit_text='Add Update')
+update_form = NewUpdateForm()
 
 class NewUpdateController(controllers.Controller):
 
