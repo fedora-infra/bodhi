@@ -488,3 +488,14 @@ class Bugzilla(SQLObject):
 
     def get_url(self):
         return "https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%s" % self.bz_id
+
+## Static list of releases -- used by master.kid, and the NewUpdateForm widget
+global _releases
+_releases = None
+def releases():
+    global _releases
+    if not _releases:
+        _releases = [(rel.name, rel.long_name, rel.id) for rel in \
+                     Release.select()]
+    for release in _releases:
+        yield release
