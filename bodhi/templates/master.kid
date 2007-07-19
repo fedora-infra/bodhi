@@ -25,10 +25,9 @@
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
 
 <?python
-from bodhi.model import Release, PackageUpdate
+from bodhi.model import Release, PackageUpdate, releases
 from bodhi.search import search_form
 from sqlobject.sqlbuilder import AND
-releases = [(rel.name, rel.long_name, rel.id) for rel in Release.select()]
 ?>
 
 <!-- Make any form submission change the bodhi logo into a spinner -->
@@ -104,7 +103,7 @@ $(document).ready(function() {
                 <li><a id="testing" href="#">Testing updates</a>
                     <div id="testinglist"> 
                         <ul>
-                            <li py:for="release in releases">
+                            <li py:for="release in releases()">
                             <a href="${tg.url('/testing/%s' % release[0])}">${release[1]} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == 'testing')).count()})</a>
                             </li>
                         </ul>
@@ -113,7 +112,7 @@ $(document).ready(function() {
                 <li><a id="stable" href="#">Stable updates</a>
                 <div id="stablelist">
                     <ul>
-                        <li py:for="release in releases">
+                        <li py:for="release in releases()">
                         <a href="${tg.url('/%s' % release[0])}">${release[1]} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == 'stable')).count()})</a>
                         </li>
                     </ul>
