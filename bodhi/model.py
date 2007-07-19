@@ -190,6 +190,7 @@ class PackageUpdate(SQLObject):
     qa_approved      = UnicodeCol(default=None)
     qa_date_approved = DateTimeCol(default=None)
     karma            = IntCol(default=0)
+    close_bugs       = BoolCol(default=True)
     # sec_approved = UnicodeCol(default=None)
     # sec_approved_date = DateTimeCol()
 
@@ -262,7 +263,8 @@ class PackageUpdate(SQLObject):
             mail.send(self.submitter, 'moved', self)
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
-            map(lambda bug: bug.close_bug(self), self.bugs)
+            if self.close_bugs:
+                map(lambda bug: bug.close_bug(self), self.bugs)
             #uinfo.add_update(self)
 
         log.info("%s request on %s complete!" % (self.request, self.title))
