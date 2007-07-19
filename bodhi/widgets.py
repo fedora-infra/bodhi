@@ -13,6 +13,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from bodhi.model import Release
+from formencode import Invalid
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
@@ -37,9 +38,33 @@ class SearchForm(Form):
                       attrs={ 'size' : 20 }),
     ]
 
+class PackageValidator(validators.FancyValidator):
+    messages = {
+            'bad_name' : 'Invalid package name; must be in package-version-'
+                         'release format',
+    }
+
+    def _to_python(self, value, state):
+        return value.strip()
+
+    def validate_python(self, value, state):
+        # We eventually should check the koji tag of each package in this
+        # validator, but in that case we need to know what release this update
+        # is being submitted for.
+        if len(value.split('-')) < 3:
+            raise Invalid(self.message('bad_name', state), value, state)
+
 class AutoCompleteValidator(validators.Schema):
     def _to_python(self, value, state):
-        return validators.UnicodeString().to_python(value['text'])
+        print "AutoCompleteValidate._to_python(%s, %s)" % (value, state)
+        if not isinstance(value['text'], list):
+            value['text'] = [value['text']]
+        builds = []
+        for build in value['text']:
+            builds += build.split(',')
+        return map(PackageValidator().to_python,
+                   map(validators.UnicodeString().to_python,
+                       filter(lambda x: x != '', builds)))
 
 def get_releases():
     return [rel.long_name for rel in Release.select()]
@@ -48,13 +73,14 @@ update_types = config.get('update_types', 'bugfix enhancement security').split()
 
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
+    submit_text = "Add Update"
     fields = [
-            AutoCompleteField('build', label='Package',
+            AutoCompleteField('builds', label='Package',
                               search_controller=url('/new/search'),
                               search_param='name', result_name='pkgs',
                               template='bodhi.templates.packagefield',
                               validator=AutoCompleteValidator()),
-            TextField('builds', validator=validators.UnicodeString(),
+            TextField('build', validator=validators.UnicodeString(),
                       attrs={'style' : 'display: none'}),
             SingleSelectField('release', options=get_releases,
                               validator=validators.OneOf(get_releases())),
@@ -63,7 +89,8 @@ class NewUpdateForm(Form):
             TextField('bugs', validator=validators.UnicodeString()),
             TextField('cves', validator=validators.UnicodeString()),
             TextArea('notes', validator=validators.UnicodeString(),
-                     rows=20, cols=75),
-            CheckBox(name='close_bugs', help_text='Automatically close bugs'),
+                     rows=20, cols=65),
+            CheckBox(name='close_bugs', help_text='Automatically close bugs',
+                     default=True),
             HiddenField('edited', default=None),
     ]
