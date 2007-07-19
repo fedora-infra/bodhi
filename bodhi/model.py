@@ -308,8 +308,7 @@ class PackageUpdate(SQLObject):
         """
         Return a string representation of this update.
         """
-        val = "%s\n  %s\n%s\n" % ('=' * 80, self.title.replace(' ', ', '),
-                                  '=' * 80)
+        val = header(self.title.replace(' ', ', '))
         if self.update_id:
             val += "  Update ID: %s\n" % self.update_id
         val += """    Release: %s
