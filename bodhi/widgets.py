@@ -12,7 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from bodhi.model import Release
+from bodhi.model import Release, releases
 from formencode import Invalid
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
@@ -56,18 +56,17 @@ class PackageValidator(validators.FancyValidator):
 
 class AutoCompleteValidator(validators.Schema):
     def _to_python(self, value, state):
-        print "AutoCompleteValidate._to_python(%s, %s)" % (value, state)
-        if not isinstance(value['text'], list):
-            value['text'] = [value['text']]
+        vals = []
         builds = []
-        for build in value['text']:
+        if isinstance(value, str):
+            vals = [value]
+        elif not isinstance(value['text'], list):
+            vals = [value['text']]
+        for build in vals:
             builds += build.split(',')
         return map(PackageValidator().to_python,
                    map(validators.UnicodeString().to_python,
                        filter(lambda x: x != '', builds)))
-
-def get_releases():
-    return [rel.long_name for rel in Release.select()]
 
 update_types = config.get('update_types', 'bugfix enhancement security').split()
 
@@ -82,8 +81,14 @@ class NewUpdateForm(Form):
                               validator=AutoCompleteValidator()),
             TextField('build', validator=validators.UnicodeString(),
                       attrs={'style' : 'display: none'}),
-            SingleSelectField('release', options=get_releases,
-                              validator=validators.OneOf(get_releases())),
+            SingleSelectField('release', options=[rel[1] for rel in releases()],
+                              validator=validators.OneOf(
+                                  # Create a list of each releases 'name' and
+                                  # 'long_name' to choose from.  We do this
+                                  # to allow the command-line client to use
+                                  # short release names.
+                                  sum(zip(*releases())[:2], ())
+                              )),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             TextField('bugs', validator=validators.UnicodeString()),
