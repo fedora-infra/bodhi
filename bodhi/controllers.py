@@ -20,6 +20,7 @@ import logging
 import cherrypy
 
 from koji import GenericError
+from datetime import datetime
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND, OR
 
@@ -135,7 +136,7 @@ class Root(controllers.RootController):
                 grids[key].append(None)
                 continue
             if value[RESULTS].count() > 5:
-                value[RESULTS] = list(value[RESULTS][:5])
+                value[RESULTS] = value[RESULTS][:5]
             value[RESULTS] = list(value[RESULTS])
 
             grids[key].append(DataGrid(fields=value[FIELDS],
@@ -298,7 +299,7 @@ class Root(controllers.RootController):
             flash("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
         values = {
-                'build'     : {'text':update.title, 'hidden':update.title},
+                'builds'    : {'text':update.title, 'hidden':update.title},
                 'release'   : update.release.long_name,
                 'testing'   : update.status == 'testing',
                 'type'      : update.type,
@@ -313,66 +314,52 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, build, builds, edited, notes, bugs, release,
-             type, cves, **kw):
+    def save(self, builds, release, type, cves, notes, edited, bugs,
+             close_bugs=False, **kw):
         """
         Save an update.  This includes new updates and edited.
         """
-        print "kw = " % kw
-        print "save(%s, %s, %s, %s, %s, %s, %s, %s)" % (build, builds, edited,
-                                                        notes, bugs, release,
-                                                        type, cves)
-        if not builds: builds = []
-        builds = filter(lambda x: x != u"", [build] + builds)
-        flash(builds)
-
-        if not builds:
-            flash("Please enter a package-version-release")
-            raise redirect('/new')
-
-        # TODO: make this possible
-        if edited and edited not in builds:
-            flash("You cannot change the package n-v-r after submission")
-            raise redirect('/edit/%s' % edited)
-        for build in builds:
-            if len(build.split('-')) < 3:
-                flash("Package must be in name-version-release format")
-                raise redirect('/new')
-
         release = Release.select(Release.q.long_name == release)[0]
         bugs = map(int, bugs.replace(',', ' ').split())
         cves = cves.replace(',', ' ').split()
         update_builds = []
         note = ''
 
-        if not edited: # new update
-            koji = buildsys.get_session()
-            for build in builds:
-                name = util.get_nvr(build)[0]
+        # If we're editing an update, destroy all associated builds, to start
+        # fresh.  This allows people to add/remove builds during and edit.
+        if edited:
+            update = PackageUpdate.byTitle(edited)
+            log.debug("Deleting all builds associated with %s" % update.title)
+            log.debug("builds = %s" % update.builds)
+            map(lambda build: build.destroySelf(), update.builds)
+            log.debug("builds = %s" % update.builds)
 
-                # Make sure selected release matches tag for this build
-                tag_matches = False
-                candidate = '%s-updates-candidate' % release.dist_tag
-                try:
-                    for tag in koji.listTags(build):
-                        log.debug(" * %s" % tag['name'])
-                        if tag['name'] == candidate:
-                            log.debug("%s built with tag %s" % (build,
-                                                                tag['name']))
-                            tag_matches = True
-                            break
-                except GenericError, e:
-                    flash("Invalid build: %s" % build)
-                    raise redirect('/new')
-                if not tag_matches:
-                    flash("%s build is not tagged with %s" % (build, candidate))
-                    raise redirect('/new')
+        # Make sure the selected release matches the Koji tag for this build
+        koji = buildsys.get_session()
+        for build in builds:
+            tag_matches = False
+            candidate = '%s-updates-candidate' % release.dist_tag
+            try:
+                for tag in koji.listTags(build):
+                    log.debug(" * %s" % tag['name'])
+                    if tag['name'] == candidate:
+                        log.debug("%s built with tag %s" % (build,
+                                                            tag['name']))
+                        tag_matches = True
+                        break
+            except GenericError, e:
+                flash("Invalid build: %s" % build)
+                raise redirect('/new')
+            if not tag_matches:
+                flash("%s build is not tagged with %s" % (build, candidate))
+                raise redirect('/new')
 
-                # Get the package; if it doesn't exist, create it.
-                try:
-                    package = Package.byName(name)
-                except SQLObjectNotFound:
-                    package = Package(name=name)
+            # Get the package; if it doesn't exist, create it.
+            name = util.get_nvr(build)[0]
+            try:
+                package = Package.byName(name)
+            except SQLObjectNotFound:
+                package = Package(name=name)
 
                 ## TODO: FIXME
                 #
@@ -400,39 +387,32 @@ class Root(controllers.RootController):
                 #    except SQLObjectNotFound:
                 #        break
 
-                try:
-                    pkgBuild = PackageBuild(nvr=build, package=package)
-                    update_builds.append(pkgBuild)
-                except (PostgresIntegrityError, SQLiteIntegrityError,
-                        DuplicateEntryError):
-                    flash("Update for %s already exists" % build)
-                    raise redirect('/new')
-
             try:
-                # Create a new update
-                p = PackageUpdate(title=','.join(builds), release=release,
-                                  submitter=identity.current.user_name,
-                                  #subitter=util.displayname(identity),
-                                  notes=notes, type=type)
-                map(p.addPackageBuild, update_builds)
-
-            except RPMNotFound:
-                flash("Cannot find SRPM for update")
-                raise redirect('/new')
+                pkgBuild = PackageBuild(nvr=build, package=package)
+                update_builds.append(pkgBuild)
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
-                flash("Update for %s already exists" % builds)
+                flash("Update for %s already exists" % build)
                 raise redirect('/new')
-            log.info("Adding new update %s" % builds)
-        else: # edited update
-            from datetime import datetime
-            log.info("Edited update %s" % edited)
+
+        if edited:
             p = PackageUpdate.byTitle(edited)
-            if p.release != release:
-                flash("Cannot change update release after submission")
-                raise redirect(p.get_url())
-            p.set(release=release, date_modified=datetime.now(), notes=notes,
-                  type=type)
+            p.set(release=release, date_modified=datetime.now(),
+                  notes=notes, type=type, title=','.join(builds),
+                  close_bugs=close_bugs)
+            log.debug("Edited update %s" % edited)
+        else:
+            try:
+                p = PackageUpdate(title=','.join(builds), release=release,
+                                  submitter=identity.current.user_name,
+                                  notes=notes, type=type, close_bugs=close_bugs)
+                log.info("Adding new update %s" % builds)
+            except (PostgresIntegrityError, SQLiteIntegrityError,
+                    DuplicateEntryError):
+                    flash("Update for %s already exists" % builds)
+                    raise redirect('/new')
+
+        map(p.addPackageBuild, update_builds)
 
         # Add/remove the necessary Bugzillas and CVEs
         p.update_bugs(bugs)
@@ -446,6 +426,7 @@ class Root(controllers.RootController):
                     p.type = 'security'
                     note += '; Security bug provided, changed update type ' + \
                             'to security'
+                    break
         if p.cves != [] and (p.type != 'security'):
             p.type = 'security'
             note += '; CVEs provided, changed update type to security'
