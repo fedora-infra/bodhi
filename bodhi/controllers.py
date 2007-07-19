@@ -45,7 +45,7 @@ from os.path import isfile, join
 
 log = logging.getLogger(__name__)
 
-from bodhi.errorcatcher import ErrorCatcher
+#from bodhi.errorcatcher import ErrorCatcher
 
 class Root(controllers.RootController):
 
@@ -150,11 +150,13 @@ class Root(controllers.RootController):
         pkgs = Package.select()
         return dict(pkgs=pkgs, num_pkgs=pkgs.count())
 
-    @expose(template="bodhi.templates.login")
+    @expose(template="bodhi.templates.login", allow_json=True)
     def login(self, forward_url=None, previous_url=None, *args, **kw):
-        if not identity.current.anonymous \
-            and identity.was_login_attempted() \
-            and not identity.get_identity_errors():
+        if not identity.current.anonymous and identity.was_login_attempted() \
+           and not identity.get_identity_errors():
+            if 'tg_format' in cherrypy.request.params and \
+               cherrypy.request.params['tg_format'] == 'json':
+                return dict(user = identity.current.user)
             raise redirect(forward_url)
 
         forward_url=None
@@ -310,33 +312,44 @@ class Root(controllers.RootController):
         }
         return dict(form=update_form, values=values, action=url("/save"))
 
-    @expose()
+    @expose(allow_json=True)
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, builds, release, type, cves, notes, edited, bugs,
-             close_bugs=False, **kw):
+    def save(self, builds, release, type, cves, notes, bugs, close_bugs=False,
+             edited=False, **kw):
         """
         Save an update.  This includes new updates and edited.
         """
-        release = Release.select(Release.q.long_name == release)[0]
-        bugs = map(int, bugs.replace(',', ' ').split())
-        cves = cves.replace(',', ' ').split()
-        update_builds = []
+        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s)" % (builds, release,
+            type, cves, notes, bugs, close_bugs, edited, kw))
+
         note = ''
+        update_builds = []
+        jsonrequest = 'tg_format' in cherrypy.request.params and \
+                      cherrypy.request.params['tg_format'] == 'json'
+        release = Release.select(
+                        OR(Release.q.long_name == release,
+                           Release.q.name == release))[0]
+        cves = cves.replace(',', ' ').split()
+        try:
+            bugs = map(int, bugs.replace(',', ' ').replace('#', '').split())
+        except ValueError, e:
+            flash("Error with bugs: %s" % str(e))
+            if jsonrequest:
+                return dict()
+            raise redirect('/new')
 
         # If we're editing an update, destroy all associated builds, to start
         # fresh.  This allows people to add/remove builds during and edit.
         if edited:
             update = PackageUpdate.byTitle(edited)
-            log.debug("Deleting all builds associated with %s" % update.title)
-            log.debug("builds = %s" % update.builds)
             map(lambda build: build.destroySelf(), update.builds)
-            log.debug("builds = %s" % update.builds)
 
         # Make sure the selected release matches the Koji tag for this build
         koji = buildsys.get_session()
         for build in builds:
+            log.debug("Validating koji tag for %s" % build)
             tag_matches = False
             candidate = '%s-updates-candidate' % release.dist_tag
             try:
@@ -349,9 +362,13 @@ class Root(controllers.RootController):
                         break
             except GenericError, e:
                 flash("Invalid build: %s" % build)
+                if jsonrequest:
+                    return dict()
                 raise redirect('/new')
             if not tag_matches:
                 flash("%s build is not tagged with %s" % (build, candidate))
+                if jsonrequest:
+                    return dict()
                 raise redirect('/new')
 
             # Get the package; if it doesn't exist, create it.
@@ -393,6 +410,8 @@ class Root(controllers.RootController):
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
                 flash("Update for %s already exists" % build)
+                if jsonrequest:
+                    return dict()
                 raise redirect('/new')
 
         if edited:
@@ -409,8 +428,10 @@ class Root(controllers.RootController):
                 log.info("Adding new update %s" % builds)
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
-                    flash("Update for %s already exists" % builds)
-                    raise redirect('/new')
+                flash("Update for %s already exists" % builds)
+                if jsonrequest:
+                    return dict()
+                raise redirect('/new')
 
         map(p.addPackageBuild, update_builds)
 
@@ -437,11 +458,15 @@ class Root(controllers.RootController):
             mail.send(p.submitter, 'edited', p)
             flash("Update successfully edited" + note)
         else:
-            # Notify security team of newly submitted updates
+            # Notify security team of newly submitted security updates
             if p.type == 'security':
                 mail.send(config.get('security_team'), 'new', p)
             mail.send(p.submitter, 'new', p)
             flash("Update successfully created" + note)
+
+        # For command line submissions, return PackageUpdate.__str__()
+        if jsonrequest:
+            return dict(update=str(p))
 
         raise redirect(p.get_url())
 
