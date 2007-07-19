@@ -54,7 +54,7 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
 
         <!-- update options -->
         <span py:if="util.authorized_user(update, identity)">
-            <td align="right">
+            <td align="right" width="50%" valign="bottom">
                 <table cellspacing="7">
                     <tr>
                         <span py:if="not update.pushed">
@@ -140,7 +140,7 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
         ['Submitter',     update.submitter],
         ['Submitted',     update.date_submitted],
         ['Modified',      update.date_modified],
-        ['Koji Build',    XML(buildinfo)],
+        ['Koji Build(s)',    XML(buildinfo)],
     )">
             <span py:if="field[1] != None and field[1] != ''">
                 <td class="title"><b>${field[0]}:</b></td>
