@@ -23,7 +23,7 @@ for bug in update.bugs:
 bugs = bugs.replace('&', '&amp;')
 cves = ''
 for cve in update.cves:
-    cves += '<a href="%s">%s</a>'% (cve.get_url(), cve.cve_id)
+    cves += '<a href="%s">%s</a><br/>'% (cve.get_url(), cve.cve_id)
 
 ## Link to build info and logs
 buildinfo = ''
