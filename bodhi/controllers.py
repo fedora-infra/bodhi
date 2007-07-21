@@ -45,33 +45,31 @@ from os.path import isfile, join
 
 log = logging.getLogger(__name__)
 
-#from bodhi.errorcatcher import ErrorCatcher
+from bodhi.errorcatcher import ErrorCatcher
 
-class Root(controllers.RootController):
+#class Root(controllers.RootController):
+class Root(ErrorCatcher):
 
     new = NewUpdateController()
     admin = AdminController()
     search = SearchController()
     rpc = XmlRpcController()
-    rss = Feed()
+    rss = Feed("rss2.0")
 
     comment_form = CommentForm()
 
     def exception(self, tg_exceptions=None):
-        """ Generic exception handler
-        TODO: get this working.  The ErrorFormatter (from gDesklets) only seems
-        to display a single line traceback from _speedups.so in ruledispatch I
-        believe.  We could also try and get a CherryPy filter for handling
-        errors working, which can be found in errorcatcher.py
-        """
+        """ Generic exception handler """
         log.error("Exception thrown: %s" % str(tg_exceptions))
-        from bodhi.util import ErrorFormatter
-        log.error(dir(tg_exceptions))
-        log.error(type(tg_exceptions))
-        log.error(tg_exceptions)
-        log.error(ErrorFormatter().format(sys.exc_info()))
         flash(str(tg_exceptions))
+        if 'tg_format' in cherrypy.request.params and \
+                cherrypy.request.params['tg_format'] == 'json':
+            return dict()
         raise redirect("/")
+
+    def jsonRequest(self):
+        return 'tg_format' in cherrypy.request.params and \
+                cherrypy.request.params['tg_format'] == 'json'
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
@@ -156,7 +154,7 @@ class Root(controllers.RootController):
            and not identity.get_identity_errors():
             if 'tg_format' in cherrypy.request.params and \
                cherrypy.request.params['tg_format'] == 'json':
-                return dict(user = identity.current.user)
+                return dict(user=identity.current.user)
             raise redirect(forward_url)
 
         forward_url=None
@@ -181,15 +179,53 @@ class Root(controllers.RootController):
         identity.current.logout()
         raise redirect('/')
 
-    @identity.require(identity.not_anonymous())
-    @expose(template="bodhi.templates.list")
+    @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, allow_limit_override=True)
-    def list(self):
-        """ List all pushed updates """
-        updates = PackageUpdate.select(
-                       PackageUpdate.q.status == 'stable',
-                       orderBy=PackageUpdate.q.update_id).reversed()
-        return dict(updates=updates, num_items=updates.count())
+    def list(self, release=None, bugs=None, cves=None, status=None, type=None):
+        """ Return a list of updates based on given parameters """
+        log.debug("list(%s, %s, %s, %s, %s)" % (release, bugs, cves, status,
+                                                type))
+        query = []
+        if release:
+            rel = Release.byName(release)
+            query.append(PackageUpdate.q.releaseID == rel.id)
+        if status:
+            query.append(PackageUpdate.q.status == status)
+        if type:
+            query.append(PackageUpdate.q.type == type)
+
+        updates = PackageUpdate.select(AND(*query))
+        num_items = updates.count()
+
+        # Filter results by Bugs and/or CVEs
+        results = []
+        if bugs:
+            try:
+                for bug in map(Bugzilla.byBz_id, map(int, bugs.split(','))):
+                    map(results.append,
+                        filter(lambda x: bug in x.bugs, updates))
+            except SQLObjectNotFound, e:
+                flash(e)
+                if self.jsonRequest():
+                    return dict(updates=[])
+            updates = results
+            num_items = len(updates)
+        if cves:
+            try:
+                for cve in map(CVE.byCve_id, cves.split(',')):
+                    map(results.append,
+                        filter(lambda x: cve in x.cves, updates))
+            except SQLObjectNotFound, e:
+                flash(e)
+                if self.jsonRequest():
+                    return dict(updates=[])
+            updates = results
+            num_items = len(updates)
+
+        if self.jsonRequest():
+            updates = map(str, updates)
+
+        return dict(updates=updates, num_items=num_items)
 
     @expose(template="bodhi.templates.list")
     @identity.require(identity.not_anonymous())
@@ -271,14 +307,15 @@ class Root(controllers.RootController):
         mail.send_admin('unpush', update)
         raise redirect(update.get_url())
 
-    @expose()
     @exception_handler(exception)
+    @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
     def delete(self, update):
         """ Delete a pending update """
         update = PackageUpdate.byTitle(update)
         if not util.authorized_user(update, identity):
             flash("Cannot delete an update you did not submit")
+            if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         if not update.pushed:
             map(lambda x: x.destroySelf(), update.comments)
@@ -290,6 +327,7 @@ class Root(controllers.RootController):
             flash(msg)
         else:
             flash("Cannot delete a pushed update")
+        if self.jsonRequest(): return dict()
         raise redirect("/pending")
 
     @identity.require(identity.not_anonymous())
@@ -326,8 +364,6 @@ class Root(controllers.RootController):
 
         note = ''
         update_builds = []
-        jsonrequest = 'tg_format' in cherrypy.request.params and \
-                      cherrypy.request.params['tg_format'] == 'json'
         release = Release.select(
                         OR(Release.q.long_name == release,
                            Release.q.name == release))[0]
@@ -336,7 +372,7 @@ class Root(controllers.RootController):
             bugs = map(int, bugs.replace(',', ' ').replace('#', '').split())
         except ValueError, e:
             flash("Error with bugs: %s" % str(e))
-            if jsonrequest:
+            if self.jsonRequest():
                 return dict()
             raise redirect('/new')
 
@@ -362,23 +398,41 @@ class Root(controllers.RootController):
                         break
             except GenericError, e:
                 flash("Invalid build: %s" % build)
-                if jsonrequest:
+                if self.jsonRequest():
                     return dict()
                 raise redirect('/new')
             if not tag_matches:
                 flash("%s build is not tagged with %s" % (build, candidate))
-                if jsonrequest:
+                if self.jsonRequest():
                     return dict()
                 raise redirect('/new')
 
             # Get the package; if it doesn't exist, create it.
-            name = util.get_nvr(build)[0]
+            nvr = util.get_nvr(build)
             try:
-                package = Package.byName(name)
+                package = Package.byName(nvr[0])
             except SQLObjectNotFound:
-                package = Package(name=name)
+                package = Package(name=nvr[0])
 
                 ## TODO: FIXME
+
+                tag = release.dist_tag
+                while True:
+                    log.debug("Checking for broken update paths in %s" % tag)
+                    for kojiBuild in koji.listTagged(tag + '-updates',
+                                                     package=name):
+                        buildNvr = util.get_nvr(kojiBuild['nvr'])
+                        if rpm.labelCompare(nvr, buildNvr) < 0:
+                            msg = "Broken update path: %s is older than " \
+                                  "update %s in %s" % (build, kojiBuild['nvr'])
+                            log.debug(msg)
+                            flash(msg)
+                            raise redirect('/new')
+                    tag[-1] = int(tag[-1]) - 1 # try the previous release
+
+                #
+                # o get all builds of this package for the rel.dist_tag-updates,
+                #   and make sure that it's newer 
                 #
                 # Check for broken update paths.  Make sure this package is
                 # newer than the previously released package on this release,
@@ -410,7 +464,7 @@ class Root(controllers.RootController):
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
                 flash("Update for %s already exists" % build)
-                if jsonrequest:
+                if self.jsonRequest():
                     return dict()
                 raise redirect('/new')
 
@@ -429,7 +483,7 @@ class Root(controllers.RootController):
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
                 flash("Update for %s already exists" % builds)
-                if jsonrequest:
+                if self.jsonRequest():
                     return dict()
                 raise redirect('/new')
 
@@ -465,7 +519,7 @@ class Root(controllers.RootController):
             flash("Update successfully created" + note)
 
         # For command line submissions, return PackageUpdate.__str__()
-        if jsonrequest:
+        if self.jsonRequest():
             return dict(update=str(p))
 
         raise redirect(p.get_url())
