@@ -25,7 +25,8 @@ import cPickle as pickle
 
 from os.path import isfile
 from sqlobject import SQLObjectNotFound
-from sqlobject.dberrors import DuplicateEntryError
+from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
+                              PostgresIntegrityError)
 from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
                          Package, PackageBuild)
 from turbogears import update_config
@@ -104,13 +105,15 @@ def load_db():
             try:
                 bug = Bugzilla(bz_id=bug_num)
                 bug.title = bug_title
-            except DuplicateEntryError:
+            except (DuplicateEntryError, SQLiteIntegrityError,
+                    PostgresIntegrityError):
                 bug = Bugzilla.byBz_id(bug_num)
             update.addBugzilla(bug)
         for cve_id in u['cves']:
             try:
                 cve = CVE(cve_id=cve_id)
-            except DuplicateEntryError:
+            except (DuplicateEntryError, SQLiteIntegrityError,
+                    PostgresIntegrityError):
                 cve = CVE.byCve_id(cve_id)
             update.addCVE(cve)
         for timestamp, author, text in u['comments']:
@@ -118,6 +121,7 @@ def load_db():
                               update=update)
 
         print update
+        print
 
 def usage():
     print "Usage: ./pickledb.py [ save | load <file> ]"
