@@ -13,13 +13,14 @@
 <body onload="document.login.user_name.focus()">
     <blockquote>
         <h1 class="padded">Fedora Update System</h1>
-        <p class="padded">${message}</p>
+        <p class="padded">${message}<br/>
+        Hint: Use your Fedora username, not your e-mail address.</p> 
     </blockquote>
     <form action="${previous_url}" method="POST" name="login">
         <table class="login">
             <tr>
                 <td class="title">
-                    Login:
+                    Username:
                 </td>
                 <td class="value">
                     <input type="text" size="25" name="user_name" />
@@ -47,7 +48,9 @@
         <input py:for="name,value in original_parameters.items()"
             type="hidden" name="${name}" value="${value}"/>
     </form>
-    <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/reset-password.cgi">Fedora Accounts System</a>.</p>
+    <blockquote>
+        <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/reset-password.cgi">Fedora Accounts System</a>.</p>
+    </blockquote>
 
 </body>
 </html>
