@@ -325,7 +325,7 @@ class PackageUpdate(SQLObject):
             val += "\n      Notes: %s" % '\n'.join(notes)
         val += """
   Submitter: %s
-  Submitted: %s\n\n%s
+  Submitted: %s\n\n  %s
         """ % (self.submitter, self.date_submitted,
                config.get('base_address') + turbogears.url(self.get_url()))
         return val.rstrip()
