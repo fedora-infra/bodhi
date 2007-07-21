@@ -52,9 +52,9 @@ class BodhiClient:
 
         if opts.new:
             self.new(opts)
-        if opts.delete:
+        elif opts.delete:
             self.delete(opts)
-        if opts.status or opts.bugs or opts.cves or opts.release or opts.type:
+        elif opts.status or opts.bugs or opts.cves or opts.release or opts.type:
             self.list(opts)
 
     def authenticate(self):
@@ -172,12 +172,11 @@ class BodhiClient:
         if data.has_key('tg_flash') and data['tg_flash']: # something went wrong
             log.error(data['tg_flash'])
             sys.exit(-1)
-        log.info("%d updates found" % data['num_items'])
         for update in data['updates']:
             log.info(update + '\n')
+        log.info("%d updates found" % data['num_items'])
 
     def delete(self, opts):
-        log.info("Deleting %s" % opts.delete)
         data = self.send_request('delete', update=opts.delete, auth=True)
         log.info(data['tg_flash'])
 
