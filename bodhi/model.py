@@ -317,7 +317,9 @@ class PackageUpdate(SQLObject):
         if self.request != None:
             val += "\n    Request: %s" % self.request
         if len(self.bugs):
-           val += "\n       Bugs: %s" % self.get_bugstring(show_titles=True)
+            bugs = wrap(self.get_bugstring(show_titles=True), width=67,
+                        subsequent_indent=' ' * 11 + ': ')
+            val += "\n       Bugs: %s" % '\n'.join(bugs)
         if len(self.cves):
             val += "\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
