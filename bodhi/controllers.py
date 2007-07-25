@@ -31,6 +31,7 @@ from turbogears.widgets import DataGrid, Tabber
 
 from bodhi import buildsys, util
 from bodhi.rss import Feed
+from bodhi.util import flash_log
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
@@ -371,7 +372,7 @@ class Root(ErrorCatcher):
         try:
             bugs = map(int, bugs.replace(',', ' ').replace('#', '').split())
         except ValueError, e:
-            flash("Error with bugs: %s" % str(e))
+            flash_log("Error with bugs: %s" % str(e))
             if self.jsonRequest():
                 return dict()
             raise redirect('/new')
@@ -390,19 +391,17 @@ class Root(ErrorCatcher):
             candidate = '%s-updates-candidate' % release.dist_tag
             try:
                 for tag in koji.listTags(build):
-                    log.debug(" * %s" % tag['name'])
                     if tag['name'] == candidate:
-                        log.debug("%s built with tag %s" % (build,
-                                                            tag['name']))
+                        log.debug("%s built with tag %s" % (build, tag['name']))
                         tag_matches = True
                         break
             except GenericError, e:
-                flash("Invalid build: %s" % build)
+                flash_log("Invalid build: %s" % build)
                 if self.jsonRequest():
                     return dict()
                 raise redirect('/new')
             if not tag_matches:
-                flash("%s build is not tagged with %s" % (build, candidate))
+                flash_log("%s build is not tagged with %s" % (build, candidate))
                 if self.jsonRequest():
                     return dict()
                 raise redirect('/new')
@@ -414,66 +413,53 @@ class Root(ErrorCatcher):
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
 
-                ## TODO: FIXME
+            # Check for broken update paths against all previous releases
+            tag = release.dist_tag
+            while True:
+                try:
+                    for kojiTag in (tag, tag + '-updates'):
+                        log.debug("Checking for broken update paths in " + tag)
+                        for kojiBuild in koji.listTagged(kojiTag,
+                                                         package=nvr[0]):
+                            buildNvr = util.get_nvr(kojiBuild['nvr'])
+                            if rpm.labelCompare(nvr, buildNvr) < 0:
+                                msg = "Broken update path: %s is older than " \
+                                      "update %s in %s" % (build,
+                                                           kojiBuild['nvr'],
+                                                           kojiTag)
+                                flash_log(msg)
+                                raise redirect('/new')
+                except GenericError:
+                    break
 
-                tag = release.dist_tag
-                while True:
-                    log.debug("Checking for broken update paths in %s" % tag)
-                    for kojiBuild in koji.listTagged(tag + '-updates',
-                                                     package=name):
-                        buildNvr = util.get_nvr(kojiBuild['nvr'])
-                        if rpm.labelCompare(nvr, buildNvr) < 0:
-                            msg = "Broken update path: %s is older than " \
-                                  "update %s in %s" % (build, kojiBuild['nvr'])
-                            log.debug(msg)
-                            flash(msg)
-                            raise redirect('/new')
-                    tag[-1] = int(tag[-1]) - 1 # try the previous release
-
-                #
-                # o get all builds of this package for the rel.dist_tag-updates,
-                #   and make sure that it's newer 
-                #
-                # Check for broken update paths.  Make sure this package is
-                # newer than the previously released package on this release,
-                # as well as on all older releases
-                #rel = release
-                #while True:
-                #    log.debug("Checking for broken update paths in %s" %
-                #              rel.name)
-                #    for up in PackageUpdate.select(
-                #            AND(PackageUpdate.q.releaseID == rel.id,
-                #                PackageUpdate.q.packageID == package.id)):
-                #        if rpm.labelCompare(util.get_nvr(build),
-                #                            util.get_nvr(up.nvr)) < 0:
-                #            msg = "Broken update path: %s is older than "
-                #                  "existing update %s" % (build, up.nvr)
-                #            log.debug(msg)
-                #            flash(msg)
-                #            raise redirect('/new')
-                #    try:
-                #        # Check the the previous release
-                #        rel = Release.byName(rel.name[:-1] +
-                #                             str(int(rel.name[-1]) - 1))
-                #    except SQLObjectNotFound:
-                #        break
+                # Check against the previous release (until one doesn't exist)
+                tag = tag[:-1] + str(int(tag[-1]) - 1)
 
             try:
                 pkgBuild = PackageBuild(nvr=build, package=package)
                 update_builds.append(pkgBuild)
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
-                flash("Update for %s already exists" % build)
+                flash_log("Update for %s already exists" % build)
                 if self.jsonRequest():
                     return dict()
                 raise redirect('/new')
 
+        # Modify or create the PackageUpdate
         if edited:
             p = PackageUpdate.byTitle(edited)
-            p.set(release=release, date_modified=datetime.now(),
-                  notes=notes, type=type, title=' '.join(builds),
-                  close_bugs=close_bugs)
-            log.debug("Edited update %s" % edited)
+            try:
+                p.set(release=release, date_modified=datetime.now(),
+                      notes=notes, type=type, title=' '.join(builds),
+                      close_bugs=close_bugs)
+                log.debug("Edited update %s" % edited)
+            except (DuplicateEntryError, PostgresIntegrityError,
+                    SQLiteIntegrityError):
+                flash_log("Update already exists for build in: %s" % 
+                          ', '.join(builds))
+                if self.jsonRequest():
+                    return dict()
+                raise redirect('/new')
         else:
             try:
                 p = PackageUpdate(title=' '.join(builds), release=release,
@@ -482,11 +468,12 @@ class Root(ErrorCatcher):
                 log.info("Adding new update %s" % builds)
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
-                flash("Update for %s already exists" % builds)
+                flash_log("Update for %s already exists" % builds)
                 if self.jsonRequest():
                     return dict()
                 raise redirect('/new')
 
+        # Add the PackageBuilds to our PackageUpdate
         map(p.addPackageBuild, update_builds)
 
         # Add/remove the necessary Bugzillas and CVEs

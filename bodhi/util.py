@@ -28,7 +28,7 @@ from kid import Element
 from koji import fixEncoding
 from os.path import isdir, exists
 from datetime import datetime
-from turbogears import config, url
+from turbogears import config, url, flash
 from bodhi.exceptions import RPMNotFound
 
 ## TODO: give createrepo a competent API
@@ -38,7 +38,7 @@ import genpkgmetadata
 log = logging.getLogger(__name__)
 
 ## Display a given message as a heading
-header = lambda x: "%s\n     %s\n%s" % ('=' * 80, x, '=' * 80)
+header = lambda x: "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)
@@ -135,3 +135,8 @@ def get_age(date):
             return "%d seconds" % age.seconds
         return "%d minutes" % int(age.seconds / 60)
     return "%s days" % age.days
+
+def flash_log(msg):
+    """ Flash and log a given message """
+    flash(msg)
+    log.debug(msg)
