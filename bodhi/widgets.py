@@ -62,6 +62,8 @@ class AutoCompleteValidator(validators.Schema):
             vals = [value]
         elif not isinstance(value['text'], list):
             vals = [value['text']]
+        elif isinstance(value['text'], list):
+            vals = value['text']
         for build in vals:
             builds += build.split(',')
         return map(PackageValidator().to_python,
