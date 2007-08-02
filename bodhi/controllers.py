@@ -97,7 +97,7 @@ class Root(ErrorCatcher):
                            ), [('Name', make_update_link),
                                ('Type', make_type_icon),
                                ('Status', lambda row: row.status),
-                               ('Submitted', lambda row: row.get_submitted_age),
+                               ('Submitted', lambda row: row.get_submitted_age()),
                                ('Karma', make_karma_icon)]
                           ],
             'Testing'   : [PackageUpdate.select(
@@ -584,11 +584,7 @@ class Root(ErrorCatcher):
         if tg_errors:
             flash(tg_errors)
         else:
-            comment = Comment(text=text, karma=karma,
-                              author=identity.current.user_name,
-                              update=update)
-            update.karma += karma
-            mail.send(update.submitter, 'comment', update)
+            update.comment(text, karma)
         raise redirect(update.get_url())
 
     @expose(template='bodhi.templates.text')

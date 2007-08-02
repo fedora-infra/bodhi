@@ -42,6 +42,11 @@ release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
                                    update.release.long_name)
 
 notes = escape(update.notes).replace('\r\n', '<br/>')
+
+if update.karma < 0: karma = -1
+elif update.karma > 0: karma = 1
+else: karma = 0
+karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/karma%d.png' % karma), update.karma)
 ?>
 
 <body>
@@ -134,6 +139,7 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
         ['Bugs',          (bugs) and XML(bugs) or ''],
         ['CVEs',          (cves) and XML(cves) or ''],
         ['Embargo',       update.type == 'security' and update.embargo or ''],
+        ['Karma',         XML(karma)],
         ['Requested',     update.request],
         ['Pushed',        update.pushed],
         ['Date Pushed',   update.date_pushed],
@@ -158,7 +164,7 @@ notes = escape(update.notes).replace('\r\n', '<br/>')
             <td class="title"><b>Comments:</b></td>
             <td class="value">
                 <div py:for="comment in update.comments">
-                    <img py:attrs="{'src' : tg.url('/static/images/%d.png' % comment.karma)}" hspace="3"/><b>${comment.author}</b> - ${comment.timestamp}<br/>
+                    <img py:attrs="{'src' : tg.url('/static/images/comment-%d.png' % comment.karma)}" hspace="3"/><b>${comment.author}</b> - ${comment.timestamp}<br/>
                     <div py:replace="comment.text">Comment</div>
                 </div>
             </td>

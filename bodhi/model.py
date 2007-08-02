@@ -1,4 +1,3 @@
-#!/usr/bin/python -tt
 # $Id: model.py,v 1.9 2007/01/08 06:07:07 lmacken Exp $
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -391,6 +390,28 @@ class PackageUpdate(SQLObject):
 
     def get_submitted_age(self):
         return get_age(self.date_submitted)
+
+    def comment(self, text, karma):
+        """
+        Add a comment to this update, adjusting the karma appropriately.
+        Each user can adjust an updates karma once in each direction, thus
+        being able to negate their original choice.  If the karma reaches
+        the 'stable_karma' configuration option, then request that this update
+        be marked as stable.
+        """
+        if not filter(lambda c: c.author == identity.current.user_name and
+                      c.karma == karma, self.comments):
+            self.karma += karma
+            log.info("Updated %s karma to %d" % (self.title, self.karma))
+            if config.get('stable_karma', None) and \
+               config.get('stable_karma') == self.karma:
+                log.info("Automatically marking %s as stable" % self.title)
+                self.request = 'move'
+                mail.send(self.submitter, 'stablekarma', self)
+                mail.send_admin('move', self)
+        comment = Comment(text=text, karma=karma, update=self,
+                          author=identity.current.user_name)
+        mail.send(self.submitter, 'comment', self)
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
