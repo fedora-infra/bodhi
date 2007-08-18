@@ -18,7 +18,7 @@ from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
 from yum.update_md import UpdateMetadata
 
 database.set_db_uri("sqlite:///:memory:")
-turbogears.update_config(configfile='dev-lmacken.cfg',
+turbogears.update_config(configfile='dev.cfg',
                          modulename='bodhi.config')
 
 class TestKoji(testutil.DBTest):
