@@ -27,8 +27,7 @@ hub = PackageHub("bodhi")
 __connection__ = hub
 
 def import_releases():
-    """ Import the releases and multilib  """
-
+    """ Import the releases """
     print "\nInitializing Release table..."
 
     releases = (
