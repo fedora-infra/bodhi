@@ -17,14 +17,11 @@ __version__ = '1.3'
 import os
 import rpm
 import util
-import time
 import gzip
 import logging
 
 from xml.dom import minidom
-from os.path import join, basename, isdir, exists
-from datetime import datetime
-from sqlobject import OR
+from os.path import join, basename, exists
 from turbogears import config
 
 from bodhi.modifyrepo import RepoMetadata
@@ -76,7 +73,7 @@ class ExtendedMetadata:
             for child in elem.childNodes:
                 if child.nodeName == 'id' and child.firstChild and \
                    child.firstChild.nodeValue == update.update_id:
-                       return elem
+                    return elem
         return None
 
     def remove_update(self, update):
