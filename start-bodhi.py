@@ -23,6 +23,10 @@ else:
     turbogears.update_config(configfile="prod.cfg",
         modulename="bodhi.config")
 
-from bodhi.controllers import Root
+## Schedule our periodic tasks
+from bodhi import jobs
+turbogears.startup.call_on_startup.append(jobs.schedule)
 
+## Start our CherryPy server
+from bodhi.controllers import Root
 turbogears.start_server(Root())
