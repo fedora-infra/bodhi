@@ -114,7 +114,8 @@ class Masher:
                     if len(item[1]):
                         val += "  Move tags\n"
                         for update in item[1]:
-                            val += "  - %s (%s)" % (update.title, update.request)
+                            val += "  - %s (%s)" % (update.title,
+                                                    update.request)
                     if len(item[2]):
                         val += "  Mash repos\n"
                         for repo in item[2]:
@@ -134,7 +135,8 @@ class MashTask(Thread):
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = repos
         self.success = False
-        self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + ' '
+        self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + \
+                   ' -f comps-%s.xml '
         self.actions = [] # [(title, current_tag, new_tag), ...]
         self.mashing = False # are we currently mashing?
         self.moving = False # are we currently moving build tags?
@@ -190,7 +192,7 @@ class MashTask(Thread):
         for repo in self.repos:
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
-            mashcmd = self.cmd % mashdir
+            mashcmd = self.cmd % (mashdir, repo.split('-')[0])
             log.info("Running mash on %s" % repo)
             (status, output) = commands.getstatusoutput(mashcmd + repo)
             log.info("status = %s" % status)
