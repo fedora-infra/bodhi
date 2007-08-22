@@ -192,9 +192,9 @@ class MashTask(Thread):
         for repo in self.repos:
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
-            mashcmd = self.cmd % (mashdir, repo.split('-')[0])
-            log.info("Running mash on %s" % repo)
-            (status, output) = commands.getstatusoutput(mashcmd + repo)
+            mashcmd = self.cmd % (mashdir, repo.split('-')[0]) + repo
+            log.info("Running `%s`" % mashcmd)
+            (status, output) = commands.getstatusoutput(mashcmd)
             log.info("status = %s" % status)
             if status == 0:
                 self.success = True
