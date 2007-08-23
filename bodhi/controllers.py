@@ -48,8 +48,7 @@ log = logging.getLogger(__name__)
 
 from bodhi.errorcatcher import ErrorCatcher
 
-#class Root(controllers.RootController):
-class Root(ErrorCatcher):
+class Root(controllers.RootController):
 
     new = NewUpdateController()
     admin = AdminController()
