@@ -187,12 +187,22 @@ class MashTask(Thread):
             tasks.append(task_id)
         buildsys.wait_for_tasks(tasks)
 
+    def update_comps(self):
+        log.debug("Updating comps...")
+        comps_dir = config.get('comps_dir')
+        (status, output) = commands.getstatusoutput("cvs update %s" % comps_dir)
+        log.debug("(%d, %s) from cvs update" % (status, output))
+        (status, output) = commands.getstatusoutput("make -C %s" % comps_dir)
+        log.debug("(%d, %s) from make" % (status, output))
+
     def mash(self):
         self.mashing = True
+        self.update_comps()
         for repo in self.repos:
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
-            mashcmd = self.cmd % (mashdir, repo.split('-')[0]) + repo
+            comps = join(config.get('comps_dir'), repo.split('-')[0])
+            mashcmd = self.cmd % (mashdir, comps) + repo
             log.info("Running `%s`" % mashcmd)
             (status, output) = commands.getstatusoutput(mashcmd)
             log.info("status = %s" % status)
