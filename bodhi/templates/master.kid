@@ -8,7 +8,6 @@
     <link rel="shortcut icon" type="image/x-icon" href="${tg.url('/static/images/favicon.ico')}" /> 
     <title py:replace="''">Your title goes here</title>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.js')}"></script>
-    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.corner.js')}"></script>
 
     <meta py:replace="item[:]"/>
     <style type="text/css">
