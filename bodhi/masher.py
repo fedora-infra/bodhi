@@ -135,8 +135,7 @@ class MashTask(Thread):
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = repos
         self.success = False
-        self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + \
-                   ' -f comps-%s.xml '
+        self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + ' -f %s '
         self.actions = [] # [(title, current_tag, new_tag), ...]
         self.mashing = False # are we currently mashing?
         self.moving = False # are we currently moving build tags?
@@ -189,11 +188,13 @@ class MashTask(Thread):
 
     def update_comps(self):
         log.debug("Updating comps...")
-        comps_dir = config.get('comps_dir')
-        (status, output) = commands.getstatusoutput("cvs update %s" % comps_dir)
+        olddir = os.getcwd()
+        os.chdir(config.get('comps_dir'))
+        (status, output) = commands.getstatusoutput("cvs update ")
         log.debug("(%d, %s) from cvs update" % (status, output))
-        (status, output) = commands.getstatusoutput("make -C %s" % comps_dir)
+        (status, output) = commands.getstatusoutput("make")
         log.debug("(%d, %s) from make" % (status, output))
+        os.chdir(olddir)
 
     def mash(self):
         self.mashing = True
@@ -201,7 +202,8 @@ class MashTask(Thread):
         for repo in self.repos:
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
-            comps = join(config.get('comps_dir'), repo.split('-')[0])
+            comps = join(config.get('comps_dir'), 'comps-%s.xml' %
+                         repo.split('-')[0])
             mashcmd = self.cmd % (mashdir, comps) + repo
             log.info("Running `%s`" % mashcmd)
             (status, output) = commands.getstatusoutput(mashcmd)
