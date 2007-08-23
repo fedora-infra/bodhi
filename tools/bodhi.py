@@ -124,14 +124,13 @@ class BodhiClient:
             made with an authenticated session cookie.
         """
         url = BODHI_URL + method + "/?tg_format=json"
-        for key, value in kw.items():
-            url += "&%s=%s" % (key, value)
 
         response = None # the JSON that we get back from bodhi
         data = None     # decoded JSON via json.read()
 
         log.debug("Creating request %s" % url)
         req = urllib2.Request(url)
+        req.add_data(urllib.urlencode(kw))
 
         if auth:
             cookie = self.authenticate()
@@ -169,7 +168,7 @@ class BodhiClient:
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
         data = self.send_request('list', **args)
-        if data.has_key('tg_flash') and data['tg_flash']: # something went wrong
+        if data.has_key('tg_flash') and data['tg_flash']:
             log.error(data['tg_flash'])
             sys.exit(-1)
         for update in data['updates']:
@@ -201,7 +200,8 @@ if __name__ == '__main__':
     parser.add_option("-c", "--cves", action="store", type="string",
                       dest="cves", help="A list of comma-separated CVE IDs")
     parser.add_option("-r", "--release", action="store", type="string",
-                      dest="release", help="Release (ex: F7)")
+                      dest="release", help="Release (default: F7)",
+                      default="F7")
     parser.add_option("-N", "--notes", action="store", type="string",
                       dest="notes", help="Update notes")
     parser.add_option("-t", "--type", action="store", type="string",
@@ -234,7 +234,6 @@ if __name__ == '__main__':
     parser.add_option("-l", "--limit", action="store", type="int", dest="limit",
                       default=10, help="Maximum number of updates to return "
                                        "(default: 10)")
-
 
     (opts, args) = parser.parse_args()
 
