@@ -82,52 +82,70 @@ class Root(ErrorCatcher):
         from bodhi.util import make_update_link, make_type_icon, make_karma_icon
         RESULTS, FIELDS, GRID = range(3)
         tabs = Tabber()
+
+        # { 'Title' : [SelectResults, [(row, row_callback),]], ... }
         grids = {
-            'Comments'  : [Comment.select(
-                                orderBy=Comment.q.timestamp
-                           ),[('Update', make_update_link),
-                              ('From', lambda row: row.author),
-                              ('Comment', lambda row: row.text),
-                              ('Karma', make_karma_icon)]
-                          ],
-            'Mine'      : [PackageUpdate.select(
-                                PackageUpdate.q.submitter ==
-                                        identity.current.user_name,
-                                orderBy=PackageUpdate.q.date_pushed
-                           ), [('Name', make_update_link),
-                               ('Type', make_type_icon),
-                               ('Status', lambda row: row.status),
-                               ('Submitted', lambda row: row.get_submitted_age()),
-                               ('Karma', make_karma_icon)]
-                          ],
-            'Testing'   : [PackageUpdate.select(
-                                PackageUpdate.q.status == 'testing',
-                                orderBy=PackageUpdate.q.date_pushed
-                           ).reversed(),
-                           [('Name', make_update_link),
-                            ('Type', make_type_icon),
-                            ('Submitter', lambda row: row.submitter),
-                            ('Released', lambda row: row.get_pushed_age()),
-                            ('Karma', make_karma_icon)]
-                          ],
-            'Stable'    : [PackageUpdate.select(
-                                PackageUpdate.q.status == 'stable',
-                                orderBy=PackageUpdate.q.date_pushed
-                           ), [('Name', make_update_link),
-                               ('Update ID', lambda row: row.update_id),
-                               ('Type', make_type_icon),
-                               ('Submitter', lambda row: row.submitter),
-                               ('Released', lambda row: row.get_pushed_age())]
-                          ],
-            'Security'  : [PackageUpdate.select(
-                                AND(PackageUpdate.q.type == 'security',
-                                    PackageUpdate.q.status == 'stable'),
-                                orderBy=PackageUpdate.q.date_pushed
-                           ), [('Name', make_update_link),
-                               ('Update ID', lambda row: row.update_id),
-                               ('Submitter', lambda row: row.submitter),
-                               ('Released', lambda row: row.get_pushed_age())]
-                          ],
+            'Comments' : [
+                Comment.select(orderBy=Comment.q.timestamp),
+                [
+                    ('Update', make_update_link),
+                    ('From', lambda row: row.author),
+                    ('Comment', lambda row: row.text),
+                    ('Karma', make_karma_icon)
+                ]
+            ],
+            'Mine' : [
+                PackageUpdate.select(
+                    PackageUpdate.q.submitter == identity.current.user_name,
+                    orderBy=PackageUpdate.q.date_pushed
+                ),
+                [
+                    ('Name', make_update_link),
+                    ('Type', make_type_icon),
+                    ('Status', lambda row: row.status),
+                    ('Age', lambda row: row.get_submitted_age()),
+                    ('Karma', make_karma_icon)
+                ]
+            ],
+            'Testing' : [
+                PackageUpdate.select(
+                    PackageUpdate.q.status == 'testing',
+                    orderBy=PackageUpdate.q.date_pushed
+                ).reversed(),
+                [
+                    ('Name', make_update_link),
+                    ('Type', make_type_icon),
+                    ('Submitter', lambda row: row.submitter),
+                    ('Age', lambda row: row.get_pushed_age()),
+                    ('Karma', make_karma_icon)
+                ]
+            ],
+            'Stable' : [
+                PackageUpdate.select(
+                    PackageUpdate.q.status == 'stable',
+                    orderBy=PackageUpdate.q.date_pushed
+                ),
+                [
+                    ('Name', make_update_link),
+                    ('Update ID', lambda row: row.update_id),
+                    ('Type', make_type_icon),
+                    ('Submitter', lambda row: row.submitter),
+                    ('Age', lambda row: row.get_pushed_age())
+                ]
+            ],
+            'Security' : [
+                PackageUpdate.select(
+                    AND(PackageUpdate.q.type == 'security',
+                        PackageUpdate.q.status == 'stable'),
+                    orderBy=PackageUpdate.q.date_pushed
+                ),
+                [
+                    ('Name', make_update_link),
+                    ('Update ID', lambda row: row.update_id),
+                    ('Submitter', lambda row: row.submitter),
+                    ('Age', lambda row: row.get_pushed_age())
+                ]
+            ]
         }
 
         for key, value in grids.items():
