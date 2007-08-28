@@ -438,8 +438,7 @@ class Bugzilla(SQLObject):
     updates  = RelatedJoin("PackageUpdate")
     security = BoolCol(default=False)
 
-    _bz_server = config.get("bz_server",
-                            "https://bugzilla.redhat.com/xmlrpc.cgi")
+    _bz_server = config.get("bz_server")
     default_msg = "%s has been pushed to the %s repository.  If problems " + \
                   "still persist, please make note of it in this bug report."
 
