@@ -179,8 +179,8 @@ class PackageUpdate(SQLObject):
     cves             = RelatedJoin("CVE")
     bugs             = RelatedJoin("Bugzilla")
     release          = ForeignKey('Release')
-    status           = EnumCol(enumValues=['pending', 'testing', 'stable'],
-                               default='pending')
+    status           = EnumCol(enumValues=['pending', 'testing', 'stable',
+                                           'obsolete'], default='pending')
     pushed           = BoolCol(default=False)
     notes            = UnicodeCol()
     request          = EnumCol(enumValues=['push', 'unpush', 'move', None],
@@ -245,15 +245,13 @@ class PackageUpdate(SQLObject):
             self.date_pushed = datetime.now()
             self.status = 'testing'
             self.assign_id()
-            #uinfo.add_update(self)
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
             mail.send(self.submitter, 'pushed', self)
         elif self.request == 'unpush':
             mail.send(self.submitter, 'unpushed', self)
-            #uinfo.remove_update(self):
             self.pushed = False
-            self.status = 'pending'
+            self.status = 'obsolete'
         elif self.request == 'move':
             self.pushed = True
             self.date_pushed = datetime.now()
@@ -264,7 +262,6 @@ class PackageUpdate(SQLObject):
             map(lambda bug: bug.add_comment(self), self.bugs)
             if self.close_bugs:
                 map(lambda bug: bug.close_bug(self), self.bugs)
-            #uinfo.add_update(self)
 
         log.info("%s request on %s complete!" % (self.request, self.title))
         self.request = None
