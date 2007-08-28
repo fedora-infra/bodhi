@@ -46,7 +46,6 @@ from os.path import isfile, join
 
 log = logging.getLogger(__name__)
 
-from bodhi.errorcatcher import ErrorCatcher
 
 class Root(controllers.RootController):
 
