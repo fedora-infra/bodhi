@@ -100,7 +100,7 @@ class ExtendedMetadata:
                 'type'      : update.type,
                 'status'    : update.status,
                 'version'   : __version__,
-                'from'      : 'updates@fedora.redhat.com'
+                'from'      : config.get('release_team_address')
         })
 
         self._insert(doc, root, 'id', text=update.update_id)
