@@ -1,0 +1,2438 @@
+# Afrikaans translations of comps.
+# Copyright (C) 2004 Zuza Software Foundation (Translate.org.za)
+# This file is distributed under the same license as the comps package.
+# Translate.org.za <info@translate.org.za>, 2005
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: comps\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-06-26 14:03-0400\n"
+"PO-Revision-Date: 2005-02-15 13:30+0200\n"
+"Last-Translator: Translate.org.za <info@translate.org.za>\n"
+"Language-Team: Afrikaans <translate-discuss-af@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../comps-fe5.xml.in.h:1 ../comps-fe6.xml.in.h:1 ../comps-f7.xml.in.h:1
+#: ../comps-f8.xml.in.h:1
+msgid "A lightweight desktop environment that works well on low end machines."
+msgstr "'n Liggewig werkskermomgewing wat goed werk op stadige rekenaars."
+
+#: ../comps-fe5.xml.in.h:2 ../comps-fe6.xml.in.h:2 ../comps-f7.xml.in.h:2
+#: ../comps-f8.xml.in.h:2 ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+msgid "Administration Tools"
+msgstr "Administrasienutsgoed"
+
+#: ../comps-fe5.xml.in.h:3 ../comps-fe6.xml.in.h:3 ../comps-f7.xml.in.h:5
+#: ../comps-f8.xml.in.h:5 ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+msgid "Applications"
+msgstr "Toepassings"
+
+#: ../comps-fe5.xml.in.h:4 ../comps-fe6.xml.in.h:4 ../comps-el4.xml.in.h:3
+#: ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:5 ../comps-fe6.xml.in.h:5 ../comps-f7.xml.in.h:7
+#: ../comps-f8.xml.in.h:7 ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+msgid "Arabic Support"
+msgstr "Arabiese taalsteun"
+
+#: ../comps-fe5.xml.in.h:6 ../comps-fe6.xml.in.h:6 ../comps-f7.xml.in.h:8
+#: ../comps-f8.xml.in.h:8 ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+#, fuzzy
+msgid "Armenian Support"
+msgstr "Roemeense taalsteun"
+
+#: ../comps-fe5.xml.in.h:7 ../comps-fe6.xml.in.h:7 ../comps-f7.xml.in.h:10
+#: ../comps-f8.xml.in.h:10 ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+msgid "Authoring and Publishing"
+msgstr "Skrywery en publisering"
+
+#: ../comps-fe5.xml.in.h:8 ../comps-fe6.xml.in.h:8 ../comps-f7.xml.in.h:12
+#: ../comps-f8.xml.in.h:12 ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+#, fuzzy
+msgid "Base System"
+msgstr "Rekenaar"
+
+#: ../comps-fe5.xml.in.h:9 ../comps-fe6.xml.in.h:10 ../comps-f7.xml.in.h:31
+#: ../comps-f8.xml.in.h:31 ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+#, fuzzy
+msgid "Desktop Environments"
+msgstr "KDE-werkskermomgewing"
+
+#: ../comps-fe5.xml.in.h:10 ../comps-fe6.xml.in.h:11 ../comps-f7.xml.in.h:32
+#: ../comps-f8.xml.in.h:32 ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+#, fuzzy
+msgid "Desktop environments"
+msgstr "KDE-werkskermomgewing"
+
+#: ../comps-fe5.xml.in.h:11 ../comps-fe6.xml.in.h:12 ../comps-f7.xml.in.h:33
+#: ../comps-f8.xml.in.h:33 ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+msgid "Development"
+msgstr "Ontwikkeling"
+
+#: ../comps-fe5.xml.in.h:12 ../comps-fe6.xml.in.h:13 ../comps-f7.xml.in.h:35
+#: ../comps-f8.xml.in.h:35 ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+msgid "Development Tools"
+msgstr "Ontwikkelingsnutsgoed"
+
+#: ../comps-fe5.xml.in.h:13 ../comps-fe6.xml.in.h:14 ../comps-el4.xml.in.h:12
+#: ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "Inbelnetwerksteun"
+
+#: ../comps-fe5.xml.in.h:14 ../comps-fe6.xml.in.h:15 ../comps-f7.xml.in.h:39
+#: ../comps-f8.xml.in.h:39 ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+msgid "Editors"
+msgstr "Redigeerders"
+
+#: ../comps-fe5.xml.in.h:15 ../comps-fe6.xml.in.h:16 ../comps-f7.xml.in.h:40
+#: ../comps-f8.xml.in.h:40 ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+msgid "Educational Software"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:16 ../comps-fe6.xml.in.h:17 ../comps-f7.xml.in.h:41
+#: ../comps-f8.xml.in.h:41 ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+msgid "Educational software for learning"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:17 ../comps-fe6.xml.in.h:18 ../comps-f7.xml.in.h:42
+#: ../comps-f8.xml.in.h:42 ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+msgid "Engineering and Scientific"
+msgstr "Ingenieurs en wetenskaplik"
+
+#: ../comps-fe5.xml.in.h:18 ../comps-fe6.xml.in.h:19 ../comps-f7.xml.in.h:46
+#: ../comps-f8.xml.in.h:46 ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+msgid "FTP Server"
+msgstr "FTP-bediener"
+
+#: ../comps-fe5.xml.in.h:19 ../comps-fe6.xml.in.h:20 ../comps-f7.xml.in.h:51
+#: ../comps-f8.xml.in.h:51 ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+msgid ""
+"From CD recording to playing audio CDs and multimedia files, this package "
+"group allows you to work with sound and video on the system."
+msgstr ""
+"Hierdie pakketgroep stel jou in staat om klank en video op die rekenaar te "
+"gebruik - alles van CD-opnames tot by die speel van musiek-CD's en "
+"multimedialêers."
+
+#: ../comps-fe5.xml.in.h:20 ../comps-fe6.xml.in.h:21 ../comps-f7.xml.in.h:52
+#: ../comps-f8.xml.in.h:52 ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+msgid "GNOME Desktop Environment"
+msgstr "GNOME-werkskermomgewing"
+
+#: ../comps-fe5.xml.in.h:21 ../comps-fe6.xml.in.h:22 ../comps-f7.xml.in.h:53
+#: ../comps-f8.xml.in.h:53 ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+msgid "GNOME Software Development"
+msgstr "GNOME-sagtewareontwikkeling"
+
+#: ../comps-fe5.xml.in.h:22 ../comps-fe6.xml.in.h:23 ../comps-el4.xml.in.h:21
+#: ../comps-el5.xml.in.h:22
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, "
+"werkskerm, stelselikone en 'n grafiese lêerreëler."
+
+#: ../comps-fe5.xml.in.h:23 ../comps-fe6.xml.in.h:24 ../comps-f7.xml.in.h:57
+#: ../comps-f8.xml.in.h:57 ../comps-el5.xml.in.h:23
+msgid "Games and Entertainment"
+msgstr "Speletjies en vermaak"
+
+#: ../comps-fe5.xml.in.h:24 ../comps-fe6.xml.in.h:25 ../comps-f7.xml.in.h:60
+#: ../comps-f8.xml.in.h:60 ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:24
+msgid "Graphical Internet"
+msgstr "Grafiese internet"
+
+#: ../comps-fe5.xml.in.h:25 ../comps-fe6.xml.in.h:26 ../comps-f7.xml.in.h:61
+#: ../comps-f8.xml.in.h:61 ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+msgid "Graphics"
+msgstr "Grafika"
+
+#: ../comps-fe5.xml.in.h:26 ../comps-fe6.xml.in.h:27 ../comps-f7.xml.in.h:64
+#: ../comps-f8.xml.in.h:64 ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+#, fuzzy
+msgid "Hardware Support"
+msgstr "Hebreeuse taalsteun"
+
+#: ../comps-fe5.xml.in.h:27 ../comps-fe6.xml.in.h:28 ../comps-f7.xml.in.h:65
+#: ../comps-f8.xml.in.h:65 ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+msgid "Hebrew Support"
+msgstr "Hebreeuse taalsteun"
+
+#: ../comps-fe5.xml.in.h:28 ../comps-fe6.xml.in.h:29 ../comps-f7.xml.in.h:70
+#: ../comps-f8.xml.in.h:70 ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+msgid ""
+"Install these packages in order to develop GTK+ and GNOME graphical "
+"applications."
+msgstr ""
+"Installeer hierdie pakkette om grafiese toepassings vir GTK+ en GNOME te "
+"ontwikkel."
+
+#: ../comps-fe5.xml.in.h:29 ../comps-fe6.xml.in.h:30 ../comps-f7.xml.in.h:71
+#: ../comps-f8.xml.in.h:71
+msgid ""
+"Install these packages in order to develop GTK+ and XFCE graphical "
+"applications."
+msgstr ""
+"Installeer hierdie pakkette om GTK+- en XFCE- grafiese toepassings te "
+"ontwikkel."
+
+#: ../comps-fe5.xml.in.h:30 ../comps-fe6.xml.in.h:31 ../comps-f7.xml.in.h:72
+#: ../comps-f8.xml.in.h:72 ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+msgid "Install these packages to develop QT and KDE graphical applications."
+msgstr ""
+"Installeer hierdie pakkette om grafiese toepassings vir QT en KDE te "
+"ontwikkel."
+
+#: ../comps-fe5.xml.in.h:31 ../comps-fe6.xml.in.h:32 ../comps-f7.xml.in.h:74
+#: ../comps-f8.xml.in.h:74 ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+msgid ""
+"Install this group of packages to use the base graphical (X) user interface."
+msgstr ""
+"Installeer hierdie groep pakkette om die basiese grafiese "
+"gebruikerskoppelvlak (X) te gebruik."
+
+#: ../comps-fe5.xml.in.h:32 ../comps-fe6.xml.in.h:33 ../comps-f7.xml.in.h:78
+#: ../comps-f8.xml.in.h:78 ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+msgid "Japanese Support"
+msgstr "Japanese taalsteun"
+
+#: ../comps-fe5.xml.in.h:33 ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:79
+#: ../comps-el4.xml.in.h:30
+msgid "Java"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:34 ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:80
+#: ../comps-el4.xml.in.h:31
+#, fuzzy
+msgid "Java Development"
+msgstr "Ontwikkeling"
+
+#: ../comps-fe5.xml.in.h:35 ../comps-fe6.xml.in.h:34 ../comps-f7.xml.in.h:81
+#: ../comps-f8.xml.in.h:81 ../comps-el4.xml.in.h:32 ../comps-el5.xml.in.h:32
+msgid "KDE (K Desktop Environment)"
+msgstr "KDE (K Desktop Environment)"
+
+#: ../comps-fe5.xml.in.h:36 ../comps-fe6.xml.in.h:35 ../comps-f7.xml.in.h:82
+#: ../comps-f8.xml.in.h:82 ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+msgid "KDE Software Development"
+msgstr "Sagtewareontwikkeling vir KDE"
+
+#: ../comps-fe5.xml.in.h:37 ../comps-fe6.xml.in.h:36 ../comps-el4.xml.in.h:34
+#: ../comps-el5.xml.in.h:34
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, werkskerm, "
+"rekenaarikone en 'n grafiese lêerreëler."
+
+#: ../comps-fe5.xml.in.h:38 ../comps-fe6.xml.in.h:37 ../comps-f7.xml.in.h:94
+#: ../comps-f8.xml.in.h:94 ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid "Mail Server"
+msgstr "Posbediener"
+
+#: ../comps-fe5.xml.in.h:39 ../comps-fe6.xml.in.h:38 ../comps-f7.xml.in.h:100
+#: ../comps-f8.xml.in.h:100 ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+msgid "Network Servers"
+msgstr "Netwerkbedieners"
+
+#: ../comps-fe5.xml.in.h:40 ../comps-fe6.xml.in.h:39 ../comps-f7.xml.in.h:101
+#: ../comps-f8.xml.in.h:101 ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+msgid "News Server"
+msgstr "Nuusbediener"
+
+#: ../comps-fe5.xml.in.h:41 ../comps-fe6.xml.in.h:40 ../comps-f7.xml.in.h:104
+#: ../comps-f8.xml.in.h:104 ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+msgid "Office/Productivity"
+msgstr "Kantoor/produktiwiteit"
+
+#: ../comps-fe5.xml.in.h:42 ../comps-fe6.xml.in.h:41 ../comps-f7.xml.in.h:106
+#: ../comps-f8.xml.in.h:106 ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+msgid ""
+"Packages which provide functionality for developing and building "
+"applications."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:43 ../comps-fe6.xml.in.h:42 ../comps-f7.xml.in.h:119
+#: ../comps-f8.xml.in.h:119 ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+msgid "Servers"
+msgstr "Bedieners"
+
+#: ../comps-fe5.xml.in.h:44 ../comps-fe6.xml.in.h:43 ../comps-f7.xml.in.h:120
+#: ../comps-f8.xml.in.h:120 ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+msgid ""
+"Simple window managers that aren't part of a larger desktop environment."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:45 ../comps-fe6.xml.in.h:44 ../comps-f7.xml.in.h:125
+#: ../comps-f8.xml.in.h:125 ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+msgid "Software used for running network servers"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:46 ../comps-fe6.xml.in.h:45 ../comps-el4.xml.in.h:43
+#: ../comps-el5.xml.in.h:43
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+"Hierdie programme word soms teksredigeerders genoem en stel jou in staat om "
+"lêers te skep en redigeer. Dit sluit Emacs en Vi in."
+
+#: ../comps-fe5.xml.in.h:47 ../comps-fe6.xml.in.h:46 ../comps-f7.xml.in.h:128
+#: ../comps-f8.xml.in.h:128 ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid "Sound and Video"
+msgstr "Klank en video"
+
+#: ../comps-fe5.xml.in.h:48 ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:132
+#: ../comps-el4.xml.in.h:45
+#, fuzzy
+msgid "Support for developing programs in the Java programming language."
+msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
+
+#: ../comps-fe5.xml.in.h:49 ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:133
+#: ../comps-el4.xml.in.h:46
+#, fuzzy
+msgid "Support for running programs written in the Java programming language."
+msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
+
+#: ../comps-fe5.xml.in.h:50 ../comps-fe6.xml.in.h:47 ../comps-f7.xml.in.h:136
+#: ../comps-f8.xml.in.h:136 ../comps-el4.xml.in.h:47 ../comps-el5.xml.in.h:45
+msgid "System Tools"
+msgstr "Rekenaarnutsgoed"
+
+#: ../comps-fe5.xml.in.h:51 ../comps-fe6.xml.in.h:48 ../comps-f7.xml.in.h:140
+#: ../comps-f8.xml.in.h:140 ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+msgid "Text-based Internet"
+msgstr "Teksgebaseerde internet"
+
+#: ../comps-fe5.xml.in.h:52 ../comps-fe6.xml.in.h:49 ../comps-el4.xml.in.h:49
+#: ../comps-el5.xml.in.h:47
+msgid "The XEmacs text editor."
+msgstr "Die Xemacs-teksredigeerder."
+
+#: ../comps-fe5.xml.in.h:53 ../comps-fe6.xml.in.h:50 ../comps-f7.xml.in.h:143
+#: ../comps-f8.xml.in.h:143 ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The applications include office suites, PDF viewers, and more."
+msgstr "Die toepassings sluit kantoorsuites, PDF-lesers en nog meer in."
+
+#: ../comps-fe5.xml.in.h:54 ../comps-fe6.xml.in.h:51 ../comps-f7.xml.in.h:145
+#: ../comps-f8.xml.in.h:145 ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+#, fuzzy
+msgid "These packages allow you to configure an IMAP or SMTP mail server."
+msgstr ""
+"Hierdie pakkette laat jou toe om 'n IMAP- of Postfix-posbediener in te stel."
+
+#: ../comps-fe5.xml.in.h:55 ../comps-fe6.xml.in.h:52 ../comps-f7.xml.in.h:147
+#: ../comps-f8.xml.in.h:147 ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+#, fuzzy
+msgid ""
+"These packages are helpful when developing web applications or web pages."
+msgstr ""
+"Hierdie pakkette stel jou in staat om toepassings vir die X Window-stelsel "
+"te ontwikkel."
+
+#: ../comps-fe5.xml.in.h:56 ../comps-fe6.xml.in.h:53 ../comps-el4.xml.in.h:53
+#: ../comps-el5.xml.in.h:51
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"Hierdie nutsgoed stel jou in staat om dokumentasie in Docbook-formaat te "
+"skep en dit na HTML, PDF, Postscript en teks om te skakel."
+
+#: ../comps-fe5.xml.in.h:57 ../comps-fe6.xml.in.h:54 ../comps-f7.xml.in.h:154
+#: ../comps-f8.xml.in.h:154 ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid "These tools allow you to run a Web server on the system."
+msgstr ""
+"Hierdie nutsgoed stel jou in staat om 'n webbediener op die rekenaar te laat "
+"loop."
+
+#: ../comps-fe5.xml.in.h:58 ../comps-fe6.xml.in.h:55 ../comps-f7.xml.in.h:155
+#: ../comps-f8.xml.in.h:155 ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+msgid "These tools allow you to run an FTP server on the system."
+msgstr ""
+"Hierdie nutsgoed stel jou in staat om 'n FTP-bediener op die rekenaar te "
+"laat loop."
+
+#: ../comps-fe5.xml.in.h:59 ../comps-fe6.xml.in.h:56 ../comps-f7.xml.in.h:156
+#: ../comps-f8.xml.in.h:156 ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+msgid ""
+"These tools include core development tools such as automake, gcc, perl, "
+"python, and debuggers."
+msgstr ""
+"Hierdie nutsgoed sluit kernontwikkelingsnutsgoed soos automake,gcc, perl, "
+"python en ontfouters in."
+
+#: ../comps-fe5.xml.in.h:60 ../comps-fe6.xml.in.h:57 ../comps-f7.xml.in.h:157
+#: ../comps-f8.xml.in.h:157 ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+msgid "This group allows you to configure the system as a news server."
+msgstr ""
+"Hierdie groep stel jou in staat om die rekenaar as 'n nuusbediener op te "
+"stel."
+
+#: ../comps-fe5.xml.in.h:61 ../comps-fe6.xml.in.h:58 ../comps-f7.xml.in.h:160
+#: ../comps-f8.xml.in.h:160 ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+msgid "This group includes graphical email, Web, and chat clients."
+msgstr "Hierdie groep sluit grafiese e-pos-, web- en kletskliënte in."
+
+#: ../comps-fe5.xml.in.h:62 ../comps-fe6.xml.in.h:59 ../comps-f7.xml.in.h:161
+#: ../comps-f8.xml.in.h:161 ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+msgid ""
+"This group includes packages for performing mathematical and scientific "
+"computations and plotting, as well as unit conversion."
+msgstr ""
+"Hierdie groep sluit pakkette in vir die uitvoer van wiskundige en "
+"wetenskaplike berekenings en meting, asook eenheidomskakeling."
+
+#: ../comps-fe5.xml.in.h:63 ../comps-fe6.xml.in.h:60 ../comps-f7.xml.in.h:162
+#: ../comps-f8.xml.in.h:162 ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+msgid "This group includes packages to help you manipulate and scan images."
+msgstr ""
+"Hierdie groep sluit pakkette in wat jou help om prente te manipuleer en te "
+"skandeer."
+
+#: ../comps-fe5.xml.in.h:64 ../comps-fe6.xml.in.h:61 ../comps-f7.xml.in.h:163
+#: ../comps-f8.xml.in.h:163 ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+msgid ""
+"This group includes text-based email, Web, and chat clients. These "
+"applications do not require the X Window System."
+msgstr ""
+"Hierdie groep sluit teksgebaseerde e-pos-, web- en kletskliënte in. Hierdie "
+"toepassings vereis nie die X Window-stelsel nie."
+
+#: ../comps-fe5.xml.in.h:65 ../comps-fe6.xml.in.h:62 ../comps-f7.xml.in.h:164
+#: ../comps-f8.xml.in.h:164 ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+msgid ""
+"This group is a collection of graphical administration tools for the system, "
+"such as for managing user accounts and configuring system hardware."
+msgstr ""
+"Hierdie groep is 'n versameling grafiese administrasienutsgoed vir die "
+"rekenaar, byvoorbeeld vir die bestuur van gebruikersrekeninge en die "
+"opstelling van rekenaarhardeware."
+
+#: ../comps-fe5.xml.in.h:66 ../comps-fe6.xml.in.h:63 ../comps-el4.xml.in.h:63
+#: ../comps-el5.xml.in.h:61
+msgid "This group is a collection of network servers for specific purposes"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:67 ../comps-fe6.xml.in.h:64 ../comps-el4.xml.in.h:64
+#: ../comps-el5.xml.in.h:62
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:68 ../comps-fe6.xml.in.h:65 ../comps-f7.xml.in.h:165
+#: ../comps-f8.xml.in.h:165 ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Armenian environments."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:69 ../comps-fe6.xml.in.h:67 ../comps-el4.xml.in.h:66
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:70 ../comps-fe6.xml.in.h:68 ../comps-el4.xml.in.h:67
+#: ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:71 ../comps-fe6.xml.in.h:69 ../comps-f7.xml.in.h:166
+#: ../comps-f8.xml.in.h:166 ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools for various hardware specific utilities."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:72 ../comps-fe6.xml.in.h:70 ../comps-f7.xml.in.h:167
+#: ../comps-f8.xml.in.h:167 ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+msgid ""
+"This group is a collection of various tools for the system, such as the "
+"client for connecting to SMB shares and tools to monitor network traffic."
+msgstr ""
+"Hierdie groep is 'n versameling diverse nutsgoed vir die rekenaar, soos die "
+"kliënt om aan gedeelte SMB-hulpbronne te koppel en nutsgoed om "
+"netwerkverkeer te monitor."
+
+#: ../comps-fe5.xml.in.h:73 ../comps-fe6.xml.in.h:71 ../comps-f7.xml.in.h:179
+#: ../comps-f8.xml.in.h:179 ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
+msgid "Various core pieces of the system."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:74 ../comps-fe6.xml.in.h:72 ../comps-f7.xml.in.h:180
+#: ../comps-f8.xml.in.h:180 ../comps-el5.xml.in.h:70
+msgid "Various ways to relax and spend your free time."
+msgstr "'n Verskeidenheid maniere van ontspan en jou vrye tyd deurbring."
+
+#: ../comps-fe5.xml.in.h:75 ../comps-fe6.xml.in.h:73 ../comps-f7.xml.in.h:184
+#: ../comps-f8.xml.in.h:184 ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:71
+#, fuzzy
+msgid "Web Development"
+msgstr "Ontwikkeling"
+
+#: ../comps-fe5.xml.in.h:76 ../comps-fe6.xml.in.h:74 ../comps-f7.xml.in.h:185
+#: ../comps-f8.xml.in.h:185 ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:72
+msgid "Web Server"
+msgstr "Webbediener"
+
+#: ../comps-fe5.xml.in.h:77 ../comps-fe6.xml.in.h:75 ../comps-f7.xml.in.h:187
+#: ../comps-f8.xml.in.h:187 ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+msgid "Window Managers"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:78 ../comps-fe6.xml.in.h:76 ../comps-f7.xml.in.h:190
+#: ../comps-f8.xml.in.h:190 ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "X Window System"
+msgstr "X Window-stelsel"
+
+#: ../comps-fe5.xml.in.h:79 ../comps-fe6.xml.in.h:77 ../comps-el4.xml.in.h:75
+#: ../comps-el5.xml.in.h:75
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-fe5.xml.in.h:80 ../comps-fe6.xml.in.h:78 ../comps-f7.xml.in.h:191
+#: ../comps-f8.xml.in.h:191
+msgid "XFCE"
+msgstr "XFCE"
+
+#: ../comps-fe5.xml.in.h:81 ../comps-fe6.xml.in.h:79 ../comps-f7.xml.in.h:192
+#: ../comps-f8.xml.in.h:192
+msgid "XFCE Software Development"
+msgstr "Sagtewareontwikkeling: XFCE"
+
+#: ../comps-fe6.xml.in.h:9 ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:28
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "Tjseggiese taalsteun"
+
+#: ../comps-fe6.xml.in.h:66 ../comps-el5.xml.in.h:64
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "Afrikaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4
+#, fuzzy
+msgid "Albanian Support"
+msgstr "Roemeense taalsteun"
+
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9
+msgid "Assamese Support"
+msgstr "Assamese taalsteun"
+
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11
+msgid "Base"
+msgstr "Basis"
+
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14
+#, fuzzy
+msgid "Basque Support"
+msgstr "Assamese taalsteun"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15
+#, fuzzy
+msgid "Belarusian Support"
+msgstr "Hongaarse taalsteun"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16
+msgid "Bengali Support"
+msgstr "Bengaalse taalsteun"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17
+#, fuzzy
+msgid "Bhutanese Support"
+msgstr "Sjinese taalsteun"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18
+#, fuzzy
+msgid "Bosnian Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19
+#, fuzzy
+msgid "Brazilian Portuguese Support"
+msgstr "Brasiliaanse Portugees"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20
+#, fuzzy
+msgid "Breton Support"
+msgstr "Koreaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:21
+#, fuzzy
+msgid "Bulgarian Support"
+msgstr "Hongaarse taalsteun"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:22
+msgid "Catalan Support"
+msgstr "Katalaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:23
+msgid "Chinese Support"
+msgstr "Sjinese taalsteun"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:24
+msgid "Clustering"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:25
+#, fuzzy
+msgid "Clustering Support"
+msgstr "Russiese taalsteun"
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:26
+msgid "Core"
+msgstr "Kern"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:27
+#, fuzzy
+msgid "Croatian Support"
+msgstr "Katalaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:29
+msgid "DNS Name Server"
+msgstr "DNS-naambediener"
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:30
+msgid "Danish Support"
+msgstr "Deense taalsteun"
+
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:34
+msgid "Development Libraries"
+msgstr "Ontwikkelingsprogrammateke"
+
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:36
+#, fuzzy
+msgid "Dial-up Networking Support"
+msgstr "Inbelnetwerksteun"
+
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:37
+msgid "Dutch Support"
+msgstr "Nederlandse taalsteun"
+
+#: ../comps-f7.xml.in.h:38 ../comps-f8.xml.in.h:38
+msgid "Eclipse"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43
+#, fuzzy
+msgid "English (UK) Support"
+msgstr "Deense taalsteun"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44
+msgid "Estonian Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45
+#, fuzzy
+msgid "Ethiopic Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47
+#, fuzzy
+msgid "Faeroese Support"
+msgstr "Griekse taalsteun"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:48
+#, fuzzy
+msgid "Filipino Support"
+msgstr "Italiaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:49
+msgid "Finnish Support"
+msgstr "Finse taalsteun"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:50
+msgid "French Support"
+msgstr "Franse taalsteun"
+
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:54
+#, fuzzy
+msgid ""
+"GNOME is a powerful graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, "
+"werkskerm, stelselikone en 'n grafiese lêerreëler."
+
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:55
+#, fuzzy
+msgid "Gaelic Support"
+msgstr "Arabiese taalsteun"
+
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:56
+#, fuzzy
+msgid "Galician Support"
+msgstr "Italiaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:58
+#, fuzzy
+msgid "Georgian Support"
+msgstr "Duitse taalsteun"
+
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:59
+msgid "German Support"
+msgstr "Duitse taalsteun"
+
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:62
+msgid "Greek Support"
+msgstr "Griekse taalsteun"
+
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:63
+#, fuzzy
+msgid "Gujarati Support"
+msgstr "Pandjab taalsteun"
+
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:66
+#, fuzzy
+msgid "Hindi Support"
+msgstr "Finse taalsteun"
+
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:67
+msgid "Hungarian Support"
+msgstr "Hongaarse taalsteun"
+
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:68
+msgid "Icelandic Support"
+msgstr "Yslandse taalsteun"
+
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:69
+#, fuzzy
+msgid "Indonesian Support"
+msgstr "Roemeense taalsteun"
+
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:73
+msgid ""
+"Install these tools to enable the system to print or act as a print server."
+msgstr ""
+"Installeer hierdie nutsgoed sodat die rekenaar kan druk of as drukbediener "
+"kan optree."
+
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:75
+#, fuzzy
+msgid "Inuktitut Support"
+msgstr "Walliese taalsteun"
+
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:76
+#, fuzzy
+msgid "Irish Support"
+msgstr "Turkse taalsteun"
+
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:77
+msgid "Italian Support"
+msgstr "Italiaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:83
+#, fuzzy
+msgid ""
+"KDE is a powerful graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, werkskerm, "
+"rekenaarikone en 'n grafiese lêerreëler."
+
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:84
+#, fuzzy
+msgid "Kannada Support"
+msgstr "Kanadese taalsteun"
+
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:85
+#, fuzzy
+msgid "Khmer Support"
+msgstr "Hebreeuse taalsteun"
+
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:86
+msgid "Korean Support"
+msgstr "Koreaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:87
+#, fuzzy
+msgid "Languages"
+msgstr "Bengaalse taalsteun"
+
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:88
+#, fuzzy
+msgid "Lao Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:89
+#, fuzzy
+msgid "Latvian Support"
+msgstr "Katalaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:90
+msgid "Legacy Network Server"
+msgstr "Argaïese netwerkbediener"
+
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:91
+msgid "Legacy Software Development"
+msgstr "Argaïese sagtewareontwikkeling"
+
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:92
+msgid "Legacy Software Support"
+msgstr "Steun: argaïese sagteware"
+
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:93
+#, fuzzy
+msgid "Lithuanian Support"
+msgstr "Italiaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:95
+#, fuzzy
+msgid "Malay Support"
+msgstr "Italiaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:96
+#, fuzzy
+msgid "Malayalam Support"
+msgstr "Italiaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:97
+#, fuzzy
+msgid "Maori Support"
+msgstr "Pandjab taalsteun"
+
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:98
+#, fuzzy
+msgid "Marathi Support"
+msgstr "Pandjab taalsteun"
+
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:99
+msgid "MySQL Database"
+msgstr "MySQL-databasis"
+
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:102
+#, fuzzy
+msgid "Northern Sotho Support"
+msgstr "Koreaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:103
+msgid "Norwegian Support"
+msgstr "Noorweegse taalsteun"
+
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:105
+#, fuzzy
+msgid "Oriya Support"
+msgstr "Siriese taalsteun"
+
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:107
+#, fuzzy
+msgid "Persian Support"
+msgstr "Serwiese taalsteun"
+
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:108
+msgid "Polish Support"
+msgstr "Poolse taalsteun"
+
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:109
+msgid "Portuguese Support"
+msgstr "Portugese taalsteun"
+
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:110
+msgid "PostgreSQL Database"
+msgstr "PostgreSQL-databasis"
+
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:111
+msgid "Printing Support"
+msgstr "Druksteun"
+
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:112
+msgid "Punjabi Support"
+msgstr "Pandjab taalsteun"
+
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:113
+msgid "Romanian Support"
+msgstr "Roemeense taalsteun"
+
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:114
+msgid "Ruby"
+msgstr "Ruby"
+
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:115
+msgid "Russian Support"
+msgstr "Russiese taalsteun"
+
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:116
+#, fuzzy
+msgid "Samoan Support"
+msgstr "Duitse taalsteun"
+
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:117
+msgid "Serbian Support"
+msgstr "Serwiese taalsteun"
+
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:118
+msgid "Server Configuration Tools"
+msgstr "Bedienerinstelling-nutsgoed"
+
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:121
+#, fuzzy
+msgid "Sinhala Support"
+msgstr "Italiaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:122
+msgid "Slovak Support"
+msgstr "Slowaakse taalsteun"
+
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:123
+msgid "Slovenian Support"
+msgstr "Sloweense taalsteun"
+
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:124
+msgid "Smallest possible installation"
+msgstr "Kleinste moontlike installasie"
+
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:126
+#, fuzzy
+msgid "Somail Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:127
+#, fuzzy
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit text files. This includes Emacs and Vi."
+msgstr ""
+"Hierdie programme word soms teksredigeerders genoem en stel jou in staat om "
+"lêers te skep en redigeer. Dit sluit Emacs en Vi in."
+
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:129
+#, fuzzy
+msgid "Southern Ndebele Support"
+msgstr "Koreaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:130
+#, fuzzy
+msgid "Southern Sotho Support"
+msgstr "Koreaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:131
+msgid "Spanish Support"
+msgstr "Spaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:134
+#, fuzzy
+msgid "Swati Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:135
+msgid "Swedish Support"
+msgstr "Sweedse taalsteun"
+
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:137
+#, fuzzy
+msgid "Tagalog Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:138
+msgid "Tamil Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:139
+#, fuzzy
+msgid "Telugu Support"
+msgstr "Walliese taalsteun"
+
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:141
+#, fuzzy
+msgid "Thai Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:142
+msgid "The Eclipse Integrated Development Environment."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:144
+msgid ""
+"The packages in this group are core libraries needed to develop applications."
+msgstr ""
+"Die pakkette in hierdie groep is kernprogrammateke wat benodig word om "
+"toepassings te ontwikkel."
+
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:146
+msgid ""
+"These packages allow you to develop applications for the X Window System."
+msgstr ""
+"Hierdie pakkette stel jou in staat om toepassings vir die X Window-stelsel "
+"te ontwikkel."
+
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:148
+msgid ""
+"These packages include network-based servers such as DHCP, Kerberos and NIS."
+msgstr ""
+"Hierdie pakkette sluit netwerkgebaseerde bedieners soos DHCP, Kerberos en "
+"NIS in."
+
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:149
+msgid ""
+"These packages include servers for old network protocols such as rsh and "
+"telnet."
+msgstr ""
+"Hierdie pakkette sluit bedieners vir ou netwerkprotokols soos rsh en telnet "
+"in."
+
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:150
+#, fuzzy
+msgid "These packages provide a virtualization environment."
+msgstr ""
+"Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red Hat "
+"Enterprise Linux."
+
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:151
+#, fuzzy
+msgid "These packages provide compatibility with previous releases."
+msgstr ""
+"Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red Hat "
+"Enterprise Linux."
+
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:152
+#, fuzzy
+msgid ""
+"These packages provide support for various locales including fonts and input "
+"methods."
+msgstr ""
+"Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red Hat "
+"Enterprise Linux."
+
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:153
+#, fuzzy
+msgid ""
+"These tools allow you to create documents in the DocBook format and convert "
+"them into HTML, PDF, Postscript, and text."
+msgstr ""
+"Hierdie nutsgoed stel jou in staat om dokumentasie in Docbook-formaat te "
+"skep en dit na HTML, PDF, Postscript en teks om te skakel."
+
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:158
+msgid "This group contains all of Red Hat's custom server configuration tools."
+msgstr ""
+"Hierdie groep bevat al die doelgemaakte bedienerinstelling-nutsgoed vir Red "
+"Hat."
+
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:159
+msgid ""
+"This group includes a minimal set of packages. Useful for creating small "
+"router/firewall boxes, for example."
+msgstr ""
+"Hierdie groep sluit die minimum stel pakkette in. Nuttig vir byvoorbeeld die "
+"skep van klein roeteerder- en brandmuurrekenaars."
+
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:168
+msgid ""
+"This package group allows you to run a DNS name server (BIND) on the system."
+msgstr ""
+"Hierdie pakket stel jou in staat om 'n DNS-naambediener (BIND) op die "
+"rekenaar te laat loop."
+
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:169
+msgid ""
+"This package group allows you to share files between Linux and MS Windows"
+"(tm) systems."
+msgstr ""
+"Hierdie pakketgroep stel jou in staat om lêers tussen Linux- en MS Windows-"
+"rekenaars te deel."
+
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:170
+msgid "This package group contains packages useful for use with MySQL."
+msgstr ""
+"Hierdie pakketgroep bevat pakkette wat nuttig saam met MySQL gebruik kan "
+"word."
+
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:171
+msgid "This package group includes packages useful for use with Postgresql."
+msgstr ""
+"Hierdie pakketgroep bevat pakkette wat nuttig saam met PostgreSQL gebruik "
+"kan word."
+
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:172
+#, fuzzy
+msgid "Tibetan Support"
+msgstr "Duitse taalsteun"
+
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:173
+#, fuzzy
+msgid "Tonga Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:174
+#, fuzzy
+msgid "Tsonga Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:175
+#, fuzzy
+msgid "Tswana Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:176
+msgid "Turkish Support"
+msgstr "Turkse taalsteun"
+
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:177
+msgid "Ukrainian Support"
+msgstr "Oekraïense taalsteun"
+
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:178
+#, fuzzy
+msgid "Urdu Support"
+msgstr "Walliese taalsteun"
+
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:181
+#, fuzzy
+msgid "Venda Support"
+msgstr "Kanadese taalsteun"
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:182
+#, fuzzy
+msgid "Vietnamese Support"
+msgstr "Sjinese taalsteun"
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:183
+msgid "Virtualization"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:186
+msgid "Welsh Support"
+msgstr "Walliese taalsteun"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:188
+msgid "Windows File Server"
+msgstr "Windows-lêerbediener"
+
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:189
+msgid "X Software Development"
+msgstr "X Sagtewareontwikkeling"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:193
+#, fuzzy
+msgid "Xhosa Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:194
+#, fuzzy
+msgid "Zulu Support"
+msgstr "Walliese taalsteun"
+
+#~ msgid "Emacs"
+#~ msgstr "Emacs"
+
+#~ msgid "The GNU Emacs text editor."
+#~ msgstr "Die GNU Emacs-teksredigeerder."
+
+#~ msgid "Brazilian Support"
+#~ msgstr "Brasiliaanse taalsteun"
+
+#~ msgid "British Support"
+#~ msgstr "Britse taalsteun"
+
+#~ msgid "Canadian Support"
+#~ msgstr "Kanadese taalsteun"
+
+#~ msgid "Compatibility Arch Development Support"
+#~ msgstr "Ontwikkelingsteun vir versoenbaarheidsargitektuur"
+
+#~ msgid "Compatibility Arch Mozilla Support"
+#~ msgstr "Mozilla-steun vir versoenbaarheidsargitektuur"
+
+#~ msgid "Compatibility Arch Support"
+#~ msgstr "Steun vir versoenbaarheidsargitektuur"
+
+#~ msgid "Cyrillic Support"
+#~ msgstr "Cirilliese taalsteun"
+
+#~ msgid "Desktops"
+#~ msgstr "Werkskerms"
+
+#~ msgid "GNOME"
+#~ msgstr "GNOME"
+
+#~ msgid "ISO8859-14 Support"
+#~ msgstr "Steun: ISO8859-14"
+
+#~ msgid "ISO8859-15 Support"
+#~ msgstr "Steun: ISO8859-15"
+
+#~ msgid "ISO8859-2 Support"
+#~ msgstr "Steun: ISO8859-2"
+
+#~ msgid "ISO8859-9 Support"
+#~ msgstr "Steun: ISO8859-9"
+
+#~ msgid "Install these packages to recompile the kernel."
+#~ msgstr "Installeer hierdie pakkette om die kern te herkompileer."
+
+#~ msgid "KDE"
+#~ msgstr "KDE"
+
+#~ msgid "KDE Desktop Environment"
+#~ msgstr "KDE-werkskermomgewing"
+
+#~ msgid "Kernel Development"
+#~ msgstr "Kernontwikkeling"
+
+#~ msgid "Miscellaneous Included Packages"
+#~ msgstr "Diverse ingeslote pakkette"
+
+#~ msgid "Mozilla packages for the x86 platform"
+#~ msgstr "Mozilla-pakkette vir die x86-platform"
+
+#~ msgid "Multilib support packages"
+#~ msgstr "Pakkette vir Multilib-werking"
+
+#~ msgid "SQL Database"
+#~ msgstr "SQL-databasis"
+
+#~ msgid "Server"
+#~ msgstr "Bediener"
+
+#~ msgid "Support for developing packages for the non-primary architecture"
+#~ msgstr ""
+#~ "Maak ontwikkeling van pakkette vir die nieprimêre argitektuur moontlik"
+
+#~ msgid "Syriac Support"
+#~ msgstr "Siriese taalsteun"
+
+#~ msgid "System"
+#~ msgstr "Rekenaar"
+
+#~ msgid ""
+#~ "These packages allow you to configure an IMAP or Postfix mail server."
+#~ msgstr ""
+#~ "Hierdie pakkette laat jou toe om 'n IMAP- of Postfix-posbediener in te "
+#~ "stel."
+
+#~ msgid ""
+#~ "These packages provide compatibility support for previous releases of Red "
+#~ "Hat Enterprise Linux."
+#~ msgstr ""
+#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
+#~ "Hat Enterprise Linux."
+
+#~ msgid "Unsupported Development Libraries"
+#~ msgstr "Ontwikkelingsprogrammateke waarmee nie gewerk kan word nie"
+
+#~ msgid "Workstation Common"
+#~ msgstr "Werkstasiegemenebes"
+
+#~ msgid "ppc64 Compatibility Arch Support"
+#~ msgstr "ppc64-steun vir versoenbaarheidsargitektuur"
+
+#~ msgid "x86 Compatibility Arch Development Support"
+#~ msgstr "Ontwikkelingsteun vir x86-versoenbaarheidsargitektuur"
+
+#~ msgid "x86 Compatibility Arch Support"
+#~ msgstr "Steun vir x86-versoenbaarheidsargitektuur"
+
+#~ msgid "Brazilian Portuguese"
+#~ msgstr "Brasiliaanse Portugees"
+
+#~ msgid "English"
+#~ msgstr "Engels"
+
+#~ msgid "French"
+#~ msgstr "Frans"
+
+#~ msgid "German"
+#~ msgstr "Duits"
+
+#~ msgid "Italian"
+#~ msgstr "Italiaans"
+
+#~ msgid "Red Hat Enterprise Linux 3 Documentation"
+#~ msgstr "Red Hat Enterprise Linux 3-dokumentasie"
+
+#~ msgid "Spanish"
+#~ msgstr "Spaans"
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Brazilian Portuguese language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Brasiliaans-Portugese dokumentasie vir Red Hat "
+#~ "Enterprise Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "English language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Engelse dokumentasie vir Red Hat Enterprise Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "French language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Franse dokumentasie vir Red Hat Enterprise Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "German language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Duitse dokumentasie vir Red Hat Enterprise Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Italian language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Italiaanse dokumentasie vir Red Hat Enterprise "
+#~ "Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Spanish language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Spaanse dokumentasie vir Red Hat Enterprise Linux."
+
+#~ msgid "Japanese"
+#~ msgstr "Japannees"
+
+#~ msgid "Korean"
+#~ msgstr "Koreaans"
+
+#~ msgid "Simplified Chinese"
+#~ msgstr "Vereenvoudigde Sjinees"
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Japanese language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Japannese dokumentasie vir Red Hat Enterprise "
+#~ "Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Korean language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Koreaanse dokumentasie vir Red Hat Enterprise "
+#~ "Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Simplified Chinese language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Vereenvoudigd-Sjinese dokumentasie vir Red Hat "
+#~ "Enterprise Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Traditional Chinese language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Tradisioneel-Sjinese dokumentasie vir Red Hat "
+#~ "Enterprise Linux."
+
+#~ msgid "Traditional Chinese"
+#~ msgstr "Tradisionele Sjinees"
+
+#~ msgid "ppc64 Compatibility Arch Development Support"
+#~ msgstr "Ontwikkelingsteun vir ppc64-versoenbaarheidsargitektuur"
+
+#~ msgid "Bengali"
+#~ msgstr "Bengaals"
+
+#~ msgid "Gujarati"
+#~ msgstr "Goedjarati"
+
+#~ msgid "Hindi"
+#~ msgstr "Hindi"
+
+#~ msgid "Punjabi"
+#~ msgstr "Pandjab"
+
+#~ msgid "Red Hat Enterprise Linux 4 Documentation"
+#~ msgstr "Red Hat Enterprise Linux 4-dokumentasie"
+
+#~ msgid "Tamil"
+#~ msgstr "Tamil"
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Bengali language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Bengaalse dokumentasie vir Red Hat Enterprise "
+#~ "Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Gujarati language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Goedjarati dokumentasie vir Red Hat Enterprise "
+#~ "Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Hindi language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Hindi dokumentasie vir Red Hat Enterprise Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Punjabi language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Pandjab dokumentasie vir Red Hat Enterprise Linux."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Tamil language."
+#~ msgstr ""
+#~ "Hierdie groep bevat die Tamil dokumentasie vir Red Hat Enterprise Linux."
+
+#, fuzzy
+#~ msgid "Cluster Storage"
+#~ msgstr "Russiese taalsteun"
+
+#, fuzzy
+#~ msgid "Clustering Support."
+#~ msgstr "Russiese taalsteun"
+
+#, fuzzy
+#~ msgid "Single Node GFS Support"
+#~ msgstr "Sjinese taalsteun"
+
+#, fuzzy
+#~ msgid "These packages provide compatibility support with previous releases."
+#~ msgstr ""
+#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
+#~ "Hat Enterprise Linux."
+
+#, fuzzy
+#~ msgid "Misc packages"
+#~ msgstr "Pakkette vir Multilib-werking"
+
+#, fuzzy
+#~ msgid "Multimedia applications"
+#~ msgstr "Toepassings"
+
+#, fuzzy
+#~ msgid ""
+#~ "Packages which provide additional functionality for Red Hat Enterprise "
+#~ "Linux"
+#~ msgstr ""
+#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
+#~ "Hat Enterprise Linux."
+
+#, fuzzy
+#~ msgid "Red Hat Enterprise Linux Extras"
+#~ msgstr "Red Hat Enterprise Linux 4-dokumentasie"
+
+#, fuzzy
+#~ msgid "Workstation"
+#~ msgstr "Werkstasiegemenebes"
+
+#, fuzzy
+#~ msgid "Virtualization Support."
+#~ msgstr "Italiaanse taalsteun"
+
+#, fuzzy
+#~ msgid "Compatibility Arch"
+#~ msgstr "Steun vir versoenbaarheidsargitektuur"
+
+#, fuzzy
+#~ msgid "Compatibility Arch Libraries"
+#~ msgstr "Steun vir versoenbaarheidsargitektuur"
+
+#, fuzzy
+#~ msgid "Multilib library packages"
+#~ msgstr "Pakkette vir Multilib-werking"
+
+#, fuzzy
+#~ msgid ""
+#~ "Packages which provide functionality for the compatibility architecture."
+#~ msgstr ""
+#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
+#~ "Hat Enterprise Linux."
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>af</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-af</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"openoffice.org-core\">openoffice.org-langpack-af_ZA</"
+#~ "packagereq> </packagelist> </group> <group> <id>arabic-support</id> "
+#~ "<_name>Arabic Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ca</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-ca</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Catalan</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "ca_ES</packagereq> </packagelist> </group> <group> <id>chinese-support</"
+#~ "id> <_name>Chinese Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>cy</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-cy</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"openoffice.org-core\">openoffice.org-langpack-cy_GB</"
+#~ "packagereq> </packagelist> </group> <group> <id>smb-server</id> "
+#~ "<_name>Windows File Server</_name> <_description>This package group "
+#~ "allows you to share files between Linux and MS Windows(tm) systems."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>da</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-da</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Danish</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"man-pages\">man-pages-da</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"openoffice.org-core"
+#~ "\">openoffice.org-langpack-da_DK</packagereq> </packagelist> </group> "
+#~ "<group> <id>development-libs</id> <_name>Development Libraries</_name> "
+#~ "<_description>The packages in this group are core libraries needed to "
+#~ "develop applications."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>de</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-de</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-German</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"man-pages\">man-pages-de</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"openoffice.org-core"
+#~ "\">openoffice.org-langpack-de</packagereq> </packagelist> </group> "
+#~ "<group> <id>graphical-internet</id> <_name>Graphical Internet</_name> "
+#~ "<_description>This group includes graphical email, Web, and chat clients."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>el</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-el</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Greek</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"scim-m17n\">m17n-db-greek</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"openoffice.org-core"
+#~ "\">openoffice.org-langpack-el_GR</packagereq> </packagelist> </group> "
+#~ "<group> <id>gujarati-support</id> <_name>Gujarati Support</_name> "
+#~ "<_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>en_GB</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"kdelibs\">kde-i18n-British</packagereq> </packagelist> </"
+#~ "group> <group> <id>bulgarian-support</id> <_name>Bulgarian Support</"
+#~ "_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>es</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-es</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Spanish</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"man-pages\">man-pages-es</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"openoffice.org-core"
+#~ "\">openoffice.org-langpack-es</packagereq> </packagelist> </group> "
+#~ "<group> <id>sql-server</id> <_name>PostgreSQL Database</_name> "
+#~ "<_description>This package group includes packages useful for use with "
+#~ "Postgresql."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>et</langonly> <packagelist> <packagereq type=\"mandatory"
+#~ "\">fonts-ISO8859-2</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"xorg-x11-server-Xorg\">fonts-ISO8859-2-100dpi</packagereq> <packagereq "
+#~ "type=\"conditional\" requires=\"xorg-x11-server-Xorg\">fonts-ISO8859-2-"
+#~ "75dpi</packagereq> <packagereq type=\"conditional\" requires=\"kdelibs"
+#~ "\">kde-i18n-Estonian</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-et_EE</"
+#~ "packagereq> </packagelist> </group> <group> <id>ethiopic-support</id> "
+#~ "<_name>Ethiopic Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>eu</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-eu_ES</"
+#~ "packagereq> </packagelist> </group> <group> <id>bengali-support</id> "
+#~ "<_name>Bengali Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>fi</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"kdelibs\">kde-i18n-Finnish</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "fi_FI</packagereq> </packagelist> </group> <group> <id>faeroese-support</"
+#~ "id> <_name>Faeroese Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>fr</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-fr</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-French</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"man-pages\">man-pages-fr</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"openoffice.org-core"
+#~ "\">openoffice.org-langpack-fr</packagereq> </packagelist> </group> "
+#~ "<group> <id>gnome-desktop</id> <_name>GNOME Desktop Environment</_name> "
+#~ "<_description>GNOME is a powerful graphical user interface which includes "
+#~ "a panel, desktop, system icons, and a graphical file manager."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>gd</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-gd</packagereq> </packagelist> </group> "
+#~ "<group> <id>galician-support</id> <_name>Galician Support</_name> "
+#~ "<_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>he</langonly> <packagelist> <packagereq type=\"mandatory"
+#~ "\">fonts-hebrew</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Hebrew</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"scim-m17n\">m17n-db-hebrew</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "he_IL</packagereq> </packagelist> </group> <group> <id>hindi-support</id> "
+#~ "<_name>Hindi Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>hr</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-hr</packagereq> <packagereq type=\"mandatory"
+#~ "\">fonts-ISO8859-2</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"xorg-x11-server-Xorg\">fonts-ISO8859-2-100dpi</packagereq> <packagereq "
+#~ "type=\"conditional\" requires=\"xorg-x11-server-Xorg\">fonts-ISO8859-2-"
+#~ "75dpi</packagereq> <packagereq type=\"conditional\" requires=\"openoffice."
+#~ "org-core\">openoffice.org-langpack-hr_HR</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"scim-m17n\">m17n-db-croatian</packagereq> </"
+#~ "packagelist> </group> <group> <id>czech-support</id> <_name>Czech "
+#~ "Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>hu</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"kdelibs\">kde-i18n-Hungarian</packagereq> <packagereq type="
+#~ "\"mandatory\">fonts-ISO8859-2</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"xorg-x11-server-Xorg\">fonts-ISO8859-2-100dpi</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"xorg-x11-server-Xorg\">fonts-"
+#~ "ISO8859-2-75dpi</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-hu_HU</packagereq> </"
+#~ "packagelist> </group> <group> <id>icelandic-support</id> <_name>Icelandic "
+#~ "Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>id</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-id</packagereq> </packagelist> </group> "
+#~ "<group> <id>irish-support</id> <_name>Irish Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>it</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-it</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Italian</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"man-pages\">man-pages-it</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"openoffice.org-core"
+#~ "\">openoffice.org-langpack-it</packagereq> </packagelist> </group> "
+#~ "<group> <id>japanese-support</id> <_name>Japanese Support</_name> "
+#~ "<_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>mr</langonly> <packagelist> <packagereq type=\"mandatory"
+#~ "\">fonts-hindi</packagereq> <packagereq type=\"mandatory\">m17n-db-"
+#~ "marathi</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-mr_IN</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"xorg-x11-server-Xorg\">scim-"
+#~ "bridge-gtk</packagereq> <packagereq type=\"conditional\" requires=\"xorg-"
+#~ "x11-server-Xorg\">scim-m17n</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"qt\">scim-qtimm</packagereq> </packagelist> </group> <group> "
+#~ "<id>mysql</id> <_name>MySQL Database</_name> <_description>This package "
+#~ "group contains packages useful for use with MySQL."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ms</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-ms_MY</"
+#~ "packagereq> </packagelist> </group> <group> <id>malayalam-support</id> "
+#~ "<_name>Malayalam Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>nr</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-nr_ZA</"
+#~ "packagereq> </packagelist> </group> <group> <id>southern-sotho-support</"
+#~ "id> <_name>Southern Sotho Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>nr</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-ss_ZA</"
+#~ "packagereq> </packagelist> </group> <group> <id>swedish-support</id> "
+#~ "<_name>Swedish Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>nso</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-nso_ZA</"
+#~ "packagereq> </packagelist> </group> <group> <id>norwegian-support</id> "
+#~ "<_name>Norwegian Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>or</langonly> <packagelist> <packagereq type=\"mandatory"
+#~ "\">fonts-oriya</packagereq> <packagereq type=\"mandatory\">m17n-db-oriya</"
+#~ "packagereq> <packagereq type=\"conditional\" requires=\"openoffice.org-"
+#~ "core\">openoffice.org-langpack-or_IN</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"xorg-x11-server-Xorg\">scim-bridge-gtk</"
+#~ "packagereq> <packagereq type=\"conditional\" requires=\"xorg-x11-server-"
+#~ "Xorg\">scim-m17n</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"qt\">scim-qtimm</packagereq> </packagelist> </group> <group> <id>polish-"
+#~ "support</id> <_name>Polish Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>pa</langonly> <packagelist> <packagereq type=\"mandatory"
+#~ "\">fonts-punjabi</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Punjabi</packagereq> <packagereq type=\"mandatory"
+#~ "\">m17n-db-punjabi</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-pa_IN</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"xorg-x11-server-Xorg\">scim-"
+#~ "bridge-gtk</packagereq> <packagereq type=\"conditional\" requires=\"xorg-"
+#~ "x11-server-Xorg\">scim-m17n</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"qt\">scim-qtimm</packagereq> </packagelist> </group> <group> "
+#~ "<id>romanian-support</id> <_name>Romanian Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>pt</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-pt</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Portuguese</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "pt_PT</packagereq> </packagelist> </group> <group> <id>printing</id> "
+#~ "<_name>Printing Support</_name> <_description>Install these tools to "
+#~ "enable the system to print or act as a print server."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>pt_BR</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-pt</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Brazil</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "pt_BR</packagereq> </packagelist> </group> <group> <id>breton-support</"
+#~ "id> <_name>Breton Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>si</langonly> <packagelist> <packagereq type=\"mandatory"
+#~ "\">fonts-sinhala</packagereq> <packagereq type=\"mandatory\">m17n-db-"
+#~ "sinhala</packagereq> <packagereq type=\"conditional\" requires=\"xorg-x11-"
+#~ "server-Xorg\">scim-bridge-gtk</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"xorg-x11-server-Xorg\">scim-m17n</packagereq> <packagereq "
+#~ "type=\"conditional\" requires=\"qt\">scim-qtimm</packagereq> <packagereq "
+#~ "type=\"conditional\" requires=\"xorg-x11-server-Xorg\">scim-sinhala</"
+#~ "packagereq> </packagelist> </group> <group> <id>slovak-support</id> "
+#~ "<_name>Slovak Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ta</langonly> <packagelist> <packagereq type=\"mandatory"
+#~ "\">fonts-tamil</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Tamil</packagereq> <packagereq type=\"mandatory"
+#~ "\">m17n-db-tamil</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-ta_IN</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"xorg-x11-server-Xorg\">scim-"
+#~ "bridge-gtk</packagereq> <packagereq type=\"conditional\" requires=\"xorg-"
+#~ "x11-server-Xorg\">scim-m17n</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"qt\">scim-qtimm</packagereq> </packagelist> </group> <group> "
+#~ "<id>telugu-support</id> <_name>Telugu Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>th</langonly> <packagelist> <packagereq type=\"mandatory\">m17n-"
+#~ "db-thai</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-th_TH</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"xorg-x11-server-Xorg\">scim-"
+#~ "bridge-gtk</packagereq> <packagereq type=\"conditional\" requires=\"xorg-"
+#~ "x11-server-Xorg\">scim-m17n</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"qt\">scim-qtimm</packagereq> </packagelist> </group> <group> "
+#~ "<id>tsonga-support</id> <_name>Tsonga Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>tn</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-tn_ZA</"
+#~ "packagereq> </packagelist> </group> <group> <id>turkish-support</id> "
+#~ "<_name>Turkish Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>zu</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-xh_ZA</"
+#~ "packagereq> </packagelist> </group> <group> <id>zulu-support</id> "
+#~ "<_name>Zulu Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<packagelist> <packagereq type=\"optional\">compat-db</packagereq> "
+#~ "<packagereq type=\"default\">compat-libgcc-296</packagereq> <packagereq "
+#~ "type=\"default\">compat-libstdc++-296</packagereq> <packagereq type="
+#~ "\"default\">compat-libstdc++-33</packagereq> <packagereq type=\"optional"
+#~ "\">compat-slang</packagereq> <packagereq type=\"optional\">compat-"
+#~ "readline43</packagereq> <packagereq type=\"optional\">compat-openldap</"
+#~ "packagereq> <packagereq type=\"optional\">openssl097a</packagereq> </"
+#~ "packagelist> </group> <group> <id>lithuanian-support</id> "
+#~ "<_name>Lithuanian Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>true</default> <uservisible>false</uservisible> "
+#~ "<packagelist> <packagereq type=\"optional\">efax</packagereq> <packagereq "
+#~ "type=\"default\">isdn4k-utils</packagereq> <packagereq type=\"default"
+#~ "\">lrzsz</packagereq> <packagereq type=\"default\">minicom</packagereq> "
+#~ "<packagereq type=\"mandatory\">ppp</packagereq> <packagereq type="
+#~ "\"optional\">statserial</packagereq> <packagereq type=\"default\">wvdial</"
+#~ "packagereq> </packagelist> </group> <group> <id>dutch-support</id> "
+#~ "<_name>Dutch Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>cy</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-cy</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-cy_GB</packagereq> </"
+#~ "packagelist> </group> <group> <id>window-managers</id> <_name>Window "
+#~ "Managers</_name> <_description>Simple window managers that aren't part of "
+#~ "a larger desktop environment."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>de</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-de</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-German</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"man-pages\">man-pages-de</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "de</packagereq> </packagelist> </group> <group> <id>gnome-desktop</id> "
+#~ "<_name>GNOME Desktop Environment</_name> <_description>GNOME is a "
+#~ "powerful graphical user interface which includes a panel, desktop, system "
+#~ "icons, and a graphical file manager."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>gd</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-gd</packagereq> </packagelist> </group> <group> <id>galician-"
+#~ "support</id> <_name>Galician Support</_name> <_description/> "
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>gl</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-gl</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-gl_ES</packagereq> </"
+#~ "packagelist> </group> <group> <id>games</id> <_name>Games and "
+#~ "Entertainment</_name> <_description>Various ways to relax and spend your "
+#~ "free time."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>nl</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-nl</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Dutch</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-nl</packagereq> "
+#~ "</packagelist> </group> <group> <id>eclipse</id> <_name>Eclipse</_name> "
+#~ "<_description>The Eclipse Integrated Development Environment."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>zu</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-xh_ZA</packagereq> </"
+#~ "packagelist> </group> <group> <id>zulu-support</id> <_name>Zulu Support</"
+#~ "_name> <_description/> <default>false</default> <uservisible>false</"
+#~ "uservisible> <langonly>zu</langonly> <packagelist> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "zu_ZA</packagereq> </packagelist> </group> <category> <id>language-"
+#~ "support</id> <_name>Languages</_name> <_description>These packages "
+#~ "provide support for various locales including fonts and input methods."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>cy</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-cy</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-cy_GB</packagereq> </"
+#~ "packagelist> </group> <group> <id>x-software-development</id> <_name>X "
+#~ "Software Development</_name> <_description>These packages allow you to "
+#~ "develop applications for the X Window System."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>de</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-de</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-German</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"man-pages\">man-pages-de</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "de</packagereq> <packagereq type=\"default\">Deployment_Guide-de-DE</"
+#~ "packagereq> </packagelist> </group> <group> <id>gnome-desktop</id> "
+#~ "<_name>GNOME Desktop Environment</_name> <_description>GNOME is a "
+#~ "powerful, graphical user interface which includes a panel, desktop, "
+#~ "system icons, and a graphical file manager."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>es</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-es</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Spanish</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"man-pages\">man-pages-es</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "es</packagereq> <packagereq type=\"default\">Deployment_Guide-es-ES</"
+#~ "packagereq> </packagelist> </group> <group> <id>sql-server</id> "
+#~ "<_name>PostgreSQL Database</_name> <_description>This package group "
+#~ "includes packages useful for use with Postgresql."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>nb</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-no</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Norwegian</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Norwegian-Nynorsk</packagereq> "
+#~ "<packagereq type=\"conditional\" requires=\"openoffice.org-core"
+#~ "\">openoffice.org-langpack-nb_NO</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "nn_NO</packagereq> </packagelist> </group> <group> <id>office</id> "
+#~ "<_name>Office/Productivity</_name> <_description>The applications include "
+#~ "office suites, PDF viewers, and more."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>nl</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-nl</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Dutch</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"openoffice.org-core\">openoffice.org-langpack-nl</packagereq> "
+#~ "</packagelist> </group> <group> <id>editors</id> <_name>Editors</_name> "
+#~ "<_description>Sometimes called text editors, these are programs that "
+#~ "allow you to create and edit files. These include Emacs and Vi."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>sv</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-sv</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Swedish</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"scim-m17n\">m17n-db-swedish</packagereq> <packagereq type="
+#~ "\"conditional\" requires=\"openoffice.org-core\">openoffice.org-langpack-"
+#~ "sv</packagereq> </packagelist> </group> <group> <id>system-tools</id> "
+#~ "<_name>System Tools</_name> <_description>This group is a collection of "
+#~ "various tools for the system, such as the client for connecting to SMB "
+#~ "shares and tools to monitor network traffic."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>zu</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires="
+#~ "\"openoffice.org-core\">openoffice.org-langpack-zu_ZA</packagereq> </"
+#~ "packagelist> </group> <category> <id>language-support</id> "
+#~ "<_name>Languages</_name> <_description>These packages provide support for "
+#~ "various locales including fonts and input methods."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>true</default> <uservisible>false</uservisible> <packagelist> "
+#~ "<packagereq type=\"mandatory\">ppp</packagereq> <packagereq type=\"default"
+#~ "\">isdn4k-utils</packagereq> <packagereq type=\"default\">lrzsz</"
+#~ "packagereq> <packagereq type=\"default\">minicom</packagereq> <packagereq "
+#~ "type=\"default\">wvdial</packagereq> <packagereq type=\"optional\">efax</"
+#~ "packagereq> <packagereq type=\"optional\">statserial</packagereq> </"
+#~ "packagelist> </group> <group> <id>dns-server</id> <_name>DNS Name Server</"
+#~ "_name> <_description>This package group allows you to run a DNS name "
+#~ "server (BIND) on the system."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<uservisible>true</uservisible> <langonly>zh</langonly> <packagelist> "
+#~ "<packagereq type=\"conditional\" requires=\"xorg-x11-server-Xorg\">scim-"
+#~ "tables-chinese-wangma-wubi</packagereq> </packagelist> </group> <group> "
+#~ "<id>java</id> <_name>Java</_name> <_description>Java Runtime Environments "
+#~ "and Development Kits"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>cy</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-cy</packagereq> </packagelist> </group> <group> <id>x-software-"
+#~ "development</id> <_name>X Software Development</_name> "
+#~ "<_description>These packages allow you to develop applications for the X "
+#~ "Window System."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>de</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-de</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-German</packagereq> <packagereq type=\"conditional\" "
+#~ "requires=\"man-pages\">man-pages-de</packagereq> <packagereq type="
+#~ "\"default\">Deployment_Guide-de-DE</packagereq> </packagelist> </group> "
+#~ "<group> <id>gnome-desktop</id> <_name>GNOME Desktop Environment</_name> "
+#~ "<_description>GNOME is a powerful, graphical user interface which "
+#~ "includes a panel, desktop, system icons, and a graphical file manager."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>es</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-es</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Spanish</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"man-pages\">man-pages-es</packagereq> <packagereq type="
+#~ "\"default\">Deployment_Guide-es-ES</packagereq> </packagelist> </group> "
+#~ "<group> <id>sql-server</id> <_name>PostgreSQL Database</_name> "
+#~ "<_description>This package group includes packages useful for use with "
+#~ "Postgresql."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>gd</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-gd</packagereq> </packagelist> </group> <group> <id>galician-"
+#~ "support</id> <_name>Galician Support</_name> <_description/> "
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>gl</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-gl</packagereq> </packagelist> </group> <group> <id>games</id> "
+#~ "<_name>Games and Entertainment</_name> <_description>Various ways to "
+#~ "relax and spend your free time."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>nb</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-no</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Norwegian</packagereq> <packagereq type=\"conditional"
+#~ "\" requires=\"kdelibs\">kde-i18n-Norwegian-Nynorsk</packagereq> </"
+#~ "packagelist> </group> <group> <id>office</id> <_name>Office/Productivity</"
+#~ "_name> <_description>The applications include office suites, PDF viewers, "
+#~ "and more."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>nl</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-nl</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Dutch</packagereq> </packagelist> </group> <!-- "
+#~ "<group> <id>eclipse</id> <_name>Eclipse</_name> <_description>The Eclipse "
+#~ "Integrated Development Environment."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "<default>false</default> <uservisible>false</uservisible> <langonly>sv</"
+#~ "langonly> <packagelist> <packagereq type=\"conditional\" requires=\"aspell"
+#~ "\">aspell-sv</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Swedish</packagereq> </packagelist> </group> <group> "
+#~ "<id>system-tools</id> <_name>System Tools</_name> <_description>This "
+#~ "group is a collection of various tools for the system, such as the client "
+#~ "for connecting to SMB shares and tools to monitor network traffic."
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid "High Performance Computing Support"
+#~ msgstr "Druksteun"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>br</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"aspell\">aspell-br</packagereq> </packagelist> </group> "
+#~ "<group> <id>british-support</id> <_name>British Support</_name> "
+#~ "<_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>fi</langonly> <packagelist> <packagereq type=\"conditional\" "
+#~ "requires=\"kdelibs\">kde-i18n-Finnish</packagereq> </packagelist> </"
+#~ "group> <group> <id>faeroese-support</id> <_name>Faeroese Support</_name> "
+#~ "<_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#, fuzzy
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>he</langonly> <packagelist> <packagereq type=\"mandatory"
+#~ "\">fonts-hebrew</packagereq> <packagereq type=\"conditional\" requires="
+#~ "\"kdelibs\">kde-i18n-Hebrew</packagereq> </packagelist> </group> <group> "
+#~ "<id>hindi-support</id> <_name>Hindi Support</_name> <_description>"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<langonly>ko</langonly> <packagelist> <packagereq type=\"default\">h2ps </"
+#~ "packagereq> <packagereq type=\"default\">iiimf-docs</"
+#~ "packagereq><packagereg type=@@"
+
+#~ msgid "Cups"
+#~ msgstr "Cups"
+
+#~ msgid "Cups printing service and drivers to use it."
+#~ msgstr "Cups-drukdiens en drywers daarvoor."
+
+#~ msgid "SQL Database Server"
+#~ msgstr "SQL-databasisbediener"
+
+#~ msgid "Supported Packages"
+#~ msgstr "Ondersteunde pakkette"
+
+#~ msgid ""
+#~ "These packages include network-based servers such as CIPE, DHCP, and "
+#~ "telnet."
+#~ msgstr ""
+#~ "Hierdie pakkette sluit netwerkgebaseerde bedieners soos CIPE, DHCP en "
+#~ "telnet in."
+
+#~ msgid "This package group allows you to run an SQL server on the system."
+#~ msgstr ""
+#~ "Hierdie pakket stel jou in staat om 'n SQL-bediener op die rekenaar te "
+#~ "laat loop."
+
+#~ msgid "GNOME Desktop"
+#~ msgstr "GNOME-werkskerm"
+
+#~ msgid ""
+#~ "These packages include network-based servers such as DHCP and telnet."
+#~ msgstr ""
+#~ "Hierdie pakkette sluit netwerkgebaseerde bedieners soos DHCP en telnet in."
+
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<packagelist> <packagereq type=\"mandatory\">compat-db</packagereq> "
+#~ "<packagereq type=\"mandatory\">compat-libgcc-295</packagereq> <packagereq "
+#~ "type=\"mandato"
+#~ msgstr ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<packagelist> <packagereq type=\"mandatory\">compat-db</packagereq> "
+#~ "<packagereq type=\"mandatory\">compat-libgcc-295</packagereq> <packagereq "
+#~ "type=\"mandato"
+
+#~ msgid ""
+#~ "</_description> <default>false</default> <uservisible>false</uservisible> "
+#~ "<packagelist> <packagereq type=\"optional\">anaconda</packagereq> "
+#~ "<packagereq type=\"optional\">anaconda-help</packagereq> <packagereq "
+#~ "type= \"optional\">an"
+#~ msgstr ""
+#~ " </_description> <default>false</default> <uservisible>false</"
+#~ "uservisible> <packagelist> <packagereq type=\"optional\">anaconda</"
+#~ "packagereq> <packagereq type=\"optional\">anaconda-help</packagereq> "
+#~ "<packagereq type= \"optional\">an"

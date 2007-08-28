@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE comps PUBLIC "-//Red Hat, Inc.//DTD Comps info//EN" "comps.dtd">
+<comps>
+  <group>
+    <id>admin-tools</id>
+    <_name>Administration Tools</_name>
+    <_description>This group is a collection of graphical administration tools for the system, such as for managing user accounts and configuring system hardware.</_description>
+    <default>true</default>
+    <uservisible>true</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>arabic-support</id>
+    <_name>Arabic Support</_name>
+    <_description>This group is a collection of tools and resources of Arabic environments.</_description>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>armenian-support</id>
+    <_name>Armenian Support</_name>
+    <_description>This group is a collection of tools and resources of Armenian environments.</_description>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>authoring-and-publishing</id>
+    <_name>Authoring and Publishing</_name>
+    <_description>These tools allow you to create documentation in the DocBook format and convert them to HTML, PDF, Postscript, and text.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">python-docutils</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>base-x</id>
+    <_name>X Window System</_name>
+    <_description>Install this group of packages to use the base graphical (X) user interface.</_description>
+    <default>true</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">freefont</packagereq>
+      <packagereq type="optional">mathml-fonts</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>development-tools</id>
+    <_name>Development Tools</_name>
+    <_description>These tools include core development tools such as automake, gcc, perl, python, and debuggers.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">cmake</packagereq>
+      <packagereq type="optional">cmucl</packagereq>
+      <packagereq type="optional">ftnchek</packagereq>
+      <packagereq type="optional">git</packagereq>
+      <packagereq type="optional">lua</packagereq>
+      <packagereq type="optional">mercurial</packagereq>
+      <packagereq type="optional">mock</packagereq>
+      <packagereq type="optional">ocaml</packagereq>
+      <packagereq type="optional">qgit</packagereq>
+      <packagereq type="optional">rpmdevtools</packagereq>
+      <packagereq type="optional">rpmlint</packagereq>
+      <packagereq type="optional">sbcl</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>dialup</id>
+    <_name>Dialup Networking Support</_name>
+    <description/>
+    <default>true</default>
+    <uservisible>false</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>editors</id>
+    <_name>Editors</_name>
+    <_description>Sometimes called text editors, these are programs that allow you to create and edit files. These include Emacs and Vi.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <grouplist>
+      <groupreq>base</groupreq>
+      <metapkg type="optional">xemacs</metapkg>
+    </grouplist>
+    <packagelist/>
+  </group>
+  <group>
+    <id>education</id>
+    <_name>Educational Software</_name>
+    <_description>Educational software for learning</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">drgeo</packagereq>
+      <packagereq type="optional">drgeo-doc</packagereq>
+      <packagereq type="optional">gperiodic</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>engineering-and-scientific</id>
+    <_name>Engineering and Scientific</_name>
+    <_description>This group includes packages for performing mathematical and scientific computations and plotting, as well as unit conversion.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">hdf</packagereq>
+      <packagereq type="optional">hmmer</packagereq>
+      <packagereq type="optional">Macaulay2</packagereq>
+      <packagereq type="optional">maxima</packagereq>
+      <packagereq type="optional">ncarg</packagereq>
+      <packagereq type="optional">netcdf</packagereq>
+      <packagereq type="optional">qucs</packagereq>
+      <packagereq type="optional">SIBsim4</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>ftp-server</id>
+    <_name>FTP Server</_name>
+    <_description>These tools allow you to run an FTP server on the system.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>gnome-desktop</id>
+    <_name>GNOME Desktop Environment</_name>
+    <_description>GNOME is a powerful, graphical user interface which includes a panel, desktop, system icons, and a graphical file manager.</_description>
+    <default>true</default>
+    <uservisible>true</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>gnome-software-development</id>
+    <_name>GNOME Software Development</_name>
+    <_description>Install these packages in order to develop GTK+ and GNOME graphical applications.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">gconfmm26-devel</packagereq>
+      <packagereq type="optional">glibmm24-devel</packagereq>
+      <packagereq type="optional">gnome-vfsmm26-devel</packagereq>
+      <packagereq type="optional">gtkmm24-devel</packagereq>
+      <packagereq type="optional">libglademm24-devel</packagereq>
+      <packagereq type="optional">libgnomecanvasmm26-devel</packagereq>
+      <packagereq type="optional">libgnomemm26-devel</packagereq>
+      <packagereq type="optional">libgnomeuimm26-devel</packagereq>
+      <packagereq type="optional">libsigc++20-devel</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>graphical-internet</id>
+    <_name>Graphical Internet</_name>
+    <_description>This group includes graphical email, Web, and chat clients.</_description>
+    <default>true</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">mail-notification</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>graphics</id>
+    <_name>Graphics</_name>
+    <_description>This group includes packages to help you manipulate and scan images.</_description>
+    <default>true</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">fontforge</packagereq>
+      <packagereq type="optional">gv</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>hardware-support</id>
+    <_name>Hardware Support</_name>
+    <_description>This group is a collection of tools for various hardware specific utilities.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+     <packagereq type="optional">ctapi-cyberjack</packagereq>
+     <packagereq type="optional">ctapi-cyberjack-tools</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>hebrew-support</id>
+    <_name>Hebrew Support</_name>
+    <_description>This group is a collection of tools and resources of Hebrew environments.</_description>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>japanese-support</id>
+    <_name>Japanese Support</_name>
+    <_description>This group is a collection of tools and resources of Japanese environments.</_description>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>java</id>
+    <_name>Java</_name>
+    <_description>Support for running programs written in the Java programming language.</_description>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>java-development</id>
+    <_name>Java Development</_name>
+    <_description>Support for developing programs in the Java programming language.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>kde-desktop</id>
+    <_name>KDE (K Desktop Environment)</_name>
+    <_description>KDE is a powerful, graphical user interface which includes a panel, desktop, system icons, and a graphical file manager.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>kde-software-development</id>
+    <_name>KDE Software Development</_name>
+    <_description>Install these packages to develop QT and KDE graphical applications.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>mail-server</id>
+    <_name>Mail Server</_name>
+    <_description>These packages allow you to configure an IMAP or SMTP mail server.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">clamav</packagereq>
+      <packagereq type="optional">clamav-data</packagereq>
+      <packagereq type="optional">clamav-milter</packagereq>
+      <packagereq type="optional">sqlgrey</packagereq>
+      <packagereq type="optional">uw-imap</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>network-server</id>
+    <_name>Network Servers</_name>
+    <_description>This group is a collection of network servers for specific purposes</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">ircd-hybrid</packagereq>
+      <packagereq type="optional">openvpn</packagereq>
+      <packagereq type="optional">puppet-server</packagereq>
+      <packagereq type="optional">rbldnsd</packagereq>
+      <packagereq type="optional">ushare</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>news-server</id>
+    <_name>News Server</_name>
+    <_description>This group allows you to configure the system as a news server.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>office</id>
+    <_name>Office/Productivity</_name>
+    <_description>The applications include office suites, PDF viewers, and more.</_description>
+    <default>true</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">gnucash</packagereq>
+      <packagereq type="optional">revelation</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>sound-and-video</id>
+    <_name>Sound and Video</_name>
+    <_description>From CD recording to playing audio CDs and multimedia files, this package group allows you to work with sound and video on the system.</_description>
+    <default>true</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">ushare</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>system-tools</id>
+    <_name>System Tools</_name>
+    <_description>This group is a collection of various tools for the system, such as the client for connecting to SMB shares and tools to monitor network traffic.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">apcupsd</packagereq>
+      <packagereq type="optional">cfengine</packagereq>
+      <packagereq type="optional">crack</packagereq>
+      <packagereq type="optional">denyhosts</packagereq>
+      <packagereq type="optional">ebtables</packagereq>
+      <packagereq type="optional">environment-modules</packagereq>
+      <packagereq type="optional">ettercap</packagereq>
+      <packagereq type="optional">ghex</packagereq>
+      <packagereq type="optional">nagios</packagereq>
+      <packagereq type="optional">nfswatch</packagereq>
+      <packagereq type="optional">puppet</packagereq>
+      <packagereq type="optional">qstat</packagereq>
+      <packagereq type="optional">tiobench</packagereq>
+      <packagereq type="optional">ttywatch</packagereq>
+      <packagereq type="optional">wine</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>text-internet</id>
+    <_name>Text-based Internet</_name>
+    <_description>This group includes text-based email, Web, and chat clients. These applications do not require the X Window System.</_description>
+    <default>true</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">ncftp</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>web-development</id>
+    <_name>Web Development</_name>
+    <_description>These packages are helpful when developing web applications or web pages.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist/>
+  </group>
+  <group>
+    <id>web-server</id>
+    <_name>Web Server</_name>
+    <_description>These tools allow you to run a Web server on the system.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">moin</packagereq>
+      <packagereq type="optional">Pound</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>window-managers</id>
+    <_name>Window Managers</_name>
+    <_description>Simple window managers that aren't part of a larger desktop environment.</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="optional">windowlab</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>xemacs</id>
+    <_name>XEmacs</_name>
+    <_description>The XEmacs text editor.</_description>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <grouplist>
+      <groupreq>base</groupreq>
+    </grouplist>
+    <packagelist/>
+  </group>
+  <category>
+    <id>desktops</id>
+    <_name>Desktop Environments</_name>
+    <_description>Desktop environments</_description>
+    <display_order>10</display_order>
+    <grouplist>
+      <groupid>xfce-desktop</groupid>
+    </grouplist>
+  </category>
+  <category>
+    <id>apps</id>
+    <_name>Applications</_name>
+    <_description>Applications for a variety of tasks</_description>
+    <display_order>20</display_order>
+    <grouplist>
+      <groupid>education</groupid>
+    </grouplist>
+  </category>
+  <category>
+    <id>development</id>
+    <_name>Development</_name>
+    <_description>Packages which provide functionality for developing and building applications.</_description>
+    <display_order>70</display_order>
+    <grouplist>
+      <groupid>web-development</groupid>
+      <groupid>xfce-software-development</groupid>
+    </grouplist>
+  </category>
+  <category>
+    <id>servers</id>
+    <_name>Servers</_name>
+    <_description>Software used for running network servers</_description>
+    <display_order>90</display_order>
+    <grouplist>
+      <groupid>network-server</groupid>
+    </grouplist>
+  </category>
+  <category>
+    <id>base-system</id>
+    <_name>Base System</_name>
+    <_description>Various core pieces of the system.</_description>
+    <display_order>99</display_order>
+    <grouplist>
+      <groupid>hardware-support</groupid>
+    </grouplist>
+  </category>
+</comps>

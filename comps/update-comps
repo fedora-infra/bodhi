@@ -1,0 +1,11 @@
+#!/bin/sh 
+
+COMPSFILE=$1
+
+if [ -z "$COMPSFILE" ]; then
+    echo "Usage: $0 <compsfile>"
+    exit 1
+fi
+
+LANG=C intltool-merge -x -u po/ $COMPSFILE.in $COMPSFILE
+

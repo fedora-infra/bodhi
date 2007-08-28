@@ -1,0 +1,1367 @@
+# translation of ko.po to Korean
+# This file is distributed under the same license as the PACKAGE package.
+# Copyright (C) 2002 Red Hat, Inc.
+# Michelle Kim <mkim@redhat.com>, 2002.
+# Michelle J Kim <mkim@redhat.com>, 2003,2004.
+# Michelle Ji Yeen Kim <mkim@redhat.com>, 2005.
+# Eunju Kim <eukim@redhat.com>, 2006.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ko\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-06-26 14:03-0400\n"
+"PO-Revision-Date: 2006-12-08 10:51+1000\n"
+"Last-Translator: Eunju Kim <eukim@redhat.com>\n"
+"Language-Team: Korean <ko@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.9.1\n"
+
+#: ../comps-fe5.xml.in.h:1 ../comps-fe6.xml.in.h:1 ../comps-f7.xml.in.h:1
+#: ../comps-f8.xml.in.h:1
+msgid "A lightweight desktop environment that works well on low end machines."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:2 ../comps-fe6.xml.in.h:2 ../comps-f7.xml.in.h:2
+#: ../comps-f8.xml.in.h:2 ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+msgid "Administration Tools"
+msgstr "관리 도구"
+
+#: ../comps-fe5.xml.in.h:3 ../comps-fe6.xml.in.h:3 ../comps-f7.xml.in.h:5
+#: ../comps-f8.xml.in.h:5 ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+msgid "Applications"
+msgstr "응용 프로그램"
+
+#: ../comps-fe5.xml.in.h:4 ../comps-fe6.xml.in.h:4 ../comps-el4.xml.in.h:3
+#: ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr "다양한 작업을 위한 응용 프로그램"
+
+#: ../comps-fe5.xml.in.h:5 ../comps-fe6.xml.in.h:5 ../comps-f7.xml.in.h:7
+#: ../comps-f8.xml.in.h:7 ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+msgid "Arabic Support"
+msgstr "아랍어 지원"
+
+#: ../comps-fe5.xml.in.h:6 ../comps-fe6.xml.in.h:6 ../comps-f7.xml.in.h:8
+#: ../comps-f8.xml.in.h:8 ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+#, fuzzy
+msgid "Armenian Support"
+msgstr "루마니아어 지원"
+
+#: ../comps-fe5.xml.in.h:7 ../comps-fe6.xml.in.h:7 ../comps-f7.xml.in.h:10
+#: ../comps-f8.xml.in.h:10 ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+msgid "Authoring and Publishing"
+msgstr "제작과 출판"
+
+#: ../comps-fe5.xml.in.h:8 ../comps-fe6.xml.in.h:8 ../comps-f7.xml.in.h:12
+#: ../comps-f8.xml.in.h:12 ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+msgid "Base System"
+msgstr "기반 시스템"
+
+#: ../comps-fe5.xml.in.h:9 ../comps-fe6.xml.in.h:10 ../comps-f7.xml.in.h:31
+#: ../comps-f8.xml.in.h:31 ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+msgid "Desktop Environments"
+msgstr "데스크탑 환경"
+
+#: ../comps-fe5.xml.in.h:10 ../comps-fe6.xml.in.h:11 ../comps-f7.xml.in.h:32
+#: ../comps-f8.xml.in.h:32 ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+msgid "Desktop environments"
+msgstr "데스크탑 환경"
+
+#: ../comps-fe5.xml.in.h:11 ../comps-fe6.xml.in.h:12 ../comps-f7.xml.in.h:33
+#: ../comps-f8.xml.in.h:33 ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+msgid "Development"
+msgstr "개발용 도구"
+
+#: ../comps-fe5.xml.in.h:12 ../comps-fe6.xml.in.h:13 ../comps-f7.xml.in.h:35
+#: ../comps-f8.xml.in.h:35 ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+msgid "Development Tools"
+msgstr "개발용 도구"
+
+#: ../comps-fe5.xml.in.h:13 ../comps-fe6.xml.in.h:14 ../comps-el4.xml.in.h:12
+#: ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "전화연결 네트워킹 지원"
+
+#: ../comps-fe5.xml.in.h:14 ../comps-fe6.xml.in.h:15 ../comps-f7.xml.in.h:39
+#: ../comps-f8.xml.in.h:39 ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+msgid "Editors"
+msgstr "편집기"
+
+#: ../comps-fe5.xml.in.h:15 ../comps-fe6.xml.in.h:16 ../comps-f7.xml.in.h:40
+#: ../comps-f8.xml.in.h:40 ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+msgid "Educational Software"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:16 ../comps-fe6.xml.in.h:17 ../comps-f7.xml.in.h:41
+#: ../comps-f8.xml.in.h:41 ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+msgid "Educational software for learning"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:17 ../comps-fe6.xml.in.h:18 ../comps-f7.xml.in.h:42
+#: ../comps-f8.xml.in.h:42 ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+msgid "Engineering and Scientific"
+msgstr "공학과 과학"
+
+#: ../comps-fe5.xml.in.h:18 ../comps-fe6.xml.in.h:19 ../comps-f7.xml.in.h:46
+#: ../comps-f8.xml.in.h:46 ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+msgid "FTP Server"
+msgstr "FTP 서버"
+
+#: ../comps-fe5.xml.in.h:19 ../comps-fe6.xml.in.h:20 ../comps-f7.xml.in.h:51
+#: ../comps-f8.xml.in.h:51 ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+msgid ""
+"From CD recording to playing audio CDs and multimedia files, this package "
+"group allows you to work with sound and video on the system."
+msgstr ""
+"이 패키지 그룹을 사용하여 CD 녹음에서 오디오 CD 및 멀티미디어 파일 재생에 이"
+"르기까지 다양한 사운드와 비디오 작업을 수행하실 수 있습니다."
+
+#: ../comps-fe5.xml.in.h:20 ../comps-fe6.xml.in.h:21 ../comps-f7.xml.in.h:52
+#: ../comps-f8.xml.in.h:52 ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+msgid "GNOME Desktop Environment"
+msgstr "GNOME 데스크탑 환경"
+
+#: ../comps-fe5.xml.in.h:21 ../comps-fe6.xml.in.h:22 ../comps-f7.xml.in.h:53
+#: ../comps-f8.xml.in.h:53 ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+msgid "GNOME Software Development"
+msgstr "GNOME 소프트웨어 개발"
+
+#: ../comps-fe5.xml.in.h:22 ../comps-fe6.xml.in.h:23 ../comps-el4.xml.in.h:21
+#: ../comps-el5.xml.in.h:22
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME은 강력한 그래픽 사용자 인터페이스로서 패널, 데스크탑, 시스템 아이콘과 "
+"그래픽 파일 관리자 기능을 갖추고 있습니다."
+
+#: ../comps-fe5.xml.in.h:23 ../comps-fe6.xml.in.h:24 ../comps-f7.xml.in.h:57
+#: ../comps-f8.xml.in.h:57 ../comps-el5.xml.in.h:23
+msgid "Games and Entertainment"
+msgstr "게임과 오락"
+
+#: ../comps-fe5.xml.in.h:24 ../comps-fe6.xml.in.h:25 ../comps-f7.xml.in.h:60
+#: ../comps-f8.xml.in.h:60 ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:24
+msgid "Graphical Internet"
+msgstr "그래픽 인터넷"
+
+#: ../comps-fe5.xml.in.h:25 ../comps-fe6.xml.in.h:26 ../comps-f7.xml.in.h:61
+#: ../comps-f8.xml.in.h:61 ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+msgid "Graphics"
+msgstr "그래픽"
+
+#: ../comps-fe5.xml.in.h:26 ../comps-fe6.xml.in.h:27 ../comps-f7.xml.in.h:64
+#: ../comps-f8.xml.in.h:64 ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+#, fuzzy
+msgid "Hardware Support"
+msgstr "히브리어 지원"
+
+#: ../comps-fe5.xml.in.h:27 ../comps-fe6.xml.in.h:28 ../comps-f7.xml.in.h:65
+#: ../comps-f8.xml.in.h:65 ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+msgid "Hebrew Support"
+msgstr "히브리어 지원"
+
+#: ../comps-fe5.xml.in.h:28 ../comps-fe6.xml.in.h:29 ../comps-f7.xml.in.h:70
+#: ../comps-f8.xml.in.h:70 ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+msgid ""
+"Install these packages in order to develop GTK+ and GNOME graphical "
+"applications."
+msgstr ""
+"GTK+와 GNOME용 그래픽 응용 프로그램을 개발하시려면 이 패키지를 설치하십시오."
+
+#: ../comps-fe5.xml.in.h:29 ../comps-fe6.xml.in.h:30 ../comps-f7.xml.in.h:71
+#: ../comps-f8.xml.in.h:71
+#, fuzzy
+msgid ""
+"Install these packages in order to develop GTK+ and XFCE graphical "
+"applications."
+msgstr ""
+"GTK+와 GNOME용 그래픽 응용 프로그램을 개발하시려면 이 패키지를 설치하십시오."
+
+#: ../comps-fe5.xml.in.h:30 ../comps-fe6.xml.in.h:31 ../comps-f7.xml.in.h:72
+#: ../comps-f8.xml.in.h:72 ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+msgid "Install these packages to develop QT and KDE graphical applications."
+msgstr ""
+"QT와 KDE용 그래픽 응용 프로그램을 개발하시려면 이 패키지를 설치하십시오."
+
+#: ../comps-fe5.xml.in.h:31 ../comps-fe6.xml.in.h:32 ../comps-f7.xml.in.h:74
+#: ../comps-f8.xml.in.h:74 ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+msgid ""
+"Install this group of packages to use the base graphical (X) user interface."
+msgstr ""
+"기본 그래픽 (X) 사용자 인터페이스를 사용하시려면 이 패키지 그룹을 설치하십시"
+"오."
+
+#: ../comps-fe5.xml.in.h:32 ../comps-fe6.xml.in.h:33 ../comps-f7.xml.in.h:78
+#: ../comps-f8.xml.in.h:78 ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+msgid "Japanese Support"
+msgstr "일본어 지원"
+
+#: ../comps-fe5.xml.in.h:33 ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:79
+#: ../comps-el4.xml.in.h:30
+msgid "Java"
+msgstr "Java"
+
+#: ../comps-fe5.xml.in.h:34 ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:80
+#: ../comps-el4.xml.in.h:31
+msgid "Java Development"
+msgstr "Java 개발용 도구"
+
+#: ../comps-fe5.xml.in.h:35 ../comps-fe6.xml.in.h:34 ../comps-f7.xml.in.h:81
+#: ../comps-f8.xml.in.h:81 ../comps-el4.xml.in.h:32 ../comps-el5.xml.in.h:32
+msgid "KDE (K Desktop Environment)"
+msgstr "KDE (K 데스크탑 환경)"
+
+#: ../comps-fe5.xml.in.h:36 ../comps-fe6.xml.in.h:35 ../comps-f7.xml.in.h:82
+#: ../comps-f8.xml.in.h:82 ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+msgid "KDE Software Development"
+msgstr "KDE 소프트웨어 개발"
+
+#: ../comps-fe5.xml.in.h:37 ../comps-fe6.xml.in.h:36 ../comps-el4.xml.in.h:34
+#: ../comps-el5.xml.in.h:34
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE는 강력한 그래픽 사용자 인터페이스로서 패널, 데스크탑, 시스템 아이콘과 그"
+"래픽 파일 관리자 기능을 갖추고 있습니다."
+
+#: ../comps-fe5.xml.in.h:38 ../comps-fe6.xml.in.h:37 ../comps-f7.xml.in.h:94
+#: ../comps-f8.xml.in.h:94 ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid "Mail Server"
+msgstr "메일 서버"
+
+#: ../comps-fe5.xml.in.h:39 ../comps-fe6.xml.in.h:38 ../comps-f7.xml.in.h:100
+#: ../comps-f8.xml.in.h:100 ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+msgid "Network Servers"
+msgstr "네트워크 서버"
+
+#: ../comps-fe5.xml.in.h:40 ../comps-fe6.xml.in.h:39 ../comps-f7.xml.in.h:101
+#: ../comps-f8.xml.in.h:101 ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+msgid "News Server"
+msgstr "뉴스 서버"
+
+#: ../comps-fe5.xml.in.h:41 ../comps-fe6.xml.in.h:40 ../comps-f7.xml.in.h:104
+#: ../comps-f8.xml.in.h:104 ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+msgid "Office/Productivity"
+msgstr "사무/생산성"
+
+#: ../comps-fe5.xml.in.h:42 ../comps-fe6.xml.in.h:41 ../comps-f7.xml.in.h:106
+#: ../comps-f8.xml.in.h:106 ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+msgid ""
+"Packages which provide functionality for developing and building "
+"applications."
+msgstr "이 패키지는 응용 프로그램을 개발하기 위한 기능을 제공합니다."
+
+#: ../comps-fe5.xml.in.h:43 ../comps-fe6.xml.in.h:42 ../comps-f7.xml.in.h:119
+#: ../comps-f8.xml.in.h:119 ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+msgid "Servers"
+msgstr "서버"
+
+#: ../comps-fe5.xml.in.h:44 ../comps-fe6.xml.in.h:43 ../comps-f7.xml.in.h:120
+#: ../comps-f8.xml.in.h:120 ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+msgid ""
+"Simple window managers that aren't part of a larger desktop environment."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:45 ../comps-fe6.xml.in.h:44 ../comps-f7.xml.in.h:125
+#: ../comps-f8.xml.in.h:125 ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+msgid "Software used for running network servers"
+msgstr "네트워크 서버를 실행하기 위해 사용되는 소프트웨어"
+
+#: ../comps-fe5.xml.in.h:46 ../comps-fe6.xml.in.h:45 ../comps-el4.xml.in.h:43
+#: ../comps-el5.xml.in.h:43
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+"가끔씩 텍스트 편집기라고도 불리우는 이 프로그램은 파일을 생성하고 편집하는데 "
+"사용됩니다. 이러한 프로그램에는 Emacs와 Vi가 포함됩니다."
+
+#: ../comps-fe5.xml.in.h:47 ../comps-fe6.xml.in.h:46 ../comps-f7.xml.in.h:128
+#: ../comps-f8.xml.in.h:128 ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid "Sound and Video"
+msgstr "사운드와 비디오"
+
+#: ../comps-fe5.xml.in.h:48 ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:132
+#: ../comps-el4.xml.in.h:45
+msgid "Support for developing programs in the Java programming language."
+msgstr "Java 프로그래밍 언어로 작성된 개발용 프로그램 지원."
+
+#: ../comps-fe5.xml.in.h:49 ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:133
+#: ../comps-el4.xml.in.h:46
+msgid "Support for running programs written in the Java programming language."
+msgstr "Java 프로그래밍 언어로 작성된 프로그램 실행 지원."
+
+#: ../comps-fe5.xml.in.h:50 ../comps-fe6.xml.in.h:47 ../comps-f7.xml.in.h:136
+#: ../comps-f8.xml.in.h:136 ../comps-el4.xml.in.h:47 ../comps-el5.xml.in.h:45
+msgid "System Tools"
+msgstr "시스템 도구"
+
+#: ../comps-fe5.xml.in.h:51 ../comps-fe6.xml.in.h:48 ../comps-f7.xml.in.h:140
+#: ../comps-f8.xml.in.h:140 ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+msgid "Text-based Internet"
+msgstr "텍스트-기반 인터넷"
+
+#: ../comps-fe5.xml.in.h:52 ../comps-fe6.xml.in.h:49 ../comps-el4.xml.in.h:49
+#: ../comps-el5.xml.in.h:47
+msgid "The XEmacs text editor."
+msgstr "XEmacs 텍스트 편집기."
+
+#: ../comps-fe5.xml.in.h:53 ../comps-fe6.xml.in.h:50 ../comps-f7.xml.in.h:143
+#: ../comps-f8.xml.in.h:143 ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The applications include office suites, PDF viewers, and more."
+msgstr ""
+"이 응용 프로그램은 사무용 프로그램 모음, PDF 보기 프로그램 등을 포함합니다."
+
+#: ../comps-fe5.xml.in.h:54 ../comps-fe6.xml.in.h:51 ../comps-f7.xml.in.h:145
+#: ../comps-f8.xml.in.h:145 ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+msgid "These packages allow you to configure an IMAP or SMTP mail server."
+msgstr "이 패키지는 IMAP과 SMTP 메일 서버 설정을 도와줍니다."
+
+#: ../comps-fe5.xml.in.h:55 ../comps-fe6.xml.in.h:52 ../comps-f7.xml.in.h:147
+#: ../comps-f8.xml.in.h:147 ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+#, fuzzy
+msgid ""
+"These packages are helpful when developing web applications or web pages."
+msgstr "이 패키지는 X 윈도우 시스템용 응용 프로그램 개발시 사용합니다."
+
+#: ../comps-fe5.xml.in.h:56 ../comps-fe6.xml.in.h:53 ../comps-el4.xml.in.h:53
+#: ../comps-el5.xml.in.h:51
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"이 도구를 사용하여 DocBook 형식의 문서를 생성할 수 있으며 생성된 문서를 "
+"HTML, PDF, Postscript와 텍스트 형식으로 변환할 수 있습니다."
+
+#: ../comps-fe5.xml.in.h:57 ../comps-fe6.xml.in.h:54 ../comps-f7.xml.in.h:154
+#: ../comps-f8.xml.in.h:154 ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid "These tools allow you to run a Web server on the system."
+msgstr "이 도구를 사용하여 시스템 상에서 웹서버를 운영할 수 있습니다."
+
+#: ../comps-fe5.xml.in.h:58 ../comps-fe6.xml.in.h:55 ../comps-f7.xml.in.h:155
+#: ../comps-f8.xml.in.h:155 ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+msgid "These tools allow you to run an FTP server on the system."
+msgstr "이 도구를 사용하여 시스템 상에서 FTP 서버를 운영할 수 있습니다."
+
+#: ../comps-fe5.xml.in.h:59 ../comps-fe6.xml.in.h:56 ../comps-f7.xml.in.h:156
+#: ../comps-f8.xml.in.h:156 ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+msgid ""
+"These tools include core development tools such as automake, gcc, perl, "
+"python, and debuggers."
+msgstr ""
+"이 도구에는 automake, gcc, perl, python, 디버거와 같은 핵심 개발 도구를포함하"
+"고 있습니다."
+
+#: ../comps-fe5.xml.in.h:60 ../comps-fe6.xml.in.h:57 ../comps-f7.xml.in.h:157
+#: ../comps-f8.xml.in.h:157 ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+msgid "This group allows you to configure the system as a news server."
+msgstr "이 그룹을 사용하여 시스템을 뉴스 서버로 설정하실 수 있습니다."
+
+#: ../comps-fe5.xml.in.h:61 ../comps-fe6.xml.in.h:58 ../comps-f7.xml.in.h:160
+#: ../comps-f8.xml.in.h:160 ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+msgid "This group includes graphical email, Web, and chat clients."
+msgstr "이 그룹에는 그래픽 이메일, 웹, 채팅 클라이언트를 포함하고 있습니다."
+
+#: ../comps-fe5.xml.in.h:62 ../comps-fe6.xml.in.h:59 ../comps-f7.xml.in.h:161
+#: ../comps-f8.xml.in.h:161 ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+msgid ""
+"This group includes packages for performing mathematical and scientific "
+"computations and plotting, as well as unit conversion."
+msgstr ""
+"이 그룹은 단위 변환 기능을 비롯 수학 계산과 과학 계산을 수행하고 출력하는 패"
+"키지를 포함합니다."
+
+#: ../comps-fe5.xml.in.h:63 ../comps-fe6.xml.in.h:60 ../comps-f7.xml.in.h:162
+#: ../comps-f8.xml.in.h:162 ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+msgid "This group includes packages to help you manipulate and scan images."
+msgstr "이 그룹에 포함된 패키지는 이미지를 스캔, 조작 작업을 도와드립니다."
+
+#: ../comps-fe5.xml.in.h:64 ../comps-fe6.xml.in.h:61 ../comps-f7.xml.in.h:163
+#: ../comps-f8.xml.in.h:163 ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+msgid ""
+"This group includes text-based email, Web, and chat clients. These "
+"applications do not require the X Window System."
+msgstr ""
+"이 그릅에는 텍스트-기반 이메일, 웹, 채팅 클라이언트가 포함되어 있습니다. X 윈"
+"도우 시스템이 없어도 작동합니다."
+
+#: ../comps-fe5.xml.in.h:65 ../comps-fe6.xml.in.h:62 ../comps-f7.xml.in.h:164
+#: ../comps-f8.xml.in.h:164 ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+msgid ""
+"This group is a collection of graphical administration tools for the system, "
+"such as for managing user accounts and configuring system hardware."
+msgstr ""
+"이 그룹은 사용자 계정을 관리하고 시스템 하드웨어를 설정하는 그래픽 시스템 관"
+"리 도구 모음입니다. "
+
+#: ../comps-fe5.xml.in.h:66 ../comps-fe6.xml.in.h:63 ../comps-el4.xml.in.h:63
+#: ../comps-el5.xml.in.h:61
+msgid "This group is a collection of network servers for specific purposes"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:67 ../comps-fe6.xml.in.h:64 ../comps-el4.xml.in.h:64
+#: ../comps-el5.xml.in.h:62
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:68 ../comps-fe6.xml.in.h:65 ../comps-f7.xml.in.h:165
+#: ../comps-f8.xml.in.h:165 ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Armenian environments."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:69 ../comps-fe6.xml.in.h:67 ../comps-el4.xml.in.h:66
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:70 ../comps-fe6.xml.in.h:68 ../comps-el4.xml.in.h:67
+#: ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:71 ../comps-fe6.xml.in.h:69 ../comps-f7.xml.in.h:166
+#: ../comps-f8.xml.in.h:166 ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools for various hardware specific utilities."
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:72 ../comps-fe6.xml.in.h:70 ../comps-f7.xml.in.h:167
+#: ../comps-f8.xml.in.h:167 ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+msgid ""
+"This group is a collection of various tools for the system, such as the "
+"client for connecting to SMB shares and tools to monitor network traffic."
+msgstr ""
+"이 그룹은 SMB 공유에 접속하는데 사용하는 클라이언트와 네트워크 소통량모니터 "
+"도구와 같은 다양한 시스템 도구 모음입니다."
+
+#: ../comps-fe5.xml.in.h:73 ../comps-fe6.xml.in.h:71 ../comps-f7.xml.in.h:179
+#: ../comps-f8.xml.in.h:179 ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
+msgid "Various core pieces of the system."
+msgstr "다양한 주요 시스템"
+
+#: ../comps-fe5.xml.in.h:74 ../comps-fe6.xml.in.h:72 ../comps-f7.xml.in.h:180
+#: ../comps-f8.xml.in.h:180 ../comps-el5.xml.in.h:70
+msgid "Various ways to relax and spend your free time."
+msgstr "휴식을 취하면서 여가 시간을 보낼 수 있는 다양한 방법."
+
+#: ../comps-fe5.xml.in.h:75 ../comps-fe6.xml.in.h:73 ../comps-f7.xml.in.h:184
+#: ../comps-f8.xml.in.h:184 ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:71
+#, fuzzy
+msgid "Web Development"
+msgstr "개발용 도구"
+
+#: ../comps-fe5.xml.in.h:76 ../comps-fe6.xml.in.h:74 ../comps-f7.xml.in.h:185
+#: ../comps-f8.xml.in.h:185 ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:72
+msgid "Web Server"
+msgstr "웹 서버"
+
+#: ../comps-fe5.xml.in.h:77 ../comps-fe6.xml.in.h:75 ../comps-f7.xml.in.h:187
+#: ../comps-f8.xml.in.h:187 ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+msgid "Window Managers"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:78 ../comps-fe6.xml.in.h:76 ../comps-f7.xml.in.h:190
+#: ../comps-f8.xml.in.h:190 ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "X Window System"
+msgstr "X 윈도우 시스템"
+
+#: ../comps-fe5.xml.in.h:79 ../comps-fe6.xml.in.h:77 ../comps-el4.xml.in.h:75
+#: ../comps-el5.xml.in.h:75
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-fe5.xml.in.h:80 ../comps-fe6.xml.in.h:78 ../comps-f7.xml.in.h:191
+#: ../comps-f8.xml.in.h:191
+msgid "XFCE"
+msgstr ""
+
+#: ../comps-fe5.xml.in.h:81 ../comps-fe6.xml.in.h:79 ../comps-f7.xml.in.h:192
+#: ../comps-f8.xml.in.h:192
+#, fuzzy
+msgid "XFCE Software Development"
+msgstr "X 소프트웨어 개발"
+
+#: ../comps-fe6.xml.in.h:9 ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:28
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "체코어 지원"
+
+#: ../comps-fe6.xml.in.h:66 ../comps-el5.xml.in.h:64
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "남아프리카 공용 네덜란드어 지원"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4
+#, fuzzy
+msgid "Albanian Support"
+msgstr "캐나다식 영어 지원"
+
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
+msgstr "다양한 작업을 실행하기 위한 응용 프로그램"
+
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9
+msgid "Assamese Support"
+msgstr "아삼어 지원"
+
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11
+msgid "Base"
+msgstr "기본"
+
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "Ruby 프로그래밍 언어에 대한 기본 지원."
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14
+msgid "Basque Support"
+msgstr "바스크어 지원"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15
+#, fuzzy
+msgid "Belarusian Support"
+msgstr "불가리아어 지원"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16
+msgid "Bengali Support"
+msgstr "벵골어 지원"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17
+#, fuzzy
+msgid "Bhutanese Support"
+msgstr "중국어 지원"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18
+#, fuzzy
+msgid "Bosnian Support"
+msgstr "에스토니아어 지원"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19
+msgid "Brazilian Portuguese Support"
+msgstr "브라질 포르투갈어 지원"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20
+msgid "Breton Support"
+msgstr "브르타뉴어 지원"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:21
+msgid "Bulgarian Support"
+msgstr "불가리아어 지원"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:22
+msgid "Catalan Support"
+msgstr "카탈로니아어 지원"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:23
+msgid "Chinese Support"
+msgstr "중국어 지원"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:24
+msgid "Clustering"
+msgstr "클러스터링"
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:25
+msgid "Clustering Support"
+msgstr "클러스터링 지원"
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:26
+msgid "Core"
+msgstr "핵심"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:27
+msgid "Croatian Support"
+msgstr "크로아티아어 지원"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:29
+msgid "DNS Name Server"
+msgstr "DNS 이름 서버"
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:30
+msgid "Danish Support"
+msgstr "덴마크어 지원"
+
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:34
+msgid "Development Libraries"
+msgstr "개발용 라이브러리"
+
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:36
+msgid "Dial-up Networking Support"
+msgstr "전화연결 네트워킹 지원"
+
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:37
+msgid "Dutch Support"
+msgstr "네델란드어 지원"
+
+#: ../comps-f7.xml.in.h:38 ../comps-f8.xml.in.h:38
+msgid "Eclipse"
+msgstr "Eclipse"
+
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43
+msgid "English (UK) Support"
+msgstr "영어 (영국식) 지원"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44
+msgid "Estonian Support"
+msgstr "에스토니아어 지원"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45
+msgid "Ethiopic Support"
+msgstr "에티오피아어 지원"
+
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47
+msgid "Faeroese Support"
+msgstr "페로스어 지원"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:48
+#, fuzzy
+msgid "Filipino Support"
+msgstr "갈리시아어 지원"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:49
+msgid "Finnish Support"
+msgstr "핀란드어 지원"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:50
+msgid "French Support"
+msgstr "프랑스어 지원"
+
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:54
+msgid ""
+"GNOME is a powerful graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME은 강력한 그래픽 사용자 인터페이스로서 패널, 데스크탑, 시스템 아이콘과 "
+"그래픽 파일 관리자 기능을 갖추고 있습니다."
+
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:55
+msgid "Gaelic Support"
+msgstr "게일어 지원"
+
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:56
+msgid "Galician Support"
+msgstr "갈리시아어 지원"
+
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:58
+#, fuzzy
+msgid "Georgian Support"
+msgstr "독일어 지원"
+
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:59
+msgid "German Support"
+msgstr "독일어 지원"
+
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:62
+msgid "Greek Support"
+msgstr "그리스어 지원"
+
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:63
+msgid "Gujarati Support"
+msgstr "구자라티어 지원"
+
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:66
+msgid "Hindi Support"
+msgstr "힌두어 지원"
+
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:67
+msgid "Hungarian Support"
+msgstr "헝가리아어 지원"
+
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:68
+msgid "Icelandic Support"
+msgstr "아이슬란드어 지원"
+
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:69
+msgid "Indonesian Support"
+msgstr "인도네시아어 지원"
+
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:73
+msgid ""
+"Install these tools to enable the system to print or act as a print server."
+msgstr ""
+"시스템에서 인쇄 하거나 프린트 서버로 사용 하시려면 이 도구를 설치하십시오."
+
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:75
+#, fuzzy
+msgid "Inuktitut Support"
+msgstr "줄루어 지원"
+
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:76
+msgid "Irish Support"
+msgstr "아일랜드어 지원"
+
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:77
+msgid "Italian Support"
+msgstr "이탈리아어 지원"
+
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:83
+msgid ""
+"KDE is a powerful graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE는 강력한 그래픽 사용자 인터페이스로서 패널, 데스크탑, 시스템 아이콘과 그"
+"래픽 파일 관리자 기능을 갖추고 있습니다."
+
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:84
+msgid "Kannada Support"
+msgstr "칸나다어 지원"
+
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:85
+#, fuzzy
+msgid "Khmer Support"
+msgstr "독일어 지원"
+
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:86
+msgid "Korean Support"
+msgstr "한국어 지원"
+
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:87
+msgid "Languages"
+msgstr "언어 지원"
+
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:88
+#, fuzzy
+msgid "Lao Support"
+msgstr "태국어 지원"
+
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:89
+#, fuzzy
+msgid "Latvian Support"
+msgstr "크로아티아어 지원"
+
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:90
+msgid "Legacy Network Server"
+msgstr "레거시 네트워크 서버"
+
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:91
+msgid "Legacy Software Development"
+msgstr "레거시 소프트웨어 개발"
+
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:92
+msgid "Legacy Software Support"
+msgstr "레거시 소프트웨어 지원"
+
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:93
+msgid "Lithuanian Support"
+msgstr "리투아니아어 지원"
+
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:95
+msgid "Malay Support"
+msgstr "말레이어 지원"
+
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:96
+msgid "Malayalam Support"
+msgstr "말라얄람어 지원"
+
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:97
+#, fuzzy
+msgid "Maori Support"
+msgstr "마라티어 지원"
+
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:98
+msgid "Marathi Support"
+msgstr "마라티어 지원"
+
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:99
+msgid "MySQL Database"
+msgstr "MySQL 데이터베이스"
+
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:102
+msgid "Northern Sotho Support"
+msgstr "북부 소토어 지원"
+
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:103
+msgid "Norwegian Support"
+msgstr "노르웨이어 지원"
+
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:105
+msgid "Oriya Support"
+msgstr "오리야어 지원"
+
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:107
+#, fuzzy
+msgid "Persian Support"
+msgstr "세르비아어 지원"
+
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:108
+msgid "Polish Support"
+msgstr "폴란드어 지원"
+
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:109
+msgid "Portuguese Support"
+msgstr "포르투갈어 지원"
+
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:110
+msgid "PostgreSQL Database"
+msgstr "PostgreSQL 데이터베이스"
+
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:111
+msgid "Printing Support"
+msgstr "인쇄 지원"
+
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:112
+msgid "Punjabi Support"
+msgstr "펀잡어 지원"
+
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:113
+msgid "Romanian Support"
+msgstr "루마니아어 지원"
+
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:114
+msgid "Ruby"
+msgstr "Ruby"
+
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:115
+msgid "Russian Support"
+msgstr "러시아어 지원"
+
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:116
+#, fuzzy
+msgid "Samoan Support"
+msgstr "독일어 지원"
+
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:117
+msgid "Serbian Support"
+msgstr "세르비아어 지원"
+
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:118
+msgid "Server Configuration Tools"
+msgstr "서버 설정 도구"
+
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:121
+msgid "Sinhala Support"
+msgstr "신할라어 지원"
+
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:122
+msgid "Slovak Support"
+msgstr "슬로바키아어 지원"
+
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:123
+msgid "Slovenian Support"
+msgstr "슬로베이아어 지원"
+
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:124
+msgid "Smallest possible installation"
+msgstr "가능한 최소 설치"
+
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:126
+#, fuzzy
+msgid "Somail Support"
+msgstr "스와티어 지원"
+
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:127
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit text files. This includes Emacs and Vi."
+msgstr ""
+"가끔씩 텍스트 편집기라고도 불리우는 이 프로그램은 텍스트 파일을 생성하고 편집"
+"하는데 사용됩니다. 이러한 프로그램에는 Emacs와 Vi가 포함됩니다."
+
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:129
+msgid "Southern Ndebele Support"
+msgstr "남부 은데벨레어 지원"
+
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:130
+msgid "Southern Sotho Support"
+msgstr "남부 소토어 지원"
+
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:131
+msgid "Spanish Support"
+msgstr "스페인어 지원"
+
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:134
+msgid "Swati Support"
+msgstr "스와티어 지원"
+
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:135
+msgid "Swedish Support"
+msgstr "스웨덴어 지원"
+
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:137
+#, fuzzy
+msgid "Tagalog Support"
+msgstr "타밀어 지원"
+
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:138
+msgid "Tamil Support"
+msgstr "타밀어 지원"
+
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:139
+msgid "Telugu Support"
+msgstr "텔루구어 지원"
+
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:141
+msgid "Thai Support"
+msgstr "태국어 지원"
+
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:142
+msgid "The Eclipse Integrated Development Environment."
+msgstr "Eclipse 통합 개발 환경"
+
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:144
+msgid ""
+"The packages in this group are core libraries needed to develop applications."
+msgstr ""
+"이 패키지 그룹은 응용 프로그램을 개발하는데 필요한 핵심 라이브러리입니다."
+
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:146
+msgid ""
+"These packages allow you to develop applications for the X Window System."
+msgstr "이 패키지는 X 윈도우 시스템용 응용 프로그램 개발시 사용합니다."
+
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:148
+msgid ""
+"These packages include network-based servers such as DHCP, Kerberos and NIS."
+msgstr ""
+"이 패키지에는 DHCP, Kerberos, NIS와 같은 네트워크-기반 서버가 포함되어 있습니"
+"다."
+
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:149
+msgid ""
+"These packages include servers for old network protocols such as rsh and "
+"telnet."
+msgstr ""
+"이 패키지에는 rsh와 telnet과 같은 구식 네트워크 프로토콜에 사용되는 서버가 포"
+"함되어 있습니다."
+
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:150
+msgid "These packages provide a virtualization environment."
+msgstr "이 패키지는 가상화 환경을 제공합니다."
+
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:151
+msgid "These packages provide compatibility with previous releases."
+msgstr "이 패키지는 이전 버전 배포판과 호환성을 제공합니다."
+
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:152
+msgid ""
+"These packages provide support for various locales including fonts and input "
+"methods."
+msgstr "이 패키지는 다양한 로케일 (글꼴 및 입력 방식)을 지원합니다."
+
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:153
+msgid ""
+"These tools allow you to create documents in the DocBook format and convert "
+"them into HTML, PDF, Postscript, and text."
+msgstr ""
+"이 도구를 사용하여 DocBook 형식의 문서를 생성할 수 있으며 생성된 문서를 "
+"HTML, PDF, Postscript와 텍스트 형식으로 변환할 수 있습니다."
+
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:158
+msgid "This group contains all of Red Hat's custom server configuration tools."
+msgstr ""
+"이 그룹에는 Red Hat의 사용자 설정 서버 설정 도구를 모두 포함하고 있습니다."
+
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:159
+msgid ""
+"This group includes a minimal set of packages. Useful for creating small "
+"router/firewall boxes, for example."
+msgstr ""
+"이 그룹은 최소 패키지 그룹을 포함합니다. 소형 라우터/방화벽과 같은 시스템을 "
+"생성하는데 유용합니다."
+
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:168
+msgid ""
+"This package group allows you to run a DNS name server (BIND) on the system."
+msgstr ""
+"이 패키지 그룹을 사용하여 시스템 상에서 DNS 네임 서버 (BIND)를 운영하실 수 있"
+"습니다."
+
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:169
+msgid ""
+"This package group allows you to share files between Linux and MS Windows"
+"(tm) systems."
+msgstr ""
+"이 패키지 그룹을 사용하여 Linux와 MS Windows (tm) 시스템 사이에 파일을 공유"
+"할 수 있습니다."
+
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:170
+msgid "This package group contains packages useful for use with MySQL."
+msgstr "이 그룹에 포함된 패키지는 MySQL를 작업을 도와드립니다."
+
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:171
+msgid "This package group includes packages useful for use with Postgresql."
+msgstr "이 그룹에 포함된 패키지는 Postgresql 작업을 도와드립니다."
+
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:172
+#, fuzzy
+msgid "Tibetan Support"
+msgstr "독일어 지원"
+
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:173
+#, fuzzy
+msgid "Tonga Support"
+msgstr "총가어 지원"
+
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:174
+msgid "Tsonga Support"
+msgstr "총가어 지원"
+
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:175
+msgid "Tswana Support"
+msgstr "스와나어 지원"
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:176
+msgid "Turkish Support"
+msgstr "터키어 지원"
+
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:177
+msgid "Ukrainian Support"
+msgstr "우크라이나어 지원"
+
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:178
+#, fuzzy
+msgid "Urdu Support"
+msgstr "줄루어 지원"
+
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:181
+msgid "Venda Support"
+msgstr "벤다어 지원"
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:182
+#, fuzzy
+msgid "Vietnamese Support"
+msgstr "중국어 지원"
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:183
+msgid "Virtualization"
+msgstr "가상화"
+
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:186
+msgid "Welsh Support"
+msgstr "웨일즈어 지원"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:188
+msgid "Windows File Server"
+msgstr "Windows 파일 서버"
+
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:189
+msgid "X Software Development"
+msgstr "X 소프트웨어 개발"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:193
+msgid "Xhosa Support"
+msgstr "코사어 지원"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:194
+msgid "Zulu Support"
+msgstr "줄루어 지원"
+
+#~ msgid "Brazilian Support"
+#~ msgstr "브라질어 지원"
+
+#~ msgid "British Support"
+#~ msgstr "영국식 영어 지원"
+
+#~ msgid "Compatibility Arch Development Support"
+#~ msgstr "호환 아키텍쳐 개발 지원"
+
+#~ msgid "Compatibility Arch Mozilla Support"
+#~ msgstr "호환 아키텍쳐 모질라 지원"
+
+#~ msgid "Compatibility Arch Support"
+#~ msgstr "호환 아키텍쳐 지원"
+
+#~ msgid "Cyrillic Support"
+#~ msgstr "키릴 문자 지원"
+
+#~ msgid "Desktops"
+#~ msgstr "데스크탑"
+
+#~ msgid "Emacs"
+#~ msgstr "Emacs"
+
+#~ msgid "GNOME"
+#~ msgstr "GNOME"
+
+#~ msgid "ISO8859-14 Support"
+#~ msgstr "ISO8859-14 지원"
+
+#~ msgid "ISO8859-15 Support"
+#~ msgstr "ISO8859-15 지원"
+
+#~ msgid "ISO8859-2 Support"
+#~ msgstr "ISO8859-2 지원"
+
+#~ msgid "ISO8859-9 Support"
+#~ msgstr "ISO8859-9 지원"
+
+#~ msgid "Install these packages to recompile the kernel."
+#~ msgstr "커널을 재컴파일하시려면 이 패키지를 설치하십시오."
+
+#~ msgid "KDE"
+#~ msgstr "KDE"
+
+#~ msgid "KDE Desktop Environment"
+#~ msgstr "KDE 데스크탑 환경"
+
+#~ msgid "Kernel Development"
+#~ msgstr "커널 개발"
+
+#~ msgid "Miscellaneous Included Packages"
+#~ msgstr "기타 패키지"
+
+#~ msgid "Mozilla packages for the x86 platform"
+#~ msgstr "x86 플랫폼 용 모질라 패키지"
+
+#~ msgid "Multilib support packages"
+#~ msgstr "Multilib 지원 패키지"
+
+#~ msgid "SQL Database"
+#~ msgstr "SQL 데이터베이스"
+
+#~ msgid "Server"
+#~ msgstr "서버"
+
+#~ msgid "Support for developing packages for the non-primary architecture"
+#~ msgstr "비주류 아키텍쳐용 패키지 개발 지원"
+
+#~ msgid "Syriac Support"
+#~ msgstr "시리아어 지원"
+
+#~ msgid "System"
+#~ msgstr "시스템"
+
+#~ msgid "The GNU Emacs text editor."
+#~ msgstr "GNU Emacs 텍스트 편집기."
+
+#~ msgid ""
+#~ "These packages allow you to configure an IMAP or Postfix mail server."
+#~ msgstr "이 패키지는 IMAP과 Postfix 메일 서버 설정을 도와줍니다."
+
+#~ msgid ""
+#~ "These packages provide compatibility support for previous releases of Red "
+#~ "Hat Enterprise Linux."
+#~ msgstr ""
+#~ "이 패키지는 이전 버전의 Red Hat Enterprise Linux와 호환성을 제공합니다."
+
+#~ msgid "Unsupported Development Libraries"
+#~ msgstr "지원되지 않는 개발용 라이브러리"
+
+#~ msgid "Workstation Common"
+#~ msgstr "워크스테이션 공통"
+
+#~ msgid "ppc64 Compatibility Arch Support"
+#~ msgstr "ppc64 호환 아키텍쳐 지원"
+
+#~ msgid "x86 Compatibility Arch Development Support"
+#~ msgstr "x86 호환 아키텍쳐 개발 지원"
+
+#~ msgid "x86 Compatibility Arch Support"
+#~ msgstr "x86 호환 아키텍쳐 지원"
+
+#~ msgid "Brazilian Portuguese"
+#~ msgstr "브라질 포르투갈어"
+
+#~ msgid "English"
+#~ msgstr "영어"
+
+#~ msgid "French"
+#~ msgstr "프랑스어"
+
+#~ msgid "German"
+#~ msgstr "독일어"
+
+#~ msgid "Italian"
+#~ msgstr "이탈리아어"
+
+#~ msgid "Red Hat Enterprise Linux 3 Documentation"
+#~ msgstr "Red Hat Enterprise Linux 3 문서"
+
+#~ msgid "Spanish"
+#~ msgstr "스페인어"
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Brazilian Portuguese language."
+#~ msgstr ""
+#~ "이 그룹은 브라질 포르투갈어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "English language."
+#~ msgstr "이 그룹은 영어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "French language."
+#~ msgstr "이 그룹은 프랑스어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "German language."
+#~ msgstr "이 그룹은 독일어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Italian language."
+#~ msgstr "이 그룹은 이탈리아어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Spanish language."
+#~ msgstr "이 그룹은 스페인어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid "Japanese"
+#~ msgstr "일본어"
+
+#~ msgid "Korean"
+#~ msgstr "한국어"
+
+#~ msgid "Simplified Chinese"
+#~ msgstr "중국어 간체"
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Japanese language."
+#~ msgstr "이 그룹은 일본어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Korean language."
+#~ msgstr "이 그룹은 한국어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Simplified Chinese language."
+#~ msgstr "이 그룹은 중국어 간체 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Traditional Chinese language."
+#~ msgstr "이 그룹은 중국어 번체 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid "Traditional Chinese"
+#~ msgstr "중국어 번체"
+
+#~ msgid "ppc64 Compatibility Arch Development Support"
+#~ msgstr "ppc64 호환 아키텍쳐 개발 지원"
+
+#~ msgid "Bengali"
+#~ msgstr "벵갈어"
+
+#~ msgid "Gujarati"
+#~ msgstr "구자라트어"
+
+#~ msgid "Hindi"
+#~ msgstr "힌두어"
+
+#~ msgid "Punjabi"
+#~ msgstr "펀잡어"
+
+#~ msgid "Red Hat Enterprise Linux 4 Documentation"
+#~ msgstr "Red Hat Enterprise Linux 4 문서"
+
+#~ msgid "Tamil"
+#~ msgstr "타밀어"
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Bengali language."
+#~ msgstr "이 그룹은 벵갈어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Gujarati language."
+#~ msgstr "이 그룹은 구자라트어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Hindi language."
+#~ msgstr "이 그룹은 힌두어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Punjabi language."
+#~ msgstr "이 그룹은 펀잡어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid ""
+#~ "This group contains the Red Hat Enterprise Linux documentation in the "
+#~ "Tamil language."
+#~ msgstr "이 그룹은 타밀어 Red Hat Enterprise Linux 문서를 포함합니다."
+
+#~ msgid "Cluster Storage"
+#~ msgstr "클러스터 저장"
+
+#~ msgid "Clustering Support."
+#~ msgstr "클러스터링 지원."
+
+#~ msgid "Packages which provide support for cluster storage."
+#~ msgstr "이 패키지는 클러스터 저장에 대한 지원을 제공합니다."
+
+#~ msgid "Packages which provide support for single-node GFS."
+#~ msgstr "이 패키지는 단일-노드 GFS에 대한 지원을 제공합니다."
+
+#~ msgid "Single Node GFS Support"
+#~ msgstr "단일 노드 GFS 지원"
+
+#~ msgid "These packages provide compatibility support with previous releases."
+#~ msgstr "이 패키지는 이전 버전 배포판과 호환성을 제공합니다."
+
+#~ msgid "Java Runtime Environments and Development Kits"
+#~ msgstr "Java 런타임 환경 및 개발 도구"
+
+#~ msgid "Misc"
+#~ msgstr "기타"
+
+#~ msgid "Misc packages"
+#~ msgstr "기타 패키지"
+
+#~ msgid "Multimedia"
+#~ msgstr "멀티미디어"
+
+#~ msgid "Multimedia applications"
+#~ msgstr "멀티미디어 응용 프로그램"
+
+#~ msgid ""
+#~ "Packages which provide additional functionality for Red Hat Enterprise "
+#~ "Linux"
+#~ msgstr "이 패키지는 Red Hat Enterprise Linux에 대한 추가 기능을 제공합니다."
+
+#~ msgid "Red Hat Enterprise Linux Extras"
+#~ msgstr "Red Hat Enterprise Linux 추가"
+
+#~ msgid "Workstation"
+#~ msgstr "워크스테이션"
+
+#~ msgid "Workstation applications and utilities."
+#~ msgstr "워크스테이션 응용 프로그램 및 유틸리티"
+
+#~ msgid "Virtualization Support."
+#~ msgstr "가상화 지원"
+
+#~ msgid "Compatibility Arch"
+#~ msgstr "호환 아키텍쳐"
+
+#~ msgid "Compatibility Arch Libraries"
+#~ msgstr "호환 아키텍쳐 라이브러리"
+
+#~ msgid "Multilib library packages"
+#~ msgstr "Multilib 라이브러리 패키지"
+
+#~ msgid ""
+#~ "Packages which provide functionality for the compatibility architecture."
+#~ msgstr "이 패키지는 호환 아키텍쳐 기능을 제공합니다."
+
+#~ msgid "IBM eServer iSeries/pSeries Provided Software"
+#~ msgstr "IBM eServer iSeries/pSeries가 제공되는 소프트웨어"
+
+#~ msgid "Software provided by IBM for eServer iSeries and pSeries machines"
+#~ msgstr ""
+#~ "eServer iSeries pSeries 시스템 사용을 위해 IBM에 의해 제공되는 소프트웨어"
+
+#~ msgid "HPC"
+#~ msgstr "HPC"
+
+#~ msgid "High Performance Computing Support"
+#~ msgstr "고성능 컴퓨팅 지원"
