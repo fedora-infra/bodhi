@@ -510,7 +510,7 @@ class Bugzilla(SQLObject):
             log.warning("bodhi_password not defined; unable to close bug")
 
     def get_url(self):
-        return "https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=%s" % self.bz_id
+        return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
 
 ## Static list of releases -- used by master.kid, and the NewUpdateForm widget
 global _releases
