@@ -439,7 +439,7 @@ class Bugzilla(SQLObject):
     security = BoolCol(default=False)
 
     _bz_server = config.get("bz_server",
-                            "https://bugzilla.redhat.com/bugzilla/xmlrpc.cgi")
+                            "https://bugzilla.redhat.com/xmlrpc.cgi")
     default_msg = "%s has been pushed to the %s repository.  If problems " + \
                   "still persist, please make note of it in this bug report."
 
