@@ -52,6 +52,10 @@ class BodhiClient:
 
         if opts.new:
             self.new(opts)
+        elif opts.masher:
+            self.masher(opts)
+        elif opts.push:
+            self.push(opts)
         elif opts.delete:
             self.delete(opts)
         elif opts.status or opts.bugs or opts.cves or opts.release or opts.type:
@@ -179,6 +183,34 @@ class BodhiClient:
         data = self.send_request('delete', update=opts.delete, auth=True)
         log.info(data['tg_flash'])
 
+    def masher(self, opts):
+        data = self.send_request('admin/masher', auth=True)
+        log.info(data['masher_str'])
+
+    def push(self, opts):
+        data = self.send_request('admin/push', auth=True)
+        log.info("[ %d Pending Requests ]" % len(data['updates']))
+        needmove = filter(lambda x: x['request'] == 'move', data['updates'])
+        needpush = filter(lambda x: x['request'] == 'push', data['updates'])
+        needunpush = filter(lambda x: x['request'] == 'unpush', data['updates'])
+        for title, updates in (('Testing', needpush),
+                               ('Stable', needmove),
+                               ('Obsolete', needunpush)):
+            if len(updates):
+                log.info("\n" + title)
+                for update in updates:
+                    log.info(" o %s" % update['title'])
+
+        ## Confirm that we actually want to push these updates
+        sys.stdout.write("\nAre you sure you want to push these updates? ")
+        sys.stdout.flush()
+        yes = sys.stdin.readline().strip()
+        if yes in ('y', 'yes'):
+            log.info("Pushing!")
+            self.send_request('admin/push/mash',
+                              updates=[u['title'] for u in data['updates']],
+                              auth=True)
+
 
 if __name__ == '__main__':
     usage = "usage: %prog [options]"
@@ -188,6 +220,11 @@ if __name__ == '__main__':
     parser.add_option("-n", "--new", action="store", type="string", dest="new",
                       help="Add a new update to the system (--new=foo-1.2-3,"
                            "bar-4.5-6)")
+    parser.add_option("-m", "--masher", action="store_true", dest="masher",
+                      help="Display the status of the Masher")
+    parser.add_option("-p", "--push", action="store_true", dest="push",
+                      help="Display and push any pending updates")
+
     # --edit ?
 
     ## Details
@@ -213,18 +250,18 @@ if __name__ == '__main__':
     # --build (or just take these values from args)
 
     ## Update actions
-    parser.add_option("-u", "--unpush", action="store", type="string",
-                      dest="unpush", help="Unpush a given update",
-                      metavar="UPDATE")
-    parser.add_option("-f", "--feedback", action="store", type="string",
-                      dest="feedback", metavar="UPDATE",
-                      help="Give [-1|0|1] feedback about an update")
-    parser.add_option("-C", "--comment", action="store", type="string",
-                      dest="comment", metavar="UPDATE",
-                      help="Comment about an update")
-    parser.add_option("-S", "--stable", action="store", type="string",
-                      dest="stable", metavar="UPDATE",
-                      help="Mark an update as stable")
+    #parser.add_option("-u", "--unpush", action="store", type="string",
+    #                  dest="unpush", help="Unpush a given update",
+    #                  metavar="UPDATE")
+    #parser.add_option("-f", "--feedback", action="store", type="string",
+    #                  dest="feedback", metavar="UPDATE",
+    #                  help="Give [-1|0|1] feedback about an update")
+    #parser.add_option("-C", "--comment", action="store", type="string",
+    #                  dest="comment", metavar="UPDATE",
+    #                  help="Comment about an update")
+    #parser.add_option("-S", "--stable", action="store", type="string",
+    #                  dest="stable", metavar="UPDATE",
+    #                  help="Mark an update as stable")
     parser.add_option("-d", "--delete", action="store", type="string",
                       dest="delete", help="Delete an update",
                       metavar="UPDATE")
