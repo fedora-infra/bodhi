@@ -65,15 +65,19 @@ class PushController(controllers.Controller, identity.SecureResource):
             os.unlink(self.new_repo[1])
             self.orig_repo = None
 
-    @expose(template='bodhi.templates.push')
+    @expose(template='bodhi.templates.push', allow_json=True)
     def index(self):
         """ List updates tagged with a push/unpush/move request """
         updates = PackageUpdate.select(PackageUpdate.q.request != None)
         return dict(updates=updates)
 
-    @expose()
+    @expose(allow_json=True)
     def mash(self, updates, **kw):
         from bodhi.masher import masher
+        if 'tg_format' in cherrypy.request.params and \
+                cherrypy.request.params['tg_format'] == 'json':
+            import simplejson
+            updates = simplejson.loads(updates)
         if not isinstance(updates, list):
             updates = [updates]
         masher.queue([PackageUpdate.byTitle(title) for title in updates])

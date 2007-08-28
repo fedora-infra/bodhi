@@ -54,7 +54,7 @@ class AdminController(Controller, SecureResource):
                 flash("Invalid repodiff specified: %s" % diff)
         raise redirect('/admin')
 
-    @expose(template='bodhi.templates.masher')
+    @expose(template='bodhi.templates.masher', allow_json=True)
     def masher(self, lastlog=None):
         """
         Display the current status of the Masher
@@ -64,7 +64,7 @@ class AdminController(Controller, SecureResource):
             (logfile, data) = m.lastlog()
             return dict(title=logfile, text=data,
                         tg_template='bodhi.templates.text')
-        return dict()
+        return dict(masher_str=str(m))
 
     @expose()
     def mash(self, tag):
