@@ -120,6 +120,10 @@ class Masher:
                         val += "  Mash repos\n"
                         for repo in item[2]:
                             val += "  - %s" % repo
+
+            (status, output) = commands.getstatusoutput("ps -U bodhi --forest va")
+            val += "\n" + output
+
         return val
 
 
