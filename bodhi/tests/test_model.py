@@ -250,13 +250,6 @@ class TestPackageUpdate(testutil.DBTest):
         oldtime = oldtime[0]
         assert update.builds[0].get_changelog(oldtime) == '* Thu Jun 21 2007 Seth Vidal <skvidal at fedoraproject.org> - 3.2.1-1\n- bump to 3.2.1\n'
 
-class TestCVE(testutil.DBTest):
-
-    def get_model(self):
-        return CVE
-
-    def test_creation(self):
-        cve = CVE(cve_id="CVE-2006-0000")
 
 class TestBugzilla(testutil.DBTest):
 
