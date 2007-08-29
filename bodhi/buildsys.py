@@ -21,27 +21,124 @@ from turbogears import config
 
 log = logging.getLogger(__name__)
 
-# Our singleton koji ClientSession
+## Our buildsystem session.  This could be a koji ClientSession or an instance
+## of our Buildsystem class.
 session = None
 
-def get_session():
+class Buildsystem:
     """
-    Get a singleton Koji ClientSession instance
+    The parent for our buildsystem.  Not only does this help us keep track of
+    the functionality that we expect from our buildsystem, but it also alows
+    us to create a development subclass of this object to use during development
+    so we don't alter any production data.
     """
-    global session
-    if not session:
-        session = login()
-    return session
+    def getBuild(self): raise NotImplementedError
+    def getLatestBuilds(self): raise NotImplementedError
+    def moveBuild(self): raise NotImplementedError
+    def ssl_login(self): raise NotImplementedError
+    def listBuildRPMs(self):raise NotImplementedError
+    def listTags(self): raise NotImeplementedError
+    def listTagged(self): raise NotImplementedError
+    def taskFinished(self): raise NotImplementedError
 
-def login(client=join(expanduser('~'), '.fedora.cert'),
-          clientca=join(expanduser('~'), '.fedora-upload-ca.cert'),
-          serverca=join(expanduser('~'), '.fedora-server-ca.cert')):
+class DevBuildsys(Buildsystem):
+    """
+    A dummy buildsystem instance used during development
+    """
+    def moveBuild(self, *args, **kw):
+        log.debug("moveBuild(%s, %s)" % (args, kw))
+
+    def ssl_login(self, *args, **kw):
+        log.debug("moveBuild(%s, %s)" % (args, kw))
+
+    def taskFinished(self, task):
+        return True
+
+    def getTaskInfo(self, task):
+        return { 'state' : koji.TASK_STATES['CLOSED'] }
+
+    def getBuild(self, *args, **kw):
+        return { 'completion_time': '2007-08-27 12:17:42.976806',
+                 'creation_event_id': 159563,
+                 'creation_time': '2007-08-27 12:11:36.470015',
+                 'epoch': None,
+                 'id': 16510,
+                 'name': 'pyxattr',
+                 'owner_id': 299,
+                 'owner_name': 'szpak',
+                 'package_id': 3670,
+                 'package_name': 'pyxattr',
+                 'release': '1.fc7',
+                 'state': 1,
+                 'task_id': 132458,
+                 'version': '0.2.2' }
+
+    def listBuildRPMs(self, *args, **kw):
+        return [{ 'arch': 'i386',
+                  'build_id': 16510,
+                  'buildroot_id': 43070,
+                  'buildtime': 1188242015,
+                  'epoch': None,
+                  'id': 182477,
+                  'name': 'pyxattr',
+                  'nvr': 'pyxattr-0.2.2-1.fc7',
+                  'payloadhash': '4939b8f20d862674572ac59a17498a39',
+                  'release': '1.fc7',
+                  'size': 11633,
+                  'version': '0.2.2'},]
+
+
+    def listTags(self, *args, **kw):
+        return ('dist-fc7-updates',
+                'dist-fc7-updates-testing',
+                'dist-fc7-updates-candidate')
+
+    def listTagged(self, *args, **kw):
+        return [{'build_id': 16058,
+                 'completion_time': '2007-08-24 23:26:10.890319',
+                 'creation_event_id': 151517,
+                 'creation_time': '2007-08-24 19:38:29.422344',
+                 'epoch': None,
+                 'id': 16058,
+                 'name': 'kernel',
+                 'nvr': 'kernel-2.6.22.5-71.fc7',
+                 'owner_id': 388,
+                 'owner_name': 'linville',
+                 'package_id': 8,
+                 'package_name': 'kernel',
+                 'release': '71.fc7',
+                 'state': 1,
+                 'tag_id': 19,
+                 'tag_name': 'dist-fc7-updates-testing',
+                 'task_id': 127621,
+                 'version': '2.6.22.5'},]
+
+    def getLatestBuilds(self, *args, **kw):
+        return [self.getBuild(),]
+
+def koji_login(client=join(expanduser('~'), '.fedora.cert'),
+               clientca=join(expanduser('~'), '.fedora-upload-ca.cert'),
+               serverca=join(expanduser('~'), '.fedora-server-ca.cert')):
     """
     Login to Koji and return the session
     """
     koji_session = koji.ClientSession(config.get('koji_hub'), {})
     koji_session.ssl_login(client, clientca, serverca)
     return koji_session
+
+def get_session():
+    """
+    Get our buildsystem instance.
+    """
+    global session
+    if not session:
+        buildsys = config.get('buildsystem')
+        log.info("Creating new %s buildsystem instance" % buildsys)
+        if buildsys == 'koji':
+            session = koji_login()
+        elif buildsys == 'dev':
+            session = DevBuildsys()
+    return session
 
 def wait_for_tasks(tasks):
     """
