@@ -31,7 +31,6 @@ from textwrap import wrap
 
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age
-from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import RPMNotFound
 from bodhi.identity.tables import *
 
