@@ -58,20 +58,24 @@ class DevBuildsys(Buildsystem):
         return { 'state' : koji.TASK_STATES['CLOSED'] }
 
     def getBuild(self, *args, **kw):
-        return { 'completion_time': '2007-08-27 12:17:42.976806',
-                 'creation_event_id': 159563,
-                 'creation_time': '2007-08-27 12:11:36.470015',
-                 'epoch': None,
-                 'id': 16510,
-                 'name': 'pyxattr',
-                 'owner_id': 299,
-                 'owner_name': 'szpak',
-                 'package_id': 3670,
-                 'package_name': 'pyxattr',
-                 'release': '1.fc7',
-                 'state': 1,
-                 'task_id': 132458,
-                 'version': '0.2.2' }
+        return {'build_id': 16058,
+                'completion_time': '2007-08-24 23:26:10.890319',
+                'creation_event_id': 151517,
+                'creation_time': '2007-08-24 19:38:29.422344',
+                'epoch': None,
+                'id': 16058,
+                'name': 'kernel',
+                'nvr': 'kernel-2.6.22.5-71.fc7',
+                'owner_id': 388,
+                'owner_name': 'linville',
+                'package_id': 8,
+                'package_name': 'kernel',
+                'release': '71.fc7',
+                'state': 1,
+                'tag_id': 19,
+                'tag_name': 'dist-fc7-updates-testing',
+                'task_id': 127621,
+                'version': '2.6.22.5'}
 
     def listBuildRPMs(self, *args, **kw):
         return [{ 'arch': 'i386',
@@ -87,31 +91,13 @@ class DevBuildsys(Buildsystem):
                   'size': 11633,
                   'version': '0.2.2'},]
 
-
     def listTags(self, *args, **kw):
         return ('dist-fc7-updates',
                 'dist-fc7-updates-testing',
                 'dist-fc7-updates-candidate')
 
     def listTagged(self, *args, **kw):
-        return [{'build_id': 16058,
-                 'completion_time': '2007-08-24 23:26:10.890319',
-                 'creation_event_id': 151517,
-                 'creation_time': '2007-08-24 19:38:29.422344',
-                 'epoch': None,
-                 'id': 16058,
-                 'name': 'kernel',
-                 'nvr': 'kernel-2.6.22.5-71.fc7',
-                 'owner_id': 388,
-                 'owner_name': 'linville',
-                 'package_id': 8,
-                 'package_name': 'kernel',
-                 'release': '71.fc7',
-                 'state': 1,
-                 'tag_id': 19,
-                 'tag_name': 'dist-fc7-updates-testing',
-                 'task_id': 127621,
-                 'version': '2.6.22.5'},]
+        return [self.getBuild(),]
 
     def getLatestBuilds(self, *args, **kw):
         return [self.getBuild(),]
