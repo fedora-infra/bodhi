@@ -229,8 +229,8 @@ def get_template(update):
         filelist = []
         for pkg in koji_session.listBuildRPMs(build.nvr):
             filename = "%s.%s.rpm" % (pkg['nvr'], pkg['arch'])
-            path = join(config.get('build_dir'), pkg['name'], pkg['version'],
-                        pkg['release'], pkg['arch'])
+            path = join(config.get('build_dir'), info['name'], info['version'],
+                        info['release'], pkg['arch'])
             filelist.append("%s %s" % (sha1sum(join(path, filename)), filename))
         info['filelist'] = '\n'.join(filelist)
 
