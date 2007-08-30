@@ -25,19 +25,19 @@ turbogears.update_config(configfile='dev.cfg',
 class TestPackageUpdate(testutil.DBTest):
 
     def get_pkg(self):
-        return Package(name='yum')
+        return Package(name='TurboGears')
 
     def get_rel(self):
         rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
                       dist_tag='dist-fc7')
         return rel
 
-    def get_build(self, nvr='yum-3.2.1-1.fc7'):
+    def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
         package = self.get_pkg()
         build = PackageBuild(nvr=nvr, package=package)
         return build
 
-    def get_update(self, name='yum-3.2.1-1.fc7'):
+    def get_update(self, name='TurboGears-1.0.2.2-2.fc7'):
         update = PackageUpdate(title=name,
                                release=self.get_rel(),
                                submitter='foo@bar.com',
@@ -65,8 +65,8 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_creation(self):
         update = self.get_update()
-        assert update.title == 'yum-3.2.1-1.fc7'
-        assert update.builds[0].package.name == 'yum'
+        assert update.title == 'TurboGears-1.0.2.2-2.fc7'
+        assert update.builds[0].package.name == 'TurboGears'
         assert update.release.name == 'fc7'
         assert update.release.updates[0] == update
         assert update.status == 'testing'
@@ -219,31 +219,35 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_email(self):
         from bodhi import mail
-        update = self.get_update(name='yum-3.2.1-1.fc7')
+        update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
         bug = self.get_bug()
         cve = self.get_cve()
         update.addBugzilla(bug)
         update.addCVE(cve)
         update.assign_id()
+        print update
         try:
             templates = mail.get_template(update)
         except RPMNotFound:
             # We're assuming we can find any real packages if we're a
             # development instance.. so just skip this test for now
-            assert config.get('buildsystem') == 'dev'
-            return
+            if config.get('buildsystem') == 'dev':
+                return
+            else:
+                raise
         assert templates
         from pprint import pprint
         pprint(templates)
-        assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: yum-3.2.1-1.fc7'
-        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2007-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : yum\nProduct     : Fedora 7\nVersion     : 3.2.1\nRelease     : 1.fc7\nURL         : http://linux.duke.edu/yum/\nSummary     : RPM installer/updater\nDescription :\nYum is a utility that can check for and automatically download and\ninstall updated RPM packages. Dependencies are obtained and downloaded\nautomatically prompting the user as necessary.\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nChangeLog:\n\n* Thu Jun 21 2007 Seth Vidal <skvidal at fedoraproject.org> - 3.2.1-1\n- bump to 3.2.1\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - test bug\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\nUpdated packages:\n\n96380256a3f70e5ffb23892a5f4d1e6ffce3fe2e yum-3.2.1-1.fc7.src.rpm\nfc5cf7008a48fade1b6526050dbd8d34c3db5467 yum-updatesd-3.2.1-1.fc7.noarch.rpm\na4bbb1defcc3ff182e1a4cb7a32a2972562050e7 yum-3.2.1-1.fc7.noarch.rpm\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum update yum\' \nat the command line.  For more information, refer to "Managing Software\nwith yum", available at http://docs.fedoraproject.org/yum/.\n--------------------------------------------------------------------------------\n'
+        assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: TurboGears-1.0.2.2-2.fc7'
+        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2007-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : http://www.turbogears.org\nSummary     : Back-to-front web development in Python\nDescription :\nTurboGears brings together four major pieces to create an\neasy to install, easy to use web megaframework. It covers\neverything from front end (MochiKit JavaScript for the browser,\nKid for templates in Python) to the controllers (CherryPy) to\nthe back end (SQLObject).\n\nThe TurboGears project is focused on providing documentation\nand integration with these tools without losing touch\nwith the communities that already exist around those tools.\n\nTurboGears is easy to use for a wide range of web applications.\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - test bug\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\nUpdated packages:\n\n57e80ee8eb6d666c79c498e0b2efecd74ab52063 TurboGears-1.0.2.2-2.fc7.src.rpm\n85e05a4d52143ce38f43f7fdd244251e18f9d408 TurboGears-1.0.2.2-2.fc7.noarch.rpm\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum update TurboGears\' \nat the command line.  For more information, refer to "Managing Software\nwith yum", available at http://docs.fedoraproject.org/yum/.\n--------------------------------------------------------------------------------\n'
 
     def test_latest(self):
         update = self.get_update()
         if config.get('buildsystem') == 'koji':
             latest = update.builds[0].get_latest()
+            print latest
             assert latest
-            assert latest == '/mnt/koji/packages/yum/3.2.0/1.fc7/src/yum-3.2.0-1.fc7.src.rpm'
+            assert latest == '/mnt/koji/packages/kernel/2.6.22.4/65.fc7/src/kernel-2.6.22.4-65.fc7.src.rpm'
 
     def test_changelog(self):
         if config.get('buildsystem') != 'koji': return
@@ -257,7 +261,7 @@ class TestPackageUpdate(testutil.DBTest):
         changelog = update.builds[0].get_changelog(oldtime)
         from pprint import pprint
         pprint(changelog)
-        assert changelog == '* Thu Jun 21 2007 Seth Vidal <skvidal at fedoraproject.org> - 3.2.1-1\n- bump to 3.2.1\n'
+        assert changelog == '* Fri Aug 24 2007 John W. Linville <linville@redhat.com>\n- Update wireless-dev bits (mac80211, rt2x00, b43, ssb)\n- Add patch to keep old firmware format for b43\n- Add at76_usb driver\n* Fri Aug 24 2007 Chuck Ebbert <cebbert@redhat.com>\n- CFS scheduler v20.3\n* Fri Aug 24 2007 Chuck Ebbert <cebbert@redhat.com>\n- V4L/DVB: fix airstar hd5000 tuner\n* Fri Aug 24 2007 Chuck Ebbert <cebbert@redhat.com>\n- fix 3ware 9000 controller DMA fallback (#251729)\n* Thu Aug 23 2007 Chuck Ebbert <cebbert@redhat.com>\n- Linux 2.6.22.5\n- CFS scheduler v20.2\n- fix Pegasos PS/2 port detection\n* Wed Aug 22 2007 Chuck Ebbert <cebbert@redhat.com>\n- 2.6.22.5-rc1\n- un-revert genirq changes\n- add new genirq fixes from upstream\n- ALSA: fix ad1988 spdif output\n- ALSA: mutiple stac92xx codec fixes\n- libata: fix pata_via driver on ppc pegasos platform\n'
 
 
 class TestBugzilla(testutil.DBTest):
