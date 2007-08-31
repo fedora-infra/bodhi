@@ -182,15 +182,7 @@ class ExtendedMetadata:
         root.appendChild(pkglist)
         log.debug("Metadata generation successful")
 
-    #def insert_updateinfo(self):
-    #    """ insert the updateinfo.xml.gz metadata into the repo """
-    #    for (repo, data) in self.docs.items():
-    #        log.debug("Inserting updateinfo into %s" % join(repo, 'SRPMS',
-    #                                                        'repodata'))
-    #        repomd = RepoMetadata(join(repo, 'SRPMS', 'repodata'))
-    #        repomd.add(data[1])
-    #        for arch in data[0].arches:
-    #            log.debug("Inserting updateinfo into %s" % join(repo, arch.name,
-    #                                                            'repodata'))
-    #            repomd = RepoMetadata(join(repo, arch.name, 'repodata'))
-    #            repomd.add(data[1])
+    def insert_updateinfo(self, repo):
+        log.debug("Inserting updateinfo.xml.gz into %s" % repo)
+        repomd = RepoMetadata(repo)
+        repomd.add(self.doc)
