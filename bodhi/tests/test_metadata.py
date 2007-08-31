@@ -1,13 +1,12 @@
 # $Id: test_metadata.py,v 1.1 2006/12/31 09:10:25 lmacken Exp $
 
-#import os
-#import shutil
-#import tempfile
+import shutil
+import tempfile
 import turbogears
 
-#from os.path import join, isfile
+from os.path import join, exists
 from turbogears import testutil, database
-#from bodhi.util import mkmetadatadir
+from bodhi.util import mkmetadatadir
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild)
 from bodhi.buildsys import get_session
@@ -47,53 +46,44 @@ class TestExtendedMetadata(testutil.DBTest):
         md = ExtendedMetadata('dist-fc7-updates-testing')
         md.add_update(update)
 
-        # write updateinfo somewhere.. read and verify against UpdateMetadata
+        ## Initialize our temporary repo
+        temprepo = tempfile.mkdtemp('bodhi')
+        print "Inserting updateinfo into temprepo: %s" % temprepo
+        mkmetadatadir(temprepo)
+        repodata = join(temprepo, 'repodata')
+        assert exists(join(repodata, 'repomd.xml'))
+        md.insert_updateinfo(repodata)
+        updateinfo = join(repodata, 'updateinfo.xml.gz')
+        assert exists(updateinfo)
 
+        ## Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
+        assert not notice
+        notice = uinfo.get_notice('TurboGears-1.0.2.2-2.fc7')
+        assert notice
+        print dir(notice)
+        from pprint import pprint
+        pprint(notice._md)
+        assert notice['status'] == update.status
+        assert notice['updated'] == update.date_modified
+        assert notice['from'] == 'None'
+        assert notice['description'] == update.notes
+        assert notice['title'] == update.title
+        assert notice['issued'] == 'None'
+        assert notice['release'] == update.release.long_name
+        assert notice['update_id'] == update.update_id
+        cve = notice['references'][0]
+        assert cve['type'] == 'cve'
+        assert cve['href'] == update.cves[0].get_url()
+        assert cve['id'] == update.cves[0].cve_id
+        assert cve['title'] == None
+        bug = notice['references'][1]
+        assert bug['href'] == update.bugs[0].get_url()
+        assert bug['id'] == '1'
+        assert bug['title'] == 'None'
+        assert bug['type'] == 'bugzilla'
 
-#        ## Initialize our temporary repo
-#        #push_stage = tempfile.mkdtemp('bodhi')
-#        #for arch in up.release.arches:
-#        #    mkmetadatadir(join(push_stage, up.get_repo(), arch.name))
-#        #mkmetadatadir(join(push_stage, up.get_repo(), 'SRPMS'))
-#
-#        ## Add update and insert updateinfo.xml.gz into repo
-#        md = ExtendedMetadata()
-#        md.add_update(up)
-#        md.insert_updateinfo()
-#
-#        ## Make sure the updateinfo.xml.gz actually exists
-#        #updateinfo = join(push_stage, up.get_repo(), 'i386',
-#        #                  'repodata', 'updateinfo.xml.gz')
-#        #assert isfile(updateinfo)
-#        return
-#
-#        ## Attempt to read the metadata
-#        uinfo = UpdateMetadata()
-#        uinfo.add(str(updateinfo))
-#        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
-#
-#        assert notice
-#        assert notice['description'] == up.notes
-#        assert notice['update_id'] == up.update_id
-#        assert notice['status'] == 'testing'
-#        assert notice['from'] == 'updates@fedora.redhat.com'
-#        assert notice['type'] == up.type
-#
-#        ## Verify file list
-#        files = []
-#        map(lambda x: map(lambda y: files.append(y.split('/')[-1]), x),
-#                          up.filelist.values())
-#        for pkg in notice['pkglist'][0]['packages']:
-#            assert pkg['filename'] in files
-#
-#        ## Remove the update and verify
-#        del uinfo
-#        assert md.remove_update(up)
-#        md.insert_updateinfo()
-#        uinfo = UpdateMetadata()
-#        uinfo.add(str(updateinfo))
-#        notice = uinfo.get_notice('mutt-1.5.14-1.fc7')
-#        assert not notice
-#
-#        ## Clean up
-#        shutil.rmtree(push_stage)
+        ## Clean up
+        shutil.rmtree(temprepo)
