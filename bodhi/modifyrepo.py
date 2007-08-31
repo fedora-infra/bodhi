@@ -31,6 +31,7 @@ import sha
 import gzip
 
 from xml.dom import minidom
+from bodhi.exceptions import RepositoryNotFound
 
 class RepoMetadata:
 
@@ -39,7 +40,7 @@ class RepoMetadata:
         self.repodir = os.path.abspath(repo)
         self.repomdxml = os.path.join(self.repodir, 'repomd.xml')
         if not os.path.exists(self.repomdxml):
-            raise Exception('%s not found' % self.repomdxml)
+            raise RepositoryNotFound, self.repomdxml
         self.doc = minidom.parse(self.repomdxml)
 
     def _insert_element(self, parent, name, attrs={}, text=None):

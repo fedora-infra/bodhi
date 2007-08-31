@@ -18,6 +18,9 @@ class RPMNotFound(Exception):
 class RepositoryLocked(Exception):
     pass
 
+class RepositoryNotFound(Exception):
+    pass
+
 try:
     from sqlobject.dberrors import DuplicateEntryError
 except ImportError:
