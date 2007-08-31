@@ -19,6 +19,7 @@ import commands
 
 from bodhi import buildsys, mail
 from bodhi.util import synchronized
+from bodhi.metadata import ExtendedMetadata
 from threading import Thread, Lock
 from turbogears import config
 from os.path import exists, join, islink, dirname, isfile, abspath
