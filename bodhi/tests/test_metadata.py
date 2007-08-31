@@ -67,20 +67,24 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['updated'] == update.date_modified
         assert notice['from'] == str(config.get('release_team_address'))
         assert notice['description'] == update.notes
-        assert notice['title'] == update.title
         assert notice['issued'] == 'None'
-        assert notice['release'] == update.release.long_name
         assert notice['update_id'] == update.update_id
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
         assert cve['href'] == update.cves[0].get_url()
         assert cve['id'] == update.cves[0].cve_id
-        assert cve['title'] == None
         bug = notice['references'][1]
         assert bug['href'] == update.bugs[0].get_url()
         assert bug['id'] == '1'
-        assert bug['title'] == 'None'
         assert bug['type'] == 'bugzilla'
+
+        # FC6's yum update metadata parser doesn't know about some stuff
+        from yum import __version__
+        if __version__ != '3.0.6':
+            assert notice['title'] == update.title
+            assert notice['release'] == update.release.long_name
+            assert cve['title'] == None
+            assert bug['title'] == 'None'
 
         ## Clean up
         shutil.rmtree(temprepo)
