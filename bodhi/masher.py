@@ -21,7 +21,7 @@ from bodhi import buildsys, mail
 from bodhi.util import synchronized
 from threading import Thread, Lock
 from turbogears import config
-from os.path import exists, join, islink
+from os.path import exists, join, islink, dirname, isfile, abspath
 
 log = logging.getLogger(__name__)
 masher = None
@@ -121,8 +121,9 @@ class Masher:
                         for repo in item[2]:
                             val += "  - %s" % repo
 
-            (status, output) = commands.getstatusoutput("ps -U bodhi --forest v")
-            val += "\n" + output
+        (status, output) = commands.getstatusoutput("ps -U %d --forest v" %
+                                                    os.getuid())
+        val += "\n" + output
 
         return val
 
@@ -194,7 +195,7 @@ class MashTask(Thread):
         log.debug("Updating comps...")
         olddir = os.getcwd()
         os.chdir(config.get('comps_dir'))
-        (status, output) = commands.getstatusoutput("cvs update ")
+        (status, output) = commands.getstatusoutput("cvs update")
         log.debug("(%d, %s) from cvs update" % (status, output))
         (status, output) = commands.getstatusoutput("make")
         log.debug("(%d, %s) from make" % (status, output))
@@ -226,6 +227,9 @@ class MashTask(Thread):
                 if islink(link):
                     os.unlink(link)
                 os.symlink(join(mashdir, repo), link)
+
+                # generate the updateinfo.xml.gz
+                self.generate_updateinfo(join(mashdir, repo))
             else:
                 self.success = False
                 failed_output = join(config.get('mashed_dir'), 'mash-failed-%s'
@@ -265,6 +269,16 @@ class MashTask(Thread):
             log.error(str(e))
         masher.done(self)
 
+    def generate_updateinfo(self, repo):
+        """
+        Generate the updateinfo.xml.gz and insert it into the appropriate
+        repositories.
+        """
+        log.debug("Generating updateinfo.xml.gz for %s" % self.repo)
+        uinfo = ExtendedMetadata(get_repo_tag(repo))
+        for arch in os.listdir(repo):
+            uinfo.insert_updateinfo(join(abspath(arch), 'repodata'))
+
     def __str__(self):
         val = '[ Mash Task #%d ]\n' % self.id
         if self.moving:
@@ -296,6 +310,18 @@ class MashTask(Thread):
             val += '\nMash Output:\n\n%s' % mashlog.read()
             mashlog.close()
         return val
+
+def get_repo_tag(repo):
+    """ Pull the koji tag from the given mash repo """
+    mashconfig = join(dirname(config.get('mash_conf')), repo + '.mash')
+    if isfile(mashconfig):
+        mashconfig = file(mashconfig, 'r')
+        lines = mashconfig.readlines()
+        mashconfig.close()
+        return filter(lambda x: x.startswith('tag ='), lines)[0].split()[-1]
+    else:
+        log.error("Cannot find mash configuration for %s: %s" % (repo,
+                                                                 mashconfig))
 
 def start_extension():
     global masher
