@@ -61,7 +61,7 @@ class TestExtendedMetadata(testutil.DBTest):
         uinfo.add(updateinfo)
         notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
         assert not notice
-        notice = uinfo.get_notice('TurboGears-1.0.2.2-2.fc7')
+        notice = uinfo.get_notice(update.title)
         assert notice
         print dir(notice)
         from pprint import pprint
