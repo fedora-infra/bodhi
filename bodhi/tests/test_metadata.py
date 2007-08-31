@@ -5,8 +5,8 @@ import tempfile
 import turbogears
 
 from os.path import join, exists
-from turbogears import testutil, database
-from bodhi.util import mkmetadatadir
+from turbogears import testutil, database, config
+from bodhi.util import mkmetadatadir, get_nvr
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild)
 from bodhi.buildsys import get_session
@@ -61,14 +61,11 @@ class TestExtendedMetadata(testutil.DBTest):
         uinfo.add(updateinfo)
         notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
         assert not notice
-        notice = uinfo.get_notice(update.title)
+        notice = uinfo.get_notice(get_nvr(update.title))
         assert notice
-        print dir(notice)
-        from pprint import pprint
-        pprint(notice._md)
         assert notice['status'] == update.status
         assert notice['updated'] == update.date_modified
-        assert notice['from'] == 'None'
+        assert notice['from'] == str(config.get('release_team_address'))
         assert notice['description'] == update.notes
         assert notice['title'] == update.title
         assert notice['issued'] == 'None'
