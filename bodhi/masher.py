@@ -19,7 +19,6 @@ import commands
 
 from bodhi import buildsys, mail
 from bodhi.util import synchronized
-from bodhi.metadata import ExtendedMetadata
 from threading import Thread, Lock
 from turbogears import config
 from os.path import exists, join, islink, dirname, isfile, abspath
@@ -275,6 +274,7 @@ class MashTask(Thread):
         Generate the updateinfo.xml.gz and insert it into the appropriate
         repositories.
         """
+        from bodhi.metadata import ExtendedMetadata
         log.debug("Generating updateinfo.xml.gz for %s" % repo)
         uinfo = ExtendedMetadata(get_repo_tag(repo))
         for arch in os.listdir(repo):
