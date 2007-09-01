@@ -51,7 +51,7 @@ def rpm_fileheader(pkgpath):
             ts = rpm.TransactionSet()
             h = ts.hdrFromFdno(fd)
             del ts
-    except OSError:
+    except (OSError, TypeError):
         raise RPMNotFound
     os.close(fd)
     return h
