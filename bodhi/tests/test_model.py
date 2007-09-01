@@ -24,8 +24,8 @@ turbogears.update_config(configfile='dev.cfg',
 
 class TestPackageUpdate(testutil.DBTest):
 
-    def get_pkg(self):
-        return Package(name='TurboGears')
+    def get_pkg(self, name='TurboGears'):
+        return Package(name=name)
 
     def get_rel(self):
         rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
@@ -33,7 +33,7 @@ class TestPackageUpdate(testutil.DBTest):
         return rel
 
     def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
-        package = self.get_pkg()
+        package = self.get_pkg('-'.join(nvr.split('-')[:-2]))
         build = PackageBuild(nvr=nvr, package=package)
         return build
 
@@ -153,70 +153,6 @@ class TestPackageUpdate(testutil.DBTest):
                         break
                 assert found
 
-    #def test_push(self):
-    #    from init import init_updates_stage
-    #    push_stage = tempfile.mkdtemp('bodhi')
-    #    update = self.get_update()
-    #    init_updates_stage(stage_dir=push_stage)
-#
-#        update.request = 'push'
-#        print "Pushing to temp stage: %s" % push_stage
-#        for msg in update.run_request(stage=push_stage):
-#            pass
-#
-#        # Verify that all files got pushed
-#        repo = join(push_stage, update.get_repo())
-#        self._assert_files(update, repo)
-#
-#        # Generate repo metadata
-###        from bodhi.push import generate_metadata
-#        for x in generate_metadata(update.release, update.status == 'testing',
-#                                   stage=push_stage): pass
-#
-#        # Verify the updateinfo.xml.gz
-#        for arch in update.filelist.keys():
-#            self._verify_updateinfo(update, join(repo, arch, 'repodata',
-#                                                 'updateinfo.xml.gz'))
-#
-#        # Move update from Testing to Final
-#        update.request = 'move'
-#        print "Pushing to temp stage: %s" % push_stage
-#        for msg in update.run_request(stage=push_stage): pass
-#
-#        # Generate repo metadata
-#        from bodhi.push import generate_metadata
-#        for x in generate_metadata(update.release, update.status == 'testing',
-#                                   stage=push_stage): pass
-#
-#        # Make sure we're in a different repo now
-#        newrepo = join(push_stage, update.get_repo())
-#        assert newrepo != repo
-#
-#        # Verify the updateinfo.xml.gz
-#        for arch in update.filelist.keys():
-#            self._verify_updateinfo(update, join(newrepo, arch, 'repodata',
-#                                                 'updateinfo.xml.gz'))
-#
-#        # Make sure this update has been removed from the old updateinfo
-#        for arch in update.filelist.keys():
-#            uinfo = UpdateMetadata()
-#            uinfo.add(join(repo, arch, 'repodata', 'updateinfo.xml.gz'))
-#            notice = uinfo.get_notice(update.nvr)
-#            assert notice == None
-#
-#        # Make sure files exist at new location
-#        self._assert_files(update, newrepo)
-#
-#        # Make sure files don't exist at old location
-#        try:
-#            self._assert_files(update, repo)
-#        except AssertionError:
-#            # At this point, everything should be kosher
-#            shutil.rmtree(push_stage)
-#            return
-#
-#        assert False
-
     def test_email(self):
         from bodhi import mail
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
@@ -242,26 +178,23 @@ class TestPackageUpdate(testutil.DBTest):
         assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2007-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : http://www.turbogears.org\nSummary     : Back-to-front web development in Python\nDescription :\nTurboGears brings together four major pieces to create an\neasy to install, easy to use web megaframework. It covers\neverything from front end (MochiKit JavaScript for the browser,\nKid for templates in Python) to the controllers (CherryPy) to\nthe back end (SQLObject).\n\nThe TurboGears project is focused on providing documentation\nand integration with these tools without losing touch\nwith the communities that already exist around those tools.\n\nTurboGears is easy to use for a wide range of web applications.\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - test bug\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\nUpdated packages:\n\n57e80ee8eb6d666c79c498e0b2efecd74ab52063 TurboGears-1.0.2.2-2.fc7.src.rpm\n85e05a4d52143ce38f43f7fdd244251e18f9d408 TurboGears-1.0.2.2-2.fc7.noarch.rpm\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum update TurboGears\' \nat the command line.  For more information, refer to "Managing Software\nwith yum", available at http://docs.fedoraproject.org/yum/.\n--------------------------------------------------------------------------------\n'
 
     def test_latest(self):
-        update = self.get_update()
+        update = self.get_update(name='yum-3.2.1-1.fc7')
         if config.get('buildsystem') == 'koji':
             latest = update.builds[0].get_latest()
-            print latest
             assert latest
-            assert latest == '/mnt/koji/packages/kernel/2.6.22.4/65.fc7/src/kernel-2.6.22.4-65.fc7.src.rpm'
+            assert latest == '/mnt/koji/packages/yum/3.2.0/1.fc7/src/yum-3.2.0-1.fc7.src.rpm'
 
     def test_changelog(self):
         if config.get('buildsystem') != 'koji': return
         import rpm
         from bodhi.util import rpm_fileheader
-        update = self.get_update()
+        update = self.get_update(name='yum-3.2.1-1.fc7')
         oldh = rpm_fileheader(update.builds[0].get_latest())
         oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
         text = oldh[rpm.RPMTAG_CHANGELOGTEXT]
         oldtime = oldtime[0]
         changelog = update.builds[0].get_changelog(oldtime)
-        from pprint import pprint
-        pprint(changelog)
-        assert changelog == '* Fri Aug 24 2007 John W. Linville <linville@redhat.com>\n- Update wireless-dev bits (mac80211, rt2x00, b43, ssb)\n- Add patch to keep old firmware format for b43\n- Add at76_usb driver\n* Fri Aug 24 2007 Chuck Ebbert <cebbert@redhat.com>\n- CFS scheduler v20.3\n* Fri Aug 24 2007 Chuck Ebbert <cebbert@redhat.com>\n- V4L/DVB: fix airstar hd5000 tuner\n* Fri Aug 24 2007 Chuck Ebbert <cebbert@redhat.com>\n- fix 3ware 9000 controller DMA fallback (#251729)\n* Thu Aug 23 2007 Chuck Ebbert <cebbert@redhat.com>\n- Linux 2.6.22.5\n- CFS scheduler v20.2\n- fix Pegasos PS/2 port detection\n* Wed Aug 22 2007 Chuck Ebbert <cebbert@redhat.com>\n- 2.6.22.5-rc1\n- un-revert genirq changes\n- add new genirq fixes from upstream\n- ALSA: fix ad1988 spdif output\n- ALSA: mutiple stac92xx codec fixes\n- libata: fix pata_via driver on ppc pegasos platform\n'
+        assert changelog == '* Thu Jun 21 2007 Seth Vidal <skvidal at fedoraproject.org> - 3.2.1-1\n- bump to 3.2.1\n'
 
 
 class TestBugzilla(testutil.DBTest):
