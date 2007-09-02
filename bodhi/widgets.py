@@ -78,7 +78,8 @@ def get_release_tuples():
     # 'long_name' to choose from.  We do this
     # to allow the command-line client to use
     # short release names.
-    return sum(zip(*releases())[:2], ())
+    for value in sum(zip(*releases())[:2], ()):
+        yield value
 
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
@@ -93,7 +94,7 @@ class NewUpdateForm(Form):
             TextField('build', validator=validators.UnicodeString(),
                       attrs={'style' : 'display: none'}),
             SingleSelectField('release', options=get_release_names,
-                              validator=validators.OneOf(get_release_tuples)),
+                              validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             TextField('bugs', validator=validators.UnicodeString()),
