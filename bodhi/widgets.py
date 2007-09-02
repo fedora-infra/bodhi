@@ -70,11 +70,21 @@ class AutoCompleteValidator(validators.Schema):
                    map(validators.UnicodeString().to_python,
                        filter(lambda x: x != '', builds)))
 
-update_types = config.get('update_types', 'bugfix enhancement security').split()
+def get_release_names():
+    return [rel[1] for rel in releases()]
+
+def get_release_tuples():
+    # Create a list of each releases 'name' and
+    # 'long_name' to choose from.  We do this
+    # to allow the command-line client to use
+    # short release names.
+    for value in sum(zip(*releases())[:2], ()):
+        yield value
 
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Add Update"
+    update_types = config.get('update_types', 'bugfix enhancement security').split()
     fields = [
             AutoCompleteField('builds', label='Package',
                               search_controller=url('/new/search'),
@@ -83,14 +93,8 @@ class NewUpdateForm(Form):
                               validator=AutoCompleteValidator()),
             TextField('build', validator=validators.UnicodeString(),
                       attrs={'style' : 'display: none'}),
-            SingleSelectField('release', options=[rel[1] for rel in releases()],
-                              validator=validators.OneOf(
-                                  # Create a list of each releases 'name' and
-                                  # 'long_name' to choose from.  We do this
-                                  # to allow the command-line client to use
-                                  # short release names.
-                                  sum(zip(*releases())[:2], ())
-                              )),
+            SingleSelectField('release', options=get_release_names,
+                              validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             TextField('bugs', validator=validators.UnicodeString()),
@@ -101,3 +105,4 @@ class NewUpdateForm(Form):
                      default=True),
             HiddenField('edited', default=None),
     ]
+
