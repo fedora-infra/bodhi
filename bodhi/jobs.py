@@ -29,7 +29,7 @@ def clean_repo():
 def schedule():
     """ Schedule our periodic tasks """
 
-    scheduler.add_interval_task(action=clean_repo,
-                                taskname='Repository Cleanup',
-                                initialdelay=0,
-                                interval=10)
+    #scheduler.add_interval_task(action=clean_repo,
+    #                            taskname='Repository Cleanup',
+    #                            initialdelay=0,
+    #                            interval=10)
