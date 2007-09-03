@@ -105,7 +105,7 @@ class DevBuildsys(Buildsystem):
 
     def listTags(self, *args, **kw):
         return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                 'name': 'dist-f7-updates-candidate', 'perm': None, 'perm_id': None},
+                 'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                  'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
 
