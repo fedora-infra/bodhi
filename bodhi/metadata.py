@@ -28,6 +28,7 @@ from bodhi.util import sha1sum
 from bodhi.model import PackageBuild
 from bodhi.buildsys import get_session
 from bodhi.modifyrepo import RepoMetadata
+from bodhi.exceptions import RepositoryNotFound
 
 log = logging.getLogger(__name__)
 
@@ -183,6 +184,9 @@ class ExtendedMetadata:
         log.debug("Metadata generation successful")
 
     def insert_updateinfo(self, repo):
-        log.debug("Inserting updateinfo.xml.gz into %s" % repo)
-        repomd = RepoMetadata(repo)
-        repomd.add(self.doc)
+        try:
+            repomd = RepoMetadata(repo)
+            log.debug("Inserting updateinfo.xml.gz into %s" % repo)
+            repomd.add(self.doc)
+        except RepositoryNotFound:
+            log.error("Cannot find repomd.xml in %s" % repo)
