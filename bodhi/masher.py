@@ -274,7 +274,7 @@ class MashTask(Thread):
         Generate the updateinfo.xml.gz and insert it into the appropriate
         repositories.
         """
-        log.debug("Generating updateinfo.xml.gz for %s" % self.repo)
+        log.debug("Generating updateinfo.xml.gz for %s" % repo)
         uinfo = ExtendedMetadata(get_repo_tag(repo))
         for arch in os.listdir(repo):
             uinfo.insert_updateinfo(join(abspath(arch), 'repodata'))
