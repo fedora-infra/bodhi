@@ -15,7 +15,6 @@
 import os
 
 from os.path import join
-from bodhi.model import Release
 from bodhi.widgets import NewUpdateForm
 from turbogears import expose, controllers, identity, config, url, flash
 
@@ -30,7 +29,7 @@ class NewUpdateController(controllers.Controller):
         """ Cache a list of packages used for the package AutoCompleteField """
         try:
             self.packages = os.listdir(self.build_dir)
-        except OSError:
+        except (OSError, TypeError):
             flash("Warning: build_dir either invalid or not set in app.cfg")
 
     @identity.require(identity.not_anonymous())
