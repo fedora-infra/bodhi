@@ -21,7 +21,7 @@ from bodhi import buildsys, mail
 from bodhi.util import synchronized
 from threading import Thread, Lock
 from turbogears import config
-from os.path import exists, join, islink, dirname, isfile, abspath
+from os.path import exists, join, islink, dirname, basename, isfile
 
 log = logging.getLogger(__name__)
 masher = None
@@ -278,7 +278,7 @@ class MashTask(Thread):
         log.debug("Generating updateinfo.xml.gz for %s" % repo)
         uinfo = ExtendedMetadata(get_repo_tag(repo))
         for arch in os.listdir(repo):
-            uinfo.insert_updateinfo(join(abspath(arch), 'repodata'))
+            uinfo.insert_updateinfo(join(repo, arch, 'repodata'))
 
     def __str__(self):
         val = '[ Mash Task #%d ]\n' % self.id
@@ -314,7 +314,7 @@ class MashTask(Thread):
 
 def get_repo_tag(repo):
     """ Pull the koji tag from the given mash repo """
-    mashconfig = join(dirname(config.get('mash_conf')), repo + '.mash')
+    mashconfig = join(dirname(config.get('mash_conf')), basename(repo) + '.mash')
     if isfile(mashconfig):
         mashconfig = file(mashconfig, 'r')
         lines = mashconfig.readlines()
