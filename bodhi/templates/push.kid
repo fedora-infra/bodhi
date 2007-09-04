@@ -101,7 +101,8 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
                     <td class="list">
                         ${"%s / %s " % (update.release.name, update.status)}
                     </td>
-                    <td class="list">
+                    <?python color=update.get_pushed_color() ?>
+                    <td class="list" bgcolor='${color}'>
                         ${update.type}
                     </td>
                     
