@@ -274,6 +274,7 @@ class MashTask(Thread):
         Generate the updateinfo.xml.gz and insert it into the appropriate
         repositories.
         """
+        from bodhi.metadata import ExtendedMetadata
         log.debug("Generating updateinfo.xml.gz for %s" % repo)
         uinfo = ExtendedMetadata(get_repo_tag(repo))
         for arch in os.listdir(repo):
