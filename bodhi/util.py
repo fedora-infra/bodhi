@@ -25,6 +25,7 @@ import logging
 import traceback
 
 from kid import Element
+from init import releases
 from koji import fixEncoding
 from os.path import isdir, exists
 from datetime import datetime
@@ -147,3 +148,13 @@ def flash_log(msg):
     """ Flash and log a given message """
     flash(msg)
     log.debug(msg)
+
+def get_release_names():
+    return map(lambda release: release['long_name'], releases)
+
+def get_release_tuples():
+    names = []
+    for release in releases:
+        names.append(release['name'])
+        names.append(release['long_name'])
+    return names
