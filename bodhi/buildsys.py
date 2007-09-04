@@ -41,6 +41,7 @@ class Buildsystem:
     def listTagged(self): raise NotImplementedError
     def taskFinished(self): raise NotImplementedError
 
+
 class DevBuildsys(Buildsystem):
     """
     A dummy buildsystem instance used during development
@@ -104,11 +105,15 @@ class DevBuildsys(Buildsystem):
                  'version': '1.0.2.2'},]
 
     def listTags(self, *args, **kw):
-        return ('dist-fc7-updates',
-                'dist-fc7-updates-testing',
-                'dist-fc7-updates-candidate')
+        return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                 'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                 'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
 
-    def listTagged(self, *args, **kw):
+    def listTagged(self, tag, *args, **kw):
+        if tag not in ('dist-fc7', 'dist-fc7-updates-candidate',
+                       'dist-fc7-updates-testing', 'dist-fc7-updates'):
+            raise koji.GenericError
         return [self.getBuild(),]
 
     def getLatestBuilds(self, *args, **kw):
