@@ -136,6 +136,13 @@ def get_age(date):
         return "%d minutes" % int(age.seconds / 60)
     return "%s days" % age.days
 
+def get_age_in_days(date):
+    if date:
+        age = datetime.now() - date
+        return age.days
+    else:
+        return 0
+
 def flash_log(msg):
     """ Flash and log a given message """
     flash(msg)

@@ -78,7 +78,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        update = PackageUpdate.byTitle('TurboGears-1.0.2.2-2.fc7')
+        update = PackageUpdate.byTitle(params['builds'])
         assert update
         assert update.title == params['builds']
         assert update.builds[0].nvr == params['builds']
@@ -88,3 +88,31 @@ class TestControllers(testutil.DBTest):
         assert update.notes == params['notes']
         # we specified a CVE, so bodhi will automatically change the type
         assert update.type == 'security'
+
+    #def test_multibuild_update(self):
+    #    session = self.login()
+    #    self.create_release()
+    #    params = {
+    #        'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
+    #        'release' : 'Fedora 7',
+    #        'type'    : 'enhancement',
+    #        'bugs'    : '1234 5678',
+    #        'cves'    : '',
+    #        'notes'   : 'foobar'
+    #    }
+    #    self.save_update(params, session)
+    #    for up in PackageUpdate.select():
+    #        print up
+    #    update = PackageUpdate.byTitle(params['builds'])
+    #    for build in update.builds:
+    #        print build
+    #    assert update
+    #    print "map"
+    #    print map(lambda x: x.nvr, update.builds)
+    #    for build in params['builds'].split():
+    #        assert build in map(lambda x: x.nvr, update.builds)
+    #    assert update.release.long_name == params['release']
+    #    assert update.type == params['type']
+    #    assert update.notes == params['notes']
+    #    for bug in params['bugs'].split():
+    #        assert int(bug) in map(lambda x: x.bz_id, update.bugs)

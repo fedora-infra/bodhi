@@ -472,7 +472,7 @@ class Root(controllers.RootController):
             except (DuplicateEntryError, PostgresIntegrityError,
                     SQLiteIntegrityError):
                 flash_log("Update already exists for build in: %s" % 
-                          ', '.join(builds))
+                          ' '.join(builds))
                 if self.jsonRequest():
                     return dict()
                 raise redirect('/new')

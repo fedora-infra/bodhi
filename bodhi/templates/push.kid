@@ -21,40 +21,132 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
     <form name="push_form" method="post" action="${tg.url('/admin/push/mash')}">
         <h1>${updates.count()} pending requests</h1>
         <span py:if="len(needpush)">
-            <b>Push</b>
-            <table>
-                <tr py:for="update in needpush">
-                    <td>
+            <b>Push to Testing</b>
+            <table class="list">
+			    <th class="list" width="5%">
+			    </th>
+			    <th class="list" width="45%">
+			        <b>Package</b>
+			    </th>
+			    <th class="list" width="10%">
+			        <b>Karma</b>
+			    </th>
+			    <th class="list" width="20%">
+			        <b>Release / Status</b>
+			    </th>
+			    <th class="list" width="20%">
+			        <b>Type</b>
+			    </th>
+            
+                <tr class="list" py:for="update in needpush">
+		            <?python
+		                if update.karma < 0: karma = -1
+						elif update.karma > 0: karma = 1
+						else: karma = 0
+						karma = XML("<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/karma%d.png' % karma), update.karma))
+					?>
+                    <td class="list">
                         <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
-                    <td>
+                    <td class="list">
                         <a href="${tg.url(update.get_url())}">${update.title}</a>
                     </td>
+                    <td class="list">			
+                        ${karma}
+                    </td>
+                    <td class="list">
+                        ${"%s / %s " % (update.release.name, update.status)}
+                    </td>
+                    <td class="list">
+                        ${update.type}
+                    </td>
+                    
                 </tr>
             </table>
         </span>
         <span py:if="len(needmove)">
-            <b>Move</b>
-            <table>
-                <tr py:for="update in needmove">
-                    <td>
+            <b>Move to Stable</b>
+            <table class="list">
+			    <th class="list" width="5%">
+			    </th>
+			    <th class="list" width="45%">
+			        <b>Package</b>
+			    </th>
+			    <th class="list" width="10%">
+			        <b>Karma</b>
+			    </th>
+			    <th class="list" width="20%">
+			        <b>Release / Status</b>
+			    </th>
+			    <th class="list" width="20%">
+			        <b>Type</b>
+			    </th>
+                <tr class="list" py:for="update in needmove">
+	                <?python
+		                if update.karma < 0: karma = -1
+						elif update.karma > 0: karma = 1
+						else: karma = 0
+						karma = XML("<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/karma%d.png' % karma), update.karma))
+					?>
+                
+                    <td class="list">
                         <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
-                    <td>
+                    <td class="list">
                         <a href="${tg.url(update.get_url())}">${update.title}</a>
                     </td>
+                    <td class="list">			
+                        ${karma}
+                    </td>
+                    <td class="list">
+                        ${"%s / %s " % (update.release.name, update.status)}
+                    </td>
+                    <?python color=update.get_pushed_color() ?>
+                    <td class="list" bgcolor='${color}'>
+                        ${update.type}
+                    </td>
+                    
                 </tr>
             </table>
         </span>
         <span py:if="len(needunpush)">
             <b>Unpush</b>
-            <table>
-                <tr py:for="update in needunpush">
-                    <td>
+            <table class="list">
+			    <th class="list" width="5%">
+			    </th>
+			    <th class="list" width="45%">
+			        <b>Package</b>
+			    </th>
+			    <th class="list" width="10%">
+			        <b>Karma</b>
+			    </th>
+			    <th class="list" width="20%">
+			        <b>Release / Status</b>
+			    </th>
+			    <th class="list" width="20%">
+			        <b>Type</b>
+			    </th>
+                <tr class="list" py:for="update in needunpush">
+		            <?python
+		                if update.karma < 0: karma = -1
+						elif update.karma > 0: karma = 1
+						else: karma = 0
+						karma = XML("<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/karma%d.png' % karma), update.karma))
+					?>
+                    <td class="list">
                         <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
-                    <td>
+                    <td class="list">
                         <a href="${tg.url(update.get_url())}">${update.title}</a>
+                    </td>
+                    <td class="list">			
+                        ${karma}
+                    </td>
+                    <td class="list">
+                        ${"%s / %s " % (update.release.name, update.status)}
+                    </td>
+                    <td class="list">
+                        ${update.type}
                     </td>
                 </tr>
             </table>

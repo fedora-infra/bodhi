@@ -30,7 +30,7 @@ from os.path import isdir, isfile, join, basename
 from textwrap import wrap
 
 from bodhi import buildsys, mail
-from bodhi.util import get_nvr, rpm_fileheader, header, get_age
+from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
 from bodhi.exceptions import RPMNotFound
 from bodhi.identity.tables import *
 
@@ -386,7 +386,19 @@ class PackageUpdate(SQLObject):
 
     def get_submitted_age(self):
         return get_age(self.date_submitted)
-
+    
+    def get_pushed_color(self):
+        age = get_age_in_days(self.date_pushed)
+        if age == 0:
+            color = '#ff0000' # red
+        elif age < 4:
+            color = '#ff6600' # orange
+        elif age < 7:
+            color = '#ffff00' # yellow
+        else:
+            color = '#00ff00' # green
+        return color
+    
     def comment(self, text, karma):
         """
         Add a comment to this update, adjusting the karma appropriately.
