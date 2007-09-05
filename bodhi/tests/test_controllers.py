@@ -29,8 +29,8 @@ class TestControllers(testutil.DBTest):
                       dist_tag='dist-fc7')
         assert rel
 
-    def login(self):
-        guest = User(user_name='guest')
+    def login(self, username='guest', display_name='guest'):
+        guest = User(user_name=username, display_name=display_name)
         guest.password = 'guest'
         print guest
         testutil.createRequest('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=guest&password=guest', method='POST')
@@ -102,17 +102,71 @@ class TestControllers(testutil.DBTest):
             'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        print "Updates:"
-        for up in PackageUpdate.select():
-            print up
         update = PackageUpdate.byTitle(params['builds'])
-        for build in update.builds:
-            print build
         assert update
+        builds = map(lambda x: x.nvr, update.builds)
         for build in params['builds'].split():
-            assert build in map(lambda x: x.nvr, update.builds)
+            assert build in builds
         assert update.release.long_name == params['release']
         assert update.type == params['type']
         assert update.notes == params['notes']
         for bug in params['bugs'].split():
             assert int(bug) in map(lambda x: x.bz_id, update.bugs)
+
+    def test_bad_build(self):
+        session = self.login()
+        params = {
+            'builds'  : 'foobar',
+            'release' : 'Fedora 7',
+            'type'    : 'enhancement',
+            'bugs'    : '1234 5678',
+            'cves'    : '',
+            'notes'   : 'foobar'
+        }
+        self.save_update(params, session)
+        assert "Invalid package name; must be in package-version-release format" in cherrypy.response.body[0]
+
+    def test_bad_release(self):
+        session = self.login()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Ubuntu Bitchy Beaver',
+            'type'    : 'enhancement',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        assert "Value must be one of: F7; Fedora 7 (not \'Ubuntu Bitchy Beaver\')" in cherrypy.response.body[0]
+
+    def test_bad_type(self):
+        session = self.login()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'REGRESSION!',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        pprint(cherrypy.response.body[0])
+        assert "Value must be one of: bugfix; enhancement; security (not \'REGRESSION!\')" in cherrypy.response.body[0]
+
+    def test_user_notes_encoding(self):
+        session = self.login(username='guest', display_name='foo\xc3\xa9bar')
+        self.create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'Foo\u2019bar'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle('TurboGears-1.0.2.2-2.fc7')
+        assert update.title == params['builds']
+        assert update.builds[0].nvr == params['builds']
+        assert update.release.long_name == params['release']
+        assert update.notes == params['notes']
