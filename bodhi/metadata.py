@@ -41,6 +41,8 @@ class ExtendedMetadata:
         self.koji = get_session()
         self._create_document()
         self._fetch_updates()
+        log.debug("Generating XML update metadata for updates")
+        map(self.add_update, self.updates)
 
     def _fetch_updates(self):
         """
@@ -134,7 +136,6 @@ class ExtendedMetadata:
         self._insert(root, 'description', text=update.notes)
 
         ## The package list
-        from pprint import pprint
         pkglist = self.doc.createElement('pkglist')
         collection = self.doc.createElement('collection')
         collection.setAttribute('short', update.release.name)
@@ -143,9 +144,7 @@ class ExtendedMetadata:
         for build in update.builds:
             log.debug("Generating package list for %s" % build.nvr)
             kojiBuild = self.koji.getBuild(build.nvr)
-            pprint(kojiBuild)
             rpms = self.koji.listBuildRPMs(kojiBuild['id'])
-            pprint(rpms)
             for rpm in rpms:
                 filename = "%s.%s.rpm" % (rpm['nvr'], rpm['arch'])
                 if rpm['arch'] == 'src':
@@ -154,11 +153,11 @@ class ExtendedMetadata:
                     arch = 'i386'
                 else:
                     arch = rpm['arch']
-                filepath = join(config.get('build_dir'), rpm['name'],
-                                rpm['version'], rpm['release'], rpm['arch'],
-                                filename)
+                filepath = join(config.get('build_dir'), kojiBuild['name'],
+                                kojiBuild['version'], kojiBuild['release'],
+                                rpm['arch'], filename)
                 urlpath = join(config.get('file_url'),
-                               update.status == 'testing' and 'testing' or None,
+                               update.status == 'testing' and 'testing' or '',
                                update.release.name[-1], arch, filename)
                 pkg = self._insert(collection, 'package', attrs={
                             'name'      : rpm['name'],
