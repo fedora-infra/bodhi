@@ -32,7 +32,6 @@ class TestControllers(testutil.DBTest):
     def login(self, username='guest', display_name='guest'):
         guest = User(user_name=username, display_name=display_name)
         guest.password = 'guest'
-        print guest
         testutil.createRequest('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=guest&password=guest', method='POST')
         assert cherrypy.response.status == '200 OK'
         cookies = filter(lambda x: x[0] == 'Set-Cookie',
@@ -78,7 +77,6 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        print cherrypy.response.body
         update = PackageUpdate.byTitle(params['builds'])
         assert update
         assert update.title == params['builds']
@@ -150,7 +148,6 @@ class TestControllers(testutil.DBTest):
             'notes'   : ''
         }
         self.save_update(params, session)
-        pprint(cherrypy.response.body[0])
         assert "Value must be one of: bugfix; enhancement; security (not \'REGRESSION!\')" in cherrypy.response.body[0]
 
     def test_user_notes_encoding(self):
@@ -170,3 +167,27 @@ class TestControllers(testutil.DBTest):
         assert update.builds[0].nvr == params['builds']
         assert update.release.long_name == params['release']
         assert update.notes == params['notes']
+
+    def test_bugs_update(self):
+        session = self.login()
+        self.create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : '#1234, #567 89',
+                'cves'    : '',
+                'notes'   : 'foobar'
+        }
+        self.save_update(params, session)
+        print cherrypy.response.body
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update
+        assert update.title == params['builds']
+        assert update.builds[0].nvr == params['builds']
+        assert update.release.long_name == params['release']
+        for bug in params['bugs'].replace('#', '').replace(',', ' ').split():
+            assert int(bug) in map(lambda x: x.bz_id, update.bugs)
+        assert len(update.cves) == 0
+        assert update.notes == params['notes']
+        assert update.type == params['type']
