@@ -22,7 +22,7 @@ class TestControllers(testutil.DBTest):
         pairs = urllib.urlencode(params)
         url = '/updates/save?' + pairs
         print url
-        testutil.createRequest(url, headers=session)
+        testutil.createRequest(url, headers=session, method='POST')
 
     def create_release(self):
         rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
@@ -78,6 +78,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
+        print cherrypy.response.body
         update = PackageUpdate.byTitle(params['builds'])
         assert update
         assert update.title == params['builds']
@@ -89,30 +90,29 @@ class TestControllers(testutil.DBTest):
         # we specified a CVE, so bodhi will automatically change the type
         assert update.type == 'security'
 
-    #def test_multibuild_update(self):
-    #    session = self.login()
-    #    self.create_release()
-    #    params = {
-    #        'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
-    #        'release' : 'Fedora 7',
-    #        'type'    : 'enhancement',
-    #        'bugs'    : '1234 5678',
-    #        'cves'    : '',
-    #        'notes'   : 'foobar'
-    #    }
-    #    self.save_update(params, session)
-    #    for up in PackageUpdate.select():
-    #        print up
-    #    update = PackageUpdate.byTitle(params['builds'])
-    #    for build in update.builds:
-    #        print build
-    #    assert update
-    #    print "map"
-    #    print map(lambda x: x.nvr, update.builds)
-    #    for build in params['builds'].split():
-    #        assert build in map(lambda x: x.nvr, update.builds)
-    #    assert update.release.long_name == params['release']
-    #    assert update.type == params['type']
-    #    assert update.notes == params['notes']
-    #    for bug in params['bugs'].split():
-    #        assert int(bug) in map(lambda x: x.bz_id, update.bugs)
+    def test_multibuild_update(self):
+        session = self.login()
+        self.create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'enhancement',
+            'bugs'    : '1234 5678',
+            'cves'    : '',
+            'notes'   : 'foobar'
+        }
+        self.save_update(params, session)
+        print "Updates:"
+        for up in PackageUpdate.select():
+            print up
+        update = PackageUpdate.byTitle(params['builds'])
+        for build in update.builds:
+            print build
+        assert update
+        for build in params['builds'].split():
+            assert build in map(lambda x: x.nvr, update.builds)
+        assert update.release.long_name == params['release']
+        assert update.type == params['type']
+        assert update.notes == params['notes']
+        for bug in params['bugs'].split():
+            assert int(bug) in map(lambda x: x.bz_id, update.bugs)
