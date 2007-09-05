@@ -147,3 +147,15 @@ def flash_log(msg):
     """ Flash and log a given message """
     flash(msg)
     log.debug(msg)
+
+def get_release_names():
+    from init import releases
+    return map(lambda release: release['long_name'], releases)
+
+def get_release_tuples():
+    from init import releases
+    names = []
+    for release in releases:
+        names.append(release['name'])
+        names.append(release['long_name'])
+    return names

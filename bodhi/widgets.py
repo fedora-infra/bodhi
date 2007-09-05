@@ -12,7 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from bodhi.model import Release, releases
+from bodhi.util import get_release_names, get_release_tuples
 from formencode import Invalid
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
@@ -59,7 +59,7 @@ class AutoCompleteValidator(validators.Schema):
         vals = []
         builds = []
         if isinstance(value, str):
-            vals = [value]
+            vals = value.split()
         elif not isinstance(value['text'], list):
             vals = [value['text']]
         elif isinstance(value['text'], list):
@@ -70,21 +70,10 @@ class AutoCompleteValidator(validators.Schema):
                    map(validators.UnicodeString().to_python,
                        filter(lambda x: x != '', builds)))
 
-def get_release_names():
-    return [rel[1] for rel in releases()]
-
-def get_release_tuples():
-    # Create a list of each releases 'name' and
-    # 'long_name' to choose from.  We do this
-    # to allow the command-line client to use
-    # short release names.
-    for value in sum(zip(*releases())[:2], ()):
-        yield value
-
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Add Update"
-    update_types = config.get('update_types', 'bugfix enhancement security').split()
+    update_types = config.get('update_types').split()
     fields = [
             AutoCompleteField('builds', label='Package',
                               search_controller=url('/new/search'),
@@ -105,4 +94,3 @@ class NewUpdateForm(Form):
                      default=True),
             HiddenField('edited', default=None),
     ]
-

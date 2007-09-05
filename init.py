@@ -18,26 +18,25 @@
 """ Bodhi Initialization """
 
 from os.path import isfile
-from bodhi.model import Release, Package
-
 from turbogears import config, update_config
 from turbogears.database import PackageHub
 
 hub = PackageHub("bodhi")
 __connection__ = hub
 
+releases = (
+    {
+        'name'      : 'F7',
+        'long_name' : 'Fedora 7',
+        'dist_tag'  : 'dist-fc7',
+        'id_prefix' : 'FEDORA'
+    },
+)
+
 def import_releases():
     """ Import the releases """
+    from bodhi.model import Release
     print "\nInitializing Release table..."
-
-    releases = (
-        {
-            'name'      : 'F7',
-            'long_name' : 'Fedora 7',
-            'dist_tag'  : 'dist-fc7',
-            'id_prefix' : 'FEDORA'
-        },
-    )
 
     for release in releases:
         rel = Release(name=release['name'], long_name=release['long_name'],
@@ -50,10 +49,12 @@ def import_rebootpkgs():
     Add packages that should suggest a reboot.  Other than these packages, we
     add a package to the database when its first update is added to the system
     """
+    from bodhi.model import Package
     for pkg in config.get('reboot_pkgs').split():
         Package(name=pkg, suggest_reboot=True)
 
 def clean_tables():
+    from bodhi.model import Release, Package
     print "Cleaning out tables"
     Release.dropTable(ifExists=True, cascade=True)
     Package.dropTable(ifExists=True, cascade=True)
