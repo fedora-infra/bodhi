@@ -233,14 +233,15 @@ if __name__ == '__main__':
                                           "stable|security] updates")
     parser.add_option("-b", "--bugs", action="store", type="string",
                       dest="bugs", help="Associate bugs with an update "
-                                        "(--bugs=1234,5678)")
+                                        "(--bugs=1234,5678)", default="")
     parser.add_option("-c", "--cves", action="store", type="string",
-                      dest="cves", help="A list of comma-separated CVE IDs")
+                      dest="cves", help="A list of comma-separated CVE IDs",
+                      default="")
     parser.add_option("-r", "--release", action="store", type="string",
                       dest="release", help="Release (default: F7)",
                       default="F7")
     parser.add_option("-N", "--notes", action="store", type="string",
-                      dest="notes", help="Update notes")
+                      dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
                       dest="type",
                       help="Update type [bugfix|security|enhancement] "
