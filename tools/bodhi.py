@@ -177,7 +177,7 @@ class BodhiClient:
             sys.exit(-1)
         for update in data['updates']:
             log.info(update + '\n')
-        log.info("%d updates found" % data['num_items'])
+        log.info("%d updates found (%d shown)" % (data['num_items'], opts.limit))
 
     def delete(self, opts):
         data = self.send_request('delete', update=opts.delete, auth=True)
@@ -199,7 +199,7 @@ class BodhiClient:
             if len(updates):
                 log.info("\n" + title)
                 for update in updates:
-                    log.info(" o %s" % update['title'])
+                    log.info("- %s" % update['title'])
 
         ## Confirm that we actually want to push these updates
         sys.stdout.write("\nAre you sure you want to push these updates? ")
@@ -233,14 +233,15 @@ if __name__ == '__main__':
                                           "stable|security] updates")
     parser.add_option("-b", "--bugs", action="store", type="string",
                       dest="bugs", help="Associate bugs with an update "
-                                        "(--bugs=1234,5678)")
+                                        "(--bugs=1234,5678)", default="")
     parser.add_option("-c", "--cves", action="store", type="string",
-                      dest="cves", help="A list of comma-separated CVE IDs")
+                      dest="cves", help="A list of comma-separated CVE IDs",
+                      default="")
     parser.add_option("-r", "--release", action="store", type="string",
                       dest="release", help="Release (default: F7)",
                       default="F7")
     parser.add_option("-N", "--notes", action="store", type="string",
-                      dest="notes", help="Update notes")
+                      dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
                       dest="type",
                       help="Update type [bugfix|security|enhancement] "
