@@ -177,7 +177,7 @@ class BodhiClient:
             sys.exit(-1)
         for update in data['updates']:
             log.info(update + '\n')
-        log.info("%d updates found" % data['num_items'])
+        log.info("%d updates found (%d shown)" % (data['num_items'], opts.limit))
 
     def delete(self, opts):
         data = self.send_request('delete', update=opts.delete, auth=True)
@@ -199,7 +199,7 @@ class BodhiClient:
             if len(updates):
                 log.info("\n" + title)
                 for update in updates:
-                    log.info(" o %s" % update['title'])
+                    log.info("- %s" % update['title'])
 
         ## Confirm that we actually want to push these updates
         sys.stdout.write("\nAre you sure you want to push these updates? ")
