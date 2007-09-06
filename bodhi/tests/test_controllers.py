@@ -4,10 +4,10 @@ import urllib
 import cherrypy
 import turbogears
 
-from pprint import pprint
+from sqlobject import SQLObjectNotFound
 from turbogears import testutil, database, config
 
-from bodhi.model import Release, PackageUpdate, User
+from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla
 from bodhi.controllers import Root
 
 database.set_db_uri("sqlite:///:memory:")
@@ -191,3 +191,150 @@ class TestControllers(testutil.DBTest):
         assert len(update.cves) == 0
         assert update.notes == params['notes']
         assert update.type == params['type']
+
+    def test_comment(self):
+        session = self.login()
+        self.create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        x = testutil.createRequest('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                   params['builds'], method='POST',
+                                   headers=session)
+        assert len(update.comments) == 1
+        assert update.karma == 1
+        assert update.comments[0].author == 'guest'
+        assert update.comments[0].text == 'foobar'
+
+        # Allow users to negate their original comment
+        x = testutil.createRequest('/comment?text=bizbaz&title=%s&karma=-1' %
+                                   params['builds'], method='POST',
+                                   headers=session)
+        assert update.karma == 0
+
+        # but don't let them do it again
+        x = testutil.createRequest('/comment?text=bizbaz&title=%s&karma=-1' %
+                                   params['builds'], method='POST',
+                                   headers=session)
+        assert update.karma == 0
+
+    def test_edit(self):
+        session = self.login()
+        self.create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Add another build, and a bug
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : '',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        self.save_update(params, session)
+        print update
+        assert len(update.builds) == 2
+        builds = map(lambda x: x.nvr, update.builds)
+        for build in params['builds'].split():
+            assert build in builds
+            x = PackageBuild.byNvr(build)
+            assert x.updates[0] == update
+        assert len(update.bugs) == 1
+        assert update.bugs[0].bz_id == int(params['bugs'])
+        bug = Bugzilla.byBz_id(int(params['bugs']))
+
+        # Remove a build and bug
+        params = {
+            'builds'  : 'python-sqlobject-0.8.2-1.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foobar',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7'
+        }
+        self.save_update(params, session)
+        assert len(update.builds) == 1
+        build = PackageBuild.byNvr(params['builds'])
+        assert build.updates[0] == update
+        assert update.notes == params['notes']
+        assert len(update.bugs) == 0
+        try:
+            bug = Bugzilla.byBz_id(1)
+            assert False, "Bug #1 never got destroyed after edit"
+        except SQLObjectNotFound:
+            pass
+
+    def test_delete(self):
+        session = self.login()
+        self.create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Try unauthenticated first
+        x = testutil.createRequest('/updates/delete?update=%s' % 
+                                   params['builds'], method='POST')
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update
+
+        # Now try again with our authenticated session cookie
+        x = testutil.createRequest('/updates/delete?update=%s' % 
+                                   params['builds'], method='POST',
+                                   headers=session)
+        try:
+            update = PackageUpdate.byTitle(params['builds'])
+            assert False, "Update never deleted!"
+        except SQLObjectNotFound:
+            pass
+
+    def test_requests(self):
+        session = self.login()
+        self.create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert update.request == None
+
+        testutil.createRequest('/updates/push?nvr=%s' % params['builds'],
+                               method='POST', headers=session)
+        assert update.request == 'push'
+        testutil.createRequest('/updates/unpush?nvr=%s' % params['builds'],
+                               method='POST', headers=session)
+        assert update.request == 'unpush'
+        testutil.createRequest('/updates/move?nvr=%s' % params['builds'],
+                               method='POST', headers=session)
+        assert update.request == 'move'
