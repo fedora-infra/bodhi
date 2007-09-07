@@ -275,27 +275,42 @@ class Root(controllers.RootController):
         update.request = None
         raise redirect(update.get_url())
 
-    @expose()
+    @exception_handler(exception)
+    @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
     def move(self, nvr):
         update = PackageUpdate.byTitle(nvr)
+        # Test if package already has been pushed (posible when called json)
+        if not update.status in ['pending','testing'] or update.request in ["push","move"]: 
+            flash("Update is already pushed")
+            if self.jsonRequest(): return dict()
+            raise redirect(update.get_url())
         if not util.authorized_user(update, identity):
             flash("Cannot move an update you did not submit")
+            if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         update.request = 'move'
         flash("Requested that %s be pushed to %s-updates" % (nvr,
               update.release.name))
         mail.send_admin('move', update)
+        if self.jsonRequest(): return dict()
         raise redirect(update.get_url())
 
-    @expose()
+    @exception_handler(exception)
+    @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
     def push(self, nvr):
         """ Submit an update for pushing """
         update = PackageUpdate.byTitle(nvr)
         repo = '%s-updates' % update.release.name
+        # Test if package already has been pushed (posible when called json)
+        if update.status != 'pending' or update.request in ["push","move"]: 
+            flash("Update is already pushed")
+            if self.jsonRequest(): return dict()
+            raise redirect(update.get_url())
         if not util.authorized_user(update, identity):
             flash("Cannot push an update you did not submit")
+            if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         if update.type == 'security':
             # Bypass updates-testing
@@ -307,6 +322,7 @@ class Root(controllers.RootController):
         log.debug(msg)
         flash(msg)
         mail.send_admin('push', update)
+        if self.jsonRequest(): return dict()
         raise redirect(update.get_url())
 
     @expose()

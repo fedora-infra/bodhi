@@ -53,6 +53,10 @@ class BodhiClient:
 
         if opts.new:
             self.new(opts)
+        elif opts.testing:
+            self.push_to_testing(opts)
+        elif opts.stable:
+            self.push_to_stable(opts)
         elif opts.masher:
             self.masher(opts)
         elif opts.push:
@@ -61,7 +65,7 @@ class BodhiClient:
             self.delete(opts)
         elif opts.status or opts.bugs or opts.cves or opts.release or opts.type:
             self.list(opts)
-
+                         
     def authenticate(self):
         """
             Return an authenticated session cookie.
@@ -147,6 +151,10 @@ class BodhiClient:
         except urllib2.HTTPError, e:
             log.error(e)
             sys.exit(-1)
+        except urllib2.URLError, e:
+            log.error("No connection to Bodhi server")
+            log.error(e)
+            sys.exit(-1)
         except json.ReadException, e:
             regex = re.compile('<span class="fielderror">(.*)</span>')
             match = regex.search(e.message)
@@ -185,6 +193,17 @@ class BodhiClient:
     def delete(self, opts):
         data = self.send_request('delete', update=opts.delete, auth=True)
         log.info(data['tg_flash'])
+
+    def push_to_testing(self, opts):
+        data = self.send_request('push', nvr=opts.testing, auth=True)
+        log.info(data['tg_flash'])
+        if data.has_key('update'):
+            log.info(data['update'])
+
+    def push_to_stable(self, opts):
+        data = self.send_request('move', nvr=opts.stable, auth=True)
+        log.info(data['tg_flash'])
+
 
     def masher(self, opts):
         data = self.send_request('admin/masher', auth=True)
@@ -310,9 +329,12 @@ if __name__ == '__main__':
     #parser.add_option("-C", "--comment", action="store", type="string",
     #                  dest="comment", metavar="UPDATE",
     #                  help="Comment about an update")
-    #parser.add_option("-S", "--stable", action="store", type="string",
-    #                  dest="stable", metavar="UPDATE",
-    #                  help="Mark an update as stable")
+    parser.add_option("-S", "--stable", action="store", type="string",
+                      dest="stable", metavar="UPDATE",
+                      help="Mark an update for push to stable")
+    parser.add_option("-T", "--testing", action="store", type="string",
+                      dest="testing", metavar="UPDATE",
+                      help="Mark an update for push to testing")
     parser.add_option("-d", "--delete", action="store", type="string",
                       dest="delete", help="Delete an update",
                       metavar="UPDATE")
