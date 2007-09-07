@@ -70,6 +70,27 @@ class AutoCompleteValidator(validators.Schema):
                    map(validators.UnicodeString().to_python,
                        filter(lambda x: x != '', builds)))
 
+class BugValidator(validators.FancyValidator):
+    messages = {
+            'invalid_bug' : "Invalid bug(s).  Please supply a list of bug "
+                            "numbers. Example: 123, 456 #789"
+    }
+
+    def _to_python(self, value, state):
+        print "BugValidator._to_python(%s, %s)" % (value, state)
+        bugs = validators.UnicodeString().to_python(value.strip())
+        try:
+            bugs = map(int, bugs.replace(',', ' ').replace('#', '').split())
+        except ValueError:
+            raise Invalid(self.message('invalid_bug', state), bugs, state)
+        return bugs
+
+    def validate_python(self, bugs, state):
+        print "BugValidator.validate_python(%s, %s)" % (bugs, state)
+        for bug in bugs:
+            if bug <= 0:
+                raise Invalid(self.messages('invalid_bug', state), bugs, state)
+
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Add Update"
@@ -86,7 +107,7 @@ class NewUpdateForm(Form):
                               validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
-            TextField('bugs', validator=validators.UnicodeString()),
+            TextField('bugs', validator=BugValidator()),
             TextField('cves', validator=validators.UnicodeString()),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=20, cols=65),

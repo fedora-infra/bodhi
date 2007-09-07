@@ -385,13 +385,7 @@ class Root(controllers.RootController):
                         OR(Release.q.long_name == release,
                            Release.q.name == release))[0]
         cves = cves.replace(',', ' ').split()
-        try:
-            bugs = map(int, bugs.replace(',', ' ').replace('#', '').split())
-        except ValueError, e:
-            flash_log("Error with bugs: %s" % str(e))
-            if self.jsonRequest():
-                return dict()
-            raise redirect('/new')
+        if not bugs: bugs = []
 
         # If we're editing an update, destroy all associated builds, to start
         # fresh.  This allows people to add/remove builds during and edit.

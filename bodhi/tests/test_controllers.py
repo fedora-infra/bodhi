@@ -180,7 +180,6 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        print cherrypy.response.body
         update = PackageUpdate.byTitle(params['builds'])
         assert update
         assert update.title == params['builds']
@@ -250,7 +249,6 @@ class TestControllers(testutil.DBTest):
             'edited'  : 'TurboGears-1.0.2.2-2.fc7'
         }
         self.save_update(params, session)
-        print update
         assert len(update.builds) == 2
         builds = map(lambda x: x.nvr, update.builds)
         for build in params['builds'].split():
@@ -338,3 +336,17 @@ class TestControllers(testutil.DBTest):
         testutil.createRequest('/updates/move?nvr=%s' % params['builds'],
                                method='POST', headers=session)
         assert update.request == 'move'
+
+    def test_bad_bugs(self):
+        session = self.login()
+        self.create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : 'foobar',
+                'cves'    : '',
+                'notes'   : ''
+        }
+        self.save_update(params, session)
+        assert "Invalid bug(s)." in cherrypy.response.body[0]
