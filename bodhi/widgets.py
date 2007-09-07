@@ -56,7 +56,7 @@ class NewUpdateForm(Form):
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             TextField('bugs', validator=BugValidator()),
-            TextField('cves', validator=validators.UnicodeString()),
+            TextField('cves', validator=CVEValidator()),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=20, cols=65),
             CheckBox(name='close_bugs', help_text='Automatically close bugs',

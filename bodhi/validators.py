@@ -12,6 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import re
+
 from formencode import Invalid
 from turbogears import validators
 
@@ -54,7 +56,6 @@ class BugValidator(validators.FancyValidator):
     }
 
     def _to_python(self, value, state):
-        print "BugValidator._to_python(%s, %s)" % (value, state)
         bugs = validators.UnicodeString().to_python(value.strip())
         try:
             bugs = map(int, bugs.replace(',', ' ').replace('#', '').split())
@@ -63,7 +64,22 @@ class BugValidator(validators.FancyValidator):
         return bugs
 
     def validate_python(self, bugs, state):
-        print "BugValidator.validate_python(%s, %s)" % (bugs, state)
         for bug in bugs:
             if bug <= 0:
-                raise Invalid(self.messages('invalid_bug', state), bugs, state)
+                raise Invalid(self.message('invalid_bug', state), bugs, state)
+
+class CVEValidator(validators.FancyValidator):
+    messages = {
+            'invalid_cve' : "Invalid CVE(s).  Please list CVEs in the format "
+                            "CVE-2007-0000"
+    }
+    regex = re.compile("(CAN|CVE)-\d\d\d\d-\d\d\d\d")
+
+    def _to_python(self, value, state):
+        cves = validators.UnicodeString().to_python(value.strip())
+        return cves.replace(',', ' ').split()
+
+    def validate_python(self, cves, state):
+        for cve in cves:
+            if not self.regex.match(cve):
+                raise Invalid(self.message('invalid_cve', state), cves, state)

@@ -350,3 +350,17 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         assert "Invalid bug(s)." in cherrypy.response.body[0]
+
+    def test_bad_cves(self):
+        session = self.login()
+        self.create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : '',
+                'cves'    : 'FOO',
+                'notes'   : ''
+        }
+        self.save_update(params, session)
+        assert "Invalid CVE(s)." in cherrypy.response.body[0]
