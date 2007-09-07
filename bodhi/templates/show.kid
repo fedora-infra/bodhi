@@ -17,7 +17,7 @@ from turbogears import identity
 ## Build our reference links
 bugs = ''
 for bug in update.bugs:
-    bugs += '<a href="%s">%d</a>' % (bug.get_url(), bug.bz_id)
+    bugs += '<a href="%s">%d</a> ' % (bug.get_url(), bug.bz_id)
     if bug.title:
         bugs += '- %s<br/>' % (escape(bug.title))
 bugs = bugs.replace('&', '&amp;')

@@ -13,7 +13,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from bodhi.util import get_release_names, get_release_tuples
-from formencode import Invalid
+from bodhi.validators import *
+
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
@@ -38,38 +39,6 @@ class SearchForm(Form):
                       attrs={ 'size' : 20 }),
     ]
 
-class PackageValidator(validators.FancyValidator):
-    messages = {
-            'bad_name' : 'Invalid package name; must be in package-version-'
-                         'release format',
-    }
-
-    def _to_python(self, value, state):
-        return value.strip()
-
-    def validate_python(self, value, state):
-        # We eventually should check the koji tag of each package in this
-        # validator, but in that case we need to know what release this update
-        # is being submitted for.
-        if len(value.split('-')) < 3:
-            raise Invalid(self.message('bad_name', state), value, state)
-
-class AutoCompleteValidator(validators.Schema):
-    def _to_python(self, value, state):
-        vals = []
-        builds = []
-        if isinstance(value, str):
-            vals = value.split()
-        elif not isinstance(value['text'], list):
-            vals = [value['text']]
-        elif isinstance(value['text'], list):
-            vals = value['text']
-        for build in vals:
-            builds += build.split(',')
-        return map(PackageValidator().to_python,
-                   map(validators.UnicodeString().to_python,
-                       filter(lambda x: x != '', builds)))
-
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Add Update"
@@ -86,8 +55,8 @@ class NewUpdateForm(Form):
                               validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
-            TextField('bugs', validator=validators.UnicodeString()),
-            TextField('cves', validator=validators.UnicodeString()),
+            TextField('bugs', validator=BugValidator()),
+            TextField('cves', validator=CVEValidator()),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=20, cols=65),
             CheckBox(name='close_bugs', help_text='Automatically close bugs',

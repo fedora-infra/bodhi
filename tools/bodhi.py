@@ -18,6 +18,7 @@
 
 import re
 import sys
+import os
 import json
 import Cookie
 import urllib
@@ -52,6 +53,10 @@ class BodhiClient:
 
         if opts.new:
             self.new(opts)
+        elif opts.testing:
+            self.push_to_testing(opts)
+        elif opts.stable:
+            self.push_to_stable(opts)
         elif opts.masher:
             self.masher(opts)
         elif opts.push:
@@ -60,7 +65,7 @@ class BodhiClient:
             self.delete(opts)
         elif opts.status or opts.bugs or opts.cves or opts.release or opts.type:
             self.list(opts)
-
+                         
     def authenticate(self):
         """
             Return an authenticated session cookie.
@@ -146,6 +151,10 @@ class BodhiClient:
         except urllib2.HTTPError, e:
             log.error(e)
             sys.exit(-1)
+        except urllib2.URLError, e:
+            log.error("No connection to Bodhi server")
+            log.error(e)
+            sys.exit(-1)
         except json.ReadException, e:
             regex = re.compile('<span class="fielderror">(.*)</span>')
             match = regex.search(e.message)
@@ -158,6 +167,8 @@ class BodhiClient:
         return data
 
     def new(self, opts):
+        if opts.input_file:
+            self._parse_file(opts)
         log.info("Creating new update for %s" % opts.new)
         data = self.send_request('save', builds=opts.new, release=opts.release,
                                  type=opts.type, bugs=opts.bugs, cves=opts.cves,
@@ -182,6 +193,17 @@ class BodhiClient:
     def delete(self, opts):
         data = self.send_request('delete', update=opts.delete, auth=True)
         log.info(data['tg_flash'])
+
+    def push_to_testing(self, opts):
+        data = self.send_request('push', nvr=opts.testing, auth=True)
+        log.info(data['tg_flash'])
+        if data.has_key('update'):
+            log.info(data['update'])
+
+    def push_to_stable(self, opts):
+        data = self.send_request('move', nvr=opts.stable, auth=True)
+        log.info(data['tg_flash'])
+
 
     def masher(self, opts):
         data = self.send_request('admin/masher', auth=True)
@@ -210,7 +232,51 @@ class BodhiClient:
             self.send_request('admin/push/mash',
                               updates=[u['title'] for u in data['updates']],
                               auth=True)
+    def _split(self,var,delim):
+        if var:
+            return var.split(delim)
+        else:
+            return []
 
+    def _parse_file(self,opts):
+        regex = re.compile(r'^(BUG|bug|TYPE|type|CVE|cve)=(.*$)')
+        types = {'S':'security','B':'bugfix','E':'enhancement'}
+        notes = self._split(opts.notes,'\n')
+        bugs = self._split(opts.bugs,',')
+        cves = self._split(opts.cves,',')
+        print "Reading from %s " % opts.input_file
+        if os.path.exists(opts.input_file):
+            f = open(opts.input_file)
+            lines = f.readlines()
+            f.close()
+            for line in lines:
+                if line[0] == ':' or line[0] == '#':
+                    continue
+                src=regex.search(line)
+                if src:
+                    cmd,para = tuple(src.groups())
+                    cmd=cmd.upper()
+                    if cmd == 'BUG':
+                        para = [p for p in para.split(' ')]
+                        bugs.extend(para)
+                    elif cmd == 'CVE':
+                        para = [p for p in para.split(' ')]
+                        cves.extend(para)
+                    elif cmd == 'TYPE':
+                        opts.type = types[para.upper()]
+                                            
+                else: # This is notes
+                    notes.append(line[:-1])
+        if notes:
+            opts.notes = "\r\n".join(notes)
+        if bugs:
+            opts.bugs = ','.join(bugs)
+        if cves:
+            opts.cves = ','.join(cves)
+        log.debug("Type : %s" % opts.type)
+        log.debug('Bugs:\n%s' % opts.bugs)
+        log.debug('CVES:\n%s' % opts.cves)
+        log.debug('Notes:\n%s' % opts.notes)
 
 if __name__ == '__main__':
     usage = "usage: %prog [options]"
@@ -246,6 +312,9 @@ if __name__ == '__main__':
                       dest="type",
                       help="Update type [bugfix|security|enhancement] "
                            "(default: bugfix)")
+    parser.add_option("", "--file", action="store", type="string",
+                      dest="input_file",
+                      help="Get Bugs,CVES,Notes from a file")
 
     # --package
     # --build (or just take these values from args)
@@ -260,9 +329,12 @@ if __name__ == '__main__':
     #parser.add_option("-C", "--comment", action="store", type="string",
     #                  dest="comment", metavar="UPDATE",
     #                  help="Comment about an update")
-    #parser.add_option("-S", "--stable", action="store", type="string",
-    #                  dest="stable", metavar="UPDATE",
-    #                  help="Mark an update as stable")
+    parser.add_option("-S", "--stable", action="store", type="string",
+                      dest="stable", metavar="UPDATE",
+                      help="Mark an update for push to stable")
+    parser.add_option("-T", "--testing", action="store", type="string",
+                      dest="testing", metavar="UPDATE",
+                      help="Mark an update for push to testing")
     parser.add_option("-d", "--delete", action="store", type="string",
                       dest="delete", help="Delete an update",
                       metavar="UPDATE")
