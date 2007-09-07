@@ -28,13 +28,15 @@
                    py:content="field.label"/>
         </td>
         <td class="value">
+            <font color="red">
+                <span py:if="error_for(field)"
+                      class="fielderror"
+                      py:content="error_for(field)" />
+            </font>
             <span py:replace="field.display(value_for(field), **params_for(field))"/>
             <span py:if="i == 4">
                 <label for="form_close_bugs">${display_field_for('close_bugs')} Close bugs when update is stable</label>
             </span>
-            <span py:if="error_for(field)"
-                  class="fielderror"
-                  py:content="error_for(field)" />
             <span py:if="field.help_text"
                   class="fieldhelp"
                   py:content="field.help_text" />
