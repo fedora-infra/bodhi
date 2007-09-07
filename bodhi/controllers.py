@@ -397,12 +397,11 @@ class Root(controllers.RootController):
 
         note = ''
         update_builds = []
+        if not cves: cves = []
+        if not bugs: bugs = []
         release = Release.select(
                         OR(Release.q.long_name == release,
                            Release.q.name == release))[0]
-        #cves = cves.replace(',', ' ').split()
-        if not cves: cves = []
-        if not bugs: bugs = []
 
         # If we're editing an update, destroy all associated builds, to start
         # fresh.  This allows people to add/remove builds during and edit.
