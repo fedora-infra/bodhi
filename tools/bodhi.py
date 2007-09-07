@@ -18,6 +18,7 @@
 
 import re
 import sys
+import os
 import json
 import Cookie
 import urllib
@@ -158,6 +159,8 @@ class BodhiClient:
         return data
 
     def new(self, opts):
+        if opts.input_file:
+            self._parse_file(opts)
         log.info("Creating new update for %s" % opts.new)
         data = self.send_request('save', builds=opts.new, release=opts.release,
                                  type=opts.type, bugs=opts.bugs, cves=opts.cves,
@@ -210,7 +213,51 @@ class BodhiClient:
             self.send_request('admin/push/mash',
                               updates=[u['title'] for u in data['updates']],
                               auth=True)
+    def _split(self,var,delim):
+        if var:
+            return var.split(delim)
+        else:
+            return []
 
+    def _parse_file(self,opts):
+        regex = re.compile(r'^(BUG|bug|TYPE|type|CVE|cve)=(.*$)')
+        types = {'S':'security','B':'bugfix','E':'enhancement'}
+        notes = self._split(opts.notes,'\n')
+        bugs = self._split(opts.bugs,',')
+        cves = self._split(opts.cves,',')
+        print "Reading from %s " % opts.input_file
+        if os.path.exists(opts.input_file):
+            f = open(opts.input_file)
+            lines = f.readlines()
+            f.close()
+            for line in lines:
+                if line[0] == ':' or line[0] == '#':
+                    continue
+                src=regex.search(line)
+                if src:
+                    cmd,para = tuple(src.groups())
+                    cmd=cmd.upper()
+                    if cmd == 'BUG':
+                        para = [p for p in para.split(' ')]
+                        bugs.extend(para)
+                    elif cmd == 'CVE':
+                        para = [p for p in para.split(' ')]
+                        cves.extend(para)
+                    elif cmd == 'TYPE':
+                        opts.type = types[para.upper()]
+                                            
+                else: # This is notes
+                    notes.append(line[:-1])
+        if notes:
+            opts.notes = "\r\n".join(notes)
+        if bugs:
+            opts.bugs = ','.join(bugs)
+        if cves:
+            opts.cves = ','.join(cves)
+        log.debug("Type : %s" % opts.type)
+        log.debug('Bugs:\n%s' % opts.bugs)
+        log.debug('CVES:\n%s' % opts.cves)
+        log.debug('Notes:\n%s' % opts.notes)
 
 if __name__ == '__main__':
     usage = "usage: %prog [options]"
@@ -246,6 +293,9 @@ if __name__ == '__main__':
                       dest="type",
                       help="Update type [bugfix|security|enhancement] "
                            "(default: bugfix)")
+    parser.add_option("", "--file", action="store", type="string",
+                      dest="input_file",
+                      help="Get Bugs,CVES,Notes from a file")
 
     # --package
     # --build (or just take these values from args)
