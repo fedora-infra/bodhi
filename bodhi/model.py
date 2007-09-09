@@ -269,27 +269,27 @@ class PackageUpdate(SQLObject):
     def send_update_notice(self):
         import turbomail
         log.debug("Sending update notice for %s" % self.title)
-        list = None
+        mailinglist = None
         sender = config.get('bodhi_email')
         if not sender:
             log.error("bodhi_email not defined in configuration!  Unable " +
                       "to send update notice")
             return
         if self.status == 'stable':
-            list = config.get('%s_announce_list' %
+            mailinglist = config.get('%s_announce_list' %
                               self.release.id_prefix.lower())
         elif self.status == 'testing':
-            list = config.get('%s_test_announce_list' %
+            mailinglist = config.get('%s_test_announce_list' %
                               self.release.id_prefix.lower())
-        if list:
-            (subject, body) = mail.get_template(self)
-            message = turbomail.Message(sender, list, subject)
-            message.plain = body
-            try:
-                turbomail.enqueue(message)
-                log.debug("Sending mail: %s" % message.plain)
-            except turbomail.MailNotEnabledException:
-                log.warning("mail.on is not True!")
+        if mailinglist:
+            for subject, body in mail.get_template(self):
+                message = turbomail.Message(sender, mailinglist, subject)
+                message.plain = body
+                try:
+                    turbomail.enqueue(message)
+                    log.debug("Sending mail: %s" % message.plain)
+                except turbomail.MailNotEnabledException:
+                    log.warning("mail.on is not True!")
         else:
             log.error("Cannot find mailing list address for update notice")
 

@@ -36,7 +36,7 @@
                 <center><b>Status</b></center>
             </th>
             <th class="list">
-                <center><b>Stable</b></center>
+                <center><b>Karma</b></center>
             </th>
             <th class="list">
                 <b>Date Pushed</b>
@@ -63,7 +63,7 @@
             submitted = update.request == None and 'null' or 'tick'
             ?>
             <td class="list" align="center">
-                <img src="${tg.url('/static/images/%s.png' % (update.request == 'move' and 'tick' or 'null'))}"/>
+                <img src="${tg.url('/static/images/%s.png' % (update.karma))}" align="top"/> <b>${update.karma}</b>
             </td>
             <td class="list">
                 ${update.date_pushed}
