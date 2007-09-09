@@ -1,11 +1,14 @@
 # $Id: test_metadata.py,v 1.1 2006/12/31 09:10:25 lmacken Exp $
 
+import turbogears
+from turbogears import testutil, database, config
+turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
+database.set_db_uri("sqlite:///:memory:")
+
 import shutil
 import tempfile
-import turbogears
 
 from os.path import join, exists
-from turbogears import testutil, database, config
 from bodhi.util import mkmetadatadir, get_nvr
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild)
@@ -13,8 +16,6 @@ from bodhi.buildsys import get_session
 from bodhi.metadata import ExtendedMetadata
 from yum.update_md import UpdateMetadata
 
-database.set_db_uri("sqlite:///:memory:")
-turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
 
 class TestExtendedMetadata(testutil.DBTest):
 

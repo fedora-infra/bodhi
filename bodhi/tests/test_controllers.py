@@ -1,18 +1,16 @@
 # $Id: test_controllers.py,v 1.3 2006/12/31 09:10:25 lmacken Exp $
 
+import turbogears
+from turbogears import testutil, database, config
+turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
+database.set_db_uri("sqlite:///:memory:")
+
 import urllib
 import cherrypy
-import turbogears
 
 from sqlobject import SQLObjectNotFound
-from turbogears import testutil, database, config
-
 from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla
 from bodhi.controllers import Root
-
-database.set_db_uri("sqlite:///:memory:")
-turbogears.update_config(configfile='dev.cfg',
-                         modulename='bodhi.config')
 
 cherrypy.root = Root()
 
@@ -213,15 +211,17 @@ class TestControllers(testutil.DBTest):
         assert update.comments[0].text == 'foobar'
 
         # Allow users to negate their original comment
-        x = testutil.createRequest('/comment?text=bizbaz&title=%s&karma=-1' %
+        x = testutil.createRequest('/updates/comment?text=bizbaz&title=%s&karma=-1' %
                                    params['builds'], method='POST',
                                    headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 0
 
         # but don't let them do it again
-        x = testutil.createRequest('/comment?text=bizbaz&title=%s&karma=-1' %
+        x = testutil.createRequest('/updates/comment?text=bizbaz&title=%s&karma=-1' %
                                    params['builds'], method='POST',
                                    headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 0
 
     def test_edit(self):
@@ -249,6 +249,7 @@ class TestControllers(testutil.DBTest):
             'edited'  : 'TurboGears-1.0.2.2-2.fc7'
         }
         self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
         assert len(update.builds) == 2
         builds = map(lambda x: x.nvr, update.builds)
         for build in params['builds'].split():
@@ -270,6 +271,7 @@ class TestControllers(testutil.DBTest):
             'edited'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7'
         }
         self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
         assert len(update.builds) == 1
         build = PackageBuild.byNvr(params['builds'])
         assert build.updates[0] == update
@@ -329,12 +331,15 @@ class TestControllers(testutil.DBTest):
 
         testutil.createRequest('/updates/push?nvr=%s' % params['builds'],
                                method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'push'
         testutil.createRequest('/updates/unpush?nvr=%s' % params['builds'],
                                method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'unpush'
         testutil.createRequest('/updates/move?nvr=%s' % params['builds'],
                                method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'move'
 
     def test_bad_bugs(self):
