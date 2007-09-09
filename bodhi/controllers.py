@@ -403,6 +403,18 @@ class Root(controllers.RootController):
                         OR(Release.q.long_name == release,
                            Release.q.name == release))[0]
 
+        # Parameters used to re-populate the update form if something fails
+        params = {
+                'builds.text' : ' '.join(builds),
+                'release'     : release,
+                'type'        : type,
+                'cves'        : ' '.join(cves),
+                'bugs'        : ' '.join(bugs),
+                'notes'       : notes,
+                'close_bugs'  : close_bugs and 'True' or '',
+                'edited'      : edited
+        }
+
         # If we're editing an update, destroy all associated builds, to start
         # fresh.  This allows people to add/remove builds during and edit.
         if edited:
@@ -425,12 +437,12 @@ class Root(controllers.RootController):
                 flash_log("Invalid build: %s" % build)
                 if self.jsonRequest():
                     return dict()
-                raise redirect('/new')
+                raise redirect('/new', **params)
             if not tag_matches:
                 flash_log("%s build is not tagged with %s" % (build, candidate))
                 if self.jsonRequest():
                     return dict()
-                raise redirect('/new')
+                raise redirect('/new', **params)
 
             # Get the package; if it doesn't exist, create it.
             nvr = util.get_nvr(build)
@@ -454,7 +466,7 @@ class Root(controllers.RootController):
                                                            kojiBuild['nvr'],
                                                            kojiTag)
                                 flash_log(msg)
-                                raise redirect('/new')
+                                raise redirect('/new', **params)
                 except GenericError:
                     break
 
@@ -469,7 +481,7 @@ class Root(controllers.RootController):
                 flash_log("Update for %s already exists" % build)
                 if self.jsonRequest():
                     return dict()
-                raise redirect('/new')
+                raise redirect('/new', **params)
 
         # Modify or create the PackageUpdate
         if edited:
@@ -485,7 +497,7 @@ class Root(controllers.RootController):
                           ' '.join(builds))
                 if self.jsonRequest():
                     return dict()
-                raise redirect('/new')
+                raise redirect('/new', **params)
         else:
             try:
                 p = PackageUpdate(title=' '.join(builds), release=release,
@@ -497,7 +509,7 @@ class Root(controllers.RootController):
                 flash_log("Update for %s already exists" % builds)
                 if self.jsonRequest():
                     return dict()
-                raise redirect('/new')
+                raise redirect('/new', **params)
 
         # Add the PackageBuilds to our PackageUpdate
         map(p.addPackageBuild, update_builds)
