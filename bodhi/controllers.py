@@ -612,9 +612,3 @@ class Root(controllers.RootController):
         else:
             update.comment(text, karma)
         raise redirect(update.get_url())
-
-    @expose(template='bodhi.templates.text')
-    def mail_notice(self, nvr, *args, **kw):
-        update = PackageUpdate.byTitle(nvr)
-        (subject, body) = mail.get_template(update)
-        return dict(text=body, title=subject)
