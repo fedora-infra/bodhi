@@ -409,7 +409,7 @@ class Root(controllers.RootController):
                 'release'     : release,
                 'type'        : type,
                 'cves'        : ' '.join(cves),
-                'bugs'        : ' '.join(bugs),
+                'bugs'        : ' '.join(str(bugs)),
                 'notes'       : notes,
                 'close_bugs'  : close_bugs and 'True' or '',
                 'edited'      : edited
