@@ -11,14 +11,11 @@
 
 <body>
 
-<?python
-bugs = "https://bugzilla.redhat.com/bugzilla/buglist.cgi?component=%s&bug_status=NEW&bug_status=ASSIGNED&bug_status=NEEDINFO&bug_status=MODIFIED" % pkg.name
-?>
-
 <blockquote>
     <h1>${pkg.name}</h1>
     <ul>
-        <li><a href="${bugs}">Open Bugs</a></li>
+        <li><a href="https://bugzilla.redhat.com/bugzilla/buglist.cgi?component=${pkg.name}&amp;bug_status=NEW&amp;bug_status=ASSIGNED&amp;bug_status=NEEDINFO&amp;bug_status=MODIFIED">Open Bugs</a></li>
+        <li><a href="https://admin.fedoraproject.org/pkgdb/packages/name/${pkg.name}">Package Database</a></li>
     </ul>
 </blockquote>
 
