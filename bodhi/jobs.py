@@ -22,7 +22,7 @@ import shutil
 import logging
 import datetime
 
-from os.path import isdir, realpath, dirname, join
+from os.path import isdir, realpath, dirname, join, islink
 from turbogears import scheduler, config
 from bodhi.model import Release
 
