@@ -17,19 +17,38 @@
     using the TurboGears scheduler.
 """
 
+import os
+import shutil
 import logging
+import datetime
 
-from turbogears import scheduler
+from os.path import isdir, realpath, dirname, join
+from turbogears import scheduler, config
+from bodhi.model import Release
 
 log = logging.getLogger(__name__)
 
 def clean_repo():
-    log.debug("hello world")
+    """
+    Clean up our mashed_dir, removing all referenced repositories
+    """
+    log.info("Starting clean_repo job")
+    liverepos = []
+    repos = config.get('mashed_dir')
+    for release in [rel.name.lower() for rel in Release.select()]:
+        for repo in [release + '-updates', release + '-updates-testing']:
+            liverepos.append(dirname(realpath(join(repos, repo))))
+    for repo in [join(repos, repo) for repo in os.listdir(repos)]:
+        fullpath = realpath(repo)
+        if isdir(fullpath) and fullpath not in liverepos:
+            log.info("Removing %s" % fullpath)
+            #shutil.rmtree(fullpath)
 
 def schedule():
     """ Schedule our periodic tasks """
 
-    #scheduler.add_interval_task(action=clean_repo,
-    #                            taskname='Repository Cleanup',
-    #                            initialdelay=0,
-    #                            interval=10)
+    # Weekly repository cleanup
+    scheduler.add_interval_task(action=clean_repo,
+                                taskname='Repository Cleanup',
+                                initialdelay=0,
+                                interval=604800)
