@@ -39,10 +39,11 @@ def clean_repo():
         for repo in [release + '-updates', release + '-updates-testing']:
             liverepos.append(dirname(realpath(join(repos, repo))))
     for repo in [join(repos, repo) for repo in os.listdir(repos)]:
-        fullpath = realpath(repo)
-        if isdir(fullpath) and fullpath not in liverepos:
-            log.info("Removing %s" % fullpath)
-            #shutil.rmtree(fullpath)
+        if not islink(repo) and isdir(repo):
+            fullpath = realpath(repo)
+            if fullpath not in liverepos:
+                log.info("Removing %s" % fullpath)
+                #shutil.rmtree(fullpath)
 
 def schedule():
     """ Schedule our periodic tasks """
