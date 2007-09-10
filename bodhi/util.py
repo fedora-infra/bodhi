@@ -159,3 +159,15 @@ def get_release_tuples():
         names.append(release['name'])
         names.append(release['long_name'])
     return names
+
+def get_repo_tag(repo):
+    """ Pull the koji tag from the given mash repo """
+    mashconfig = join(dirname(config.get('mash_conf')), basename(repo) + '.mash')
+    if isfile(mashconfig):
+        mashconfig = file(mashconfig, 'r')
+        lines = mashconfig.readlines()
+        mashconfig.close()
+        return filter(lambda x: x.startswith('tag ='), lines)[0].split()[-1]
+    else:
+        log.error("Cannot find mash configuration for %s: %s" % (repo,
+                                                                 mashconfig))
