@@ -152,7 +152,7 @@ marked as stable.\n\n%(updatestr)s
 
     'comment' : {
         'body'    : """\
-The following comment has been added to your %(package)s update:
+The following comment has been added to the %(package)s update:
 
 %(comment)s
 
@@ -164,9 +164,32 @@ To reply to this comment, please visit the URL at the bottom of this mail
                         'package'   : x.title,
                         'comment'   : x.comments[-1],
                         'updatestr' : str(x)
+                   }
+    },
 
-                    }
+    'old_testing' : {
+        'body'    : """\
+The update for %(package)s has been in 'testing' status for over 2 weeks.
+This update can be marked as stable after it achives a karma of %(stablekarma)d
+or by clicking 'Push to Stable'.
+
+This is just a courtesy nagmail.  Updates may reside in the testing repository
+for more than 2 weeks if you deem it necessary.
+
+You can submit this update to be pushed to the stable repository by going to
+the following URL:
+
+    http://admin.fedoraproject.org/updates/move/%(package)s
+
+%(updatestr)s
+""",
+        'fields' : lambda x: {
+                        'package'     : x.title,
+                        'stablekarma' : config.get('stable_karma', 3),
+                        'updatestr'   : str(x)
+                   }
     }
+
 }
 
 errata_template = """\
