@@ -18,13 +18,14 @@ import os
 import rpm
 import gzip
 import logging
+import commands
 
 from xml.dom import minidom
 from os.path import join, basename, exists
 from sqlobject import SQLObjectNotFound
 from turbogears import config
 
-from bodhi.util import sha1sum
+from bodhi.util import get_repo_tag
 from bodhi.model import PackageBuild
 from bodhi.buildsys import get_session
 from bodhi.modifyrepo import RepoMetadata
@@ -34,13 +35,16 @@ log = logging.getLogger(__name__)
 
 class ExtendedMetadata:
 
-    def __init__(self, tag):
-        self.tag = tag
+    def __init__(self, repo):
+        self.tag = get_repo_tag(repo)
+        self.repo = repo
         self.doc = None
         self.updates = set()
+        self.checksums = {} # { pkg-ver-rel : { arch : checksum, ... }, ... }
         self.koji = get_session()
         self._create_document()
         self._fetch_updates()
+        self._fetch_checksums()
         log.debug("Generating XML update metadata for updates")
         map(self.add_update, self.updates)
 
@@ -83,6 +87,22 @@ class ExtendedMetadata:
                    child.firstChild.nodeValue == update.update_id:
                     return elem
         return None
+
+    def _fetch_checksums(self):
+        for arch in os.listdir(self.repo):
+            archrepo = join(self.repo, arch)
+            cmd = 'repoquery --repofrompath=foo,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=foo' % archrepo
+            print cmd
+            out = commands.getoutput('repoquery --repofrompath=foo,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=foo' % archrepo)
+            try:
+                for line in out.split('\n')[1:]:
+                    pkg, csum = line.split()
+                    if not self.checksums.has_key(pkg):
+                        self.checksums[pkg] = {}
+                    self.checksums[pkg][arch] = csum
+            except Exception, e:
+                log.error("Unable to parse repoquery output: %s" % e)
+        log.debug("checksums = %s" % self.checksums)
 
     #def remove_update(self, update):
     #    elem = self._get_notice(update)
@@ -153,9 +173,6 @@ class ExtendedMetadata:
                     arch = 'i386'
                 else:
                     arch = rpm['arch']
-                filepath = join(config.get('build_dir'), kojiBuild['name'],
-                                kojiBuild['version'], kojiBuild['release'],
-                                rpm['arch'], filename)
                 urlpath = join(config.get('file_url'),
                                update.status == 'testing' and 'testing' or '',
                                update.release.name[-1], arch, filename)
@@ -169,9 +186,9 @@ class ExtendedMetadata:
                 self._insert(pkg, 'filename', text=filename)
                 try:
                     self._insert(pkg, 'sum', attrs={ 'text' : 'sha1' },
-                                 text=sha1sum(filepath))
-                except IOError:
-                    log.error("Cannot find package for checksum: %s" % filepath)
+                                 text=self.checksums[rpm['nvr']][arch])
+                except KeyError:
+                    log.error("Unable to find checksum for %s" % rpm['nvr'])
 
                 if build.package.suggest_reboot:
                     self._insert(pkg, 'reboot_suggested', text='True')
@@ -182,10 +199,11 @@ class ExtendedMetadata:
         root.appendChild(pkglist)
         log.debug("Metadata generation successful")
 
-    def insert_updateinfo(self, repo):
-        try:
-            repomd = RepoMetadata(repo)
-            log.debug("Inserting updateinfo.xml.gz into %s" % repo)
-            repomd.add(self.doc)
-        except RepositoryNotFound:
-            log.error("Cannot find repomd.xml in %s" % repo)
+    def insert_updateinfo(self):
+        for arch in os.listdir(self.repo):
+            try:
+                repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
+                log.debug("Inserting updateinfo.xml.gz into %s" % self.repo)
+                repomd.add(self.doc)
+            except RepositoryNotFound:
+                log.error("Cannot find repomd.xml in %s" % self.repo)

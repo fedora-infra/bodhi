@@ -43,17 +43,18 @@ class TestExtendedMetadata(testutil.DBTest):
         update.assign_id()
         print update
 
-        # Generate the XML
-        md = ExtendedMetadata('dist-fc7-updates-testing')
-        md.add_update(update)
-
         ## Initialize our temporary repo
-        temprepo = tempfile.mkdtemp('bodhi')
+        temprepo = join(tempfile.mkdtemp('bodhi'), 'f7-updates-testing')
         print "Inserting updateinfo into temprepo: %s" % temprepo
-        mkmetadatadir(temprepo)
-        repodata = join(temprepo, 'repodata')
+        mkmetadatadir(join(temprepo, 'i386'))
+        repodata = join(temprepo, 'i386', 'repodata')
         assert exists(join(repodata, 'repomd.xml'))
-        md.insert_updateinfo(repodata)
+
+        ## Generate the XML
+        md = ExtendedMetadata(temprepo)
+
+        ## Insert the updateinfo.xml into the repository
+        md.insert_updateinfo()
         updateinfo = join(repodata, 'updateinfo.xml.gz')
         assert exists(updateinfo)
 

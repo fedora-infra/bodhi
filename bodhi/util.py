@@ -26,7 +26,7 @@ import traceback
 
 from kid import Element
 from koji import fixEncoding
-from os.path import isdir, exists
+from os.path import isdir, exists, join, dirname, basename, isfile
 from datetime import datetime
 from turbogears import config, url, flash
 from bodhi.exceptions import RPMNotFound
@@ -162,7 +162,7 @@ def get_release_tuples():
 
 def get_repo_tag(repo):
     """ Pull the koji tag from the given mash repo """
-    mashconfig = join(dirname(config.get('mash_conf')), basename(repo) + '.mash')
+    mashconfig = join(dirname(config.get('mash_conf')), basename(repo)+'.mash')
     if isfile(mashconfig):
         mashconfig = file(mashconfig, 'r')
         lines = mashconfig.readlines()

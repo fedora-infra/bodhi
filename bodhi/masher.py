@@ -21,7 +21,7 @@ from bodhi import buildsys, mail
 from bodhi.util import synchronized
 from threading import Thread, Lock
 from turbogears import config
-from os.path import exists, join, islink, dirname, basename, isfile
+from os.path import exists, join, islink
 
 log = logging.getLogger(__name__)
 masher = None
@@ -278,9 +278,8 @@ class MashTask(Thread):
         log.debug("Generating updateinfo.xml.gz for %s" % repo)
         t0 = time.time()
         uinfo = ExtendedMetadata(repo)
-        for arch in os.listdir(repo):
-            uinfo.insert_updateinfo(join(repo, arch, 'repodata'))
-        log.debug("Updateinfo generatin/insertion took: %s" % (time.time() - t0))
+        uinfo.insert_updateinfo()
+        log.debug("Updateinfo generation/insertion took: %s" % (time.time()-t0))
 
     def __str__(self):
         val = '[ Mash Task #%d ]\n' % self.id
