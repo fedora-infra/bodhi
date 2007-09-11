@@ -386,7 +386,7 @@ class PackageUpdate(SQLObject):
 
     def get_submitted_age(self):
         return get_age(self.date_submitted)
-    
+
     def get_pushed_color(self):
         age = get_age_in_days(self.date_pushed)
         if age == 0:
@@ -398,7 +398,7 @@ class PackageUpdate(SQLObject):
         else:
             color = '#00ff00' # green
         return color
-    
+
     def comment(self, text, karma):
         """
         Add a comment to this update, adjusting the karma appropriately.
@@ -420,6 +420,12 @@ class PackageUpdate(SQLObject):
         comment = Comment(text=text, karma=karma, update=self,
                           author=identity.current.user_name)
         mail.send(self.submitter, 'comment', self)
+
+        # Send a notification to everyone that has commented on this update
+        people = set()
+        map(lambda comment: people.add(comment.author), self.comments)
+        for person in people:
+            mail.send(person, 'comment', self)
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
