@@ -15,7 +15,6 @@
 import os
 import rpm
 import time
-import shutil
 import logging
 import xmlrpclib
 import turbogears
@@ -26,7 +25,7 @@ from datetime import datetime
 from turbogears import config, flash
 from turbogears.database import PackageHub
 
-from os.path import isdir, isfile, join, basename
+from os.path import isfile, join
 from textwrap import wrap
 
 from bodhi import buildsys, mail
@@ -39,7 +38,7 @@ hub = PackageHub("bodhi")
 __connection__ = hub
 
 soClasses=('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
-           'Bugzilla', 'Comment', 'User', 'Group')
+           'Bugzilla', 'Comment', 'User', 'Group', 'Visit')
 
 class Release(SQLObject):
     """ Table of releases that we will be pushing updates for """
