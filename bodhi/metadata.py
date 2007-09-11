@@ -89,6 +89,10 @@ class ExtendedMetadata:
         return None
 
     def _fetch_checksums(self):
+        """
+        Pull a list of 'name-version-release sha1' from our repodata and store
+        it in self.checksums = { n-v-r : { arch : sha1sum } }
+        """
         for arch in os.listdir(self.repo):
             archrepo = join(self.repo, arch)
             cmd = 'repoquery --repofrompath=foo,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=foo' % archrepo
