@@ -25,7 +25,7 @@ import logging
 import traceback
 
 from kid import Element
-from koji import fixEncoding
+#from koji import fixEncoding
 from os.path import isdir, exists, join, dirname, basename, isfile
 from datetime import datetime
 from turbogears import config, url, flash
@@ -100,6 +100,28 @@ def synchronized(lock):
                 lock.release()
         return new
     return wrap
+
+def fixEncoding(value, fallback='iso8859-15'):
+    """
+    Convert value to a 'str' object encoded as UTF-8.
+    If value is not valid UTF-8 to begin with, assume it is
+    encoded in the 'fallback' charset.
+    """
+    if not value:
+        return value
+
+    if isinstance(value, unicode):
+        # value is already unicode, so just convert it
+        # to a utf8-encoded str
+        return value.encode('utf8')
+    else:
+        # value is a str, but may be encoded in utf8 or some
+        # other non-ascii charset.  Try to verify it's utf8, and if not,
+        # decode it using the fallback encoding.
+        try:
+            return value.decode('utf8').encode('utf8')
+        except UnicodeDecodeError, err:
+            return value.decode(fallback).encode('utf8')
 
 def displayname(identity):
     """
