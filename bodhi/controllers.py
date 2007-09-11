@@ -486,7 +486,7 @@ class Root(controllers.RootController):
             p = PackageUpdate.byTitle(edited)
             try:
                 p.set(release=release, date_modified=datetime.now(),
-                      notes=notes, type=type, title=' '.join(builds),
+                      notes=notes, type=type, title=','.join(builds),
                       close_bugs=close_bugs)
                 log.debug("Edited update %s" % edited)
             except (DuplicateEntryError, PostgresIntegrityError,
@@ -498,7 +498,7 @@ class Root(controllers.RootController):
                 raise redirect('/new', **params)
         else:
             try:
-                p = PackageUpdate(title=' '.join(builds), release=release,
+                p = PackageUpdate(title=','.join(builds), release=release,
                                   submitter=identity.current.user_name,
                                   notes=notes, type=type, close_bugs=close_bugs)
                 log.info("Adding new update %s" % builds)

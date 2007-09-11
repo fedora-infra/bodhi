@@ -303,7 +303,7 @@ class PackageUpdate(SQLObject):
         """
         Return a string representation of this update.
         """
-        val = header(self.title.replace(' ', ', '))
+        val = header(self.title.replace(',', ', '))
         if self.update_id:
             val += "  Update ID: %s\n" % self.update_id
         val += """    Release: %s

@@ -45,7 +45,7 @@
                 ${update.update_id}
             </td>
             <td class="list">
-                <a class="list" href="${tg.url(update.get_url())}">${update.title}</a>
+                <a class="list" href="${tg.url(update.get_url())}">${update.title.replace(',', ', ')}</a>
             </td>
             <td class="list">
                 <a class="list" href="${tg.url('/%s%s' % (update.status=='testing' and 'testing/' or '', update.release.name))}">${"%s%s" % (update.release.long_name, update.status=='testing' and ' Testing' or '')}</a>
