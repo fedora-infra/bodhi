@@ -37,7 +37,6 @@ from bodhi.admin import AdminController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
-from bodhi.xmlrpc import XmlRpcController
 from bodhi.widgets import CommentForm
 from bodhi.exceptions import (RPMNotFound, DuplicateEntryError,
                               PostgresIntegrityError, SQLiteIntegrityError)
@@ -52,7 +51,6 @@ class Root(controllers.RootController):
     new = NewUpdateController()
     admin = AdminController()
     search = SearchController()
-    rpc = XmlRpcController()
     rss = Feed("rss2.0")
 
     comment_form = CommentForm()

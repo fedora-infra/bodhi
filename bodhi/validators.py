@@ -44,7 +44,7 @@ class AutoCompleteValidator(validators.Schema):
         elif isinstance(value['text'], list):
             vals = value['text']
         for build in vals:
-            builds += build.split(',')
+            builds += build.replace(',', ' ').split()
         return map(PackageValidator().to_python,
                    map(validators.UnicodeString().to_python,
                        filter(lambda x: x != '', builds)))
