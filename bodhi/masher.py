@@ -168,10 +168,11 @@ class MashTask(Thread):
             current_tag = update.get_build_tag()
             log.debug("Moving %s from %s to %s" % (update.title, current_tag,
                                                    self.tag))
-            task_id = self.koji.moveBuild(current_tag, self.tag,
-                                          update.title, force=True)
-            self.actions.append((update.title, current_tag, self.tag))
-            tasks.append(task_id)
+            for build in update.builds:
+                task_id = self.koji.moveBuild(current_tag, self.tag,
+                                              build.nvr, force=True)
+                self.actions.append((build.nvr, current_tag, self.tag))
+                tasks.append(task_id)
         if buildsys.wait_for_tasks(tasks) == 0:
             success = True
         self.moving = False

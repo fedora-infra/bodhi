@@ -42,7 +42,7 @@
         <?python row_color = "#FFFFFF" ?>
         <tr class="list" bgcolor="${row_color}" py:for="update in updates">
             <td class="list">
-                <a class="list" href="${tg.url(update.get_url())}">${update.title}</a>
+                <a class="list" href="${tg.url(update.get_url())}">${update.title.replace(',', ', ')}</a>
             </td>
             <td class="list">
                 <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>
