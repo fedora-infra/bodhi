@@ -24,7 +24,10 @@ import datetime
 
 from os.path import isdir, realpath, dirname, join, islink
 from turbogears import scheduler, config
-from bodhi.model import Release
+
+from bodhi import mail
+from bodhi.util import get_age_in_days
+from bodhi.model import Release, PackageUpdate
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +48,21 @@ def clean_repo():
                 log.info("Removing %s" % fullpath)
                 #shutil.rmtree(fullpath)
 
+def nagmail():
+    # Nag submitters when their update has been sitting in testing for more
+    # than two weeks.
+    for update in PackageUpdate.select(PackageUpdate.q.status == 'testing'):
+        if get_age_in_days(update.date_pushed) > 14:
+            log.info("Nagging %s about testing update %s" % (update.submitter,
+                     update.title))
+            mail.send(update.submitter, 'old_testing', update)
+
+    # Nag submitters if their update has been sitting unsubmitted in a pending
+    # state for longer than a week.
+    # TODO: implement this once the current 'pending' situation is under
+    # control.  Right now, with our production instance, unpushed updates go
+    # back into this state -- and we don't want to nag about those.
+
 def schedule():
     """ Schedule our periodic tasks """
 
@@ -52,4 +70,10 @@ def schedule():
     scheduler.add_interval_task(action=clean_repo,
                                 taskname='Repository Cleanup',
                                 initialdelay=0,
+                                interval=604800)
+
+    # Weekly nagmail
+    scheduler.add_interval_task(action=nagmail,
+                                taskname='Nagmail',
+                                initialdelay=10,
                                 interval=604800)

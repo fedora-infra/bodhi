@@ -15,7 +15,6 @@
 import os
 import rpm
 import time
-import shutil
 import logging
 import xmlrpclib
 import turbogears
@@ -26,7 +25,7 @@ from datetime import datetime
 from turbogears import config, flash
 from turbogears.database import PackageHub
 
-from os.path import isdir, isfile, join, basename
+from os.path import isfile, join
 from textwrap import wrap
 
 from bodhi import buildsys, mail
@@ -39,7 +38,7 @@ hub = PackageHub("bodhi")
 __connection__ = hub
 
 soClasses=('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
-           'Bugzilla', 'Comment', 'User', 'Group')
+           'Bugzilla', 'Comment', 'User', 'Group', 'Visit')
 
 class Release(SQLObject):
     """ Table of releases that we will be pushing updates for """
@@ -386,7 +385,7 @@ class PackageUpdate(SQLObject):
 
     def get_submitted_age(self):
         return get_age(self.date_submitted)
-    
+
     def get_pushed_color(self):
         age = get_age_in_days(self.date_pushed)
         if age == 0:
@@ -398,7 +397,7 @@ class PackageUpdate(SQLObject):
         else:
             color = '#00ff00' # green
         return color
-    
+
     def comment(self, text, karma):
         """
         Add a comment to this update, adjusting the karma appropriately.
@@ -420,6 +419,12 @@ class PackageUpdate(SQLObject):
         comment = Comment(text=text, karma=karma, update=self,
                           author=identity.current.user_name)
         mail.send(self.submitter, 'comment', self)
+
+        # Send a notification to everyone that has commented on this update
+        people = set()
+        map(lambda comment: people.add(comment.author), self.comments)
+        for person in people:
+            mail.send(person, 'comment', self)
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.now)
