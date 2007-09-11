@@ -98,7 +98,7 @@ class TestControllers(testutil.DBTest):
             'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        update = PackageUpdate.byTitle(params['builds'])
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert update
         builds = map(lambda x: x.nvr, update.builds)
         for build in params['builds'].split():
@@ -160,7 +160,7 @@ class TestControllers(testutil.DBTest):
             'notes'   : 'Foo\u2019bar'
         }
         self.save_update(params, session)
-        update = PackageUpdate.byTitle('TurboGears-1.0.2.2-2.fc7')
+        update = PackageUpdate.byTitle(params['builds'])
         assert update.title == params['builds']
         assert update.builds[0].nvr == params['builds']
         assert update.release.long_name == params['release']
@@ -249,7 +249,7 @@ class TestControllers(testutil.DBTest):
             'edited'  : 'TurboGears-1.0.2.2-2.fc7'
         }
         self.save_update(params, session)
-        update = PackageUpdate.byTitle(params['builds'])
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert len(update.builds) == 2
         builds = map(lambda x: x.nvr, update.builds)
         for build in params['builds'].split():
@@ -268,10 +268,10 @@ class TestControllers(testutil.DBTest):
             'bugs'    : '',
             'cves'    : '',
             'notes'   : 'foobar',
-            'edited'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7'
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-0.8.2-1.fc7'
         }
         self.save_update(params, session)
-        update = PackageUpdate.byTitle(params['builds'])
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert len(update.builds) == 1
         build = PackageBuild.byNvr(params['builds'])
         assert build.updates[0] == update
