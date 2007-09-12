@@ -67,3 +67,24 @@ class NewUpdateForm(Form):
                      default=True),
             HiddenField('edited', default=None),
     ]
+
+class OkCancelForm(Form):
+    name = "okcancelform"
+    member_widgets = ["ok", "cancel"]
+    params = ["action", "method"]
+    ok = SubmitButton('ok')
+    cancel = SubmitButton('cancel')
+    
+    template = """
+    <form xmlns:py="http://purl.org/kid/ns#"
+        name="${name}"
+        action="${action}"
+        method="${method}"
+        class="okcancelform"
+    >
+        <div >
+            <div py:content="ok.display('Ok')" />
+            <div py:content="cancel.display('Cancel')" />
+        </div>
+    </form>
+    """

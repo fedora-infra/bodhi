@@ -37,7 +37,7 @@ from bodhi.admin import AdminController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
-from bodhi.widgets import CommentForm
+from bodhi.widgets import CommentForm, OkCancelForm
 from bodhi.exceptions import (RPMNotFound, DuplicateEntryError,
                               PostgresIntegrityError, SQLiteIntegrityError)
 
@@ -54,6 +54,7 @@ class Root(controllers.RootController):
     rss = Feed("rss2.0")
 
     comment_form = CommentForm()
+    ok_cancel_form = OkCancelForm()
 
     def exception(self, tg_exceptions=None):
         """ Generic exception handler """
@@ -622,3 +623,14 @@ class Root(controllers.RootController):
         else:
             update.comment(text, karma)
         raise redirect(update.get_url())
+
+    @expose(template='bodhi.templates.confirmation')
+    def confirm_delete(self, nvr=None, ok=None, cancel=None):
+        update = PackageUpdate.byTitle(nvr)
+        if ok:
+            flash(_(u"Delete completed"))
+            raise redirect('/delete/%s' % update.title)
+        if cancel:
+            flash(_(u"Delete canceled" ))
+            raise redirect(update.get_url())
+        return dict(form=self.ok_cancel_form, nvr=nvr)
