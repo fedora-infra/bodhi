@@ -77,7 +77,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="${tg.url('/delete/%s' % update.title)}" class="list">
+                                    <a href="${tg.url('/confirm_delete?nvr=%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/trash.png')}" border="0"/>
                                         Delete
                                     </a>
