@@ -7,14 +7,17 @@
     <link media="all" href="${tg.url('/tg_widgets/turbogears.widgets/grid.css')}" type="text/css" rel="stylesheet"/>
 </head>
 <body>
-
     <blockquote>
-        <h1>Welcome, ${tg.identity.user.display_name}</h1>
-        ${now}
-        <table cellpadding="5" cellspacing="5">
+        <table width="100%">
             <tr>
-                <td>
-                    <table width="100%">
+                <td align="left"><b><font size="4">Welcome, ${tg.identity.user.display_name}</font></b></td>
+                <td align="right">${now}</td>
+            </tr>
+        </table>
+        <table cellpadding="5" cellspacing="5" valign="top">
+            <tr>
+                <td valign="top">
+                    <table>
                         <tr>
                             <td align="right">
                                 <img src="${tg.url('/static/images/bodhi-icon-36.png')}" height="36" width="36"/>
@@ -52,12 +55,12 @@
                                 <img src="${tg.url('/static/images/mugshot.png')}" border="0" align="middle" alt="Fedora Infrastructure Mugshot Group"/>
                             </td>
                             <td align="left">
-                                <a href="http://mugshot.org/group?who=yWstkV2xGz93rQ" class="list">Join the Fedora Infrastructure Mugshot group</a>
+                                <a href="http://mugshot.org/group?who=yWstkV2xGz93rQ" class="list">Fedora Infrastructure Mugshot group</a>
                             </td>
                         </tr>
                         </table>
                     </td>
-                    <td valign="top">
+                    <td valign="top" width="60%" height="100%">
                         <div class="tabber">
                             <div class="tabbertab" py:for="title, value in grids.items()">
                                 <h2>${title}</h2>
