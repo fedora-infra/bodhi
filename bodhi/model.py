@@ -245,9 +245,10 @@ class PackageUpdate(SQLObject):
             self.assign_id()
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
-            mail.send(self.submitter, 'pushed', self)
+            self.comment('This update has been pushed as stable',
+                         author='bodhi')
         elif self.request == 'unpush':
-            mail.send(self.submitter, 'unpushed', self)
+            self.comment('This update has been unpushed', author='bodhi')
             self.pushed = False
             self.status = 'obsolete'
         elif self.request == 'move':
@@ -255,7 +256,8 @@ class PackageUpdate(SQLObject):
             self.date_pushed = datetime.now()
             self.status = 'stable'
             self.assign_id()
-            mail.send(self.submitter, 'moved', self)
+            self.comment('This update has been pushed as testing',
+                         author='bodhi')
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
             if self.close_bugs:
@@ -385,7 +387,6 @@ class PackageUpdate(SQLObject):
 
     def get_submitted_age(self):
         return get_age(self.date_submitted)
-
     def get_pushed_color(self):
         age = get_age_in_days(self.date_pushed)
         if age == 0:
@@ -398,7 +399,7 @@ class PackageUpdate(SQLObject):
             color = '#00ff00' # green
         return color
 
-    def comment(self, text, karma):
+    def comment(self, text, karma=0, author=None):
         """
         Add a comment to this update, adjusting the karma appropriately.
         Each user can adjust an updates karma once in each direction, thus
@@ -406,18 +407,18 @@ class PackageUpdate(SQLObject):
         the 'stable_karma' configuration option, then request that this update
         be marked as stable.
         """
-        if not filter(lambda c: c.author == identity.current.user_name and
+        stable_karma = config.get('stable_karma')
+        if not author: author = identity.current.user_name
+        if not filter(lambda c: c.author == author and
                       c.karma == karma, self.comments):
             self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
-            if config.get('stable_karma', None) and \
-               config.get('stable_karma') == self.karma:
+            if stable_karma and stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = 'move'
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('move', self)
-        comment = Comment(text=text, karma=karma, update=self,
-                          author=identity.current.user_name)
+        comment = Comment(text=text, karma=karma, update=self, author=author)
         mail.send(self.submitter, 'comment', self)
 
         # Send a notification to everyone that has commented on this update
