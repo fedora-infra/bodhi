@@ -54,10 +54,10 @@ class NewUpdateForm(Form):
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             TextField('bugs', validator=BugValidator(),
-                      attrs={'title' : 'A space or comma delimieted list of ' +
+                      attrs={'title' : 'A space or comma delimited list of ' +
                                        'bug numbers.  Example: #1234, 56 789'}),
             TextField('cves', validator=CVEValidator(), label='CVEs',
-                      attrs={'title' : 'A space or comma delimieted list of ' +
+                      attrs={'title' : 'A space or comma delimited list of ' +
                                        'CVE IDs.'}),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=20, cols=65,
