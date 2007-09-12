@@ -486,7 +486,7 @@ class Root(controllers.RootController):
         if edited:
             p = PackageUpdate.byTitle(edited)
             try:
-                p.set(release=release, date_modified=datetime.now(),
+                p.set(release=release, date_modified=datetime.utcnow(),
                       notes=notes, type=type, title=','.join(builds),
                       close_bugs=close_bugs)
                 log.debug("Edited update %s" % edited)

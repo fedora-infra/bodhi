@@ -151,7 +151,7 @@ def make_karma_icon(obj):
     return Element('img', src=url('/static/images/%d.png' % obj.karma))
 
 def get_age(date):
-    age = datetime.now() - date
+    age = datetime.utcnow() - date
     if age.days == 0:
         if age.seconds < 60:
             return "%d seconds" % age.seconds
@@ -160,7 +160,7 @@ def get_age(date):
 
 def get_age_in_days(date):
     if date:
-        age = datetime.now() - date
+        age = datetime.utcnow() - date
         return age.days
     else:
         return 0

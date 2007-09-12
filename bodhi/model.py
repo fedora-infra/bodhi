@@ -167,7 +167,7 @@ class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """
     title            = UnicodeCol(notNone=True, alternateID=True, unique=True)
     builds           = RelatedJoin("PackageBuild")
-    date_submitted   = DateTimeCol(default=datetime.now, notNone=True)
+    date_submitted   = DateTimeCol(default=datetime.utcnow, notNone=True)
     date_modified    = DateTimeCol(default=None)
     date_pushed      = DateTimeCol(default=None)
     submitter        = UnicodeCol(notNone=True)
@@ -240,7 +240,7 @@ class PackageUpdate(SQLObject):
         """
         if self.request == 'push':
             self.pushed = True
-            self.date_pushed = datetime.now()
+            self.date_pushed = datetime.utcnow()
             self.status = 'testing'
             self.assign_id()
             self.send_update_notice()
@@ -253,7 +253,7 @@ class PackageUpdate(SQLObject):
             self.status = 'obsolete'
         elif self.request == 'move':
             self.pushed = True
-            self.date_pushed = datetime.now()
+            self.date_pushed = datetime.utcnow()
             self.status = 'stable'
             self.assign_id()
             self.comment('This update has been pushed as testing',
