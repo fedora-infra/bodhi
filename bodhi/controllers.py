@@ -405,10 +405,10 @@ class Root(controllers.RootController):
         # Parameters used to re-populate the update form if something fails
         params = {
                 'builds.text' : ' '.join(builds),
-                'release'     : release,
+                'release'     : release.long_name,
                 'type'        : type,
                 'cves'        : ' '.join(cves),
-                'bugs'        : ' '.join(str(bugs)),
+                'bugs'        : ' '.join(map(str, bugs)),
                 'notes'       : notes,
                 'close_bugs'  : close_bugs and 'True' or '',
                 'edited'      : edited
