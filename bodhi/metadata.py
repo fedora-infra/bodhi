@@ -95,11 +95,11 @@ class ExtendedMetadata:
         """
         for arch in os.listdir(self.repo):
             archrepo = join(self.repo, arch)
-            cmd = 'repoquery --repofrompath=foo,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=foo' % archrepo
-            print cmd
-            out = commands.getoutput('repoquery --repofrompath=foo,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=foo' % archrepo)
+            cmd = 'repoquery --repofrompath=foo,%s --repofrompath=bar,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=foo --repoid=bar' % (archrepo, join(archrepo, 'debug'))
+            log.debug("Running `%s`" % cmd)
+            out = commands.getoutput(cmd)
             try:
-                for line in out.split('\n')[1:]:
+                for line in out.split('\n')[2:]:
                     pkg, csum = line.split()
                     if not self.checksums.has_key(pkg):
                         self.checksums[pkg] = {}
