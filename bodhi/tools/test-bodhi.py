@@ -18,7 +18,7 @@
 import os
 
 PKG = 'yumex-2.0.1-2.fc7' # This package is a test build i have made in Koji
-BODHI = './bodhi.py'
+BODHI = './bodhi-client.py'
 IMPORT_FILE  = 'bodhi-test-import'
 
 def make_import_file(typ,cve=False):

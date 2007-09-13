@@ -5,7 +5,7 @@ from turbogears.finddata import find_package_data
 
 setup(
     name="bodhi",
-    version="1.0",
+    version="0.2.0",
     description="",
     author="Luke Macken",
     author_email="lmacken@fedoraproject.org",

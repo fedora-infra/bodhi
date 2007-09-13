@@ -2,31 +2,38 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        1.0
-Release:        3%{?dist}
-Summary:        TODO
+Version:        0.2.0
+Release:        1%{?dist}
+Summary:        A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
 
 Group:          Applications/Internet
-License:        GPL
+License:        GPLv2
 URL:            https://hosted.fedoraproject.org/projects/bodhi
 Source0:        bodhi-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
 BuildRequires:  python-setuptools
-Requires:       TurboGears createrepo python-TurboMail tree yum-utils
 
 %description
 Bodhi is a modular web system that facilitates the process of publishing
 updates for a software distribution.
 
-%package utils
-Summary: Bodhi Utilities
+%package client
+Summary: Bodhi Client
 Group: Applications/Internet
-Requires: %{name} = %{version}-%{release}
 
-%description utils
-Utilities for the Bodhi update system
+%description client 
+Client tools for interacting with bodhi
+
+
+%package server
+Summary: Bodhi Server
+Group: Applications/Internet
+Requires: TurboGears createrepo python-TurboMail yum-utils intltool mash
+
+%description server
+The bodhi server
 
 %prep
 %setup -q
@@ -45,23 +52,17 @@ make DESTDIR=$RPM_BUILD_ROOT install
 rm -rf $RPM_BUILD_ROOT
 
 
-%files
+%files server
 %defattr(-,root,root,-)
 %doc README
 %{_bindir}/start-bodhi.py*
 %{python_sitelib}/%{name}
 %{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info
 
-%files utils
+%files client
 %{_bindir}/bodhi
 
 
 %changelog
-* Sun Apr 22 2007 Luke Macken <lmacken@redhat.com> - 1.0-3
-- Add utils subpackage
-
-* Fri Jan 19 2007 Luke Macken <lmacken@redhat.com> - 1.0-2
-- Rename project to bodhi
-
-* Fri Dec 29 2006 Luke Macken <lmacken@redhat.com> - 1.0-1
-- Initial creation
+* Thu Sep 13 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-1
+- Split spec file into client/server subpackages

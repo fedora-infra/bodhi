@@ -25,12 +25,12 @@ import cPickle as pickle
 
 from os.path import isfile
 from sqlobject import SQLObjectNotFound
+from turbogears.database import PackageHub
+from turbogears import update_config
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
                               PostgresIntegrityError)
 from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
                          Package, PackageBuild)
-from turbogears import update_config
-from turbogears.database import PackageHub
 
 hub = __connection__ = PackageHub("bodhi")
 
