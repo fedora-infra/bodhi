@@ -62,7 +62,6 @@ bodhi/templates/list.kid
 bodhi/templates/login.kid
 bodhi/templates/master.kid
 bodhi/templates/push.kid
-bodhi/templates/pushconsole.kid
 bodhi/templates/show.kid
 bodhi/tests/__init__.py
 bodhi/tests/test_buildsystem.py
