@@ -170,7 +170,7 @@ To reply to this comment, please visit the URL at the bottom of this mail
     'old_testing' : {
         'body'    : """\
 The update for %(package)s has been in 'testing' status for over 2 weeks.
-This update can be marked as stable after it achives a karma of %(stablekarma)d
+This update can be marked as stable after it achieves a karma of %(stablekarma)d
 or by clicking 'Push to Stable'.
 
 This is just a courtesy nagmail.  Updates may reside in the testing repository
