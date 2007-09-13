@@ -171,11 +171,11 @@ def flash_log(msg):
     log.debug(msg)
 
 def get_release_names():
-    from init import releases
+    from bodhi.tools.init import releases
     return map(lambda release: release['long_name'], releases)
 
 def get_release_tuples():
-    from init import releases
+    from bodhi.tools.init import releases
     names = []
     for release in releases:
         names.append(release['name'])

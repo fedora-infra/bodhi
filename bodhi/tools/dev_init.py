@@ -8,7 +8,7 @@ This script will populate your bodhi instance with sample releases, updates,
 comments, etc.
 """
 
-from init import load_config
+from bodhi.tools.init import load_config
 from datetime import datetime
 from turbogears.database import PackageHub
 from bodhi.exceptions import DuplicateEntryError

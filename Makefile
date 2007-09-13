@@ -1,4 +1,11 @@
 # $Id: $
+PKGNAME=bodhi
+PKGRPMFLAGS=--define "_topdir ${PWD}" --define "_specdir ${PWD}" --define "_sourcedir ${PWD}/dist" --define "_srcrpmdir ${PWD}" --define "_rpmdir ${PWD}" --define "_builddir ${PWD}"
+
+default: all
+
+all:
+	@echo "Nothing to do"
 
 .PHONY: docs
 docs:
@@ -29,4 +36,8 @@ build:
 .PHONY: install
 install:
 	python setup.py install -O1 --skip-build --root $(DESTDIR)
-	install -D tools/bodhi-client.py $(DESTDIR)/usr/bin/bodhi
+	install -D bodhi/tools/bodhi-client.py $(DESTDIR)/usr/bin/bodhi
+
+.PHONY: srpm
+srpm: dist
+	@rpmbuild -bs ${PKGRPMFLAGS} ${PKGNAME}.spec
