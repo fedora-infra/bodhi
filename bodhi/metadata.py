@@ -21,7 +21,7 @@ import logging
 import commands
 
 from xml.dom import minidom
-from os.path import join, basename, exists
+from os.path import join, basename, exists, isdir
 from sqlobject import SQLObjectNotFound
 from turbogears import config
 
@@ -40,6 +40,7 @@ class ExtendedMetadata:
         self.repo = repo
         self.doc = None
         self.updates = set()
+        self.builds = {}
         self.checksums = {} # { pkg-ver-rel : { arch : checksum, ... }, ... }
         self.koji = get_session()
         self._create_document()
@@ -53,15 +54,15 @@ class ExtendedMetadata:
         Based on our given koji tag, populate a list of PackageUpdates.
         """
         log.debug("Fetching builds tagged with '%s'" % self.tag)
-        builds = self.koji.listTagged(self.tag, latest=True)
-        log.debug("%d builds found" % len(builds))
-        for build in builds:
+        kojiBuilds = self.koji.listTagged(self.tag, latest=True)
+        log.debug("%d builds found" % len(kojiBuilds))
+        for build in kojiBuilds:
+            self.builds[build['nvr']] = build
             try:
                 b = PackageBuild.byNvr(build['nvr'])
                 map(self.updates.add, b.updates)
             except SQLObjectNotFound, e:
                 log.warning(e)
-        log.debug("%d updates = %s" % (len(self.updates), self.updates))
 
     def _create_document(self):
         log.debug("Creating new updateinfo Document for %s" % self.tag)
@@ -93,8 +94,10 @@ class ExtendedMetadata:
         Pull a list of 'name-version-release sha1' from our repodata and store
         it in self.checksums = { n-v-r : { arch : sha1sum } }
         """
+        log.debug("Fetching checksums from repodata")
         for arch in os.listdir(self.repo):
             archrepo = join(self.repo, arch)
+            if not isdir(archrepo): continue
             cmd = 'repoquery --repofrompath=foo,%s --repofrompath=bar,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=foo --repoid=bar' % (archrepo, join(archrepo, 'debug'))
             log.debug("Running `%s`" % cmd)
             out = commands.getoutput(cmd)
@@ -106,7 +109,6 @@ class ExtendedMetadata:
                     self.checksums[pkg][arch] = csum
             except Exception, e:
                 log.error("Unable to parse repoquery output: %s" % e)
-        log.debug("checksums = %s" % self.checksums)
 
     #def remove_update(self, update):
     #    elem = self._get_notice(update)
@@ -167,7 +169,7 @@ class ExtendedMetadata:
 
         for build in update.builds:
             log.debug("Generating package list for %s" % build.nvr)
-            kojiBuild = self.koji.getBuild(build.nvr)
+            kojiBuild = self.builds[build.nvr]
             rpms = self.koji.listBuildRPMs(kojiBuild['id'])
             for rpm in rpms:
                 filename = "%s.%s.rpm" % (rpm['nvr'], rpm['arch'])
