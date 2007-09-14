@@ -144,10 +144,13 @@ The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 
     'stablekarma' : {
         'body'    : """\
-The following update has reached a karma of %d and is being automatically
+The following update has reached a karma of %(karma)d and is being automatically
 marked as stable.\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: { 'updatestr' : str(x) }
+        'fields'  : lambda x: {
+                        'karma'     : x.karma,
+                        'updatestr' : str(x) 
+                    }
     },
 
     'comment' : {
