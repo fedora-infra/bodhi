@@ -83,7 +83,7 @@ class Root(controllers.RootController):
         # { 'Title' : [SelectResults, [(row, row_callback),]], ... }
         grids = {
             'Comments' : [
-                Comment.select(orderBy=Comment.q.timestamp),
+                Comment.select(orderBy=Comment.q.timestamp).reversed(),
                 [
                     ('Update', make_update_link),
                     ('From', lambda row: row.author),
@@ -95,7 +95,7 @@ class Root(controllers.RootController):
                 PackageUpdate.select(
                     PackageUpdate.q.submitter == identity.current.user_name,
                     orderBy=PackageUpdate.q.date_pushed
-                ),
+                ).reversed(),
                 [
                     ('Name', make_update_link),
                     ('Type', make_type_icon),
@@ -121,7 +121,7 @@ class Root(controllers.RootController):
                 PackageUpdate.select(
                     PackageUpdate.q.status == 'stable',
                     orderBy=PackageUpdate.q.date_pushed
-                ),
+                ).reversed(),
                 [
                     ('Name', make_update_link),
                     ('Update ID', lambda row: row.update_id),
@@ -135,7 +135,7 @@ class Root(controllers.RootController):
                     AND(PackageUpdate.q.type == 'security',
                         PackageUpdate.q.status == 'stable'),
                     orderBy=PackageUpdate.q.date_pushed
-                ),
+                ).reversed(),
                 [
                     ('Name', make_update_link),
                     ('Update ID', lambda row: row.update_id),
