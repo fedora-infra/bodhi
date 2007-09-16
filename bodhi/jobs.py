@@ -46,7 +46,7 @@ def clean_repo():
             fullpath = realpath(repo)
             if fullpath not in liverepos:
                 log.info("Removing %s" % fullpath)
-                #shutil.rmtree(fullpath)
+                shutil.rmtree(fullpath)
 
 def nagmail():
     # Nag submitters when their update has been sitting in testing for more
