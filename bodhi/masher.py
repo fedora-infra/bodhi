@@ -250,9 +250,13 @@ class MashTask(Thread):
         anything fails, undo any tag moves.
         """
         try:
+            t0 = time.time()
             if self.move_builds():
+                log.debug("Moved builds in %s seconds" % (time.time() - t0))
                 self.success = True
+                t0 = time.time()
                 self.mash()
+                log.debug("Mashed for %s seconds" % (time.time() - t0))
                 if self.success:
                     masher.success(self)
                 else:

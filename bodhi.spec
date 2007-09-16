@@ -3,17 +3,21 @@
 
 Name:           bodhi
 Version:        0.2.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
 
 Group:          Applications/Internet
-License:        GPLv2
+License:        GPLv2+
 URL:            https://hosted.fedoraproject.org/projects/bodhi
 Source0:        bodhi-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-BuildRequires:  python-setuptools
+%if 0%{?fedora} >= 8
+BuildRequires: python-setuptools-devel
+%else
+BuildRequires: python-setuptools
+%endif
 
 %description
 Bodhi is a modular web system that facilitates the process of publishing
@@ -64,5 +68,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Sep 15 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-2
+- Handle python-setuptools-devel changes in Fedora 8
+- Update license to GPLv2+
+
 * Thu Sep 13 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-1
 - Split spec file into client/server subpackages

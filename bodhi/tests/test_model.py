@@ -14,7 +14,7 @@ import tempfile
 from os.path import join, exists, basename
 from bodhi.util import mkmetadatadir
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
-                         PackageBuild)
+                         PackageBuild, Comment)
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
                               PostgresIntegrityError, RPMNotFound)
 
@@ -52,6 +52,9 @@ class TestPackageUpdate(testutil.DBTest):
     def get_cve(self):
         return CVE(cve_id="CVE-2007-0000")
 
+    def get_comment(self, update):
+        return Comment(author='bodhi', text='foobar', karma=0, update=update)
+
     def test_dupe(self):
         update1 = self.get_update()
         try:
@@ -60,6 +63,14 @@ class TestPackageUpdate(testutil.DBTest):
                 SQLiteIntegrityError):
             return
         assert False
+
+    def test_mail_notices(self):
+        """ Make sure all of our mail notices can expand properly """
+        from bodhi.mail import messages
+        update = self.get_update()
+        self.get_comment(update)
+        for title, data in messages.items():
+            assert data['body'] % data['fields'](update)
 
     def test_creation(self):
         update = self.get_update()

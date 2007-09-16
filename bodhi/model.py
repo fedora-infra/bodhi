@@ -419,10 +419,10 @@ class PackageUpdate(SQLObject):
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('move', self)
         comment = Comment(text=text, karma=karma, update=self, author=author)
-        mail.send(self.submitter, 'comment', self)
 
         # Send a notification to everyone that has commented on this update
         people = set()
+        people.add(self.submitter)
         map(lambda comment: people.add(comment.author), self.comments)
         for person in people:
             mail.send(person, 'comment', self)

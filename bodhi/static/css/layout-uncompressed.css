@@ -130,7 +130,7 @@ a[name] {
 #fedora-side-left {
 	position: absolute;
 	z-index: 2;
-	width: 11em;
+	width: 12em;
 	/* Space down for the approx line height (fonts) */
 	left: 12px;
 }
@@ -227,7 +227,7 @@ a[name] {
 	z-index: 3; /* content can overlap when the browser is narrow */
 }
 #fedora-middle-two, #fedora-middle-three {
-	margin-left: 11em;
+	margin-left: 12em;
 	padding-left: 24px;
 }
 #fedora-middle-three {

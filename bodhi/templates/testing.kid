@@ -61,9 +61,12 @@
             </td>
             <?python
             submitted = update.request == None and 'null' or 'tick'
+            if update.karma < 0: karma = -1
+            elif update.karma > 0: karma = 1
+            else: karma = 0
             ?>
             <td class="list" align="center">
-                <img src="${tg.url('/static/images/%s.png' % (update.karma))}" align="top"/> <b>${update.karma}</b>
+                <img src="${tg.url('/static/images/karma%d.png' % karma)}" align="top"/> <b>${update.karma}</b>
             </td>
             <td class="list">
                 ${update.date_pushed}
