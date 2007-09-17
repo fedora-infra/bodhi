@@ -147,8 +147,14 @@ def make_type_icon(update):
     return Element('img', src=url('/static/images/%s.png' % update.type),
                    title=update.type)
 
-def make_karma_icon(obj):
-    return Element('img', src=url('/static/images/%d.png' % obj.karma))
+def make_karma_icon(update):
+    if update.karma < 0:
+        karma = -1
+    elif update.karma > 0:
+        karma = 1
+    else:
+        karma = 0
+    return Element('img', src=url('/static/images/%d.png' % karma))
 
 def get_age(date):
     age = datetime.utcnow() - date
