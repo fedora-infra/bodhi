@@ -19,7 +19,7 @@ import turbomail
 
 from os.path import join
 from turbomail import MailNotEnabledException
-from turbogears import config
+from turbogears import config, identity
 
 from bodhi.util import sha1sum, rpm_fileheader
 from bodhi.exceptions import RPMNotFound
@@ -43,7 +43,7 @@ messages = {
 %(email)s has submitted a new update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'email'     : x.submitter,
+                        'email'     : identity.current.user_name,
                         'release'   : x.release.long_name,
                         'updatestr' : str(x)
                     }
@@ -55,7 +55,7 @@ messages = {
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
-                        'email'     : x.submitter,
+                        'email'     : identity.current.user_name,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : str(x)
                     }
@@ -67,7 +67,7 @@ messages = {
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
-                        'email'     : x.submitter,
+                        'email'     : identity.current.user_name,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : str(x)
                     }
@@ -89,7 +89,7 @@ messages = {
 %(submitter)s has requested the pushing of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'submitter' : x.submitter,
+                        'submitter' : identity.current.user_name,
                         'updatestr' : str(x)
                     }
     },
@@ -99,7 +99,7 @@ messages = {
 %(submitter)s has requested the unpushing of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'submitter' : x.submitter,
+                        'submitter' : identity.current.user_name,
                         'updatestr' : str(x)
                     }
     },
@@ -118,7 +118,7 @@ The following update has been unpushed\n\n%(updatestr)s
 %(submitter)s has revoked the request of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'submitter' : x.submitter,
+                        'submitter' : identity.current.user_name,
                         'updatestr' : str(x)
                     }
         },
@@ -128,7 +128,7 @@ The following update has been unpushed\n\n%(updatestr)s
 %(submitter)s has requested the moving of the following update from Testing to Stable:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'submitter' : x.submitter,
+                        'submitter' : identity.current.user_name,
                         'updatestr' : str(x)
                     }
     },

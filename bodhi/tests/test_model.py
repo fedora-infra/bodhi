@@ -14,7 +14,7 @@ import tempfile
 from os.path import join, exists, basename
 from bodhi.util import mkmetadatadir
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
-                         PackageBuild, Comment)
+                         PackageBuild, Comment, User)
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
                               PostgresIntegrityError, RPMNotFound)
 
@@ -67,6 +67,7 @@ class TestPackageUpdate(testutil.DBTest):
     def test_mail_notices(self):
         """ Make sure all of our mail notices can expand properly """
         from bodhi.mail import messages
+        me = User(user_name='guest', display_name='Guest')
         update = self.get_update()
         self.get_comment(update)
         for title, data in messages.items():
