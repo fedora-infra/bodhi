@@ -273,7 +273,7 @@ class MashTask(Thread):
             log.error(str(e))
         masher.done(self)
 
-    def generate_updateinfo(self, repo):
+    def generate_updateinfo(self):
         """
         Generate the updateinfo.xml.gz and insert it into the appropriate
         repositories.
