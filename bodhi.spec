@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.2.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
 
 Group:          Applications/Internet
@@ -34,7 +34,7 @@ Client tools for interacting with bodhi
 %package server
 Summary: Bodhi Server
 Group: Applications/Internet
-Requires: TurboGears createrepo python-TurboMail yum-utils intltool mash
+Requires: TurboGears createrepo python-TurboMail yum-utils intltool mash cvs
 
 %description server
 The bodhi server
@@ -68,6 +68,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sun Sep 16 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-3
+- Add cvs to bodhi-server Requires
+
 * Thu Sep 15 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-2
 - Handle python-setuptools-devel changes in Fedora 8
 - Update license to GPLv2+
