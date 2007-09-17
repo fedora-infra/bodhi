@@ -6,6 +6,7 @@
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
         <title>Fedora Update Requests</title>
+     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.checkboxes.js')}"></script>
 </head>
 
 <body>
@@ -155,6 +156,10 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
 
         <!-- <input type="hidden" name="callback" value="${callback}" /> -->
         <input type="submit" name="push" value="Mash Repository" />
+ 
+        <input type="button" name="checkall" value="Toggle checkboxes"
+               onClick="$('#push_form').toggleCheckboxes();" />
+
     </form>
 </blockquote>
 
