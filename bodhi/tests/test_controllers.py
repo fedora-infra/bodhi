@@ -343,7 +343,7 @@ class TestControllers(testutil.DBTest):
         testutil.createRequest('/updates/unpush?nvr=%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'unpush'
+        assert update.request == 'obsolete'
         testutil.createRequest('/updates/move?nvr=%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])

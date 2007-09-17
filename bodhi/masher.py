@@ -146,14 +146,14 @@ class MashTask(Thread):
         self.moving = True
         for update in self.updates:
             release = update.release.name.lower()
-            if update.request == 'move':
+            if update.request == 'stable':
                 self.repos.add('%s-updates' % release)
                 self.repos.add('%s-updates-testing' % release)
                 self.tag = update.release.dist_tag + '-updates'
-            elif update.request == 'push':
+            elif update.request == 'testing':
                 self.repos.add('%s-updates-testing' % release)
                 self.tag = update.release.dist_tag + '-updates-testing'
-            elif update.request == 'unpush':
+            elif update.request == 'obsolete':
                 self.tag = update.release.dist_tag + '-updates-candidate'
                 if update.status == 'testing':
                     self.repos.add('%s-updates-testing' % release)

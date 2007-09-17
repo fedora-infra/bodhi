@@ -181,8 +181,8 @@ class PackageUpdate(SQLObject):
                                            'obsolete'], default='pending')
     pushed           = BoolCol(default=False)
     notes            = UnicodeCol()
-    request          = EnumCol(enumValues=['push', 'unpush', 'move', None],
-                               default=None)
+    request          = EnumCol(enumValues=['testing', 'stable', 'obsolete',
+                                           None], default=None)
     comments         = MultipleJoin('Comment', joinColumn='update_id')
     qa_approved      = UnicodeCol(default=None)
     qa_date_approved = DateTimeCol(default=None)
@@ -238,25 +238,25 @@ class PackageUpdate(SQLObject):
         """
         Perform post-request actions.
         """
-        if self.request == 'push':
+        if self.request == 'testing':
             self.pushed = True
             self.date_pushed = datetime.utcnow()
             self.status = 'testing'
             self.assign_id()
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
-            self.comment('This update has been pushed as stable',
+            self.comment('This update has been pushed to testing',
                          author='bodhi')
-        elif self.request == 'unpush':
-            self.comment('This update has been unpushed', author='bodhi')
+        elif self.request == 'obsolete':
+            self.comment('This update has been obsoleted', author='bodhi')
             self.pushed = False
             self.status = 'obsolete'
-        elif self.request == 'move':
+        elif self.request == 'stable':
             self.pushed = True
             self.date_pushed = datetime.utcnow()
             self.status = 'stable'
             self.assign_id()
-            self.comment('This update has been pushed as testing',
+            self.comment('This update has been pushed to stable',
                          author='bodhi')
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
@@ -415,7 +415,7 @@ class PackageUpdate(SQLObject):
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if stable_karma and stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
-                self.request = 'move'
+                self.request = 'stable'
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('move', self)
         comment = Comment(text=text, karma=karma, update=self, author=author)
