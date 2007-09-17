@@ -19,7 +19,7 @@ needunpush = filter(lambda x: x.request == 'unpush', updates)
 ?>
 
 <blockquote>
-    <form name="push_form" method="post" action="${tg.url('/admin/push/mash')}">
+    <form id="push_form" name="push_form" method="post" action="${tg.url('/admin/push/mash')}">
         <h1>${updates.count()} pending requests</h1>
         <span py:if="len(needpush)">
             <b>Push to Testing</b>
