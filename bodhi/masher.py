@@ -203,7 +203,7 @@ class MashTask(Thread):
             if islink(link):
                 os.unlink(link)
             os.symlink(join(mashdir, repo), link)
-            log.debug("Created symlink: %s => %s" % (join(mashdir, repo), link)
+            log.debug("Created symlink: %s => %s" % (join(mashdir, repo), link))
 
     def mash(self):
         self.mashing = True
