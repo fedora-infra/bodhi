@@ -241,7 +241,7 @@ def get_template(update):
         info['testing'] = update.status == 'testing' and ' Test' or ''
         info['subject'] = "%s%s%s Update: %s" % (
                 update.type == 'security' and '[SECURITY] ' or '',
-                update.release.long_name, info['testing'], update.title)
+                update.release.long_name, info['testing'], build.nvr)
         info['update_id'] = update.update_id
         info['description'] = h[rpm.RPMTAG_DESCRIPTION]
         #info['updatepath'] = update.get_repo()
