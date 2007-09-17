@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.2.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
 
 Group:          Applications/Internet
@@ -26,6 +26,7 @@ updates for a software distribution.
 %package client
 Summary: Bodhi Client
 Group: Applications/Internet
+Requires: python-json
 
 %description client 
 Client tools for interacting with bodhi
@@ -68,6 +69,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Sep 17 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-4
+- Add python-json to bodhi-client Requires
+
 * Sun Sep 16 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-3
 - Add cvs to bodhi-server Requires
 
