@@ -53,13 +53,6 @@ class Masher:
                 self._mash(self._queue.pop())
 
     @synchronized(lock)
-    def success(self, thread):
-        log.debug("MashTask %d successful!" % thread.id)
-        for update in thread.updates:
-            log.debug("Doing post-request stuff for %s" % update.title)
-            update.request_complete()
-
-    @synchronized(lock)
     def done(self, thread):
         """
         Called by each MashTask upon completion.  If there are more in the
@@ -145,6 +138,7 @@ class MashTask(Thread):
         self.mashing = False # are we currently mashing?
         self.moving = False # are we currently moving build tags?
         self.log = None # filename that we wrote mash output to
+        self.mashed_repos = {} # { repo: mashed_dir }
 
     def move_builds(self):
         tasks = []
@@ -202,12 +196,22 @@ class MashTask(Thread):
         log.debug("(%d, %s) from make" % (status, output))
         os.chdir(olddir)
 
+    def update_symlinks(self):
+        mashed_dir = config.get('mashed_dir')
+        for repo, mashdir in self.mashed_repos.items():
+            link = join(mashed_dir, repo)
+            if islink(link):
+                os.unlink(link)
+            os.symlink(join(mashdir, repo), link)
+            log.debug("Created symlink: %s => %s" % (join(mashdir, repo), link)
+
     def mash(self):
         self.mashing = True
         self.update_comps()
         for repo in self.repos:
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
+            self.mashed_repos[repo] = mashdir
             comps = join(config.get('comps_dir'), 'comps-%s.xml' %
                          repo.split('-')[0])
             mashcmd = self.cmd % (mashdir, comps) + repo
@@ -222,15 +226,6 @@ class MashTask(Thread):
                 out.close()
                 log.info("Wrote mash output to %s" % mash_output)
                 self.log = mash_output
-
-                # create a symlink to new repo
-                link = join(config.get('mashed_dir'), repo)
-                if islink(link):
-                    os.unlink(link)
-                os.symlink(join(mashdir, repo), link)
-
-                # generate the updateinfo.xml.gz
-                self.generate_updateinfo(join(mashdir, repo))
             else:
                 self.success = False
                 failed_output = join(config.get('mashed_dir'), 'mash-failed-%s'
@@ -258,7 +253,11 @@ class MashTask(Thread):
                 self.mash()
                 log.debug("Mashed for %s seconds" % (time.time() - t0))
                 if self.success:
-                    masher.success(self)
+                    log.debug("Running post-request actions on updates")
+                    for update in self.updates:
+                        update.request_complete()
+                    self.generate_updateinfo()
+                    self.update_symlinks()
                 else:
                     log.error("Error mashing.. skipping post-request actions")
                     if self.undo_move():
@@ -280,11 +279,13 @@ class MashTask(Thread):
         repositories.
         """
         from bodhi.metadata import ExtendedMetadata
-        log.debug("Generating updateinfo.xml.gz for %s" % repo)
-        t0 = time.time()
-        uinfo = ExtendedMetadata(repo)
-        uinfo.insert_updateinfo()
-        log.debug("Updateinfo generation/insertion took: %s" % (time.time()-t0))
+        for repo, mashdir in self.mashed_repos.items():
+            repo = join(mashdir, repo)
+            log.debug("Generating updateinfo.xml.gz for %s" % repo)
+            t0 = time.time()
+            uinfo = ExtendedMetadata(repo)
+            uinfo.insert_updateinfo()
+            log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
 
     def __str__(self):
         val = '[ Mash Task #%d ]\n' % self.id
