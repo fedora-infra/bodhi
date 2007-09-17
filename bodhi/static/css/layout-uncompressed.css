@@ -88,7 +88,6 @@ a[name] {
 	margin-top: 0.2em;
 	border: 0;
 	padding: 7px;
-	background: #fff url('/updates/static/images/header-search.png') no-repeat left;
 	padding-left: 21px;
 }
 #fedora-header-items form {
