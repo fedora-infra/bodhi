@@ -48,9 +48,7 @@ $(document).ready(function() {
 </script>
 <script type="text/javascript" py:if="not tg.identity.anonymous">
 $(document).ready(function() {
-    $('#stable').click( function() { $('#stablelist').toggle('slow'); });
-    $('#testing').click( function() { $('#testinglist').toggle('slow'); });
-
+    $('#release').click( function() { $('#releases').toggle('slow'); });
     $('div.flash').corner();
     $('div.flash').show("slow");
 });
@@ -91,8 +89,6 @@ $(document).ready(function() {
                     <div id="adminlist" style="display: none">
                         <ul>
                             <li><a href="${tg.url('/admin/push')}">Requests</a></li>
-                            <!-- <li><a href="${tg.url('/admin/catwalk')}">Database</a></li> -->
-                            <!-- <li><a href="${tg.url('/admin/repodiff')}">Repodiff</a></li> -->
                             <li><a href="${tg.url('/admin/masher')}">Masher</a></li>
                         </ul>
                     </div>
@@ -100,29 +96,19 @@ $(document).ready(function() {
             </div>
             <ul id="fedora-side-nav">
                 <li><a href="${tg.url('/')}">Home</a></li>
-                <li><a href="${tg.url('/new')}">New update</a></li>
-                <li><a href="${tg.url('/pending')}">Pending updates (${PackageUpdate.select(PackageUpdate.q.status=='pending').count()})</a></li>
-                <li><a id="testing" href="#">Testing updates</a>
-                    <div id="testinglist"> 
-                        <ul>
-                            <li py:for="release in releases()">
-                            <a href="${tg.url('/testing/%s' % release[0])}">${release[1]} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == 'testing')).count()})</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li><a id="stable" href="#">Stable updates</a>
-                <div id="stablelist">
-                    <ul>
-                        <li py:for="release in releases()">
-                        <a href="${tg.url('/%s' % release[0])}">${release[1]} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == 'stable')).count()})</a>
-                        </li>
-                    </ul>
-                </div>
-                </li>
-                <li><a href="${tg.url('/pkgs')}">Packages</a></li>
                 <li><a href="${tg.url('/mine')}">My updates</a></li>
-                <!-- <li><a href="${tg.url('/search')}">Search</a></li> -->
+                <li py:for="release in releases()">
+                    <a id="release" href="#">${release[1]}</a>
+                        <div id="releases">
+                            <ul>
+                                <li><a href="${tg.url('/new/%s' % release[0])}">New Update</a></li>
+                                <li py:for="status in ('pending', 'testing', 'stable')">
+                                <a href="${tg.url('/%s%s' % (status != 'stable' and '%s/' % status or '', release[0]))}">${status.title()} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == status)).count()})</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                <li><a href="${tg.url('/pkgs')}">Packages</a></li>
                 <li><a href="${tg.url('/logout')}">Logout</a></li>
             </ul>
         </div>
