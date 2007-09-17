@@ -279,13 +279,13 @@ class MashTask(Thread):
         repositories.
         """
         from bodhi.metadata import ExtendedMetadata
+        t0 = time.time()
         for repo, mashdir in self.mashed_repos.items():
             repo = join(mashdir, repo)
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
-            t0 = time.time()
             uinfo = ExtendedMetadata(repo)
             uinfo.insert_updateinfo()
-            log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
+        log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
 
     def __str__(self):
         val = '[ Mash Task #%d ]\n' % self.id
