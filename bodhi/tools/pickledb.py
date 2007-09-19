@@ -86,6 +86,12 @@ def load_db():
             package = Package(name=u['package'][0],
                               suggest_reboot=u['package'][1])
 
+        request = None
+        if u['request'] == 'move':
+            request = 'stable'
+        elif u['request'] == 'push':
+            request = 'testing'
+
         update = PackageUpdate(title=u['nvr'],
                                date_submitted=u['date_submitted'],
                                date_pushed=u['date_pushed'],
@@ -96,7 +102,7 @@ def load_db():
                                status=u['status'],
                                pushed=u['pushed'],
                                notes=u['notes'],
-                               request=u['request'])
+                               request=request)
 
         for build in u['nvr'].split():
             build = PackageBuild(nvr=u['nvr'], package=package)

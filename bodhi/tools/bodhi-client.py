@@ -65,7 +65,7 @@ class BodhiClient:
             self.delete(opts)
         elif opts.status or opts.bugs or opts.cves or opts.release or opts.type:
             self.list(opts)
-                         
+
     def authenticate(self):
         """
             Return an authenticated session cookie.
@@ -188,7 +188,7 @@ class BodhiClient:
             sys.exit(-1)
         for update in data['updates']:
             log.info(update + '\n')
-        log.info("%d updates found (%d shown)" % (data['num_items'], opts.limit))
+        log.info("%d updates found (%d shown)" % (data['num_items'],opts.limit))
 
     def delete(self, opts):
         data = self.send_request('delete', update=opts.delete, auth=True)
@@ -212,16 +212,16 @@ class BodhiClient:
     def push(self, opts):
         data = self.send_request('admin/push', auth=True)
         log.info("[ %d Pending Requests ]" % len(data['updates']))
-        needmove = filter(lambda x: x['request'] == 'move', data['updates'])
-        needpush = filter(lambda x: x['request'] == 'push', data['updates'])
-        needunpush = filter(lambda x: x['request'] == 'unpush', data['updates'])
-        for title, updates in (('Testing', needpush),
-                               ('Stable', needmove),
-                               ('Obsolete', needunpush)):
+        stable = filter(lambda x: x['request'] == 'stable', data['updates'])
+        testing = filter(lambda x: x['request'] == 'testing', data['updates'])
+        obsolete = filter(lambda x: x['request'] == 'obsolete', data['updates'])
+        for title, updates in (('Testing', testing),
+                               ('Stable', stable),
+                               ('Obsolete', obsolete)):
             if len(updates):
-                log.info("\n" + title)
+                log.info("\n" + title + "\n========")
                 for update in updates:
-                    log.info("- %s" % update['title'])
+                    log.info("%s" % update['title'])
 
         ## Confirm that we actually want to push these updates
         sys.stdout.write("\nAre you sure you want to push these updates? ")
@@ -264,7 +264,7 @@ class BodhiClient:
                         cves.extend(para)
                     elif cmd == 'TYPE':
                         opts.type = types[para.upper()]
-                                            
+
                 else: # This is notes
                     notes.append(line[:-1])
         if notes:

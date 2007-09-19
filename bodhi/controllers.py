@@ -252,7 +252,8 @@ class Root(controllers.RootController):
                     OR(PackageUpdate.q.submitter == util.displayname(identity),
                        PackageUpdate.q.submitter == identity.current.user_name),
                     orderBy=PackageUpdate.q.date_pushed).reversed()
-        return dict(updates=updates, num_items=updates.count())
+        return dict(updates=updates, num_items=updates.count(),
+                    title='%s\'s updates' % identity.current.user_name)
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.show')
@@ -280,7 +281,8 @@ class Root(controllers.RootController):
     def move(self, nvr):
         update = PackageUpdate.byTitle(nvr)
         # Test if package already has been pushed (posible when called json)
-        if not update.status in ['pending','testing'] or update.request in ["push","move"]: 
+        if not update.status in ['pending','testing'] or \
+           update.request in ["testing", "stable"]:
             flash("Update is already pushed")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
@@ -288,7 +290,7 @@ class Root(controllers.RootController):
             flash("Cannot move an update you did not submit")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
-        update.request = 'move'
+        update.request = 'stable'
         flash("Requested that %s be pushed to %s-updates" % (nvr,
               update.release.name))
         mail.send_admin('move', update)
@@ -303,7 +305,7 @@ class Root(controllers.RootController):
         update = PackageUpdate.byTitle(nvr)
         repo = '%s-updates' % update.release.name
         # Test if package already has been pushed (posible when called json)
-        if update.status != 'pending' or update.request in ["push","move"]: 
+        if update.status != 'pending' or update.request in ["testing","stable"]:
             flash("Update is already pushed")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
@@ -313,9 +315,9 @@ class Root(controllers.RootController):
             raise redirect(update.get_url())
         if update.type == 'security':
             # Bypass updates-testing
-            update.request = 'move'
+            update.request = 'stable'
         else:
-            update.request = 'push'
+            update.request = 'testing'
             repo += '-testing'
         msg = "%s has been submitted for pushing to %s" % (nvr, repo)
         log.debug(msg)
@@ -332,7 +334,7 @@ class Root(controllers.RootController):
         if not util.authorized_user(update, identity):
             flash("Cannot unpush an update you did not submit")
             raise redirect(update.get_url())
-        update.request = 'unpush'
+        update.request = 'obsolete'
         msg = "%s has been submitted for unpushing" % nvr
         log.debug(msg)
         flash(msg)
@@ -529,8 +531,6 @@ class Root(controllers.RootController):
         if p.cves != [] and (p.type != 'security'):
             p.type = 'security'
             note += '; CVEs provided, changed update type to security'
-        if p.type == 'security' and p.request == 'push':
-            p.request = 'move'
 
         if edited:
             mail.send(p.submitter, 'edited', p)
@@ -597,7 +597,9 @@ class Root(controllers.RootController):
                                 PackageUpdate.q.status == status),
                             orderBy=order).reversed()
                 return dict(updates=updates, num_items=updates.count(),
-                            tg_template=template)
+                            tg_template=template,
+                            title='%s %s Updates' % (release.long_name,
+                                                     status.title()))
         except SQLObjectNotFound:
             pass
 

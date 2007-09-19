@@ -181,8 +181,8 @@ class PackageUpdate(SQLObject):
                                            'obsolete'], default='pending')
     pushed           = BoolCol(default=False)
     notes            = UnicodeCol()
-    request          = EnumCol(enumValues=['push', 'unpush', 'move', None],
-                               default=None)
+    request          = EnumCol(enumValues=['testing', 'stable', 'obsolete',
+                                           None], default=None)
     comments         = MultipleJoin('Comment', joinColumn='update_id')
     qa_approved      = UnicodeCol(default=None)
     qa_date_approved = DateTimeCol(default=None)
@@ -200,8 +200,10 @@ class PackageUpdate(SQLObject):
         if show_titles:
             i = 0
             for bug in self.bugs:
-                val += '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
-                                        bug.bz_id, bug.title)
+                bugstr = '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
+                                          bug.bz_id, bug.title)
+                val += '\n'.join(wrap(bugstr, width=67,
+                                      subsequent_indent=' ' * 11 + ': ')) + '\n'
                 i += 1
             val = val[:-1]
         else:
@@ -238,25 +240,25 @@ class PackageUpdate(SQLObject):
         """
         Perform post-request actions.
         """
-        if self.request == 'push':
+        if self.request == 'testing':
             self.pushed = True
             self.date_pushed = datetime.utcnow()
             self.status = 'testing'
             self.assign_id()
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
-            self.comment('This update has been pushed as stable',
+            self.comment('This update has been pushed to testing',
                          author='bodhi')
-        elif self.request == 'unpush':
-            self.comment('This update has been unpushed', author='bodhi')
+        elif self.request == 'obsolete':
+            self.comment('This update has been obsoleted', author='bodhi')
             self.pushed = False
             self.status = 'obsolete'
-        elif self.request == 'move':
+        elif self.request == 'stable':
             self.pushed = True
             self.date_pushed = datetime.utcnow()
             self.status = 'stable'
             self.assign_id()
-            self.comment('This update has been pushed as testing',
+            self.comment('This update has been pushed to stable',
                          author='bodhi')
             self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
@@ -309,13 +311,13 @@ class PackageUpdate(SQLObject):
             val += "  Update ID: %s\n" % self.update_id
         val += """    Release: %s
      Status: %s
-       Type: %s""" % (self.release.long_name, self.status, self.type)
+       Type: %s
+      Karma: %d""" % (self.release.long_name,self.status,self.type,self.karma)
         if self.request != None:
             val += "\n    Request: %s" % self.request
         if len(self.bugs):
-            bugs = wrap(self.get_bugstring(show_titles=True), width=67,
-                        subsequent_indent=' ' * 11 + ': ')
-            val += "\n       Bugs: %s" % '\n'.join(bugs)
+            bugs = self.get_bugstring(show_titles=True)
+            val += "\n       Bugs: %s" % bugs
         if len(self.cves):
             val += "\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
@@ -415,7 +417,7 @@ class PackageUpdate(SQLObject):
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if stable_karma and stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
-                self.request = 'move'
+                self.request = 'stable'
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('move', self)
         comment = Comment(text=text, karma=karma, update=self, author=author)
@@ -424,6 +426,8 @@ class PackageUpdate(SQLObject):
         people = set()
         people.add(self.submitter)
         map(lambda comment: people.add(comment.author), self.comments)
+        if 'bodhi' in people:
+            people.remove('bodhi')
         for person in people:
             mail.send(person, 'comment', self)
 
@@ -487,8 +491,15 @@ class Bugzilla(SQLObject):
             log.error(self.title + ': ' + str(e))
 
     def default_message(self, update):
-        return self.default_msg % (update.get_title(delim=', '), "%s %s" % 
+        message = self.default_msg % (update.get_title(delim=', '), "%s %s" % 
                                    (update.release.long_name, update.status))
+        if update.status == "testing":
+            message += "\n If you want to test the update, you can install " + \
+                       "it with \n su -c 'yum --enablerepo=updates-testing " + \
+                       "update %s'" % (' '.join([build.package.name for build
+                                                 in update.builds]))
+
+        return message
 
     def add_comment(self, update, comment=None):
         me = config.get('bodhi_email')

@@ -23,6 +23,8 @@ import time
 import urllib
 import logging
 import traceback
+import simplejson
+import urllib2
 
 from kid import Element
 #from koji import fixEncoding
@@ -199,3 +201,47 @@ def get_repo_tag(repo):
     else:
         log.error("Cannot find mash configuration for %s: %s" % (repo,
                                                                  mashconfig))
+
+def get_pkg_people(pkgName, collectionName, collectionVersion):
+    """ Pull users who can commit and are watching a package
+    
+    Return two lists:
+    * The first consists of usernames allowed to commit to the package.
+    * The second are usernames watching the package for updates.
+
+    Note: The interface to the pkgdb could undergo the following changes:
+      FAS2 related:
+      * pkg['packageListings'][0]['owneruser'] =>
+        pkg['packageListings'][0]['owner']
+      * pkg['packageListings'][0]['people'][0..n]['user'] =>
+        pkg['packageListings'][0]['people'][0..n]['userid']
+    
+    * We may want to create a 'push' acl specifically for bodhi instead of
+      reusing 'commit'.
+    * ['status']['translations'] may one day contain more than the 'C'
+      translation.  The pkgdb will have to figure out how to deal with that
+      if so.
+    """
+    pkgPage=urllib2.urlopen(config.get('pkgdb_url') + '/packages/name/%s/%s/%s?tg_format=json' %
+            (pkgName, collectionName, collectionVersion))
+    pkg = simplejson.load(pkgPage)
+    if pkg.has_key('status') and not pkg['status']:
+        raise Exception, 'Package %s not found in PackageDB.  Error: %s' % (
+                pkgName, pkg['message'])
+
+    # Owner is allowed to commit and gets notified of pushes
+    # This will always be 0 as we'll retrieve at most one value for
+    # Package-Collection-Version
+    notify = [pkg['packageListings'][0]['owneruser']]
+    allowed = [notify[0]]
+    
+    # Find other people in the acl
+    for person in pkg['packageListings'][0]['people']:
+        if person['aclOrder']['watchcommits'] and \
+                person['aclOrder']['watchcommits']['status']['translations'][0]['statusname'] == 'Approved':
+            notify.append(person['user'])
+        if person['aclOrder']['commit'] and \
+                person['aclOrder']['commit']['status']['translations'][0]['statusname'] == 'Approved':
+            allowed.append(person['user'])
+
+    return (allowed, notify)

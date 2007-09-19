@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    &nbsp;&nbsp;${num_items} updates found
+    &nbsp;&nbsp;<b>${title}</b>
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
@@ -27,16 +27,13 @@
                 <b>Package</b>
             </th>
             <th class="list">
-                <b>Release</b>
-            </th>
-            <th class="list">
                 <center><b>Type</b></center>
             </th>
             <th class="list">
-                <center><b>Status</b></center>
+                <center><b>Karma</b></center>
             </th>
             <th class="list">
-                <center><b>Karma</b></center>
+                <center><b>Submitter</b></center>
             </th>
             <th class="list">
                 <b>Date Pushed</b>
@@ -50,23 +47,19 @@
             <td class="list">
                 <a class="list" href="${tg.url(update.get_url())}">${update.title.replace(',', ', ')}</a>
             </td>
-            <td class="list">
-                <a class="list" href="${tg.url('/%s%s' % (update.status=='testing' and 'testing/' or '', update.release.name))}">${"%s%s" % (update.release.long_name, update.status=='testing' and ' Testing' or '')}</a>
-            </td>
             <td class="list" align="center">
                 <img src="${tg.url('/static/images/%s.png' % update.type)}" title="${update.type}" />
             </td>
-            <td class="list" align="center">
-                ${update.status}
-            </td>
             <?python
-            submitted = update.request == None and 'null' or 'tick'
             if update.karma < 0: karma = -1
             elif update.karma > 0: karma = 1
             else: karma = 0
             ?>
             <td class="list" align="center">
                 <img src="${tg.url('/static/images/karma%d.png' % karma)}" align="top"/> <b>${update.karma}</b>
+            </td>
+            <td class="list">
+                ${update.submitter}
             </td>
             <td class="list">
                 ${update.date_pushed}

@@ -146,14 +146,14 @@ class MashTask(Thread):
         self.moving = True
         for update in self.updates:
             release = update.release.name.lower()
-            if update.request == 'move':
+            if update.request == 'stable':
                 self.repos.add('%s-updates' % release)
                 self.repos.add('%s-updates-testing' % release)
                 self.tag = update.release.dist_tag + '-updates'
-            elif update.request == 'push':
+            elif update.request == 'testing':
                 self.repos.add('%s-updates-testing' % release)
                 self.tag = update.release.dist_tag + '-updates-testing'
-            elif update.request == 'unpush':
+            elif update.request == 'obsolete':
                 self.tag = update.release.dist_tag + '-updates-candidate'
                 if update.status == 'testing':
                     self.repos.add('%s-updates-testing' % release)
@@ -279,13 +279,14 @@ class MashTask(Thread):
         repositories.
         """
         from bodhi.metadata import ExtendedMetadata
+        t0 = time.time()
         for repo, mashdir in self.mashed_repos.items():
             repo = join(mashdir, repo)
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
             t0 = time.time()
             uinfo = ExtendedMetadata(repo)
             uinfo.insert_updateinfo()
-            log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
+        log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
 
     def __str__(self):
         val = '[ Mash Task #%d ]\n' % self.id
