@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    &nbsp;&nbsp;${num_items} updates found
+    &nbsp;&nbsp;${num_items} Pending Updates
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
@@ -30,10 +30,10 @@
                 <center><b>Type</b></center>
             </th>
             <th class="list">
-                <center><b>Status</b></center>
+                <b>Request</b>
             </th>
             <th class="list">
-                <b>Submitted</b>
+                <b>Submitter</b>
             </th>
             <th class="list">
                 <b>Created</b>
@@ -50,13 +50,13 @@
             <td class="list" align="center">
                 <img src="${tg.url('/static/images/%s.png' % update.type)}" title="${update.type}" />
             </td>
-            <td class="list" align="center">
-                ${update.status}
-            </td>
             <td class="list">
                 <center>
-                    <img src="${tg.url('/static/images/%s.png' % (update.request == None and 'null' or 'tick'))}" />
+                    <img src="${tg.url('/static/images/%s-large.png' % update.request)}" title="${update.request}"/>
                 </center>
+            </td>
+            <td class="list">
+                ${update.submitter}
             </td>
             <td class="list">
                 ${update.date_submitted}

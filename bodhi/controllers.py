@@ -596,7 +596,7 @@ class Root(controllers.RootController):
                                 PackageUpdate.q.status == status),
                             orderBy=order).reversed()
                 return dict(updates=updates, num_items=updates.count(),
-                            tg_template=template)
+                            tg_template=template, release=release.long_name)
         except SQLObjectNotFound:
             pass
 

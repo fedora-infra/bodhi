@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    &nbsp;&nbsp;${num_items} updates found
+    &nbsp;&nbsp;<b>${release} Stable Updates</b>
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
@@ -27,16 +27,13 @@
                 <b>Package</b>
             </th>
             <th class="list">
-                <b>Release</b>
-            </th>
-            <th class="list">
                 <center><b>Type</b></center>
             </th>
             <th class="list">
-                <center><b>Status</b></center>
+                <b>Submitter</b>
             </th>
             <th class="list">
-                <b>Date Pushed</b>
+                <b>Date Released</b>
             </th>
         </tr>
         <?python row_color = "#FFFFFF" ?>
@@ -47,14 +44,11 @@
             <td class="list">
                 <a class="list" href="${tg.url(update.get_url())}">${update.title.replace(',', ', ')}</a>
             </td>
-            <td class="list">
-                <a class="list" href="${tg.url('/%s%s' % (update.status=='testing' and 'testing/' or '', update.release.name))}">${"%s%s" % (update.release.long_name, update.status=='testing' and ' Testing' or '')}</a>
-            </td>
             <td class="list" align="center">
                 <img src="${tg.url('/static/images/%s.png' % update.type)}" title="${update.type}" />
             </td>
-            <td class="list" align="center">
-                ${update.status}
+            <td class="list">
+                ${update.submitter}
             </td>
             <td class="list">
                 ${update.date_pushed}
