@@ -37,11 +37,6 @@ from bodhi.exceptions import RPMNotFound
 sys.path.append('/usr/share/createrepo')
 import genpkgmetadata
 
-## TODO: May want to move this into a config setting
-PKGDBURL='https://admin.fedoraproject.org/pkgdb'
-# For use inside of the phx colo
-#PKGDBURL='https://10.8.32.121/pkgdb'
-
 log = logging.getLogger(__name__)
 
 ## Display a given message as a heading
@@ -227,7 +222,7 @@ def get_pkg_people(pkgName, collectionName, collectionVersion):
       translation.  The pkgdb will have to figure out how to deal with that
       if so.
     """
-    pkgPage=urllib2.urlopen(PKGDBURL + '/packages/name/%s/%s/%s?tg_format=json' %
+    pkgPage=urllib2.urlopen(config.get('pkgdb_url') + '/packages/name/%s/%s/%s?tg_format=json' %
             (pkgName, collectionName, collectionVersion))
     pkg = simplejson.load(pkgPage)
     if pkg.has_key('status') and not pkg['status']:
