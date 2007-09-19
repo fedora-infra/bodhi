@@ -425,6 +425,8 @@ class PackageUpdate(SQLObject):
         people = set()
         people.add(self.submitter)
         map(lambda comment: people.add(comment.author), self.comments)
+        if 'bodhi' in people:
+            people.remove('bodhi')
         for person in people:
             mail.send(person, 'comment', self)
 
