@@ -200,8 +200,10 @@ class PackageUpdate(SQLObject):
         if show_titles:
             i = 0
             for bug in self.bugs:
-                val += '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
-                                        bug.bz_id, bug.title)
+                bugstr = '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
+                                          bug.bz_id, bug.title)
+                val += '\n'.join(wrap(bugstr, width=67,
+                                      subsequent_indent=' ' * 11 + ': ')) + '\n'
                 i += 1
             val = val[:-1]
         else:
@@ -313,9 +315,8 @@ class PackageUpdate(SQLObject):
         if self.request != None:
             val += "\n    Request: %s" % self.request
         if len(self.bugs):
-            bugs = wrap(self.get_bugstring(show_titles=True), width=67,
-                        subsequent_indent=' ' * 11 + ': ')
-            val += "\n       Bugs: %s" % '\n'.join(bugs)
+            bugs = self.get_bugstring(show_titles=True)
+            val += "\n       Bugs: %s" % bugs
         if len(self.cves):
             val += "\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
