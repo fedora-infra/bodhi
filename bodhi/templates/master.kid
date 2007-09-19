@@ -95,8 +95,8 @@ $(document).ready(function() {
                 </ul>
             </div>
             <ul id="fedora-side-nav">
-                <li><a href="${tg.url('/')}">Home</a></li>
-                <li><a href="${tg.url('/mine')}">My updates</a></li>
+                <li><a href="${tg.url('/')}">${tg.identity.user_name}'s Home</a></li>
+                <li><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
                 <li py:for="release in releases()">
                     <a id="release" href="#">${release[1]}</a>
                         <div id="releases">
