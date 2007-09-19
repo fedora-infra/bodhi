@@ -311,7 +311,8 @@ class PackageUpdate(SQLObject):
             val += "  Update ID: %s\n" % self.update_id
         val += """    Release: %s
      Status: %s
-       Type: %s""" % (self.release.long_name, self.status, self.type)
+       Type: %s
+      Karma: %d""" % (self.release.long_name,self.status,self.type,self.karma)
         if self.request != None:
             val += "\n    Request: %s" % self.request
         if len(self.bugs):
