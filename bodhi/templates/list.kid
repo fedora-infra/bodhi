@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    &nbsp;&nbsp;<b>${release} Stable Updates</b>
+    &nbsp;&nbsp;<b>${title}</b>
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"

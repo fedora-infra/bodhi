@@ -252,7 +252,8 @@ class Root(controllers.RootController):
                     OR(PackageUpdate.q.submitter == util.displayname(identity),
                        PackageUpdate.q.submitter == identity.current.user_name),
                     orderBy=PackageUpdate.q.date_pushed).reversed()
-        return dict(updates=updates, num_items=updates.count())
+        return dict(updates=updates, num_items=updates.count(),
+                    title='%s\'s updates' % identity.current.user_name)
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.show')
@@ -596,7 +597,9 @@ class Root(controllers.RootController):
                                 PackageUpdate.q.status == status),
                             orderBy=order).reversed()
                 return dict(updates=updates, num_items=updates.count(),
-                            tg_template=template, release=release.long_name)
+                            tg_template=template,
+                            title='%s %s Updates' % (release.long_name,
+                                                     status.title()))
         except SQLObjectNotFound:
             pass
 
