@@ -491,8 +491,15 @@ class Bugzilla(SQLObject):
             log.error(self.title + ': ' + str(e))
 
     def default_message(self, update):
-        return self.default_msg % (update.get_title(delim=', '), "%s %s" % 
+        message = self.default_msg % (update.get_title(delim=', '), "%s %s" % 
                                    (update.release.long_name, update.status))
+        if update.status == "testing":
+            message += "\n If you want to test the update, you can install " + \
+                       "it with \n su -c 'yum --enablerepo=updates-testing " + \
+                       "update %s'" % (' '.join([build.package.name for build
+                                                 in update.builds]))
+
+        return message
 
     def add_comment(self, update, comment=None):
         me = config.get('bodhi_email')
