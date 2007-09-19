@@ -530,8 +530,6 @@ class Root(controllers.RootController):
         if p.cves != [] and (p.type != 'security'):
             p.type = 'security'
             note += '; CVEs provided, changed update type to security'
-        if p.type == 'security' and p.request == 'testing':
-            p.request = 'stable'
 
         if edited:
             mail.send(p.submitter, 'edited', p)
