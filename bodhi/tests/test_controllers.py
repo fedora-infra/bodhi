@@ -27,10 +27,10 @@ class TestControllers(testutil.DBTest):
                       dist_tag='dist-fc7')
         assert rel
 
-    def login(self, username='guest', display_name='guest'):
+    def login(self, username='lmacken', display_name='lmacken'):
         guest = User(user_name=username, display_name=display_name)
         guest.password = 'guest'
-        testutil.createRequest('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=guest&password=guest', method='POST')
+        testutil.createRequest('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
         assert cherrypy.response.status == '200 OK'
         cookies = filter(lambda x: x[0] == 'Set-Cookie',
                          cherrypy.response.header_list)
@@ -41,7 +41,7 @@ class TestControllers(testutil.DBTest):
         return { 'Cookie' : cookiehdr }
 
     def test_bad_password(self):
-        x = testutil.createRequest('/updates/login?tg_format=json&login=Login&&user_name=guest&password=foo', method='POST')
+        x = testutil.createRequest('/updates/login?tg_format=json&login=Login&&user_name=lmacken&password=foo', method='POST')
         assert "The credentials you supplied were not correct or did not grant access to this resource." in cherrypy.response.body[0]
         print cherrypy.response.status
 
@@ -51,9 +51,9 @@ class TestControllers(testutil.DBTest):
         #assert cherrypy.response.status == '403 Forbidden'
 
     def test_good_password(self):
-        guest = User(user_name='guest')
+        guest = User(user_name='lmacken')
         guest.password = 'guest'
-        x = testutil.createRequest('/updates/login?tg_format=json&login=Login&user_name=guest&password=guest', method='POST')
+        x = testutil.createRequest('/updates/login?tg_format=json&login=Login&user_name=lmacken&password=guest', method='POST')
         assert cherrypy.response.status == '200 OK'
 
     def test_unauthenticated_update(self):
@@ -154,7 +154,7 @@ class TestControllers(testutil.DBTest):
         assert "Value must be one of: bugfix; enhancement; security (not \'REGRESSION!\')" in cherrypy.response.body[0]
 
     def test_user_notes_encoding(self):
-        session = self.login(username='guest', display_name='foo\xc3\xa9bar')
+        session = self.login(username='lmacken', display_name='foo\xc3\xa9bar')
         self.create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -212,7 +212,7 @@ class TestControllers(testutil.DBTest):
                                    headers=session)
         assert len(update.comments) == 1
         assert update.karma == 1
-        assert update.comments[0].author == 'guest'
+        assert update.comments[0].author == 'lmacken'
         assert update.comments[0].text == 'foobar'
 
         # Allow users to negate their original comment
@@ -376,3 +376,17 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         assert "Invalid CVE(s)." in cherrypy.response.body[0]
+
+    def test_not_owner(self):
+        session = self.login(username='guest')
+        self.create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : '',
+                'cves'    : '',
+                'notes'   : ''
+        }
+        self.save_update(params, session)
+        assert "This resource resides temporarily" in cherrypy.response.body[0]
