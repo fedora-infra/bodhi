@@ -217,7 +217,7 @@ Description :
 %(filelist)s
 
 This update can be installed with the "yum" update program.  Use 
-su -c 'yum update %(name)s' 
+su -c 'yum%(yum_repository)s update %(name)s' 
 at the command line.  For more information, refer to "Managing Software
 with yum", available at http://docs.fedoraproject.org/yum/.
 --------------------------------------------------------------------------------
@@ -238,7 +238,13 @@ def get_template(update):
         info['version'] = h[rpm.RPMTAG_VERSION]
         info['release'] = h[rpm.RPMTAG_RELEASE]
         info['url']     = h[rpm.RPMTAG_URL]
-        info['testing'] = update.status == 'testing' and ' Test' or ''
+        if update.status == 'testing':
+            info['testing'] = ' Test'
+            info['yum_repository'] = ' --enablerepo=updates-testing'
+        else:
+            info['testing'] = ''
+            info['yum_repository'] = ''
+        
         info['subject'] = "%s%s%s Update: %s" % (
                 update.type == 'security' and '[SECURITY] ' or '',
                 update.release.long_name, info['testing'], build.nvr)
