@@ -31,7 +31,7 @@ from turbogears.widgets import DataGrid, Tabber
 
 from bodhi import buildsys, util
 from bodhi.rss import Feed
-from bodhi.util import flash_log
+from bodhi.util import flash_log, get_pkg_people
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
@@ -451,6 +451,14 @@ class Root(controllers.RootController):
                 package = Package.byName(nvr[0])
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
+
+            # Make sure the submitter has commit access to this package
+            people = get_pkg_people(nvr[0], release.long_name.split()[0],
+                                    release.long_name[-1])
+            if not identity.current.user_name in people[0]:
+                flash_log("%s does not have commit access to %s" % (
+                          identity.current.user_name, nvr[0]))
+                raise redirect('/new', **params)
 
             # Check for broken update paths against all previous releases
             tag = release.dist_tag
