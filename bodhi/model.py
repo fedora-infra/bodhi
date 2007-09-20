@@ -173,7 +173,6 @@ class PackageUpdate(SQLObject):
     submitter        = UnicodeCol(notNone=True)
     update_id        = UnicodeCol(default=None)
     type             = EnumCol(enumValues=['security', 'bugfix', 'enhancement'])
-    embargo          = DateTimeCol(default=None)
     cves             = RelatedJoin("CVE")
     bugs             = RelatedJoin("Bugzilla")
     release          = ForeignKey('Release')
@@ -184,12 +183,9 @@ class PackageUpdate(SQLObject):
     request          = EnumCol(enumValues=['testing', 'stable', 'obsolete',
                                            None], default=None)
     comments         = MultipleJoin('Comment', joinColumn='update_id')
-    qa_approved      = UnicodeCol(default=None)
-    qa_date_approved = DateTimeCol(default=None)
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
-    # sec_approved = UnicodeCol(default=None)
-    # sec_approved_date = DateTimeCol()
+    nagged           = PickleCol(default=None) # { nagmail_name : datetime, ... }
 
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
