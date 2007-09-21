@@ -411,6 +411,16 @@ class Root(controllers.RootController):
                 'edited'      : edited
         }
 
+        # Make sure the submitter has commit access to these builds
+        for build in builds:
+            nvr = util.get_nvr(build)
+            people = get_pkg_people(nvr[0], release.long_name.split()[0],
+                                    release.long_name[-1])
+            if not identity.current.user_name in people[0]:
+                flash_log("%s does not have commit access to %s" % (
+                          identity.current.user_name, nvr[0]))
+                raise redirect('/new', **params)
+
         # Disallow adding or removing of builds when an update is testing or
         # stable.  If we're in a pending state, we destroy them all and
         # create them later -- to allow for adding/removing of builds.
@@ -453,14 +463,6 @@ class Root(controllers.RootController):
                 package = Package.byName(nvr[0])
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
-
-            # Make sure the submitter has commit access to this package
-            people = get_pkg_people(nvr[0], release.long_name.split()[0],
-                                    release.long_name[-1])
-            if not identity.current.user_name in people[0]:
-                flash_log("%s does not have commit access to %s" % (
-                          identity.current.user_name, nvr[0]))
-                raise redirect('/new', **params)
 
             # Check for broken update paths against all previous releases
             tag = release.dist_tag
