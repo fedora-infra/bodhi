@@ -345,11 +345,11 @@ class Root(controllers.RootController):
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         if not update.pushed:
+            mail.send_admin('deleted', update)
+            msg = "Deleted %s" % update.title
             map(lambda x: x.destroySelf(), update.comments)
             map(lambda x: x.destroySelf(), update.builds)
             update.destroySelf()
-            mail.send_admin('deleted', update)
-            msg = "Deleted %s" % update.title
             flash_log(msg)
         else:
             flash_log("Cannot delete a pushed update")
