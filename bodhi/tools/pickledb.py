@@ -45,9 +45,10 @@ def save_db():
     updates = []
 
     for update in PackageUpdate.select():
-        print update.nvr
+        print update.title
         data = {}
-        data['nvr'] = update.nvr
+        data['title'] = update.title
+        data['builds'] = [build.nvr for build in update.builds]
         data['date_submitted'] = update.date_submitted
         data['date_pushed'] = update.date_pushed
         data['package'] = [update.package.name, update.package.suggest_reboot]
@@ -92,7 +93,7 @@ def load_db():
         elif u['request'] == 'push':
             request = 'testing'
 
-        update = PackageUpdate(title=u['nvr'],
+        update = PackageUpdate(title=u['title'],
                                date_submitted=u['date_submitted'],
                                date_pushed=u['date_pushed'],
                                release=release,
@@ -104,8 +105,8 @@ def load_db():
                                notes=u['notes'],
                                request=request)
 
-        for build in u['nvr'].split():
-            build = PackageBuild(nvr=u['nvr'], package=package)
+        for nvr in u['builds']:
+            build = PackageBuild(nvr=nvr, package=package)
             update.addPackageBuild(build)
         for bug_num, bug_title in u['bugs']:
             try:
