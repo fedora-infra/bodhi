@@ -52,7 +52,7 @@
             </td>
             <td class="list">
                 <center>
-                    <img src="${tg.url('/static/images/%s-large.png' % update.request)}" title="${update.request}"/>
+                    <img src="${tg.url('/static/images/%s-large.png' % update.request)}" title="${update.request}"/> ${update.request}
                 </center>
             </td>
             <td class="list">
