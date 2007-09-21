@@ -303,7 +303,6 @@ class Root(controllers.RootController):
     def push(self, nvr):
         """ Submit an update for pushing """
         update = PackageUpdate.byTitle(nvr)
-        repo = '%s-updates' % update.release.name
         # Test if package already has been pushed (posible when called json)
         if update.status != 'pending' or update.request in ["testing","stable"]:
             flash("Update is already pushed")
@@ -313,12 +312,8 @@ class Root(controllers.RootController):
             flash("Cannot push an update you did not submit")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
-        if update.type == 'security':
-            # Bypass updates-testing
-            update.request = 'stable'
-        else:
-            update.request = 'testing'
-            repo += '-testing'
+        update.request = 'testing'
+        repo = '%s-updates-testing' % update.release.name
         msg = "%s has been submitted for pushing to %s" % (nvr, repo)
         log.debug(msg)
         flash(msg)
