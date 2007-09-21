@@ -59,7 +59,7 @@ class Root(controllers.RootController):
     def exception(self, tg_exceptions=None):
         """ Generic exception handler """
         log.error("Exception thrown: %s" % str(tg_exceptions))
-        flash(str(tg_exceptions))
+        flash_log(str(tg_exceptions))
         if 'tg_format' in cherrypy.request.params and \
                 cherrypy.request.params['tg_format'] == 'json':
             return dict()
@@ -221,7 +221,7 @@ class Root(controllers.RootController):
                     map(results.append,
                         filter(lambda x: bug in x.bugs, updates))
             except SQLObjectNotFound, e:
-                flash(e)
+                flash_log(e)
                 if self.jsonRequest():
                     return dict(updates=[])
             updates = results
@@ -232,7 +232,7 @@ class Root(controllers.RootController):
                     map(results.append,
                         filter(lambda x: cve in x.cves, updates))
             except SQLObjectNotFound, e:
-                flash(e)
+                flash_log(e)
                 if self.jsonRequest():
                     return dict(updates=[])
             updates = results
@@ -268,9 +268,9 @@ class Root(controllers.RootController):
         """ Revoke a push request for a specified update """
         update = PackageUpdate.byTitle(nvr)
         if not util.authorized_user(update, identity):
-            flash("Cannot revoke an update you did not submit")
+            flash_log("Cannot revoke an update you did not submit")
             raise redirect(update.get_url())
-        flash("%s request revoked" % update.request.title())
+        flash_log("%s request revoked" % update.request.title())
         mail.send_admin('revoke', update)
         update.request = None
         raise redirect(update.get_url())
@@ -283,16 +283,16 @@ class Root(controllers.RootController):
         # Test if package already has been pushed (posible when called json)
         if not update.status in ['pending','testing'] or \
            update.request in ["testing", "stable"]:
-            flash("Update is already pushed")
+            flash_log("Update is already pushed")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         if not util.authorized_user(update, identity):
-            flash("Cannot move an update you did not submit")
+            flash_log("Cannot move an update you did not submit")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         update.request = 'stable'
-        flash("Requested that %s be pushed to %s-updates" % (nvr,
-              update.release.name))
+        flash_log("Requested that %s be pushed to %s-updates" % (nvr,
+                  update.release.name))
         mail.send_admin('move', update)
         if self.jsonRequest(): return dict()
         raise redirect(update.get_url())
@@ -305,18 +305,17 @@ class Root(controllers.RootController):
         update = PackageUpdate.byTitle(nvr)
         # Test if package already has been pushed (posible when called json)
         if update.status != 'pending' or update.request in ["testing","stable"]:
-            flash("Update is already pushed")
+            flash_log("Update is already pushed")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         if not util.authorized_user(update, identity):
-            flash("Cannot push an update you did not submit")
+            flash_log("Cannot push an update you did not submit")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         update.request = 'testing'
         repo = '%s-updates-testing' % update.release.name
         msg = "%s has been submitted for pushing to %s" % (nvr, repo)
-        log.debug(msg)
-        flash(msg)
+        flash_log(msg)
         mail.send_admin('push', update)
         if self.jsonRequest(): return dict()
         raise redirect(update.get_url())
@@ -327,12 +326,11 @@ class Root(controllers.RootController):
         """ Submit an update for unpushing """
         update = PackageUpdate.byTitle(nvr)
         if not util.authorized_user(update, identity):
-            flash("Cannot unpush an update you did not submit")
+            flash_log("Cannot unpush an update you did not submit")
             raise redirect(update.get_url())
         update.request = 'obsolete'
         msg = "%s has been submitted for unpushing" % nvr
-        log.debug(msg)
-        flash(msg)
+        flash_log(msg)
         mail.send_admin('unpush', update)
         raise redirect(update.get_url())
 
@@ -343,7 +341,7 @@ class Root(controllers.RootController):
         """ Delete a pending update """
         update = PackageUpdate.byTitle(update)
         if not util.authorized_user(update, identity):
-            flash("Cannot delete an update you did not submit")
+            flash_log("Cannot delete an update you did not submit")
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         if not update.pushed:
@@ -352,10 +350,9 @@ class Root(controllers.RootController):
             update.destroySelf()
             mail.send_admin('deleted', update)
             msg = "Deleted %s" % update.title
-            log.debug(msg)
-            flash(msg)
+            flash_log(msg)
         else:
-            flash("Cannot delete a pushed update")
+            flash_log("Cannot delete a pushed update")
         if self.jsonRequest(): return dict()
         raise redirect("/pending")
 
@@ -364,8 +361,11 @@ class Root(controllers.RootController):
     def edit(self, update):
         """ Edit an update """
         update = PackageUpdate.byTitle(update)
+        if update.status in ('testing', 'stable'):
+            flash_log("You must unpush this update before you can edit it.")
+            raise redirect(update.get_url())
         if not util.authorized_user(update, identity):
-            flash("Cannot edit an update you did not submit")
+            flash_log("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
         values = {
                 'builds'    : {'text':update.title, 'hidden':update.title},
@@ -411,10 +411,17 @@ class Root(controllers.RootController):
                 'edited'      : edited
         }
 
-        # If we're editing an update, destroy all associated builds, to start
-        # fresh.  This allows people to add/remove builds during and edit.
+        # Disallow adding or removing of builds when an update is testing or
+        # stable.  If we're in a pending state, we destroy them all and
+        # create them later -- to allow for adding/removing of builds.
         if edited:
             update = PackageUpdate.byTitle(edited)
+            if update.status in ('testing', 'stable'):
+                if filter(lambda build: build not in edited, builds) or \
+                   filter(lambda build: build not in builds, edited.split()):
+                    flash_log("You must unpush this update before you can "
+                              "add or remove any builds.")
+                    raise redirect(update.get_url())
             map(lambda build: build.destroySelf(), update.builds)
 
         # Make sure the selected release matches the Koji tag for this build
@@ -537,13 +544,13 @@ class Root(controllers.RootController):
 
         if edited:
             mail.send(p.submitter, 'edited', p)
-            flash("Update successfully edited" + note)
+            flash_log("Update successfully edited" + note)
         else:
             # Notify security team of newly submitted security updates
             if p.type == 'security':
                 mail.send(config.get('security_team'), 'new', p)
             mail.send(p.submitter, 'new', p)
-            flash("Update successfully created" + note)
+            flash_log("Update successfully created" + note)
 
         # For command line submissions, return PackageUpdate.__str__()
         if self.jsonRequest():
@@ -592,7 +599,7 @@ class Root(controllers.RootController):
                             comment_form=self.comment_form,
                             values={'title' : update.title})
             except SQLObjectNotFound:
-                flash("Update %s not found" % args[1])
+                flash_log("Update %s not found" % args[1])
                 raise redirect('/')
             except IndexError: # /[testing/]<release>
                 updates = PackageUpdate.select(
@@ -613,7 +620,7 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             pass
 
-        flash("The path %s cannot be found" % cherrypy.request.path)
+        flash_log("The path %s cannot be found" % cherrypy.request.path)
         raise redirect("/")
 
     @expose()
@@ -624,7 +631,7 @@ class Root(controllers.RootController):
     def comment(self, text, title, karma, tg_errors=None):
         update = PackageUpdate.byTitle(title)
         if tg_errors:
-            flash(tg_errors)
+            flash_log(tg_errors)
         else:
             update.comment(text, karma)
         raise redirect(update.get_url())
