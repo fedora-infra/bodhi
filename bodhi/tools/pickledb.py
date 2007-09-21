@@ -48,10 +48,9 @@ def save_db():
         print update.title
         data = {}
         data['title'] = update.title
-        data['builds'] = [build.nvr for build in update.builds]
+        data['builds'] = [(build.package.name, build.nvr) for build in update.builds]
         data['date_submitted'] = update.date_submitted
         data['date_pushed'] = update.date_pushed
-        data['package'] = [update.package.name, update.package.suggest_reboot]
         data['release'] = [update.release.name, update.release.long_name,
                            update.release.id_prefix, update.release.dist_tag]
         data['submitter'] = update.submitter
@@ -81,12 +80,6 @@ def load_db():
         except SQLObjectNotFound:
             release = Release(name=u['release'][0], long_name=u['release'][1],
                               id_prefix=u['id_prefix'], dist_tag=u['dist_tag'])
-        try:
-            package = Package.byName(u['package'][0])
-        except SQLObjectNotFound:
-            package = Package(name=u['package'][0],
-                              suggest_reboot=u['package'][1])
-
         request = None
         if u['request'] == 'move':
             request = 'stable'
@@ -105,9 +98,14 @@ def load_db():
                                notes=u['notes'],
                                request=request)
 
-        for nvr in u['builds']:
+        for pkg, nvr in u['builds']:
+            try:
+                package = Package.byName(pkg)
+            except SQLObjectNotFound:
+                package = Package(name=pkg)
             build = PackageBuild(nvr=nvr, package=package)
             update.addPackageBuild(build)
+
         for bug_num, bug_title in u['bugs']:
             try:
                 bug = Bugzilla(bz_id=bug_num)
@@ -116,6 +114,7 @@ def load_db():
                     PostgresIntegrityError):
                 bug = Bugzilla.byBz_id(bug_num)
             update.addBugzilla(bug)
+
         for cve_id in u['cves']:
             try:
                 cve = CVE(cve_id=cve_id)
