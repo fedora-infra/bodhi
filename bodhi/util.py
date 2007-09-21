@@ -142,7 +142,7 @@ def authorized_user(update, identity):
 def make_update_link(obj):
     update = hasattr(obj, 'get_url') and obj or obj.update
     link = Element('a', href=url(update.get_url()))
-    link.text = update.title
+    link.text = update.get_title()
     return link
 
 def make_type_icon(update):
