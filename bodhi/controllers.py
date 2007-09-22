@@ -361,9 +361,6 @@ class Root(controllers.RootController):
     def edit(self, update):
         """ Edit an update """
         update = PackageUpdate.byTitle(update)
-        if update.status in ('testing', 'stable'):
-            flash_log("You must unpush this update before you can edit it.")
-            raise redirect(update.get_url())
         if not util.authorized_user(update, identity):
             flash_log("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
@@ -416,7 +413,8 @@ class Root(controllers.RootController):
             nvr = util.get_nvr(build)
             people = get_pkg_people(nvr[0], release.long_name.split()[0],
                                     release.long_name[-1])
-            if not identity.current.user_name in people[0]:
+            if not identity.current.user_name in people[0] and \
+               not 'releng' in identity.current.groups:
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, nvr[0]))
                 raise redirect('/new', **params)
