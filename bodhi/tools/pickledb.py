@@ -63,7 +63,7 @@ def save_db():
         data['pushed'] = update.pushed
         data['notes'] = update.notes
         data['request'] = update.request
-        data['comments'] = [(c.timestamp, c.author, c.text) for c in update.comments]
+        data['comments'] = [(c.timestamp, c.author, c.text, c.karma) for c in update.comments]
         updates.append(data)
 
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
@@ -124,9 +124,9 @@ def load_db():
                     PostgresIntegrityError):
                 cve = CVE.byCve_id(cve_id)
             update.addCVE(cve)
-        for timestamp, author, text in u['comments']:
+        for timestamp, author, text, karma in u['comments']:
             comment = Comment(timestamp=timestamp, author=author, text=text,
-                              update=update)
+                              karma=karma, update=update)
 
         print update
         print
