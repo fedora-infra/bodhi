@@ -138,7 +138,6 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
         ['Type',          update.type],
         ['Bugs',          (bugs) and XML(bugs) or ''],
         ['CVEs',          (cves) and XML(cves) or ''],
-        ['Embargo',       update.type == 'security' and update.embargo or ''],
         ['Karma',         XML(karma)],
         ['Requested',     update.request],
         ['Pushed',        update.pushed],

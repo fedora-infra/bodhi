@@ -292,7 +292,7 @@ class TestControllers(testutil.DBTest):
         session = self.login()
         self.create_release()
         params = {
-            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7,nethack-1.2.3-4',
             'release' : 'Fedora 7',
             'type'    : 'bugfix',
             'bugs'    : '',
@@ -318,6 +318,14 @@ class TestControllers(testutil.DBTest):
             assert False, "Update never deleted!"
         except SQLObjectNotFound:
             pass
+
+        for build in params['builds'].split(','):
+            try:
+                build = PackageBuild.byNvr(build)
+                print build
+                assert False, "Build never deleted!"
+            except SQLObjectNotFound:
+                pass
 
     def test_requests(self):
         session = self.login()
