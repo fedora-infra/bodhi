@@ -56,6 +56,7 @@ def save_db():
         data['submitter'] = update.submitter
         data['update_id'] = update.update_id
         data['type'] = update.type
+        data['karma'] = update.karma
         data['cves'] = [cve.cve_id for cve in update.cves]
         data['bugs'] = [(bug.bz_id, bug.title) for bug in update.bugs]
         data['status'] = update.status
@@ -96,6 +97,7 @@ def load_db():
                                status=u['status'],
                                pushed=u['pushed'],
                                notes=u['notes'],
+                               karma=u['karma'],
                                request=request)
 
         for pkg, nvr in u['builds']:
