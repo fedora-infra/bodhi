@@ -435,8 +435,11 @@ class Comment(SQLObject):
     text        = UnicodeCol()
 
     def __str__(self):
-        return "%s - %s (karma: %d)\n%s" % (self.author, self.timestamp,
-                                            self.karma, self.text)
+        karma = '0'
+        if self.karma != 0:
+            karma = '%+d' % (self.karma,)
+        return "%s - %s (karma: %s)\n%s" % (self.author, self.timestamp,
+                                            karma, self.text)
 
 class CVE(SQLObject):
     """ Table of CVEs fixed within updates that we know of. """
