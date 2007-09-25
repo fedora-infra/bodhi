@@ -530,6 +530,7 @@ class Bugzilla(SQLObject):
                 del server
             except Exception, e:
                 log.error("Cannot close bug #%d" % self.bz_id)
+                log.error(e)
         else:
             log.warning("bodhi_password not defined; unable to close bug")
 
