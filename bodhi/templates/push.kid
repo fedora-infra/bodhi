@@ -51,7 +51,7 @@ obsolete = filter(lambda x: x.request == 'obsolete', updates)
                         <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
                     <td class="list">
-                        <a href="${tg.url(update.get_url())}">${update.title}</a>
+                        <a href="${tg.url(update.get_url())}">${update.get_title()}</a>
                     </td>
                     <td class="list">
                         ${karma}
@@ -95,7 +95,7 @@ obsolete = filter(lambda x: x.request == 'obsolete', updates)
                         <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
                     <td class="list">
-                        <a href="${tg.url(update.get_url())}">${update.title}</a>
+                        <a href="${tg.url(update.get_url())}">${update.get_title()}</a>
                     </td>
                     <td class="list">
                         ${karma}
@@ -139,7 +139,7 @@ obsolete = filter(lambda x: x.request == 'obsolete', updates)
                         <input type="checkbox" name="updates" value="${update.title}" checked="True"/>
                     </td>
                     <td class="list">
-                        <a href="${tg.url(update.get_url())}">${update.title}</a>
+                        <a href="${tg.url(update.get_url())}">${update.get_title()}</a>
                     </td>
                     <td class="list">			
                         ${karma}
