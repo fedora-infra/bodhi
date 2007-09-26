@@ -20,9 +20,9 @@
 import os
 import shutil
 import logging
-import datetime
 
 from os.path import isdir, realpath, dirname, join, islink
+from datetime import datetime
 from turbogears import scheduler, config
 
 from bodhi import mail
@@ -51,11 +51,22 @@ def clean_repo():
 def nagmail():
     # Nag submitters when their update has been sitting in testing for more
     # than two weeks.
+    name = 'old_testing'
     for update in PackageUpdate.select(PackageUpdate.q.status == 'testing'):
         if get_age_in_days(update.date_pushed) > 14:
+            if update.nagged.has_key(name) and update.nagged[name]:
+                log.debug("%s has nagged[%s] = %s" % (update.title, name,
+                          update.nagged[name]))
+                if (datetime.now() - update.nagged[name]).days < 7:
+                    log.debug("Skipping %s nagmail for %s; less than 7 days " 
+                              "since our last nag" % (name, update.title))
+                    continue
             log.info("Nagging %s about testing update %s" % (update.submitter,
                      update.title))
-            mail.send(update.submitter, 'old_testing', update)
+            mail.send(update.submitter, name, update)
+            nagged = update.nagged
+            nagged[name] = datetime.now()
+            update.nagged = nagged
 
     # Nag submitters if their update has been sitting unsubmitted in a pending
     # state for longer than a week.
@@ -69,11 +80,11 @@ def schedule():
     # Weekly repository cleanup
     scheduler.add_interval_task(action=clean_repo,
                                 taskname='Repository Cleanup',
-                                initialdelay=0,
+                                initialdelay=604800,
                                 interval=604800)
 
     # Weekly nagmail
     scheduler.add_interval_task(action=nagmail,
                                 taskname='Nagmail',
-                                initialdelay=604800,
+                                initialdelay=15,
                                 interval=604800)
