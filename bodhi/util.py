@@ -204,7 +204,7 @@ def get_repo_tag(repo):
 
 def get_pkg_people(pkgName, collectionName, collectionVersion):
     """ Pull users who can commit and are watching a package
-    
+
     Return two lists:
     * The first consists of usernames allowed to commit to the package.
     * The second are usernames watching the package for updates.
@@ -215,15 +215,16 @@ def get_pkg_people(pkgName, collectionName, collectionVersion):
         pkg['packageListings'][0]['owner']
       * pkg['packageListings'][0]['people'][0..n]['user'] =>
         pkg['packageListings'][0]['people'][0..n]['userid']
-    
+
     * We may want to create a 'push' acl specifically for bodhi instead of
       reusing 'commit'.
     * ['status']['translations'] may one day contain more than the 'C'
       translation.  The pkgdb will have to figure out how to deal with that
       if so.
     """
-    pkgPage=urllib2.urlopen(config.get('pkgdb_url') + '/packages/name/%s/%s/%s?tg_format=json' %
-            (pkgName, collectionName, collectionVersion))
+    pkgPage = urllib2.urlopen(config.get('pkgdb_url') +
+                              '/packages/name/%s/%s/%s?tg_format=json' % (
+                              pkgName, collectionName, collectionVersion))
     pkg = simplejson.load(pkgPage)
     if pkg.has_key('status') and not pkg['status']:
         raise Exception, 'Package %s not found in PackageDB.  Error: %s' % (
@@ -234,14 +235,14 @@ def get_pkg_people(pkgName, collectionName, collectionVersion):
     # Package-Collection-Version
     notify = [pkg['packageListings'][0]['owneruser']]
     allowed = [notify[0]]
-    
+
     # Find other people in the acl
     for person in pkg['packageListings'][0]['people']:
         if person['aclOrder']['watchcommits'] and \
-                person['aclOrder']['watchcommits']['status']['translations'][0]['statusname'] == 'Approved':
+           pkg['statusMap'][str(person['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
             notify.append(person['user'])
         if person['aclOrder']['commit'] and \
-                person['aclOrder']['commit']['status']['translations'][0]['statusname'] == 'Approved':
+           pkg['statusMap'][str(person['aclOrder']['commit']['statuscode'])] == 'Approved':
             allowed.append(person['user'])
 
     return (allowed, notify)
