@@ -147,11 +147,11 @@ class MashTask(Thread):
         perform actions against this set of updates
         """
         pending_nvrs = [build['nvr'] for build in
-                        koji.listTagged('dist-fc7-updates-candidate')]
+                        self.koji.listTagged('dist-fc7-updates-candidate')]
         testing_nvrs = [build['nvr'] for build in
-                        koji.listTagged('dist-fc7-updates-testing')]
+                        self.koji.listTagged('dist-fc7-updates-testing')]
         stable_nvrs = [build['nvr'] for build in
-                       koji.listTagged('dist-fc7-updates')]
+                       self.koji.listTagged('dist-fc7-updates')]
 
         errors = False
         def error_log(msg):
