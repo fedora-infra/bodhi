@@ -259,13 +259,17 @@ class MashTask(Thread):
             # make sure the new repository has our arches
             for arch in ('i386', 'x86_64', 'ppc'):
                 if arch not in arches:
-                    error_log("Cannot find arch %s in %s" % (arch, newrepo))
+                    msg = "Cannot find arch %s in %s" % (arch, newrepo)
+                    log.error(msg)
+                    self.error_messages.append(msg)
 
             # make sure that mash didn't symlink our packages
             for pkg in os.listdir(join(newrepo, 'i386')):
                 if pkg.endswith('.rpm'):
                     if islink(join(newrepo, 'i386', pkg)):
-                        log_error("Mashed repository full of symlinks!")
+                        msg = "Mashed repository full of symlinks!"
+                        log.error(msg)
+                        self.error_messages.append(msg)
                         return
                     break
 
@@ -383,14 +387,15 @@ class MashTask(Thread):
         if len(self.error_messages):
             val += '\n The following errors occured:\n'
             for error in self.error_messages:
-                val += error
+                val += error + '\n'
         if len(self.actions):
             val += '\n  Moved the following package tags:\n'
             for action in self.actions:
                 val += '   %s :: %s => %s\n' % (action[0], action[1], action[2])
-        val += '\n  Mashed the following repositories:\n'
-        for repo in self.repos:
-            val += '  - %s\n' % repo
+        if len(self.repos):
+            val += '\n  Mashed the following repositories:\n'
+            for repo in self.repos:
+                val += '  - %s\n' % repo
         if self.log:
             mashlog = file(self.log, 'r')
             val += '\nMash Output:\n\n%s' % mashlog.read()
