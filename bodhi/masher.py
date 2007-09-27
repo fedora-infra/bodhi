@@ -156,7 +156,7 @@ class MashTask(Thread):
         errors = False
         def error_log(msg):
             log.error(msg)
-            error_messages.append(msg)
+            self.error_messages.append(msg)
             errors = True
 
         for update in self.updates:
