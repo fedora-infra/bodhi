@@ -469,6 +469,8 @@ class Bugzilla(SQLObject):
         self._fetch_details()
 
     def _fetch_details(self):
+        if not self._bz_server:
+            return
         try:
             log.debug("Fetching bugzilla #%d" % self.bz_id)
             server = xmlrpclib.Server(self._bz_server)
