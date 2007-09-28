@@ -13,8 +13,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import os
-import mail
-import shutil
 import logging
 import tempfile
 import cherrypy
@@ -22,13 +20,8 @@ import commands
 
 from datetime import datetime
 from turbogears import expose, redirect, config, identity, controllers
-
-from bodhi.util import mkmetadatadir, header
 from bodhi.model import PackageUpdate
-from bodhi.metadata import ExtendedMetadata
-from bodhi.modifyrepo import RepoMetadata
-
-from os.path import isfile, isdir, basename, join
+from os.path import join
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +70,7 @@ class PushController(controllers.Controller, identity.SecureResource):
         if 'tg_format' in cherrypy.request.params and \
                 cherrypy.request.params['tg_format'] == 'json':
             import simplejson
-            updates = simplejson.loads(updates)
+            updates = simplejson.loads(updates.replace("'", "\""))
         if not isinstance(updates, list):
             updates = [updates]
         masher.queue([PackageUpdate.byTitle(title) for title in updates])

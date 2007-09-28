@@ -139,8 +139,56 @@ class MashTask(Thread):
         self.moving = False # are we currently moving build tags?
         self.log = None # filename that we wrote mash output to
         self.mashed_repos = {} # { repo: mashed_dir }
+        self.error_messages = []
+
+    def safe_to_move(self):
+        """
+        Check for bodhi/koji inconsistencies, and make sure it is safe to
+        perform actions against this set of updates
+        """
+        pending_nvrs = [build['nvr'] for build in
+                        self.koji.listTagged('dist-fc7-updates-candidate')]
+        testing_nvrs = [build['nvr'] for build in
+                        self.koji.listTagged('dist-fc7-updates-testing')]
+        stable_nvrs = [build['nvr'] for build in
+                       self.koji.listTagged('dist-fc7-updates')]
+
+        errors = False
+        def error_log(msg):
+            log.error(msg)
+            self.error_messages.append(msg)
+            errors = True
+
+        for update in self.updates:
+            for build in update.builds:
+                if update.request == 'testing':
+                    if build.nvr not in pending_nvrs:
+                        error_log("%s not tagged as candidate" % build.nvr)
+                elif update.request == 'stable':
+                    if update.status == 'testing':
+                        if build.nvr not in testing_nvrs:
+                            error_log("%s not tagged as testing" % build.nvr)
+                    elif update.status == 'pending':
+                        if build.nvr not in pending_nvrs:
+                            error_log("%s not tagged as candidate" % build.nvr)
+                elif update.request == 'unpush':
+                    if update.status == 'testing':
+                        if build.nvr not in testing_nvrs:
+                            error_log("%s not tagged as testing" % build.nvr)
+                    elif update.status == 'stable':
+                        if build.nvr not in stable_nvrs:
+                            error_log("%s not tagged as stable" % build.nvr)
+                else:
+                    error_log("Unknown request '%s' for %s" % (update.request,
+                                                               update.title))
+        return errors
 
     def move_builds(self):
+        """
+        Move all builds associated with our batch of updates to the proper tag.
+        This is determined based on the request of the update, and it's
+        current state.
+        """
         tasks = []
         success = False
         self.moving = True
@@ -187,6 +235,10 @@ class MashTask(Thread):
         buildsys.wait_for_tasks(tasks)
 
     def update_comps(self):
+        """
+        Update our comps module, so we can pass it to mash to stuff into 
+        our repositories
+        """
         log.debug("Updating comps...")
         olddir = os.getcwd()
         os.chdir(config.get('comps_dir'))
@@ -200,10 +252,31 @@ class MashTask(Thread):
         mashed_dir = config.get('mashed_dir')
         for repo, mashdir in self.mashed_repos.items():
             link = join(mashed_dir, repo)
+            newrepo = join(mashdir, repo)
+            log.debug("Running some sanity checks on %s" % newrepo)
+            arches = os.listdir(newrepo)
+
+            # make sure the new repository has our arches
+            for arch in ('i386', 'x86_64', 'ppc'):
+                if arch not in arches:
+                    msg = "Cannot find arch %s in %s" % (arch, newrepo)
+                    log.error(msg)
+                    self.error_messages.append(msg)
+
+            # make sure that mash didn't symlink our packages
+            for pkg in os.listdir(join(newrepo, 'i386')):
+                if pkg.endswith('.rpm'):
+                    if islink(join(newrepo, 'i386', pkg)):
+                        msg = "Mashed repository full of symlinks!"
+                        log.error(msg)
+                        self.error_messages.append(msg)
+                        return
+                    break
+
             if islink(link):
                 os.unlink(link)
-            os.symlink(join(mashdir, repo), link)
-            log.debug("Created symlink: %s => %s" % (join(mashdir, repo), link))
+            os.symlink(newrepo, link)
+            log.debug("Created symlink: %s => %s" % (newrepo, link))
 
     def mash(self):
         self.mashing = True
@@ -245,6 +318,10 @@ class MashTask(Thread):
         anything fails, undo any tag moves.
         """
         try:
+            if not self.safe_to_move():
+                log.error("safe_to_move failed! -- aborting")
+                masher.done(self)
+                return
             t0 = time.time()
             if self.move_builds():
                 log.debug("Moved builds in %s seconds" % (time.time() - t0))
@@ -256,6 +333,7 @@ class MashTask(Thread):
                     log.debug("Running post-request actions on updates")
                     for update in self.updates:
                         update.request_complete()
+                    log.debug("Requests complete!")
                     self.generate_updateinfo()
                     self.update_symlinks()
                 else:
@@ -270,7 +348,7 @@ class MashTask(Thread):
                 self.success = False
         except Exception, e:
             log.error("Exception thrown in MashTask %d" % self.id)
-            log.error(str(e))
+            log.exception(str(e))
         masher.done(self)
 
     def generate_updateinfo(self):
@@ -283,7 +361,6 @@ class MashTask(Thread):
         for repo, mashdir in self.mashed_repos.items():
             repo = join(mashdir, repo)
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
-            t0 = time.time()
             uinfo = ExtendedMetadata(repo)
             uinfo.insert_updateinfo()
         log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
@@ -307,13 +384,18 @@ class MashTask(Thread):
         val += 'The following actions were %ssuccessful.' % (self.success and
                                                              [''] or 
                                                              ['*NOT* '])[0]
+        if len(self.error_messages):
+            val += '\n The following errors occured:\n'
+            for error in self.error_messages:
+                val += error + '\n'
         if len(self.actions):
             val += '\n  Moved the following package tags:\n'
             for action in self.actions:
                 val += '   %s :: %s => %s\n' % (action[0], action[1], action[2])
-        val += '\n  Mashed the following repositories:\n'
-        for repo in self.repos:
-            val += '  - %s\n' % repo
+        if len(self.repos):
+            val += '\n  Mashed the following repositories:\n'
+            for repo in self.repos:
+                val += '  - %s\n' % repo
         if self.log:
             mashlog = file(self.log, 'r')
             val += '\nMash Output:\n\n%s' % mashlog.read()

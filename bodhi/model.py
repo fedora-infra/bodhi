@@ -185,7 +185,7 @@ class PackageUpdate(SQLObject):
     comments         = MultipleJoin('Comment', joinColumn='update_id')
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
-    nagged           = PickleCol(default=None) # { nagmail_name : datetime, ... }
+    nagged           = PickleCol(default={}) # { nagmail_name : datetime, ... }
 
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
@@ -469,6 +469,8 @@ class Bugzilla(SQLObject):
         self._fetch_details()
 
     def _fetch_details(self):
+        if not self._bz_server:
+            return
         try:
             log.debug("Fetching bugzilla #%d" % self.bz_id)
             server = xmlrpclib.Server(self._bz_server)
@@ -530,6 +532,7 @@ class Bugzilla(SQLObject):
                 del server
             except Exception, e:
                 log.error("Cannot close bug #%d" % self.bz_id)
+                log.error(e)
         else:
             log.warning("bodhi_password not defined; unable to close bug")
 
