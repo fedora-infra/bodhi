@@ -95,6 +95,17 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.update_id == '%s-%s-0001' % (update.release.id_prefix,
                                                    time.localtime()[0])
 
+    def test_url(self):
+        update = self.get_update()
+        print "URL = ", update.get_url()
+        assert update.get_url() == join(update.release.name, update.status,
+                                        update.title)
+        update.status = 'stable'
+        assert update.get_url() == join(update.release.name, update.status,
+                                        update.title)
+        update.assign_id()
+        assert update.get_url() == join(update.release.name, update.update_id)
+
     def test_multibuild(self):
         from bodhi import util
         builds = ('yum-3.2.1-1.fc7', 'httpd-2.2.4-4.1.fc7')
