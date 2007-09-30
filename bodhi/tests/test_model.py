@@ -98,13 +98,18 @@ class TestPackageUpdate(testutil.DBTest):
     def test_url(self):
         update = self.get_update()
         print "URL = ", update.get_url()
-        assert update.get_url() == join(update.release.name, update.status,
-                                        update.title)
+        url = lambda update: '/%s/%s/%s' % (update.release.name, update.status,
+                                            update.title)
+        update.status = 'pending'
+        assert update.get_url() == url(update)
+        update.status = 'testing'
+        assert update.get_url() == url(update)
+
         update.status = 'stable'
-        assert update.get_url() == join(update.release.name, update.status,
-                                        update.title)
+        assert update.get_url() == url(update)
         update.assign_id()
-        assert update.get_url() == join(update.release.name, update.update_id)
+        assert update.get_url() == '/%s/%s' % (update.release.name,
+                                               update.update_id)
 
     def test_multibuild(self):
         from bodhi import util
