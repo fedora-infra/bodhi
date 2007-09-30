@@ -203,7 +203,6 @@ class ExtendedMetadata:
 
         pkglist.appendChild(collection)
         root.appendChild(pkglist)
-        log.debug("Metadata generation successful")
 
     def insert_updateinfo(self):
         for arch in os.listdir(self.repo):

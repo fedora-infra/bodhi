@@ -22,7 +22,7 @@ import turbogears
 from sqlobject import *
 from datetime import datetime
 
-from turbogears import config, flash
+from turbogears import config, url
 from turbogears.database import PackageHub
 
 from os.path import isfile, join
@@ -294,9 +294,13 @@ class PackageUpdate(SQLObject):
 
     def get_url(self):
         """ Return the relative URL to this update """
-        status = self.status == 'testing' and 'testing/' or ''
-        if not self.pushed: status = 'pending/'
-        return '/%s%s/%s' % (status, self.release.name, self.title)
+        path = ['/%s' % self.release.name]
+        if self.update_id:
+            path.append(self.update_id)
+        else:
+            path.append(self.status)
+            path.append(self.title)
+        return join(*path)
 
     def __str__(self):
         """
@@ -323,7 +327,7 @@ class PackageUpdate(SQLObject):
   Submitter: %s
   Submitted: %s\n\n  %s
         """ % (self.submitter, self.date_submitted,
-               config.get('base_address') + turbogears.url(self.get_url()))
+               config.get('base_address') + url(self.get_url()))
         return val.rstrip()
 
     def get_build_tag(self):

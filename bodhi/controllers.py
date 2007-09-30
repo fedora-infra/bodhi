@@ -12,10 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import sys
 import rpm
 import mail
-import time
 import logging
 import cherrypy
 
@@ -31,7 +29,7 @@ from turbogears.widgets import DataGrid, Tabber
 
 from bodhi import buildsys, util
 from bodhi.rss import Feed
-from bodhi.util import flash_log, get_pkg_people
+from bodhi.util import flash_log, get_pkg_people, get_age
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
@@ -78,71 +76,32 @@ class Root(controllers.RootController):
         """
         from bodhi.util import make_update_link, make_type_icon, make_karma_icon
         RESULTS, FIELDS, GRID = range(3)
-        tabs = Tabber()
 
         # { 'Title' : [SelectResults, [(row, row_callback),]], ... }
         grids = {
-            'Comments' : [
+            'comments' : [
                 Comment.select(orderBy=Comment.q.timestamp).reversed(),
                 [
                     ('Update', make_update_link),
-                    ('From', lambda row: row.author),
                     ('Comment', lambda row: row.text),
+                    ('From', lambda row: row.author),
                     ('Karma', make_karma_icon)
                 ]
             ],
-            'Mine' : [
+            'mine' : [
                 PackageUpdate.select(
                     PackageUpdate.q.submitter == identity.current.user_name,
                     orderBy=PackageUpdate.q.date_pushed
                 ).reversed(),
                 [
-                    ('Name', make_update_link),
-                    ('Type', make_type_icon),
+                    ('Update', make_update_link),
                     ('Status', lambda row: row.status),
+                    ('Type', make_type_icon),
+                    ('Request', lambda row: row.request),
+                    ('Karma', make_karma_icon),
                     ('Age', lambda row: row.get_submitted_age()),
-                    ('Karma', make_karma_icon)
                 ]
             ],
-            'Testing' : [
-                PackageUpdate.select(
-                    PackageUpdate.q.status == 'testing',
-                    orderBy=PackageUpdate.q.date_pushed
-                ).reversed(),
-                [
-                    ('Name', make_update_link),
-                    ('Type', make_type_icon),
-                    ('Submitter', lambda row: row.submitter),
-                    ('Age', lambda row: row.get_pushed_age()),
-                    ('Karma', make_karma_icon)
-                ]
-            ],
-            'Stable' : [
-                PackageUpdate.select(
-                    PackageUpdate.q.status == 'stable',
-                    orderBy=PackageUpdate.q.date_pushed
-                ).reversed(),
-                [
-                    ('Name', make_update_link),
-                    ('Update ID', lambda row: row.update_id),
-                    ('Type', make_type_icon),
-                    ('Submitter', lambda row: row.submitter),
-                    ('Age', lambda row: row.get_pushed_age())
-                ]
-            ],
-            'Security' : [
-                PackageUpdate.select(
-                    AND(PackageUpdate.q.type == 'security',
-                        PackageUpdate.q.status == 'stable'),
-                    orderBy=PackageUpdate.q.date_pushed
-                ).reversed(),
-                [
-                    ('Name', make_update_link),
-                    ('Update ID', lambda row: row.update_id),
-                    ('Submitter', lambda row: row.submitter),
-                    ('Age', lambda row: row.get_pushed_age())
-                ]
-            ]
         }
 
         for key, value in grids.items():
@@ -152,11 +111,11 @@ class Root(controllers.RootController):
             if value[RESULTS].count() > 5:
                 value[RESULTS] = value[RESULTS][:5]
             value[RESULTS] = list(value[RESULTS])
-
             grids[key].append(DataGrid(fields=value[FIELDS],
                                        default=value[RESULTS]))
 
-        return dict(now=time.ctime(), grids=grids, tabs=tabs)
+        return dict(now=datetime.utcnow(), mine=grids['mine'][-1],
+                    comments=grids['comments'][-1])
 
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
@@ -411,8 +370,13 @@ class Root(controllers.RootController):
         # Make sure the submitter has commit access to these builds
         for build in builds:
             nvr = util.get_nvr(build)
-            people = get_pkg_people(nvr[0], release.long_name.split()[0],
-                                    release.long_name[-1])
+            people = None
+            try:
+                people = get_pkg_people(nvr[0], release.long_name.split()[0],
+                                        release.long_name[-1])
+            except Exception, e:
+                flash_log(e)
+                raise redirect('/new', **params)
             if not identity.current.user_name in people[0] and \
                not 'releng' in identity.current.groups:
                 flash_log("%s does not have commit access to %s" % (

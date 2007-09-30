@@ -5,74 +5,84 @@
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
     <title>Fedora Update System</title>
     <link media="all" href="${tg.url('/tg_widgets/turbogears.widgets/grid.css')}" type="text/css" rel="stylesheet"/>
+    <link rel="stylesheet" href="${tg.url('/static/css/jquery.tooltip.css')}" />
+    <script src="${tg.url('/static/js/jquery.dimensions.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/jquery.tooltip.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/chili-1.7.pack.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/jquery.bgiframe.js')}" type="text/javascript"></script>
+
+    <script language="javascript">
+        $(document).ready(function(){
+            $('#bodhitip').Tooltip( { delay: 0 } );
+            $('#wftip').Tooltip( { delay: 0 } );
+            $('#kojitip').Tooltip( { delay: 0 } );
+            $('#mugtip').Tooltip( { delay: 0 } );
+            $('#bugtip').Tooltip( { delay: 0 } );
+        });
+    </script>
+
 </head>
 <body>
-    <blockquote>
-        <table width="100%">
+    <table width="90%" align="center" valign="top">
             <tr>
-                <td align="left"><b><font size="4">Welcome, ${tg.identity.user.display_name}</font></b></td>
-                <td align="right">${now}</td>
-            </tr>
-        </table>
-        <table cellpadding="5" cellspacing="5" valign="top">
-            <tr>
-                <td valign="top">
+                <td align="left" valign="bottom"><b><font size="4">Welcome, ${tg.identity.user.display_name}</font></b></td>
+                <td align="right">
                     <table>
                         <tr>
-                            <td align="right">
-                                <img src="${tg.url('/static/images/bodhi-icon-36.png')}" height="36" width="36"/>
-                            </td>
-                            <td align="left">
-                                <a href="http://hosted.fedoraproject.org/projects/bodhi" class="list">Bodhi Project Homepage</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="right">
-                                <img src="${tg.url('/static/images/header-faq.png')}" align="middle" border="0" />
-                            </td>
-                            <td align="left">
-                                <a href="http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem/Bodhi-info-DRAFT" class="list">Bodhi workflow and Q&amp;A draft</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="right">
-                                <img src="${tg.url('/static/images/header-projects.png')}" border="0" align="middle" alt="Bugs"/>
-                            </td>
-                            <td align="left">
-                                <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket" class="list">File a bug or feature request</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="right">
-                                <font size="6">麹</font>
-                            </td>
-                            <td align="left">
-                                <a href="http://koji.fedoraproject.org/koji/" class="list">Koji Buildsystem</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="right">
-                                <img src="${tg.url('/static/images/mugshot.png')}" border="0" align="middle" alt="Fedora Infrastructure Mugshot Group"/>
-                            </td>
-                            <td align="left">
-                                <a href="http://mugshot.org/group?who=yWstkV2xGz93rQ" class="list">Fedora Infrastructure Mugshot group</a>
-                            </td>
-                        </tr>
-                        </table>
-                    </td>
-                    <td valign="top" width="60%" height="100%">
-                        <div class="tabber">
-                            <div class="tabbertab" py:for="title, value in grids.items()">
-                                <h2>${title}</h2>
-                                <span py:if="value[2]">
-                                    ${value[2].display()}
+                            <td>
+                                <span id="bodhitip" title="Bodhi Project Homepage">
+                                    <a href="http://hosted.fedoraproject.org/projects/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
                                 </span>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+                            </td>
+                            <td>
+                                <span id="wftip" title="Bodhi Workflow Q&amp;A draft">
+                                    <a href="http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem/Bodhi-info-DRAFT"><img src="${tg.url('/static/images/header-faq.png')}" border="0" height="36" width="36"/></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span id="bugtip" title="File a bug or feature request">
+                                    <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" border="0" /></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span id="kojitip" title="Koji Buildsystem">
+                                    <a href="http://koji.fedoraproject.org/koji/" class="list"><font size="6">麹</font></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span id="mugtip" title="Fedora Infrastructure Mugshot Group">
+                                    <a href="http://mugshot.org/group?who=yWstkV2xGz93rQ"><img src="${tg.url('/static/images/mugshot.png')}" border="0" /></a>
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td valign="top" align="left">
+                    ${now}
+                </td>
+            </tr>
         </table>
-    </blockquote>
+        <table valign="top" width="90%" align="center">
+            <tr>
+                <td>
+                    <span py:if="mine">
+                        <h3>${tg.identity.user.user_name}'s updates</h3>
+                        ${mine.display()}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span py:if="comments">
+                        <h3>Latest Comments</h3>
+                        ${comments.display()}
+                    </span>
+                </td>
+            </tr>
+        </table>
+
     <center>
         <a href="http://turbogears.org"><img src="${tg.url('/static/images/under_the_hood_blue.png')}" border="0" /></a>
     </center>
