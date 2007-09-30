@@ -4,6 +4,12 @@
     method="${method}"
     py:attrs="form_attrs" width="100%">
 
+    <link rel="stylesheet" href="${tg.url('/static/css/jquery.tooltip.css')}" />
+    <script src="${tg.url('/static/js/jquery.dimensions.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/jquery.tooltip.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/chili-1.7.pack.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/jquery.bgiframe.js')}" type="text/javascript"></script>
+
     <script type="text/javascript">
     $(document).ready(function() {
         $("#addField").click( function() {
@@ -11,6 +17,48 @@
             o.clone().val(" "+o.val()).insertAfter(o.parent().parent()).show();
             o.focus().val("");
         } );
+
+        $("#form_builds_text").attr("title", "Update Builds - A space or comma delimited list of name-version-release builds");
+        $("#form_builds_text").Tooltip({
+                extraClass: "pretty fancy",
+                showBody:   " - ",
+                left: 5,
+                top: -15,
+                fixPNG: true,
+                opacity: 1
+        })
+        $("#form_notes").Tooltip({
+                extraClass: "pretty fancy",
+                showBody:   " - ",
+                left: 5,
+                top: -15,
+                fixPNG: true,
+                opacity: 1
+        })
+        $("#form_bugs").Tooltip({
+                extraClass: "pretty fancy",
+                showBody:   " - ",
+                left: 5,
+                top: -15,
+                fixPNG: true,
+                opacity: 1
+        })
+        $("#form_cves").Tooltip({
+                extraClass: "pretty fancy",
+                showBody:   " - ",
+                left: 5,
+                top: -15,
+                fixPNG: true,
+                opacity: 1
+        })
+        $("#form_close_bugs").Tooltip({
+                extraClass: "pretty fancy",
+                showBody:   " - ",
+                left: 5,
+                top: -15,
+                fixPNG: true,
+                opacity: 1
+        })
     });
     </script>
 
