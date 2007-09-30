@@ -142,7 +142,7 @@ def authorized_user(update, identity):
 def make_update_link(obj):
     update = hasattr(obj, 'get_url') and obj or obj.update
     link = Element('a', href=url(update.get_url()))
-    link.text = update.get_title()
+    link.text = update.get_title(', ')
     return link
 
 def make_type_icon(update):
@@ -156,7 +156,7 @@ def make_karma_icon(update):
         karma = 1
     else:
         karma = 0
-    return Element('img', src=url('/static/images/%d.png' % karma))
+    return Element('img', src=url('/static/images/karma%d.png' % karma))
 
 def get_age(date):
     age = datetime.utcnow() - date
