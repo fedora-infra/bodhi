@@ -294,13 +294,13 @@ class PackageUpdate(SQLObject):
 
     def get_url(self):
         """ Return the relative URL to this update """
-        path = [self.release.name]
+        path = ['/%s' % self.release.name]
         if self.update_id:
             path.append(self.update_id)
         else:
             path.append(self.status)
             path.append(self.title)
-        return url(join(path))
+        return join(*path)
 
     def __str__(self):
         """
@@ -327,7 +327,7 @@ class PackageUpdate(SQLObject):
   Submitter: %s
   Submitted: %s\n\n  %s
         """ % (self.submitter, self.date_submitted,
-               config.get('base_address') + turbogears.url(self.get_url()))
+               config.get('base_address') + url(self.get_url()))
         return val.rstrip()
 
     def get_build_tag(self):
