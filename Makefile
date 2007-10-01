@@ -37,4 +37,8 @@ srpm: dist
 pyflakes:
 	find . -name '*.py' | xargs pyflakes
 
+profile:
+	nosetests --with-profile --profile-stats-file=nose.prof
+	python -c "import hotshot.stats ; stats = hotshot.stats.load('nose.prof') ; stats.sort_stats('time', 'calls') ; stats.print_stats(20)"
+
 .PHONY: docs test todo clean dist build install srpm pyflakes
