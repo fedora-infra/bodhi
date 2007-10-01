@@ -243,3 +243,6 @@ def get_pkg_people(pkgName, collectionName, collectionVersion):
             allowed.append(person['user'])
 
     return (allowed, notify)
+
+def build_evr(build):
+    return (str(build['epoch']), build['version'], build['release'])
