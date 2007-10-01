@@ -526,62 +526,76 @@ class Root(controllers.RootController):
     @paginate('updates', limit=20, allow_limit_override=True)
     def default(self, *args, **kw):
         """
-        This method allows for /[(pending|testing)/]<release>[/<update>]
-        requests.
+        This method allows for the following requests
+
+            /release/status/update
+            /release/update_id
+            /packagename
         """
-        args = [arg for arg in args]
+        args = list(args)
         status = 'stable'
         order = PackageUpdate.q.date_pushed
         template = 'bodhi.templates.list'
+        release = None
+        query = []
 
-        if len(args) and args[0] == 'testing':
-            status = 'testing'
-            template = 'bodhi.templates.testing'
-            del args[0]
-        if len(args) and args[0] == 'pending':
-            status = 'pending'
-            template = 'bodhi.templates.pending'
-            order = PackageUpdate.q.date_submitted
-            del args[0]
-        if not len(args): # /(testing|pending)
-            updates = PackageUpdate.select(PackageUpdate.q.status == status,
-                                           orderBy=order).reversed()
-            return dict(updates=updates, tg_template=template,
-                        num_items=updates.count())
+        # /packagename
+        if len(args) == 1:
+            try:
+                log.debug("/packagename")
+                package = Package.byName(args[0])
+                return dict(tg_template='bodhi.templates.pkg', pkg=package,
+                            updates=[])
+            except SQLObjectNotFound:
+                log.debug("Invalid package: %s" % args[0])
 
+        # /release
         try:
             release = Release.byName(args[0])
-            try:
-                update = PackageUpdate.select(
-                            AND(PackageUpdate.q.releaseID == release.id,
-                                PackageUpdate.q.title == args[1],
-                                PackageUpdate.q.status == status))[0]
-                update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
-                return dict(tg_template='bodhi.templates.show',
-                            update=update, updates=[],
-                            comment_form=self.comment_form,
-                            values={'title' : update.title})
-            except SQLObjectNotFound:
-                flash_log("Update %s not found" % args[1])
-                raise redirect('/')
-            except IndexError: # /[testing/]<release>
-                updates = PackageUpdate.select(
-                            AND(PackageUpdate.q.releaseID == release.id,
-                                PackageUpdate.q.status == status),
-                            orderBy=order).reversed()
-                return dict(updates=updates, num_items=updates.count(),
-                            tg_template=template,
-                            title='%s %s Updates' % (release.long_name,
-                                                     status.title()))
+            print "Found release:", release
+            query.append(PackageUpdate.q.releaseID == release.id)
+            del args[0]
         except SQLObjectNotFound:
             pass
 
-        # /pkg
-        try:
-            pkg = Package.byName(args[0])
-            return dict(tg_template='bodhi.templates.pkg', pkg=pkg, updates=[])
-        except SQLObjectNotFound:
-            pass
+        # /release/{update_id,status}
+        if len(args):
+            if args[0] in ('testing', 'stable', 'pending', 'obsolete'):
+                query.append(PackageUpdate.q.status == args[0])
+                if args[0] == 'testing':
+                    template = 'bodhi.templates.testing'
+                elif args[0] == 'pending':
+                    template = 'bodhi.templates.pending'
+                    order = PackageUpdate.q.date_submitted
+            elif args[0] == 'security':
+                query.append(PackageUpdate.q.type == 'security')
+            else:
+                query.append(PackageUpdate.q.update_id == args[0])
+            status = args[0]
+            del args[0]
+
+        # /release/status/update
+        if len(args):
+            query.append(PackageUpdate.q.title == args[0])
+            del args[0]
+
+        # Run the query that we just built
+        updates = PackageUpdate.select(AND(*query), orderBy=order).reversed()
+
+        num_updates = updates.count()
+        if num_updates == 1:
+            update = updates[0]
+            update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
+            return dict(tg_template='bodhi.templates.show', update=update,
+                        updates=[], comment_form=self.comment_form,
+                        values={'title' : update.title})
+        elif num_updates > 1:
+            try:
+                return dict(tg_template=template, updates=updates,
+                            num_items=num_updates, title='%s %s Updates' % (
+                            release.long_name, status.title()))
+            except AttributeError:
+                pass
 
         flash_log("The path %s cannot be found" % cherrypy.request.path)
         raise redirect("/")
