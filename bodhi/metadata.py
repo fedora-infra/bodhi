@@ -15,13 +15,11 @@
 __version__ = '1.4'
 
 import os
-import rpm
-import gzip
 import logging
 import commands
 
 from xml.dom import minidom
-from os.path import join, basename, exists, isdir
+from os.path import join, isdir
 from sqlobject import SQLObjectNotFound
 from turbogears import config
 

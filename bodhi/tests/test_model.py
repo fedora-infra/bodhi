@@ -5,14 +5,8 @@ from turbogears import testutil, database, config
 turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
-import os
-import sys
 import time
-import shutil
-import tempfile
 
-from os.path import join, exists, basename
-from bodhi.util import mkmetadatadir
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild, Comment, User)
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,

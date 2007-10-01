@@ -8,12 +8,10 @@ This script will populate your bodhi instance with sample releases, updates,
 comments, etc.
 """
 
-from datetime import datetime
 from turbogears.database import PackageHub
 from bodhi.tools.init import load_config
 from bodhi.exceptions import DuplicateEntryError
-from bodhi.model import (User, Group, PackageUpdate, Package, Release,
-                         PackageBuild, Bugzilla, Comment, CVE)
+from bodhi.model import User, Group
 
 hub = PackageHub("bodhi")
 __connection__ = hub

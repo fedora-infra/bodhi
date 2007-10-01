@@ -14,20 +14,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 
-# for debugging
-import pdb
-from pprint import pprint
-
 import os
 import sys
 import time
-import glob
-import string
 import logging
 import tempfile
-import turbogears
 
-from os.path import join, exists, walk, normpath, isdir
+from os.path import join, exists, normpath
 from bodhi.model import PackageUpdate
 from turbogears import config
 from yum.constants import *
