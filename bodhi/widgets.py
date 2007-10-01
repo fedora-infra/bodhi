@@ -18,7 +18,7 @@ from bodhi.validators import *
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
-                                HiddenField, RadioButtonList)
+                                HiddenField)
 
 class CommentForm(Form):
     template = "bodhi.templates.commentform"

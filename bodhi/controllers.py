@@ -25,21 +25,19 @@ from sqlobject.sqlbuilder import AND, OR
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config, url,
                         exception_handler)
-from turbogears.widgets import DataGrid, Tabber
+from turbogears.widgets import DataGrid
 
 from bodhi import buildsys, util
 from bodhi.rss import Feed
-from bodhi.util import flash_log, get_pkg_people, get_age
+from bodhi.util import flash_log, get_pkg_people
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
 from bodhi.widgets import CommentForm, OkCancelForm
-from bodhi.exceptions import (RPMNotFound, DuplicateEntryError,
+from bodhi.exceptions import (DuplicateEntryError,
                               PostgresIntegrityError, SQLiteIntegrityError)
-
-from os.path import isfile, join
 
 log = logging.getLogger(__name__)
 
@@ -71,8 +69,8 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.welcome')
     def index(self):
         """
-        The main dashboard.  Here we generate the Tabber and all of the
-        DataGrids for the various tabs.
+        The main dashboard.  Here we generate the DataGrids for My Updates and 
+        the latest comments.
         """
         from bodhi.util import make_update_link, make_type_icon, make_karma_icon
         RESULTS, FIELDS, GRID = range(3)

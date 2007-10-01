@@ -18,7 +18,7 @@ import bodhi.masher
 from os.path import join, isfile, isdir
 from bodhi.push import PushController
 
-from turbogears import expose, identity, config, redirect
+from turbogears import expose, identity, config, redirect, flash
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
 from turbogears.toolbox.catwalk import CatWalk

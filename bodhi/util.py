@@ -19,16 +19,13 @@ Random functions that don't fit elsewhere
 import os
 import rpm
 import sys
-import time
-import urllib
 import logging
-import traceback
 import simplejson
 import urllib2
 
 from kid import Element
 #from koji import fixEncoding
-from os.path import isdir, exists, join, dirname, basename, isfile
+from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 from turbogears import config, url, flash
 from bodhi.exceptions import RPMNotFound

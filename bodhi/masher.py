@@ -29,6 +29,8 @@ lock = Lock()
 
 def get_masher():
     global masher
+    if not masher:
+        log.error("Masher doesn't exist?")
     return masher
 
 class Masher:
@@ -408,5 +410,3 @@ def start_extension():
 
 def shutdown_extension():
     log.info("Stopping Masher")
-    global masher
-    del masher

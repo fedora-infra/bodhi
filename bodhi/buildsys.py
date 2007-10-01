@@ -37,7 +37,7 @@ class Buildsystem:
     def moveBuild(self): raise NotImplementedError
     def ssl_login(self): raise NotImplementedError
     def listBuildRPMs(self):raise NotImplementedError
-    def listTags(self): raise NotImeplementedError
+    def listTags(self): raise NotImplementedError
     def listTagged(self): raise NotImplementedError
     def taskFinished(self): raise NotImplementedError
 

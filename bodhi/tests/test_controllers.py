@@ -1,7 +1,7 @@
 # $Id: test_controllers.py,v 1.3 2006/12/31 09:10:25 lmacken Exp $
 
 import turbogears
-from turbogears import testutil, database, config
+from turbogears import testutil, database
 turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 

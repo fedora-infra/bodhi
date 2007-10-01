@@ -6,7 +6,7 @@ import turbogears
 import cherrypy
 cherrypy.lowercase_api = True
 
-from os.path import *
+from os.path import exists, join, dirname
 import sys
 
 # first look on the command line for a desired config file,
