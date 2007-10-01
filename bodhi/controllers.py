@@ -424,21 +424,22 @@ class Root(controllers.RootController):
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
 
+            kojiBuild = koji.getBuild(build)
+
             # Check for broken update paths against all previous releases
             tag = release.dist_tag
             while True:
                 try:
                     for kojiTag in (tag, tag + '-updates'):
                         log.debug("Checking for broken update paths in " + tag)
-                        for kojiBuild in koji.listTagged(kojiTag,
-                                                         package=nvr[0]):
-                            buildNvr = util.get_nvr(kojiBuild['nvr'])
-                            if rpm.labelCompare(nvr, buildNvr) < 0:
-                                msg = "Broken update path: %s is older than " \
-                                      "update %s in %s" % (build,
-                                                           kojiBuild['nvr'],
-                                                           kojiTag)
-                                flash_log(msg)
+                        for oldBuild in koji.listTagged(kojiTag, package=nvr[0]):
+                            if rpm.labelCompare(util.build_evr(kojiBuild),
+                                                util.build_evr(oldBuild)) < 0:
+                                flash_log("Broken update path: %d:%s is older "
+                                          "than %d:%s in %s" % (
+                                          kojiBuild['epoch'], kojiBuild['nvr'],
+                                          oldBuild['epoch'], oldBuild['nvr'],
+                                          kojiTag))
                                 raise redirect('/new', **params)
                 except GenericError:
                     break
