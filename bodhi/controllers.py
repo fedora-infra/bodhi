@@ -552,7 +552,6 @@ class Root(controllers.RootController):
         # /release
         try:
             release = Release.byName(args[0])
-            print "Found release:", release
             query.append(PackageUpdate.q.releaseID == release.id)
             del args[0]
         except SQLObjectNotFound:
