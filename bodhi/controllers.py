@@ -590,7 +590,7 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(AND(*query), orderBy=order).reversed()
 
         num_updates = updates.count()
-        if num_updates == 1 or single:
+        if num_updates and (num_updates == 1 or single):
             update = updates[0]
             update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
             return dict(tg_template='bodhi.templates.show', update=update,
