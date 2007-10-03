@@ -514,7 +514,8 @@ class Root(controllers.RootController):
             if p.type == 'security':
                 mail.send(config.get('security_team'), 'new', p)
             mail.send(p.submitter, 'new', p)
-            flash_log("Update successfully created" + note)
+            flash_log("Update successfully created, please submit it to a "
+                      "repository" + note)
 
         # For command line submissions, return PackageUpdate.__str__()
         if self.jsonRequest():
