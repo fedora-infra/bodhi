@@ -538,6 +538,7 @@ class Root(controllers.RootController):
         order = PackageUpdate.q.date_pushed
         template = 'bodhi.templates.list'
         release = None
+        single = False
         query = []
 
         # /packagename
@@ -566,14 +567,18 @@ class Root(controllers.RootController):
                     template = 'bodhi.templates.pending'
                     order = PackageUpdate.q.date_submitted
                 status = args[0]
+                query.append(PackageUpdate.q.status == status)
             elif args[0] == 'security':
                 query.append(PackageUpdate.q.type == 'security')
                 query.append(PackageUpdate.q.pushed == True)
+                query.append(PackageUpdate.q.status == status)
+                status = 'security'
             else:
                 query.append(PackageUpdate.q.update_id == args[0])
+                single = True
             del args[0]
-
-        query.append(PackageUpdate.q.status == status)
+        else:
+            query.append(PackageUpdate.q.status == status)
 
         # /release/status/update
         if len(args):
@@ -584,7 +589,7 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(AND(*query), orderBy=order).reversed()
 
         num_updates = updates.count()
-        if num_updates == 1:
+        if num_updates == 1 or single:
             update = updates[0]
             update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
             return dict(tg_template='bodhi.templates.show', update=update,
