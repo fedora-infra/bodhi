@@ -13,11 +13,7 @@ Source0:        bodhi-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-%if 0%{?fedora} >= 8
 BuildRequires: python-setuptools-devel
-%else
-BuildRequires: python-setuptools
-%endif
 
 %description
 Bodhi is a modular web system that facilitates the process of publishing
@@ -26,7 +22,7 @@ updates for a software distribution.
 %package client
 Summary: Bodhi Client
 Group: Applications/Internet
-Requires: python-json
+Requires: python-json python-fedora
 
 %description client 
 Client tools for interacting with bodhi
@@ -69,6 +65,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Oct  3 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-5
+- Add python-fedora to bodhi-client Requires
+
 * Mon Sep 17 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-4
 - Add python-json to bodhi-client Requires
 
