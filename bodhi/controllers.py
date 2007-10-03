@@ -560,18 +560,20 @@ class Root(controllers.RootController):
         # /release/{update_id,status}
         if len(args):
             if args[0] in ('testing', 'stable', 'pending', 'obsolete'):
-                query.append(PackageUpdate.q.status == args[0])
                 if args[0] == 'testing':
                     template = 'bodhi.templates.testing'
                 elif args[0] == 'pending':
                     template = 'bodhi.templates.pending'
                     order = PackageUpdate.q.date_submitted
+                status = args[0]
             elif args[0] == 'security':
                 query.append(PackageUpdate.q.type == 'security')
+                query.append(PackageUpdate.q.pushed == True)
             else:
                 query.append(PackageUpdate.q.update_id == args[0])
-            status = args[0]
             del args[0]
+
+        query.append(PackageUpdate.q.status == status)
 
         # /release/status/update
         if len(args):
