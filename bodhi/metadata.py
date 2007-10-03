@@ -167,7 +167,12 @@ class ExtendedMetadata:
 
         for build in update.builds:
             log.debug("Generating package list for %s" % build.nvr)
-            kojiBuild = self.builds[build.nvr]
+            kojiBuild = None
+            try:
+                kojiBuild = self.builds[build.nvr]
+            except:
+                log.error("Can't find cached kojiBuild for %s" % build.nvr)
+                kojiBuild = self.koji.getBuild(build.nvr)
             rpms = self.koji.listBuildRPMs(kojiBuild['id'])
             for rpm in rpms:
                 filename = "%s.%s.rpm" % (rpm['nvr'], rpm['arch'])
