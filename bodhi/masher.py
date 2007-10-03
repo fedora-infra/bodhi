@@ -155,11 +155,11 @@ class MashTask(Thread):
         stable_nvrs = [build['nvr'] for build in
                        self.koji.listTagged('dist-fc7-updates')]
 
-        errors = False
+        safe = True
         def error_log(msg):
             log.error(msg)
             self.error_messages.append(msg)
-            errors = True
+            safe = False
 
         for update in self.updates:
             for build in update.builds:
@@ -183,7 +183,7 @@ class MashTask(Thread):
                 else:
                     error_log("Unknown request '%s' for %s" % (update.request,
                                                                update.title))
-        return errors
+        return safe
 
     def move_builds(self):
         """
