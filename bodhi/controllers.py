@@ -376,7 +376,8 @@ class Root(controllers.RootController):
                 flash_log(e)
                 raise redirect('/new', **params)
             if not identity.current.user_name in people[0] and \
-               not 'releng' in identity.current.groups:
+               not 'releng' in identity.current.groups and \
+               not 'security_respons' in identity.current.groups:
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, nvr[0]))
                 raise redirect('/new', **params)
@@ -542,17 +543,15 @@ class Root(controllers.RootController):
         # /packagename
         if len(args) == 1:
             try:
-                log.debug("/packagename")
                 package = Package.byName(args[0])
                 return dict(tg_template='bodhi.templates.pkg', pkg=package,
                             updates=[])
             except SQLObjectNotFound:
-                log.debug("Invalid package: %s" % args[0])
+                pass
 
         # /release
         try:
             release = Release.byName(args[0])
-            print "Found release:", release
             query.append(PackageUpdate.q.releaseID == release.id)
             del args[0]
         except SQLObjectNotFound:

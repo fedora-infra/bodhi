@@ -134,6 +134,7 @@ def displayname(identity):
 def authorized_user(update, identity):
     return update.submitter == identity.current.user_name or \
            'releng' in identity.current.groups or \
+           'security_respons' in identity.current.groups or \
            displayname(identity) == update.submitter
 
 def make_update_link(obj):
