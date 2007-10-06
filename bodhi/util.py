@@ -240,7 +240,7 @@ def get_pkg_pushers(pkgName, collectionName, collectionVersion):
     # This will always be the 0th element as we'll retrieve at most one
     # value for any given Package-Collection-Version
     pNotify = [pkg['packageListings'][0]['owneruser']]
-    pAllowed = [notify[0]]
+    pAllowed = [pNotify[0]]
 
     # Find other people in the acl
     for person in pkg['packageListings'][0]['people']:
