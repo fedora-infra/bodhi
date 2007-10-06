@@ -212,7 +212,6 @@ class Root(controllers.RootController):
         return dict(updates=updates, num_items=updates.count(),
                     title='%s\'s updates' % identity.current.user_name)
 
-    @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.show')
     def show(self, update):
         update = PackageUpdate.byTitle(update)
@@ -526,7 +525,6 @@ class Root(controllers.RootController):
         raise redirect(p.get_url())
 
     @expose(template='bodhi.templates.list')
-    @identity.require(identity.not_anonymous())
     @paginate('updates', limit=20, allow_limit_override=True)
     def default(self, *args, **kw):
         """
@@ -623,6 +621,7 @@ class Root(controllers.RootController):
         raise redirect(update.get_url())
 
     @expose(template='bodhi.templates.confirmation')
+    @identity.require(identity.not_anonymous())
     def confirm_delete(self, nvr=None, ok=None, cancel=None):
         update = PackageUpdate.byTitle(nvr)
         if ok:
