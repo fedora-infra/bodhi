@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.2.0
-Release:        4%{?dist}
+Version:        0.3.0
+Release:        1%{?dist}
 Summary:        A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
 
 Group:          Applications/Internet
@@ -65,6 +65,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sat Oct  6 2007 Luke Macken <lmacken@redhat.com> - 0.3.1-1
+- 0.3.1
+
 * Wed Oct  3 2007 Luke Macken <lmacken@redhat.com> - 0.2.0-5
 - Add python-fedora to bodhi-client Requires
 
