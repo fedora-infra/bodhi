@@ -380,6 +380,7 @@ class Root(controllers.RootController):
                not 'security_respons' in identity.current.groups:
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, nvr[0]))
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
         # Disallow adding or removing of builds when an update is testing or
@@ -392,6 +393,7 @@ class Root(controllers.RootController):
                    filter(lambda build: build not in builds, edited.split()):
                     flash_log("You must unpush this update before you can "
                               "add or remove any builds.")
+                    if self.jsonRequest(): return dict()
                     raise redirect(update.get_url())
             map(lambda build: build.destroySelf(), update.builds)
 
