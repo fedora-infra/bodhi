@@ -200,12 +200,20 @@ def get_repo_tag(repo):
         log.error("Cannot find mash configuration for %s: %s" % (repo,
                                                                  mashconfig))
 
-def get_pkg_people(pkgName, collectionName, collectionVersion):
+def get_pkg_pushers(pkgName, collectionName, collectionVersion):
     """ Pull users who can commit and are watching a package
 
-    Return two lists:
-    * The first consists of usernames allowed to commit to the package.
-    * The second are usernames watching the package for updates.
+    Return two two-tuples of lists:
+    * The first tuple is for usernames.  The second tuple is for groups.
+    * The first list of the tuple is for committers.  The second is for
+      watchers.
+
+    An example::
+      >>> people, groups = get_pkg_pushers('foo', 'Fedora', 'devel')
+      >>> print people
+      (['toshio', 'lmacken'], ['wtogami', 'toshio', 'lmacken'])
+      >>> print groups
+      (['cvsextras'], [])
 
     Note: The interface to the pkgdb could undergo the following changes:
       FAS2 related:
@@ -229,21 +237,32 @@ def get_pkg_people(pkgName, collectionName, collectionVersion):
                 pkgName, pkg['message'])
 
     # Owner is allowed to commit and gets notified of pushes
-    # This will always be 0 as we'll retrieve at most one value for
-    # Package-Collection-Version
-    notify = [pkg['packageListings'][0]['owneruser']]
-    allowed = [notify[0]]
+    # This will always be the 0th element as we'll retrieve at most one
+    # value for any given Package-Collection-Version
+    pNotify = [pkg['packageListings'][0]['owneruser']]
+    pAllowed = [notify[0]]
 
     # Find other people in the acl
     for person in pkg['packageListings'][0]['people']:
         if person['aclOrder']['watchcommits'] and \
            pkg['statusMap'][str(person['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-            notify.append(person['user'])
+            pNotify.append(person['user'])
         if person['aclOrder']['commit'] and \
            pkg['statusMap'][str(person['aclOrder']['commit']['statuscode'])] == 'Approved':
-            allowed.append(person['user'])
+            pAllowed.append(person['user'])
 
-    return (allowed, notify)
+    # Find groups that can push
+    gNotify = []
+    gAllowed = []
+    for group in pkg['packageListings'][0]['groups']:
+        if group['aclOrder']['watchcommits'] and \
+           pkg['statusMap'][str(group['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
+            gNotify.append(group['name'])
+        if group['aclOrder']['commit'] and \
+           pkg['statusMap'][str(group['aclOrder']['commit']['statuscode'])] == 'Approved':
+            gAllowed.append(group['name'])
+
+    return ((pAllowed, pNotify), (gAllowed, gNotify))
 
 def build_evr(build):
     return (str(build['epoch']), build['version'], build['release'])

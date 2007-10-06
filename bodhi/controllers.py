@@ -29,7 +29,7 @@ from turbogears.widgets import DataGrid
 
 from bodhi import buildsys, util
 from bodhi.rss import Feed
-from bodhi.util import flash_log, get_pkg_people
+from bodhi.util import flash_log, get_pkg_pushers
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
@@ -212,7 +212,6 @@ class Root(controllers.RootController):
         return dict(updates=updates, num_items=updates.count(),
                     title='%s\'s updates' % identity.current.user_name)
 
-    @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.show')
     def show(self, update):
         update = PackageUpdate.byTitle(update)
@@ -369,17 +368,21 @@ class Root(controllers.RootController):
         for build in builds:
             nvr = util.get_nvr(build)
             people = None
+            groups = None
             try:
-                people = get_pkg_people(nvr[0], release.long_name.split()[0],
+                people, groups = get_pkg_pushers(nvr[0],
+                                        release.long_name.split()[0],
                                         release.long_name[-1])
             except Exception, e:
                 flash_log(e)
                 raise redirect('/new', **params)
             if not identity.current.user_name in people[0] and \
                not 'releng' in identity.current.groups and \
-               not 'security_respons' in identity.current.groups:
+               not 'security_respons' in identity.current.groups and \
+               filter(lambda x: x in identity.current.groups, groups):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, nvr[0]))
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
         # Disallow adding or removing of builds when an update is testing or
@@ -392,6 +395,7 @@ class Root(controllers.RootController):
                    filter(lambda build: build not in builds, edited.split()):
                     flash_log("You must unpush this update before you can "
                               "add or remove any builds.")
+                    if self.jsonRequest(): return dict()
                     raise redirect(update.get_url())
             map(lambda build: build.destroySelf(), update.builds)
 
@@ -524,7 +528,6 @@ class Root(controllers.RootController):
         raise redirect(p.get_url())
 
     @expose(template='bodhi.templates.list')
-    @identity.require(identity.not_anonymous())
     @paginate('updates', limit=20, allow_limit_override=True)
     def default(self, *args, **kw):
         """
@@ -621,6 +624,7 @@ class Root(controllers.RootController):
         raise redirect(update.get_url())
 
     @expose(template='bodhi.templates.confirmation')
+    @identity.require(identity.not_anonymous())
     def confirm_delete(self, nvr=None, ok=None, cancel=None):
         update = PackageUpdate.byTitle(nvr)
         if ok:
