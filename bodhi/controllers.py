@@ -125,8 +125,7 @@ class Root(controllers.RootController):
     def login(self, forward_url=None, previous_url=None, *args, **kw):
         if not identity.current.anonymous and identity.was_login_attempted() \
            and not identity.get_identity_errors():
-            if 'tg_format' in cherrypy.request.params and \
-               cherrypy.request.params['tg_format'] == 'json':
+            if self.jsonRequest():
                 return dict(user=identity.current.user)
             raise redirect(forward_url)
 
