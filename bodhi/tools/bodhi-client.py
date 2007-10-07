@@ -14,21 +14,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
+# Copyright 2007, Red Hat, Inc
 # Authors: Luke Macken <lmacken@redhat.com>
 
 import re
 import sys
 import os
-import json
-import Cookie
-import urllib
-import urllib2
-import getpass
 import logging
-import cPickle as pickle
 
-from os.path import expanduser, join, isfile
+from getpass import getpass, getuser
 from optparse import OptionParser
+
+from fedora.tg.client import BaseClient, AuthError
 
 log = logging.getLogger(__name__)
 
@@ -36,143 +33,26 @@ __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
 BODHI_URL = 'http://localhost:8084/updates/'
-SESSION_FILE = join(expanduser('~'), '.bodhi_session')
 
-class AuthError(Exception):
-    pass
 
-class BodhiClient:
+class BodhiClient(BaseClient):
     """
         A command-line client to interact with Bodhi.
     """
-
-    session = None
-
-    def __init__(self, opts):
-        self.load_session()
-
-        if opts.new:
-            self.new(opts)
-        elif opts.testing:
-            self.push_to_testing(opts)
-        elif opts.stable:
-            self.push_to_stable(opts)
-        elif opts.masher:
-            self.masher(opts)
-        elif opts.push:
-            self.push(opts)
-        elif opts.delete:
-            self.delete(opts)
-        elif opts.status or opts.bugs or opts.cves or opts.release or opts.type:
-            self.list(opts)
-
-    def authenticate(self):
-        """
-            Return an authenticated session cookie.
-        """
-        if self.session:
-            return self.session
-
-        sys.stdout.write("Username: ")
-        sys.stdout.flush()
-        username = sys.stdin.readline().strip()
-        password = getpass.getpass()
-
-        req = urllib2.Request(BODHI_URL + 'login?tg_format=json')
-        req.add_data(urllib.urlencode({
-                'user_name' : username,
-                'password'  : password,
-                'login'     : 'Login'
-        }))
-
-        try:
-            f = urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
-            if e.msg == "Forbidden":
-                raise AuthError, "Invalid username/password"
-
-        data = json.read(f.read())
-        if 'message' in data:
-            raise AuthError, 'Unable to login to server: %s' % data['message']
-
-        self.session = Cookie.SimpleCookie()
-        try:
-            self.session.load(f.headers['set-cookie'])
-        except KeyError:
-            raise AuthError, "Unable to login to the server.  Server did not" \
-                             "send back a cookie."
-        self.save_session()
-
-        return self.session
-
-    def save_session(self):
-        """
-            Store a pickled session cookie.
-        """
-        s = file(SESSION_FILE, 'w')
-        pickle.dump(self.session, s)
-        s.close()
-
-    def load_session(self):
-        """
-            Load a stored session cookie.
-        """
-        if isfile(SESSION_FILE):
-            s = file(SESSION_FILE, 'r')
-            try:
-                self.session = pickle.load(s)
-                log.debug("Loaded session %s" % self.session)
-            except EOFError:
-                log.error("Unable to load session from %s" % SESSION_FILE)
-            s.close()
-
-    def send_request(self, method, auth=False, **kw):
-        """
-            Send a request to the server.  The given method is called with any
-            keyword parameters in **kw.  If auth is True, then the request is
-            made with an authenticated session cookie.
-        """
-        url = BODHI_URL + method + "/?tg_format=json"
-
-        response = None # the JSON that we get back from bodhi
-        data = None     # decoded JSON via json.read()
-
-        log.debug("Creating request %s" % url)
-        req = urllib2.Request(url)
-        req.add_data(urllib.urlencode(kw))
-
-        if auth:
-            cookie = self.authenticate()
-            req.add_header('Cookie', cookie.output(attrs=[],
-                                                   header='').strip())
-        try:
-            response = urllib2.urlopen(req)
-            data = json.read(response.read())
-        except urllib2.HTTPError, e:
-            log.error(e)
-            sys.exit(-1)
-        except urllib2.URLError, e:
-            log.error("No connection to Bodhi server")
-            log.error(e)
-            sys.exit(-1)
-        except json.ReadException, e:
-            regex = re.compile('<span class="fielderror">(.*)</span>')
-            match = regex.search(e.message)
-            if match and len(match.groups()):
-                log.error(match.groups()[0])
-            else:
-                log.error("Unexpected ReadException during request:" + e)
-            sys.exit(-1)
-
-        return data
 
     def new(self, opts):
         if opts.input_file:
             self._parse_file(opts)
         log.info("Creating new update for %s" % opts.new)
-        data = self.send_request('save', builds=opts.new, release=opts.release,
-                                 type=opts.type, bugs=opts.bugs, cves=opts.cves,
-                                 notes=opts.notes, auth=True)
+        input = {
+                'builds'  : opts.new,
+                'release' : opts.release,
+                'type'    : opts.type,
+                'bugs'    : opts.bugs,
+                'cves'    : opts.cves,
+                'notes'   : opts.notes
+        }
+        data = self.send_request('save', auth=True, input=input)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
@@ -203,7 +83,6 @@ class BodhiClient:
     def push_to_stable(self, opts):
         data = self.send_request('move', nvr=opts.stable, auth=True)
         log.info(data['tg_flash'])
-
 
     def masher(self, opts):
         data = self.send_request('admin/masher', auth=True)
@@ -291,8 +170,6 @@ if __name__ == '__main__':
     parser.add_option("-p", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates")
 
-    # --edit ?
-
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
                       dest="status", help="List [testing|pending|requests|"
@@ -315,9 +192,9 @@ if __name__ == '__main__':
     parser.add_option("", "--file", action="store", type="string",
                       dest="input_file",
                       help="Get Bugs,CVES,Notes from a file")
-
-    # --package
-    # --build (or just take these values from args)
+    parser.add_option("-u", "--username", action="store", type="string",
+                      dest="username", default=getuser(),
+                      help="Fedora username")
 
     ## Update actions
     #parser.add_option("-u", "--unpush", action="store", type="string",
@@ -359,4 +236,27 @@ if __name__ == '__main__':
     sh.setFormatter(format)
     log.addHandler(sh)
 
-    BodhiClient(opts)
+    bodhi = BodhiClient(BODHI_URL, opts.username, None)
+
+    while True:
+        try:
+            if opts.new:
+                bodhi.new(opts)
+            elif opts.testing:
+                bodhi.push_to_testing(opts)
+            elif opts.stable:
+                bodhi.push_to_stable(opts)
+            elif opts.masher:
+                bodhi.masher(opts)
+            elif opts.push:
+                bodhi.push(opts)
+            elif opts.delete:
+                bodhi.delete(opts)
+            else:
+                parser.print_help()
+            break
+        except AuthError:
+            bodhi.password = getpass('Password for %s: ' % opts.username)
+        except ServerError, e:
+            log.error(e.message)
+            sys.exit(-1)

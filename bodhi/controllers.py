@@ -125,8 +125,7 @@ class Root(controllers.RootController):
     def login(self, forward_url=None, previous_url=None, *args, **kw):
         if not identity.current.anonymous and identity.was_login_attempted() \
            and not identity.get_identity_errors():
-            if 'tg_format' in cherrypy.request.params and \
-               cherrypy.request.params['tg_format'] == 'json':
+            if self.jsonRequest():
                 return dict(user=identity.current.user)
             raise redirect(forward_url)
 
@@ -375,6 +374,8 @@ class Root(controllers.RootController):
                                         release.long_name[-1])
             except Exception, e:
                 flash_log(e)
+                if self.jsonRequest():
+                    return dict()
                 raise redirect('/new', **params)
             if not identity.current.user_name in people[0] and \
                not 'releng' in identity.current.groups and \
