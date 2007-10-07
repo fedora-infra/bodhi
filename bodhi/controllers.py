@@ -374,6 +374,8 @@ class Root(controllers.RootController):
                                         release.long_name[-1])
             except Exception, e:
                 flash_log(e)
+                if self.jsonRequest():
+                    return dict()
                 raise redirect('/new', **params)
             if not identity.current.user_name in people[0] and \
                not 'releng' in identity.current.groups and \
