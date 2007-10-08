@@ -40,16 +40,28 @@ class SearchForm(Form):
                       attrs={ 'size' : 20 }),
     ]
 
+class LocalJSLink(JSLink):
+    """
+    Link to local Javascript files
+    """
+    def update_params(self, d):
+        super(JSLink, self).update_params(d)
+        d["link"] = url(self.name)
+
+class AutoCompletePackage(AutoCompleteField):
+    javascript = [LocalJSLink('bodhi', '/static/js/MochiKit.js'),
+                  JSLink("turbogears.widgets","autocompletefield.js")]
+
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Add Update"
     update_types = config.get('update_types').split()
     fields = [
-            AutoCompleteField('builds', label='Package',
-                              search_controller=url('/new/search'),
-                              search_param='name', result_name='pkgs',
-                              template='bodhi.templates.packagefield',
-                              validator=AutoCompleteValidator()),
+            AutoCompletePackage('builds', label='Package',
+                                search_controller=url('/new/search'),
+                                search_param='name', result_name='pkgs',
+                                template='bodhi.templates.packagefield',
+                                validator=AutoCompleteValidator()),
             SingleSelectField('release', options=get_release_names,
                               validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
@@ -95,31 +107,18 @@ class OkCancelForm(Form):
     </form>
     """
 
-class LocalJSLink(JSLink):
-    """
-    Link to local Javascript files
-    """
-    def update_params(self, d):
-        super(JSLink, self).update_params(d)
-        d["link"] = url(self.name)
-
 class ObsoleteForm(RemoteForm):
 
     action = url('/obsolete')
     update = 'post_data'
     submit_text = "Obsolete"
 
-    # We're overwriting the RPC parent classes javascript declarations
-    # because RemoteForm + MultipleSelectField + ajax.js is broke.
-    javascript = [LocalJSLink('bodhi', '/static/js/MochiKit.js'),
-                  # Patched based on http://trac.turbogears.org/ticket/1498
-                  LocalJSLink('bodhi', '/static/js/ajax.js')]
-
     def __init__(self, package):
         super(RemoteForm, self).__init__()
         from bodhi.model import Package
         package = Package.byName(package)
-        builds = filter(lambda x: x.updates[0].status in ('testing', 'pending'), package.builds)
+        builds = filter(lambda x: x.updates[0].status in ('testing', 'pending'),
+                        package.builds)
         options = [(build.nvr, build.nvr) for build in builds]
         self.fields = [
             MultipleSelectField('updates', label='', options=options)
