@@ -228,9 +228,15 @@ def get_pkg_pushers(pkgName, collectionName, collectionVersion):
       translation.  The pkgdb will have to figure out how to deal with that
       if so.
     """
-    pkgPage = urllib2.urlopen(config.get('pkgdb_url') +
-                              '/packages/name/%s/%s/%s?tg_format=json' % (
-                              pkgName, collectionName, collectionVersion))
+    pkgPage = None
+    try:
+        pkgPage = urllib2.urlopen(config.get('pkgdb_url') +
+                                  '/packages/name/%s/%s/%s?tg_format=json' % (
+                                  pkgName, collectionName, collectionVersion))
+    except urllib2.URLError:
+        log.error("Cannot connect to pkgdb")
+        raise
+
     pkg = simplejson.load(pkgPage)
     if pkg.has_key('status') and not pkg['status']:
         raise Exception, 'Package %s not found in PackageDB.  Error: %s' % (

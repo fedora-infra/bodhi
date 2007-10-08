@@ -236,7 +236,7 @@ if __name__ == '__main__':
     sh.setFormatter(format)
     log.addHandler(sh)
 
-    bodhi = BodhiClient(BODHI_URL, opts.username, None)
+    bodhi = BodhiClient(BODHI_URL, opts.username, None, debug=opts.verbose)
 
     while True:
         try:
