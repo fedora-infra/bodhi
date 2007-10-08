@@ -289,25 +289,28 @@ class Root(controllers.RootController):
         mail.send_admin('unpush', update)
         raise redirect(update.get_url())
 
-    @exception_handler(exception)
+    #@exception_handler(exception)
     @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
     def delete(self, update):
         """ Delete a pending update """
-        update = PackageUpdate.byTitle(update)
-        if not util.authorized_user(update, identity):
-            flash_log("Cannot delete an update you did not submit")
-            if self.jsonRequest(): return dict()
-            raise redirect(update.get_url())
-        if not update.pushed:
-            mail.send_admin('deleted', update)
-            msg = "Deleted %s" % update.title
-            map(lambda x: x.destroySelf(), update.comments)
-            map(lambda x: x.destroySelf(), update.builds)
-            update.destroySelf()
-            flash_log(msg)
-        else:
-            flash_log("Cannot delete a pushed update")
+        try:
+            update = PackageUpdate.byTitle(update)
+            if not util.authorized_user(update, identity):
+                flash_log("Cannot delete an update you did not submit")
+                if self.jsonRequest(): return dict()
+                raise redirect(update.get_url())
+            if not update.pushed:
+                mail.send_admin('deleted', update)
+                msg = "Deleted %s" % update.title
+                map(lambda x: x.destroySelf(), update.comments)
+                map(lambda x: x.destroySelf(), update.builds)
+                update.destroySelf()
+                flash_log(msg)
+            else:
+                flash_log("Cannot delete a pushed update")
+        except SQLObjectNotFound:
+            flash_log("Update %s does not exist" % update)
         if self.jsonRequest(): return dict()
         raise redirect("/pending")
 
@@ -530,6 +533,7 @@ class Root(controllers.RootController):
 
     @expose(template='bodhi.templates.list')
     @paginate('updates', limit=20, allow_limit_override=True)
+    @identity.require(identity.not_anonymous())
     def default(self, *args, **kw):
         """
         This method allows for the following requests
