@@ -289,7 +289,6 @@ class Root(controllers.RootController):
         mail.send_admin('unpush', update)
         raise redirect(update.get_url())
 
-    #@exception_handler(exception)
     @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
     def delete(self, update):
@@ -640,12 +639,29 @@ class Root(controllers.RootController):
             raise redirect(update.get_url())
         return dict(form=self.ok_cancel_form, nvr=nvr)
 
-    @expose(template='bodhi.templates.foobar')
+    @expose(template='bodhi.templates.obsolete')
     def foobar(self):
         from bodhi.widgets import ObsoleteForm
         return dict(dialog=ObsoleteForm('kernel'))
 
     @expose("json")
-    def obsolete(self, *args, **kw):
-        log.debug("obsolete(%s, %s)" % (args, kw))
-        return dict()
+    def obsolete(self, updates, *args, **kw):
+        """
+        Called by our ObsoleteForm widget.  This method will
+        request that any specified updates be marked as obsolete
+        """
+        log.debug("obsolete(%s, %s, %s)" % (updates, args, kw))
+        errors = []
+        if type(updates) != list:
+            updates = [updates]
+        for update in updates:
+            update = PackageBuild.byNvr(update).updates[0]
+            if not util.authorized_user(update, identity):
+                msg = "Unauthorized to obsolete %s" % update.title
+                errors.append(msg)
+                flash_log(msg)
+            else:
+                update.request = 'obsolete'
+                log.debug("%s has been submitted for unpushing" % update.title)
+                mail.send_admin('unpush', update)
+        return len(errors) and errors[0] or "Done!"
