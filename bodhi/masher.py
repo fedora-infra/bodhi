@@ -142,6 +142,7 @@ class MashTask(Thread):
         self.log = None # filename that we wrote mash output to
         self.mashed_repos = {} # { repo: mashed_dir }
         self.error_messages = []
+        self.safe = True
 
     def safe_to_move(self):
         """
@@ -155,11 +156,10 @@ class MashTask(Thread):
         stable_nvrs = [build['nvr'] for build in
                        self.koji.listTagged('dist-fc7-updates')]
 
-        safe = True
         def error_log(msg):
             log.error(msg)
             self.error_messages.append(msg)
-            safe = False
+            self.safe = False
 
         for update in self.updates:
             for build in update.builds:
@@ -183,7 +183,7 @@ class MashTask(Thread):
                 else:
                     error_log("Unknown request '%s' for %s" % (update.request,
                                                                update.title))
-        return safe
+        return self.safe
 
     def move_builds(self):
         """
