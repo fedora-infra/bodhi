@@ -639,3 +639,13 @@ class Root(controllers.RootController):
             flash(_(u"Delete canceled" ))
             raise redirect(update.get_url())
         return dict(form=self.ok_cancel_form, nvr=nvr)
+
+    @expose(template='bodhi.templates.foobar')
+    def foobar(self):
+        from bodhi.widgets import ObsoleteForm
+        return dict(dialog=ObsoleteForm('kernel'))
+
+    @expose("json")
+    def obsolete(self, *args, **kw):
+        log.debug("obsolete(%s, %s)" % (args, kw))
+        return dict()
