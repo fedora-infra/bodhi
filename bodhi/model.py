@@ -409,8 +409,8 @@ class PackageUpdate(SQLObject):
         """
         stable_karma = config.get('stable_karma')
         if not author: author = identity.current.user_name
-        if not filter(lambda c: c.author == author and
-                      c.karma == karma, self.comments):
+        if karma != 0 and not filter(lambda c: c.author == author and
+                                     c.karma == karma, self.comments):
             self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if stable_karma and stable_karma == self.karma:
