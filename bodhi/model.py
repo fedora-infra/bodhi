@@ -417,7 +417,7 @@ class PackageUpdate(SQLObject):
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = 'stable'
                 mail.send(self.submitter, 'stablekarma', self)
-                mail.send_admin('move', self)
+                mail.send_admin('stablekarma', self)
         comment = Comment(text=text, karma=karma, update=self, author=author)
 
         # Send a notification to everyone that has commented on this update
