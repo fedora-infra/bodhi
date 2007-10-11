@@ -343,19 +343,20 @@ class TestControllers(testutil.DBTest):
         assert update.status == 'pending'
         assert update.request == None
 
-        testutil.createRequest('/updates/push?nvr=%s' % params['builds'],
+        testutil.createRequest('/updates/request/testing/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         print "update.request =", update.request
         assert update.request == 'testing'
-        testutil.createRequest('/updates/unpush?nvr=%s' % params['builds'],
+        testutil.createRequest('/updates/request/unpush/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'obsolete'
-        testutil.createRequest('/updates/move?nvr=%s' % params['builds'],
+        assert update.status == 'obsolete'
+        assert update.pushed == False
+        testutil.createRequest('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable', update.request
+        assert update.request == 'stable'
 
     def test_bad_bugs(self):
         session = self.login()

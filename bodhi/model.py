@@ -244,9 +244,9 @@ class PackageUpdate(SQLObject):
             self.comment('This update has been pushed to testing',
                          author='bodhi')
         elif self.request == 'obsolete':
-            self.comment('This update has been obsoleted', author='bodhi')
             self.pushed = False
             self.status = 'obsolete'
+            self.comment('This update has been obsoleted', author='bodhi')
         elif self.request == 'stable':
             self.pushed = True
             self.date_pushed = datetime.utcnow()

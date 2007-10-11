@@ -65,13 +65,13 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                         <span py:if="not update.pushed">
                             <span py:if="update.request == None">
                                 <td>
-                                    <a href="${tg.url('/push/%s' % update.title)}" class="list">
+                                    <a href="${tg.url('/request/testing/%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/testing.png')}" border="0"/>
                                         Push to Testing
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="${tg.url('/move/%s' % update.title)}" class="list">
+                                    <a href="${tg.url('/request/stable/%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/submit.png')}" border="0"/>
                                         Push to Stable
                                     </a>
@@ -92,7 +92,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                         </span>
                         <span py:if="update.pushed">
                             <td>
-                                <a href="${tg.url('/unpush/%s' % update.title)}" class="list">
+                                <a href="${tg.url('/request/unpush/%s' % update.title)}" class="list">
                                     <img src="${tg.url('/static/images/revoke.png')}" border="0"/>
                                     Unpush
                                 </a>
@@ -100,7 +100,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                             <span py:if="update.status == 'testing'">
                                 <span py:if="update.request == None">
                                     <td>
-                                        <a href="${tg.url('/move/%s' % update.title)}" class="list">
+                                        <a href="${tg.url('/request/stable/%s' % update.title)}" class="list">
                                             <img src="${tg.url('/static/images/submit.png')}" border="0"/>
                                             Mark as Stable
                                         </a>

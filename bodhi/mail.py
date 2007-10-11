@@ -26,14 +26,7 @@ from bodhi.exceptions import RPMNotFound
 log = logging.getLogger(__name__)
 
 ##
-## All of the email messages that bodhi is going to be sending around, not
-## including the update notifications.
-##
-## Right now this is a bit scary; the 'fields' field represents all of the 
-## update fields in the body of the message that need to be expanded.
-##
-## TODO: we might want to think about pulling this stuff out into a separate
-## configuration file (using ConfigObj?)
+## All of the email messages that bodhi is going to be sending around.
 ##
 messages = {
 
@@ -83,9 +76,9 @@ messages = {
                     }
     },
 
-    'push' : {
+    'testing' : {
         'body'    : """\
-%(submitter)s has requested the pushing of the following update:\n\n%(updatestr)s
+%(submitter)s has requested the pushing of the following update to testing:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : identity.current.user_name,
@@ -96,6 +89,16 @@ messages = {
     'unpush' : {
         'body'    : """\
 %(submitter)s has requested the unpushing of the following update:\n\n%(updatestr)s
+""",
+        'fields'  : lambda x: {
+                        'submitter' : identity.current.user_name,
+                        'updatestr' : str(x)
+                    }
+    },
+
+    'obsolete' : {
+        'body'    : """\
+%(submitter)s has obsoleted the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : identity.current.user_name,
@@ -122,9 +125,9 @@ The following update has been unpushed\n\n%(updatestr)s
                     }
         },
 
-    'move' : {
+    'stable' : {
         'body'    : """\
-%(submitter)s has requested the moving of the following update from Testing to Stable:\n\n%(updatestr)s
+%(submitter)s has requested the pushing of the following update stable:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : identity.current.user_name,
@@ -181,7 +184,7 @@ for more than 2 weeks if you deem it necessary.
 You can submit this update to be pushed to the stable repository by going to
 the following URL:
 
-    http://admin.fedoraproject.org/updates/move/%(package)s
+    http://admin.fedoraproject.org/updates/request/stable/%(package)s
 
 %(updatestr)s
 """,
