@@ -244,9 +244,9 @@ class PackageUpdate(SQLObject):
             self.comment('This update has been pushed to testing',
                          author='bodhi')
         elif self.request == 'obsolete':
-            self.comment('This update has been obsoleted', author='bodhi')
             self.pushed = False
             self.status = 'obsolete'
+            self.comment('This update has been obsoleted', author='bodhi')
         elif self.request == 'stable':
             self.pushed = True
             self.date_pushed = datetime.utcnow()
@@ -409,15 +409,15 @@ class PackageUpdate(SQLObject):
         """
         stable_karma = config.get('stable_karma')
         if not author: author = identity.current.user_name
-        if not filter(lambda c: c.author == author and
-                      c.karma == karma, self.comments):
+        if karma != 0 and not filter(lambda c: c.author == author and
+                                     c.karma == karma, self.comments):
             self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if stable_karma and stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = 'stable'
                 mail.send(self.submitter, 'stablekarma', self)
-                mail.send_admin('move', self)
+                mail.send_admin('stablekarma', self)
         comment = Comment(text=text, karma=karma, update=self, author=author)
 
         # Send a notification to everyone that has commented on this update

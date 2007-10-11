@@ -25,9 +25,7 @@ import logging
 from getpass import getpass, getuser
 from optparse import OptionParser
 
-from fedora.tg.client import BaseClient, AuthError
-#sys.path.append('/home/lmacken/code/python-fedora-devel/fedora/tg')
-#from client import BaseClient, AuthError, ServerError
+from fedora.tg.client import BaseClient, AuthError, ServerError
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +44,7 @@ class BodhiClient(BaseClient):
         if opts.input_file:
             self._parse_file(opts)
         log.info("Creating new update for %s" % opts.new)
-        input = {
+        params = {
                 'builds'  : opts.new,
                 'release' : opts.release,
                 'type'    : opts.type,
@@ -54,7 +52,7 @@ class BodhiClient(BaseClient):
                 'cves'    : opts.cves,
                 'notes'   : opts.notes
         }
-        data = self.send_request('save', auth=True, input=input)
+        data = self.send_request('save', auth=True, input=params)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
@@ -73,17 +71,20 @@ class BodhiClient(BaseClient):
         log.info("%d updates found (%d shown)" % (data['num_items'],opts.limit))
 
     def delete(self, opts):
-        data = self.send_request('delete', input={'update':opts.delete}, auth=True)
+        data = self.send_request('delete', input={ 'update' : opts.delete },
+                                 auth=True)
         log.info(data['tg_flash'])
 
     def push_to_testing(self, opts):
-        data = self.send_request('push', nvr=opts.testing, auth=True)
+        params = { 'action' : 'testing', 'update' : opts.testing }
+        data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
 
     def push_to_stable(self, opts):
-        data = self.send_request('move', nvr=opts.stable, auth=True)
+        params = { 'action' : 'stable', 'update' : opts.stable }
+        data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
 
     def masher(self, opts):
