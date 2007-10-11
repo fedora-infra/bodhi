@@ -217,79 +217,75 @@ class Root(controllers.RootController):
         update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
         return dict(update=update, comment_form=self.comment_form)
 
+    @expose(allow_json=True)
+    @identity.require(identity.not_anonymous())
+    def request(self, action, update):
+        """
+        Request that a specified action be performed on a given update.
+        Action must be one of: 'testing', 'stable', 'unpush' or 'obsolete'.
+        """
+        log.debug("request(%s, %s)" % (action, update))
+        try:
+            update = PackageUpdate.byTitle(update)
+        except SQLObjectNotFound:
+            flash_log("Cannot find update %s for action: %s" % (update, action))
+            if self.jsonRequest(): return dict()
+            raise redirect('/')
+        if not util.authorized_user(update, identity):
+            flash_log("Unauthorized to perform action on %s" % update)
+            if self.jsonRequest(): return dict()
+            raise redirect(update.get_url())
+        if action == update.status:
+            flash_log("%s already %s" % (update.title, action))
+            if self.jsonRequest: return dict()
+            raise redirect(update.get_url())
+        if action in ('testing', 'stable'):
+            if update.request in ('testing', 'stable'):
+                flash_log("%s has already been submitted to %s" % (update.title,
+                          update.request))
+                if self.jsonRequest: return dict()
+                raise redirect(update.get_url())
+        elif action in ('unpush', 'obsolete'):
+            # Even though unpushing/obsoletion is an "instant" action, changes
+            # in the repository will not occur until the next mash takes place.
+            log.debug("Unpushing %s" % update.title)
+            koji = buildsys.get_session()
+            tag = '%s-updates-candidate' % update.release.dist_tag
+            for build in update.builds:
+                log.debug("Moving %s from %s to %s" % (build,
+                          update.get_build_tag(), tag))
+                koji.moveBuild(update.get_build_tag(), tag, build, force=True)
+            update.status = 'obsolete'
+            update.pushed = False
+            update.request = None
+            update.comment("This update has been unpushed", author='bodhi')
+            mail.send_admin('unpushed', update)
+            if self.jsonRequest(): return dict()
+            raise redirect(update.get_url())
+        else:
+            flash_log("Unknown request: %s" % action)
+            if self.jsonRequest(): return dict()
+            raise redirect(update.get_url())
+
+        update.request = action
+        flash_log("%s has been submitted for %s" % (update.title, action))
+        mail.send_admin(action, update)
+        if self.jsonRequest(): return dict()
+        raise redirect(update.get_url())
+
     @expose()
     @identity.require(identity.not_anonymous())
-    def revoke(self, nvr):
+    def revoke(self, update):
         """ Revoke a push request for a specified update """
-        update = PackageUpdate.byTitle(nvr)
+        update = PackageUpdate.byTitle(update)
         if not util.authorized_user(update, identity):
-            flash_log("Cannot revoke an update you did not submit")
+            flash_log("Unauthorized to revoke request for %s" % update.title)
             raise redirect(update.get_url())
         flash_log("%s request revoked" % update.request.title())
         mail.send_admin('revoke', update)
         update.request = None
         raise redirect(update.get_url())
 
-    @exception_handler(exception)
-    @expose(allow_json=True)
-    @identity.require(identity.not_anonymous())
-    def move(self, nvr):
-        update = PackageUpdate.byTitle(nvr)
-        # Test if package already has been pushed (posible when called json)
-        if not update.status in ['pending','testing'] or \
-           update.request in ["testing", "stable"]:
-            flash_log("Update is already pushed")
-            if self.jsonRequest(): return dict()
-            raise redirect(update.get_url())
-        if not util.authorized_user(update, identity):
-            flash_log("Cannot move an update you did not submit")
-            if self.jsonRequest(): return dict()
-            raise redirect(update.get_url())
-        update.request = 'stable'
-        flash_log("Requested that %s be pushed to %s-updates" % (nvr,
-                  update.release.name))
-        mail.send_admin('move', update)
-        if self.jsonRequest(): return dict()
-        raise redirect(update.get_url())
-
-    @exception_handler(exception)
-    @expose(allow_json=True)
-    @identity.require(identity.not_anonymous())
-    def push(self, nvr):
-        """ Submit an update for pushing """
-        update = PackageUpdate.byTitle(nvr)
-        # Test if package already has been pushed (posible when called json)
-        if update.status != 'pending' or update.request in ["testing","stable"]:
-            flash_log("Update is already pushed")
-            if self.jsonRequest(): return dict()
-            raise redirect(update.get_url())
-        if not util.authorized_user(update, identity):
-            flash_log("Cannot push an update you did not submit")
-            if self.jsonRequest(): return dict()
-            raise redirect(update.get_url())
-        update.request = 'testing'
-        repo = '%s-updates-testing' % update.release.name
-        msg = "%s has been submitted for pushing to %s" % (nvr, repo)
-        flash_log(msg)
-        mail.send_admin('push', update)
-        if self.jsonRequest(): return dict()
-        raise redirect(update.get_url())
-
-    @expose()
-    @identity.require(identity.not_anonymous())
-    def unpush(self, nvr):
-        """ Submit an update for unpushing """
-        update = PackageUpdate.byTitle(nvr)
-        if not util.authorized_user(update, identity):
-            flash_log("Cannot unpush an update you did not submit")
-            raise redirect(update.get_url())
-        update.request = 'obsolete'
-        msg = "%s has been submitted for unpushing" % nvr
-        flash_log(msg)
-        mail.send_admin('unpush', update)
-        raise redirect(update.get_url())
-
-    #@exception_handler(exception)
     @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
     def delete(self, update):
@@ -383,7 +379,7 @@ class Root(controllers.RootController):
             if not identity.current.user_name in people[0] and \
                not 'releng' in identity.current.groups and \
                not 'security_respons' in identity.current.groups and \
-               filter(lambda x: x in identity.current.groups, groups[0]):
+               not filter(lambda x: x in identity.current.groups, groups[0]):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, nvr[0]))
                 if self.jsonRequest(): return dict()
@@ -639,3 +635,28 @@ class Root(controllers.RootController):
             flash(_(u"Delete canceled" ))
             raise redirect(update.get_url())
         return dict(form=self.ok_cancel_form, nvr=nvr)
+
+    @expose(template='bodhi.templates.obsolete')
+    def foobar(self):
+        from bodhi.widgets import ObsoleteForm
+        return dict(dialog=ObsoleteForm('kernel'))
+
+    @expose("json")
+    def obsolete(self, updates, *args, **kw):
+        """
+        Called by our ObsoleteForm widget.  This method will
+        request that any specified updates be marked as obsolete
+        """
+        log.debug("obsolete(%s, %s, %s)" % (updates, args, kw))
+        errors = []
+        if type(updates) != list:
+            updates = [updates]
+        for update in updates:
+            update = PackageBuild.byNvr(update).updates[0]
+            if not util.authorized_user(update, identity):
+                msg = "Unauthorized to obsolete %s" % update.title
+                errors.append(msg)
+                flash_log(msg)
+            else:
+                self.request('obsolete', update)
+        return len(errors) and errors[0] or "Done!"

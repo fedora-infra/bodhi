@@ -12,13 +12,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from bodhi.util import get_release_names, get_release_tuples
-from bodhi.validators import *
-
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
-                                HiddenField)
+                                HiddenField, RemoteForm, MultipleSelectField,
+                                JSLink)
+
+from bodhi.util import get_release_names, get_release_tuples
+from bodhi.validators import *
 
 class CommentForm(Form):
     template = "bodhi.templates.commentform"
@@ -39,16 +40,28 @@ class SearchForm(Form):
                       attrs={ 'size' : 20 }),
     ]
 
+class LocalJSLink(JSLink):
+    """
+    Link to local Javascript files
+    """
+    def update_params(self, d):
+        super(JSLink, self).update_params(d)
+        d["link"] = url(self.name)
+
+class AutoCompletePackage(AutoCompleteField):
+    javascript = [LocalJSLink('bodhi', '/static/js/MochiKit.js'),
+                  JSLink("turbogears.widgets","autocompletefield.js")]
+
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Add Update"
     update_types = config.get('update_types').split()
     fields = [
-            AutoCompleteField('builds', label='Package',
-                              search_controller=url('/new/search'),
-                              search_param='name', result_name='pkgs',
-                              template='bodhi.templates.packagefield',
-                              validator=AutoCompleteValidator()),
+            AutoCompletePackage('builds', label='Package',
+                                search_controller=url('/new/search'),
+                                search_param='name', result_name='pkgs',
+                                template='bodhi.templates.packagefield',
+                                validator=AutoCompleteValidator()),
             SingleSelectField('release', options=get_release_names,
                               validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
@@ -93,3 +106,20 @@ class OkCancelForm(Form):
         </div>
     </form>
     """
+
+class ObsoleteForm(RemoteForm):
+
+    action = url('/obsolete')
+    update = 'post_data'
+    submit_text = "Obsolete"
+
+    def __init__(self, package):
+        super(RemoteForm, self).__init__()
+        from bodhi.model import Package
+        package = Package.byName(package)
+        builds = filter(lambda x: x.updates[0].status in ('testing', 'pending'),
+                        package.builds)
+        options = [(build.nvr, build.nvr) for build in builds]
+        self.fields = [
+            MultipleSelectField('updates', label='', options=options)
+        ]

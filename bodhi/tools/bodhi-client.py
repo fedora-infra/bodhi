@@ -25,7 +25,7 @@ import logging
 from getpass import getpass, getuser
 from optparse import OptionParser
 
-from fedora.tg.client import BaseClient, AuthError
+from fedora.tg.client import BaseClient, AuthError, ServerError
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class BodhiClient(BaseClient):
         if opts.input_file:
             self._parse_file(opts)
         log.info("Creating new update for %s" % opts.new)
-        input = {
+        params = {
                 'builds'  : opts.new,
                 'release' : opts.release,
                 'type'    : opts.type,
@@ -52,7 +52,7 @@ class BodhiClient(BaseClient):
                 'cves'    : opts.cves,
                 'notes'   : opts.notes
         }
-        data = self.send_request('save', auth=True, input=input)
+        data = self.send_request('save', auth=True, input=params)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
@@ -71,17 +71,20 @@ class BodhiClient(BaseClient):
         log.info("%d updates found (%d shown)" % (data['num_items'],opts.limit))
 
     def delete(self, opts):
-        data = self.send_request('delete', update=opts.delete, auth=True)
+        data = self.send_request('delete', input={ 'update' : opts.delete },
+                                 auth=True)
         log.info(data['tg_flash'])
 
     def push_to_testing(self, opts):
-        data = self.send_request('push', nvr=opts.testing, auth=True)
+        params = { 'action' : 'testing', 'update' : opts.testing }
+        data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
 
     def push_to_stable(self, opts):
-        data = self.send_request('move', nvr=opts.stable, auth=True)
+        params = { 'action' : 'stable', 'update' : opts.stable }
+        data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
 
     def masher(self, opts):
@@ -111,6 +114,7 @@ class BodhiClient(BaseClient):
             self.send_request('admin/push/mash',
                               updates=[u['title'] for u in data['updates']],
                               auth=True)
+
     def _split(self,var,delim):
         if var:
             return var.split(delim)
@@ -172,8 +176,7 @@ if __name__ == '__main__':
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
-                      dest="status", help="List [testing|pending|requests|"
-                                          "stable|security] updates")
+                      dest="status", help="List [pending|testing|stable|obsolete] updates")
     parser.add_option("-b", "--bugs", action="store", type="string",
                       dest="bugs", help="Associate bugs with an update "
                                         "(--bugs=1234,5678)", default="")
@@ -195,17 +198,6 @@ if __name__ == '__main__':
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
                       help="Fedora username")
-
-    ## Update actions
-    #parser.add_option("-u", "--unpush", action="store", type="string",
-    #                  dest="unpush", help="Unpush a given update",
-    #                  metavar="UPDATE")
-    #parser.add_option("-f", "--feedback", action="store", type="string",
-    #                  dest="feedback", metavar="UPDATE",
-    #                  help="Give [-1|0|1] feedback about an update")
-    #parser.add_option("-C", "--comment", action="store", type="string",
-    #                  dest="comment", metavar="UPDATE",
-    #                  help="Comment about an update")
     parser.add_option("-S", "--stable", action="store", type="string",
                       dest="stable", metavar="UPDATE",
                       help="Mark an update for push to stable")

@@ -7,7 +7,7 @@
 </head>
 
 
-<body>
+<body class="flora">
     <div>
         <table class="show" cellpadding="0" cellspacing="0">
             <tr>
