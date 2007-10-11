@@ -86,5 +86,5 @@ def schedule():
     # Weekly nagmail
     scheduler.add_interval_task(action=nagmail,
                                 taskname='Nagmail',
-                                initialdelay=15,
+                                initialdelay=0,
                                 interval=604800)
