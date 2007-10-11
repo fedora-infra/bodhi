@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import pkg_resources
-pkg_resources.require("TurboGears")
+__requires__='TurboGears[future]'
 
 import turbogears
 import cherrypy
