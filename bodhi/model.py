@@ -408,6 +408,7 @@ class PackageUpdate(SQLObject):
         be marked as stable.
         """
         stable_karma = config.get('stable_karma')
+        unstable_karma = config.get('unstable_karma')
         if not author: author = identity.current.user_name
         if karma != 0 and not filter(lambda c: c.author == author and
                                      c.karma == karma, self.comments):
@@ -418,6 +419,11 @@ class PackageUpdate(SQLObject):
                 self.request = 'stable'
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
+            if unstable_karma and self.karma == unstable_karma:
+                log.info("Automatically unpushing %s" % self.title)
+                self.request = 'unpush'
+                mail.send(self.submitter, 'unstable', self)
+                mail.send_admin('unstable', self)
         comment = Comment(text=text, karma=karma, update=self, author=author)
 
         # Send a notification to everyone that has commented on this update
