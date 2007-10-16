@@ -23,8 +23,7 @@ from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND, OR
 
 from turbogears import (controllers, expose, validate, redirect, identity,
-                        paginate, flash, error_handler, validators, config, url,
-                        exception_handler)
+                        paginate, flash, error_handler, validators, config, url)
 from turbogears.widgets import DataGrid
 
 from bodhi import buildsys, util
