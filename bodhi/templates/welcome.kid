@@ -76,7 +76,7 @@
             <tr>
                 <td>
                     <span py:if="comments">
-                        <h3>Latest Comments</h3>
+                        <h3>Latest Comments  [ <a href="${tg.url('/comments')}">all</a> ]</h3>
                         ${comments.display()}
                     </span>
                 </td>

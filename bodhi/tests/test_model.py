@@ -217,6 +217,33 @@ class TestPackageUpdate(testutil.DBTest):
         changelog = update.builds[0].get_changelog(oldtime)
         assert changelog == '* Thu Jun 21 2007 Seth Vidal <skvidal at fedoraproject.org> - 3.2.1-1\n- bump to 3.2.1\n'
 
+    def test_unstable_karma(self):
+        update = self.get_update()
+        assert update.karma == 0
+        assert update.status == 'testing'
+        update.comment("foo", -1, 'foo')
+        assert update.status == 'testing'
+        assert update.karma == -1
+        update.comment("bar", -1, 'bar')
+        assert update.status == 'testing'
+        assert update.karma == -2
+        update.comment("biz", -1, 'biz')
+        assert update.karma == -3
+        assert update.status == 'obsolete'
+
+    def test_stable_karma(self):
+        update = self.get_update()
+        assert update.karma == 0
+        assert update.request == None
+        update.comment("foo", 1, 'foo')
+        assert update.karma == 1
+        assert update.request == None
+        update.comment("foo", 1, 'bar')
+        assert update.karma == 2
+        assert update.request == None
+        update.comment("foo", 1, 'biz')
+        assert update.karma == 3
+        assert update.request == 'stable'
 
 class TestBugzilla(testutil.DBTest):
 
@@ -231,5 +258,3 @@ class TestBugzilla(testutil.DBTest):
         assert bug
         if config.get('bodhi_password'):
             assert bug.title == 'CVE-2007-2165: proftpd auth bypass vulnerability'
-            assert bug.security == True
-        assert bug.bz_id == 237533

@@ -62,13 +62,14 @@ class BodhiClient(BaseClient):
         for arg in ('release', 'status', 'type', 'bugs', 'cves'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
-        data = self.send_request('list', **args)
+        data = self.send_request('list', input=args)
         if data.has_key('tg_flash') and data['tg_flash']:
             log.error(data['tg_flash'])
             sys.exit(-1)
         for update in data['updates']:
             log.info(update + '\n')
-        log.info("%d updates found (%d shown)" % (data['num_items'],opts.limit))
+        log.info("%d updates found (%d shown)" % (data['num_items'],
+                                                  len(data['updates'])))
 
     def delete(self, opts):
         data = self.send_request('delete', input={ 'update' : opts.delete },
@@ -111,9 +112,8 @@ class BodhiClient(BaseClient):
         yes = sys.stdin.readline().strip()
         if yes in ('y', 'yes'):
             log.info("Pushing!")
-            self.send_request('admin/push/mash',
-                              updates=[u['title'] for u in data['updates']],
-                              auth=True)
+            self.send_request('admin/push/mash', auth=True,
+                              input={'updates':[u['title'] for u in data['updates']]})
 
     def _split(self,var,delim):
         if var:
@@ -127,7 +127,7 @@ class BodhiClient(BaseClient):
         notes = self._split(opts.notes,'\n')
         bugs = self._split(opts.bugs,',')
         cves = self._split(opts.cves,',')
-        print "Reading from %s " % opts.input_file
+        log.info("Reading from %s " % opts.input_file)
         if os.path.exists(opts.input_file):
             f = open(opts.input_file)
             lines = f.readlines()
@@ -173,6 +173,18 @@ if __name__ == '__main__':
                       help="Display the status of the Masher")
     parser.add_option("-p", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates")
+    parser.add_option("-d", "--delete", action="store", type="string",
+                      dest="delete", help="Delete an update",
+                      metavar="UPDATE")
+    parser.add_option("", "--file", action="store", type="string",
+                      dest="input_file",
+                      help="Get Bugs,CVES,Notes from a file")
+    parser.add_option("-S", "--stable", action="store", type="string",
+                      dest="stable", metavar="UPDATE",
+                      help="Mark an update for push to stable")
+    parser.add_option("-T", "--testing", action="store", type="string",
+                      dest="testing", metavar="UPDATE",
+                      help="Mark an update for push to testing")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -192,22 +204,11 @@ if __name__ == '__main__':
                       dest="type",
                       help="Update type [bugfix|security|enhancement] "
                            "(default: bugfix)")
-    parser.add_option("", "--file", action="store", type="string",
-                      dest="input_file",
-                      help="Get Bugs,CVES,Notes from a file")
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
                       help="Fedora username")
-    parser.add_option("-S", "--stable", action="store", type="string",
-                      dest="stable", metavar="UPDATE",
-                      help="Mark an update for push to stable")
-    parser.add_option("-T", "--testing", action="store", type="string",
-                      dest="testing", metavar="UPDATE",
-                      help="Mark an update for push to testing")
-    parser.add_option("-d", "--delete", action="store", type="string",
-                      dest="delete", help="Delete an update",
-                      metavar="UPDATE")
 
+    ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Show debugging messages")
     parser.add_option("-l", "--limit", action="store", type="int", dest="limit",
@@ -244,6 +245,9 @@ if __name__ == '__main__':
                 bodhi.push(opts)
             elif opts.delete:
                 bodhi.delete(opts)
+            elif opts.status or opts.bugs or opts.cves or \
+                 opts.release or opts.type:
+                bodhi.list(opts)
             else:
                 parser.print_help()
             break

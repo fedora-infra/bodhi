@@ -1,7 +1,9 @@
 #!/usr/bin/python
-import pkg_resources
-pkg_resources.require("TurboGears")
 
+# http://fedoraproject.org/wiki/PackagingDrafts/TGApps#head-de2a8e6576be53ce2b323722cf9fb92c1469adda
+__requires__='TurboGears[future]'
+
+import pkg_resources
 import turbogears
 import cherrypy
 cherrypy.lowercase_api = True

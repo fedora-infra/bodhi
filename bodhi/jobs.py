@@ -68,6 +68,21 @@ def nagmail():
             nagged[name] = datetime.now()
             update.nagged = nagged
 
+def fix_bug_titles():
+    """
+    Go through all bugs with invalid titles and see if we can re-fetch them.
+    If bugzilla is down, then bodhi simply replaces the title with
+    'Unable to fetch bug title' or 'Invalid bug number'.  So lets occasionally
+    see if we can re-fetch those bugs.
+    """
+    from bodhi.model import Bugzilla
+    from sqlobject.sqlbuilder import OR
+    log.debug("Running fix_bug_titles job")
+    for bug in Bugzilla.select(
+                 OR(Bugzilla.q.title == 'Invalid bug number',
+                    Bugzilla.q.title == 'Unable to fetch bug title')):
+        bug._fetch_details()
+
     # Nag submitters if their update has been sitting unsubmitted in a pending
     # state for longer than a week.
     # TODO: implement this once the current 'pending' situation is under
@@ -86,5 +101,11 @@ def schedule():
     # Weekly nagmail
     scheduler.add_interval_task(action=nagmail,
                                 taskname='Nagmail',
-                                initialdelay=15,
+                                initialdelay=0,
+                                interval=604800)
+
+    # Fix invalid bug titles
+    scheduler.add_interval_task(action=fix_bug_titles,
+                                taskname='Fix bug titles',
+                                initialdelay=0,
                                 interval=604800)

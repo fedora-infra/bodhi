@@ -155,6 +155,17 @@ marked as stable.\n\n%(updatestr)s
                     }
     },
 
+    'unstable' : {
+        'body'    : """\
+The following update has reached a karma of %(karma)d and is being automatically
+marked as unstable.  This update will be unpushed from the repository.\n\n%(updatestr)s
+""",
+        'fields'  : lambda x: {
+                        'karma'     : x.karma,
+                        'updatestr' : str(x) 
+                    }
+    },
+
     'comment' : {
         'body'    : """\
 The following comment has been added to the %(package)s update:

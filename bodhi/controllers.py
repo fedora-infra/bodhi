@@ -23,8 +23,7 @@ from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND, OR
 
 from turbogears import (controllers, expose, validate, redirect, identity,
-                        paginate, flash, error_handler, validators, config, url,
-                        exception_handler)
+                        paginate, flash, error_handler, validators, config, url)
 from turbogears.widgets import DataGrid
 
 from bodhi import buildsys, util
@@ -246,20 +245,7 @@ class Root(controllers.RootController):
                 if self.jsonRequest: return dict()
                 raise redirect(update.get_url())
         elif action in ('unpush', 'obsolete'):
-            # Even though unpushing/obsoletion is an "instant" action, changes
-            # in the repository will not occur until the next mash takes place.
-            log.debug("Unpushing %s" % update.title)
-            koji = buildsys.get_session()
-            tag = '%s-updates-candidate' % update.release.dist_tag
-            for build in update.builds:
-                log.debug("Moving %s from %s to %s" % (build,
-                          update.get_build_tag(), tag))
-                koji.moveBuild(update.get_build_tag(), tag, build, force=True)
-            update.status = 'obsolete'
-            update.pushed = False
-            update.request = None
-            update.comment("This update has been unpushed", author='bodhi')
-            mail.send_admin('unpushed', update)
+            update.obsolete()
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         else:
@@ -624,6 +610,13 @@ class Root(controllers.RootController):
             update.comment(text, karma)
         raise redirect(update.get_url())
 
+    @expose(template='bodhi.templates.comments')
+    @paginate('comments', limit=20, allow_limit_override=True)
+    def comments(self):
+        data = Comment.select(Comment.q.author != 'bodhi',
+                              orderBy=Comment.q.timestamp).reversed()
+        return dict(comments=data, num_items=data.count())
+
     @expose(template='bodhi.templates.confirmation')
     @identity.require(identity.not_anonymous())
     def confirm_delete(self, nvr=None, ok=None, cancel=None):
@@ -652,11 +645,11 @@ class Root(controllers.RootController):
         if type(updates) != list:
             updates = [updates]
         for update in updates:
-            update = PackageBuild.byNvr(update).updates[0]
-            if not util.authorized_user(update, identity):
-                msg = "Unauthorized to obsolete %s" % update.title
+            up = PackageBuild.byNvr(update).updates[0]
+            if not util.authorized_user(up, identity):
+                msg = "Unauthorized to obsolete %s" % up.title
                 errors.append(msg)
                 flash_log(msg)
             else:
-                self.request('obsolete', update)
+                update.obsolete()
         return len(errors) and errors[0] or "Done!"

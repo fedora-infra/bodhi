@@ -54,7 +54,7 @@ class AutoCompletePackage(AutoCompleteField):
 
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
-    submit_text = "Add Update"
+    submit_text = "Save Update"
     update_types = config.get('update_types').split()
     fields = [
             AutoCompletePackage('builds', label='Package',
