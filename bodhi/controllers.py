@@ -610,6 +610,13 @@ class Root(controllers.RootController):
             update.comment(text, karma)
         raise redirect(update.get_url())
 
+    @expose(template='bodhi.templates.comments')
+    @paginate('comments', limit=20, allow_limit_override=True)
+    def comments(self):
+        data = Comment.select(Comment.q.author != 'bodhi',
+                              orderBy=Comment.q.timestamp).reversed()
+        return dict(comments=data, num_items=data.count())
+
     @expose(template='bodhi.templates.confirmation')
     @identity.require(identity.not_anonymous())
     def confirm_delete(self, nvr=None, ok=None, cancel=None):
