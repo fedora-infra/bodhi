@@ -4,8 +4,7 @@
 Name:           bodhi
 Version:        0.3.2
 Release:        1%{?dist}
-Summary:        A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
-
+Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
 URL:            https://hosted.fedoraproject.org/projects/bodhi
@@ -16,7 +15,7 @@ BuildArch:      noarch
 BuildRequires: python-setuptools-devel
 
 %description
-Bodhi is a modular web system that facilitates the process of publishing
+Bodhi is a modular frameworkthat facilitates the process of publishing
 updates for a software distribution.
 
 %package client
@@ -29,14 +28,14 @@ Client tools for interacting with bodhi
 
 
 %package server
-Summary: A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
+Summary: A modular framework that facilitates publishing software updates
 Group: Applications/Internet
-Requires: TurboGears createrepo python-TurboMail intltool mash cvs
+Requires: TurboGears createrepo python-TurboMail intltool mash cvs python-fedora
 # We need the --repofrompath option from yum-utils
 Requires: yum-utils >= 1.1.7
 
 %description server
-Bodhi is a modular web system that facilitates the process of publishing
+Bodhi is a modular framework that facilitates the process of publishing
 updates for a software distribution.
 
 %prep
