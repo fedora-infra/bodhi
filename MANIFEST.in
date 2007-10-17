@@ -1,0 +1,10 @@
+include start-bodhi.in
+exclude start-bodhi
+include AUTHORS README COPYING ChangeLog
+include *.cfg
+include bodhi/templates/*.kid
+include bodhi/config/*.cfg
+include bodhi/static/javascript/*
+include bodhi/static/css/*
+include bodhi/static/images/*
+include bodhi.spec

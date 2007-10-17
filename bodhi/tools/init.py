@@ -66,7 +66,7 @@ def load_config():
     """ Load the appropriate configuration so we can get at the values """
     configfile = 'prod.cfg'
     if not isfile(configfile):
-        configfile = 'dev.cfg'
+        configfile = 'bodhi.cfg'
     update_config(configfile=configfile, modulename='bodhi.config')
 
 ##

@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.3.0
+Version:        0.3.2
 Release:        1%{?dist}
 Summary:        A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
 
@@ -22,31 +22,36 @@ updates for a software distribution.
 %package client
 Summary: Bodhi Client
 Group: Applications/Internet
-Requires: python-json python-fedora
+Requires: python-simplejson python-fedora
 
 %description client 
 Client tools for interacting with bodhi
 
 
 %package server
-Summary: Bodhi Server
+Summary: A modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
 Group: Applications/Internet
-Requires: TurboGears createrepo python-TurboMail yum-utils intltool mash cvs
+Requires: TurboGears createrepo python-TurboMail intltool mash cvs
+# We need the --repofrompath option from yum-utils
+Requires: yum-utils >= 1.1.7
 
 %description server
-The bodhi server
+Bodhi is a modular web system that facilitates the process of publishing
+updates for a software distribution.
 
 %prep
 %setup -q
 
 
 %build
-make build
-
+%{__python} setup.py build --install-conf=%{_sysconfdir} \
+        --install-data=%{_datadir}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make DESTDIR=$RPM_BUILD_ROOT install
+%{__python} setup.py install --skip-build --install-conf=%{_sysconfdir} \
+    --install-data=%{_datadir} --root %{buildroot}
+%{__install} -D bodhi/tools/bodhi-client.py $RPM_BUILD_ROOT/usr/bin/bodhi
 
 
 %clean
@@ -55,16 +60,22 @@ rm -rf $RPM_BUILD_ROOT
 
 %files server
 %defattr(-,root,root,-)
-%doc README
-%{_bindir}/start-bodhi.py*
-%{python_sitelib}/%{name}
-%{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info
+%doc README COPYING
+%{_datadir}/%{name}
+%{_bindir}/start-bodhi
+%config(noreplace) %{_sysconfdir}/%{name}.cfg
 
 %files client
+%doc COPYING README
 %{_bindir}/bodhi
 
 
 %changelog
+* Sat Oct 16 2007 Luke Macken <lmacken@redhat.com> - 0.3.2-1
+- 0.3.2
+- Add COPYING file
+- s/python-json/python-simplejson/
+
 * Sat Oct  6 2007 Luke Macken <lmacken@redhat.com> - 0.3.1-1
 - 0.3.1
 

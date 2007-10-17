@@ -37,7 +37,7 @@ hub = __connection__ = PackageHub("bodhi")
 def load_config():
     configfile = 'prod.cfg'
     if not isfile(configfile):
-        configfile = 'dev.cfg'
+        configfile = 'bodhi.cfg'
     update_config(configfile=configfile, modulename='bodhi.config')
 
 def save_db():

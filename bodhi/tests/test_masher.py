@@ -1,7 +1,7 @@
 # $Id: $
 
 import turbogears
-turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
+turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 
 class TestMasher:
 

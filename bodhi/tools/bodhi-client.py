@@ -25,7 +25,9 @@ import logging
 from getpass import getpass, getuser
 from optparse import OptionParser
 
-from fedora.tg.client import BaseClient, AuthError, ServerError
+#from fedora.tg.client import BaseClient, AuthError, ServerError
+sys.path.append('/home/lmacken/code/python-fedora-devel/fedora/tg')
+from client import BaseClient, AuthError, ServerError
 
 log = logging.getLogger(__name__)
 

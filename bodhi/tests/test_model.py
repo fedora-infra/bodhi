@@ -2,7 +2,7 @@
 
 import turbogears
 from turbogears import testutil, database, config
-turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
+turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
 import time
