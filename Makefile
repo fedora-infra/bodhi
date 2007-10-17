@@ -41,7 +41,7 @@ init:
 	tg-admin --config=bodhi.cfg sql create && bodhi/tools/init.py && bodhi/tools/dev_init.py && bodhi/tools/pickledb.py load bodhi-pickledb*
 
 run:
-	rm start-bodhi
+	rm start-bodhi || :
 	python setup.py build --install-conf=`pwd` --install-data='..'
 	python start-bodhi
 
