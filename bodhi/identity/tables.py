@@ -15,7 +15,7 @@ __connection__ = hub
 class Visit(SQLObject):
     visit_key = StringCol(length=40, alternateID=True,
                           alternateMethodName="by_visit_key")
-    created = DateTimeCol(default=datetime.now)
+    created = DateTimeCol(default=datetime.utcnow)
     expiry = DateTimeCol()
 
     def lookup_visit(cls, visit_key):
@@ -37,7 +37,7 @@ class Group(SQLObject):
     group_name = UnicodeCol(length=16, alternateID=True,
                             alternateMethodName="by_group_name")
     display_name = UnicodeCol(length=255)
-    created = DateTimeCol(default=datetime.now)
+    created = DateTimeCol(default=datetime.utcnow)
     users = RelatedJoin("User", intermediateTable="user_group",
                         joinColumn="group_id", otherColumn="user_id")
     permissions = RelatedJoin("Permission", joinColumn="group_id", 
@@ -54,7 +54,7 @@ class User(SQLObject):
     password = UnicodeCol(length=40, default=None)
     groups = RelatedJoin("Group", intermediateTable="user_group",
                          joinColumn="user_id", otherColumn="group_id")
-    created = DateTimeCol(default=datetime.now)
+    created = DateTimeCol(default=datetime.utcnow)
 
     def _get_permissions(self):
         perms = set()
