@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.3.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -12,7 +12,7 @@ Source0:        bodhi-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-BuildRequires: python-setuptools-devel
+BuildRequires: python-setuptools-devel TurboGears
 
 %description
 Bodhi is a modular frameworkthat facilitates the process of publishing
@@ -40,6 +40,7 @@ updates for a software distribution.
 
 %prep
 %setup -q
+rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %build
@@ -51,6 +52,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --skip-build --install-conf=%{_sysconfdir} \
     --install-data=%{_datadir} --root %{buildroot}
 %{__install} -D bodhi/tools/bodhi-client.py $RPM_BUILD_ROOT/usr/bin/bodhi
+chmod +x $RPM_BUILD_ROOT/%{_datadir}/%{name}/bodhi/tools/{bodhi-client,init,dev_init,pickledb}.py
 
 
 %clean
@@ -70,6 +72,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Oct 18 2007 Luke Macken <lmacken@redhat.com> - 0.3.2-2
+- Add TurboGears to BuildRequires
+- Make some scripts executable to silence rpmlint
+
 * Sat Oct 16 2007 Luke Macken <lmacken@redhat.com> - 0.3.2-1
 - 0.3.2
 - Add COPYING file
