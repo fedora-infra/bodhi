@@ -81,7 +81,7 @@ def load_db():
         except SQLObjectNotFound:
             release = Release(name=u['release'][0], long_name=u['release'][1],
                               id_prefix=u['id_prefix'], dist_tag=u['dist_tag'])
-        request = None
+        request = u['request']
         if u['request'] == 'move':
             request = 'stable'
         elif u['request'] == 'push':

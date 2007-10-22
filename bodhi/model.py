@@ -446,9 +446,9 @@ class PackageUpdate(SQLObject):
         koji = buildsys.get_session()
         tag = '%s-updates-candidate' % self.release.dist_tag
         for build in self.builds:
-            log.debug("Moving %s from %s to %s" % (build,
+            log.debug("Moving %s from %s to %s" % (build.nvr,
                       self.get_build_tag(), tag))
-        koji.moveBuild(self.get_build_tag(), tag, build, force=True)
+            koji.moveBuild(self.get_build_tag(), tag, build.nvr, force=True)
         self.status = 'obsolete'
         self.pushed = False
         self.request = None
