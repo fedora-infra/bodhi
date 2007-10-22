@@ -149,12 +149,22 @@ class MashTask(Thread):
         Check for bodhi/koji inconsistencies, and make sure it is safe to
         perform actions against this set of updates
         """
-        pending_nvrs = [build['nvr'] for build in
-                        self.koji.listTagged('dist-fc7-updates-candidate')]
-        testing_nvrs = [build['nvr'] for build in
-                        self.koji.listTagged('dist-fc7-updates-testing')]
-        stable_nvrs = [build['nvr'] for build in
-                       self.koji.listTagged('dist-fc7-updates')]
+        pending_nvrs = {}
+        testing_nvrs = {}
+        stable_nvrs = {}
+
+        # For each release, populate the lists of pending/testing/stable builds
+        for update in self.updates:
+            if not pending_nvrs.has_key(update.release.name):
+                pending_nvrs[update.release.name] = [build['nvr'] for build in
+                        self.koji.listTagged('%s-updates-candidate' %
+                                             update.release.dist_tag)]
+                testing_nvrs[update.release.name] = [build['nvr'] for build in
+                        self.koji.listTagged('%s-updates-testing' %
+                                             update.release.dist_tag)]
+                stable_nvrs[update.release.name] = [build['nvr'] for build in
+                        self.koji.listTagged('%s-updates' %
+                                             update.release.dist_tag)]
 
         def error_log(msg):
             log.error(msg)
@@ -164,21 +174,21 @@ class MashTask(Thread):
         for update in self.updates:
             for build in update.builds:
                 if update.request == 'testing':
-                    if build.nvr not in pending_nvrs:
+                    if build.nvr not in pending_nvrs[update.release.name]:
                         error_log("%s not tagged as candidate" % build.nvr)
                 elif update.request == 'stable':
                     if update.status == 'testing':
-                        if build.nvr not in testing_nvrs:
+                        if build.nvr not in testing_nvrs[update.release.name]:
                             error_log("%s not tagged as testing" % build.nvr)
                     elif update.status == 'pending':
-                        if build.nvr not in pending_nvrs:
+                        if build.nvr not in pending_nvrs[update.release.name]:
                             error_log("%s not tagged as candidate" % build.nvr)
                 elif update.request == 'unpush':
                     if update.status == 'testing':
-                        if build.nvr not in testing_nvrs:
+                        if build.nvr not in testing_nvrs[update.release.name]:
                             error_log("%s not tagged as testing" % build.nvr)
                     elif update.status == 'stable':
-                        if build.nvr not in stable_nvrs:
+                        if build.nvr not in stable_nvrs[update.release.name]:
                             error_log("%s not tagged as stable" % build.nvr)
                 else:
                     error_log("Unknown request '%s' for %s" % (update.request,
