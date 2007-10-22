@@ -27,18 +27,14 @@ from optparse import OptionParser
 
 from fedora.tg.client import BaseClient, AuthError, ServerError
 
-log = logging.getLogger(__name__)
-
 __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
-BODHI_URL = 'http://localhost:8084/updates/'
+BODHI_URL = 'https://admin.fedoraproject.org/updates/'
+log = logging.getLogger(__name__)
 
 
 class BodhiClient(BaseClient):
-    """
-        A command-line client to interact with Bodhi.
-    """
 
     def new(self, opts):
         if opts.input_file:

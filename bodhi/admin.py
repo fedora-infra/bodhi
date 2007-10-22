@@ -21,13 +21,11 @@ from bodhi.push import PushController
 from turbogears import expose, identity, config, redirect, flash
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
-from turbogears.toolbox.catwalk import CatWalk
 
 class AdminController(Controller, SecureResource):
     require = identity.in_group("releng")
 
     push = PushController()
-    catwalk = CatWalk()
 
     @expose(template='bodhi.templates.admin')
     def index(self):
