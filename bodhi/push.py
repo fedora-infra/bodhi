@@ -49,7 +49,7 @@ class PushController(controllers.Controller, identity.SecureResource):
             os.close(self.new_repo[0])
             os.close(self.orig_repo[0])
             diff = join(config.get('repodiff_dir'), '%s' %
-                        datetime.now().strftime("%Y%m%d-%H%M%S"))
+                        datetime.utcnow().strftime("%Y%m%d-%H%M%S"))
             diff = open(diff, 'w')
             diff.write(commands.getoutput("diff -u %s %s" % (self.orig_repo[1],
                                                              self.new_repo[1])))

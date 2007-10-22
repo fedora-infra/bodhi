@@ -57,7 +57,7 @@ def nagmail():
             if update.nagged.has_key(name) and update.nagged[name]:
                 log.debug("%s has nagged[%s] = %s" % (update.title, name,
                           update.nagged[name]))
-                if (datetime.now() - update.nagged[name]).days < 7:
+                if (datetime.utcnow() - update.nagged[name]).days < 7:
                     log.debug("Skipping %s nagmail for %s; less than 7 days " 
                               "since our last nag" % (name, update.title))
                     continue
@@ -65,7 +65,7 @@ def nagmail():
                      update.title))
             mail.send(update.submitter, name, update)
             nagged = update.nagged
-            nagged[name] = datetime.now()
+            nagged[name] = datetime.utcnow()
             update.nagged = nagged
 
 def fix_bug_titles():

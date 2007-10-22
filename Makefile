@@ -37,6 +37,14 @@ srpm: dist
 pyflakes:
 	find . -name '*.py' | xargs pyflakes
 
+init:
+	tg-admin --config=bodhi.cfg sql create && bodhi/tools/init.py && bodhi/tools/dev_init.py && bodhi/tools/pickledb.py load bodhi-pickledb*
+
+run:
+	rm start-bodhi || :
+	python setup.py build --install-conf=`pwd` --install-data='..'
+	python start-bodhi
+
 profile:
 	nosetests --with-profile --profile-stats-file=nose.prof
 	python -c "import hotshot.stats ; stats = hotshot.stats.load('nose.prof') ; stats.sort_stats('time', 'calls') ; stats.print_stats(20)"

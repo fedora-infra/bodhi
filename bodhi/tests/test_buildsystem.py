@@ -3,7 +3,7 @@
 import turbogears
 from turbogears import testutil, config, database
 
-turbogears.update_config(configfile='dev.cfg', modulename='bodhi.config')
+turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
 class TestBuildsystem(testutil.DBTest):

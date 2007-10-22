@@ -96,6 +96,4 @@
     </tr>
     </table>
 
-    <a href="#" onclick="$('#obsoletedialog').load('/updates/foobar')">Test</a>
-    <div id="obsoletedialog"></div>
 </form>

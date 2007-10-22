@@ -31,6 +31,12 @@ releases = (
         'dist_tag'  : 'dist-fc7',
         'id_prefix' : 'FEDORA'
     },
+    {
+        'name'      : 'F8',
+        'long_name' : 'Fedora 8',
+        'dist_tag'  : 'dist-f8',
+        'id_prefix' : 'FEDORA'
+    },
 )
 
 def import_releases():
@@ -66,7 +72,7 @@ def load_config():
     """ Load the appropriate configuration so we can get at the values """
     configfile = 'prod.cfg'
     if not isfile(configfile):
-        configfile = 'dev.cfg'
+        configfile = 'bodhi.cfg'
     update_config(configfile=configfile, modulename='bodhi.config')
 
 ##

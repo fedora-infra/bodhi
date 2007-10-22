@@ -163,7 +163,8 @@ class BodhiClient(BaseClient):
 
 if __name__ == '__main__':
     usage = "usage: %prog [options]"
-    parser = OptionParser(usage, description=__description__)
+    parser = OptionParser(usage, description=__description__,
+                          version=__version__)
 
     ## Actions
     parser.add_option("-n", "--new", action="store", type="string", dest="new",

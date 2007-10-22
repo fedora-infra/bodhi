@@ -1,1 +1,3 @@
-TurboGears >= 1.0.1
+TurboGears[future] >= 1.0
+TurboMail
+python_fedora

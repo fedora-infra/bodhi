@@ -455,7 +455,7 @@ class PackageUpdate(SQLObject):
         mail.send_admin('unpushed', self)
 
 class Comment(SQLObject):
-    timestamp   = DateTimeCol(default=datetime.now)
+    timestamp   = DateTimeCol(default=datetime.utcnow)
     update      = ForeignKey("PackageUpdate", notNone=True)
     author      = UnicodeCol(notNone=True)
     karma       = IntCol(default=0)

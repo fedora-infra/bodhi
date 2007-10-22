@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # $Id: modifyrepo.py,v 1.1 2006/12/07 07:19:41 lmacken Exp $
 #
 # This tools is used to insert arbitrary metadata into an RPM repository.
