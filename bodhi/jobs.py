@@ -24,6 +24,7 @@ import logging
 from os.path import isdir, realpath, dirname, join, islink
 from datetime import datetime
 from turbogears import scheduler, config
+from sqlobject.sqlbuilder import AND
 
 from bodhi import mail
 from bodhi.util import get_age_in_days
