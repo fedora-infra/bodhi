@@ -9,7 +9,7 @@
 
 <body>
     &nbsp;&nbsp;<b>${title}</b>
-    <div class="list">
+    <div py:if="num_items" class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
                 href="${tg.paginate.get_href(page)}">${page}</a>
