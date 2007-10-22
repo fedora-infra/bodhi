@@ -21,7 +21,7 @@ obsolete = filter(lambda x: x.request == 'obsolete', updates)
 <blockquote>
 
     <form id="push_form" name="push_form" method="post" action="${tg.url('/admin/push/mash')}">
-        <h1>${updates.count()} pending requests</h1>
+        <h1>${len(updates)} pending requests</h1>
         <span py:if="len(testing)">
             <b>Push to Testing</b>
             <table class="list">
