@@ -45,6 +45,7 @@ class Release(SQLObject):
     updates     = MultipleJoin('PackageUpdate', joinColumn='release_id')
     id_prefix   = UnicodeCol(notNone=True)
     dist_tag    = UnicodeCol(notNone=True) # ie dist-fc7
+    locked      = BoolCol(default=False)
 
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
