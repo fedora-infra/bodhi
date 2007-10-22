@@ -48,7 +48,8 @@ $(document).ready(function() {
 </script>
 <script type="text/javascript" py:if="not tg.identity.anonymous">
 $(document).ready(function() {
-    $('#release').click( function() { $('#releases').toggle('slow'); });
+    $('#F7').click( function() { $('#F7_releases').toggle('slow'); });
+    $('#F8').click( function() { $('#F8_releases').toggle('slow'); });
     $('div.flash').corner();
     $('div.flash').show("slow");
 });
@@ -98,10 +99,10 @@ $(document).ready(function() {
                 <li><a href="${tg.url('/')}">${tg.identity.user_name}'s Home</a></li>
                 <li><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
                 <li py:for="release in releases()">
-                    <a id="release" href="#">${release[1]}</a>
-                        <div id="releases">
+                    <a id="${release[0]}" href="#">${release[1]}</a>
+                        <div id="${release[0]}_releases">
                             <ul>
-                                <li><a href="${tg.url('/new')}">New Update</a></li>
+                                <li><a href="${tg.url('/new?release=%s' % release[1])}">New Update</a></li>
                                 <li py:for="status in ('pending', 'testing', 'stable')">
                                     <a href="${tg.url('/%s/%s' % (release[0], status != 'stable' and status or ''))}">${status.title()} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == status)).count()})</a>
                                 </li>
