@@ -31,6 +31,12 @@ releases = (
         'dist_tag'  : 'dist-fc7',
         'id_prefix' : 'FEDORA'
     },
+    {
+        'name'      : 'F8',
+        'long_name' : 'Fedora 8',
+        'dist_tag'  : 'dist-f8',
+        'id_prefix' : 'FEDORA'
+    },
 )
 
 def import_releases():

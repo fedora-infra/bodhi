@@ -138,7 +138,7 @@ class TestControllers(testutil.DBTest):
             'notes'   : ''
         }
         self.save_update(params, session)
-        assert "Value must be one of: F7; Fedora 7 (not \'Ubuntu Bitchy Beaver\')" in cherrypy.response.body[0]
+        assert "Value must be one of: F7; Fedora 7; F8; Fedora 8 (not \'Ubuntu Bitchy Beaver\')" in cherrypy.response.body[0]
 
     def test_bad_type(self):
         session = self.login()
