@@ -594,6 +594,9 @@ class Root(controllers.RootController):
                             release.long_name, status.title()))
             except AttributeError:
                 pass
+        else:
+            return dict(tg_template=template, updates=[], num_items=0,
+                        title='No updates found')
 
         flash_log("The path %s cannot be found" % cherrypy.request.path)
         raise redirect("/")
