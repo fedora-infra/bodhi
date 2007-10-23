@@ -107,7 +107,7 @@ $(document).ready(function() {
                                     <a href="${tg.url('/%s/%s' % (release[0], status != 'stable' and status or ''))}">${status.title()} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == status)).count()})</a>
                                 </li>
                                 <li>
-                                    <a href="${tg.url('/%s/security' % release[0])}">Security (${PackageUpdate.select(AND(PackageUpdate.q.type == 'security', PackageUpdate.q.releaseID == release[2])).count()})</a>
+                                    <a href="${tg.url('/%s/security' % release[0])}">Security (${PackageUpdate.select(AND(PackageUpdate.q.type == 'security', PackageUpdate.q.releaseID == release[2], PackageUpdate.q.pushed == True)).count()})</a>
                                 </li>
                             </ul>
                         </div>
