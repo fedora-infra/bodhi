@@ -521,6 +521,7 @@ class Root(controllers.RootController):
         This method allows for the following requests
 
             /release/status/update
+            /release/security
             /release/update_id
             /packagename
         """
