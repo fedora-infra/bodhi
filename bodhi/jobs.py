@@ -24,6 +24,7 @@ import logging
 from os.path import isdir, realpath, dirname, join, islink
 from datetime import datetime
 from turbogears import scheduler, config
+from sqlobject.sqlbuilder import AND
 
 from bodhi import mail
 from bodhi.util import get_age_in_days
@@ -52,7 +53,9 @@ def nagmail():
     # Nag submitters when their update has been sitting in testing for more
     # than two weeks.
     name = 'old_testing'
-    for update in PackageUpdate.select(PackageUpdate.q.status == 'testing'):
+    for update in PackageUpdate.select(
+                    AND(PackageUpdate.q.status == 'testing',
+                        PackageUpdate.q.request != 'stable')):
         if get_age_in_days(update.date_pushed) > 14:
             if update.nagged.has_key(name) and update.nagged[name]:
                 log.debug("%s has nagged[%s] = %s" % (update.title, name,

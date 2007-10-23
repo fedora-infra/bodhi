@@ -420,7 +420,8 @@ class PackageUpdate(SQLObject):
                 self.request = 'stable'
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
-            if unstable_karma and self.karma == unstable_karma:
+            if self.status == 'testing' and unstable_karma and \
+               self.karma == unstable_karma:
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
                 mail.send(self.submitter, 'unstable', self)
