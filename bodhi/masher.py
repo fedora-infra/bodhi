@@ -193,7 +193,12 @@ class MashTask(Thread):
                         if build.nvr not in stable_nvrs[update.release.name]:
                             error_log("%s not tagged as stable" % build.nvr)
                 elif update.request == 'obsolete':
-                    continue
+                    if update.status == 'testing':
+                        if build.nvr not in testing_nvrs[update.release.name]:
+                            error_log("%s not tagged as testing" % build.nvr)
+                    elif update.status == 'stable':
+                        if build.nvr not in stable_nvrs[update.release.name]:
+                            error_log("%s not tagged as stable" % build.nvr)
                 else:
                     error_log("Unknown request '%s' for %s" % (update.request,
                                                                update.title))
