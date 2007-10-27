@@ -294,7 +294,7 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             flash_log("Update %s does not exist" % update)
         if self.jsonRequest(): return dict()
-        raise redirect("/pending")
+        raise redirect("/")
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.form')
