@@ -69,8 +69,8 @@ class BodhiClient(BaseClient):
                                                   len(data['updates'])))
 
     def delete(self, opts):
-        data = self.send_request('delete', input={ 'update' : opts.delete },
-                                 auth=True)
+        params = { 'update' : opts.delete }
+        data = self.send_request('delete', input=params, auth=True)
         log.info(data['tg_flash'])
 
     def push_to_testing(self, opts):
@@ -92,22 +92,18 @@ class BodhiClient(BaseClient):
     def push(self, opts):
         data = self.send_request('admin/push', auth=True)
         log.info("[ %d Pending Requests ]" % len(data['updates']))
-        stable = filter(lambda x: x['request'] == 'stable', data['updates'])
-        testing = filter(lambda x: x['request'] == 'testing', data['updates'])
-        obsolete = filter(lambda x: x['request'] == 'obsolete', data['updates'])
-        for title, updates in (('Testing', testing),
-                               ('Stable', stable),
-                               ('Obsolete', obsolete)):
+        for status in ('testing', 'stable', 'obsolete'):
+            updates = filter(lambda x: x['request'] == status, data['updates'])
             if len(updates):
-                log.info("\n" + title + "\n========")
+                log.info("\n" + status.title() + "\n========")
                 for update in updates:
                     log.info("%s" % update['title'])
 
         ## Confirm that we actually want to push these updates
-        sys.stdout.write("\nAre you sure you want to push these updates? ")
+        sys.stdout.write("\nPush these updates? [n]")
         sys.stdout.flush()
         yes = sys.stdin.readline().strip()
-        if yes in ('y', 'yes'):
+        if yes.lower() in ('y', 'yes'):
             log.info("Pushing!")
             self.send_request('admin/push/mash', auth=True,
                               input={'updates':[u['title'] for u in data['updates']]})
