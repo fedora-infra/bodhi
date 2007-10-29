@@ -210,7 +210,7 @@ class ExtendedMetadata:
         for arch in os.listdir(self.repo):
             try:
                 repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
-                log.debug("Inserting updateinfo.xml.gz into %s" % self.repo)
+                log.debug("Inserting updateinfo.xml.gz into %s/%s" % (self.repo, arch))
                 repomd.add(self.doc)
             except RepositoryNotFound:
                 log.error("Cannot find repomd.xml in %s" % self.repo)
