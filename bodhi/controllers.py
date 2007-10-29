@@ -231,7 +231,7 @@ class Root(controllers.RootController):
             if self.jsonRequest(): return dict()
             raise redirect('/')
         if not util.authorized_user(update, identity):
-            flash_log("Unauthorized to perform action on %s" % update)
+            flash_log("Unauthorized to perform action on %s" % update.title)
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         if action == update.status:
