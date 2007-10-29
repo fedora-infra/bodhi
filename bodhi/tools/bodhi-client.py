@@ -227,8 +227,10 @@ if __name__ == '__main__':
         try:
             if opts.new:
                 if not opts.release:
-                    log.error("ERROR: No release specified")
-                    parser.print_help()
+                    log.error("Error: No release specified")
+                    sys.exit(-1)
+                if not opts.type:
+                    log.error("Error: No update type specified")
                     sys.exit(-1)
                 bodhi.new(opts)
             elif opts.testing:
