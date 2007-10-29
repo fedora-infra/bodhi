@@ -166,7 +166,6 @@ class ExtendedMetadata:
         self._insert(collection, 'name', text=update.release.long_name)
 
         for build in update.builds:
-            log.debug("Generating package list for %s" % build.nvr)
             kojiBuild = None
             try:
                 kojiBuild = self.builds[build.nvr]
