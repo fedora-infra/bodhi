@@ -28,36 +28,6 @@ log = logging.getLogger(__name__)
 class PushController(controllers.Controller, identity.SecureResource):
     require = identity.in_group("releng")
 
-    def __init__(self):
-        self.orig_repo = None
-
-    def repodiff(self):
-        """
-        When this method is first called, it saves a snapshot of the
-        updates-stage tree (tree -s output).  When called a second time,
-        it takes another snapshot, diffs it with the original, and stores
-        the diff in 'repodiff_dir'.
-        """
-        if not self.orig_repo:
-            self.orig_repo = tempfile.mkstemp()
-            tree = commands.getoutput("tree -s %s" % self.stage_dir)
-            os.write(self.orig_repo[0], tree)
-        else:
-            self.new_repo = tempfile.mkstemp()
-            tree = commands.getoutput("tree -s %s" % self.stage_dir)
-            os.write(self.new_repo[0], tree)
-            os.close(self.new_repo[0])
-            os.close(self.orig_repo[0])
-            diff = join(config.get('repodiff_dir'), '%s' %
-                        datetime.utcnow().strftime("%Y%m%d-%H%M%S"))
-            diff = open(diff, 'w')
-            diff.write(commands.getoutput("diff -u %s %s" % (self.orig_repo[1],
-                                                             self.new_repo[1])))
-            diff.close()
-            os.unlink(self.orig_repo[1])
-            os.unlink(self.new_repo[1])
-            self.orig_repo = None
-
     @expose(template='bodhi.templates.push', allow_json=True)
     def index(self):
         """ List updates tagged with a push/unpush/move request """

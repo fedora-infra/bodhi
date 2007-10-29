@@ -31,27 +31,6 @@ class AdminController(Controller, SecureResource):
     def index(self):
         return dict()
 
-    @expose(template='bodhi.templates.repodiff')
-    def repodiff(self, diff=None):
-        """
-        If a diff is specified, display it; if not, show a list of diffs.
-        """
-        if not isdir(config.get('repodiff_dir')):
-            os.mkdir(config.get('repodiff_dir'))
-        if not diff:
-            return dict(diffs=os.listdir(config.get('repodiff_dir')))
-        else:
-            diff_file = join(config.get('repodiff_dir'), diff)
-            if isfile(diff_file):
-                diff_file = open(diff_file, 'r')
-                output = diff_file.read()
-                diff_file.close()
-                return dict(tg_template='bodhi.templates.diff', diff=output,
-                            title=diff)
-            else:
-                flash("Invalid repodiff specified: %s" % diff)
-        raise redirect('/admin')
-
     @expose(template='bodhi.templates.masher', allow_json=True)
     def masher(self, lastlog=None):
         """
