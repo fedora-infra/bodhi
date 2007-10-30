@@ -145,7 +145,8 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
         ['Submitter',     update.submitter],
         ['Submitted',     update.date_submitted],
         ['Modified',      update.date_modified],
-        ['Koji Build(s)',    XML(buildinfo)],
+        ['Koji Build(s)', XML(buildinfo)],
+        ['Close bugs',    update.close_bugs],
     )">
             <span py:if="field[1] != None and field[1] != ''">
                 <td class="title"><b>${field[0]}:</b></td>

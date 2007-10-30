@@ -312,7 +312,8 @@ class Root(controllers.RootController):
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
                 'cves'      : update.get_cvestring(),
-                'edited'    : update.title
+                'edited'    : update.title,
+                'close_bugs': update.close_bugs and 'True' or '',
         }
         return dict(form=update_form, values=values, action=url("/save"))
 
