@@ -231,7 +231,7 @@ class Root(controllers.RootController):
             if self.jsonRequest(): return dict()
             raise redirect('/')
         if not util.authorized_user(update, identity):
-            flash_log("Unauthorized to perform action on %s" % update)
+            flash_log("Unauthorized to perform action on %s" % update.title)
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
         if action == update.status:
@@ -294,7 +294,7 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             flash_log("Update %s does not exist" % update)
         if self.jsonRequest(): return dict()
-        raise redirect("/pending")
+        raise redirect("/")
 
     @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.form')
@@ -312,7 +312,8 @@ class Root(controllers.RootController):
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
                 'cves'      : update.get_cvestring(),
-                'edited'    : update.title
+                'edited'    : update.title,
+                'close_bugs': update.close_bugs and 'True' or '',
         }
         return dict(form=update_form, values=values, action=url("/save"))
 

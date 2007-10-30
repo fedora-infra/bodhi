@@ -130,7 +130,8 @@ class MashTask(Thread):
         log.debug("MashTask(%d, %s)" % (id, updates))
         self.id = id
         self.tag = None
-        self.updates = updates
+        self.updates = set()
+        map(self.updates.add, updates)
         self.koji = buildsys.get_session()
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = repos
@@ -152,6 +153,7 @@ class MashTask(Thread):
         pending_nvrs = {}
         testing_nvrs = {}
         stable_nvrs = {}
+        log.debug("Making sure builds are safe to move")
 
         # For each release, populate the lists of pending/testing/stable builds
         for update in self.updates:
@@ -191,7 +193,12 @@ class MashTask(Thread):
                         if build.nvr not in stable_nvrs[update.release.name]:
                             error_log("%s not tagged as stable" % build.nvr)
                 elif update.request == 'obsolete':
-                    pass
+                    if update.status == 'testing':
+                        if build.nvr not in testing_nvrs[update.release.name]:
+                            error_log("%s not tagged as testing" % build.nvr)
+                    elif update.status == 'stable':
+                        if build.nvr not in stable_nvrs[update.release.name]:
+                            error_log("%s not tagged as stable" % build.nvr)
                 else:
                     error_log("Unknown request '%s' for %s" % (update.request,
                                                                update.title))
@@ -222,9 +229,9 @@ class MashTask(Thread):
                 elif update.status == 'stable':
                     self.repos.add('%s-updates' % release)
             current_tag = update.get_build_tag()
-            log.debug("Moving %s from %s to %s" % (update.title, current_tag,
-                                                   self.tag))
             for build in update.builds:
+                log.debug("Moving %s from %s to %s" % (build.nvr, current_tag,
+                                                       self.tag))
                 task_id = self.koji.moveBuild(current_tag, self.tag,
                                               build.nvr, force=True)
                 self.actions.append((build.nvr, current_tag, self.tag))
@@ -336,6 +343,8 @@ class MashTask(Thread):
                 log.error("safe_to_move failed! -- aborting")
                 masher.done(self)
                 return
+            else:
+                log.debug("Builds look OK to me")
             t0 = time.time()
             if self.move_builds():
                 log.debug("Moved builds in %s seconds" % (time.time() - t0))

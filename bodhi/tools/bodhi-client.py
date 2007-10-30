@@ -21,6 +21,7 @@ import re
 import sys
 import os
 import logging
+import urllib2
 
 from getpass import getpass, getuser
 from optparse import OptionParser
@@ -42,7 +43,7 @@ class BodhiClient(BaseClient):
         log.info("Creating new update for %s" % opts.new)
         params = {
                 'builds'  : opts.new,
-                'release' : opts.release,
+                'release' : opts.release.upper(),
                 'type'    : opts.type,
                 'bugs'    : opts.bugs,
                 'cves'    : opts.cves,
@@ -68,8 +69,8 @@ class BodhiClient(BaseClient):
                                                   len(data['updates'])))
 
     def delete(self, opts):
-        data = self.send_request('delete', input={ 'update' : opts.delete },
-                                 auth=True)
+        params = { 'update' : opts.delete }
+        data = self.send_request('delete', input=params, auth=True)
         log.info(data['tg_flash'])
 
     def push_to_testing(self, opts):
@@ -91,22 +92,18 @@ class BodhiClient(BaseClient):
     def push(self, opts):
         data = self.send_request('admin/push', auth=True)
         log.info("[ %d Pending Requests ]" % len(data['updates']))
-        stable = filter(lambda x: x['request'] == 'stable', data['updates'])
-        testing = filter(lambda x: x['request'] == 'testing', data['updates'])
-        obsolete = filter(lambda x: x['request'] == 'obsolete', data['updates'])
-        for title, updates in (('Testing', testing),
-                               ('Stable', stable),
-                               ('Obsolete', obsolete)):
+        for status in ('testing', 'stable', 'obsolete'):
+            updates = filter(lambda x: x['request'] == status, data['updates'])
             if len(updates):
-                log.info("\n" + title + "\n========")
+                log.info("\n" + status.title() + "\n========")
                 for update in updates:
                     log.info("%s" % update['title'])
 
         ## Confirm that we actually want to push these updates
-        sys.stdout.write("\nAre you sure you want to push these updates? ")
+        sys.stdout.write("\nPush these updates? [n]")
         sys.stdout.flush()
         yes = sys.stdin.readline().strip()
-        if yes in ('y', 'yes'):
+        if yes.lower() in ('y', 'yes'):
             log.info("Pushing!")
             self.send_request('admin/push/mash', auth=True,
                               input={'updates':[u['title'] for u in data['updates']]})
@@ -165,7 +162,7 @@ if __name__ == '__main__':
     ## Actions
     parser.add_option("-n", "--new", action="store", type="string", dest="new",
                       help="Add a new update to the system (--new=foo-1.2-3,"
-                           "bar-4.5-6)")
+                      "bar-4.5-6)")
     parser.add_option("-m", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
     parser.add_option("-p", "--push", action="store_true", dest="push",
@@ -174,8 +171,7 @@ if __name__ == '__main__':
                       dest="delete", help="Delete an update",
                       metavar="UPDATE")
     parser.add_option("", "--file", action="store", type="string",
-                      dest="input_file",
-                      help="Get Bugs,CVES,Notes from a file")
+                      dest="input_file", help="Get Bugs,CVES,Notes from a file")
     parser.add_option("-S", "--stable", action="store", type="string",
                       dest="stable", metavar="UPDATE",
                       help="Mark an update for push to stable")
@@ -185,32 +181,31 @@ if __name__ == '__main__':
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
-                      dest="status", help="List [pending|testing|stable|obsolete] updates")
+                      dest="status", help="List [pending|testing|stable|"
+                      "obsolete] updates")
     parser.add_option("-b", "--bugs", action="store", type="string",
                       dest="bugs", help="Associate bugs with an update "
-                                        "(--bugs=1234,5678)", default="")
+                      "(--bugs=1234,5678)", default="")
     parser.add_option("-c", "--cves", action="store", type="string",
                       dest="cves", help="A list of comma-separated CVE IDs",
                       default="")
     parser.add_option("-r", "--release", action="store", type="string",
-                      dest="release", help="Release (default: F7)",
-                      default="F7")
+                      dest="release", help="Release [F7|F8]")
     parser.add_option("-N", "--notes", action="store", type="string",
                       dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
-                      dest="type",
-                      help="Update type [bugfix|security|enhancement] "
-                           "(default: bugfix)")
+                      help="Update type [bugfix|security|enhancement]",
+                      dest="type")
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
-                      help="Fedora username")
+                      help="Login username for bodhi")
 
     ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Show debugging messages")
     parser.add_option("-l", "--limit", action="store", type="int", dest="limit",
                       default=10, help="Maximum number of updates to return "
-                                       "(default: 10)")
+                      "(default: 10)")
 
     (opts, args) = parser.parse_args()
 
@@ -226,11 +221,17 @@ if __name__ == '__main__':
     sh.setFormatter(format)
     log.addHandler(sh)
 
-    bodhi = BodhiClient(BODHI_URL, opts.username, None, debug=opts.verbose)
+    bodhi = BodhiClient(BODHI_URL, opts.username, None)
 
     while True:
         try:
             if opts.new:
+                if not opts.release:
+                    log.error("Error: No release specified")
+                    sys.exit(-1)
+                if not opts.type:
+                    log.error("Error: No update type specified")
+                    sys.exit(-1)
                 bodhi.new(opts)
             elif opts.testing:
                 bodhi.push_to_testing(opts)
@@ -252,4 +253,7 @@ if __name__ == '__main__':
             bodhi.password = getpass('Password for %s: ' % opts.username)
         except ServerError, e:
             log.error(e.message)
+            sys.exit(-1)
+        except urllib2.URLError, e:
+            log.error(e)
             sys.exit(-1)
