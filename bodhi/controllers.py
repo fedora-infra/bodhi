@@ -418,7 +418,7 @@ class Root(controllers.RootController):
 
             kojiBuild = koji.getBuild(build)
 
-            # Check for broken update paths against all previous releases
+           # Check for broken update paths against all previous releases
             tag = release.dist_tag
             while True:
                 try:
@@ -534,7 +534,7 @@ class Root(controllers.RootController):
         single = False
         query = []
 
-        # /packagename
+        # /Package.name
         if len(args) == 1:
             try:
                 package = Package.byName(args[0])
@@ -543,7 +543,7 @@ class Root(controllers.RootController):
             except SQLObjectNotFound:
                 pass
 
-        # /release
+        # /Release.name
         try:
             release = Release.byName(args[0])
             query.append(PackageUpdate.q.releaseID == release.id)
@@ -551,7 +551,7 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             pass
 
-        # /release/{update_id,status}
+        # /Release.name/{PackageUpdate.update_id,PackageUpdate.status}
         if len(args):
             if args[0] in ('testing', 'stable', 'pending', 'obsolete'):
                 if args[0] == 'testing':
@@ -573,7 +573,7 @@ class Root(controllers.RootController):
         else:
             query.append(PackageUpdate.q.status == status)
 
-        # /release/status/update
+        # /Release.name/PackageUpdate.status/PackageUpdate.title
         if len(args):
             query.append(PackageUpdate.q.title == args[0])
             del args[0]
