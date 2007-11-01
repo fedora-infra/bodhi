@@ -12,13 +12,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import os
-import bodhi.masher
-
-from os.path import join, isfile, isdir
 from bodhi.push import PushController
+from bodhi.masher import get_masher
 
-from turbogears import expose, identity, config, redirect, flash
+from turbogears import expose, identity, redirect
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
 
@@ -36,7 +33,7 @@ class AdminController(Controller, SecureResource):
         """
         Display the current status of the Masher
         """
-        m = bodhi.masher.get_masher()
+        m = get_masher()
         if lastlog:
             (logfile, data) = m.lastlog()
             return dict(title=logfile, text=data,
@@ -45,6 +42,6 @@ class AdminController(Controller, SecureResource):
 
     @expose()
     def mash(self, tag):
-        m = bodhi.masher.get_masher()
+        m = get_masher()
         m.mash_tags([tag])
         raise redirect('/admin/masher')

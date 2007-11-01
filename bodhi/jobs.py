@@ -48,8 +48,11 @@ def clean_repo():
             if fullpath not in liverepos:
                 log.info("Removing %s" % fullpath)
                 shutil.rmtree(fullpath)
+    log.info("clean_repo complete!")
 
 def nagmail():
+    log.info("Starting nagmail job!")
+
     # Nag submitters when their update has been sitting in testing for more
     # than two weeks.
     name = 'old_testing'
@@ -70,6 +73,8 @@ def nagmail():
             nagged = update.nagged
             nagged[name] = datetime.utcnow()
             update.nagged = nagged
+
+    log.info("nagmail complete!")
 
 def fix_bug_titles():
     """
@@ -98,7 +103,7 @@ def schedule():
     # Weekly repository cleanup
     scheduler.add_interval_task(action=clean_repo,
                                 taskname='Repository Cleanup',
-                                initialdelay=604800,
+                                initialdelay=0,
                                 interval=604800)
 
     # Weekly nagmail
@@ -110,5 +115,5 @@ def schedule():
     # Fix invalid bug titles
     scheduler.add_interval_task(action=fix_bug_titles,
                                 taskname='Fix bug titles',
-                                initialdelay=0,
+                                initialdelay=1200,
                                 interval=604800)

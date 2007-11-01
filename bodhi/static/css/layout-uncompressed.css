@@ -435,9 +435,10 @@ div.alert {
 }
 
 div.flash {
-    padding-bottom: 3px;
-    margin-bottom: 7px;
-    width: 65%;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+    width: 75%;
     font-weight: bold;
     background: #ffb200;
 }

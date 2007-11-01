@@ -114,7 +114,8 @@ def authorized_user(update, identity):
            displayname(identity) == update.submitter
 
 def make_update_link(obj):
-    update = hasattr(obj, 'get_url') and obj or obj.update
+    """ Return a link Element for a given PackageUpdate or PackageBuild """
+    update = hasattr(obj, 'get_url') and obj or obj.updates[0]
     link = Element('a', href=url(update.get_url()))
     link.text = update.get_title(', ')
     return link

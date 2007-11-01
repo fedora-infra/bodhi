@@ -15,10 +15,9 @@
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
-                                HiddenField, RemoteForm, MultipleSelectField,
-                                JSLink)
+                                HiddenField, RemoteForm, CheckBoxList, JSLink)
 
-from bodhi.util import get_release_names, get_release_tuples
+from bodhi.util import get_release_names, get_release_tuples, make_update_link
 from bodhi.validators import *
 
 class CommentForm(Form):
@@ -74,7 +73,7 @@ class NewUpdateForm(Form):
                       attrs={'title' : 'CVEs - A space or comma delimited list'
                                        'of CVE IDs.'}),
             TextArea('notes', validator=validators.UnicodeString(),
-                     rows=20, cols=65,
+                     rows=13, cols=65,
                      attrs={'title' : 'Advisory Notes - Some optional details '
                                       'about this update that will appear in '
                                       'the notice'}),
@@ -108,18 +107,19 @@ class OkCancelForm(Form):
     """
 
 class ObsoleteForm(RemoteForm):
-
+    """
+    A jQuery UI dialog that presents the user with a list of pending/testing
+    updates for a given package.  The user is then able to instantly obsolete
+    any of them with the click of a button.
+    """
     action = url('/obsolete')
     update = 'post_data'
     submit_text = "Obsolete"
 
-    def __init__(self, package):
+    def __init__(self, builds):
         super(RemoteForm, self).__init__()
-        from bodhi.model import Package
-        package = Package.byName(package)
-        builds = filter(lambda x: x.updates[0].status in ('testing', 'pending'),
-                        package.builds)
-        options = [(build.nvr, build.nvr) for build in builds]
+        options = [(build.nvr, make_update_link(build)) for build in builds]
         self.fields = [
-            MultipleSelectField('updates', label='', options=options)
+            CheckBoxList("updates", label="", options=options,
+                         default=[build.nvr for build in builds])
         ]

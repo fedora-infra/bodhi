@@ -12,16 +12,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import os
 import logging
-import tempfile
 import cherrypy
-import commands
 
-from datetime import datetime
-from turbogears import expose, redirect, config, identity, controllers
+from turbogears import expose, redirect, identity, controllers
 from bodhi.model import PackageUpdate
-from os.path import join
 
 log = logging.getLogger(__name__)
 
