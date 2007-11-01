@@ -416,22 +416,20 @@ class Root(controllers.RootController):
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
 
+            # Check for broken update paths against all previous releases
             kojiBuild = koji.getBuild(build)
-
-           # Check for broken update paths against all previous releases
             tag = release.dist_tag
             while True:
                 try:
                     for kojiTag in (tag, tag + '-updates'):
-                        log.debug("Checking for broken update paths in " + tag)
-                        for oldBuild in koji.listTagged(kojiTag, package=nvr[0]):
+                        log.debug("Checking for broken update paths in " +
+                                  kojiTag)
+                        for oldBuild in koji.listTagged(kojiTag,package=nvr[0]):
                             if rpm.labelCompare(util.build_evr(kojiBuild),
                                                 util.build_evr(oldBuild)) < 0:
-                                flash_log("Broken update path: %d:%s is older "
-                                          "than %d:%s in %s" % (
-                                          kojiBuild['epoch'], kojiBuild['nvr'],
-                                          oldBuild['epoch'], oldBuild['nvr'],
-                                          kojiTag))
+                                flash_log("Broken update path: %s is older "
+                                          "than %s in %s" % (kojiBuild['nvr'],
+                                          oldBuild['nvr'], kojiTag))
                                 raise redirect('/new', **params)
                 except GenericError:
                     break
@@ -635,9 +633,14 @@ class Root(controllers.RootController):
         return dict(form=self.ok_cancel_form, nvr=nvr)
 
     @expose(template='bodhi.templates.obsolete')
-    def foobar(self):
+    def obsolete_dialog(self, update):
         from bodhi.widgets import ObsoleteForm
-        return dict(dialog=ObsoleteForm('kernel'))
+        package = Package.byName('-'.join(update.split('-')[:-2]))
+        builds = filter(lambda x: x.updates[0].status in ('testing', 'pending'),
+                        package.builds)
+        if not len(builds):
+            return dict(dialog=None)
+        return dict(dialog=ObsoleteForm(builds))
 
     @expose("json")
     def obsolete(self, updates, *args, **kw):
@@ -656,5 +659,5 @@ class Root(controllers.RootController):
                 errors.append(msg)
                 flash_log(msg)
             else:
-                update.obsolete()
+                up.obsolete()
         return len(errors) and errors[0] or "Done!"
