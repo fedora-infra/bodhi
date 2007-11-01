@@ -50,7 +50,7 @@ class DevBuildsys(Buildsystem):
         log.debug("moveBuild(%s, %s)" % (args, kw))
 
     def ssl_login(self, *args, **kw):
-        log.debug("moveBuild(%s, %s)" % (args, kw))
+        log.debug("ssl_login(%s, %s)" % (args, kw))
 
     def taskFinished(self, task):
         return True
