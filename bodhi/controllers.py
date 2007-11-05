@@ -198,7 +198,7 @@ class Root(controllers.RootController):
 
         return dict(updates=updates, num_items=num_items)
 
-    @expose(template="bodhi.templates.list")
+    @expose(template="bodhi.templates.mine")
     @identity.require(identity.not_anonymous())
     @paginate('updates', limit=20, allow_limit_override=True)
     def mine(self):
@@ -416,14 +416,21 @@ class Root(controllers.RootController):
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
 
+            # Obsolete any older pending/testing updates
+            for oldBuild in filter(lambda x: x.updates[0].status in ('pending',
+                                   'testing'), package.builds):
+                if rpm.labelCompare(util.get_nvr(oldBuild.nvr),
+                                    util.get_nvr(build)) < 0:
+                    oldBuild.updates[0].obsolete(newer=build)
+                    note += '; This update has obsoleted %s' % oldBuild.nvr
+
             # Check for broken update paths against all previous releases
             kojiBuild = koji.getBuild(build)
             tag = release.dist_tag
             while True:
                 try:
                     for kojiTag in (tag, tag + '-updates'):
-                        log.debug("Checking for broken update paths in " +
-                                  kojiTag)
+                        log.debug("Checking for broken update paths in " + kojiTag)
                         for oldBuild in koji.listTagged(kojiTag,package=nvr[0]):
                             if rpm.labelCompare(util.build_evr(kojiBuild),
                                                 util.build_evr(oldBuild)) < 0:

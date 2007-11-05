@@ -436,7 +436,7 @@ class PackageUpdate(SQLObject):
         for person in people:
             mail.send(person, 'comment', self)
 
-    def obsolete(self):
+    def obsolete(self, newer=None):
         """
         Obsolete this update.  This entails moving it back to
         the dist-fcX-updates-candidate tag.  Even though
@@ -453,7 +453,11 @@ class PackageUpdate(SQLObject):
         self.status = 'obsolete'
         self.pushed = False
         self.request = None
-        self.comment("This update has been unpushed", author='bodhi')
+        if newer:
+            self.comment("This update has been obsoleted by %s" % newer, 
+                         author='bodhi')
+        else:
+            self.comment("This update has been obsoleted", author='bodhi')
         mail.send_admin('unpushed', self)
 
 class Comment(SQLObject):

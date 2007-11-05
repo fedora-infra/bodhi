@@ -41,7 +41,7 @@ class TestControllers(testutil.DBTest):
         return { 'Cookie' : cookiehdr }
 
     def test_bad_password(self):
-        x = testutil.createRequest('/updates/login?tg_format=json&login=Login&&user_name=lmacken&password=foo', method='POST')
+        x = testutil.createRequest('/updates/login?tg_format=json&login=Login&user_name=lmacken&password=foo', method='POST')
         assert "The credentials you supplied were not correct or did not grant access to this resource." in cherrypy.response.body[0]
         print cherrypy.response.status
 
@@ -80,6 +80,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
+        assert "This resource resides temporarily at <a href='http://localhost/updates/fc7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/fc7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update
         assert update.title == params['builds']
@@ -399,3 +400,34 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         assert "This resource resides temporarily" in cherrypy.response.body[0]
+
+    def test_obsoleting(self):
+        session = self.login()
+        self.create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar'
+        }
+        self.save_update(params, session)
+        assert "This resource resides temporarily at <a href='http://localhost/updates/fc7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/fc7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+
+        # Throw a newer build in, which should obsolete the previous
+        newparams = {
+                'builds'  : 'TurboGears-1.0.2.2-3.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar'
+        }
+        self.save_update(newparams, session)
+        newupdate = PackageUpdate.byTitle(newparams['builds'])
+        assert newupdate.status == 'pending'
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'obsolete'
