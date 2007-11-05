@@ -30,7 +30,7 @@
                 <b>Status</b>
             </th>
             <th class="list">
-                <b>Request</b>
+                <center><b>Request</b></center>
             </th>
             <th class="list">
                 <b>Date Submitted</b>
@@ -48,7 +48,9 @@
                 ${update.status}
             </td>
             <td class="list">
-                ${update.request}
+                <center>
+                    <img src="${tg.url('/static/images/%s-large.png' % update.request)}" title="${update.request}"/> ${update.request}
+                </center>
             </td>
             <td class="list">
                 ${update.date_submitted}
