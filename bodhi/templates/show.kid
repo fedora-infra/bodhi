@@ -132,6 +132,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 
 <table class="show">
     <tr py:for="field in (
+        ['Builds',        XML(buildinfo)],
         ['Release',       XML(release)],
         ['Update ID',     update.update_id],
         ['Status',        update.status],
@@ -145,7 +146,6 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
         ['Submitter',     update.submitter],
         ['Submitted',     update.date_submitted],
         ['Modified',      update.date_modified],
-        ['Koji Build(s)', XML(buildinfo)],
         ['Close bugs',    update.close_bugs],
     )">
             <span py:if="field[1] != None and field[1] != ''">
