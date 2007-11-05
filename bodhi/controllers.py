@@ -198,7 +198,7 @@ class Root(controllers.RootController):
 
         return dict(updates=updates, num_items=num_items)
 
-    @expose(template="bodhi.templates.list")
+    @expose(template="bodhi.templates.mine")
     @identity.require(identity.not_anonymous())
     @paginate('updates', limit=20, allow_limit_override=True)
     def mine(self):
