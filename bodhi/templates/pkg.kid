@@ -34,19 +34,22 @@
         <th class="list">
             <b>ID</b>
         </th>
-        <th class="list" width="30%">
+        <th class="list">
             <b>Package</b>
         </th>
-        <th class="list" width="25%">
+        <th class="list">
             <b>Release</b>
         </th>
-        <th class="list" width="5%">
+        <th class="list">
             <center><b>Type</b></center>
         </th>
-        <th class="list" width="10%">
+        <th class="list">
             <center><b>Status</b></center>
         </th>
-        <th class="list" width="20%">
+        <th class="list">
+            <center><b>Request</b></center>
+        </th>
+        <th class="list">
             <b>Submitted</b>
         </th>
     </tr>
@@ -66,6 +69,11 @@
         </td>
         <td class="list" align="center">
             ${update.status}
+        </td>
+        <td class="list" align="center">
+            <center>
+                <img src="${tg.url('/static/images/%s-large.png' % update.request)}" title="${update.request}"/> ${update.request}
+            </center>
         </td>
         <td class="list">
             ${update.date_submitted}
