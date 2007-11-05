@@ -144,6 +144,7 @@ class MashTask(Thread):
         self.mashed_repos = {} # { repo: mashed_dir }
         self.error_messages = []
         self.safe = True
+        self.genmd = False
 
     def safe_to_move(self):
         """
@@ -379,6 +380,7 @@ class MashTask(Thread):
         Generate the updateinfo.xml.gz and insert it into the appropriate
         repositories.
         """
+        self.genmd = True
         from bodhi.metadata import ExtendedMetadata
         t0 = time.time()
         for repo, mashdir in self.mashed_repos.items():
@@ -387,6 +389,7 @@ class MashTask(Thread):
             uinfo = ExtendedMetadata(repo)
             uinfo.insert_updateinfo()
         log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
+        self.genmd = False
 
     def __str__(self):
         val = '[ Mash Task #%d ]\n' % self.id
@@ -398,6 +401,8 @@ class MashTask(Thread):
             val += '  Mashing Repos %s\n' % ([str(repo) for repo in self.repos])
             for update in self.updates:
                 val += '   %s (%s)\n' % (update.title, update.request)
+        elif self.genmd:
+            val += '  Generating extended update metadata'
         else:
             val += '  Not doing anything?'
         return val
