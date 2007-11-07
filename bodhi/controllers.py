@@ -152,10 +152,11 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, allow_limit_override=True)
-    def list(self, release=None, bugs=None, cves=None, status=None, type=None):
+    def list(self, release=None, bugs=None, cves=None, status=None, type=None,
+             package=None):
         """ Return a list of updates based on given parameters """
-        log.debug("list(%s, %s, %s, %s, %s)" % (release, bugs, cves, status,
-                                                type))
+        log.debug("list(%s, %s, %s, %s, %s, %s)" % (release, bugs, cves, status,
+                                                    type, package))
         query = []
         if release:
             rel = Release.byName(release)
@@ -168,6 +169,21 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(AND(*query))
         num_items = updates.count()
 
+        # Filter by package
+        results = []
+        if package:
+            try:
+                pkg = Package.byName(package)
+                for update in updates:
+                    for build in update.builds:
+                        if build.package == pkg:
+                            results.append(update)
+                updates = results
+            except SQLObjectNotFound, e:
+                flash_log(e)
+                if self.jsonRequest():
+                    return dict(updates=[])
+
         # Filter results by Bugs and/or CVEs
         results = []
         if bugs:
@@ -175,28 +191,26 @@ class Root(controllers.RootController):
                 for bug in map(Bugzilla.byBz_id, map(int, bugs.split(','))):
                     map(results.append,
                         filter(lambda x: bug in x.bugs, updates))
+                updates = results
             except SQLObjectNotFound, e:
                 flash_log(e)
                 if self.jsonRequest():
                     return dict(updates=[])
-            updates = results
-            num_items = len(updates)
         if cves:
             try:
                 for cve in map(CVE.byCve_id, cves.split(',')):
                     map(results.append,
                         filter(lambda x: cve in x.cves, updates))
+                updates = results
             except SQLObjectNotFound, e:
                 flash_log(e)
                 if self.jsonRequest():
                     return dict(updates=[])
-            updates = results
-            num_items = len(updates)
 
         if self.jsonRequest():
             updates = map(str, updates)
 
-        return dict(updates=updates, num_items=num_items)
+        return dict(updates=updates, num_items=len(updates))
 
     @expose(template="bodhi.templates.mine")
     @identity.require(identity.not_anonymous())

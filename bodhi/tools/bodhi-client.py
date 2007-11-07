@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
-# Copyright 2007, Red Hat, Inc
+# Copyright 2007  Red Hat, Inc
 # Authors: Luke Macken <lmacken@redhat.com>
 
 import re
@@ -31,7 +31,8 @@ from fedora.tg.client import BaseClient, AuthError, ServerError
 __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
-BODHI_URL = 'https://admin.fedoraproject.org/updates/'
+#BODHI_URL = 'https://admin.fedoraproject.org/updates/'
+BODHI_URL = 'http://localhost:8084/updates/'
 log = logging.getLogger(__name__)
 
 
@@ -56,7 +57,7 @@ class BodhiClient(BaseClient):
 
     def list(self, opts):
         args = { 'tg_paginate_limit' : opts.limit }
-        for arg in ('release', 'status', 'type', 'bugs', 'cves'):
+        for arg in ('release', 'status', 'type', 'bugs', 'cves', 'package'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
         data = self.send_request('list', input=args)
@@ -165,7 +166,7 @@ if __name__ == '__main__':
                       "bar-4.5-6)")
     parser.add_option("-m", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
-    parser.add_option("-p", "--push", action="store_true", dest="push",
+    parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates")
     parser.add_option("-d", "--delete", action="store", type="string",
                       dest="delete", help="Delete an update",
@@ -199,6 +200,8 @@ if __name__ == '__main__':
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
                       help="Login username for bodhi")
+    parser.add_option("-p", "--package", action="store", type="string",
+                      dest="package", help="Specify a package")
 
     ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
@@ -244,7 +247,7 @@ if __name__ == '__main__':
             elif opts.delete:
                 bodhi.delete(opts)
             elif opts.status or opts.bugs or opts.cves or \
-                 opts.release or opts.type:
+                 opts.release or opts.type or opts.package:
                 bodhi.list(opts)
             else:
                 parser.print_help()
