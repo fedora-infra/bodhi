@@ -11,10 +11,12 @@
 
 <?python
 from bodhi.masher import get_masher
+from bodhi.model import Release
 masher = get_masher()
 mashlinks = '['
-for tag in ('f7-updates', 'f7-updates-testing'):
-    mashlinks += ' <a href="' + tg.url('/admin/mash/%s' % tag) + '">%s</a> |' % tag
+for dist_tag in [release.dist_tag for release in Release.select()]:
+    for tag in (dist_tag + '-updates', dist_tag + '-updates-testing'):
+        mashlinks += ' <a href="' + tg.url('/admin/mash/%s' % tag) + '">%s</a> |' % tag
 mashlinks = mashlinks[:-1] + ']'
 ?>
 
