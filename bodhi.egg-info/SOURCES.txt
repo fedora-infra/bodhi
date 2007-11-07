@@ -93,12 +93,12 @@ bodhi/templates/admin.kid
 bodhi/templates/commentform.kid
 bodhi/templates/comments.kid
 bodhi/templates/confirmation.kid
-bodhi/templates/diff.kid
 bodhi/templates/form.kid
 bodhi/templates/list.kid
 bodhi/templates/login.kid
 bodhi/templates/masher.kid
 bodhi/templates/master.kid
+bodhi/templates/mine.kid
 bodhi/templates/new.kid
 bodhi/templates/obsolete.kid
 bodhi/templates/packagefield.kid
@@ -106,7 +106,6 @@ bodhi/templates/pending.kid
 bodhi/templates/pkg.kid
 bodhi/templates/pkgs.kid
 bodhi/templates/push.kid
-bodhi/templates/repodiff.kid
 bodhi/templates/searchform.kid
 bodhi/templates/show.kid
 bodhi/templates/testing.kid
@@ -115,11 +114,11 @@ bodhi/templates/welcome.kid
 bodhi/tests/__init__.py
 bodhi/tests/test_buildsystem.py
 bodhi/tests/test_controllers.py
-bodhi/tests/test_masher.py
 bodhi/tests/test_metadata.py
 bodhi/tests/test_model.py
 bodhi/tools/__init__.py
 bodhi/tools/bodhi-client.py
+bodhi/tools/client.py
 bodhi/tools/dev_init.py
 bodhi/tools/init.py
 bodhi/tools/pickledb.py
