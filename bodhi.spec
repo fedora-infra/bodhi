@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.3.2
-Release:        2%{?dist}
+Version:        0.3.3
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -72,6 +72,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Nov  7 2007 Luke Macken <lmacken@redhat.com> - 0.3.3-1
+- 0.3.3
+
 * Thu Oct 18 2007 Luke Macken <lmacken@redhat.com> - 0.3.2-2
 - Add TurboGears to BuildRequires
 - Make some scripts executable to silence rpmlint
