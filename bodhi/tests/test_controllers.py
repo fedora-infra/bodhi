@@ -23,7 +23,7 @@ class TestControllers(testutil.DBTest):
         testutil.createRequest(url, headers=session, method='POST')
 
     def create_release(self):
-        rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
+        rel = Release(name='F7', long_name='Fedora 7', id_prefix='FEDORA',
                       dist_tag='dist-fc7')
         assert rel
 
@@ -80,7 +80,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        assert "This resource resides temporarily at <a href='http://localhost/updates/fc7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/fc7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
+        assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update
         assert update.title == params['builds']
@@ -413,7 +413,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        assert "This resource resides temporarily at <a href='http://localhost/updates/fc7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/fc7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
+        assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
 
@@ -431,3 +431,50 @@ class TestControllers(testutil.DBTest):
         assert newupdate.status == 'pending'
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'obsolete'
+
+    def test_list(self):
+        """
+        This unittest verifies various aspects of the generic list controller
+        that bodhi provides.  This method is utilized by both the web interface
+        and the command-line client.
+        """
+        session = self.login()
+        self.create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : '',
+                'notes'   : 'foobar'
+        }
+        self.save_update(params, session)
+
+        url = '/updates/list?' + urllib.urlencode({ 'release' : 'F7' })
+        testutil.createRequest(url, method='GET')
+        assert "1 updates found" in cherrypy.response.body[0]
+
+        url = '/updates/list?' + urllib.urlencode({
+                'release' : 'F7',
+                'bugs'    : '1234'
+        })
+        testutil.createRequest(url, method='GET')
+        assert "1 updates found" in cherrypy.response.body[0]
+
+        url = '/updates/list?' + urllib.urlencode({
+                'release' : 'F7',
+                'bugs'    : '1234',
+                'type'    : 'enhancement'
+        })
+        testutil.createRequest(url, method='GET')
+        assert "1 updates found" in cherrypy.response.body[0]
+
+        params = {
+                'builds'  : 'kernel-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '321',
+                'cves'    : '',
+                'notes'   : 'foobar'
+        }
+        self.save_update(params, session)
