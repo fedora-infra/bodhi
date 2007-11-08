@@ -158,61 +158,56 @@ class Root(controllers.RootController):
         log.debug("list(%s, %s, %s, %s, %s, %s)" % (release, bugs, cves, status,
                                                     type, package))
         query = []
-        if release:
-            rel = Release.byName(release)
-            query.append(PackageUpdate.q.releaseID == rel.id)
-        if status:
-            query.append(PackageUpdate.q.status == status)
-        if type:
-            query.append(PackageUpdate.q.type == type)
+        updates = []
 
-        updates = PackageUpdate.select(AND(*query))
-        num_items = updates.count()
+        try:
+            if release:
+                rel = Release.byName(release.upper())
+                query.append(PackageUpdate.q.releaseID == rel.id)
+            if status:
+                query.append(PackageUpdate.q.status == status)
+            if type:
+                query.append(PackageUpdate.q.type == type)
 
-        # Filter by package
-        results = []
-        if package:
-            try:
+            updates = PackageUpdate.select(AND(*query))
+
+            # Filter by package
+            results = []
+            if package:
                 pkg = Package.byName(package)
                 for update in updates:
                     for build in update.builds:
                         if build.package == pkg:
                             results.append(update)
                 updates = results
-            except SQLObjectNotFound, e:
-                flash_log(e)
-                if self.jsonRequest():
-                    return dict(updates=[])
 
-        # Filter results by Bugs and/or CVEs
-        results = []
-        if bugs:
-            try:
+            # Filter results by Bugs and/or CVEs
+            results = []
+            if bugs:
                 for bug in map(Bugzilla.byBz_id, map(int, bugs.split(','))):
                     map(results.append,
                         filter(lambda x: bug in x.bugs, updates))
                 updates = results
-            except SQLObjectNotFound, e:
-                flash_log(e)
-                if self.jsonRequest():
-                    return dict(updates=[])
-        if cves:
-            try:
+            if cves:
                 for cve in map(CVE.byCve_id, cves.split(',')):
                     map(results.append,
                         filter(lambda x: cve in x.cves, updates))
                 updates = results
-            except SQLObjectNotFound, e:
-                flash_log(e)
-                if self.jsonRequest():
-                    return dict(updates=[])
+        except SQLObjectNotFound, e:
+            flash_log(e)
+            if self.jsonRequest():
+                return dict(updates=[])
 
         # If we're called via JSON, then simply return the PackageUpdate.__str__
         # else, we return a list of PackageUpdate objects to our template
         if self.jsonRequest():
             updates = map(str, updates)
 
-        return dict(updates=updates, num_items=len(updates))
+        if isinstance(updates, list): num_items = len(updates)
+        else: num_items = updates.count()
+
+        return dict(updates=updates, num_items=num_items,
+                    title="%d updates found" % num_items)
 
     @expose(template="bodhi.templates.mine")
     @identity.require(identity.not_anonymous())
