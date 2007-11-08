@@ -1,6 +1,4 @@
 #!/usr/bin/python -tt
-# $Id: $
-#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; version 2 of the License.
@@ -70,6 +68,11 @@ class BodhiClient(BaseClient):
     def delete(self, opts):
         params = { 'update' : opts.delete }
         data = self.send_request('delete', input=params, auth=True)
+        log.info(data['tg_flash'])
+
+    def obsolete(self, opts):
+        params = { 'action' : 'obsolete', 'update' : opts.obsolete }
+        data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
 
     def push_to_testing(self, opts):
@@ -169,6 +172,9 @@ if __name__ == '__main__':
     parser.add_option("-d", "--delete", action="store", type="string",
                       dest="delete", help="Delete an update",
                       metavar="UPDATE")
+    parser.add_option("-o", "--obsolete", action="store", type="string",
+                      dest="obsolete", help="Mark an update as being obsolete",
+                      metavar="UPDATE")
     parser.add_option("", "--file", action="store", type="string",
                       dest="input_file", help="Get Bugs,CVES,Notes from a file")
     parser.add_option("-S", "--stable", action="store", type="string",
@@ -242,6 +248,8 @@ if __name__ == '__main__':
                 bodhi.push(opts)
             elif opts.delete:
                 bodhi.delete(opts)
+            elif opts.obsolete:
+                bodhi.obsolete(opts)
             elif opts.status or opts.bugs or opts.cves or \
                  opts.release or opts.type:
                 bodhi.list(opts)
