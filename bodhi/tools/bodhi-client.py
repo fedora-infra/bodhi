@@ -31,10 +31,8 @@ from fedora.tg.client import BaseClient, AuthError, ServerError
 __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
-#BODHI_URL = 'https://admin.fedoraproject.org/updates/'
-BODHI_URL = 'http://localhost:8084/updates/'
+BODHI_URL = 'https://admin.fedoraproject.org/updates/'
 log = logging.getLogger(__name__)
-
 
 class BodhiClient(BaseClient):
 
@@ -57,7 +55,7 @@ class BodhiClient(BaseClient):
 
     def list(self, opts):
         args = { 'tg_paginate_limit' : opts.limit }
-        for arg in ('release', 'status', 'type', 'bugs', 'cves', 'package'):
+        for arg in ('release', 'status', 'type', 'bugs', 'cves'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
         data = self.send_request('list', input=args)
@@ -200,8 +198,6 @@ if __name__ == '__main__':
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
                       help="Login username for bodhi")
-    parser.add_option("-p", "--package", action="store", type="string",
-                      dest="package", help="Specify a package")
 
     ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
@@ -247,7 +243,7 @@ if __name__ == '__main__':
             elif opts.delete:
                 bodhi.delete(opts)
             elif opts.status or opts.bugs or opts.cves or \
-                 opts.release or opts.type or opts.package:
+                 opts.release or opts.type:
                 bodhi.list(opts)
             else:
                 parser.print_help()
