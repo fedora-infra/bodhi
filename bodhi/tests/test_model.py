@@ -247,6 +247,7 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_build_tag(self):
         update = self.get_update()
+        update.status = 'pending'
         assert update.get_build_tag() == "%s-updates-candidate" % update.release.dist_tag
         update.status = 'testing'
         assert update.get_build_tag() == "%s-updates-testing" % update.release.dist_tag
