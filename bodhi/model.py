@@ -335,7 +335,7 @@ class PackageUpdate(SQLObject):
         TODO: we should probably get this stuff from koji instead of guessing
         """
         tag = '%s-updates' % self.release.dist_tag
-        if self.status == 'pending':
+        if self.status in ('pending', 'obsolete'):
             tag += '-candidate'
         elif self.status == 'testing':
             tag += '-testing'
