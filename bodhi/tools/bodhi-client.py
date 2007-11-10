@@ -34,12 +34,10 @@ log = logging.getLogger(__name__)
 
 class BodhiClient(BaseClient):
 
-    def new(self, opts):
-        if opts.input_file:
-            self._parse_file(opts)
-        log.info("Creating new update for %s" % opts.new)
+    def new(self, builds, opts):
+        log.info("Creating new update for %s" % builds)
         params = {
-                'builds'  : opts.new,
+                'builds'  : builds,
                 'release' : opts.release.upper(),
                 'type'    : opts.type,
                 'bugs'    : opts.bugs,
@@ -51,11 +49,13 @@ class BodhiClient(BaseClient):
         if data.has_key('update'):
             log.info(data['update'])
 
-    def list(self, opts):
+    def list(self, opts, package=None):
         args = { 'tg_paginate_limit' : opts.limit }
         for arg in ('release', 'status', 'type', 'bugs', 'cves'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
+        if package:
+            args['package' ] = package[0]
         data = self.send_request('list', input=args)
         if data.has_key('tg_flash') and data['tg_flash']:
             log.error(data['tg_flash'])
@@ -91,6 +91,13 @@ class BodhiClient(BaseClient):
         data = self.send_request('admin/masher', auth=True)
         log.info(data['masher_str'])
 
+    def mine(self):
+        data = self.send_request('mine', auth=True)
+        for update in data['updates']:
+           log.info(update + '\n')
+        log.info("%d updates found (%d shown)" % (data['num_items'],
+                                                  len(data['updates'])))
+
     def push(self, opts):
         data = self.send_request('admin/push', auth=True)
         log.info("[ %d Pending Requests ]" % len(data['updates']))
@@ -116,7 +123,7 @@ class BodhiClient(BaseClient):
         else:
             return []
 
-    def _parse_file(self,opts):
+    def parse_file(self,opts):
         regex = re.compile(r'^(BUG|bug|TYPE|type|CVE|cve)=(.*$)')
         types = {'S':'security','B':'bugfix','E':'enhancement'}
         notes = self._split(opts.notes,'\n')
@@ -157,15 +164,14 @@ class BodhiClient(BaseClient):
         log.debug('Notes:\n%s' % opts.notes)
 
 if __name__ == '__main__':
-    usage = "usage: %prog [options]"
+    usage = "usage: %prog [options] [ build | package ]"
     parser = OptionParser(usage, description=__description__,
                           version=__version__)
 
     ## Actions
-    parser.add_option("-n", "--new", action="store", type="string", dest="new",
-                      help="Add a new update to the system (--new=foo-1.2-3,"
-                      "bar-4.5-6)")
-    parser.add_option("-m", "--masher", action="store_true", dest="masher",
+    parser.add_option("-n", "--new", action="store_true", dest="new",
+                      help="Add a new update to the system")
+    parser.add_option("-M", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
     parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates")
@@ -183,6 +189,8 @@ if __name__ == '__main__':
     parser.add_option("-T", "--testing", action="store", type="string",
                       dest="testing", metavar="UPDATE",
                       help="Mark an update for push to testing")
+    parser.add_option("-m", "--mine", action="store_true", dest="mine",
+                      help="Display a list of your updates")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -231,13 +239,18 @@ if __name__ == '__main__':
     while True:
         try:
             if opts.new:
+                if not args and len(args) != 1:
+                    log.error("Please specifiy a comma-separated list of builds")
+                    sys.exit(-1)
+                if opts.input_file:
+                    bodhi.parse_file(opts)
                 if not opts.release:
-                    log.error("Error: No release specified")
+                    log.error("Error: No release specified (ie: -r F8)")
                     sys.exit(-1)
                 if not opts.type:
-                    log.error("Error: No update type specified")
+                    log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
-                bodhi.new(opts)
+                bodhi.new(args[0], opts)
             elif opts.testing:
                 bodhi.push_to_testing(opts)
             elif opts.stable:
@@ -246,13 +259,15 @@ if __name__ == '__main__':
                 bodhi.masher(opts)
             elif opts.push:
                 bodhi.push(opts)
+            elif opts.mine:
+                bodhi.mine()
             elif opts.delete:
                 bodhi.delete(opts)
             elif opts.obsolete:
                 bodhi.obsolete(opts)
             elif opts.status or opts.bugs or opts.cves or \
-                 opts.release or opts.type:
-                bodhi.list(opts)
+                 opts.release or opts.type or args:
+                bodhi.list(opts, args)
             else:
                 parser.print_help()
             break

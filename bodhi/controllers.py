@@ -171,15 +171,28 @@ class Root(controllers.RootController):
 
             updates = PackageUpdate.select(AND(*query))
 
-            # Filter by package
-            results = []
+            # The package argument may be an update, build or package.
             if package:
-                pkg = Package.byName(package)
-                for update in updates:
-                    for build in update.builds:
-                        if build.package == pkg:
-                            results.append(update)
-                updates = results
+                try:
+                    update = PackageUpdate.byTitle(package)
+                    if update in updates:
+                        updates = [update] # There can be only one
+                    else:
+                        updates = []
+                except SQLObjectNotFound:
+                    try:
+                        pkg = Package.byName(package)
+                        updates = filter(lambda up: up in updates, pkg.updates())
+                    except SQLObjectNotFound:
+                        try:
+                            build = PackageBuild.byNvr(package)
+                            results = []
+                            for update in updates:
+                                if build in update.builds:
+                                    results.append(update)
+                            updates = results
+                        except SQLObjectNotFound:
+                            updates = []
 
             # Filter results by Bugs and/or CVEs
             results = []
@@ -209,7 +222,7 @@ class Root(controllers.RootController):
         return dict(updates=updates, num_items=num_items,
                     title="%d updates found" % num_items)
 
-    @expose(template="bodhi.templates.mine")
+    @expose(template="bodhi.templates.mine", allow_json=True)
     @identity.require(identity.not_anonymous())
     @paginate('updates', limit=20, allow_limit_override=True)
     def mine(self):
@@ -218,8 +231,9 @@ class Root(controllers.RootController):
                     OR(PackageUpdate.q.submitter == util.displayname(identity),
                        PackageUpdate.q.submitter == identity.current.user_name),
                     orderBy=PackageUpdate.q.date_pushed).reversed()
-        return dict(updates=updates, num_items=updates.count(),
-                    title='%s\'s updates' % identity.current.user_name)
+        return dict(updates=self.jsonRequest() and map(str, updates) or updates,
+                    title='%s\'s updates' % identity.current.user_name,
+                    num_items=updates.count())
 
     @expose(template='bodhi.templates.show')
     def show(self, update):
