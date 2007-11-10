@@ -321,7 +321,6 @@ class Root(controllers.RootController):
                 'type'      : update.type,
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
-                'cves'      : update.get_cvestring(),
                 'edited'    : update.title,
                 'close_bugs': update.close_bugs and 'True' or '',
         }
@@ -331,17 +330,16 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, builds, release, type, cves, notes, bugs, close_bugs=False,
+    def save(self, builds, release, type, notes, bugs, close_bugs=False,
              edited=False, request='testing', **kw):
         """
         Save an update.  This includes new updates and edited.
         """
-        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s)" % (builds, release,
-            type, cves, notes, bugs, close_bugs, edited, kw))
+        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s)" % (builds, release,
+            type, notes, bugs, close_bugs, edited, kw))
 
-        note = ''
+        note = []
         update_builds = []
-        if not cves: cves = []
         if not bugs: bugs = []
         release = Release.select(
                         OR(Release.q.long_name == release,
@@ -352,7 +350,6 @@ class Root(controllers.RootController):
                 'builds.text' : ' '.join(builds),
                 'release'     : release.long_name,
                 'type'        : type,
-                'cves'        : ' '.join(cves),
                 'bugs'        : ' '.join(map(str, bugs)),
                 'notes'       : notes,
                 'close_bugs'  : close_bugs and 'True' or '',
@@ -432,7 +429,7 @@ class Root(controllers.RootController):
                 if rpm.labelCompare(util.get_nvr(oldBuild.nvr),
                                     util.get_nvr(build)) < 0:
                     oldBuild.updates[0].obsolete(newer=build)
-                    note += '; This update has obsoleted %s' % oldBuild.nvr
+                    note.append('This update has obsoleted %s' % oldBuild.nvr)
 
             # Check for broken update paths against all previous releases
             kojiBuild = koji.getBuild(build)
@@ -495,38 +492,35 @@ class Root(controllers.RootController):
         # Add the PackageBuilds to our PackageUpdate
         map(p.addPackageBuild, update_builds)
 
-        # Add/remove the necessary Bugzillas and CVEs
+        # Add/remove the necessary Bugzillas
         p.update_bugs(bugs)
-        p.update_cves(cves)
 
-        # If there are any CVEs or security bugs, make sure this update is
+        # If there are any security bugs, make sure this update is
         # marked as security
         if p.type != 'security':
             for bug in p.bugs:
                 if bug.security:
                     p.type = 'security'
-                    note += '. Security bug provided, changed update type ' + \
-                            'to security'
                     break
-        if p.cves != [] and (p.type != 'security'):
-            p.type = 'security'
-            note += '; CVEs provided, changed update type to security'
 
         if edited:
             mail.send(p.submitter, 'edited', p)
-            flash_log("Update successfully edited" + note)
+            note.insert(0, "Update successfully edited")
+
+        # New update
         else:
             # Notify security team of newly submitted security updates
             if p.type == 'security':
                 mail.send(config.get('security_team'), 'new', p)
             mail.send(p.submitter, 'new', p)
-            flash_log("Update successfully created, please submit it to a "
-                      "repository" + note)
+            note.insert(0, "Update successfully created")
 
         # If a request is specified, make it.  By default we're submitting new
         # updates directly into testing
         if request and request != "None" and request != p.request:
             self.request(request.lower(), p.title)
+
+        flash_log('. '.join(note))
 
         # For command line submissions, return PackageUpdate.__str__()
         if self.jsonRequest():

@@ -73,9 +73,6 @@ class NewUpdateForm(Form):
                       attrs={'title' : 'Bug Numbers - A space or comma '
                                        'delimited list of bug numbers.  '
                                        'Example: #1234, 56 789'}),
-            TextField('cves', validator=CVEValidator(), label='CVEs',
-                      attrs={'title' : 'CVEs - A space or comma delimited list'
-                                       'of CVE IDs.'}),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=13, cols=65,
                      attrs={'title' : 'Advisory Notes - Some optional details '
