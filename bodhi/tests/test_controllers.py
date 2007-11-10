@@ -87,10 +87,7 @@ class TestControllers(testutil.DBTest):
         assert update.builds[0].nvr == params['builds']
         assert update.release.long_name == params['release']
         assert update.bugs[0].bz_id == int(params['bugs'])
-        assert update.cves[0].cve_id == params['cves']
         assert update.notes == params['notes']
-        # we specified a CVE, so bodhi will automatically change the type
-        assert update.type == 'security'
 
     def test_multibuild_update(self):
         session = self.login()
