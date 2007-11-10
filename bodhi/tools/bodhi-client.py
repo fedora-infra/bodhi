@@ -35,8 +35,6 @@ log = logging.getLogger(__name__)
 class BodhiClient(BaseClient):
 
     def new(self, opts):
-        if opts.input_file:
-            self._parse_file(opts)
         log.info("Creating new update for %s" % opts.new)
         params = {
                 'builds'  : opts.new,
@@ -116,7 +114,7 @@ class BodhiClient(BaseClient):
         else:
             return []
 
-    def _parse_file(self,opts):
+    def parse_file(self,opts):
         regex = re.compile(r'^(BUG|bug|TYPE|type|CVE|cve)=(.*$)')
         types = {'S':'security','B':'bugfix','E':'enhancement'}
         notes = self._split(opts.notes,'\n')
@@ -231,6 +229,8 @@ if __name__ == '__main__':
     while True:
         try:
             if opts.new:
+                if opts.input_file:
+                    bodhi.parse_file(opts)
                 if not opts.release:
                     log.error("Error: No release specified")
                     sys.exit(-1)
