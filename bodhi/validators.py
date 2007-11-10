@@ -67,19 +67,3 @@ class BugValidator(validators.FancyValidator):
         for bug in bugs:
             if bug <= 0:
                 raise Invalid(self.message('invalid_bug', state), bugs, state)
-
-class CVEValidator(validators.FancyValidator):
-    messages = {
-            'invalid_cve' : "Invalid CVE(s).  Please list CVEs in the format "
-                            "CVE-2007-0000"
-    }
-    regex = re.compile("(CAN|CVE)-\d\d\d\d-\d\d\d\d")
-
-    def _to_python(self, value, state):
-        cves = validators.UnicodeString().to_python(value.strip())
-        return cves.replace(',', ' ').split()
-
-    def validate_python(self, cves, state):
-        for cve in cves:
-            if not self.regex.match(cve):
-                raise Invalid(self.message('invalid_cve', state), cves, state)
