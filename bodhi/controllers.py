@@ -691,3 +691,7 @@ class Root(controllers.RootController):
             else:
                 up.obsolete()
         return len(errors) and errors[0] or "Done!"
+
+    @expose(allow_json=True)
+    def dist_tags(self):
+        return dict(tags=[r.dist_tag for r in Release.select()])

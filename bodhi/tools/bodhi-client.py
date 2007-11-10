@@ -16,8 +16,8 @@
 # Authors: Luke Macken <lmacken@redhat.com>
 
 import re
-import sys
 import os
+import sys
 import logging
 import urllib2
 
@@ -74,6 +74,17 @@ class BodhiClient(BaseClient):
         params = { 'action' : 'obsolete', 'update' : opts.obsolete }
         data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
+
+    def candidates(self, opts):
+        """
+        Display a list of candidate builds which could potentially be pushed
+        as updates.  This is a very expensive operation.
+        """
+        data = self.send_request("dist_tags")
+        for tag in [tag + '-updates-candidate' for tag in data['tags']]:
+            cmd = "koji list-tagged --latest %s | grep %s" (tag, opts.username)
+            log.debug(cmd)
+            os.system(cmd)
 
     def push_to_testing(self, opts):
         params = { 'action' : 'testing', 'update' : opts.testing }
@@ -191,6 +202,8 @@ if __name__ == '__main__':
                       help="Mark an update for push to testing")
     parser.add_option("-m", "--mine", action="store_true", dest="mine",
                       help="Display a list of your updates")
+    parser.add_option("-c", "--candidates", action="store_true", dest="candidates",
+                      help="Display a list of update candidates")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -265,8 +278,10 @@ if __name__ == '__main__':
                 bodhi.delete(opts)
             elif opts.obsolete:
                 bodhi.obsolete(opts)
-            elif opts.status or opts.bugs or opts.cves or \
-                 opts.release or opts.type or args:
+            elif opts.candidates:
+                bodhi.candidates(opts)
+            elif opts.status or opts.bugs or opts.release or opts.cve or \
+                 opts.type or args:
                 bodhi.list(opts, args)
             else:
                 parser.print_help()
