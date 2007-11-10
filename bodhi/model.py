@@ -475,7 +475,13 @@ class Comment(SQLObject):
                                             karma, self.text)
 
 class CVE(SQLObject):
-    """ Table of CVEs fixed within updates that we know of. """
+    """
+    Table of CVEs fixed within updates that we know of.
+
+    This table has since been deprecated.  We are now tracking CVEs via 
+    Bugzilla.  See http://fedoraproject.org/wiki/Security/TrackingBugs
+    for more information on our bug tracking policy.
+    """
     cve_id  = UnicodeCol(alternateID=True, notNone=True)
     updates = RelatedJoin("PackageUpdate")
 
