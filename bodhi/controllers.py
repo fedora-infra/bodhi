@@ -249,17 +249,16 @@ class Root(controllers.RootController):
             flash_log("%s already %s" % (update.title, action))
             if self.jsonRequest: return dict()
             raise redirect(update.get_url())
-        if action in ('testing', 'stable'):
-            if update.request in ('testing', 'stable'):
-                flash_log("%s has already been submitted to %s" % (update.title,
-                          update.request))
-                if self.jsonRequest: return dict()
-                raise redirect(update.get_url())
-        elif action in ('unpush', 'obsolete'):
+        if action == update.request:
+            flash_log("%s has already been submitted to %s" % (update.title,
+                                                               update.request))
+            if self.jsonRequest: return dict()
+            raise redirect(update.get_url())
+        if action in ('unpush', 'obsolete'):
             update.obsolete()
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
-        else:
+        if action not in ('testing', 'stable', 'obsolete'):
             flash_log("Unknown request: %s" % action)
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
@@ -333,7 +332,7 @@ class Root(controllers.RootController):
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
     def save(self, builds, release, type, cves, notes, bugs, close_bugs=False,
-             edited=False, **kw):
+             edited=False, request='testing', **kw):
         """
         Save an update.  This includes new updates and edited.
         """
@@ -506,7 +505,7 @@ class Root(controllers.RootController):
             for bug in p.bugs:
                 if bug.security:
                     p.type = 'security'
-                    note += '; Security bug provided, changed update type ' + \
+                    note += '. Security bug provided, changed update type ' + \
                             'to security'
                     break
         if p.cves != [] and (p.type != 'security'):
@@ -523,6 +522,11 @@ class Root(controllers.RootController):
             mail.send(p.submitter, 'new', p)
             flash_log("Update successfully created, please submit it to a "
                       "repository" + note)
+
+        # If a request is specified, make it.  By default we're submitting new
+        # updates directly into testing
+        if request and request != "None" and request != p.request:
+            self.request(request.lower(), p.title)
 
         # For command line submissions, return PackageUpdate.__str__()
         if self.jsonRequest():
