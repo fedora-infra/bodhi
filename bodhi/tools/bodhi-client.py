@@ -135,11 +135,10 @@ class BodhiClient(BaseClient):
             return []
 
     def parse_file(self,opts):
-        regex = re.compile(r'^(BUG|bug|TYPE|type|CVE|cve)=(.*$)')
+        regex = re.compile(r'^(BUG|bug|TYPE|type)=(.*$)')
         types = {'S':'security','B':'bugfix','E':'enhancement'}
         notes = self._split(opts.notes,'\n')
         bugs = self._split(opts.bugs,',')
-        cves = self._split(opts.cves,',')
         log.info("Reading from %s " % opts.input_file)
         if os.path.exists(opts.input_file):
             f = open(opts.input_file)
@@ -155,9 +154,6 @@ class BodhiClient(BaseClient):
                     if cmd == 'BUG':
                         para = [p for p in para.split(' ')]
                         bugs.extend(para)
-                    elif cmd == 'CVE':
-                        para = [p for p in para.split(' ')]
-                        cves.extend(para)
                     elif cmd == 'TYPE':
                         opts.type = types[para.upper()]
 
@@ -167,11 +163,8 @@ class BodhiClient(BaseClient):
             opts.notes = "\r\n".join(notes)
         if bugs:
             opts.bugs = ','.join(bugs)
-        if cves:
-            opts.cves = ','.join(cves)
         log.debug("Type : %s" % opts.type)
         log.debug('Bugs:\n%s' % opts.bugs)
-        log.debug('CVES:\n%s' % opts.cves)
         log.debug('Notes:\n%s' % opts.notes)
 
 if __name__ == '__main__':
