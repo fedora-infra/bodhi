@@ -171,15 +171,28 @@ class Root(controllers.RootController):
 
             updates = PackageUpdate.select(AND(*query))
 
-            # Filter by package
-            results = []
+            # The package argument may be an update, build or package.
             if package:
-                pkg = Package.byName(package)
-                for update in updates:
-                    for build in update.builds:
-                        if build.package == pkg:
-                            results.append(update)
-                updates = results
+                try:
+                    update = PackageUpdate.byTitle(package)
+                    if update in updates:
+                        updates = [update] # There can be only one
+                    else:
+                        updates = []
+                except SQLObjectNotFound:
+                    try:
+                        pkg = Package.byName(package)
+                        updates = filter(lambda up: up in updates, pkg.updates())
+                    except SQLObjectNotFound:
+                        try:
+                            build = PackageBuild.byNvr(package)
+                            results = []
+                            for update in updates:
+                                if build in update.builds:
+                                    results.append(update)
+                            updates = results
+                        except SQLObjectNotFound:
+                            updates = []
 
             # Filter results by Bugs and/or CVEs
             results = []

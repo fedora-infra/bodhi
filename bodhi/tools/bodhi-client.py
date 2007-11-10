@@ -49,11 +49,13 @@ class BodhiClient(BaseClient):
         if data.has_key('update'):
             log.info(data['update'])
 
-    def list(self, opts):
+    def list(self, opts, package=None):
         args = { 'tg_paginate_limit' : opts.limit }
         for arg in ('release', 'status', 'type', 'bugs', 'cves'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
+        if package:
+            args['package' ] = package[0]
         data = self.send_request('list', input=args)
         if data.has_key('tg_flash') and data['tg_flash']:
             log.error(data['tg_flash'])
@@ -253,8 +255,8 @@ if __name__ == '__main__':
             elif opts.obsolete:
                 bodhi.obsolete(opts)
             elif opts.status or opts.bugs or opts.cves or \
-                 opts.release or opts.type:
-                bodhi.list(opts)
+                 opts.release or opts.type or args:
+                bodhi.list(opts, args)
             else:
                 parser.print_help()
             break
