@@ -118,7 +118,6 @@ bodhi/tests/test_metadata.py
 bodhi/tests/test_model.py
 bodhi/tools/__init__.py
 bodhi/tools/bodhi-client.py
-bodhi/tools/client.py
 bodhi/tools/dev_init.py
 bodhi/tools/init.py
 bodhi/tools/pickledb.py
