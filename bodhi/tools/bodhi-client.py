@@ -186,7 +186,7 @@ if __name__ == '__main__':
                       dest="obsolete", help="Mark an update as being obsolete",
                       metavar="UPDATE")
     parser.add_option("", "--file", action="store", type="string",
-                      dest="input_file", help="Get Bugs,CVES,Notes from a file")
+                      dest="input_file", help="Get Bugs,Type,Notes from a file")
     parser.add_option("-S", "--stable", action="store", type="string",
                       dest="stable", metavar="UPDATE",
                       help="Mark an update for push to stable")
