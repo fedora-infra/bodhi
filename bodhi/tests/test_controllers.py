@@ -342,7 +342,7 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
-        assert update.request == None
+        assert update.request == 'testing'
 
         testutil.createRequest('/updates/request/testing/%s' % params['builds'],
                                method='POST', headers=session)
@@ -413,6 +413,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
+        print cherrypy.response.body[0]
         assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
@@ -470,7 +471,7 @@ class TestControllers(testutil.DBTest):
         assert "1 updates found" in cherrypy.response.body[0]
 
         params = {
-                'builds'  : 'kernel-2.6.23.1-21.fc7',
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
                 'type'    : 'security',
                 'bugs'    : '321',
@@ -478,3 +479,62 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
+
+        # TODO:
+        # populate db with a variety of releases and bugs, and do specific
+        # list queries
+
+    def test_default_request(self):
+        """
+        Verify that updates are automatically submitted to testing, and that
+        this actually happens
+        """
+        session = self.login()
+        self.create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '321',
+                'cves'    : '',
+                'notes'   : 'foobar',
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+        params = {
+                'builds'  : 'python-sqlobject-1.6.3-13.fc8',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '321',
+                'cves'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable'
+        params = {
+                'builds'  : 'nethack-2.10-3.20070831cvs.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '321',
+                'cves'    : '',
+                'notes'   : 'foobar',
+                'request' : 'None'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == None
+        params = {
+                'builds'  : 'xprobe2-1.4.6-1.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '321',
+                'cves'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Testing'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
