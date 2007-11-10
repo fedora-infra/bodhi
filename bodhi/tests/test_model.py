@@ -245,6 +245,17 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.karma == 3
         assert update.request == 'stable'
 
+    def test_build_tag(self):
+        update = self.get_update()
+        update.status = 'pending'
+        assert update.get_build_tag() == "%s-updates-candidate" % update.release.dist_tag
+        update.status = 'testing'
+        assert update.get_build_tag() == "%s-updates-testing" % update.release.dist_tag
+        update.status = 'stable'
+        assert update.get_build_tag() == "%s-updates" % update.release.dist_tag
+        update.status = 'obsolete'
+        assert update.get_build_tag() == "%s-updates-candidate" % update.release.dist_tag
+ 
 class TestBugzilla(testutil.DBTest):
 
     def get_model(self):

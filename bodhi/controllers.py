@@ -158,61 +158,56 @@ class Root(controllers.RootController):
         log.debug("list(%s, %s, %s, %s, %s, %s)" % (release, bugs, cves, status,
                                                     type, package))
         query = []
-        if release:
-            rel = Release.byName(release)
-            query.append(PackageUpdate.q.releaseID == rel.id)
-        if status:
-            query.append(PackageUpdate.q.status == status)
-        if type:
-            query.append(PackageUpdate.q.type == type)
+        updates = []
 
-        updates = PackageUpdate.select(AND(*query))
-        num_items = updates.count()
+        try:
+            if release:
+                rel = Release.byName(release.upper())
+                query.append(PackageUpdate.q.releaseID == rel.id)
+            if status:
+                query.append(PackageUpdate.q.status == status)
+            if type:
+                query.append(PackageUpdate.q.type == type)
 
-        # Filter by package
-        results = []
-        if package:
-            try:
+            updates = PackageUpdate.select(AND(*query))
+
+            # Filter by package
+            results = []
+            if package:
                 pkg = Package.byName(package)
                 for update in updates:
                     for build in update.builds:
                         if build.package == pkg:
                             results.append(update)
                 updates = results
-            except SQLObjectNotFound, e:
-                flash_log(e)
-                if self.jsonRequest():
-                    return dict(updates=[])
 
-        # Filter results by Bugs and/or CVEs
-        results = []
-        if bugs:
-            try:
+            # Filter results by Bugs and/or CVEs
+            results = []
+            if bugs:
                 for bug in map(Bugzilla.byBz_id, map(int, bugs.split(','))):
                     map(results.append,
                         filter(lambda x: bug in x.bugs, updates))
                 updates = results
-            except SQLObjectNotFound, e:
-                flash_log(e)
-                if self.jsonRequest():
-                    return dict(updates=[])
-        if cves:
-            try:
+            if cves:
                 for cve in map(CVE.byCve_id, cves.split(',')):
                     map(results.append,
                         filter(lambda x: cve in x.cves, updates))
                 updates = results
-            except SQLObjectNotFound, e:
-                flash_log(e)
-                if self.jsonRequest():
-                    return dict(updates=[])
+        except SQLObjectNotFound, e:
+            flash_log(e)
+            if self.jsonRequest():
+                return dict(updates=[])
 
         # If we're called via JSON, then simply return the PackageUpdate.__str__
         # else, we return a list of PackageUpdate objects to our template
         if self.jsonRequest():
             updates = map(str, updates)
 
-        return dict(updates=updates, num_items=len(updates))
+        if isinstance(updates, list): num_items = len(updates)
+        else: num_items = updates.count()
+
+        return dict(updates=updates, num_items=num_items,
+                    title="%d updates found" % num_items)
 
     @expose(template="bodhi.templates.mine")
     @identity.require(identity.not_anonymous())
@@ -254,17 +249,16 @@ class Root(controllers.RootController):
             flash_log("%s already %s" % (update.title, action))
             if self.jsonRequest: return dict()
             raise redirect(update.get_url())
-        if action in ('testing', 'stable'):
-            if update.request in ('testing', 'stable'):
-                flash_log("%s has already been submitted to %s" % (update.title,
-                          update.request))
-                if self.jsonRequest: return dict()
-                raise redirect(update.get_url())
-        elif action in ('unpush', 'obsolete'):
+        if action == update.request:
+            flash_log("%s has already been submitted to %s" % (update.title,
+                                                               update.request))
+            if self.jsonRequest: return dict()
+            raise redirect(update.get_url())
+        if action in ('unpush', 'obsolete'):
             update.obsolete()
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
-        else:
+        if action not in ('testing', 'stable', 'obsolete'):
             flash_log("Unknown request: %s" % action)
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
@@ -327,7 +321,6 @@ class Root(controllers.RootController):
                 'type'      : update.type,
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
-                'cves'      : update.get_cvestring(),
                 'edited'    : update.title,
                 'close_bugs': update.close_bugs and 'True' or '',
         }
@@ -337,17 +330,16 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, builds, release, type, cves, notes, bugs, close_bugs=False,
-             edited=False, **kw):
+    def save(self, builds, release, type, notes, bugs, close_bugs=False,
+             edited=False, request='testing', **kw):
         """
         Save an update.  This includes new updates and edited.
         """
-        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s)" % (builds, release,
-            type, cves, notes, bugs, close_bugs, edited, kw))
+        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s)" % (builds, release,
+            type, notes, bugs, close_bugs, edited, kw))
 
-        note = ''
+        note = []
         update_builds = []
-        if not cves: cves = []
         if not bugs: bugs = []
         release = Release.select(
                         OR(Release.q.long_name == release,
@@ -358,7 +350,6 @@ class Root(controllers.RootController):
                 'builds.text' : ' '.join(builds),
                 'release'     : release.long_name,
                 'type'        : type,
-                'cves'        : ' '.join(cves),
                 'bugs'        : ' '.join(map(str, bugs)),
                 'notes'       : notes,
                 'close_bugs'  : close_bugs and 'True' or '',
@@ -438,7 +429,7 @@ class Root(controllers.RootController):
                 if rpm.labelCompare(util.get_nvr(oldBuild.nvr),
                                     util.get_nvr(build)) < 0:
                     oldBuild.updates[0].obsolete(newer=build)
-                    note += '; This update has obsoleted %s' % oldBuild.nvr
+                    note.append('This update has obsoleted %s' % oldBuild.nvr)
 
             # Check for broken update paths against all previous releases
             kojiBuild = koji.getBuild(build)
@@ -501,33 +492,35 @@ class Root(controllers.RootController):
         # Add the PackageBuilds to our PackageUpdate
         map(p.addPackageBuild, update_builds)
 
-        # Add/remove the necessary Bugzillas and CVEs
+        # Add/remove the necessary Bugzillas
         p.update_bugs(bugs)
-        p.update_cves(cves)
 
-        # If there are any CVEs or security bugs, make sure this update is
+        # If there are any security bugs, make sure this update is
         # marked as security
         if p.type != 'security':
             for bug in p.bugs:
                 if bug.security:
                     p.type = 'security'
-                    note += '; Security bug provided, changed update type ' + \
-                            'to security'
                     break
-        if p.cves != [] and (p.type != 'security'):
-            p.type = 'security'
-            note += '; CVEs provided, changed update type to security'
 
         if edited:
             mail.send(p.submitter, 'edited', p)
-            flash_log("Update successfully edited" + note)
+            note.insert(0, "Update successfully edited")
+
+        # New update
         else:
             # Notify security team of newly submitted security updates
             if p.type == 'security':
                 mail.send(config.get('security_team'), 'new', p)
             mail.send(p.submitter, 'new', p)
-            flash_log("Update successfully created, please submit it to a "
-                      "repository" + note)
+            note.insert(0, "Update successfully created")
+
+        # If a request is specified, make it.  By default we're submitting new
+        # updates directly into testing
+        if request and request != "None" and request != p.request:
+            self.request(request.lower(), p.title)
+
+        flash_log('. '.join(note))
 
         # For command line submissions, return PackageUpdate.__str__()
         if self.jsonRequest():
