@@ -91,6 +91,13 @@ class BodhiClient(BaseClient):
         data = self.send_request('admin/masher', auth=True)
         log.info(data['masher_str'])
 
+    def mine(self):
+        data = self.send_request('mine', auth=True)
+        for update in data['updates']:
+           log.info(update + '\n')
+        log.info("%d updates found (%d shown)" % (data['num_items'],
+                                                  len(data['updates'])))
+
     def push(self, opts):
         data = self.send_request('admin/push', auth=True)
         log.info("[ %d Pending Requests ]" % len(data['updates']))
@@ -164,7 +171,7 @@ if __name__ == '__main__':
     ## Actions
     parser.add_option("-n", "--new", action="store_true", dest="new",
                       help="Add a new update to the system")
-    parser.add_option("-m", "--masher", action="store_true", dest="masher",
+    parser.add_option("-M", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
     parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates")
@@ -182,6 +189,8 @@ if __name__ == '__main__':
     parser.add_option("-T", "--testing", action="store", type="string",
                       dest="testing", metavar="UPDATE",
                       help="Mark an update for push to testing")
+    parser.add_option("-m", "--mine", action="store_true", dest="mine",
+                      help="Display a list of your updates")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -250,6 +259,8 @@ if __name__ == '__main__':
                 bodhi.masher(opts)
             elif opts.push:
                 bodhi.push(opts)
+            elif opts.mine:
+                bodhi.mine()
             elif opts.delete:
                 bodhi.delete(opts)
             elif opts.obsolete:
