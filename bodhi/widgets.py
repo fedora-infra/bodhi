@@ -55,6 +55,7 @@ class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Save Update"
     update_types = config.get('update_types').split()
+    request_types = ['Testing', 'Stable', 'None']
     fields = [
             AutoCompletePackage('builds', label='Package',
                                 search_controller=url('/new/search'),
@@ -65,6 +66,9 @@ class NewUpdateForm(Form):
                               validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
+            SingleSelectField('request', options=request_types,
+                              validator=validators.OneOf( request_types +
+                                  [r.lower() for r in request_types])),
             TextField('bugs', validator=BugValidator(),
                       attrs={'title' : 'Bug Numbers - A space or comma '
                                        'delimited list of bug numbers.  '
@@ -91,7 +95,7 @@ class OkCancelForm(Form):
     params = ["action", "method"]
     ok = SubmitButton('ok')
     cancel = SubmitButton('cancel')
-    
+
     template = """
     <form xmlns:py="http://purl.org/kid/ns#"
         name="${name}"
