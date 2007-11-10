@@ -41,7 +41,6 @@ class BodhiClient(BaseClient):
                 'release' : opts.release.upper(),
                 'type'    : opts.type,
                 'bugs'    : opts.bugs,
-                'cves'    : opts.cves,
                 'notes'   : opts.notes
         }
         data = self.send_request('save', auth=True, input=params)
