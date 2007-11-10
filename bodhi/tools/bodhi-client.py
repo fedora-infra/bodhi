@@ -34,10 +34,10 @@ log = logging.getLogger(__name__)
 
 class BodhiClient(BaseClient):
 
-    def new(self, opts):
-        log.info("Creating new update for %s" % opts.new)
+    def new(self, builds, opts):
+        log.info("Creating new update for %s" % builds)
         params = {
-                'builds'  : opts.new,
+                'builds'  : builds,
                 'release' : opts.release.upper(),
                 'type'    : opts.type,
                 'bugs'    : opts.bugs,
@@ -155,14 +155,13 @@ class BodhiClient(BaseClient):
         log.debug('Notes:\n%s' % opts.notes)
 
 if __name__ == '__main__':
-    usage = "usage: %prog [options]"
+    usage = "usage: %prog [options] [ build | package ]"
     parser = OptionParser(usage, description=__description__,
                           version=__version__)
 
     ## Actions
-    parser.add_option("-n", "--new", action="store", type="string", dest="new",
-                      help="Add a new update to the system (--new=foo-1.2-3,"
-                      "bar-4.5-6)")
+    parser.add_option("-n", "--new", action="store_true", dest="new",
+                      help="Add a new update to the system")
     parser.add_option("-m", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
     parser.add_option("-P", "--push", action="store_true", dest="push",
@@ -229,15 +228,18 @@ if __name__ == '__main__':
     while True:
         try:
             if opts.new:
+                if not args and len(args) != 1:
+                    log.error("Please specifiy a comma-separated list of builds")
+                    sys.exit(-1)
                 if opts.input_file:
                     bodhi.parse_file(opts)
                 if not opts.release:
-                    log.error("Error: No release specified")
+                    log.error("Error: No release specified (ie: -r F8)")
                     sys.exit(-1)
                 if not opts.type:
-                    log.error("Error: No update type specified")
+                    log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
-                bodhi.new(opts)
+                bodhi.new(args[0], opts)
             elif opts.testing:
                 bodhi.push_to_testing(opts)
             elif opts.stable:

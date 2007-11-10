@@ -86,6 +86,8 @@ def load_db():
             request = 'stable'
         elif u['request'] == 'push':
             request = 'testing'
+        elif u['request'] == 'unpush':
+            request = 'obsolete'
 
         update = PackageUpdate(title=u['title'],
                                date_submitted=u['date_submitted'],
