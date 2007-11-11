@@ -630,17 +630,26 @@ class Root(controllers.RootController):
         flash_log("The path %s cannot be found" % cherrypy.request.path)
         raise redirect("/")
 
-    @expose()
+    @expose(allow_json=True)
     @error_handler()
     @validate(form=comment_form)
     @validate(validators={ 'karma' : validators.Int() })
     @identity.require(identity.not_anonymous())
     def comment(self, text, title, karma, tg_errors=None):
-        update = PackageUpdate.byTitle(title)
         if tg_errors:
             flash_log(tg_errors)
         else:
-            update.comment(text, karma)
+            if karma not in (0, 1, -1):
+                flash_log("Karma must be one of (1, 0, -1)")
+                if self.jsonRequest(): return dict()
+                raise redirect(update.get_url())
+            try:
+                update = PackageUpdate.byTitle(title)
+                if text == 'None': text = None
+                update.comment(text, karma)
+            except SQLObjectNotFound:
+                flash_log("Update %s does not exist" % title)
+        if self.jsonRequest(): return dict(update=str(update))
         raise redirect(update.get_url())
 
     @expose(template='bodhi.templates.comments')
