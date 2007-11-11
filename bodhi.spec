@@ -21,7 +21,7 @@ updates for a software distribution.
 %package client
 Summary: Bodhi Client
 Group: Applications/Internet
-Requires: python-simplejson python-fedora
+Requires: python-simplejson python-fedora koji yum
 
 %description client 
 Client tools for interacting with bodhi
