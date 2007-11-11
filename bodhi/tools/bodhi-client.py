@@ -33,7 +33,6 @@ __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
 BODHI_URL = 'https://admin.fedoraproject.org/updates/'
-KOJI_URL = 'https://koji.fedoraproject.org/kojihub'
 log = logging.getLogger(__name__)
 
 class BodhiClient(BaseClient):
@@ -54,7 +53,7 @@ class BodhiClient(BaseClient):
 
     def list(self, opts, package=None, showcount=True):
         args = { 'tg_paginate_limit' : opts.limit }
-        for arg in ('release', 'status', 'type', 'bugs', 'cves'):
+        for arg in ('release', 'status', 'type', 'bugs'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
         if package:
@@ -111,10 +110,10 @@ class BodhiClient(BaseClient):
         if fedora == '7': fedora = 'c7'
         tag = 'dist-f%s-updates-testing' % fedora
 
-        builds = self.koji_session.listTagged(tag, latest=True)
-
         yum = YumBase()
         yum.doConfigSetup(init_plugins=False)
+
+        builds = self.koji_session.listTagged(tag, latest=True)
         for build in builds:
             pkgs = yum.rpmdb.searchNevra(name=build['name'],
                                          epoch=None,
@@ -123,6 +122,18 @@ class BodhiClient(BaseClient):
                                          arch=None)
             if len(pkgs):
                 self.list(opts, package=[build['nvr']], showcount=False)
+
+    def comment(self, opts, build):
+        params = {
+                'text'  : opts.comment,
+                'karma' : opts.karma,
+                'title' : build
+        }
+        data = self.send_request('comment', input=params, auth=True)
+        if data['tg_flash']:
+            log.info(data['tg_flash'])
+        if data.has_key('update'):
+            log.info(data['update'])
 
     def push_to_testing(self, opts):
         params = { 'action' : 'testing', 'update' : opts.testing }
@@ -229,12 +240,18 @@ if __name__ == '__main__':
                       help="Mark an update for push to testing")
     parser.add_option("-m", "--mine", action="store_true", dest="mine",
                       help="Display a list of your updates")
-    parser.add_option("-C", "--candidates", action="store_true",
+    parser.add_option("", "--candidates", action="store_true",
                       help="Display a list of update candidates",
                       dest="candidates")
     parser.add_option("-T", "--testable", action="store_true",
                       help="Display a list of installed updates that you "
                            "could test and provide feedback for")
+    parser.add_option("-c", "--comment", action="store", dest="comment",
+                      help="Comment on an update")
+    parser.add_option("-k", "--karma", action="store", dest="karma",
+                      metavar="[+1|-1]", default=0,
+                      help="Give karma to a specific update (default: 0)")
+
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -243,9 +260,6 @@ if __name__ == '__main__':
     parser.add_option("-b", "--bugs", action="store", type="string",
                       dest="bugs", help="Associate bugs with an update "
                       "(--bugs=1234,5678)", default="")
-    parser.add_option("-c", "--cves", action="store", type="string",
-                      dest="cves", help="A list of comma-separated CVE IDs",
-                      default="")
     parser.add_option("-r", "--release", action="store", type="string",
                       dest="release", help="Release [F7|F8]")
     parser.add_option("-N", "--notes", action="store", type="string",
@@ -295,26 +309,21 @@ if __name__ == '__main__':
                     log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
                 bodhi.new(args[0], opts)
-            elif opts.testing:
-                bodhi.push_to_testing(opts)
-            elif opts.stable:
-                bodhi.push_to_stable(opts)
-            elif opts.masher:
-                bodhi.masher(opts)
-            elif opts.push:
-                bodhi.push(opts)
-            elif opts.mine:
-                bodhi.mine()
-            elif opts.delete:
-                bodhi.delete(opts)
-            elif opts.obsolete:
-                bodhi.obsolete(opts)
-            elif opts.testable:
-                bodhi.testable(opts)
-            elif opts.candidates:
-                bodhi.candidates(opts)
-            elif opts.status or opts.bugs or opts.release or opts.cves or \
-                 opts.type or args:
+            elif opts.mine: bodhi.mine()
+            elif opts.push: bodhi.push(opts)
+            elif opts.delete: bodhi.delete(opts)
+            elif opts.masher: bodhi.masher(opts)
+            elif opts.stable: bodhi.push_to_stable(opts)
+            elif opts.testing: bodhi.push_to_testing(opts)
+            elif opts.obsolete: bodhi.obsolete(opts)
+            elif opts.testable: bodhi.testable(opts)
+            elif opts.candidates: bodhi.candidates(opts)
+            elif opts.comment or opts.karma:
+                if not len(args) or not args[0]:
+                    log.error("Please specify an update to comment on")
+                    sys.exit(-1)
+                bodhi.comment(opts, args[0])
+            elif opts.status or opts.bugs or opts.release or opts.type or args:
                 bodhi.list(opts, args)
             else:
                 parser.print_help()
