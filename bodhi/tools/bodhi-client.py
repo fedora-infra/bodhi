@@ -80,11 +80,13 @@ class BodhiClient(BaseClient):
         log.info(data['tg_flash'])
 
     def __koji_session(self):
-        session = koji.ClientSession(KOJI_URL)
-        session.ssl_login(
-                cert=join(expanduser('~'), '.fedora.cert'),
-                ca=join(expanduser('~'), '.fedora-upload-ca.cert'),
-                serverca=join(expanduser('~'), '.fedora-server-ca.cert'))
+        config = filter(lambda line: len(line.split()),
+                     open(join(expanduser('~'), '.koji', 'config')).readlines())
+        value = lambda key: map(lambda x: expanduser(x.split()[-1].strip()),
+                                filter(lambda x: x.split()[0] == key,config))[0]
+        session = koji.ClientSession(value('server'))
+        session.ssl_login(cert=value('cert'), ca=value('ca'),
+                          serverca=value('serverca'))
         return session
 
     koji_session = property(fget=__koji_session)
