@@ -33,7 +33,6 @@ __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
 BODHI_URL = 'https://admin.fedoraproject.org/updates/'
-KOJI_URL = 'https://koji.fedoraproject.org/kojihub'
 log = logging.getLogger(__name__)
 
 class BodhiClient(BaseClient):
