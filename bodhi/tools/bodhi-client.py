@@ -79,6 +79,16 @@ class BodhiClient(BaseClient):
         data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
 
+    def __koji_session(self):
+        session = koji.ClientSession(KOJI_URL)
+        session.ssl_login(
+                cert=join(expanduser('~'), '.fedora.cert'),
+                ca=join(expanduser('~'), '.fedora-upload-ca.cert'),
+                serverca=join(expanduser('~'), '.fedora-server-ca.cert'))
+        return session
+
+    koji_session = property(fget=__koji_session)
+
     def candidates(self, opts):
         """
         Display a list of candidate builds which could potentially be pushed
@@ -86,9 +96,9 @@ class BodhiClient(BaseClient):
         """
         data = self.send_request("dist_tags")
         for tag in [tag + '-updates-candidate' for tag in data['tags']]:
-            cmd = "koji list-tagged --latest %s | grep %s" % (tag,opts.username)
-            log.debug(cmd)
-            os.system(cmd)
+            for build in self.koji_session.listTagged(tag, latest=True):
+                if build['owner_name'] == opts.username:
+                    print "%-40s %-20s" % (build['nvr'], build['tag_name'])
 
     def testable(self, opts):
         """
@@ -99,13 +109,8 @@ class BodhiClient(BaseClient):
         if fedora == '7': fedora = 'c7'
         tag = 'dist-f%s-updates-testing' % fedora
 
-        koji_session = koji.ClientSession(KOJI_URL)
-        koji_session.ssl_login(
-                cert=join(expanduser('~'), '.fedora.cert'),
-                ca=join(expanduser('~'), '.fedora-upload-ca.cert'),
-                serverca=join(expanduser('~'), '.fedora-server-ca.cert'))
+        builds = self.koji_session.listTagged(tag, latest=True)
 
-        builds = koji_session.listTagged(tag, latest=True)
         yum = YumBase()
         yum.doConfigSetup(init_plugins=False)
         for build in builds:
