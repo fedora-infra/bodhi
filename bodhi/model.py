@@ -320,14 +320,25 @@ class PackageUpdate(SQLObject):
         if len(self.cves):
             val += "\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
-            notes = wrap(self.notes, width=67, subsequent_indent=' '*11 +': ')
+            notes = wrap(self.notes, width=67, subsequent_indent=' ' * 11 +': ')
             val += "\n      Notes: %s" % '\n'.join(notes)
         val += """
   Submitter: %s
-  Submitted: %s\n\n  %s
-        """ % (self.submitter, self.date_submitted,
-               config.get('base_address') + url(self.get_url()))
-        return val.rstrip()
+  Submitted: %s\n""" % (self.submitter, self.date_submitted)
+        if len(self.comments):
+            val += "   Comments: "
+            comments = []
+            for comment in self.comments:
+                comments.append("%s%s - %s (karma %s)" % (' ' * 13,
+                                comment.author, comment.timestamp,
+                                comment.karma))
+                if comment.text:
+                    text = wrap(comment.text, initial_indent=' ' * 13,
+                                subsequent_indent=' ' * 13, width=67)
+                    comments.append('\n'.join(text))
+            val += '\n'.join(comments).lstrip()
+        val += "\n\n  %s\n" % (config.get('base_address') + url(self.get_url()))
+        return val
 
     def get_build_tag(self):
         """
