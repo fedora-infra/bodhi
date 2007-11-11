@@ -18,9 +18,12 @@
 import re
 import os
 import sys
+import koji
 import logging
 import urllib2
 
+from yum import YumBase
+from os.path import join, expanduser
 from getpass import getpass, getuser
 from optparse import OptionParser
 
@@ -30,6 +33,7 @@ __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
 BODHI_URL = 'https://admin.fedoraproject.org/updates/'
+KOJI_URL = 'https://koji.fedoraproject.org/kojihub'
 log = logging.getLogger(__name__)
 
 class BodhiClient(BaseClient):
@@ -48,7 +52,7 @@ class BodhiClient(BaseClient):
         if data.has_key('update'):
             log.info(data['update'])
 
-    def list(self, opts, package=None):
+    def list(self, opts, package=None, showcount=True):
         args = { 'tg_paginate_limit' : opts.limit }
         for arg in ('release', 'status', 'type', 'bugs', 'cves'):
             if getattr(opts, arg):
@@ -60,9 +64,10 @@ class BodhiClient(BaseClient):
             log.error(data['tg_flash'])
             sys.exit(-1)
         for update in data['updates']:
-            log.info(update + '\n')
-        log.info("%d updates found (%d shown)" % (data['num_items'],
-                                                  len(data['updates'])))
+            print update
+        if showcount:
+            log.info("%d updates found (%d shown)" % (data['num_items'],
+                                                      len(data['updates'])))
 
     def delete(self, opts):
         params = { 'update' : opts.delete }
@@ -81,9 +86,36 @@ class BodhiClient(BaseClient):
         """
         data = self.send_request("dist_tags")
         for tag in [tag + '-updates-candidate' for tag in data['tags']]:
-            cmd = "koji list-tagged --latest %s | grep %s" (tag, opts.username)
+            cmd = "koji list-tagged --latest %s | grep %s" % (tag,opts.username)
             log.debug(cmd)
             os.system(cmd)
+
+    def testable(self, opts):
+        """
+        Display a list of installed updates that you have yet to test
+        and provide feedback for.
+        """
+        fedora = file('/etc/fedora-release').readlines()[0].split()[2]
+        if fedora == '7': fedora = 'c7'
+        tag = 'dist-f%s-updates-testing' % fedora
+
+        koji_session = koji.ClientSession(KOJI_URL)
+        koji_session.ssl_login(
+                cert=join(expanduser('~'), '.fedora.cert'),
+                ca=join(expanduser('~'), '.fedora-upload-ca.cert'),
+                serverca=join(expanduser('~'), '.fedora-server-ca.cert'))
+
+        builds = koji_session.listTagged(tag, latest=True)
+        yum = YumBase()
+        yum.doConfigSetup(init_plugins=False)
+        for build in builds:
+            pkgs = yum.rpmdb.searchNevra(name=build['name'],
+                                         epoch=None,
+                                         ver=build['version'],
+                                         rel=build['release'],
+                                         arch=None)
+            if len(pkgs):
+                self.list(opts, package=[build['nvr']], showcount=False)
 
     def push_to_testing(self, opts):
         params = { 'action' : 'testing', 'update' : opts.testing }
@@ -124,20 +156,17 @@ class BodhiClient(BaseClient):
         yes = sys.stdin.readline().strip()
         if yes.lower() in ('y', 'yes'):
             log.info("Pushing!")
-            self.send_request('admin/push/mash', auth=True,
-                              input={'updates':[u['title'] for u in data['updates']]})
-
-    def _split(self,var,delim):
-        if var:
-            return var.split(delim)
-        else:
-            return []
+            self.send_request('admin/push/mash', auth=True, input={
+                    'updates' : [u['title'] for u in data['updates']] })
 
     def parse_file(self,opts):
         regex = re.compile(r'^(BUG|bug|TYPE|type)=(.*$)')
         types = {'S':'security','B':'bugfix','E':'enhancement'}
-        notes = self._split(opts.notes,'\n')
-        bugs = self._split(opts.bugs,',')
+        def _split(self,var,delim):
+            if var: return var.split(delim)
+            else: return []
+        notes = _split(opts.notes,'\n')
+        bugs = _split(opts.bugs,',')
         log.info("Reading from %s " % opts.input_file)
         if os.path.exists(opts.input_file):
             f = open(opts.input_file)
@@ -155,7 +184,6 @@ class BodhiClient(BaseClient):
                         bugs.extend(para)
                     elif cmd == 'TYPE':
                         opts.type = types[para.upper()]
-
                 else: # This is notes
                     notes.append(line[:-1])
         if notes:
@@ -189,13 +217,17 @@ if __name__ == '__main__':
     parser.add_option("-S", "--stable", action="store", type="string",
                       dest="stable", metavar="UPDATE",
                       help="Mark an update for push to stable")
-    parser.add_option("-T", "--testing", action="store", type="string",
+    parser.add_option("-X", "--testing", action="store", type="string",
                       dest="testing", metavar="UPDATE",
                       help="Mark an update for push to testing")
     parser.add_option("-m", "--mine", action="store_true", dest="mine",
                       help="Display a list of your updates")
-    parser.add_option("-c", "--candidates", action="store_true", dest="candidates",
-                      help="Display a list of update candidates")
+    parser.add_option("-C", "--candidates", action="store_true",
+                      help="Display a list of update candidates",
+                      dest="candidates")
+    parser.add_option("-T", "--testable", action="store_true",
+                      help="Display a list of installed updates that you "
+                           "could test and provide feedback for")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -270,9 +302,11 @@ if __name__ == '__main__':
                 bodhi.delete(opts)
             elif opts.obsolete:
                 bodhi.obsolete(opts)
+            elif opts.testable:
+                bodhi.testable(opts)
             elif opts.candidates:
                 bodhi.candidates(opts)
-            elif opts.status or opts.bugs or opts.release or opts.cve or \
+            elif opts.status or opts.bugs or opts.release or opts.cves or \
                  opts.type or args:
                 bodhi.list(opts, args)
             else:
