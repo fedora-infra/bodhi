@@ -47,9 +47,6 @@ updates for a software distribution.
 %setup -q
 rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
-%check
-make test
-
 %build
 %{__python} setup.py build --install-conf=%{_sysconfdir} \
         --install-data=%{_datadir}
