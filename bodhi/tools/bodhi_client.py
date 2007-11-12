@@ -69,7 +69,7 @@ class BodhiClient(BaseClient):
                                                       len(data['updates'])))
 
     def delete(self, opts):
-        params = { 'update' : opts.delete }
+        rams = { 'update' : opts.delete }
         data = self.send_request('delete', input=params, auth=True)
         log.info(data['tg_flash'])
 
@@ -123,11 +123,11 @@ class BodhiClient(BaseClient):
             if len(pkgs):
                 self.list(opts, package=[build['nvr']], showcount=False)
 
-    def comment(self, opts, build):
+    def comment(self, opts, update):
         params = {
                 'text'  : opts.comment,
                 'karma' : opts.karma,
-                'title' : build
+                'title' : update
         }
         data = self.send_request('comment', input=params, auth=True)
         if data['tg_flash']:
@@ -135,19 +135,19 @@ class BodhiClient(BaseClient):
         if data.has_key('update'):
             log.info(data['update'])
 
-    def push_to_testing(self, opts):
-        params = { 'action' : 'testing', 'update' : opts.testing }
+    def push_to_testing(self, update):
+        params = { 'action' : 'testing', 'update' : update }
         data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
 
-    def push_to_stable(self, opts):
-        params = { 'action' : 'stable', 'update' : opts.stable }
+    def push_to_stable(self, update):
+        params = { 'action' : 'stable', 'update' : update }
         data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
 
-    def masher(self, opts):
+    def masher(self):
         data = self.send_request('admin/masher', auth=True)
         log.info(data['masher_str'])
 
@@ -212,6 +212,19 @@ class BodhiClient(BaseClient):
         log.debug('Bugs:\n%s' % opts.bugs)
         log.debug('Notes:\n%s' % opts.notes)
 
+def setup_logger():
+    sh = logging.StreamHandler()
+    if opts.verbose:
+        log.setLevel(logging.DEBUG)
+        sh.setLevel(logging.DEBUG)
+    else:
+        log.setLevel(logging.INFO)
+        sh.setLevel(logging.INFO)
+    format = logging.Formatter("%(message)s")
+    sh.setFormatter(format)
+    log.addHandler(sh)
+
+
 if __name__ == '__main__':
     usage = "usage: %prog [options] [ build | package ]"
     parser = OptionParser(usage, description=__description__,
@@ -232,18 +245,16 @@ if __name__ == '__main__':
                       metavar="UPDATE")
     parser.add_option("", "--file", action="store", type="string",
                       dest="input_file", help="Get Bugs,Type,Notes from a file")
-    parser.add_option("-S", "--stable", action="store", type="string",
-                      dest="stable", metavar="UPDATE",
+    parser.add_option("-S", "--stable", action="store_true", dest="stable",
                       help="Mark an update for push to stable")
-    parser.add_option("-X", "--testing", action="store", type="string",
-                      dest="testing", metavar="UPDATE",
+    parser.add_option("-T", "--testing", action="store_true", dest="testing",
                       help="Mark an update for push to testing")
     parser.add_option("-m", "--mine", action="store_true", dest="mine",
                       help="Display a list of your updates")
     parser.add_option("", "--candidates", action="store_true",
                       help="Display a list of update candidates",
                       dest="candidates")
-    parser.add_option("-T", "--testable", action="store_true",
+    parser.add_option("", "--testable", action="store_true",
                       help="Display a list of installed updates that you "
                            "could test and provide feedback for")
     parser.add_option("-c", "--comment", action="store", dest="comment",
@@ -279,18 +290,7 @@ if __name__ == '__main__':
                       "(default: 10)")
 
     (opts, args) = parser.parse_args()
-
-    # Setup the logger
-    sh = logging.StreamHandler()
-    if opts.verbose:
-        log.setLevel(logging.DEBUG)
-        sh.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
-        sh.setLevel(logging.INFO)
-    format = logging.Formatter("%(message)s")
-    sh.setFormatter(format)
-    log.addHandler(sh)
+    setup_logger()
 
     bodhi = BodhiClient(BODHI_URL, opts.username, None)
 
@@ -309,12 +309,20 @@ if __name__ == '__main__':
                     log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
                 bodhi.new(args[0], opts)
+            elif opts.stable:
+                if not args and len(args) != 1:
+                    log.error("Please specifiy a comma-separated list of builds")
+                    sys.exit(-1)
+                bodhi.push_to_stable(args[0])
+            elif opts.testing:
+                if not args and len(args) != 1:
+                    log.error("Please specifiy a comma-separated list of builds")
+                    sys.exit(-1)
+                bodhi.push_to_testing(args[0])
             elif opts.mine: bodhi.mine()
             elif opts.push: bodhi.push(opts)
             elif opts.delete: bodhi.delete(opts)
-            elif opts.masher: bodhi.masher(opts)
-            elif opts.stable: bodhi.push_to_stable(opts)
-            elif opts.testing: bodhi.push_to_testing(opts)
+            elif opts.masher: bodhi.masher()
             elif opts.obsolete: bodhi.obsolete(opts)
             elif opts.testable: bodhi.testable(opts)
             elif opts.candidates: bodhi.candidates(opts)
