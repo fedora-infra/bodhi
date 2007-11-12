@@ -68,7 +68,7 @@
     <table border="0" cellspacing="0" cellpadding="0">
     <tr py:for="i, field in enumerate(fields)">
         <td class="title">
-            <span py:if="i == 7">
+            <span py:if="i == 6">
                 <?python continue ?>
             </span>
             <label class="fieldlabel"
