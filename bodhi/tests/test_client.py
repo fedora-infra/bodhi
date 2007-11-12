@@ -133,10 +133,11 @@ class TestClient(testutil.DBTest):
         build = 'TurboGears-1.0.3.2-1.fc7'
         bodhi.new(build, opts)
         assert PackageUpdate.byTitle(build)
-        bodhi.push_to_stable(build)
+        bodhi.request(opts, build)
         update = PackageUpdate.byTitle(build)
-        assert update.request == opts.request
-        bodhi.push_to_testing(build)
+        assert update.request == 'stable'
+        opts.request = 'testing'
+        bodhi.request(opts, build)
         update = PackageUpdate.byTitle(build)
         assert update.request == 'testing'
 
