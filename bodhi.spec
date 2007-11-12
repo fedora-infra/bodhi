@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.4.0
+Version:        0.4.1
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -79,6 +79,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Nov 12 2007 Luke Macken <lmacken@redhat.com> - 0.4.1-1
+- 0.4.1
+
 * Sun Nov 11 2007 Luke Macken <lmacken@redhat.com> - 0.4.0-1
 - Lots of bodhi-client features
 
