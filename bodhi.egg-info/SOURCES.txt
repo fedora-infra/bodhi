@@ -113,11 +113,12 @@ bodhi/templates/text.kid
 bodhi/templates/welcome.kid
 bodhi/tests/__init__.py
 bodhi/tests/test_buildsystem.py
+bodhi/tests/test_client.py
 bodhi/tests/test_controllers.py
 bodhi/tests/test_metadata.py
 bodhi/tests/test_model.py
 bodhi/tools/__init__.py
-bodhi/tools/bodhi-client.py
+bodhi/tools/bodhi_client.py
 bodhi/tools/dev_init.py
 bodhi/tools/init.py
 bodhi/tools/pickledb.py
