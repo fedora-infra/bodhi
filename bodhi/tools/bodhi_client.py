@@ -26,6 +26,7 @@ from yum import YumBase
 from os.path import join, expanduser
 from getpass import getpass, getuser
 from optparse import OptionParser
+from ConfigParser import ConfigParser
 
 from fedora.tg.client import BaseClient, AuthError, ServerError
 
@@ -46,6 +47,8 @@ class BodhiClient(BaseClient):
                 'bugs'    : opts.bugs,
                 'notes'   : opts.notes
         }
+        if hasattr(opts, 'request'):
+            params['request'] = opts.request
         data = self.send_request('save', auth=True, input=params)
         log.info(data['tg_flash'])
         if data.has_key('update'):
@@ -53,7 +56,7 @@ class BodhiClient(BaseClient):
 
     def list(self, opts, package=None, showcount=True):
         args = { 'tg_paginate_limit' : opts.limit }
-        for arg in ('release', 'status', 'type', 'bugs'):
+        for arg in ('release', 'status', 'type', 'bugs', 'request'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
         if package:
@@ -68,24 +71,18 @@ class BodhiClient(BaseClient):
             log.info("%d updates found (%d shown)" % (data['num_items'],
                                                       len(data['updates'])))
 
-    def delete(self, opts):
-        rams = { 'update' : opts.delete }
+    def delete(self, update):
+        params = { 'update' : update }
         data = self.send_request('delete', input=params, auth=True)
         log.info(data['tg_flash'])
 
-    def obsolete(self, opts):
-        params = { 'action' : 'obsolete', 'update' : opts.obsolete }
-        data = self.send_request('request', input=params, auth=True)
-        log.info(data['tg_flash'])
-
     def __koji_session(self):
-        config = filter(lambda line: len(line.split()),
-                     open(join(expanduser('~'), '.koji', 'config')).readlines())
-        value = lambda key: map(lambda x: expanduser(x.split()[-1].strip()),
-                                filter(lambda x: x.split()[0] == key,config))[0]
-        session = koji.ClientSession(value('server'))
-        session.ssl_login(cert=value('cert'), ca=value('ca'),
-                          serverca=value('serverca'))
+        config = ConfigParser()
+        config.readfp(open(join(expanduser('~'), '.koji', 'config')))
+        session = koji.ClientSession(config.get('koji', 'server'))
+        session.ssl_login(cert=expanduser(config.get('koji', 'cert')),
+                          ca=expanduser(config.get('koji', 'ca')),
+                          serverca=expanduser(config.get('koji', 'serverca')))
         return session
 
     koji_session = property(fget=__koji_session)
@@ -135,17 +132,12 @@ class BodhiClient(BaseClient):
         if data.has_key('update'):
             log.info(data['update'])
 
-    def push_to_testing(self, update):
-        params = { 'action' : 'testing', 'update' : update }
+    def request(self, opts, update):
+        params = { 'action' : opts.request, 'update' : update }
         data = self.send_request('request', input=params, auth=True)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
-
-    def push_to_stable(self, update):
-        params = { 'action' : 'stable', 'update' : update }
-        data = self.send_request('request', input=params, auth=True)
-        log.info(data['tg_flash'])
 
     def masher(self):
         data = self.send_request('admin/masher', auth=True)
@@ -178,9 +170,10 @@ class BodhiClient(BaseClient):
                     'updates' : [u['title'] for u in data['updates']] })
 
     def parse_file(self,opts):
-        regex = re.compile(r'^(BUG|bug|TYPE|type)=(.*$)')
+        regex = re.compile(r'^(BUG|bug|TYPE|type|REQUEST|request)=(.*$)')
         types = {'S':'security','B':'bugfix','E':'enhancement'}
-        def _split(self,var,delim):
+        requests = {'T':'testing','S':'stable'}
+        def _split(var, delim):
             if var: return var.split(delim)
             else: return []
         notes = _split(opts.notes,'\n')
@@ -193,22 +186,25 @@ class BodhiClient(BaseClient):
             for line in lines:
                 if line[0] == ':' or line[0] == '#':
                     continue
-                src=regex.search(line)
+                src = regex.search(line)
                 if src:
                     cmd,para = tuple(src.groups())
-                    cmd=cmd.upper()
+                    cmd = cmd.upper()
                     if cmd == 'BUG':
                         para = [p for p in para.split(' ')]
                         bugs.extend(para)
                     elif cmd == 'TYPE':
                         opts.type = types[para.upper()]
+                    elif cmd == 'REQUEST':
+                        opts.request = requests[para.upper()]
                 else: # This is notes
-                    notes.append(line[:-1])
+                    notes.append(line.strip())
         if notes:
             opts.notes = "\r\n".join(notes)
         if bugs:
             opts.bugs = ','.join(bugs)
         log.debug("Type : %s" % opts.type)
+        log.debug("Request: %s" % opts.request)
         log.debug('Bugs:\n%s' % opts.bugs)
         log.debug('Notes:\n%s' % opts.notes)
 
@@ -236,25 +232,17 @@ if __name__ == '__main__':
     parser.add_option("-M", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
     parser.add_option("-P", "--push", action="store_true", dest="push",
-                      help="Display and push any pending updates")
-    parser.add_option("-d", "--delete", action="store", type="string",
-                      dest="delete", help="Delete an update",
-                      metavar="UPDATE")
-    parser.add_option("-o", "--obsolete", action="store", type="string",
-                      dest="obsolete", help="Mark an update as being obsolete",
-                      metavar="UPDATE")
+                      help="Display and push any pending updates (releng only)")
+    parser.add_option("-d", "--delete", action="store_true", dest="delete",
+                      help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",
                       dest="input_file", help="Get Bugs,Type,Notes from a file")
-    parser.add_option("-S", "--stable", action="store_true", dest="stable",
-                      help="Mark an update for push to stable")
-    parser.add_option("-T", "--testing", action="store_true", dest="testing",
-                      help="Mark an update for push to testing")
     parser.add_option("-m", "--mine", action="store_true", dest="mine",
                       help="Display a list of your updates")
-    parser.add_option("", "--candidates", action="store_true",
+    parser.add_option("-C", "--candidates", action="store_true",
                       help="Display a list of update candidates",
                       dest="candidates")
-    parser.add_option("", "--testable", action="store_true",
+    parser.add_option("-T", "--testable", action="store_true",
                       help="Display a list of installed updates that you "
                            "could test and provide feedback for")
     parser.add_option("-c", "--comment", action="store", dest="comment",
@@ -262,7 +250,9 @@ if __name__ == '__main__':
     parser.add_option("-k", "--karma", action="store", dest="karma",
                       metavar="[+1|-1]", default=0,
                       help="Give karma to a specific update (default: 0)")
-
+    parser.add_option("-R", "--request", action="store", dest="request",
+                      metavar="STATE", help="Request that a given update be "
+                      "moved to a different state [testing|stable|obsolete]")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -294,12 +284,15 @@ if __name__ == '__main__':
 
     bodhi = BodhiClient(BODHI_URL, opts.username, None)
 
+    def verify_args(args):
+        if not args and len(args) != 1:
+            log.error("Please specifiy a comma-separated list of builds")
+            sys.exit(-1)
+
     while True:
         try:
             if opts.new:
-                if not args and len(args) != 1:
-                    log.error("Please specifiy a comma-separated list of builds")
-                    sys.exit(-1)
+                verify_args(args)
                 if opts.input_file:
                     bodhi.parse_file(opts)
                 if not opts.release:
@@ -309,23 +302,22 @@ if __name__ == '__main__':
                     log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
                 bodhi.new(args[0], opts)
-            elif opts.stable:
-                if not args and len(args) != 1:
-                    log.error("Please specifiy a comma-separated list of builds")
-                    sys.exit(-1)
-                bodhi.push_to_stable(args[0])
-            elif opts.testing:
-                if not args and len(args) != 1:
-                    log.error("Please specifiy a comma-separated list of builds")
-                    sys.exit(-1)
-                bodhi.push_to_testing(args[0])
-            elif opts.mine: bodhi.mine()
-            elif opts.push: bodhi.push(opts)
-            elif opts.delete: bodhi.delete(opts)
-            elif opts.masher: bodhi.masher()
-            elif opts.obsolete: bodhi.obsolete(opts)
-            elif opts.testable: bodhi.testable(opts)
-            elif opts.candidates: bodhi.candidates(opts)
+            elif opts.request:
+                verify_args(args)
+                bodhi.request(opts, args[0])
+            elif opts.delete:
+                verify_args(args)
+                bodhi.delete(args[0])
+            elif opts.mine:
+                bodhi.mine()
+            elif opts.push:
+                bodhi.push(opts)
+            elif opts.masher:
+                bodhi.masher()
+            elif opts.testable:
+                bodhi.testable(opts)
+            elif opts.candidates:
+                bodhi.candidates(opts)
             elif opts.comment or opts.karma:
                 if not len(args) or not args[0]:
                     log.error("Please specify an update to comment on")

@@ -307,37 +307,37 @@ class PackageUpdate(SQLObject):
         """
         val = header(self.title.replace(',', ', '))
         if self.update_id:
-            val += "  Update ID: %s\n" % self.update_id
-        val += """    Release: %s
+            val += u"  Update ID: %s\n" % self.update_id
+        val += u"""    Release: %s
      Status: %s
        Type: %s
       Karma: %d""" % (self.release.long_name,self.status,self.type,self.karma)
         if self.request != None:
-            val += "\n    Request: %s" % self.request
+            val += u"\n    Request: %s" % self.request
         if len(self.bugs):
             bugs = self.get_bugstring(show_titles=True)
-            val += "\n       Bugs: %s" % bugs
+            val += u"\n       Bugs: %s" % bugs
         if len(self.cves):
-            val += "\n       CVEs: %s" % self.get_cvestring()
+            val += u"\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
             notes = wrap(self.notes, width=67, subsequent_indent=' ' * 11 +': ')
-            val += "\n      Notes: %s" % '\n'.join(notes)
-        val += """
+            val += u"\n      Notes: %s" % '\n'.join(notes)
+        val += u"""
   Submitter: %s
   Submitted: %s\n""" % (self.submitter, self.date_submitted)
         if len(self.comments):
-            val += "   Comments: "
+            val += u"   Comments: "
             comments = []
             for comment in self.comments:
-                comments.append("%s%s - %s (karma %s)" % (' ' * 13,
+                comments.append(u"%s%s - %s (karma %s)" % (' ' * 13,
                                 comment.author, comment.timestamp,
                                 comment.karma))
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,
                                 subsequent_indent=' ' * 13, width=67)
                     comments.append('\n'.join(text))
-            val += '\n'.join(comments).lstrip()
-        val += "\n\n  %s\n" % (config.get('base_address') + url(self.get_url()))
+            val += u'\n'.join(comments).lstrip() + '\n'
+        val += u"\n  %s\n" % (config.get('base_address') + url(self.get_url()))
         return val
 
     def get_build_tag(self):
