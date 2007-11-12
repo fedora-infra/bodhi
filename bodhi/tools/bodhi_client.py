@@ -47,7 +47,7 @@ class BodhiClient(BaseClient):
                 'bugs'    : opts.bugs,
                 'notes'   : opts.notes
         }
-        if hasattr(opts, 'request'):
+        if hasattr(opts, 'request') and getattr(opts, 'request'):
             params['request'] = opts.request
         data = self.send_request('save', auth=True, input=params)
         log.info(data['tg_flash'])
