@@ -108,16 +108,6 @@ class TestClient(testutil.DBTest):
         except SQLObjectNotFound:
             pass
 
-    def test_obsolete(self):
-        bodhi = self.__get_bodhi_client()
-        opts = self.__get_opts()
-        build = 'TurboGears-1.0.3.2-1.fc7'
-        bodhi.new(build, opts)
-        assert PackageUpdate.byTitle(build)
-        bodhi.obsolete(opts)
-        update = PackageUpdate.byTitle(build)
-        assert update.status == 'obsolete'
-
     def test_comment(self):
         bodhi = self.__get_bodhi_client()
         opts = self.__get_opts()
@@ -160,7 +150,7 @@ class TestClient(testutil.DBTest):
         opts = self.__get_opts()
 
         out = file(opts.input_file, 'w')
-        out.write('type=E\nrequest=T\nbug=123,456')
+        out.write('type=E\nrequest=T\nbug=123,456\nbar')
         out.close()
 
         bodhi.parse_file(opts)
@@ -170,6 +160,7 @@ class TestClient(testutil.DBTest):
         update = PackageUpdate.byTitle(build)
         assert update.type == 'enhancement'
         assert update.request == 'testing'
+        assert update.notes == 'foo\r\nbar'
         for bug in (123, 456):
             bz = Bugzilla.byBz_id(bug)
             assert bz in update.bugs
