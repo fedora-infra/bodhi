@@ -638,11 +638,9 @@ class Root(controllers.RootController):
     def comment(self, text, title, karma, tg_errors=None):
         if tg_errors:
             flash_log(tg_errors)
+        elif karma not in (0, 1, -1):
+            flash_log("Karma must be one of (1, 0, -1)")
         else:
-            if karma not in (0, 1, -1):
-                flash_log("Karma must be one of (1, 0, -1)")
-                if self.jsonRequest(): return dict()
-                raise redirect(update.get_url())
             try:
                 update = PackageUpdate.byTitle(title)
                 if text == 'None': text = None
