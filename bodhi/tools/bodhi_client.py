@@ -53,7 +53,7 @@ class BodhiClient(BaseClient):
 
     def list(self, opts, package=None, showcount=True):
         args = { 'tg_paginate_limit' : opts.limit }
-        for arg in ('release', 'status', 'type', 'bugs'):
+        for arg in ('release', 'status', 'type', 'bugs', 'request'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
         if package:
@@ -69,7 +69,7 @@ class BodhiClient(BaseClient):
                                                       len(data['updates'])))
 
     def delete(self, opts):
-        rams = { 'update' : opts.delete }
+        params = { 'update' : opts.delete }
         data = self.send_request('delete', input=params, auth=True)
         log.info(data['tg_flash'])
 
@@ -176,7 +176,7 @@ class BodhiClient(BaseClient):
         regex = re.compile(r'^(BUG|bug|TYPE|type|REQUEST|request)=(.*$)')
         types = {'S':'security','B':'bugfix','E':'enhancement'}
         requests = {'T':'testing','S':'stable'}
-        def _split(self,var,delim):
+        def _split(var, delim):
             if var: return var.split(delim)
             else: return []
         notes = _split(opts.notes,'\n')

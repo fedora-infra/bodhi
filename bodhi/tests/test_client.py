@@ -1,6 +1,8 @@
 # $Id: $
 
+import os
 import turbogears
+
 from turbogears import testutil, database
 turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
@@ -10,7 +12,7 @@ import cherrypy
 import simplejson
 
 from sqlobject import SQLObjectNotFound
-from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla
+from bodhi.model import PackageUpdate, Bugzilla
 from bodhi.controllers import Root
 from bodhi.tools.bodhi_client import BodhiClient
 from bodhi.tests.test_controllers import login, create_release
@@ -51,6 +53,7 @@ class Opts:
     karma = '-1'
     request = 'stable'
     update = 'TurboGears-1.0.3.2-1.fc7'
+    input_file = '.bodhi.tmp'
 
 class TestClient(testutil.DBTest):
     """
@@ -151,3 +154,24 @@ class TestClient(testutil.DBTest):
         print data
         assert data['title'] == u"lmacken's updates"
         assert len(data['updates']) == 1
+
+    def test_file_input(self):
+        bodhi = self.__get_bodhi_client()
+        opts = self.__get_opts()
+
+        out = file(opts.input_file, 'w')
+        out.write('type=E\nrequest=T\nbug=123,456')
+        out.close()
+
+        bodhi.parse_file(opts)
+        build = 'TurboGears-1.0.3.2-1.fc7'
+        bodhi.new(build, opts)
+
+        update = PackageUpdate.byTitle(build)
+        assert update.type == 'enhancement'
+        assert update.request == 'testing'
+        for bug in (123, 456):
+            bz = Bugzilla.byBz_id(bug)
+            assert bz in update.bugs
+
+        os.unlink(opts.input_file)
