@@ -26,6 +26,7 @@ from yum import YumBase
 from os.path import join, expanduser
 from getpass import getpass, getuser
 from optparse import OptionParser
+from ConfigParser import ConfigParser
 
 from fedora.tg.client import BaseClient, AuthError, ServerError
 
@@ -68,24 +69,18 @@ class BodhiClient(BaseClient):
             log.info("%d updates found (%d shown)" % (data['num_items'],
                                                       len(data['updates'])))
 
-    def delete(self, opts):
-        params = { 'update' : opts.delete }
+    def delete(self, update):
+        params = { 'update' : update }
         data = self.send_request('delete', input=params, auth=True)
         log.info(data['tg_flash'])
 
-    def obsolete(self, opts):
-        params = { 'action' : 'obsolete', 'update' : opts.obsolete }
-        data = self.send_request('request', input=params, auth=True)
-        log.info(data['tg_flash'])
-
     def __koji_session(self):
-        config = filter(lambda line: len(line.split()),
-                     open(join(expanduser('~'), '.koji', 'config')).readlines())
-        value = lambda key: map(lambda x: expanduser(x.split()[-1].strip()),
-                                filter(lambda x: x.split()[0] == key,config))[0]
-        session = koji.ClientSession(value('server'))
-        session.ssl_login(cert=value('cert'), ca=value('ca'),
-                          serverca=value('serverca'))
+        config = ConfigParser()
+        config.readfp(open(join(expanduser('~'), '.koji', 'config')))
+        session = koji.ClientSession(config.get('koji', 'server'))
+        session.ssl_login(cert=expanduser(config.get('koji', 'cert')),
+                          ca=expanduser(config.get('koji', 'ca')),
+                          serverca=expanduser(config.get('koji', 'serverca')))
         return session
 
     koji_session = property(fget=__koji_session)
@@ -201,7 +196,7 @@ class BodhiClient(BaseClient):
                     elif cmd == 'REQUEST':
                         opts.request = requests[para.upper()]
                 else: # This is notes
-                    notes.append(line[:-1])
+                    notes.append(line.strip())
         if notes:
             opts.notes = "\r\n".join(notes)
         if bugs:
@@ -235,13 +230,9 @@ if __name__ == '__main__':
     parser.add_option("-M", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
     parser.add_option("-P", "--push", action="store_true", dest="push",
-                      help="Display and push any pending updates")
+                      help="Display and push any pending updates (releng only)")
     parser.add_option("-d", "--delete", action="store", type="string",
-                      dest="delete", help="Delete an update",
-                      metavar="UPDATE")
-    parser.add_option("-o", "--obsolete", action="store", type="string",
-                      dest="obsolete", help="Mark an update as being obsolete",
-                      metavar="UPDATE")
+                      dest="delete", help="Delete an update", metavar="UPDATE")
     parser.add_option("", "--file", action="store", type="string",
                       dest="input_file", help="Get Bugs,Type,Notes from a file")
     parser.add_option("-m", "--mine", action="store_true", dest="mine",
@@ -257,7 +248,7 @@ if __name__ == '__main__':
     parser.add_option("-k", "--karma", action="store", dest="karma",
                       metavar="[+1|-1]", default=0,
                       help="Give karma to a specific update (default: 0)")
-    parser.add_option("-r", "--request", action="store", dest="request",
+    parser.add_option("-R", "--request", action="store", dest="request",
                       metavar="STATE", help="Request that a given update be "
                       "moved to a different state [testing|stable|obsolete]")
 
@@ -309,22 +300,22 @@ if __name__ == '__main__':
                     log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
                 bodhi.new(args[0], opts)
-            elif opts.stable:
-                verify_args()
-                bodhi.push_to_stable(args[0])
-            elif opts.testing:
-                verify_args()
-                bodhi.push_to_testing(args[0])
             elif opts.request:
                 verify_args()
                 bodhi.request(opts, args[0])
-            elif opts.mine: bodhi.mine()
-            elif opts.push: bodhi.push(opts)
-            elif opts.delete: bodhi.delete(opts)
-            elif opts.masher: bodhi.masher()
-            elif opts.obsolete: bodhi.obsolete(opts)
-            elif opts.testable: bodhi.testable(opts)
-            elif opts.candidates: bodhi.candidates(opts)
+            elif opts.delete:
+                verify_args()
+                bodhi.delete(args[0])
+            elif opts.mine:
+                bodhi.mine()
+            elif opts.push:
+                bodhi.push(opts)
+            elif opts.masher:
+                bodhi.masher()
+            elif opts.testable:
+                bodhi.testable(opts)
+            elif opts.candidates:
+                bodhi.candidates(opts)
             elif opts.comment or opts.karma:
                 if not len(args) or not args[0]:
                     log.error("Please specify an update to comment on")
