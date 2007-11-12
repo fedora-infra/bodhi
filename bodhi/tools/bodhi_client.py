@@ -47,6 +47,8 @@ class BodhiClient(BaseClient):
                 'bugs'    : opts.bugs,
                 'notes'   : opts.notes
         }
+        if hasattr(opts, 'request'):
+            params['request'] = opts.request
         data = self.send_request('save', auth=True, input=params)
         log.info(data['tg_flash'])
         if data.has_key('update'):
@@ -231,8 +233,8 @@ if __name__ == '__main__':
                       help="Display the status of the Masher")
     parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates (releng only)")
-    parser.add_option("-d", "--delete", action="store", type="string",
-                      dest="delete", help="Delete an update", metavar="UPDATE")
+    parser.add_option("-d", "--delete", action="store_true", dest="delete",
+                      help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",
                       dest="input_file", help="Get Bugs,Type,Notes from a file")
     parser.add_option("-m", "--mine", action="store_true", dest="mine",
@@ -290,7 +292,7 @@ if __name__ == '__main__':
     while True:
         try:
             if opts.new:
-                verify_args()
+                verify_args(args)
                 if opts.input_file:
                     bodhi.parse_file(opts)
                 if not opts.release:
@@ -301,10 +303,10 @@ if __name__ == '__main__':
                     sys.exit(-1)
                 bodhi.new(args[0], opts)
             elif opts.request:
-                verify_args()
+                verify_args(args)
                 bodhi.request(opts, args[0])
             elif opts.delete:
-                verify_args()
+                verify_args(args)
                 bodhi.delete(args[0])
             elif opts.mine:
                 bodhi.mine()
