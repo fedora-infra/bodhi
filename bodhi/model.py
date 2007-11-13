@@ -447,29 +447,34 @@ class PackageUpdate(SQLObject):
         for person in people:
             mail.send(person, 'comment', self)
 
-    def obsolete(self, newer=None):
-        """
-        Obsolete this update.  This entails moving it back to
-        the dist-fcX-updates-candidate tag.  Even though
-        unpushing/obsoletion is an "instant" action, changes in
-        the repository will not propagate until the next mash takes place.
-        """
-        log.debug("Obsoleting %s" % self.title)
+    def unpush(self):
+        """ Move this update back to its dist-fX-updates-candidate tag """
+        log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
         tag = '%s-updates-candidate' % self.release.dist_tag
         for build in self.builds:
             log.debug("Moving %s from %s to %s" % (build.nvr,
                       self.get_build_tag(), tag))
             koji.moveBuild(self.get_build_tag(), tag, build.nvr, force=True)
-        self.status = 'obsolete'
         self.pushed = False
+        self.status = 'pending'
+        mail.send_admin('unpushed', self)
+ 
+    def obsolete(self, newer=None):
+        """
+        Obsolete this update. Even though unpushing/obsoletion is an "instant"
+        action, changes in the repository will not propagate until the next
+        mash takes place.
+        """
+        log.debug("Obsoleting %s" % self.title)
+        self.unpush()
+        self.status = 'obsolete'
         self.request = None
         if newer:
-            self.comment("This update has been obsoleted by %s" % newer, 
+            self.comment("This update has been obsoleted by %s" % newer,
                          author='bodhi')
         else:
             self.comment("This update has been obsoleted", author='bodhi')
-        mail.send_admin('unpushed', self)
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
