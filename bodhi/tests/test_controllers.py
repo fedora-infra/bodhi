@@ -349,7 +349,7 @@ class TestControllers(testutil.DBTest):
         testutil.createRequest('/updates/request/unpush/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.status == 'obsolete'
+        assert update.status == 'pending'
         assert update.pushed == False
         testutil.createRequest('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
@@ -414,7 +414,7 @@ class TestControllers(testutil.DBTest):
         newupdate = PackageUpdate.byTitle(newparams['builds'])
         assert newupdate.status == 'pending'
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.status == 'obsolete'
+        #assert update.status == 'obsolete'
 
     def test_list(self):
         """

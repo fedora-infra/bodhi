@@ -268,9 +268,15 @@ class Root(controllers.RootController):
                                                                update.request))
             if self.jsonRequest: return dict()
             raise redirect(update.get_url())
-        if action in ('unpush', 'obsolete'):
+        if action == 'unpush':
+            update.unpush()
+            flash_log("%s has been unpushed" % update.title)
+            if self.jsonRequest(): return dict(update=update)
+            raise redirect(update.get_url())
+        if action == 'obsolete':
             update.obsolete()
-            if self.jsonRequest(): return dict()
+            flash_log("%s has been obsoleted" % update.title)
+            if self.jsonRequest(): return dict(update=update)
             raise redirect(update.get_url())
         if action not in ('testing', 'stable', 'obsolete'):
             flash_log("Unknown request: %s" % action)
@@ -437,13 +443,17 @@ class Root(controllers.RootController):
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
 
+            # FIXME: don't obsolete updates in other releases
+            # https://hosted.fedoraproject.org/projects/bodhi/ticket/127#comment:1
             # Obsolete any older pending/testing updates
-            for oldBuild in filter(lambda x: x.updates[0].status in ('pending',
-                                   'testing'), package.builds):
-                if rpm.labelCompare(util.get_nvr(oldBuild.nvr),
-                                    util.get_nvr(build)) < 0:
-                    oldBuild.updates[0].obsolete(newer=build)
-                    note.append('This update has obsoleted %s' % oldBuild.nvr)
+            #for oldBuild in filter(lambda x: x.updates[0].status in ('pending',
+            #                       'testing'), package.builds):
+            #    if release not in [up.release for up in oldBuild.updates]:
+            #        continue
+            #    if rpm.labelCompare(util.get_nvr(oldBuild.nvr),
+            #                        util.get_nvr(build)) < 0:
+            #        oldBuild.updates[0].obsolete(newer=build)
+            #        note.append('This update has obsoleted %s' % oldBuild.nvr)
 
             # Check for broken update paths against all previous releases
             kojiBuild = koji.getBuild(build)
