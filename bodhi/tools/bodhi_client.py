@@ -222,13 +222,13 @@ def setup_logger():
 
 
 if __name__ == '__main__':
-    usage = "usage: %prog [options] [ build | package ]"
+    usage = "usage: %prog [options] [build|package]"
     parser = OptionParser(usage, description=__description__,
                           version=__version__)
 
     ## Actions
     parser.add_option("-n", "--new", action="store_true", dest="new",
-                      help="Add a new update to the system")
+                      help="Submit a new update")
     parser.add_option("-M", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
     parser.add_option("-P", "--push", action="store_true", dest="push",
@@ -236,11 +236,11 @@ if __name__ == '__main__':
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",
-                      dest="input_file", help="Get Bugs,Type,Notes from a file")
+                      dest="input_file", help="Get update details from a file")
     parser.add_option("-m", "--mine", action="store_true", dest="mine",
                       help="Display a list of your updates")
     parser.add_option("-C", "--candidates", action="store_true",
-                      help="Display a list of update candidates",
+                      help="Display a list of your update candidates",
                       dest="candidates")
     parser.add_option("-T", "--testable", action="store_true",
                       help="Display a list of installed updates that you "
@@ -251,18 +251,18 @@ if __name__ == '__main__':
                       metavar="[+1|-1]", default=0,
                       help="Give karma to a specific update (default: 0)")
     parser.add_option("-R", "--request", action="store", dest="request",
-                      metavar="STATE", help="Request that a given update be "
-                      "moved to a different state [testing|stable|obsolete]")
+                      metavar="STATE", help="Request that an action be "
+                      "performed on an update [testing|stable|unpush|obsolete]")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
                       dest="status", help="List [pending|testing|stable|"
                       "obsolete] updates")
     parser.add_option("-b", "--bugs", action="store", type="string",
-                      dest="bugs", help="Associate bugs with an update "
+                      dest="bugs", help="Specify any number of Bugzilla IDs "
                       "(--bugs=1234,5678)", default="")
     parser.add_option("-r", "--release", action="store", type="string",
-                      dest="release", help="Release [F7|F8]")
+                      dest="release", help="Specify a release [F7|F8]")
     parser.add_option("-N", "--notes", action="store", type="string",
                       dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
