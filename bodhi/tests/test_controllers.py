@@ -263,6 +263,10 @@ class TestControllers(testutil.DBTest):
         assert update.bugs[0].bz_id == int(params['bugs'])
         bug = Bugzilla.byBz_id(int(params['bugs']))
 
+        # Make sure there are no stray builds
+        for update in PackageUpdate.select():
+            assert len(update.builds), "%s with no builds!" % update.title
+
         # Remove a build and bug
         params = {
             'builds'  : 'python-sqlobject-0.8.2-1.fc7',
@@ -285,6 +289,31 @@ class TestControllers(testutil.DBTest):
             assert False, "Bug #1 never got destroyed after edit"
         except SQLObjectNotFound:
             pass
+
+        # Try editing this update, with some parameters that will fail
+        params = {
+            'builds'  : 'python-sqlobject-0.8.2-1.fc7 kernel-2.6.20-1',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foobar',
+            'edited'  : 'python-sqlobject-0.8.2-1.fc7'
+        }
+        self.save_update(params, session)
+        try:
+            update = PackageUpdate.byTitle(','.join(params['builds'].split()))
+            assert False
+        except SQLObjectNotFound:
+            pass
+
+        # Make sure there are no stray builds
+        for update in PackageUpdate.select():
+            assert len(update.builds), "%s with no builds!" % update.title
+
+        # Make sure the update is still in tact
+        update = PackageUpdate.byTitle('python-sqlobject-0.8.2-1.fc7')
+        assert len(update.builds) == 1
 
     def test_delete(self):
         session = login()
