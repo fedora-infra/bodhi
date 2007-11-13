@@ -271,12 +271,12 @@ class Root(controllers.RootController):
         if action == 'unpush':
             update.unpush()
             flash_log("%s has been unpushed" % update.title)
-            if self.jsonRequest(): return dict(update=update)
+            if self.jsonRequest(): return dict(update=str(update))
             raise redirect(update.get_url())
         if action == 'obsolete':
             update.obsolete()
             flash_log("%s has been obsoleted" % update.title)
-            if self.jsonRequest(): return dict(update=update)
+            if self.jsonRequest(): return dict(update=str(update))
             raise redirect(update.get_url())
         if action not in ('testing', 'stable', 'obsolete'):
             flash_log("Unknown request: %s" % action)
