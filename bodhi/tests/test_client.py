@@ -166,3 +166,13 @@ class TestClient(testutil.DBTest):
             assert bz in update.bugs
 
         os.unlink(opts.input_file)
+
+    def test_unpush(self):
+        bodhi = self.__get_bodhi_client()
+        opts = self.__get_opts()
+        build = 'TurboGears-1.0.3.2-1.fc7'
+        bodhi.new(build, opts)
+        opts.request = 'unpush'
+        bodhi.request(opts, build)
+        update = PackageUpdate.byTitle(build)
+        assert update.status == 'pending'
