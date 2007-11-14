@@ -436,6 +436,9 @@ class Root(controllers.RootController):
 
             # Check for broken update paths against all previous releases
             kojiBuild = koji.getBuild(build)
+            kojiBuild['nvr'] = "%s-%s-%s" % (kojiBuild['name'],
+                                             kojiBuild['version'],
+                                             kojiBuild['release'])
             tag = release.dist_tag
             nvr = util.get_nvr(build)
             while True:
