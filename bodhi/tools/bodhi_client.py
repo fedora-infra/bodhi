@@ -23,7 +23,7 @@ import logging
 import urllib2
 
 from yum import YumBase
-from os.path import join, expanduser
+from os.path import join, expanduser, isdir
 from getpass import getpass, getuser
 from optparse import OptionParser
 from ConfigParser import ConfigParser
@@ -77,6 +77,10 @@ class BodhiClient(BaseClient):
         log.info(data['tg_flash'])
 
     def __koji_session(self):
+        if not isdir(join(expanduser('~'), '.koji')):
+            log.error("Cannot find koji configuration.  Please run "
+                      "`fedora-packager-setup.sh`")
+            sys.exit(-1)
         config = ConfigParser()
         config.readfp(open(join(expanduser('~'), '.koji', 'config')))
         session = koji.ClientSession(config.get('koji', 'server'))

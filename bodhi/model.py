@@ -305,7 +305,9 @@ class PackageUpdate(SQLObject):
         """
         Return a string representation of this update.
         """
-        val = header(self.title.replace(',', ', '))
+        val = u"%s\n%s\n%s\n" % ('=' * 80, u'\n'.join(wrap(
+            self.title.replace(',', ', '), width=80, initial_indent=' '*5,
+            subsequent_indent=' '*5)), '=' * 80)
         if self.update_id:
             val += u"  Update ID: %s\n" % self.update_id
         val += u"""    Release: %s
@@ -335,8 +337,8 @@ class PackageUpdate(SQLObject):
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,
                                 subsequent_indent=' ' * 13, width=67)
-                    comments.append('\n'.join(text))
-            val += u'\n'.join(comments).lstrip() + '\n'
+                    comments.append(u'\n'.join(text))
+            val += u'\n'.join(comments).lstrip() + u'\n'
         val += u"\n  %s\n" % (config.get('base_address') + url(self.get_url()))
         return val
 

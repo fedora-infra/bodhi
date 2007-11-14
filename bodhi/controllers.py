@@ -399,21 +399,9 @@ class Root(controllers.RootController):
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
-        # Disallow adding or removing of builds when an update is testing or
-        # stable.  If we're in a pending state, we destroy them all and
-        # create them later -- to allow for adding/removing of builds.
-        if edited:
-            update = PackageUpdate.byTitle(edited)
-            if update.status in ('testing', 'stable'):
-                if filter(lambda build: build not in edited, builds) or \
-                   filter(lambda build: build not in builds, edited.split()):
-                    flash_log("You must unpush this update before you can "
-                              "add or remove any builds.")
-                    if self.jsonRequest(): return dict()
-                    raise redirect(update.get_url())
-            map(lambda build: build.destroySelf(), update.builds)
-
-        # Make sure the selected release matches the Koji tag for this build
+        ##
+        ## Iterate over all of the builds, performing various error checks
+        ##
         koji = buildsys.get_session()
         for build in builds:
             log.debug("Validating koji tag for %s" % build)
@@ -427,24 +415,15 @@ class Root(controllers.RootController):
                         break
             except GenericError, e:
                 flash_log("Invalid build: %s" % build)
-                if self.jsonRequest():
-                    return dict()
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
             if not tag_matches:
                 flash_log("%s build is not tagged with %s" % (build, candidate))
-                if self.jsonRequest():
-                    return dict()
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
-            # Get the package; if it doesn't exist, create it.
-            nvr = util.get_nvr(build)
-            try:
-                package = Package.byName(nvr[0])
-            except SQLObjectNotFound:
-                package = Package(name=nvr[0])
-
             # FIXME: don't obsolete updates in other releases
-            # https://hosted.fedoraproject.org/projects/bodhi/ticket/127#comment:1
+            # https://hosted.fedoraproject.org/projects/bodhi/ticket/127
             # Obsolete any older pending/testing updates
             #for oldBuild in filter(lambda x: x.updates[0].status in ('pending',
             #                       'testing'), package.builds):
@@ -458,6 +437,7 @@ class Root(controllers.RootController):
             # Check for broken update paths against all previous releases
             kojiBuild = koji.getBuild(build)
             tag = release.dist_tag
+            nvr = util.get_nvr(build)
             while True:
                 try:
                     for kojiTag in (tag, tag + '-updates'):
@@ -475,6 +455,27 @@ class Root(controllers.RootController):
                 # Check against the previous release (until one doesn't exist)
                 tag = tag[:-1] + str(int(tag[-1]) - 1)
 
+        # Disallow adding or removing of builds when an update is testing or
+        # stable.  If we're in a pending state, we destroy them all and
+        # create them later -- to allow for adding/removing of builds.
+        if edited:
+            update = PackageUpdate.byTitle(edited)
+            if update.status in ('testing', 'stable'):
+                if filter(lambda build: build not in edited, builds) or \
+                   filter(lambda build: build not in builds, edited.split()):
+                    flash_log("You must unpush this update before you can "
+                              "add or remove any builds.")
+                    if self.jsonRequest(): return dict()
+                    raise redirect(update.get_url())
+            map(lambda build: build.destroySelf(), update.builds)
+
+        # Create all of the PackageBuild and PackageUpdate objects
+        for build in builds:
+            nvr = util.get_nvr(build)
+            try:
+                package = Package.byName(nvr[0])
+            except SQLObjectNotFound:
+                package = Package(name=nvr[0])
             try:
                 pkgBuild = PackageBuild(nvr=build, package=package)
                 update_builds.append(pkgBuild)
@@ -655,10 +656,12 @@ class Root(controllers.RootController):
                 update = PackageUpdate.byTitle(title)
                 if text == 'None': text = None
                 update.comment(text, karma)
+                if self.jsonRequest(): return dict(update=str(update))
+                raise redirect(update.get_url())
             except SQLObjectNotFound:
                 flash_log("Update %s does not exist" % title)
-        if self.jsonRequest(): return dict(update=str(update))
-        raise redirect(update.get_url())
+        if self.jsonRequest(): return dict()
+        raise redirect('/')
 
     @expose(template='bodhi.templates.comments')
     @paginate('comments', limit=20, allow_limit_override=True)

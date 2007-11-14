@@ -42,7 +42,9 @@
                 <a href="${tg.url(comment.update.get_url())}" class="list">${comment.update.get_title(', ')}</a>
             </td>
             <td class="list">
+              <span py:if="comment.text">
                 ${comment.text[:50]}
+              </span>
             </td>
             <td class="list" align="center">
                 <img src="${tg.url('/static/images/karma%d.png' % comment.karma)}" align="top"/> <b>${comment.karma}</b>
