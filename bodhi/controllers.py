@@ -656,10 +656,12 @@ class Root(controllers.RootController):
                 update = PackageUpdate.byTitle(title)
                 if text == 'None': text = None
                 update.comment(text, karma)
+                if self.jsonRequest(): return dict(update=str(update))
+                raise redirect(update.get_url())
             except SQLObjectNotFound:
                 flash_log("Update %s does not exist" % title)
-        if self.jsonRequest(): return dict(update=str(update))
-        raise redirect(update.get_url())
+        if self.jsonRequest(): return dict()
+        raise redirect('/')
 
     @expose(template='bodhi.templates.comments')
     @paginate('comments', limit=20, allow_limit_override=True)
