@@ -178,7 +178,7 @@ class InstallApp(_install_lib, object):
 
 setup(
     name="bodhi",
-    version="0.4.3",
+    version="0.4.4",
     description="",
     author="Luke Macken",
     author_email="lmacken@fedoraproject.org",
