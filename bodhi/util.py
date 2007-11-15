@@ -257,4 +257,6 @@ def get_pkg_pushers(pkgName, collectionName, collectionVersion):
     return ((pAllowed, pNotify), (gAllowed, gNotify))
 
 def build_evr(build):
+    if not build['epoch']:
+        build['epoch'] = 0
     return (str(build['epoch']), build['version'], build['release'])
