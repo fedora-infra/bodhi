@@ -23,7 +23,7 @@ import logging
 import urllib2
 
 from yum import YumBase
-from os.path import join, expanduser, isdir
+from os.path import join, expanduser, exists
 from getpass import getpass, getuser
 from optparse import OptionParser
 from ConfigParser import ConfigParser
@@ -77,16 +77,16 @@ class BodhiClient(BaseClient):
         log.info(data['tg_flash'])
 
     def __koji_session(self):
-        if not isdir(join(expanduser('~'), '.koji')):
-            log.error("Cannot find koji configuration.  Please run "
-                      "`fedora-packager-setup.sh`")
-            sys.exit(-1)
         config = ConfigParser()
-        config.readfp(open(join(expanduser('~'), '.koji', 'config')))
+        if exists(join(expanduser('~'), '.koji', 'config')):
+            config.readfp(open(join(expanduser('~'), '.koji', 'config')))
+        else:
+            config.readfp(open('/etc/koji.conf'))
+        cert = expanduser(config.get('koji', 'cert'))
+        ca = expanduser(config.get('koji', 'ca'))
+        serverca = expanduser(config.get('koji', 'serverca'))
         session = koji.ClientSession(config.get('koji', 'server'))
-        session.ssl_login(cert=expanduser(config.get('koji', 'cert')),
-                          ca=expanduser(config.get('koji', 'ca')),
-                          serverca=expanduser(config.get('koji', 'serverca')))
+        session.ssl_login(cert=cert, ca=ca, serverca=serverca)
         return session
 
     koji_session = property(fget=__koji_session)
@@ -183,7 +183,7 @@ class BodhiClient(BaseClient):
         notes = _split(opts.notes,'\n')
         bugs = _split(opts.bugs,',')
         log.info("Reading from %s " % opts.input_file)
-        if os.path.exists(opts.input_file):
+        if exists(opts.input_file):
             f = open(opts.input_file)
             lines = f.readlines()
             f.close()
