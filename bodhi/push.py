@@ -36,7 +36,7 @@ class PushController(controllers.Controller, identity.SecureResource):
         if 'tg_format' in cherrypy.request.params and \
                 cherrypy.request.params['tg_format'] == 'json':
             import simplejson
-            updates = simplejson.loads(updates.replace("'", "\""))
+            updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
         if not isinstance(updates, list):
             updates = [updates]
         masher.queue([PackageUpdate.byTitle(title) for title in updates])
