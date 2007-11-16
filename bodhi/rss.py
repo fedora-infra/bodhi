@@ -37,13 +37,13 @@ class Feed(FeedController):
 
         for update in updates:
             entries.append({
-                'date_released' : update.date_pushed,
-                'title'   : "%s %sUpdate: %s" % (update.release.long_name,
-                                                 update.type == 'security'
-                                                 and 'Security ' or '',
-                                                 update.title),
-                'author'  : update.submitter,
-                'link'    : config.get('base_address') + update.get_url(),
+                'id' : update.update_id,
+                'published' : update.date_pushed,
+                'title' : "%s %sUpdate: %s" % (update.release.long_name,
+                                               update.type == 'security'
+                                               and 'Security ' or '',
+                                               update.title),
+                'link' : config.get('base_address') + update.get_url(),
                 'summary' : update.notes
             })
             if len(update.bugs):
@@ -55,6 +55,7 @@ class Feed(FeedController):
 
         return dict(
                 title = "Fedora Updates",
+                subtitle = "",
                 link = config.get('base_address'),
                 entries = entries
         )
