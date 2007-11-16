@@ -37,7 +37,7 @@ class Feed(FeedController):
 
         for update in updates:
             entries.append({
-                'id' : update.update_id,
+                'id' : config.get('base_address') + update.get_url(),
                 'published' : update.date_pushed,
                 'title' : "%s %sUpdate: %s" % (update.release.long_name,
                                                update.type == 'security'
