@@ -1,4 +1,5 @@
 # $Id: $
+__requires__='TurboGears[future]'
 
 from setuptools import setup, find_packages
 from turbogears.finddata import find_package_data

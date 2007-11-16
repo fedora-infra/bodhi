@@ -202,7 +202,9 @@ a[name] {
 	color: #a7b2c9;
 }
 #fedora-side-nav ul li a:hover {
+  /*
 	background-color: #46659e;
+   */
 }
 #fedora-side-nav ul ul li a {
 	padding-left: 36px;
@@ -494,4 +496,38 @@ td.title {
 td.value {
     text-align: left;
     padding-left: 5px;
+}
+
+.release
+{
+  overflow: auto;
+}
+
+.release .link
+{
+  float: left;
+  margin: 0;
+  padding: 0;
+}
+
+.release .rsslink
+{
+  float: right;
+  width: 18px;
+  overflow:hidden;
+  padding-left: 0!important;
+  padding-right: 4px!important;
+}
+
+.release .rsslink:hover, .release .link:hover
+{
+  background: none!important;
+}
+
+.rsslink img
+{
+  display: block;
+  border: none;
+  margin: 0;
+  padding: 0;
 }
