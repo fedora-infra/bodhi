@@ -103,11 +103,11 @@ $(document).ready(function() {
                         <div id="${release[0]}_releases">
                             <ul>
                                 <li><a href="${tg.url('/new?release=%s' % release[1])}">New Update</a></li>
-                                <li py:for="status in ('pending', 'testing', 'stable')">
-                                    <a href="${tg.url('/%s/%s' % (release[0], status != 'stable' and status or ''))}">${status.title()} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == status)).count()})</a>
+                                <li py:for="status in ('pending', 'testing', 'stable')" class="release">
+                                <a href="${tg.url('/%s/%s' % (release[0], status != 'stable' and status or ''))}" class="link">${status.title()} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == status)).count()})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s' % (release[0], status))}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
                                 </li>
-                                <li>
-                                    <a href="${tg.url('/%s/security' % release[0])}">Security (${PackageUpdate.select(AND(PackageUpdate.q.type == 'security', PackageUpdate.q.releaseID == release[2], PackageUpdate.q.pushed == True)).count()})</a>
+                                <li class="release">
+                                <a href="${tg.url('/%s/security' % release[0])}" class="link">Security (${PackageUpdate.select(AND(PackageUpdate.q.type == 'security', PackageUpdate.q.releaseID == release[2], PackageUpdate.q.pushed == True)).count()})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;type=security' % release[0])}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
                                 </li>
                             </ul>
                         </div>
