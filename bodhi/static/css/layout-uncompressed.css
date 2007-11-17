@@ -513,10 +513,11 @@ td.value {
 .release .rsslink
 {
   float: right;
-  width: 18px;
+  width: 16px;
   overflow:hidden;
   padding-left: 0!important;
-  padding-right: 4px!important;
+  padding-right: 0!important;
+  margin-right: 4px!important;
 }
 
 .release .rsslink:hover, .release .link:hover
