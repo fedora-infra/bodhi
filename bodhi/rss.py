@@ -12,7 +12,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from turbogears.feed import FeedController
-from turbogears import expose, config
+from turbogears import expose, config, url
 from sqlobject.sqlbuilder import AND
 
 from bodhi.model import Release, PackageUpdate
@@ -42,10 +42,10 @@ class Feed(FeedController):
 
         for update in updates:
             entries.append({
-                'id'        : config.get('base_address') + update.get_url(),
+                'id'        : config.get('base_address') + url(update.get_url()),
                 'summary'   : update.notes,
                 'published' : date(update),
-                'link'      : config.get('base_address') + update.get_url(),
+                'link'      : config.get('base_address') + url(update.get_url()),
                 'title'     : "%s %sUpdate: %s" % (update.release.long_name,
                                                    update.type == 'security'
                                                    and 'Security ' or '',
@@ -63,6 +63,6 @@ class Feed(FeedController):
         return dict(
                 title = "Fedora Updates",
                 subtitle = "",
-                link = config.get('base_address'),
+                link = config.get('base_address') + url('/'),
                 entries = entries
         )
