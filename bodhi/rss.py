@@ -20,8 +20,9 @@ from bodhi.model import Release, PackageUpdate
 class Feed(FeedController):
 
     def get_feed_data(self, release=None, type=None, status=None, *args, **kw):
-        entries = []
         query = []
+        entries = []
+        date = lambda update: update.date_pushed
 
         if release:
             rel = Release.byName(release.upper())
@@ -30,27 +31,33 @@ class Feed(FeedController):
             query.append(PackageUpdate.q.type == type)
         if status:
             query.append(PackageUpdate.q.status == status)
-        query.append(PackageUpdate.q.pushed == True)
+            if status == 'pending':
+                date = lambda update: update.date_submitted
+            else:
+                # Let's only show pushed testing/stable updates
+                query.append(PackageUpdate.q.pushed == True)
 
         updates = PackageUpdate.select(AND(*query),
                         orderBy=PackageUpdate.q.date_pushed).reversed()[:20]
 
         for update in updates:
             entries.append({
-                'id' : config.get('base_address') + update.get_url(),
-                'published' : update.date_pushed,
-                'title' : "%s %sUpdate: %s" % (update.release.long_name,
-                                               update.type == 'security'
-                                               and 'Security ' or '',
-                                               update.title),
-                'link' : config.get('base_address') + update.get_url(),
-                'summary' : update.notes
+                'id'        : config.get('base_address') + update.get_url(),
+                'summary'   : update.notes,
+                'published' : date(update),
+                'link'      : config.get('base_address') + update.get_url(),
+                'title'     : "%s %sUpdate: %s" % (update.release.long_name,
+                                                   update.type == 'security'
+                                                   and 'Security ' or '',
+                                                   update.title)
             })
             if len(update.bugs):
                 bugs = "<b>Resolved Bugs</b><br/>"
                 for bug in update.bugs:
-                    bugs += "<a href=%s>%d</a> - %s<br/>" % (bug.get_url(), bug.bz_id, bug.title)
-                entries[-1]['summary'] = "%s<br/>%s" % (bugs[:-2], entries[-1]['summary'])
+                    bugs += "<a href=%s>%d</a> - %s<br/>" % (bug.get_url(),
+                                                             bug.bz_id, bug.title)
+                entries[-1]['summary'] = "%s<br/>%s" % (bugs[:-2],
+                                                        entries[-1]['summary'])
 
 
         return dict(
