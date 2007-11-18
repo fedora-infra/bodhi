@@ -84,6 +84,8 @@ class NewUpdateForm(Form):
                                                     'when this update is '
                                                     'pushed as stable'}),
             HiddenField('edited', default=None),
+            CheckBox(name='suggest_reboot', label='Suggest Reboot',
+                     default=False)
     ]
 
 class OkCancelForm(Form):

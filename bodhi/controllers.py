@@ -362,7 +362,7 @@ class Root(controllers.RootController):
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
     def save(self, builds, release, type, notes, bugs, close_bugs=False,
-             edited=False, request='testing', **kw):
+             edited=False, request='testing', suggest_reboot=False, **kw):
         """
         Save an update.  This includes new updates and edited.
         """
@@ -490,6 +490,8 @@ class Root(controllers.RootController):
                 package = Package.byName(nvr[0])
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
+            if suggest_reboot:
+                package.suggest_reboot = True
             try:
                 pkgBuild = PackageBuild(nvr=build, package=package)
                 update_builds.append(pkgBuild)
