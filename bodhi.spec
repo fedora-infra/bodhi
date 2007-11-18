@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.4.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -12,7 +12,7 @@ Source0:        bodhi-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-BuildRequires: python-setuptools-devel TurboGears
+BuildRequires: python-setuptools-devel TurboGears python-genshi
 
 %description
 Bodhi is a modular framework that facilitates the process of publishing
@@ -76,6 +76,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sun Nov 18 2007 Luke Macken <lmacken@redhat.com> - 0.4.5-2
+- Add python-genshi to BuildRequires
+
 * Sat Nov 17 2007 Luke Macken <lmacken@redhat.com> - 0.4.5-1
 - 0.4.5
 
