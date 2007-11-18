@@ -175,33 +175,44 @@ class Root(controllers.RootController):
             if package:
                 try:
                     update = PackageUpdate.byTitle(package)
-                    if update in updates:
-                        updates = [update] # There can be only one
+                    if not release and not status and not type:
+                        updates = [update]
                     else:
-                        updates = []
+                        if update in updates:
+                            updates = [update] # There can be only one
+                        else:
+                            updates = []
                 except SQLObjectNotFound:
                     try:
                         pkg = Package.byName(package)
-                        updates = filter(lambda up: up in updates, pkg.updates())
+                        if not release and not status and not type:
+                            updates = pkg.updates()
+                        else:
+                            updates = filter(lambda up: up in updates,
+                                             pkg.updates())
                     except SQLObjectNotFound:
                         try:
                             build = PackageBuild.byNvr(package)
-                            results = []
-                            for update in updates:
-                                if build in update.builds:
-                                    results.append(update)
-                            updates = results
+                            if not release and not status and not type:
+                                updates = build.updates
+                            else:
+                                results = []
+                                for update in updates:
+                                    if build in update.builds:
+                                        results.append(update)
+                                updates = results
                         except SQLObjectNotFound:
                             updates = []
 
             # Filter results by Bugs and/or CVEs
-            results = []
             if bugs:
+                results = []
                 for bug in map(Bugzilla.byBz_id, map(int, bugs.split(','))):
                     map(results.append,
                         filter(lambda x: bug in x.bugs, updates))
                 updates = results
             if cves:
+                results = []
                 for cve in map(CVE.byCve_id, cves.split(',')):
                     map(results.append,
                         filter(lambda x: cve in x.cves, updates))
