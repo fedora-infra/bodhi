@@ -32,20 +32,27 @@ class PackageValidator(validators.FancyValidator):
             raise Invalid(self.message('bad_name', state), value, state)
 
 class AutoCompleteValidator(validators.Schema):
+
+    messages = { 'empty_build' : 'Please specify a build' }
+
     def _to_python(self, value, state):
-        vals = []
-        builds = []
+        tokens = []
         if isinstance(value, str):
-            vals = value.split()
-        elif not isinstance(value['text'], list):
-            vals = [value['text']]
-        elif isinstance(value['text'], list):
-            vals = value['text']
-        for build in vals:
-            builds += build.replace(',', ' ').split()
-        return map(PackageValidator().to_python,
-                   map(validators.UnicodeString().to_python,
-                       filter(lambda x: x != '', builds)))
+            tokens = value.split()
+        elif isinstance(value, dict):
+            if isinstance(value['text'], list):
+                tokens = value['text']
+            else:
+                tokens = [value['text']]
+        results = []
+        for token in tokens:
+            if token:
+                for build in token.replace(',', ' ').split():
+                    build = validators.UnicodeString().to_python(build)
+                    results.append(PackageValidator().to_python(build))
+            else:
+                raise Invalid(self.message('empty_build', state), value, state)
+        return results
 
 class BugValidator(validators.FancyValidator):
     messages = {
