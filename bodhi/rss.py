@@ -23,6 +23,7 @@ class Feed(FeedController):
         query = []
         entries = []
         date = lambda update: update.date_pushed
+        order = PackageUpdate.q.date_pushed
 
         if release:
             rel = Release.byName(release.upper())
@@ -33,12 +34,12 @@ class Feed(FeedController):
             query.append(PackageUpdate.q.status == status)
             if status == 'pending':
                 date = lambda update: update.date_submitted
+                order = PackageUpdate.q.date_submitted
             else:
                 # Let's only show pushed testing/stable updates
                 query.append(PackageUpdate.q.pushed == True)
 
-        updates = PackageUpdate.select(AND(*query),
-                        orderBy=PackageUpdate.q.date_pushed).reversed()[:20]
+        updates = PackageUpdate.select(AND(*query), orderBy=order).reversed()[:20]
 
         for update in updates:
             entries.append({
