@@ -48,8 +48,9 @@ $(document).ready(function() {
 </script>
 <script type="text/javascript" py:if="not tg.identity.anonymous">
 $(document).ready(function() {
-    $('#F7').click( function() { $('#F7_releases').toggle('slow'); });
+    /* $('#F7').click( function() { $('#F7_releases').toggle('slow'); });
     $('#F8').click( function() { $('#F8_releases').toggle('slow'); });
+    */
     $('div.flash').corner();
     $('div.flash').show("slow");
 });
@@ -99,7 +100,7 @@ $(document).ready(function() {
                 <li><a href="${tg.url('/')}">${tg.identity.user_name}'s Home</a></li>
                 <li><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
                 <li py:for="release in releases()">
-                    <a id="${release[0]}" href="#">${release[1]}</a>
+                <a id="${release[0]}" href="${tg.url('/%s' % release[0])}">${release[1]}</a>
                         <div id="${release[0]}_releases">
                             <ul>
                                 <li><a href="${tg.url('/new?release=%s' % release[1])}">New Update</a></li>
