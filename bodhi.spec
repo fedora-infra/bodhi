@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.4.5
-Release:        2%{?dist}
+Version:        0.4.6
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -76,6 +76,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Nov 20 2007 Luke Macken <lmacken@redhat.com> - 0.4.6-1
+- 0.4.6
+
 * Sun Nov 18 2007 Luke Macken <lmacken@redhat.com> - 0.4.5-2
 - Add python-genshi to BuildRequires
 
