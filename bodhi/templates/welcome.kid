@@ -40,7 +40,7 @@
                                 </span>
                             </td>
                             <td>
-                                <span id="bugtip" title="File a bug or feature request">
+                                <span id="bugtip" title="File a bug or feature request against bodhi">
                                     <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" border="0" /></a>
                                 </span>
                             </td>
@@ -76,7 +76,7 @@
             <tr>
                 <td>
                     <span py:if="comments">
-                        <h3>Latest Comments  [ <a href="${tg.url('/comments')}">all</a> ]</h3>
+                        <h3>Latest Comments</h3>
                         ${comments.display()}
                     </span>
                 </td>
