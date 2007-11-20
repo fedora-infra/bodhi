@@ -76,6 +76,7 @@ bodhi/static/images/mugshot.png
 bodhi/static/images/null.png
 bodhi/static/images/plus.png
 bodhi/static/images/revoke.png
+bodhi/static/images/rss.png
 bodhi/static/images/security.png
 bodhi/static/images/shadow.png
 bodhi/static/images/shadow2.png
