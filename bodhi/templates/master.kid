@@ -68,7 +68,7 @@ $(document).ready(function() {
         </div>
 
         <div id="fedora-header-items">
-            <table><tr><td py:if="not tg.identity.anonymous"> ${search_form.display()} </td><td>
+            <table><tr><td> ${search_form.display()} </td><td>
                 <div id="bodhi-logo">
                     <a href="${tg.url('/')}"><img src="${tg.url('/static/images/bodhi-icon-48.png')}" /></a>
                 </div>
@@ -83,9 +83,9 @@ $(document).ready(function() {
     <!-- header END -->
 
    <!-- leftside BEGIN -->
-    <div id="fedora-side-left" py:if="not tg.identity.anonymous">
+    <div id="fedora-side-left">
         <div id="fedora-side-nav-label">Site Navigation:</div>
-            <div py:if="'releng' in tg.identity.groups">
+            <div py:if="not tg.identity.anonymous and 'releng' in tg.identity.groups">
                 <ul id="fedora-side-nav">
                     <li><a id="administration" href="#">Administration</a></li>
                     <div id="adminlist" style="display: none">
@@ -97,13 +97,13 @@ $(document).ready(function() {
                 </ul>
             </div>
             <ul id="fedora-side-nav">
-                <li><a href="${tg.url('/')}">${tg.identity.user_name}'s Home</a></li>
-                <li><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
+                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/')}">${tg.identity.user_name}'s Home</a></li>
+                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
                 <li py:for="release in releases()">
                 <a id="${release[0]}" href="${tg.url('/%s' % release[0])}">${release[1]}</a>
                         <div id="${release[0]}_releases">
                             <ul>
-                                <li><a href="${tg.url('/new?release=%s' % release[1])}">New Update</a></li>
+                                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/new?release=%s' % release[1])}">New Update</a></li>
                                 <li py:for="status in ('pending', 'testing', 'stable')" class="release">
                                 <a href="${tg.url('/%s/%s' % (release[0], status != 'stable' and status or ''))}" class="link">${status.title()} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == status)).count()})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s' % (release[0], status))}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
                                 </li>
@@ -114,13 +114,14 @@ $(document).ready(function() {
                         </div>
                     </li>
                 <li><a href="${tg.url('/pkgs')}">Packages</a></li>
-                <li><a href="${tg.url('/logout')}">Logout</a></li>
+                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/logout')}">Logout</a></li>
+                <li py:if="tg.identity.anonymous"><a href="${tg.url('/login')}">Login</a></li>
             </ul>
         </div>
         <!-- leftside END -->
 
         <!-- content BEGIN -->
-        <div py:attrs="{'id' : tg.identity.anonymous and 'fedora-middle-three' or 'fedora-middle-two'}">
+        <div id="fedora-middle-two">
             <div class="fedora-corner-tr">&nbsp;</div> 
             <div class="fedora-corner-tl">&nbsp;</div> 
             <div id="fedora-content">

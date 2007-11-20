@@ -25,7 +25,7 @@
 <body>
     <table width="90%" align="center" valign="top">
             <tr>
-                <td align="left" valign="bottom"><b><font size="4">Welcome, ${tg.identity.user.display_name}</font></b></td>
+                <td align="left" valign="bottom"><b><font size="4">Welcome to bodhi<span py:if="not tg.identity.anonymous">, ${tg.identity.user.display_name}</span></font></b></td>
                 <td align="right">
                     <table>
                         <tr>
@@ -35,8 +35,8 @@
                                 </span>
                             </td>
                             <td>
-                                <span id="wftip" title="Bodhi Workflow Q&amp;A draft">
-                                    <a href="http://fedoraproject.org/wiki/Infrastructure/UpdatesSystem/Bodhi-info-DRAFT"><img src="${tg.url('/static/images/header-faq.png')}" border="0" height="36" width="36"/></a>
+                                <span id="wftip" title="Updating Packages HowTo">
+                                    <a href="http://fedoraproject.org/wiki/PackageMaintainers/UpdatingPackageHowTo"><img src="${tg.url('/static/images/header-faq.png')}" border="0" height="36" width="36"/></a>
                                 </span>
                             </td>
                             <td>
@@ -59,7 +59,7 @@
                 </td>
             </tr>
             <tr>
-                <td valign="top" align="left">
+                <td py:if="not tg.identity.anonymous" valign="top" align="left">
                     ${now}
                 </td>
             </tr>
@@ -67,9 +67,9 @@
         <table valign="top" width="90%" align="center">
             <tr>
                 <td>
-                    <span py:if="mine">
-                        <h3>${tg.identity.user.user_name}'s updates</h3>
-                        ${mine.display()}
+                    <span py:if="updates">
+                        <h3><span py:replace="tg.identity.anonymous and 'Latest' or '%s\'' % tg.identity.user.user_name"></span> Updates</h3>
+                        ${updates.display()}
                     </span>
                 </td>
             </tr>
