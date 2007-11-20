@@ -58,7 +58,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
         </td>
 
         <!-- update options -->
-        <span py:if="util.authorized_user(update, identity)">
+        <span py:if="not tg.identity.anonymous and util.authorized_user(update, identity)">
             <td align="right" width="50%" valign="bottom">
                 <table cellspacing="7">
                     <tr>

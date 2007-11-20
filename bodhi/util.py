@@ -133,6 +133,10 @@ def make_type_icon(update):
     return Element('img', src=url('/static/images/%s.png' % update.type),
                    title=update.type)
 
+def make_request_icon(update):
+    return Element('img', src=url('/static/images/%s-large.png' %
+                   update.request), title=str(update.request))
+
 def make_karma_icon(update):
     if update.karma < 0:
         karma = -1

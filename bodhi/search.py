@@ -29,7 +29,6 @@ search_form = SearchForm()
 
 class SearchController(Controller):
 
-    @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
     def index(self, search=None, tg_errors=None, *args, **kw):
         if tg_errors:
@@ -39,7 +38,6 @@ class SearchController(Controller):
         return dict(form=search_form, values={}, action=url('/search/'))
 
     @expose(template="bodhi.templates.list")
-    @identity.require(identity.not_anonymous())
     @validate(validators={ "search" : validators.UnicodeString() })
     @error_handler(index)
     @paginate('updates', default_order='update_id', limit=15)
@@ -57,10 +55,16 @@ class SearchController(Controller):
         except ValueError: # can't convert search search to integer
             pass
 
-        # Search CVE's
+        # Search CVEs
         if search.startswith('CVE') or search.startswith('CAN'):
+            # Search bug titles for CVE, since that is how we track them now
+            map(lambda bug: map(results.add, bug.updates),
+                Bugzilla.select(LIKE(Bugzilla.q.title, '%%%s%%' % search)))
+
+            # We still have some CVE objects lying around, so search them too
             map(lambda cve: map(results.add, cve.updates),
                 CVE.select(CVE.q.cve_id==search))
+
 
         return dict(updates=list(results), num_items=len(results),
                     title="%d Results Found" % len(results))

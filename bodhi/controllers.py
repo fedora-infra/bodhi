@@ -64,7 +64,6 @@ class Root(controllers.RootController):
         return 'tg_format' in cherrypy.request.params and \
                 cherrypy.request.params['tg_format'] == 'json'
 
-    @identity.require(identity.not_anonymous())
     @expose(template='bodhi.templates.welcome')
     def index(self):
         """
@@ -72,7 +71,9 @@ class Root(controllers.RootController):
         the latest comments.
         """
         from bodhi.util import make_update_link, make_type_icon, make_karma_icon
+        from bodhi.util import make_request_icon
         RESULTS, FIELDS, GRID = range(3)
+        updates = None
 
         # { 'Title' : [SelectResults, [(row, row_callback),]], ... }
         grids = {
@@ -85,21 +86,41 @@ class Root(controllers.RootController):
                     ('Karma', make_karma_icon)
                 ]
             ],
-            'mine' : [
+       }
+
+        if identity.current.anonymous:
+            updates = 'latest'
+            grids['latest'] = [
+                PackageUpdate.select(
+                    orderBy=PackageUpdate.q.date_submitted
+                ).reversed(),
+                [
+                    ('Update', make_update_link),
+                    ('Release', lambda row: row.release.long_name),
+                    ('Status', lambda row: row.status),
+                    ('Type', make_type_icon),
+                    ('Request', make_request_icon),
+                    ('Karma', make_karma_icon),
+                    ('Age', lambda row: row.get_submitted_age()),
+                ]
+            ]
+        else:
+            updates = 'mine'
+            grids['mine'] = [
                 PackageUpdate.select(
                     PackageUpdate.q.submitter == identity.current.user_name,
                     orderBy=PackageUpdate.q.date_pushed
                 ).reversed(),
                 [
                     ('Update', make_update_link),
+                    ('Release', lambda row: row.release.long_name),
                     ('Status', lambda row: row.status),
                     ('Type', make_type_icon),
-                    ('Request', lambda row: row.request),
+                    ('Request', make_request_icon),
                     ('Karma', make_karma_icon),
                     ('Age', lambda row: row.get_submitted_age()),
                 ]
-            ],
-        }
+            ]
 
         for key, value in grids.items():
             if not value[RESULTS].count():
@@ -111,8 +132,10 @@ class Root(controllers.RootController):
             grids[key].append(DataGrid(fields=value[FIELDS],
                                        default=value[RESULTS]))
 
-        return dict(now=datetime.utcnow(), mine=grids['mine'][-1],
-                    comments=grids['comments'][-1])
+        print grids[updates][GRID].display()
+
+        return dict(now=datetime.utcnow(), updates=grids[updates][GRID],
+                    comments=grids['comments'][GRID])
 
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
@@ -571,7 +594,6 @@ class Root(controllers.RootController):
 
     @expose(template='bodhi.templates.list')
     @paginate('updates', limit=20, allow_limit_override=True)
-    @identity.require(identity.not_anonymous())
     def default(self, *args, **kw):
         """
         This method allows for the following requests
