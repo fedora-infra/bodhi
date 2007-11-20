@@ -51,6 +51,7 @@ bodhi/static/images/-1.png
 bodhi/static/images/0.png
 bodhi/static/images/1.png
 bodhi/static/images/None-large.png
+bodhi/static/images/None.png
 bodhi/static/images/bodhi-icon-36.png
 bodhi/static/images/bodhi-icon-48.png
 bodhi/static/images/bugfix.png
