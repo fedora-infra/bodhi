@@ -71,6 +71,7 @@ class Root(controllers.RootController):
         the latest comments.
         """
         from bodhi.util import make_update_link, make_type_icon, make_karma_icon
+        from bodhi.util import make_request_icon
         RESULTS, FIELDS, GRID = range(3)
         updates = None
 
@@ -91,13 +92,14 @@ class Root(controllers.RootController):
             updates = 'latest'
             grids['latest'] = [
                 PackageUpdate.select(
-                    orderBy=PackageUpdate.q.date_pushed
+                    orderBy=PackageUpdate.q.date_submitted
                 ).reversed(),
                 [
                     ('Update', make_update_link),
+                    ('Release', lambda row: row.release.long_name),
                     ('Status', lambda row: row.status),
                     ('Type', make_type_icon),
-                    ('Request', lambda row: row.request),
+                    ('Request', make_request_icon),
                     ('Karma', make_karma_icon),
                     ('Age', lambda row: row.get_submitted_age()),
                 ]
@@ -111,9 +113,10 @@ class Root(controllers.RootController):
                 ).reversed(),
                 [
                     ('Update', make_update_link),
+                    ('Release', lambda row: row.release.long_name),
                     ('Status', lambda row: row.status),
                     ('Type', make_type_icon),
-                    ('Request', lambda row: row.request),
+                    ('Request', make_request_icon),
                     ('Karma', make_karma_icon),
                     ('Age', lambda row: row.get_submitted_age()),
                 ]
@@ -129,8 +132,10 @@ class Root(controllers.RootController):
             grids[key].append(DataGrid(fields=value[FIELDS],
                                        default=value[RESULTS]))
 
-        return dict(now=datetime.utcnow(), updates=grids[updates][-1],
-                    comments=grids['comments'][-1])
+        print grids[updates][GRID].display()
+
+        return dict(now=datetime.utcnow(), updates=grids[updates][GRID],
+                    comments=grids['comments'][GRID])
 
     @expose(template='bodhi.templates.pkgs')
     @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
