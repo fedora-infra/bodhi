@@ -110,11 +110,11 @@ class BodhiClient(BaseClient):
         fedora = file('/etc/fedora-release').readlines()[0].split()[2]
         if fedora == '7': fedora = 'c7'
         tag = 'dist-f%s-updates-testing' % fedora
+        builds = self.koji_session.listTagged(tag, latest=True)
 
         yum = YumBase()
         yum.doConfigSetup(init_plugins=False)
 
-        builds = self.koji_session.listTagged(tag, latest=True)
         for build in builds:
             pkgs = yum.rpmdb.searchNevra(name=build['name'],
                                          epoch=None,
