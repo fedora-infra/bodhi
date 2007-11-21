@@ -38,6 +38,8 @@ class Feed(FeedController):
             else:
                 # Let's only show pushed testing/stable updates
                 query.append(PackageUpdate.q.pushed == True)
+        else:
+            query.append(PackageUpdate.q.pushed == True)
 
         updates = PackageUpdate.select(AND(*query), orderBy=order).reversed()[:20]
 
