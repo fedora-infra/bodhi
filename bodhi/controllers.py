@@ -246,7 +246,7 @@ class Root(controllers.RootController):
         # If we're called via JSON, then simply return the PackageUpdate.__str__
         # else, we return a list of PackageUpdate objects to our template
         if self.jsonRequest():
-            updates = map(str, updates)
+            updates = map(unicode, updates)
 
         if isinstance(updates, list): num_items = len(updates)
         else: num_items = updates.count()
@@ -263,8 +263,8 @@ class Root(controllers.RootController):
                     OR(PackageUpdate.q.submitter == util.displayname(identity),
                        PackageUpdate.q.submitter == identity.current.user_name),
                     orderBy=PackageUpdate.q.date_pushed).reversed()
-        return dict(updates=self.jsonRequest() and map(str, updates) or updates,
-                    title='%s\'s updates' % identity.current.user_name,
+        return dict(updates=self.jsonRequest() and map(unicode, updates) or
+                    updates, title='%s\'s updates' % identity.current.user_name,
                     num_items=updates.count())
 
     @expose(template='bodhi.templates.show')
@@ -303,12 +303,12 @@ class Root(controllers.RootController):
         if action == 'unpush':
             update.unpush()
             flash_log("%s has been unpushed" % update.title)
-            if self.jsonRequest(): return dict(update=str(update))
+            if self.jsonRequest(): return dict(update=unicode(update))
             raise redirect(update.get_url())
         if action == 'obsolete':
             update.obsolete()
             flash_log("%s has been obsoleted" % update.title)
-            if self.jsonRequest(): return dict(update=str(update))
+            if self.jsonRequest(): return dict(update=unicode(update))
             raise redirect(update.get_url())
         if action not in ('testing', 'stable', 'obsolete'):
             flash_log("Unknown request: %s" % action)
@@ -586,7 +586,7 @@ class Root(controllers.RootController):
 
         # For command line submissions, return PackageUpdate.__str__()
         if self.jsonRequest():
-            return dict(update=str(p))
+            return dict(update=unicode(p))
 
         raise redirect(p.get_url())
 
@@ -692,7 +692,7 @@ class Root(controllers.RootController):
                 update = PackageUpdate.byTitle(title)
                 if text == 'None': text = None
                 update.comment(text, karma)
-                if self.jsonRequest(): return dict(update=str(update))
+                if self.jsonRequest(): return dict(update=unicode(update))
                 raise redirect(update.get_url())
             except SQLObjectNotFound:
                 flash_log("Update %s does not exist" % title)
