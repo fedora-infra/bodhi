@@ -31,143 +31,143 @@ log = logging.getLogger(__name__)
 messages = {
 
     'new' : {
-        'body'    : """\
+        'body'    : u"""\
 %(email)s has submitted a new update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'email'     : identity.current.user_name,
                         'release'   : x.release.long_name,
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
         },
 
     'deleted' : {
-        'body'    : """\
+        'body'    : u"""\
 %(email)s has deleted the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
                         'email'     : identity.current.user_name,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
         },
 
     'edited' : {
-        'body'    : """\
+        'body'    : u"""\
 %(email)s has edited the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
                         'email'     : identity.current.user_name,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
         },
 
     'pushed' : {
-        'body'    : """\
+        'body'    : u"""\
 %(package)s has been successfully pushed for %(release)s.\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
     },
 
     'testing' : {
-        'body'    : """\
+        'body'    : u"""\
 %(submitter)s has requested the pushing of the following update to testing:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : identity.current.user_name,
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
     },
 
     'unpush' : {
-        'body'    : """\
+        'body'    : u"""\
 %(submitter)s has requested the unpushing of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : identity.current.user_name,
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
     },
 
     'obsolete' : {
-        'body'    : """\
+        'body'    : u"""\
 %(submitter)s has obsoleted the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : identity.current.user_name,
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
     },
 
     'unpushed' : {
-        'body'    : """\
+        'body'    : u"""\
 The following update has been unpushed\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
     },
 
     'revoke' : {
-        'body'    : """\
+        'body'    : u"""\
 %(submitter)s has revoked the request of the following update:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : identity.current.user_name,
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
         },
 
     'stable' : {
-        'body'    : """\
+        'body'    : u"""\
 %(submitter)s has requested the pushing of the following update stable:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'submitter' : identity.current.user_name,
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
     },
 
     'moved' : {
-        'body'    : """\
+        'body'    : u"""\
 The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                     }
     },
 
     'stablekarma' : {
-        'body'    : """\
+        'body'    : u"""\
 The following update has reached a karma of %(karma)d and is being automatically
 marked as stable.\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'karma'     : x.karma,
-                        'updatestr' : str(x) 
+                        'updatestr' : unicode(x) 
                     }
     },
 
     'unstable' : {
-        'body'    : """\
+        'body'    : u"""\
 The following update has reached a karma of %(karma)d and is being automatically
 marked as unstable.  This update will be unpushed from the repository.\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'karma'     : x.karma,
-                        'updatestr' : str(x) 
+                        'updatestr' : unicode(x) 
                     }
     },
 
     'comment' : {
-        'body'    : """\
+        'body'    : u"""\
 The following comment has been added to the %(package)s update:
 
 %(comment)s
@@ -179,12 +179,12 @@ To reply to this comment, please visit the URL at the bottom of this mail
         'fields' : lambda x: {
                         'package'   : x.title,
                         'comment'   : x.comments[-1],
-                        'updatestr' : str(x)
+                        'updatestr' : unicode(x)
                    }
     },
 
     'old_testing' : {
-        'body'    : """\
+        'body'    : u"""\
 The update for %(package)s has been in 'testing' status for over 2 weeks.
 This update can be marked as stable after it achieves a karma of %(stablekarma)d
 or by clicking 'Push to Stable'.
@@ -202,7 +202,7 @@ the following URL:
         'fields' : lambda x: {
                         'package'     : x.title,
                         'stablekarma' : config.get('stable_karma', 3),
-                        'updatestr'   : str(x)
+                        'updatestr'   : unicode(x)
                    }
     }
 
