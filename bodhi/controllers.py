@@ -519,8 +519,8 @@ class Root(controllers.RootController):
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
                 flash_log("Update for %s already exists" % build)
-                if self.jsonRequest():
-                    return dict()
+                map(lambda build: build.destroySelf(), update_builds)
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
         # Modify or create the PackageUpdate
