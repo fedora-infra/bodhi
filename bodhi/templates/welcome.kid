@@ -15,6 +15,7 @@
         $(document).ready(function(){
             $('#bodhitip').Tooltip( { delay: 0 } );
             $('#wftip').Tooltip( { delay: 0 } );
+            $('#clitip').Tooltip( { delay: 0 } );
             $('#kojitip').Tooltip( { delay: 0 } );
             $('#mugtip').Tooltip( { delay: 0 } );
             $('#bugtip').Tooltip( { delay: 0 } );
@@ -39,6 +40,12 @@
                                     <a href="http://fedoraproject.org/wiki/PackageMaintainers/UpdatingPackageHowTo"><img src="${tg.url('/static/images/header-faq.png')}" border="0" height="36" width="36"/></a>
                                 </span>
                             </td>
+                            <td>
+                                <span id="clitip" title="Using the bodhi command-line client">
+                                    <a href="https://hosted.fedoraproject.org/projects/bodhi/wiki/CLI"><img src="${tg.url('/static/images/terminal.png')}" border="0" height="36" width="36"/></a>
+                                </span>
+                            </td>
+ 
                             <td>
                                 <span id="bugtip" title="File a bug or feature request against bodhi">
                                     <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" border="0" /></a>

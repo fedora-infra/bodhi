@@ -132,8 +132,6 @@ class Root(controllers.RootController):
             grids[key].append(DataGrid(fields=value[FIELDS],
                                        default=value[RESULTS]))
 
-        print grids[updates][GRID].display()
-
         return dict(now=datetime.utcnow(), updates=grids[updates][GRID],
                     comments=grids['comments'][GRID])
 
