@@ -240,7 +240,6 @@ class PackageUpdate(SQLObject):
             self.date_pushed = datetime.utcnow()
             self.status = 'testing'
             self.assign_id()
-            self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
             self.comment('This update has been pushed to testing',
                          author='bodhi')
@@ -438,8 +437,8 @@ class PackageUpdate(SQLObject):
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
                 mail.send(self.submitter, 'unstable', self)
-         Comment(text=text, karma=karma, update=self, author=author,
-                 anonymous=anonymous)
+        Comment(text=text, karma=karma, update=self, author=author,
+                anonymous=anonymous)
 
         # Send a notification to everyone that has commented on this update
         people = set()
@@ -484,7 +483,6 @@ class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
     update      = ForeignKey("PackageUpdate", notNone=True)
     author      = UnicodeCol(notNone=True)
-    anonymous   = BoolCol(default=False)
     karma       = IntCol(default=0)
     text        = UnicodeCol()
     anonymous   = BoolCol(default=False)

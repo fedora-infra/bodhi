@@ -355,9 +355,23 @@ class MashTask(Thread):
                 log.debug("Mashed for %s seconds" % (time.time() - t0))
                 if self.success:
                     log.debug("Running post-request actions on updates")
+                    testing_digest = {}
                     for update in self.updates:
-                        update.request_complete()
+                        if update.request == 'testing':
+                            update.request_complete()
+                            prefix = update.release.id_prefix.lower()
+                            if not testing_digest.has_key(prefix):
+                                testing_digest[prefix] = u""
+                            testing_digest[prefix] += unicode(update) + u"\n"
+                        else:
+                            update.request_complete()
                     log.debug("Requests complete!")
+                    log.debug("Sending updates-testing digests")
+                    for prefix, digest in testing_digest.items():
+                        mail.send(config.get('bodhi_email'),
+                                  config.get('%s_test_announce_list' % prefix),
+                                  '%s updates-testing report' % prefix.title(),
+                                  digest)
                     self.generate_updateinfo()
                     self.update_symlinks()
                 else:

@@ -80,7 +80,7 @@ def load_db():
             release = Release.byName(u['release'][0])
         except SQLObjectNotFound:
             release = Release(name=u['release'][0], long_name=u['release'][1],
-                              id_prefix=u['id_prefix'], dist_tag=u['dist_tag'])
+                              id_prefix=u['release'][2], dist_tag=u['release'][3])
         request = u['request']
         if u['request'] == 'move':
             request = 'stable'
