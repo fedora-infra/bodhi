@@ -51,6 +51,7 @@ bodhi/static/images/-1.png
 bodhi/static/images/0.png
 bodhi/static/images/1.png
 bodhi/static/images/None-large.png
+bodhi/static/images/None.png
 bodhi/static/images/bodhi-icon-36.png
 bodhi/static/images/bodhi-icon-48.png
 bodhi/static/images/bugfix.png
@@ -76,11 +77,13 @@ bodhi/static/images/mugshot.png
 bodhi/static/images/null.png
 bodhi/static/images/plus.png
 bodhi/static/images/revoke.png
+bodhi/static/images/rss.png
 bodhi/static/images/security.png
 bodhi/static/images/shadow.png
 bodhi/static/images/shadow2.png
 bodhi/static/images/stable-large.png
 bodhi/static/images/submit.png
+bodhi/static/images/terminal.png
 bodhi/static/images/testing-large.png
 bodhi/static/images/testing.png
 bodhi/static/images/tg_under_the_hood.png
@@ -90,6 +93,7 @@ bodhi/static/images/under_the_hood_blue.png
 bodhi/static/images/wait.gif
 bodhi/templates/__init__.py
 bodhi/templates/admin.kid
+bodhi/templates/captchacommentform.kid
 bodhi/templates/commentform.kid
 bodhi/templates/comments.kid
 bodhi/templates/confirmation.kid
@@ -113,12 +117,12 @@ bodhi/templates/text.kid
 bodhi/templates/welcome.kid
 bodhi/tests/__init__.py
 bodhi/tests/test_buildsystem.py
+bodhi/tests/test_client.py
 bodhi/tests/test_controllers.py
 bodhi/tests/test_metadata.py
 bodhi/tests/test_model.py
 bodhi/tools/__init__.py
-bodhi/tools/bodhi-client.py
-bodhi/tools/client.py
+bodhi/tools/bodhi_client.py
 bodhi/tools/dev_init.py
 bodhi/tools/init.py
 bodhi/tools/pickledb.py
