@@ -413,7 +413,7 @@ class PackageUpdate(SQLObject):
             color = '#00ff00' # green
         return color
 
-    def comment(self, text, karma=0, author=None):
+    def comment(self, text, karma=0, author=None, anonymous=False):
         """
         Add a comment to this update, adjusting the karma appropriately.
         Each user can adjust an updates karma once in each direction, thus
@@ -438,14 +438,16 @@ class PackageUpdate(SQLObject):
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
                 mail.send(self.submitter, 'unstable', self)
-        comment = Comment(text=text, karma=karma, update=self, author=author)
+         Comment(text=text, karma=karma, update=self, author=author,
+                 anonymous=anonymous)
 
         # Send a notification to everyone that has commented on this update
         people = set()
         people.add(self.submitter)
-        map(lambda comment: people.add(comment.author), self.comments)
-        if 'bodhi' in people:
-            people.remove('bodhi')
+        for comment in self.comments:
+            if comment.author == 'bodhi' or comment.anonymous:
+                continue
+            people.add(comment.author)
         for person in people:
             mail.send(person, 'comment', self)
 
@@ -485,6 +487,7 @@ class Comment(SQLObject):
     anonymous   = BoolCol(default=False)
     karma       = IntCol(default=0)
     text        = UnicodeCol()
+    anonymous   = BoolCol(default=False)
 
     def __str__(self):
         karma = '0'
