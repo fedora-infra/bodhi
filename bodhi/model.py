@@ -482,6 +482,7 @@ class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
     update      = ForeignKey("PackageUpdate", notNone=True)
     author      = UnicodeCol(notNone=True)
+    anonymous   = BoolCol(default=False)
     karma       = IntCol(default=0)
     text        = UnicodeCol()
 
