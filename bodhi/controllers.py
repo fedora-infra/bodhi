@@ -693,7 +693,7 @@ class Root(controllers.RootController):
             return dict(update=update, updates=[], values={'title' : update.title},
                         comment_form=self.comment_captcha_form)
         if text == 'None': text = None
-        update.comment(text, karma, author=author)
+        update.comment(text, karma, author=author, anonymous=True)
         raise redirect(update.get_url())
 
     @expose(allow_json=True)
