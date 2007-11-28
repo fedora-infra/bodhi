@@ -48,6 +48,7 @@ class CommentCaptchaForm(Form):
                             validators.NotEmpty(),
                             validators.UnicodeString())),
             TextField(name='author', label='Author',
+                      default='Anonymous Tester',
                       validator=validators.All(
                           validators.NotEmpty(),
                           validators.UnicodeString())),

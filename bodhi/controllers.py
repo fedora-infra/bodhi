@@ -677,19 +677,23 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.show')
     @validate(form=comment_captcha_form)
     @validate(validators={ 'karma' : validators.Int() })
-    def captcha_comment(self, text, title, author, karma, captcha, tg_errors=None):
+    def captcha_comment(self, text, title, author, karma, captcha={}, tg_errors=None):
         try:
             update = PackageUpdate.byTitle(title)
         except SQLObjectNotFound:
             flash_log("Update %s does not exist" % title)
         if tg_errors:
+            if tg_errors.has_key('text') or tg_errors.has_key('author'):
+                flash_log("Please fill in all comment fields")
             flash_log(tg_errors)
+            return dict(update=update, updates=[], values={'title' : update.title},
+                        comment_form=self.comment_captcha_form)
         elif karma not in (0, 1, -1):
             flash_log("Karma must be one of (1, 0, -1)")
-            if text == 'None': text = None
-            update.comment(text, karma, author=author)
-        return dict(update=update, updates=[], values={'title' : update.title},
-                    comment_form=self.comment_captcha_form)
+            return dict(update=update, updates=[], values={'title' : update.title},
+                        comment_form=self.comment_captcha_form)
+        if text == 'None': text = None
+        update.comment(text, karma, author=author)
         raise redirect(update.get_url())
 
     @expose(allow_json=True)
