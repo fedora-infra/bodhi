@@ -20,6 +20,8 @@ from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
 from bodhi.util import get_release_names, get_release_tuples, make_update_link
 from bodhi.validators import *
 
+from tgcaptcha import CaptchaField
+
 class CommentForm(Form):
     template = "bodhi.templates.commentform"
     submit_text = "Add Comment"
@@ -30,6 +32,27 @@ class CommentForm(Form):
             HiddenField(name='title'),
             # We're currently hardcoding the karma radio buttons by hand in the
             # commentform template, because the RadioButtonList is ugly
+    ]
+
+class CommentCaptchaForm(Form):
+    template = "bodhi.templates.captchacommentform"
+    submit_text = "Add Comment"
+    fields = [
+            TextArea(name='text', label='',
+                     validator=validators.All(
+                         validators.NotEmpty(),
+                         validators.UnicodeString()),
+                     rows=3, cols=40),
+            HiddenField(name='title',
+                        validator=validators.All(
+                            validators.NotEmpty(),
+                            validators.UnicodeString())),
+            TextField(name='author', label='Author',
+                      default='Anonymous Tester',
+                      validator=validators.All(
+                          validators.NotEmpty(),
+                          validators.UnicodeString())),
+            CaptchaField(name='captcha', label='Enter the code shown')
     ]
 
 class SearchForm(Form):

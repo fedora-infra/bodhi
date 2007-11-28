@@ -46,14 +46,11 @@ $(document).ready(function() {
     } );
 } );
 </script>
-<script type="text/javascript" py:if="not tg.identity.anonymous">
-$(document).ready(function() {
-    /* $('#F7').click( function() { $('#F7_releases').toggle('slow'); });
-    $('#F8').click( function() { $('#F8_releases').toggle('slow'); });
-    */
-    $('div.flash').corner();
-    $('div.flash').show("slow");
-});
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('div.flash').corner();
+        $('div.flash').show("slow");
+    });
 </script>
 <script type="text/javascript" py:if="'releng' in tg.identity.groups">
 $(document).ready(function() {

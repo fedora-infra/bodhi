@@ -34,7 +34,7 @@ from bodhi.admin import AdminController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
-from bodhi.widgets import CommentForm, OkCancelForm
+from bodhi.widgets import CommentForm, OkCancelForm, CommentCaptchaForm
 from bodhi.exceptions import (DuplicateEntryError,
                               PostgresIntegrityError, SQLiteIntegrityError)
 
@@ -49,6 +49,7 @@ class Root(controllers.RootController):
     rss = Feed("rss2.0")
 
     comment_form = CommentForm()
+    comment_captcha_form = CommentCaptchaForm()
     ok_cancel_form = OkCancelForm()
 
     def exception(self, tg_exceptions=None):
@@ -266,12 +267,6 @@ class Root(controllers.RootController):
         return dict(updates=self.jsonRequest() and map(unicode, updates) or
                     updates, title='%s\'s updates' % identity.current.user_name,
                     num_items=updates.count())
-
-    @expose(template='bodhi.templates.show')
-    def show(self, update):
-        update = PackageUpdate.byTitle(update)
-        update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
-        return dict(update=update, comment_form=self.comment_form)
 
     @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
@@ -519,8 +514,8 @@ class Root(controllers.RootController):
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
                 flash_log("Update for %s already exists" % build)
-                if self.jsonRequest():
-                    return dict()
+                map(lambda build: build.destroySelf(), update_builds)
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
         # Modify or create the PackageUpdate
@@ -660,8 +655,10 @@ class Root(controllers.RootController):
         if num_updates and (num_updates == 1 or single):
             update = updates[0]
             update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
+            form = identity.current.anonymous and self.comment_captcha_form \
+                    or self.comment_form
             return dict(tg_template='bodhi.templates.show', update=update,
-                        updates=[], comment_form=self.comment_form,
+                        updates=[], comment_form=form,
                         values={'title' : update.title})
         elif num_updates > 1:
             try:
@@ -677,11 +674,32 @@ class Root(controllers.RootController):
         flash_log("The path %s cannot be found" % cherrypy.request.path)
         raise redirect("/")
 
+    @expose(template='bodhi.templates.show')
+    @validate(form=comment_captcha_form)
+    @validate(validators={ 'karma' : validators.Int() })
+    def captcha_comment(self, text, title, author, karma, captcha={}, tg_errors=None):
+        try:
+            update = PackageUpdate.byTitle(title)
+        except SQLObjectNotFound:
+            flash_log("Update %s does not exist" % title)
+        if tg_errors:
+            if tg_errors.has_key('text') or tg_errors.has_key('author'):
+                flash_log("Please fill in all comment fields")
+            flash_log(tg_errors)
+            return dict(update=update, updates=[], values={'title' : update.title},
+                        comment_form=self.comment_captcha_form)
+        elif karma not in (0, 1, -1):
+            flash_log("Karma must be one of (1, 0, -1)")
+            return dict(update=update, updates=[], values={'title' : update.title},
+                        comment_form=self.comment_captcha_form)
+        if text == 'None': text = None
+        update.comment(text, karma, author=author)
+        raise redirect(update.get_url())
+
     @expose(allow_json=True)
     @error_handler()
     @validate(form=comment_form)
     @validate(validators={ 'karma' : validators.Int() })
-    @identity.require(identity.not_anonymous())
     def comment(self, text, title, karma, tg_errors=None):
         if tg_errors:
             flash_log(tg_errors)
