@@ -240,7 +240,6 @@ class PackageUpdate(SQLObject):
             self.date_pushed = datetime.utcnow()
             self.status = 'testing'
             self.assign_id()
-            self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
             self.comment('This update has been pushed to testing',
                          author='bodhi')
