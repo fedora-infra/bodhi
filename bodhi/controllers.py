@@ -702,6 +702,7 @@ class Root(controllers.RootController):
     @error_handler()
     @validate(form=comment_form)
     @validate(validators={ 'karma' : validators.Int() })
+    @identity.require(identity.not_anonymous())
     def comment(self, text, title, karma, tg_errors=None):
         if tg_errors:
             flash_log(tg_errors)
