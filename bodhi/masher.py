@@ -362,13 +362,14 @@ class MashTask(Thread):
                             prefix = update.release.id_prefix.lower()
                             if not testing_digest.has_key(prefix):
                                 testing_digest[prefix] = u""
-                            testing_digest[prefix] += unicode(update) + u"\n"
+                            for subject, body in mail.get_template(update):
+                                testing_digest[prefix] += body + u"\n"
                         else:
                             update.request_complete()
                     log.debug("Requests complete!")
                     log.debug("Sending updates-testing digests")
                     for prefix, digest in testing_digest.items():
-                        mail.send(config.get('bodhi_email'),
+                        mail.send_mail(config.get('bodhi_email'),
                                   config.get('%s_test_announce_list' % prefix),
                                   '%s updates-testing report' % prefix.title(),
                                   digest)
