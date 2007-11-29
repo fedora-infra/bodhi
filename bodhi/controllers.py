@@ -365,6 +365,7 @@ class Root(controllers.RootController):
                 'builds'    : {'text':update.title, 'hidden':update.title},
                 'release'   : update.release.long_name,
                 'testing'   : update.status == 'testing',
+                'request'   : str(update.request).title(),
                 'type'      : update.type,
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
