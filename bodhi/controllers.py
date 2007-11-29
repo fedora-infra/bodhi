@@ -102,6 +102,7 @@ class Root(controllers.RootController):
                     ('Type', make_type_icon),
                     ('Request', make_request_icon),
                     ('Karma', make_karma_icon),
+                    ('Submitter', lambda row: row.submitter),
                     ('Age', lambda row: row.get_submitted_age()),
                 ]
             ]
