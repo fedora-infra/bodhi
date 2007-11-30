@@ -16,7 +16,6 @@
 # Authors: Luke Macken <lmacken@redhat.com>
 
 import re
-import os
 import sys
 import koji
 import logging
@@ -34,6 +33,7 @@ __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
 BODHI_URL = 'https://admin.fedoraproject.org/updates/'
+#BODHI_URL = 'http://localhost:8084/updates'
 log = logging.getLogger(__name__)
 
 class BodhiClient(BaseClient):
