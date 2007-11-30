@@ -33,6 +33,9 @@
                 <center><b>Request</b></center>
             </th>
             <th class="list">
+                <b>Karma</b>
+            </th>
+            <th class="list">
                 <b>Date Submitted</b>
             </th>
         </tr>
@@ -50,6 +53,11 @@
             <td class="list">
                 <center>
                     <img src="${tg.url('/static/images/%s-large.png' % update.request)}" title="${update.request}"/> ${update.request}
+                </center>
+            </td>
+            <td class="list">
+                <center>
+                    <img src="${tg.url('/static/images/karma%d.png' % update.karma)}" /> ${update.karma}
                 </center>
             </td>
             <td class="list">

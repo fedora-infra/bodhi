@@ -72,9 +72,9 @@ class ExtendedMetadata:
         """ Helper function to trivialize inserting an element into the doc """
         child = self.doc.createElement(name)
         for item in attrs.items():
-            child.setAttribute(item[0], str(item[1]))
+            child.setAttribute(item[0], unicode(item[1]))
         if text:
-            txtnode = self.doc.createTextNode(str(text))
+            txtnode = self.doc.createTextNode(unicode(text))
             child.appendChild(txtnode)
         parent.appendChild(child)
         return child

@@ -114,6 +114,14 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                             </td>
                         </span>
                     </span>
+                    <span py:if="update.pushed and update.status == 'stable' and 'releng' in tg.identity.groups">
+                      <td>
+                        <a href="${tg.url('/request/unpush/%s' % update.title)}" class="list">
+                            <img src="${tg.url('/static/images/revoke.png')}" border="0"/>
+                            Unpush
+                        </a>
+                      </td>
+                    </span>
                     <span py:if="update.request != None">
                         <td>
                             <a href="${tg.url('/revoke/%s' % update.title)}" class="list">

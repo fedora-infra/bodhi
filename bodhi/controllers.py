@@ -102,6 +102,7 @@ class Root(controllers.RootController):
                     ('Type', make_type_icon),
                     ('Request', make_request_icon),
                     ('Karma', make_karma_icon),
+                    ('Submitter', lambda row: row.submitter),
                     ('Age', lambda row: row.get_submitted_age()),
                 ]
             ]
@@ -365,6 +366,7 @@ class Root(controllers.RootController):
                 'builds'    : {'text':update.title, 'hidden':update.title},
                 'release'   : update.release.long_name,
                 'testing'   : update.status == 'testing',
+                'request'   : str(update.request).title(),
                 'type'      : update.type,
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
@@ -700,6 +702,7 @@ class Root(controllers.RootController):
     @error_handler()
     @validate(form=comment_form)
     @validate(validators={ 'karma' : validators.Int() })
+    @identity.require(identity.not_anonymous())
     def comment(self, text, title, karma, tg_errors=None):
         if tg_errors:
             flash_log(tg_errors)
