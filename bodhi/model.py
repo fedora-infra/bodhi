@@ -47,6 +47,13 @@ class Release(SQLObject):
     dist_tag    = UnicodeCol(notNone=True) # ie dist-fc7
     locked      = BoolCol(default=False)
 
+    def get_version(self):
+        import re
+        regex = re.compile('\w+(\d+)$')
+        num = int(regex.match(self.name).groups()[0])
+        del re, regex
+        return num
+
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
     builds         = MultipleJoin('PackageBuild', joinColumn='package_id')
