@@ -18,6 +18,8 @@
         })
     </script>
 
+    <title py:content="title" />
+
 </head>
 
 
