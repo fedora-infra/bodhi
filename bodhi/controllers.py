@@ -373,7 +373,8 @@ class Root(controllers.RootController):
                 'edited'    : update.title,
                 'close_bugs': update.close_bugs and 'True' or '',
         }
-        return dict(form=update_form, values=values, action=url("/save"))
+        return dict(form=update_form, values=values, action=url("/save"),
+                    title='Edit Update')
 
     @expose(allow_json=True)
     @error_handler(new.index)

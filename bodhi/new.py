@@ -36,7 +36,8 @@ class NewUpdateController(controllers.Controller):
     @expose(template="bodhi.templates.form")
     def index(self, *args, **kw):
         self.build_pkglist()
-        return dict(form=update_form, values=kw, action=url("/save"))
+        return dict(form=update_form, values=kw, action=url("/save"),
+                    title='New Update Form')
 
     @expose(format="json")
     def search(self, name):
