@@ -370,6 +370,7 @@ class MashTask(Thread):
 
                     self.generate_updateinfo()
                     self.update_symlinks()
+                    self.wait_for_sync()
 
                     log.debug("Sending stable update notices")
                     for update in self.updates:
@@ -396,6 +397,31 @@ class MashTask(Thread):
             log.error("Exception thrown in MashTask %d" % self.id)
             log.exception(str(e))
         masher.done(self)
+
+    def wait_for_sync(self):
+        """
+        Block until our repomd.xml hits the master mirror
+        """
+        import sha
+        import urllib2
+        from time import sleep
+        release = self.updates[0].release.get_version()
+        repo, mashdir = self.mashed_repos.items()[0]
+        repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
+        if not exists(repomd):
+            log.error("Cannot find local repomd: %s" % repomd)
+            return
+        checksum = sha.new(file(repomd).read())
+        while True:
+            sleep(600)
+            log.debug("Checking if repomd.xml is updated")
+            masterrepomd = urllib2.urlopen('http://download.fedora.redhat.com/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml' % release)
+            newsum = sha.new(masterrepomd.read())
+            if newsum == checksum:
+                log.debug("master repomd.xml matches!")
+                return
+            log.debug("master repomd.xml doesn't match! %s != %s" % (checksum,
+                                                                     newsum))
 
     def generate_updateinfo(self):
         """
