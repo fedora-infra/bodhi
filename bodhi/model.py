@@ -47,6 +47,13 @@ class Release(SQLObject):
     dist_tag    = UnicodeCol(notNone=True) # ie dist-fc7
     locked      = BoolCol(default=False)
 
+    def get_version(self):
+        import re
+        regex = re.compile('\w+(\d+)$')
+        num = int(regex.match(self.name).groups()[0])
+        del re, regex
+        return num
+
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
     builds         = MultipleJoin('PackageBuild', joinColumn='package_id')
@@ -254,7 +261,6 @@ class PackageUpdate(SQLObject):
             self.assign_id()
             self.comment('This update has been pushed to stable',
                          author='bodhi')
-            self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
             if self.close_bugs:
                 map(lambda bug: bug.close_bug(self), self.bugs)

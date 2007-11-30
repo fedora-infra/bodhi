@@ -16,8 +16,8 @@
 import logging
 
 from sqlobject.sqlbuilder import LIKE
-from turbogears import (expose, identity, paginate, validate, validators,
-                        redirect, error_handler, url, flash)
+from turbogears import (expose, paginate, validate, validators, redirect,
+                        error_handler, url, flash)
 from turbogears.controllers import Controller
 
 from bodhi.model import PackageUpdate, Bugzilla, CVE

@@ -255,6 +255,10 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.get_build_tag() == "%s-updates" % update.release.dist_tag
         update.status = 'obsolete'
         assert update.get_build_tag() == "%s-updates-candidate" % update.release.dist_tag
+
+    def test_release(self):
+        rel = self.get_rel()
+        assert rel.get_version() == 7
  
 class TestBugzilla(testutil.DBTest):
 
