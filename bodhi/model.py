@@ -254,7 +254,6 @@ class PackageUpdate(SQLObject):
             self.assign_id()
             self.comment('This update has been pushed to stable',
                          author='bodhi')
-            self.send_update_notice()
             map(lambda bug: bug.add_comment(self), self.bugs)
             if self.close_bugs:
                 map(lambda bug: bug.close_bug(self), self.bugs)
@@ -462,7 +461,7 @@ class PackageUpdate(SQLObject):
         self.pushed = False
         self.status = 'pending'
         mail.send_admin('unpushed', self)
- 
+
     def obsolete(self, newer=None):
         """
         Obsolete this update. Even though unpushing/obsoletion is an "instant"
