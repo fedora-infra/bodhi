@@ -35,7 +35,8 @@ class SearchController(Controller):
             flash(tg_errors)
         if search:
             raise redirect('/search/%s' % search)
-        return dict(form=search_form, values={}, action=url('/search/'))
+        return dict(form=search_form, values={}, action=url('/search/'),
+                    title='Search Updates')
 
     @expose(template="bodhi.templates.list")
     @validate(validators={ "search" : validators.UnicodeString() })
