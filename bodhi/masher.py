@@ -356,7 +356,6 @@ class MashTask(Thread):
                 if self.success:
                     log.debug("Running post-request actions on updates")
                     testing_digest = {}
-                    stable_updates = []
                     for update in self.updates:
                         if update.request == 'testing':
                             update.request_complete()
@@ -366,16 +365,16 @@ class MashTask(Thread):
                             for subject, body in mail.get_template(update):
                                 testing_digest[prefix] += body + u"\n"
                         else:
-                            if update.request == 'stable':
-                                stable_updates.append(update)
                             update.request_complete()
                     log.debug("Requests complete!")
+
                     self.generate_updateinfo()
                     self.update_symlinks()
+
                     log.debug("Sending stable update notices")
-                    for update in stable_updates:
-                        update.send_update_notice()
-                    del stable_updates
+                    for update in self.updates:
+                        if update.status == 'stable':
+                            update.send_update_notice()
                     log.debug("Sending updates-testing digests")
                     for prefix, digest in testing_digest.items():
                         mail.send_mail(config.get('bodhi_email'),
