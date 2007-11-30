@@ -12,7 +12,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from turbogears.feed import FeedController
-from turbogears import expose, config, url
+from turbogears import config, url
 from sqlobject.sqlbuilder import AND
 
 from bodhi.model import Release, PackageUpdate
