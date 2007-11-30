@@ -24,12 +24,15 @@ class Feed(FeedController):
         entries = []
         date = lambda update: update.date_pushed
         order = PackageUpdate.q.date_pushed
+        title = []
 
         if release:
             rel = Release.byName(release.upper())
             query.append(PackageUpdate.q.releaseID == rel.id)
+            title.append(rel.long_name)
         if type:
             query.append(PackageUpdate.q.type == type)
+            title.append(type.title())
         if status:
             query.append(PackageUpdate.q.status == status)
             if status == 'pending':
@@ -38,6 +41,7 @@ class Feed(FeedController):
             else:
                 # Let's only show pushed testing/stable updates
                 query.append(PackageUpdate.q.pushed == True)
+            title.append(status.title())
         else:
             query.append(PackageUpdate.q.pushed == True)
 
@@ -62,9 +66,10 @@ class Feed(FeedController):
                 entries[-1]['summary'] = "%s<br/>%s" % (bugs[:-2],
                                                         entries[-1]['summary'])
 
+        title.append('Updates')
 
         return dict(
-                title = "Fedora Updates",
+                title = ' '.join(title),
                 subtitle = "",
                 link = config.get('base_address') + url('/'),
                 entries = entries
