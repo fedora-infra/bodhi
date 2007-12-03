@@ -238,7 +238,7 @@ with yum", available at http://docs.fedoraproject.org/yum/.
 
 def get_template(update):
     from bodhi.buildsys import get_session
-    line = str('-' * 80) + '\n'
+    line = unicode('-' * 80) + '\n'
     templates = []
     koji_session = get_session()
 
@@ -258,7 +258,7 @@ def get_template(update):
             info['testing'] = ''
             info['yum_repository'] = ''
         
-        info['subject'] = "%s%s%s Update: %s" % (
+        info['subject'] = u"%s%s%s Update: %s" % (
                 update.type == 'security' and '[SECURITY] ' or '',
                 update.release.long_name, info['testing'], build.nvr)
         info['update_id'] = update.update_id
@@ -267,32 +267,32 @@ def get_template(update):
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
-            info['notes'] = "Update Information:\n\n%s\n" % update.notes
+            info['notes'] = u"Update Information:\n\n%s\n" % update.notes
             info['notes'] += line
 
         # Build the list of SHA1SUMs and packages
         filelist = []
         for pkg in koji_session.listBuildRPMs(build.nvr):
-            filename = "%s.%s.rpm" % (pkg['nvr'], pkg['arch'])
+            filename = u"%s.%s.rpm" % (pkg['nvr'], pkg['arch'])
             path = join(config.get('build_dir'), info['name'], info['version'],
                         info['release'], pkg['arch'])
-            filelist.append("%s %s" % (sha1sum(join(path, filename)), filename))
+            filelist.append(u"%s %s" % (sha1sum(join(path, filename)), filename))
         info['filelist'] = '\n'.join(filelist)
 
         # Add this updates referenced Bugzillas and CVEs
         i = 1
         info['references'] = ""
         if len(update.bugs) or len(update.cves):
-            info['references'] = "References:\n\n"
+            info['references'] = u"References:\n\n"
             for bug in update.bugs:
                 title = (bug.title != 'Unable to fetch title' and
                          bug.title != 'Invalid bug number') and \
                         ' - %s' % bug.title or ''
-                info['references'] += "  [ %d ] Bug #%d%s\n        %s\n" % \
+                info['references'] += u"  [ %d ] Bug #%d%s\n        %s\n" % \
                                       (i, bug.bz_id, title, bug.get_url())
                 i += 1
             for cve in update.cves:
-                info['references'] += "  [ %d ] %s\n        %s\n" % \
+                info['references'] += u"  [ %d ] %s\n        %s\n" % \
                                       (i, cve.cve_id, cve.get_url())
                 i += 1
             info['references'] += line
@@ -302,7 +302,7 @@ def get_template(update):
         log.debug("lastpkg = %s" % lastpkg)
 
         # Grab the RPM header of the previous update, and generate a ChangeLog
-        info['changelog'] = ""
+        info['changelog'] = u""
         try:
             oldh = rpm_fileheader(lastpkg)
             oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
@@ -312,7 +312,7 @@ def get_template(update):
                 oldtime = 0
             elif len(text) != 1:
                 oldtime = oldtime[0]
-            info['changelog'] = "ChangeLog:\n\n%s%s" % \
+            info['changelog'] = u"ChangeLog:\n\n%s%s" % \
                     (str(build.get_changelog(oldtime)), line)
         except RPMNotFound:
             log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
@@ -320,10 +320,6 @@ def get_template(update):
         except Exception, e:
             log.error("Unknown exception thrown during ChangeLog generation: %s"
                       % str(e))
-
-        for (key, value) in info.items():
-            if value:
-                info[key] = value.decode('utf8')
 
         templates.append((info['subject'], errata_template % info))
 
