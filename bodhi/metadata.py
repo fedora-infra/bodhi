@@ -96,7 +96,8 @@ class ExtendedMetadata:
         for arch in os.listdir(self.repo):
             archrepo = join(self.repo, arch)
             if not isdir(archrepo): continue
-            cmd = 'repoquery --repofrompath=foo,%s --repofrompath=bar,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=foo --repoid=bar' % (archrepo, join(archrepo, 'debug'))
+            repoid = "%s-%s" % (self.repo, arch)
+            cmd = 'repoquery --repofrompath=%s,%s --repofrompath=%s-debug,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=%s --repoid=%s-debug' % (repoid, archrepo, repoid, join(archrepo, 'debug'), repoid, repoid)
             log.debug("Running `%s`" % cmd)
             out = commands.getoutput(cmd)
             try:
