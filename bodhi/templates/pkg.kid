@@ -14,7 +14,7 @@
 <blockquote>
     <h1>${pkg.name}</h1>
     <ul>
-        <li><a href="https://bugzilla.redhat.com/bugzilla/buglist.cgi?component=${pkg.name}&amp;bug_status=NEW&amp;bug_status=ASSIGNED&amp;bug_status=NEEDINFO&amp;bug_status=MODIFIED">Open Bugs</a></li>
+        <li><a href="http://bugz.fedoraproject.org/${pkg.name}">Open Bugs</a></li>
         <li><a href="https://admin.fedoraproject.org/pkgdb/packages/name/${pkg.name}">Package Database</a></li>
         <li><a href="http://koji.fedoraproject.org/koji/search?terms=${pkg.name}&amp;type=package&amp;match=glob">Koji Buildsystem</a></li>
     </ul>
