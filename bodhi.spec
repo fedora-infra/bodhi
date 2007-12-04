@@ -73,6 +73,7 @@ rm -rf $RPM_BUILD_ROOT
 %files client
 %doc COPYING README
 %{_bindir}/bodhi
+%{_mandir}/man1/bodhi.1.gz
 
 
 %changelog

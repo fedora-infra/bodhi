@@ -8,3 +8,4 @@ include bodhi/static/javascript/*
 include bodhi/static/css/*
 include bodhi/static/images/*
 include bodhi.spec
+include docs/bodhi.1
