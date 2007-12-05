@@ -441,16 +441,23 @@ class Root(controllers.RootController):
         koji = buildsys.get_session()
         for build in builds:
             log.debug("Validating koji tag for %s" % build)
+            candidate = '%s-updates-candidate' % release.dist_tag
             try:
                 tags = [tag['name'] for tag in koji.listTags(build)]
                 if edited:
-                    if edited.get_build_tag() not in tags:
-                        flash_log("%s not tagged with %s" % (edited.title,
-                                  edited.get_build_tag()))
-                        if self.jsonRequest(): return dict()
-                        raise redirect('/new', **params)
+                    if build in edited.title:
+                        if edited.get_build_tag() not in tags:
+                            flash_log("%s not tagged with %s" % (edited.title,
+                                      edited.get_build_tag()))
+                            if self.jsonRequest(): return dict()
+                            raise redirect('/new', **params)
+                    else: # new build
+                        if candidate not in tags:
+                            flash_log("%s not tagged with %s" % (build,
+                                      candidate))
+                            if self.jsonRequest(): return dict()
+                            raise redirect('/new', **params)
                 else:
-                    candidate = '%s-updates-candidate' % release.dist_tag
                     if candidate not in tags:
                         flash_log("%s not tagged with %s" % (build, candidate))
                         if self.jsonRequest(): return dict()
@@ -504,6 +511,7 @@ class Root(controllers.RootController):
                 update.unpush()
             elif update.status == 'stable':
                 flash_log("Cannot edit stable updates")
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
             for build in update.builds:
                 build.destroySelf()
