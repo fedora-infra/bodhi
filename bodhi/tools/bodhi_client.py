@@ -33,7 +33,6 @@ __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
 
 BODHI_URL = 'https://admin.fedoraproject.org/updates/'
-#BODHI_URL = 'http://localhost:8084/updates'
 log = logging.getLogger(__name__)
 
 class BodhiClient(BaseClient):
@@ -42,6 +41,23 @@ class BodhiClient(BaseClient):
         log.info("Creating new update for %s" % builds)
         params = {
                 'builds'  : builds,
+                'release' : opts.release.upper(),
+                'type'    : opts.type,
+                'bugs'    : opts.bugs,
+                'notes'   : opts.notes
+        }
+        if hasattr(opts, 'request') and getattr(opts, 'request'):
+            params['request'] = opts.request
+        data = self.send_request('save', auth=True, input=params)
+        log.info(data['tg_flash'])
+        if data.has_key('update'):
+            log.info(data['update'])
+
+    def edit(self, builds, opts):
+        log.info("Editing update for %s" % builds)
+        params = {
+                'builds'  : builds,
+                'edited'  : builds,
                 'release' : opts.release.upper(),
                 'type'    : opts.type,
                 'bugs'    : opts.bugs,
@@ -233,6 +249,8 @@ if __name__ == '__main__':
     ## Actions
     parser.add_option("-n", "--new", action="store_true", dest="new",
                       help="Submit a new update")
+    parser.add_option("-e", "--edit", action="store_true", dest="edit",
+                      help="Edit an existing update")
     parser.add_option("-M", "--masher", action="store_true", dest="masher",
                       help="Display the status of the Masher")
     parser.add_option("-P", "--push", action="store_true", dest="push",
@@ -306,6 +324,9 @@ if __name__ == '__main__':
                     log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
                 bodhi.new(args[0], opts)
+            elif opts.edit:
+                verify_args(args)
+                bodhi.edit(args[0], opts)
             elif opts.request:
                 verify_args(args)
                 bodhi.request(opts, args[0])
