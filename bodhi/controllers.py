@@ -446,7 +446,7 @@ class Root(controllers.RootController):
                 if edited:
                     if edited.get_build_tag() not in tags:
                         flash_log("%s not tagged with %s" % (edited.title,
-                                  edited.get_build_tag))
+                                  edited.get_build_tag()))
                         raise redirect('/new', **params)
                 else:
                     candidate = '%s-updates-candidate' % release.dist_tag
