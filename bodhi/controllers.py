@@ -406,6 +406,13 @@ class Root(controllers.RootController):
                 'edited'      : edited
         }
 
+        if edited:
+            try:
+                edited = PackageUpdate.byTitle(edited)
+            except SQLObjectNotFound:
+                flash_log("Cannot find update '%s' to edit" % edited)
+                raise redirect('/new', **params)
+
         # Make sure the submitter has commit access to these builds
         for build in builds:
             nvr = util.get_nvr(build)
@@ -429,26 +436,27 @@ class Root(controllers.RootController):
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
-        ##
-        ## Iterate over all of the builds, performing various error checks
-        ##
+        # Iterate over all of the builds, making sure they are all tagged
+        # appropriately in koji
         koji = buildsys.get_session()
         for build in builds:
             log.debug("Validating koji tag for %s" % build)
-            tag_matches = False
-            candidate = '%s-updates-candidate' % release.dist_tag
             try:
-                for tag in koji.listTags(build):
-                    if tag['name'] == candidate:
-                        log.debug("%s built with tag %s" % (build, tag['name']))
-                        tag_matches = True
-                        break
+                tags = [tag['name'] for tag in koji.listTags(build)]
+                if edited:
+                    if edited.get_build_tag() not in tags:
+                        flash_log("%s not tagged with %s" % (edited.title,
+                                  edited.get_build_tag()))
+                        if self.jsonRequest(): return dict()
+                        raise redirect('/new', **params)
+                else:
+                    candidate = '%s-updates-candidate' % release.dist_tag
+                    if candidate not in tags:
+                        flash_log("%s not tagged with %s" % (build, candidate))
+                        if self.jsonRequest(): return dict()
+                        raise redirect('/new', **params)
             except GenericError, e:
                 flash_log("Invalid build: %s" % build)
-                if self.jsonRequest(): return dict()
-                raise redirect('/new', **params)
-            if not tag_matches:
-                flash_log("%s build is not tagged with %s" % (build, candidate))
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
@@ -488,19 +496,17 @@ class Root(controllers.RootController):
                 # Check against the previous release (until one doesn't exist)
                 tag = tag[:-1] + str(int(tag[-1]) - 1)
 
-        # Disallow adding or removing of builds when an update is testing or
-        # stable.  If we're in a pending state, we destroy them all and
-        # create them later -- to allow for adding/removing of builds.
+        # If we're editing a testing update, unpush it first.  Then destroy
+        # all associated builds, as they will be re-created in the next step.
         if edited:
-            update = PackageUpdate.byTitle(edited)
-            if update.status in ('testing', 'stable'):
-                if filter(lambda build: build not in edited, builds) or \
-                   filter(lambda build: build not in builds, edited.split()):
-                    flash_log("You must unpush this update before you can "
-                              "add or remove any builds.")
-                    if self.jsonRequest(): return dict()
-                    raise redirect(update.get_url())
-            map(lambda build: build.destroySelf(), update.builds)
+            update = edited
+            if update.status == 'testing':
+                update.unpush()
+            elif update.status == 'stable':
+                flash_log("Cannot edit stable updates")
+                raise redirect('/new', **params)
+            for build in update.builds:
+                build.destroySelf()
 
         # Create all of the PackageBuild and PackageUpdate objects
         for build in builds:
@@ -523,19 +529,11 @@ class Root(controllers.RootController):
 
         # Modify or create the PackageUpdate
         if edited:
-            p = PackageUpdate.byTitle(edited)
-            try:
-                p.set(release=release, date_modified=datetime.utcnow(),
-                      notes=notes, type=type, title=','.join(builds),
-                      close_bugs=close_bugs)
-                log.debug("Edited update %s" % edited)
-            except (DuplicateEntryError, PostgresIntegrityError,
-                    SQLiteIntegrityError):
-                flash_log("Update already exists for build in: %s" % 
-                          ' '.join(builds))
-                if self.jsonRequest():
-                    return dict()
-                raise redirect('/new', **params)
+            p = edited
+            p.set(release=release, date_modified=datetime.utcnow(),
+                  notes=notes, type=type, title=','.join(builds),
+                  close_bugs=close_bugs)
+            log.debug("Edited update %s" % edited)
         else:
             try:
                 p = PackageUpdate(title=','.join(builds), release=release,
@@ -545,8 +543,7 @@ class Root(controllers.RootController):
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
                 flash_log("Update for %s already exists" % builds)
-                if self.jsonRequest():
-                    return dict()
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
         # Add the PackageBuilds to our PackageUpdate
@@ -566,8 +563,6 @@ class Root(controllers.RootController):
         if edited:
             mail.send(p.submitter, 'edited', p)
             note.insert(0, "Update successfully edited")
-
-        # New update
         else:
             # Notify security team of newly submitted security updates
             if p.type == 'security':

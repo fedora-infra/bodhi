@@ -15,6 +15,7 @@
 import rpm
 import time
 import logging
+import turbomail
 import xmlrpclib
 
 from sqlobject import *
@@ -84,6 +85,7 @@ class Package(SQLObject):
                                                len(states[state]))
                 for update in states[state]:
                     x += "    o %s\n" % update.title
+        del states
         return x
 
 class PackageBuild(SQLObject):
@@ -116,6 +118,7 @@ class PackageBuild(SQLObject):
                                       time.localtime(when[i])), who[i],
                                       descrip[i])
             i += 1
+        del rpm_header
         return str
 
     def get_srpm_path(self):
@@ -270,7 +273,6 @@ class PackageUpdate(SQLObject):
         hub.commit()
 
     def send_update_notice(self):
-        import turbomail
         log.debug("Sending update notice for %s" % self.title)
         mailinglist = None
         sender = config.get('bodhi_email')
@@ -468,7 +470,7 @@ class PackageUpdate(SQLObject):
         self.pushed = False
         self.status = 'pending'
         mail.send_admin('unpushed', self)
- 
+
     def obsolete(self, newer=None):
         """
         Obsolete this update. Even though unpushing/obsoletion is an "instant"

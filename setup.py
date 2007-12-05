@@ -195,6 +195,7 @@ setup(
         "python_fedora",
     ],
     scripts = ["start-bodhi"],
+    data_files = [('man/man1', ['docs/bodhi.1'])],
     zip_safe=False,
     packages=find_packages(),
     package_data = find_package_data(where='bodhi',

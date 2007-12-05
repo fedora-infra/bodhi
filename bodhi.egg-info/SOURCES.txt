@@ -5,6 +5,7 @@ Makefile
 README
 bodhi.cfg
 bodhi.spec
+dev.cfg
 setup.py
 start-bodhi.in
 bodhi/__init__.py
@@ -127,3 +128,4 @@ bodhi/tools/dev_init.py
 bodhi/tools/init.py
 bodhi/tools/pickledb.py
 bodhi/tools/test-bodhi.py
+docs/bodhi.1
