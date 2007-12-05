@@ -447,11 +447,13 @@ class Root(controllers.RootController):
                     if edited.get_build_tag() not in tags:
                         flash_log("%s not tagged with %s" % (edited.title,
                                   edited.get_build_tag()))
+                        if self.jsonRequest(): return dict()
                         raise redirect('/new', **params)
                 else:
                     candidate = '%s-updates-candidate' % release.dist_tag
                     if candidate not in tags:
                         flash_log("%s not tagged with %s" % (build, candidate))
+                        if self.jsonRequest(): return dict()
                         raise redirect('/new', **params)
             except GenericError, e:
                 flash_log("Invalid build: %s" % build)
