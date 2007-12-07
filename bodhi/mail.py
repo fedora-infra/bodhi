@@ -208,7 +208,7 @@ the following URL:
 
 }
 
-errata_template = """\
+errata_template = u"""\
 --------------------------------------------------------------------------------
 Fedora%(testing)s Update Notification
 %(update_id)s

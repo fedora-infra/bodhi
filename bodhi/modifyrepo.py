@@ -79,7 +79,7 @@ class RepoMetadata:
         mdtype = mdname.split('.')[0]
         destmd = os.path.join(self.repodir, mdname)
         newmd = gzip.GzipFile(destmd, 'wb')
-        newmd.write(md)
+        newmd.write(md.encode('utf-8'))
         newmd.close()
         print "Wrote:", destmd
 
@@ -102,7 +102,7 @@ class RepoMetadata:
         self._insert_element(data, 'timestamp',
                              text=str(os.stat(destmd).st_mtime))
         self._insert_element(data, 'open-checksum', attrs={ 'type' : 'sha' },
-                             text=sha.new(md).hexdigest())
+                             text=sha.new(md.encode('utf-8')).hexdigest())
 
         #print "           type =", mdtype 
         #print "       location =", 'repodata/' + mdname
