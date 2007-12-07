@@ -208,7 +208,7 @@ the following URL:
 
 }
 
-errata_template = """\
+errata_template = u"""\
 --------------------------------------------------------------------------------
 Fedora%(testing)s Update Notification
 %(update_id)s
@@ -321,7 +321,15 @@ def get_template(update):
             log.error("Unknown exception thrown during ChangeLog generation: %s"
                       % str(e))
 
-        templates.append((info['subject'], errata_template % info))
+        try:
+            templates.append((info['subject'], errata_template % info))
+        except UnicodeDecodeError:
+            log.debug("UnicodeDecodeError! Will try again after decoding")
+            # We can't trust the strings we get from RPM
+            for (key, value) in info.items():
+                if value:
+                    info[key] = value.decode('utf8')
+            templates.append((info['subject'], errata_template % info))
 
     return templates
 

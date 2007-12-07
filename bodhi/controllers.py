@@ -543,7 +543,7 @@ class Root(controllers.RootController):
             p.set(release=release, date_modified=datetime.utcnow(),
                   notes=notes, type=type, title=','.join(builds),
                   close_bugs=close_bugs)
-            log.debug("Edited update %s" % edited)
+            log.debug("Edited update %s" % edited.title)
         else:
             try:
                 p = PackageUpdate(title=','.join(builds), release=release,

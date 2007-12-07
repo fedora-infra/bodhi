@@ -19,7 +19,7 @@ import logging
 import commands
 
 from xml.dom import minidom
-from os.path import join, isdir
+from os.path import join, isdir, basename
 from sqlobject import SQLObjectNotFound
 from turbogears import config
 
@@ -96,7 +96,7 @@ class ExtendedMetadata:
         for arch in os.listdir(self.repo):
             archrepo = join(self.repo, arch)
             if not isdir(archrepo): continue
-            repoid = "%s-%s" % (self.repo, arch)
+            repoid = "%s-%s" % (basename(self.repo), arch)
             cmd = 'repoquery --repofrompath=%s,%s --repofrompath=%s-debug,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=%s --repoid=%s-debug' % (repoid, archrepo, repoid, join(archrepo, 'debug'), repoid, repoid)
             log.debug("Running `%s`" % cmd)
             out = commands.getoutput(cmd)
