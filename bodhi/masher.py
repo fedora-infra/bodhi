@@ -405,7 +405,9 @@ class MashTask(Thread):
         import sha
         import urllib2
         from time import sleep
-        release = self.updates[0].release
+        update = self.updates.pop()
+        release = update.release
+        self.updates.add(update)
         mashdir = config.get('mashed_dir')
         repo = "%s-updates" % release.name.lower()
         repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
