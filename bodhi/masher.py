@@ -405,6 +405,9 @@ class MashTask(Thread):
         import sha
         import urllib2
         from time import sleep
+        if not len(updates):
+            log.debug("No updates in masher; skipping wait_for_sync")
+            return
         update = self.updates.pop()
         release = update.release
         self.updates.add(update)
