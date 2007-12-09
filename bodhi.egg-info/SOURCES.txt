@@ -19,6 +19,7 @@ bodhi/json.py
 bodhi/mail.py
 bodhi/masher.py
 bodhi/metadata.py
+bodhi/metrics.py
 bodhi/model.py
 bodhi/modifyrepo.py
 bodhi/new.py
@@ -74,6 +75,7 @@ bodhi/static/images/header-projects.png
 bodhi/static/images/karma-1.png
 bodhi/static/images/karma0.png
 bodhi/static/images/karma1.png
+bodhi/static/images/metrics.png
 bodhi/static/images/mugshot.png
 bodhi/static/images/null.png
 bodhi/static/images/plus.png
@@ -103,6 +105,7 @@ bodhi/templates/list.kid
 bodhi/templates/login.kid
 bodhi/templates/masher.kid
 bodhi/templates/master.kid
+bodhi/templates/metrics.kid
 bodhi/templates/mine.kid
 bodhi/templates/new.kid
 bodhi/templates/obsolete.kid
