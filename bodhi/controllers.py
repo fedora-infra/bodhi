@@ -31,6 +31,7 @@ from bodhi.rss import Feed
 from bodhi.util import flash_log, get_pkg_pushers
 from bodhi.new import NewUpdateController, update_form
 from bodhi.admin import AdminController
+from bodhi.metrics import Metrics
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
@@ -47,6 +48,7 @@ class Root(controllers.RootController):
     admin = AdminController()
     search = SearchController()
     rss = Feed("rss2.0")
+    metrics = Metrics()
 
     comment_form = CommentForm()
     comment_captcha_form = CommentCaptchaForm()

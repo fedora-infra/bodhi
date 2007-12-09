@@ -408,6 +408,7 @@ class MashTask(Thread):
         if not len(updates):
             log.debug("No updates in masher; skipping wait_for_sync")
             return
+        log.info("Waiting for updates to hit mirror...")
         update = self.updates.pop()
         release = update.release
         self.updates.add(update)

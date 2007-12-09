@@ -13,6 +13,7 @@
 
     <script language="javascript">
         $(document).ready(function(){
+            $('#metricstip').Tooltip( { delay: 0 } );
             $('#bodhitip').Tooltip( { delay: 0 } );
             $('#wftip').Tooltip( { delay: 0 } );
             $('#clitip').Tooltip( { delay: 0 } );
@@ -30,6 +31,11 @@
                 <td align="right">
                     <table>
                         <tr>
+                            <td>
+                                <span id="metricstip" title="Metrics">
+                                    <a href="${tg.url('/metrics')}"><img src="${tg.url('/static/images/metrics.png')}" border="0" /></a>
+                                </span>
+                            </td>
                             <td>
                                 <span id="bodhitip" title="Bodhi Project Homepage">
                                     <a href="http://hosted.fedoraproject.org/projects/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
@@ -83,7 +89,7 @@
             <tr>
                 <td>
                     <span py:if="comments">
-                        <h3>Latest Comments</h3>
+                        <h3>Latest Comments <a href="${tg.url('/comments')}">[more]</a></h3>
                         ${comments.display()}
                     </span>
                 </td>
