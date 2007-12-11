@@ -356,14 +356,19 @@ class MashTask(Thread):
                 if self.success:
                     log.debug("Running post-request actions on updates")
                     testing_digest = {}
+                    headers = {}
                     for update in self.updates:
                         if update.request == 'testing':
                             update.request_complete()
                             prefix = update.release.id_prefix.lower()
                             if not testing_digest.has_key(prefix):
                                 testing_digest[prefix] = u""
+                            if not headers.has_key(prefix):
+                                headers[prefix] = "The following builds have been pushed to updates-testing\n"
                             for subject, body in mail.get_template(update):
                                 testing_digest[prefix] += body + u"\n"
+                            for build in update.builds:
+                                headers[prefix] += "    %s\n" % build.nvr
                         else:
                             update.request_complete()
                     log.debug("Requests complete!")
@@ -381,8 +386,9 @@ class MashTask(Thread):
                         mail.send_mail(config.get('bodhi_email'),
                                   config.get('%s_test_announce_list' % prefix),
                                   '%s updates-testing report' % prefix.title(),
-                                  digest)
+                                  headers[prefix] + "\n" + digest)
                     del testing_digest
+                    del headers
                 else:
                     log.error("Error mashing.. skipping post-request actions")
                     if self.undo_move():
