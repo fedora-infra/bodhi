@@ -411,7 +411,7 @@ class MashTask(Thread):
         import sha
         import urllib2
         from time import sleep
-        if not len(updates):
+        if not len(self.updates):
             log.debug("No updates in masher; skipping wait_for_sync")
             return
         log.info("Waiting for updates to hit mirror...")
