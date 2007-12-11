@@ -5,7 +5,6 @@ Makefile
 README
 bodhi.cfg
 bodhi.spec
-dev.cfg
 setup.py
 start-bodhi.in
 bodhi/__init__.py
