@@ -50,7 +50,7 @@ class Metrics(Controller):
                     timeline[update.release.name][update.date_pushed.month] += 1
         for release, data in timeline.items():
             for month, num in data.items():
-                if num < 10: # Trim off incomplete months
+                if num < 20: # Trim off incomplete months
                     del timeline[release][month]
                     if months.has_key(month):
                         del months[month]
@@ -85,7 +85,7 @@ class Metrics(Controller):
         for type, data in timeline.items():
             timeline[type] = data.items()
         for month, num in all.items():
-            if num < 100: # trim off incomplete months
+            if num < 300: # trim off incomplete months
                 del all[month]
                 del months[month]
                 for type, data in timeline.items():

@@ -408,9 +408,10 @@ class PackageUpdate(SQLObject):
 
     def get_submitted_age(self):
         return get_age(self.date_submitted)
+
     def get_pushed_color(self):
         age = get_age_in_days(self.date_pushed)
-        if age == 0:
+        if age == 0 or self.karma < 0:
             color = '#ff0000' # red
         elif age < 4:
             color = '#ff6600' # orange
