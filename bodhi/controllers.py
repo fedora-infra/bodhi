@@ -437,6 +437,7 @@ class Root(controllers.RootController):
             if not identity.current.user_name in people[0] and \
                not 'releng' in identity.current.groups and \
                not 'security_respons' in identity.current.groups and \
+               not 'cvsadmin' in identity.current.groups and \
                not filter(lambda x: x in identity.current.groups, groups[0]):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, nvr[0]))
