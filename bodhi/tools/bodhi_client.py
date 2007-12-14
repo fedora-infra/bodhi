@@ -72,12 +72,15 @@ class BodhiClient(BaseClient):
 
     def list(self, opts, package=None, showcount=True):
         args = { 'tg_paginate_limit' : opts.limit }
-        for arg in ('release', 'status', 'type', 'bugs', 'request'):
+        auth = False
+        for arg in ('release', 'status', 'type', 'bugs', 'request', 'mine'):
             if getattr(opts, arg):
                 args[arg] = getattr(opts, arg)
         if package:
-            args['package' ] = package[0]
-        data = self.send_request('list', input=args)
+            args['package'] = package[0]
+        if args.has_key('mine'):
+            auth = True
+        data = self.send_request('list', input=args, auth=auth)
         if data.has_key('tg_flash') and data['tg_flash']:
             log.error(data['tg_flash'])
             sys.exit(-1)
@@ -163,13 +166,6 @@ class BodhiClient(BaseClient):
         data = self.send_request('admin/masher', auth=True)
         log.info(data['masher_str'])
 
-    def mine(self):
-        data = self.send_request('mine', auth=True)
-        for update in data['updates']:
-           log.info(update + '\n')
-        log.info("%d updates found (%d shown)" % (data['num_items'],
-                                                  len(data['updates'])))
-
     def push(self, opts):
         data = self.send_request('admin/push', auth=True)
         log.info("[ %d Pending Requests ]" % len(data['updates']))
@@ -252,7 +248,7 @@ if __name__ == '__main__':
     parser.add_option("-e", "--edit", action="store_true", dest="edit",
                       help="Edit an existing update")
     parser.add_option("-M", "--masher", action="store_true", dest="masher",
-                      help="Display the status of the Masher")
+                      help="Display the status of the Masher (releng only)")
     parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates (releng only)")
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
@@ -304,7 +300,7 @@ if __name__ == '__main__':
     (opts, args) = parser.parse_args()
     setup_logger()
 
-    bodhi = BodhiClient(BODHI_URL, opts.username, None)
+    bodhi = BodhiClient(BODHI_URL, opts.username, None, opts.verbose)
 
     def verify_args(args):
         if not args and len(args) != 1:
@@ -333,8 +329,6 @@ if __name__ == '__main__':
             elif opts.delete:
                 verify_args(args)
                 bodhi.delete(args[0])
-            elif opts.mine:
-                bodhi.mine()
             elif opts.push:
                 bodhi.push(opts)
             elif opts.masher:
@@ -348,7 +342,8 @@ if __name__ == '__main__':
                     log.error("Please specify an update to comment on")
                     sys.exit(-1)
                 bodhi.comment(opts, args[0])
-            elif opts.status or opts.bugs or opts.release or opts.type or args:
+            elif opts.status or opts.bugs or opts.release or opts.type or \
+                 opts.mine or args:
                 bodhi.list(opts, args)
             else:
                 parser.print_help()
