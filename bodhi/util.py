@@ -108,10 +108,14 @@ def displayname(identity):
                       '<%s>' % identity.current.user.user['email'] or '')
 
 def authorized_user(update, identity):
+    try:
+        display = displayname(identity)
+    except AttributeError:
+        display = identity.current.user_name
     return update.submitter == identity.current.user_name or \
            'releng' in identity.current.groups or \
            'security_respons' in identity.current.groups or \
-           displayname(identity) == update.submitter
+           display == update.submitter
 
 def make_update_link(obj):
     """ Return a link Element for a given PackageUpdate or PackageBuild """
