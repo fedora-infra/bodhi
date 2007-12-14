@@ -252,7 +252,7 @@ if __name__ == '__main__':
     parser.add_option("-e", "--edit", action="store_true", dest="edit",
                       help="Edit an existing update")
     parser.add_option("-M", "--masher", action="store_true", dest="masher",
-                      help="Display the status of the Masher")
+                      help="Display the status of the Masher (releng only)")
     parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates (releng only)")
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
