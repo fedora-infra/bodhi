@@ -304,7 +304,7 @@ if __name__ == '__main__':
     (opts, args) = parser.parse_args()
     setup_logger()
 
-    bodhi = BodhiClient(BODHI_URL, opts.username, None)
+    bodhi = BodhiClient(BODHI_URL, opts.username, None, opts.verbose)
 
     def verify_args(args):
         if not args and len(args) != 1:
