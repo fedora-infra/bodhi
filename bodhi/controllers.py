@@ -178,10 +178,10 @@ class Root(controllers.RootController):
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, allow_limit_override=True)
     def list(self, release=None, bugs=None, cves=None, status=None, type=None,
-             package=None):
+             package=None, mine=False):
         """ Return a list of updates based on given parameters """
-        log.debug("list(%s, %s, %s, %s, %s, %s)" % (release, bugs, cves, status,
-                                                    type, package))
+        log.debug("list(%s, %s, %s, %s, %s, %s, %s)" % (release, bugs, cves,
+                  status, type, package, mine))
         query = []
         updates = []
 
@@ -193,6 +193,9 @@ class Root(controllers.RootController):
                 query.append(PackageUpdate.q.status == status)
             if type:
                 query.append(PackageUpdate.q.type == type)
+            if mine:
+                query.append(
+                    PackageUpdate.q.submitter == identity.current.user_name)
 
             updates = PackageUpdate.select(AND(*query))
 
