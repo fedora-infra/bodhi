@@ -510,6 +510,10 @@ class CVE(SQLObject):
     This table has since been deprecated.  We are now tracking CVEs via 
     Bugzilla.  See http://fedoraproject.org/wiki/Security/TrackingBugs
     for more information on our bug tracking policy.
+
+    @deprecated: We no longer track CVEs directly in bodhi.  See our new
+    security bug tracking policy for more details:
+        http://fedoraproject.org/wiki/Security/TrackingBugs
     """
     cve_id  = UnicodeCol(alternateID=True, notNone=True)
     updates = RelatedJoin("PackageUpdate")
