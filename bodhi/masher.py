@@ -358,19 +358,9 @@ class MashTask(Thread):
                     testing_digest = {}
                     headers = {}
                     for update in self.updates:
+                        update.request_complete()
                         if update.request == 'testing':
-                            update.request_complete()
-                            prefix = update.release.id_prefix.lower()
-                            if not testing_digest.has_key(prefix):
-                                testing_digest[prefix] = u""
-                            if not headers.has_key(prefix):
-                                headers[prefix] = "The following builds have been pushed to updates-testing\n"
-                            for subject, body in mail.get_template(update):
-                                testing_digest[prefix] += body + u"\n"
-                            for build in update.builds:
-                                headers[prefix] += "    %s\n" % build.nvr
-                        else:
-                            update.request_complete()
+                            self.add_to_digest(update)
                     log.debug("Requests complete!")
 
                     self.generate_updateinfo()
@@ -382,11 +372,7 @@ class MashTask(Thread):
                         if update.status == 'stable':
                             update.send_update_notice()
                     log.debug("Sending updates-testing digests")
-                    for prefix, digest in testing_digest.items():
-                        mail.send_mail(config.get('bodhi_email'),
-                                  config.get('%s_test_announce_list' % prefix),
-                                  '%s updates-testing report' % prefix.title(),
-                                  headers[prefix] + "\n" + digest)
+                    self.send_digest_mail()
                     del testing_digest
                     del headers
                 else:
@@ -403,6 +389,44 @@ class MashTask(Thread):
             log.error("Exception thrown in MashTask %d" % self.id)
             log.exception(str(e))
         masher.done(self)
+   
+    def add_to_digest(self,update):
+	"""
+    	Add an package to the digest dictionary
+    	{ 'release-id':
+    	  { 'build nvr' : body text for build, ...... }
+        ..
+        ..
+        }    	
+    	
+    	"""	
+        prefix = update.release.id_prefix.lower()
+        if not testing_digest.has_key(prefix):
+            testing_digest[prefix] = {}
+        for subject, body in mail.get_template(update,use_template=mail.maillist_template):
+            for build in update.builds:
+                testing_digest[prefix][build.nvr]= body
+		
+    def send_digest_mail(self):
+        '''
+        Send digest mail to mailing lists
+        '''
+        for prefix, content in testing_digest.items():
+            maildata = u'The following builds has been pushed to %s updates-testing\n' % prefix
+            # get a list af all nvr's
+            updlist = content.keys()
+            # sort the list
+            updlist.sort()
+            # Add the list of builds to the mail
+            maildata += u'\n'.join(updlist)
+            # Add the detail of each build
+            for nvr in updlist:
+                maildata += u"\n"+testing_digest[prefix][nvr]
+            mail.send_mail(config.get('bodhi_email'),
+                      config.get('%s_test_announce_list' % prefix),
+                      '%s updates-testing report' % prefix.title(),
+                      maildata)
+        
 
     def wait_for_sync(self):
         """
