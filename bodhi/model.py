@@ -250,27 +250,40 @@ class PackageUpdate(SQLObject):
             self.date_pushed = datetime.utcnow()
             self.status = 'testing'
             self.assign_id()
-            map(lambda bug: bug.add_comment(self), self.bugs)
-            self.comment('This update has been pushed to testing',
-                         author='bodhi')
         elif self.request == 'obsolete':
             self.pushed = False
             self.status = 'obsolete'
-            self.comment('This update has been obsoleted', author='bodhi')
         elif self.request == 'stable':
             self.pushed = True
             self.date_pushed = datetime.utcnow()
             self.status = 'stable'
             self.assign_id()
-            self.comment('This update has been pushed to stable',
-                         author='bodhi')
+        self.request = None
+        hub.commit()
+
+    def update_bugs(self):
+        """
+        Comment on and close this updates bugs as necessary
+        """
+        if self.status == 'testing':
+            map(lambda bug: bug.add_comment(self), self.bugs)
+        elif self.status == 'stable':
             map(lambda bug: bug.add_comment(self), self.bugs)
             if self.close_bugs:
                 map(lambda bug: bug.close_bug(self), self.bugs)
 
-        log.info("%s request on %s complete!" % (self.request, self.title))
-        self.request = None
-        hub.commit()
+    def status_comment(self):
+        """
+        Add a comment to this update about a change in status
+        """
+        if update.status == 'stable':
+            self.comment('This update has been pushed to stable',
+                         author='bodhi')
+        elif update.status == 'testing':
+            self.comment('This update has been pushed to testing',
+                         author='bodhi')
+        elif update.status == 'obsolete':
+            self.comment('This update has been obsoleted', author='bodhi')
 
     def send_update_notice(self):
         log.debug("Sending update notice for %s" % self.title)

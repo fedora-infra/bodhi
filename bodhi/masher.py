@@ -47,8 +47,8 @@ class Masher:
         self.last_log = None
 
     @synchronized(lock)
-    def queue(self, updates, repos=set()):
-        self._queue.append((self.thread_id, updates, repos))
+    def queue(self, updates, repos=set(), resume=False):
+        self._queue.append((self.thread_id, updates, repos, resume))
         self.thread_id += 1
         if len(self._threads) == 0:
             if len(self._queue):
@@ -66,13 +66,14 @@ class Masher:
         mail.send_releng('Bodhi Masher Report %s' % 
                          time.strftime("%y%m%d.%H%M"), thread.report())
         self._threads.remove(thread)
+        del thread
         if len(self._threads) == 0:
             if len(self._queue):
                 self._mash(self._queue.pop())
 
     def _mash(self, task):
         """ Dispatch a given MashTask """
-        thread = MashTask(task[0], task[1], task[2])
+        thread = MashTask(task[0], task[1], task[2], task[3])
         self._threads.append(thread)
         thread.start()
         self.mashing = 1
@@ -122,10 +123,12 @@ class Masher:
 
         return val
 
+class MashTaskException(Exception):
+    pass
 
 class MashTask(Thread):
 
-    def __init__(self, id, updates, repos=set()):
+    def __init__(self, id, updates, repos=set(), resume=False):
         Thread.__init__(self)
         log.debug("MashTask(%d, %s)" % (id, updates))
         self.id = id
@@ -145,6 +148,9 @@ class MashTask(Thread):
         self.error_messages = []
         self.safe = True
         self.genmd = False
+        self.resume = resume
+        self.testing_digest = {}
+        self._find_repos()
 
     def safe_to_move(self):
         """
@@ -205,30 +211,42 @@ class MashTask(Thread):
                                                                update.title))
         return self.safe
 
+    def _find_repos(self):
+        """
+        Based on our updates, build a list of repositories that we need to
+        mash during this push
+        """
+        for update in self.updates:
+            release = update.release.name.lower()
+            if update.request == 'stable':
+                self.repos.add('%s-updates' % release)
+                if update.status == 'testing':
+                    self.repos.add('%s-updates-testing' % release)
+            elif update.request == 'testing':
+                self.repos.add('%s-updates-testing' % release)
+            elif update.request == 'obsolete':
+                if update.status == 'testing':
+                    self.repos.add('%s-updates-testing' % release)
+                elif update.status == 'stable':
+                    self.repos.add('%s-updates' % release)
+
     def move_builds(self):
         """
         Move all builds associated with our batch of updates to the proper tag.
         This is determined based on the request of the update, and it's
         current state.
         """
+        t0 = time.time()
         tasks = []
         success = False
         self.moving = True
         for update in self.updates:
-            release = update.release.name.lower()
             if update.request == 'stable':
-                self.repos.add('%s-updates' % release)
-                self.repos.add('%s-updates-testing' % release)
                 self.tag = update.release.dist_tag + '-updates'
             elif update.request == 'testing':
-                self.repos.add('%s-updates-testing' % release)
                 self.tag = update.release.dist_tag + '-updates-testing'
             elif update.request == 'obsolete':
                 self.tag = update.release.dist_tag + '-updates-candidate'
-                if update.status == 'testing':
-                    self.repos.add('%s-updates-testing' % release)
-                elif update.status == 'stable':
-                    self.repos.add('%s-updates' % release)
             current_tag = update.get_build_tag()
             for build in update.builds:
                 log.debug("Moving %s from %s to %s" % (build.nvr, current_tag,
@@ -240,21 +258,25 @@ class MashTask(Thread):
         if buildsys.wait_for_tasks(tasks) == 0:
             success = True
         self.moving = False
-        return success
+        log.debug("Moved builds in %s seconds" % (time.time() - t0))
+        if not success:
+            raise MashTaskException("Failed to move builds")
 
-    def undo_move(self):
-        """
-        Move the builds back to their original tag
-        """
-        log.debug("Rolling back updates to their original tag")
-        tasks = []
-        for action in self.actions:
-            log.debug("Moving %s from %s to %s" % (action[0], action[2],
-                                                   action[1]))
-            task_id = self.koji.moveBuild(action[2], action[1], action[0],
-                                          force=True)
-            tasks.append(task_id)
-        buildsys.wait_for_tasks(tasks)
+    # With a large pushes, this tends to cause much buildsystem churn, as well
+    # as polluting the tag history.
+    #def undo_move(self):
+    #    """
+    #    Move the builds back to their original tag
+    #    """
+    #    log.debug("Rolling back updates to their original tag")
+    #    tasks = []
+    #    for action in self.actions:
+    #        log.debug("Moving %s from %s to %s" % (action[0], action[2],
+    #                                               action[1]))
+    #        task_id = self.koji.moveBuild(action[2], action[1], action[0],
+    #                                      force=True)
+    #        tasks.append(task_id)
+    #    buildsys.wait_for_tasks(tasks)
 
     def update_comps(self):
         """
@@ -301,6 +323,7 @@ class MashTask(Thread):
             log.debug("Created symlink: %s => %s" % (newrepo, link))
 
     def mash(self):
+        t0 = time.time()
         self.mashing = True
         self.update_comps()
         for repo in self.repos:
@@ -330,66 +353,66 @@ class MashTask(Thread):
                 out.close()
                 log.info("Wrote failed mash output to %s" % failed_output)
                 self.log = failed_output
-                break
+                raise MashTaskException("Mash failed")
         self.mashing = False
-        log.info("Mashing complete")
+        log.debug("Mashed for %s seconds" % (time.time() - t0))
 
     def run(self):
         """
         Move all of the builds to the appropriate tag, and then run mash.  If
         anything fails, undo any tag moves.
         """
+        self.success = True
         try:
-            if not self.safe_to_move():
+            if not self.resume and not self.safe_to_move():
                 log.error("safe_to_move failed! -- aborting")
                 masher.done(self)
                 return
             else:
                 log.debug("Builds look OK to me")
-            t0 = time.time()
-            if self.move_builds():
-                log.debug("Moved builds in %s seconds" % (time.time() - t0))
-                self.success = True
-                t0 = time.time()
-                self.mash()
-                log.debug("Mashed for %s seconds" % (time.time() - t0))
-                if self.success:
-                    log.debug("Running post-request actions on updates")
-                    testing_digest = {}
-                    headers = {}
-                    for update in self.updates:
-                        if update.request == 'testing':
-                            update.request_complete()
-                            self.add_to_digest(update)
-                        else:
-                            update.request_complete()
-                    log.debug("Requests complete!")
 
-                    self.generate_updateinfo()
-                    self.update_symlinks()
-                    self.wait_for_sync()
+            # Move koji build tags
+            if not self.resume:
+                self.move_builds()
 
-                    log.debug("Sending stable update notices")
-                    for update in self.updates:
-                        if update.status == 'stable':
-                            update.send_update_notice()
-                    log.debug("Sending updates-testing digests")
-                    self.send_digest_mail()
-                    del testing_digest
-                    del headers
+            # Mash our repositories
+            self.mash()
+
+            # Change our updates states
+            log.debug("Running post-request actions on updates")
+            for update in self.updates:
+                if update.request == 'testing':
+                    update.request_complete()
+                    self.add_to_digest(update)
                 else:
-                    log.error("Error mashing.. skipping post-request actions")
-                    if self.undo_move():
-                        log.info("Tag rollback successful!")
-                    else:
-                        log.error("Tag rollback failed!")
-            else:
-                log.error("Error with build moves.. rolling back")
-                self.undo_move()
-                self.success = False
+                    update.request_complete()
+            log.debug("Requests complete!")
+
+            # Generate the updateinfo.xml for our repositories
+            self.generate_updateinfo()
+
+            # Run some sanity checks and flip the bits live
+            self.update_symlinks()
+
+            # Poll our master mirror and block until our updates hit
+            self.wait_for_sync()
+
+            # Send out our notices/digest, update all bugs, and add comments
+            log.debug("Sending stable update notices and closing bugs")
+            for update in self.updates:
+                update.update_bugs()
+                update.status_comment()
+                if update.status == 'stable':
+                    update.send_update_notice()
+            log.debug("Sending updates-testing digests")
+            self.send_digest_mail()
+
         except Exception, e:
             log.error("Exception thrown in MashTask %d" % self.id)
             log.exception(str(e))
+        except MashTaskException:
+            self.success = False
+
         masher.done(self)
 
     def add_to_digest(self,update):
@@ -402,17 +425,17 @@ class MashTask(Thread):
         }
         """
         prefix = update.release.long_name
-        if not testing_digest.has_key(prefix):
-            testing_digest[prefix] = {}
+        if not self.testing_digest.has_key(prefix):
+            self.testing_digest[prefix] = {}
         for subject, body in mail.get_template(update,use_template=mail.maillist_template):
             for build in update.builds:
-                testing_digest[prefix][build.nvr]= body
+                self.testing_digest[prefix][build.nvr]= body
 
     def send_digest_mail(self):
         '''
         Send digest mail to mailing lists
         '''
-        for prefix, content in testing_digest.items():
+        for prefix, content in self.testing_digest.items():
             maildata = u'The following builds has been pushed to %s updates-testing\n' % prefix
             # get a list af all nvr's
             updlist = content.keys()
@@ -422,7 +445,7 @@ class MashTask(Thread):
             maildata += u'\n'.join(updlist)
             # Add the detail of each build
             for nvr in updlist:
-                maildata += u"\n"+testing_digest[prefix][nvr]
+                maildata += u"\n" + self.testing_digest[prefix][nvr]
             mail.send_mail(config.get('bodhi_email'),
                       config.get('%s_test_announce_list' % prefix),
                       '%s updates-testing report' % prefix.title(),
