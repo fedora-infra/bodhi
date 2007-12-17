@@ -391,24 +391,23 @@ class MashTask(Thread):
             log.error("Exception thrown in MashTask %d" % self.id)
             log.exception(str(e))
         masher.done(self)
-   
+
     def add_to_digest(self,update):
-	"""
-    	Add an package to the digest dictionary
-    	{ 'release-id':
-    	  { 'build nvr' : body text for build, ...... }
+        """
+        Add an package to the digest dictionary
+        { 'release-id':
+          { 'build nvr' : body text for build, ...... }
         ..
         ..
-        }    	
-    	
-    	"""	
-        prefix = update.release.id_prefix.lower()
+        }
+        """
+        prefix = update.release.long_name
         if not testing_digest.has_key(prefix):
             testing_digest[prefix] = {}
         for subject, body in mail.get_template(update,use_template=mail.maillist_template):
             for build in update.builds:
                 testing_digest[prefix][build.nvr]= body
-		
+
     def send_digest_mail(self):
         '''
         Send digest mail to mailing lists
@@ -428,7 +427,6 @@ class MashTask(Thread):
                       config.get('%s_test_announce_list' % prefix),
                       '%s updates-testing report' % prefix.title(),
                       maildata)
-        
 
     def wait_for_sync(self):
         """
