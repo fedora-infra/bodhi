@@ -358,9 +358,11 @@ class MashTask(Thread):
                     testing_digest = {}
                     headers = {}
                     for update in self.updates:
-                        update.request_complete()
                         if update.request == 'testing':
+                            update.request_complete()
                             self.add_to_digest(update)
+                        else:
+                            update.request_complete()
                     log.debug("Requests complete!")
 
                     self.generate_updateinfo()
