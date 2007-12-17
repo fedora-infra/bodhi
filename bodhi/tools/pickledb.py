@@ -58,7 +58,11 @@ def save_db():
         data['type'] = update.type
         data['karma'] = update.karma
         data['cves'] = [cve.cve_id for cve in update.cves]
-        data['bugs'] = [(bug.bz_id, bug.title) for bug in update.bugs]
+        data['bugs'] = []
+        for bug in update.bugs:
+            data['bugs'].append([bug.bz_id, bug.title, bug.security, bug.parent])
+            if hasattr(bug, 'parent'):
+                data['bugs'][-1].append(bug.parent)
         data['status'] = update.status
         data['pushed'] = update.pushed
         data['notes'] = update.notes
@@ -110,9 +114,9 @@ def load_db():
             build = PackageBuild(nvr=nvr, package=package)
             update.addPackageBuild(build)
 
-        for bug_num, bug_title in u['bugs']:
+        for bug_num, bug_title, security, parent in u['bugs']:
             try:
-                bug = Bugzilla(bz_id=bug_num)
+                bug = Bugzilla(bz_id=bug_num, security=security, parent=parent)
                 bug.title = bug_title
             except (DuplicateEntryError, SQLiteIntegrityError,
                     PostgresIntegrityError):
