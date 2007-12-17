@@ -236,7 +236,17 @@ with yum", available at http://docs.fedoraproject.org/yum/.
 --------------------------------------------------------------------------------
 """
 
-def get_template(update):
+maillist_template = u"""\
+--------------------------------------------------------------------------------
+%(name)s-%(version)s-%(release)s (%(update_id)s)
+%(summary)s
+--------------------------------------------------------------------------------
+%(notes)s%(changelog)s%(references)s
+--------------------------------------------------------------------------------
+"""
+
+
+def get_template(update,use_template=errata_template):
     from bodhi.buildsys import get_session
     line = unicode('-' * 80) + '\n'
     templates = []
@@ -322,14 +332,14 @@ def get_template(update):
                       % str(e))
 
         try:
-            templates.append((info['subject'], errata_template % info))
+            templates.append((info['subject'], use_template % info))
         except UnicodeDecodeError:
             log.debug("UnicodeDecodeError! Will try again after decoding")
             # We can't trust the strings we get from RPM
             for (key, value) in info.items():
                 if value:
                     info[key] = value.decode('utf8')
-            templates.append((info['subject'], errata_template % info))
+            templates.append((info['subject'], use_template % info))
 
     return templates
 

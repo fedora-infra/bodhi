@@ -114,6 +114,7 @@ def authorized_user(update, identity):
         display = identity.current.user_name
     return update.submitter == identity.current.user_name or \
            'releng' in identity.current.groups or \
+           'cvsadmin' in identity.current.groups or \
            'security_respons' in identity.current.groups or \
            display == update.submitter
 
