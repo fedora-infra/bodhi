@@ -63,6 +63,8 @@ def save_db():
             data['bugs'].append([bug.bz_id, bug.title, bug.security])
             if hasattr(bug, 'parent'):
                 data['bugs'][-1].append(bug.parent)
+            else:
+                data['bugs'][-1].append(False)
         data['status'] = update.status
         data['pushed'] = update.pushed
         data['notes'] = update.notes
@@ -134,7 +136,7 @@ def load_db():
             comment = Comment(timestamp=timestamp, author=author, text=text,
                               karma=karma, update=update)
 
-        print update
+        print unicode(update)
         print
 
 def usage():
