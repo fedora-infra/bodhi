@@ -156,7 +156,10 @@ def get_age(date):
     if age.days == 0:
         if age.seconds < 60:
             return "%d seconds" % age.seconds
-        return "%d minutes" % int(age.seconds / 60)
+        minutes = int(age.seconds / 60)
+        if minutes > 60:
+            return "%d hours" % int(minutes / 60)
+        return "%d minutes" % minutes
     return "%s days" % age.days
 
 def get_age_in_days(date):
