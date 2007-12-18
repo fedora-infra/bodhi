@@ -60,7 +60,7 @@ def save_db():
         data['cves'] = [cve.cve_id for cve in update.cves]
         data['bugs'] = []
         for bug in update.bugs:
-            data['bugs'].append([bug.bz_id, bug.title, bug.security, bug.parent])
+            data['bugs'].append([bug.bz_id, bug.title, bug.security])
             if hasattr(bug, 'parent'):
                 data['bugs'][-1].append(bug.parent)
         data['status'] = update.status
