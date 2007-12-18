@@ -400,7 +400,7 @@ class MashTask(Thread):
             # Send out our notices/digest, update all bugs, and add comments
             log.debug("Sending stable update notices and closing bugs")
             for update in self.updates:
-                update.update_bugs()
+                update.modify_bugs()
                 update.status_comment()
                 if update.status == 'stable':
                     update.send_update_notice()
