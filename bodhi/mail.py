@@ -323,7 +323,7 @@ def get_template(update,use_template=errata_template):
             elif len(text) != 1:
                 oldtime = oldtime[0]
             info['changelog'] = u"ChangeLog:\n\n%s%s" % \
-                    (str(build.get_changelog(oldtime)), line)
+                    (unicode(build.get_changelog(oldtime)), line)
         except RPMNotFound:
             log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
                       lastpkg)
