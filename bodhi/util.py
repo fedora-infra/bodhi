@@ -151,16 +151,19 @@ def make_karma_icon(update):
         karma = 0
     return Element('img', src=url('/static/images/karma%d.png' % karma))
 
+pluralize = lambda val, name: val == 1 and name or "%ss" % name
+
 def get_age(date):
     age = datetime.utcnow() - date
     if age.days == 0:
         if age.seconds < 60:
-            return "%d seconds" % age.seconds
+            return "%d %s" % (age.seconds, pluralize(age.seconds, "second"))
         minutes = int(age.seconds / 60)
-        if minutes > 60:
-            return "%d hours" % int(minutes / 60)
-        return "%d minutes" % minutes
-    return "%s days" % age.days
+        if minutes >= 60:
+            hours = int(minutes/60)
+            return "%d %s" % (hours, pluralize(hours, "hour"))
+        return "%d %s" % (minutes, pluralize(minutes, "minute"))
+    return "%d %s" % (age.days, pluralize(age.days, "day"))
 
 def get_age_in_days(date):
     if date:
