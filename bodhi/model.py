@@ -261,7 +261,7 @@ class PackageUpdate(SQLObject):
         self.request = None
         hub.commit()
 
-    def update_bugs(self):
+    def modify_bugs(self):
         """
         Comment on and close this updates bugs as necessary
         """
