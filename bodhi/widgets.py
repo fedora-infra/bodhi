@@ -153,28 +153,32 @@ class ObsoleteForm(RemoteForm):
                          default=[build.nvr for build in builds])
         ]
 
+
 class TurboFlot(Widget):
     """
         A TurboGears Flot Widget.
     """
     template = """
       <div xmlns:py="http://purl.org/kid/ns#" id="turboflot" 
-           style="width:600px;height:300px;">
+           style="width:${width};height:${height};">
         <script>
           $.plot($("#turboflot"), ${data}, ${options});
         </script>
       </div>
     """
-    params = ["data", "options", "id"]
+    params = ["data", "options", "height", "width"]
     params_doc = {
             "data"    : "An array of data series",
             "options" : "Plot options",
-            "id"      : "A unique id for representing this widget"
+            "height"  : "The height of the graph",
+            "width"   : "The width of the graph"
     }
     javascript = [LocalJSLink("bodhi", "/static/js/excanvas.js"),
                   LocalJSLink("bodhi", "/static/js/jquery.js"),
                   LocalJSLink("bodhi", "/static/js/jquery.flot.js")]
 
-    def __init__(self, data, options={}):
+    def __init__(self, data, options={}, height="300px", width="600px"):
         self.data = simplejson.dumps(data)
         self.options = simplejson.dumps(options)
+        self.height = height
+        self.width = width
