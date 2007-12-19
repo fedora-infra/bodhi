@@ -12,10 +12,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import simplejson
+
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
-                                HiddenField, RemoteForm, CheckBoxList, JSLink)
+                                HiddenField, RemoteForm, CheckBoxList, JSLink,
+                                Widget)
 
 from bodhi.util import get_release_names, get_release_tuples, make_update_link
 from bodhi.validators import *
@@ -149,3 +152,29 @@ class ObsoleteForm(RemoteForm):
             CheckBoxList("updates", label="", options=options,
                          default=[build.nvr for build in builds])
         ]
+
+class TurboFlot(Widget):
+    """
+        A TurboGears Flot Widget.
+    """
+    template = """
+      <div xmlns:py="http://purl.org/kid/ns#" id="turboflot" 
+           style="width:600px;height:300px;">
+        <script>
+          $.plot($("#turboflot"), ${data}, ${options});
+        </script>
+      </div>
+    """
+    params = ["data", "options", "id"]
+    params_doc = {
+            "data"    : "An array of data series",
+            "options" : "Plot options",
+            "id"      : "A unique id for representing this widget"
+    }
+    javascript = [LocalJSLink("bodhi", "/static/js/excanvas.js"),
+                  LocalJSLink("bodhi", "/static/js/jquery.js"),
+                  LocalJSLink("bodhi", "/static/js/jquery.flot.js")]
+
+    def __init__(self, data, options={}):
+        self.data = simplejson.dumps(data)
+        self.options = simplejson.dumps(options)
