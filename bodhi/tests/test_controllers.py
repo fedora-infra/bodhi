@@ -550,3 +550,29 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
+
+    def test_security_approval(self):
+        """
+        Make sure that security updates require approval from the security
+        response team before being pushed to stable
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'notes'   : 'foobar',
+                'request' : 'Stable'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+        assert not update.approved
+
+        url = '/updates/approve?update=' + pairs
+        testutil.createRequest(url, headers=session, method='POST')
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.approved
+        assert update.request == 'stable'
+        assert False, cherrypy.response.body
