@@ -591,6 +591,10 @@ class Root(controllers.RootController):
             # Notify security team of newly submitted security updates
             if p.type == 'security':
                 mail.send(config.get('security_team'), 'security', p)
+                # Update bugs when security update is created
+                for bug in p.bugs:
+                    bug.add_comment(p, "%s has been submitted as an update "
+                                    "for %s" % (p.title, p.release.long_name))
             mail.send(p.submitter, 'new', p)
             note.insert(0, "Update successfully created")
 
