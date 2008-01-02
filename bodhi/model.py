@@ -232,7 +232,10 @@ class PackageUpdate(SQLObject):
         update = PackageUpdate.select(PackageUpdate.q.update_id != 'None',
                                       orderBy=PackageUpdate.q.update_id)
         try:
-            id = int(update[-1].update_id.split('-')[-1]) + 1
+            prefix, year, id = update[-1].update_id.split('-')
+            if int(year) != time.localtime()[0]: # new year
+                id = 0
+            id = int(id) + 1
         except (AttributeError, IndexError):
             id = 1
         self.update_id = u'%s-%s-%0.4d' % (self.release.id_prefix,
