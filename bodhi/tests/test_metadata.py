@@ -86,7 +86,6 @@ class TestExtendedMetadata(testutil.DBTest):
             assert notice['title'] == update.title
             assert notice['release'] == update.release.long_name
             assert cve['title'] == None
-            assert bug['title'] == 'None'
 
         ## Clean up
         shutil.rmtree(temprepo)

@@ -9,7 +9,8 @@ import urllib
 import cherrypy
 
 from sqlobject import SQLObjectNotFound
-from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla
+from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla, \
+                        Group
 from bodhi.controllers import Root
 
 cherrypy.root = Root()
@@ -19,9 +20,12 @@ def create_release():
                   dist_tag='dist-fc7')
     assert rel
 
-def login(username='lmacken', display_name='lmacken'):
+def login(username='lmacken', display_name='lmacken', group=None):
     guest = User(user_name=username, display_name=display_name)
     guest.password = 'guest'
+    if group:
+        group = Group(group_name=group, display_name=group)
+        guest.addGroup(group)
     testutil.createRequest('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
     assert cherrypy.response.status == '200 OK'
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
@@ -506,7 +510,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type'    : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -517,7 +521,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'python-sqlobject-1.6.3-13.fc8',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type'    : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -529,7 +533,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'nethack-2.10-3.20070831cvs.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type'    : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -541,7 +545,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'xprobe2-1.4.6-1.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type'    : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -550,3 +554,30 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
+
+    def test_security_approval(self):
+        """
+        Make sure that security updates require approval from the security
+        response team before being pushed to stable
+        """
+        session = login(group='security_respons')
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+        assert not update.approved
+
+        url = '/updates/approve?update=' + params['builds']
+        testutil.createRequest(url, headers=session, method='POST')
+        print cherrypy.response.body
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.approved
+        assert update.request == 'stable'

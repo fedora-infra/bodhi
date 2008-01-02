@@ -63,6 +63,11 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                 <table cellspacing="7">
                     <tr>
                         <span py:if="not update.pushed">
+                            <span py:if="'security_respons' in tg.identity.groups and update.type == 'security' and not update.approved">
+                                <td>
+                                    <a href="${tg.url('/approve/%s' % update.title)}" class="list"><img src="${tg.url('/static/images/submit.png')}" border="0" />Approve for Stable</a>
+                                </td>
+                            </span>
                             <span py:if="update.request == None">
                                 <td>
                                     <a href="${tg.url('/request/testing/%s' % update.title)}" class="list">
@@ -160,6 +165,12 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                 <td class="title"><b>${field[0]}:</b></td>
                 <td class="value">${field[1]}</td>
             </span>
+    </tr>
+    <tr>
+        <span py:if="update.type == 'security'">
+            <td class="title"><b>Security Team Approval</b></td>
+            <td class="value">${update.approved}</td>
+        </span>
     </tr>
     <tr>
         <span py:if="update.notes">

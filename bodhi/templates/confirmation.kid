@@ -10,7 +10,7 @@
 
 <body>
 <center>
-	<h2>Do you want to delete ${nvr}</h2>
+	<h2>Do you want to delete ${nvr} ?</h2>
 	${form.display()}
 </center>
 

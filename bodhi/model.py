@@ -15,6 +15,7 @@
 import rpm
 import time
 import logging
+import bugzilla
 import turbomail
 import xmlrpclib
 
@@ -195,6 +196,7 @@ class PackageUpdate(SQLObject):
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
     nagged           = PickleCol(default={}) # { nagmail_name : datetime, ... }
+    approved         = BoolCol(default=False)
 
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
@@ -272,20 +274,49 @@ class PackageUpdate(SQLObject):
             map(lambda bug: bug.add_comment(self), self.bugs)
         elif self.status == 'stable':
             map(lambda bug: bug.add_comment(self), self.bugs)
+
             if self.close_bugs:
-                map(lambda bug: bug.close_bug(self), self.bugs)
+                if self.type == 'security':
+                    # Close all tracking bugs first
+                    for bug in self.bugs:
+                        if not bug.parent:
+                            log.debug("Closing tracker bug %d" % bug.bz_id)
+                            bug.close_bug(self)
+
+                    # Now, close our parents bugs as long as nothing else
+                    # depends on them, and they are not in a NEW state
+                    bz = Bugzilla.get_bz()
+                    for bug in self.bugs:
+                        if bug.parent:
+                            parent = bz.getbug(bug.bz_id)
+                            if parent.bug_status == "NEW":
+                                log.debug("Parent bug %d is still NEW; not "
+                                          "closing.." % bug.bz_id)
+                                continue
+                            depsclosed = True
+                            for dep in parent.dependson:
+                                tracker = bz.getbug(dep)
+                                if tracker.bug_status != "CLOSED":
+                                    log.debug("Tracker %d not yet closed" %
+                                              bug.bz_id)
+                                    depsclosed = False
+                            if depsclosed:
+                                log.debug("Closing parent bug %d" % bug.bz_id)
+                                bug.close_bug()
+                else:
+                    map(lambda bug: bug.close_bug(self), self.bugs)
 
     def status_comment(self):
         """
         Add a comment to this update about a change in status
         """
-        if update.status == 'stable':
+        if self.status == 'stable':
             self.comment('This update has been pushed to stable',
                          author='bodhi')
-        elif update.status == 'testing':
+        elif self.status == 'testing':
             self.comment('This update has been pushed to testing',
                          author='bodhi')
-        elif update.status == 'obsolete':
+        elif self.status == 'obsolete':
             self.comment('This update has been obsoleted', author='bodhi')
 
     def send_update_notice(self):
@@ -543,6 +574,7 @@ class Bugzilla(SQLObject):
     title    = UnicodeCol(default=None)
     updates  = RelatedJoin("PackageUpdate")
     security = BoolCol(default=False)
+    parent   = BoolCol(default=False)
 
     _bz_server = config.get("bz_server")
     default_msg = "%s has been pushed to the %s repository.  If problems " + \
@@ -556,30 +588,32 @@ class Bugzilla(SQLObject):
         self._SO_set_bz_id(bz_id)
         self._fetch_details()
 
+    @staticmethod
+    def get_bz():
+        me = config.get('bodhi_email')
+        password = config.get('bodhi_password', None)
+        if me and password:
+            bz = bugzilla.Bugzilla(url=config.get("bz_server"), user=me,
+                                   password=password)
+        else:
+            bz = bugzilla.Bugzilla(url=config.get("bz_server"))
+        return bz
+
     def _fetch_details(self):
-        if not self._bz_server:
-            return
+        bz = Bugzilla.get_bz()
         try:
-            log.debug("Fetching bugzilla #%d" % self.bz_id)
-            server = xmlrpclib.Server(self._bz_server)
-            me = config.get('bodhi_email')
-            password = config.get('bodhi_password')
-            if not password:
-                log.error("No password stored for bodhi_email")
-                return
-            bug = server.bugzilla.getBug(self.bz_id, me, password)
-            del server
-            self.title = bug['short_desc']
-            if bug['keywords'].lower().find('security') != -1:
-                self.security = True
+            bug = bz.getbug(self.bz_id)
         except xmlrpclib.Fault, f:
             self.title = 'Invalid bug number'
             log.warning("Got fault from Bugzilla: %s" % str(f))
-        except Exception, e:
-            self.title = 'Unable to fetch bug title'
-            log.error(self.title + ': ' + str(e))
+            return
+        if bug.product == 'Security Response':
+            self.parent = True
+        self.title = str(bug.short_desc)
+        if 'security' in bug.keywords.lower():
+            self.security = True
 
-    def default_message(self, update):
+    def _default_message(self, update):
         message = self.default_msg % (update.get_title(delim=', '), "%s %s" % 
                                    (update.release.long_name, update.status))
         if update.status == "testing":
@@ -591,21 +625,16 @@ class Bugzilla(SQLObject):
         return message
 
     def add_comment(self, update, comment=None):
-        me = config.get('bodhi_email')
-        password = config.get('bodhi_password', None)
-        if password:
-            if not comment:
-                comment = self.default_message(update)
-            log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
-            try:
-                server = xmlrpclib.Server(self._bz_server)
-                server.bugzilla.addComment(self.bz_id, comment, me, password, 0)
-                del server
-            except Exception, e:
-                log.error("Unable to add comment to bug #%d\n%s" % (self.bz_id,
-                                                                    str(e)))
-        else:
-            log.warning("bodhi_password not defined; unable to modify bug")
+        bz = Bugzilla.get_bz()
+        if not comment:
+            comment = self._default_message(update)
+        log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
+        try:
+            bug = bz.getbug(self.bz_id)
+            bug.addcomment(comment)
+        except Exception, e:
+            log.error("Unable to add comment to bug #%d\n%s" % (self.bz_id,
+                                                                str(e)))
 
     def close_bug(self, update):
         me = config.get('bodhi_email')
@@ -620,7 +649,7 @@ class Bugzilla(SQLObject):
                 del server
             except Exception, e:
                 log.error("Cannot close bug #%d" % self.bz_id)
-                log.error(e)
+                log.exception(e)
         else:
             log.warning("bodhi_password not defined; unable to close bug")
 
