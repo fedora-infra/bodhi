@@ -561,7 +561,7 @@ class Bugzilla(SQLObject):
         details and check if this bug is security related.
         """
         self._SO_set_bz_id(bz_id)
-        #self._fetch_details()
+        self._fetch_details()
 
     def _fetch_details(self):
         from bugzilla import Bugzilla
@@ -574,7 +574,7 @@ class Bugzilla(SQLObject):
             return
         if bug.product == 'Security Response':
             self.parent = True
-        self.title = bug.short_desc
+        self.title = str(bug.short_desc)
         if 'security' in bug.keywords.lower():
             self.security = True
 
