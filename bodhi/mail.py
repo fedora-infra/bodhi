@@ -307,12 +307,15 @@ def get_template(update,use_template=errata_template):
         info['filelist'] = '\n'.join(filelist)
 
         # Add this updates referenced Bugzillas and CVEs
-        # TODO: if security bug, only show parent bug!
         i = 1
         info['references'] = ""
         if len(update.bugs) or len(update.cves):
             info['references'] = u"References:\n\n"
             for bug in update.bugs:
+                # Don't show any tracker bugs for security updates
+                if update.type == 'security' and not bug.parent:
+                    log.debug("Skipping tracker bug %s" % bug)
+                    continue
                 title = (bug.title != 'Unable to fetch title' and
                          bug.title != 'Invalid bug number') and \
                         ' - %s' % bug.title or ''
