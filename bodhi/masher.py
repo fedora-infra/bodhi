@@ -218,7 +218,12 @@ class MashTask(Thread):
         """
         for update in self.updates:
             release = update.release.name.lower()
-            if update.request == 'stable':
+            if self.resume:
+                if update.status == 'stable':
+                    self.repos.add('%s-updates' % release)
+                elif update.status == 'testing':
+                    self.repos.add('%s-updates-testing' % release)
+            elif update.request == 'stable':
                 self.repos.add('%s-updates' % release)
                 if update.status == 'testing':
                     self.repos.add('%s-updates-testing' % release)
@@ -381,11 +386,22 @@ class MashTask(Thread):
             # Change our updates states
             log.debug("Running post-request actions on updates")
             for update in self.updates:
-                if update.request == 'testing':
-                    update.request_complete()
-                    self.add_to_digest(update)
+                if self.resume:
+                    if update.request:
+                        if update.request == 'testing':
+                            update.request_complete()
+                            self.add_to_digest(update)
+                        else:
+                            update.request_complete()
+                    else: # request_complete() has already been run on update
+                        if update.status == 'testing':
+                            self.add_to_digest(update)
                 else:
-                    update.request_complete()
+                    if update.request == 'testing':
+                        update.request_complete()
+                        self.add_to_digest(update)
+                    else:
+                        update.request_complete()
             log.debug("Requests complete!")
 
             # Generate the updateinfo.xml for our repositories
@@ -450,7 +466,7 @@ class MashTask(Thread):
             for nvr in updlist:
                 maildata += u"\n" + self.testing_digest[prefix][nvr]
             mail.send_mail(config.get('bodhi_email'),
-                      config.get('%s_test_announce_list' % prefix),
+                      config.get('test_announce_list'),
                       '%s updates-testing report' % prefix.title(),
                       maildata)
 
