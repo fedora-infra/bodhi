@@ -809,4 +809,4 @@ class Root(controllers.RootController):
         update.request = 'stable'
         flash_log("%s has been approved and submitted for pushing to stable" %
                   update.title)
-        raise redirect('/')
+        raise redirect(update.get_url())
