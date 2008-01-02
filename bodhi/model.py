@@ -195,6 +195,7 @@ class PackageUpdate(SQLObject):
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
     nagged           = PickleCol(default={}) # { nagmail_name : datetime, ... }
+    approved         = BoolCol(default=False)
 
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
@@ -267,6 +268,11 @@ class PackageUpdate(SQLObject):
     def modify_bugs(self):
         """
         Comment on and close this updates bugs as necessary
+        TODO:
+            - if it is a security update
+                - only close a bug if everything it depends on is closed
+                  (and not in a NEW state)
+                    - skip all parent bugs until last!
         """
         if self.status == 'testing':
             map(lambda bug: bug.add_comment(self), self.bugs)
@@ -279,13 +285,13 @@ class PackageUpdate(SQLObject):
         """
         Add a comment to this update about a change in status
         """
-        if update.status == 'stable':
+        if self.status == 'stable':
             self.comment('This update has been pushed to stable',
                          author='bodhi')
-        elif update.status == 'testing':
+        elif self.status == 'testing':
             self.comment('This update has been pushed to testing',
                          author='bodhi')
-        elif update.status == 'obsolete':
+        elif self.status == 'obsolete':
             self.comment('This update has been obsoleted', author='bodhi')
 
     def send_update_notice(self):
@@ -555,32 +561,24 @@ class Bugzilla(SQLObject):
         details and check if this bug is security related.
         """
         self._SO_set_bz_id(bz_id)
-        self._fetch_details()
+        #self._fetch_details()
 
     def _fetch_details(self):
-        if not self._bz_server:
-            return
+        from bugzilla import Bugzilla
+        bz = Bugzilla(url=self._bz_server)
         try:
-            log.debug("Fetching bugzilla #%d" % self.bz_id)
-            server = xmlrpclib.Server(self._bz_server)
-            me = config.get('bodhi_email')
-            password = config.get('bodhi_password')
-            if not password:
-                log.error("No password stored for bodhi_email")
-                return
-            bug = server.bugzilla.getBug(self.bz_id, me, password)
-            del server
-            self.title = bug['short_desc']
-            if bug['keywords'].lower().find('security') != -1:
-                self.security = True
+            bug = bz.getbug(self.bz_id)
         except xmlrpclib.Fault, f:
             self.title = 'Invalid bug number'
             log.warning("Got fault from Bugzilla: %s" % str(f))
-        except Exception, e:
-            self.title = 'Unable to fetch bug title'
-            log.error(self.title + ': ' + str(e))
+            return
+        if bug.product == 'Security Response':
+            self.parent = True
+        self.title = bug.short_desc
+        if 'security' in bug.keywords.lower():
+            self.security = True
 
-    def default_message(self, update):
+    def _default_message(self, update):
         message = self.default_msg % (update.get_title(delim=', '), "%s %s" % 
                                    (update.release.long_name, update.status))
         if update.status == "testing":
@@ -596,12 +594,12 @@ class Bugzilla(SQLObject):
         password = config.get('bodhi_password', None)
         if password:
             if not comment:
-                comment = self.default_message(update)
+                comment = self._default_message(update)
             log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
             try:
-                server = xmlrpclib.Server(self._bz_server)
-                server.bugzilla.addComment(self.bz_id, comment, me, password, 0)
-                del server
+                bz = Bugzilla(self._bz_server, user=me, password=password)
+                bug = bz.getbug(self.bz_id)
+                bug.addcomment(comment)
             except Exception, e:
                 log.error("Unable to add comment to bug #%d\n%s" % (self.bz_id,
                                                                     str(e)))

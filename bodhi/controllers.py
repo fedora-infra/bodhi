@@ -315,6 +315,14 @@ class Root(controllers.RootController):
             flash_log("Unknown request: %s" % action)
             if self.jsonRequest(): return dict()
             raise redirect(update.get_url())
+        if action == 'stable' and update.type == 'security' and \
+           not update.approved:
+            flash_log("%s will be pushed to testing while it awaits approval "
+                      "of the Security Team")
+            update.request = 'testing'
+            mail.send(config.get('security_team'), 'security', update)
+            if self.jsonRequest(): return dict()
+            raise redirect(update.get_url())
 
         update.request = action
         flash_log("%s has been submitted for %s" % (update.title, action))
@@ -582,7 +590,7 @@ class Root(controllers.RootController):
         else:
             # Notify security team of newly submitted security updates
             if p.type == 'security':
-                mail.send(config.get('security_team'), 'new', p)
+                mail.send(config.get('security_team'), 'security', p)
             mail.send(p.submitter, 'new', p)
             note.insert(0, "Update successfully created")
 
@@ -784,3 +792,21 @@ class Root(controllers.RootController):
     @expose(allow_json=True)
     def dist_tags(self):
         return dict(tags=[r.dist_tag for r in Release.select()])
+
+    @expose(allow_json=True)
+    @identity.require(identity.in_group("security_respons"))
+    def approve(self, update):
+        """
+        Security response team approval for pending security updates
+        """
+        try:
+            update = PackageUpdate.byTitle(update)
+        except SQLObjectNotFound:
+            flash_log("%s not found" % update)
+            if self.jsonRequest(): return dict()
+            raise redirect('/')
+        update.approved = True
+        update.request = 'stable'
+        flash_log("%s has been approved and submitted for pushing to stable" %
+                  update.title)
+        raise redirect('/')

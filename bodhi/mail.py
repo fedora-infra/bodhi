@@ -204,7 +204,25 @@ the following URL:
                         'stablekarma' : config.get('stable_karma', 3),
                         'updatestr'   : unicode(x)
                    }
-    }
+    },
+
+    'security' : {
+        'body'    : u"""\
+%(submitter)s has submitted the following update.
+
+To approve this update and request that it be pushed to stable, you can use 
+the link below:
+
+    http://admin.fedoraproject.org/updates/approve/%(package)s
+
+\n\n%(updatestr)s
+""",
+        'fields'  : lambda x: {
+                        'package'   : x.title,
+                        'submitter' : identity.current.user_name,
+                        'updatestr' : unicode(x)
+                    }
+    },
 
 }
 
@@ -267,7 +285,7 @@ def get_template(update,use_template=errata_template):
         else:
             info['testing'] = ''
             info['yum_repository'] = ''
-        
+
         info['subject'] = u"%s%s%s Update: %s" % (
                 update.type == 'security' and '[SECURITY] ' or '',
                 update.release.long_name, info['testing'], build.nvr)
@@ -290,6 +308,7 @@ def get_template(update,use_template=errata_template):
         info['filelist'] = '\n'.join(filelist)
 
         # Add this updates referenced Bugzillas and CVEs
+        # TODO: if security bug, only show parent bug!
         i = 1
         info['references'] = ""
         if len(update.bugs) or len(update.cves):
@@ -334,11 +353,10 @@ def get_template(update,use_template=errata_template):
         try:
             templates.append((info['subject'], use_template % info))
         except UnicodeDecodeError:
-            log.debug("UnicodeDecodeError! Will try again after decoding")
             # We can't trust the strings we get from RPM
+            log.debug("UnicodeDecodeError! Will try again after decoding")
             for (key, value) in info.items():
-                if value:
-                    info[key] = value.decode('utf8')
+                if value: info[key] = value.decode('utf8')
             templates.append((info['subject'], use_template % info))
 
     return templates
