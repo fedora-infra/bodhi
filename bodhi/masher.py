@@ -447,7 +447,7 @@ class MashTask(Thread):
             for nvr in updlist:
                 maildata += u"\n" + self.testing_digest[prefix][nvr]
             mail.send_mail(config.get('bodhi_email'),
-                      config.get('%s_test_announce_list' % prefix),
+                      config.get('test_announce_list'),
                       '%s updates-testing report' % prefix.title(),
                       maildata)
 
