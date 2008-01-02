@@ -15,6 +15,7 @@ from datetime import datetime
 from turbogears import expose
 from turbogears.controllers import Controller
 from bodhi.model import PackageUpdate, Release, Package
+from bodhi.widgets import TurboFlot
 
 class Metrics(Controller):
 
@@ -22,7 +23,80 @@ class Metrics(Controller):
 
     @expose(template='bodhi.templates.metrics')
     def index(self):
-        return dict()
+        all_data = self.all()
+        all = TurboFlot([
+            {
+                'data'  : all_data['all'],
+                'label' : 'All Updates',
+                'bars'  : { 'show' : 'true' }
+            },
+            {
+                'data'  : all_data['timeline']['bugfix'],
+                'label' : 'Bugfix',
+                'lines'  : { 'show' : 'true' },
+                'points' : { 'show' : 'true' }
+            },
+            {
+                'data'   : all_data['timeline']['enhancement'],
+                'label'  : 'Enhancement',
+                'lines'  : { 'show' : 'true' },
+                'points' : { 'show' : 'true' }
+            },
+            {
+                'data' : all_data['timeline']['security'],
+                'label' : 'Security',
+                'lines' : { 'show' : 'true' },
+                'points' : { 'show' : 'true' }
+            }],
+            {
+                'grid' : { 'backgroundColor' : '#fffaff' },
+                'xaxis' : { 'ticks' : all_data['months'] },
+                'yaxis' : { 'max' : '850' }
+            }
+        )
+
+        security_data = self.security()
+        security = TurboFlot([
+            {
+                'data'  : security_data['timeline']['F7'],
+                'lines' : { 'show' : 'true' }
+            }],
+            {
+                'grid'  : { 'backgroundColor' : '#fffaff' },
+                'xaxis' : { 'ticks' : security_data['months'] }
+            }
+        )
+
+        most_data = self.most_updated()
+        most_updates = TurboFlot([
+            # Hack to get the color we want :)
+            { 'data' : [[0,0]] }, { 'data' : [[0,0]] }, { 'data' : [[0,0]] },
+            { 'data' : [[0,0]] }, { 'data' : [[0,0]] }, { 'data' : [[0,0]] },
+            {
+                'data' : most_data['packages'],
+                'bars' : { 'show' : 'true' }
+            }],
+            {
+                'grid'  : { 'backgroundColor' : '#fffaff' },
+                'xaxis' : { 'ticks' : most_data['pkgs'] }
+            }
+        )
+
+        active_devs_data = self.active_devs()
+        active_devs = TurboFlot([
+            { 'data' : [[0,0]] }, { 'data' : [[0,0]] }, { 'data' : [[0,0]] },
+            {
+                'data' : active_devs_data['data'],
+                'bars' : { 'show' : 'true' }
+            }],
+            {
+                'grid' : { 'backgroundColor' : '#fffaff' },
+                'xaxis' : { 'ticks' : active_devs_data['people'] }
+            }
+        )
+
+        return dict(security=security, all=all, most_updates=most_updates,
+                    active_devs=active_devs)
 
     def cache_valid(self, graph):
         """ Return whether or not our metrics cache is valid """
@@ -30,7 +104,6 @@ class Metrics(Controller):
             age = datetime.utcnow() - self.cache[graph][1]
             return age.days < 7
 
-    @expose("json")
     def security(self):
         """
             Return a timeline of security update statistics.
@@ -59,7 +132,6 @@ class Metrics(Controller):
                                   datetime.utcnow()]
         return self.cache['security'][0]
 
-    @expose("json")
     def all(self):
         """
             Return a timeline of update statistics for Fedora 7.
@@ -96,7 +168,6 @@ class Metrics(Controller):
                                   all=all.items()), datetime.utcnow()]
         return self.cache['all'][0]
 
-    @expose("json")
     def most_updated(self):
         """
             Return update statistics by package.
@@ -119,7 +190,6 @@ class Metrics(Controller):
                                       datetime.utcnow()]
         return self.cache['most_updated'][0]
 
-    @expose("json")
     def active_devs(self):
         """
             Return update statistics by developer.

@@ -223,6 +223,7 @@ class BodhiClient(BaseClient):
         log.debug("Request: %s" % opts.request)
         log.debug('Bugs:\n%s' % opts.bugs)
         log.debug('Notes:\n%s' % opts.notes)
+        self.file_parsed = True
 
 def setup_logger():
     sh = logging.StreamHandler()
@@ -311,7 +312,7 @@ if __name__ == '__main__':
         try:
             if opts.new:
                 verify_args(args)
-                if opts.input_file:
+                if opts.input_file and not hasattr(bodhi, 'file_parsed'):
                     bodhi.parse_file(opts)
                 if not opts.release:
                     log.error("Error: No release specified (ie: -r F8)")

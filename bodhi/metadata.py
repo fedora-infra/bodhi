@@ -45,7 +45,12 @@ class ExtendedMetadata:
         self._fetch_updates()
         self._fetch_checksums()
         log.debug("Generating XML update metadata for updates")
-        map(self.add_update, self.updates)
+        for update in self.updates:
+            if update.update_id:
+                self.add_update(update)
+            else:
+                log.error("%s missing ID!" % update.title)
+
 
     def _fetch_updates(self):
         """
