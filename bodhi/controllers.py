@@ -318,7 +318,7 @@ class Root(controllers.RootController):
         if action == 'stable' and update.type == 'security' and \
            not update.approved:
             flash_log("%s will be pushed to testing while it awaits approval "
-                      "of the Security Team")
+                      "of the Security Team" % update.title)
             update.request = 'testing'
             mail.send(config.get('security_team'), 'security', update)
             if self.jsonRequest(): return dict()
