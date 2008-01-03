@@ -644,7 +644,7 @@ class Bugzilla(SQLObject):
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             try:
                 server = xmlrpclib.Server(self._bz_server)
-                server.bugzilla.closeBug(self.bz_id, 'ERRATA', me,
+                server.bugzilla.closeBug(self.bz_id, 'CURRENTRELEASE', me,
                                          password, 0, ver)
                 del server
             except Exception, e:
