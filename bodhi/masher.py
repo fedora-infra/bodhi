@@ -452,7 +452,7 @@ class MashTask(Thread):
         Send digest mail to mailing lists
         '''
         for prefix, content in self.testing_digest.items():
-            maildata = u'The following builds has been pushed to %s updates-testing\n\n' % prefix
+            maildata = u'The following builds have been pushed to %s updates-testing\n\n' % prefix
             # get a list af all nvr's
             updlist = content.keys()
             # sort the list
