@@ -6,7 +6,11 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-            $('#form_search').click( function() { $(this).val(""); } );
+            $('#form_search').click( function(e) {
+                if ( e.button == 0 ){
+                    $(this).val("");
+                }
+            } );
             $('#form_search').blur( function() {
                 if ( $(this).val() == "" )
                     $(this).val("  Package | Bug # | CVE  ");
