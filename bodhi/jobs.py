@@ -40,6 +40,7 @@ def clean_repo():
     liverepos = []
     repos = config.get('mashed_dir')
     for release in [rel.name.lower() for rel in Release.select()]:
+        # TODO: keep the 2 most recent repos!
         for repo in [release + '-updates', release + '-updates-testing']:
             liverepos.append(dirname(realpath(join(repos, repo))))
     for repo in [join(repos, repo) for repo in os.listdir(repos)]:
@@ -51,69 +52,45 @@ def clean_repo():
     log.info("clean_repo complete!")
 
 def nagmail():
+    """
+    Nag the submitters of updates based on a list of queries
+    """
     log.info("Starting nagmail job!")
 
-    # Nag submitters when their update has been sitting in testing for more
-    # than two weeks.
-    name = 'old_testing'
-    for update in PackageUpdate.select(
-                    AND(PackageUpdate.q.status == 'testing',
-                        PackageUpdate.q.request != 'stable')):
-        if get_age_in_days(update.date_pushed) > 14:
-            if update.nagged.has_key(name) and update.nagged[name]:
-                log.debug("%s has nagged[%s] = %s" % (update.title, name,
-                          update.nagged[name]))
-                if (datetime.utcnow() - update.nagged[name]).days < 7:
-                    log.debug("Skipping %s nagmail for %s; less than 7 days " 
-                              "since our last nag" % (name, update.title))
-                    continue
-            log.info("Nagging %s about testing update %s" % (update.submitter,
-                     update.title))
-            mail.send(update.submitter, name, update)
-            nagged = update.nagged
-            nagged[name] = datetime.utcnow()
-            update.nagged = nagged
+    queries = [
+            ('old_testing', PackageUpdate.select(
+                                    AND(PackageUpdate.q.status == 'testing',
+                                        PackageUpdate.q.request != 'stable'))),
+            ('old_pending', PackageUpdate.select(
+                                    AND(PackageUpdate.q.status == 'pending',
+                                        PackageUpdate.q.request == None))),
+    ]
+
+    for name, query in queries:
+        for update in query:
+            if get_age_in_days(update.date_pushed) > 14:
+                if update.nagged.has_key(name) and update.nagged[name]:
+                    if (datetime.utcnow() - update.nagged[name]).days < 7:
+                        continue # Only nag once a week at most
+                log.info("[%s] Nagging %s about %s" % (name, update.submitter,
+                                                       update.title))
+                mail.send(update.submitter, name, update)
+                nagged = update.nagged
+                nagged[name] = datetime.utcnow()
+                update.nagged = nagged
 
     log.info("nagmail complete!")
 
-def fix_bug_titles():
-    """
-    Go through all bugs with invalid titles and see if we can re-fetch them.
-    If bugzilla is down, then bodhi simply replaces the title with
-    'Unable to fetch bug title' or 'Invalid bug number'.  So lets occasionally
-    see if we can re-fetch those bugs.
-    """
-    from bodhi.model import Bugzilla
-    from sqlobject.sqlbuilder import OR
-    log.debug("Running fix_bug_titles job")
-    for bug in Bugzilla.select(
-                 OR(Bugzilla.q.title == 'Invalid bug number',
-                    Bugzilla.q.title == 'Unable to fetch bug title')):
-        bug._fetch_details()
-
-    # Nag submitters if their update has been sitting unsubmitted in a pending
-    # state for longer than a week.
-    # TODO: implement this once the current 'pending' situation is under
-    # control.  Right now, with our production instance, unpushed updates go
-    # back into this state -- and we don't want to nag about those.
 
 def schedule():
     """ Schedule our periodic tasks """
 
     # Weekly repository cleanup
-    scheduler.add_interval_task(action=clean_repo,
-                                taskname='Repository Cleanup',
-                                initialdelay=0,
-                                interval=604800)
+    scheduler.add_weekday_task(action=clean_repo,
+                               weekdays=range(1,8),
+                               timeonday=(0,0))
 
     # Weekly nagmail
-    scheduler.add_interval_task(action=nagmail,
-                                taskname='Nagmail',
-                                initialdelay=0,
-                                interval=604800)
-
-    # Fix invalid bug titles
-    scheduler.add_interval_task(action=fix_bug_titles,
-                                taskname='Fix bug titles',
-                                initialdelay=1200,
-                                interval=604800)
+    scheduler.add_weekday_task(action=nagmail,
+                               weekdays=range(1,8),
+                               timeonday=(0,0))
