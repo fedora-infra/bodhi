@@ -87,10 +87,10 @@ def schedule():
 
     # Weekly repository cleanup
     scheduler.add_weekday_task(action=clean_repo,
-                               weekdays=(1,),
+                               weekdays=range(1,8),
                                timeonday=(0,0))
 
     # Weekly nagmail
     scheduler.add_weekday_task(action=nagmail,
-                               weekdays=(1,),
+                               weekdays=range(1,8),
                                timeonday=(0,0))
