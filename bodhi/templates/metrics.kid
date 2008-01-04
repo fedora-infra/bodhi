@@ -5,7 +5,7 @@
 
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
-    <script language="javascript" type="text/javascript" src="${tg.url('/static/js/jquery.flot.js')}"></script>
+-    <script language="javascript" type="text/javascript" src="${tg.url('/static/js/jquery.flot.js')}"></script>
 </head>
 <body>
     <center>
@@ -21,6 +21,9 @@
 
         <h2>Most updates per developer</h2>
         ${active_devs.display()}
+
+        <h2>Packages with the best karma</h2>
+        ${best_karma.display()}
 
     </center>
 </body>
