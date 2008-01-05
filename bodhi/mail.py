@@ -252,7 +252,7 @@ with yum", available at http://docs.fedoraproject.org/yum/.
 
 All packages are signed with the Fedora Project GPG key.  More details on the
 GPG keys used by the Fedora Project can be found at
-http://fedoraproject.org/wiki/Security/Keys
+http://fedoraproject.org/keys
 --------------------------------------------------------------------------------
 """
 
