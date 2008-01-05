@@ -245,12 +245,14 @@ Description :
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)sUpdated packages:
 
-%(filelist)s
-
 This update can be installed with the "yum" update program.  Use 
 su -c 'yum%(yum_repository)s update %(name)s' 
 at the command line.  For more information, refer to "Managing Software
 with yum", available at http://docs.fedoraproject.org/yum/.
+
+All packages are signed with the Fedora Project GPG key.  More details on the
+GPG keys used by the Fedora Project can be found at
+http://fedoraproject.org/keys
 --------------------------------------------------------------------------------
 """
 
@@ -263,11 +265,13 @@ maillist_template = u"""\
 """
 
 
-def get_template(update,use_template=errata_template):
-    from bodhi.buildsys import get_session
+def get_template(update, use_template=errata_template):
+    """
+    Build the update notice for a given update.
+    @param use_template: the template to generate this notice with
+    """
     line = unicode('-' * 80) + '\n'
     templates = []
-    koji_session = get_session()
 
     for build in update.builds:
         h = build.get_rpm_header()
@@ -290,21 +294,11 @@ def get_template(update,use_template=errata_template):
                 update.release.long_name, info['testing'], build.nvr)
         info['update_id'] = update.update_id
         info['description'] = h[rpm.RPMTAG_DESCRIPTION]
-        #info['updatepath'] = update.get_repo()
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
             info['notes'] = u"Update Information:\n\n%s\n" % update.notes
             info['notes'] += line
-
-        # Build the list of SHA1SUMs and packages
-        filelist = []
-        for pkg in koji_session.listBuildRPMs(build.nvr):
-            filename = u"%s.%s.rpm" % (pkg['nvr'], pkg['arch'])
-            path = join(config.get('build_dir'), info['name'], info['version'],
-                        info['release'], pkg['arch'])
-            filelist.append(u"%s %s" % (sha1sum(join(path, filename)), filename))
-        info['filelist'] = '\n'.join(filelist)
 
         # Add this updates referenced Bugzillas and CVEs
         i = 1

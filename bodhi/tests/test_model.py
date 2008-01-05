@@ -181,21 +181,32 @@ class TestPackageUpdate(testutil.DBTest):
         update.addBugzilla(bug)
         update.addCVE(cve)
         update.assign_id()
-        print update
-        try:
-            templates = mail.get_template(update)
-        except RPMNotFound:
-            # We're assuming we can find any real packages if we're a
-            # development instance.. so just skip this test for now
-            if config.get('buildsystem') == 'dev':
-                return
-            else:
-                raise
+
+        def rpm_header():
+            import rpm
+            return {
+                    rpm.RPMTAG_URL           : 'turbogears.org',
+                    rpm.RPMTAG_NAME          : 'TurboGears',
+                    rpm.RPMTAG_SUMMARY       : 'summary',
+                    rpm.RPMTAG_VERSION       : '1.0.2.2',
+                    rpm.RPMTAG_RELEASE       : '2.fc7',
+                    rpm.RPMTAG_DESCRIPTION   : 'description',
+                    rpm.RPMTAG_CHANGELOGTIME : 0,
+                    rpm.RPMTAG_CHANGELOGTEXT : "foo",
+            }
+
+        def latest():
+            return None
+
+        # Monkey-patch some methods so we don't have to touch RPMs
+        for build in update.builds:
+            build.get_rpm_header = rpm_header
+            build.get_latest = latest
+
+        templates = mail.get_template(update)
         assert templates
-        from pprint import pprint
-        pprint(templates)
         assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: TurboGears-1.0.2.2-2.fc7'
-        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2007-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : http://www.turbogears.org\nSummary     : Back-to-front web development in Python\nDescription :\nTurboGears brings together four major pieces to create an\neasy to install, easy to use web megaframework. It covers\neverything from front end (MochiKit JavaScript for the browser,\nKid for templates in Python) to the controllers (CherryPy) to\nthe back end (SQLObject).\n\nThe TurboGears project is focused on providing documentation\nand integration with these tools without losing touch\nwith the communities that already exist around those tools.\n\nTurboGears is easy to use for a wide range of web applications.\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - test bug\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\nUpdated packages:\n\n57e80ee8eb6d666c79c498e0b2efecd74ab52063 TurboGears-1.0.2.2-2.fc7.src.rpm\n85e05a4d52143ce38f43f7fdd244251e18f9d408 TurboGears-1.0.2.2-2.fc7.noarch.rpm\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum update TurboGears\' \nat the command line.  For more information, refer to "Managing Software\nwith yum", available at http://docs.fedoraproject.org/yum/.\n--------------------------------------------------------------------------------\n' or templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2007-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : http://www.turbogears.org\nSummary     : Back-to-front web development in Python\nDescription :\nTurboGears brings together four major pieces to create an\neasy to install, easy to use web megaframework. It covers\neverything from front end (MochiKit JavaScript for the browser,\nKid for templates in Python) to the controllers (CherryPy) to\nthe back end (SQLObject).\n\nThe TurboGears project is focused on providing documentation\nand integration with these tools without losing touch\nwith the communities that already exist around those tools.\n\nTurboGears is easy to use for a wide range of web applications.\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\nUpdated packages:\n\n57e80ee8eb6d666c79c498e0b2efecd74ab52063 TurboGears-1.0.2.2-2.fc7.src.rpm\n85e05a4d52143ce38f43f7fdd244251e18f9d408 TurboGears-1.0.2.2-2.fc7.noarch.rpm\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum update TurboGears\' \nat the command line.  For more information, refer to "Managing Software\nwith yum", available at http://docs.fedoraproject.org/yum/.\n--------------------------------------------------------------------------------\n' or templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2007-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : http://www.turbogears.org\nSummary     : Back-to-front web development in Python\nDescription :\nTurboGears brings together four major pieces to create an\neasy to install, easy to use web megaframework. It covers\neverything from front end (MochiKit JavaScript for the browser,\nKid for templates in Python) to the controllers (CherryPy) to\nthe back end (SQLObject).\n\nThe TurboGears project is focused on providing documentation\nand integration with these tools without losing touch\nwith the communities that already exist around those tools.\n\nTurboGears is easy to use for a wide range of web applications.\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\nUpdated packages:\n\n57e80ee8eb6d666c79c498e0b2efecd74ab52063 TurboGears-1.0.2.2-2.fc7.src.rpm\n85e05a4d52143ce38f43f7fdd244251e18f9d408 TurboGears-1.0.2.2-2.fc7.noarch.rpm\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum --enablerepo=updates-testing update TurboGears\' \nat the command line.  For more information, refer to "Managing Software\nwith yum", available at http://docs.fedoraproject.org/yum/.\n--------------------------------------------------------------------------------\n'
+        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2008-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : turbogears.org\nSummary     : summary\nDescription :\ndescription\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\nUpdated packages:\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum --enablerepo=updates-testing update TurboGears\' \nat the command line.  For more information, refer to "Managing Software\nwith yum", available at http://docs.fedoraproject.org/yum/.\n\nAll packages are signed with the Fedora Project GPG key.  More details on the\nGPG keys used by the Fedora Project can be found at\nhttp://fedoraproject.org/keys\n--------------------------------------------------------------------------------\n'
 
 
     def test_latest(self):
@@ -273,3 +284,6 @@ class TestBugzilla(testutil.DBTest):
         assert bug
         if config.get('bodhi_password'):
             assert bug.title == 'CVE-2007-2165: proftpd auth bypass vulnerability'
+
+    def test_bugzilla_module(self):
+        assert Bugzilla.get_bz()

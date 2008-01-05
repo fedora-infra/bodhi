@@ -95,11 +95,25 @@ class Metrics(Controller):
             }
         )
 
+        karma_data = self.karma()
+        best_karma = TurboFlot([
+            {
+                'data' : karma_data['best'],
+                'bars' : { 'show' : True }
+            }],
+            {
+                'grid'  : { 'backgroundColor' : '#fffaff' },
+                'xaxis' : { 'ticks' : karma_data['bestpkgs'] }
+            }
+        )
         return dict(security=security, all=all, most_updates=most_updates,
-                    active_devs=active_devs)
+                    active_devs=active_devs, best_karma=best_karma)
 
     def cache_valid(self, graph):
-        """ Return whether or not our metrics cache is valid """
+        """
+        Return whether or not our metrics cache is valid.  We're currently 
+        storing cached metric values for 1 week.
+        """
         if self.cache.has_key(graph):
             age = datetime.utcnow() - self.cache[graph][1]
             return age.days < 7
@@ -213,3 +227,37 @@ class Metrics(Controller):
         self.cache['active_devs'] = [dict(data=users, people=data.items()),
                                      datetime.utcnow()]
         return self.cache['active_devs'][0]
+
+    def karma(self):
+        """
+            Return updates with the best and worst karma
+        """
+        if self.cache_valid('karma'):
+            return self.cache['karma'][0]
+        data = {} # { pkg : karma }
+        for pkg in Package.select():
+            data[pkg.name] = 0
+            for update in pkg.updates():
+                data[pkg.name] += update.karma
+        items = data.items()
+        items.sort(key=lambda x: x[1], reverse=True)
+        bestitems = items[:10]
+        worstitems = items[-10:]
+        del data, items
+        bestpkgs = {}
+        bestdata = []
+        worstpkgs = {}
+        worstdata = []
+        for i, item in enumerate(bestitems):
+            bestpkgs[i + 0.5] = item[0]
+            bestdata.append((i, item[1]))
+        for i, item in enumerate(worstitems):
+            worstpkgs[i + 0.5] = item[0]
+            worstdata.append((i, item[1]))
+        del worstitems, bestitems
+        self.cache['karma'] = [dict(best=bestdata,
+                                    bestpkgs=bestpkgs.items(),
+                                    worst=worstdata,
+                                    worstpkgs=worstpkgs.items()),
+                               datetime.utcnow()]
+        return self.cache['karma'][0]
