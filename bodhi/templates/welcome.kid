@@ -27,7 +27,7 @@
 <body>
     <table width="90%" align="center" valign="top">
             <tr>
-                <td align="left" valign="bottom"><b><font size="4">Welcome to bodhi<span py:if="not tg.identity.anonymous">, ${tg.identity.user.display_name}</span></font></b></td>
+                <td align="left" valign="bottom"><b><font size="4">Welcome to bodhi<span py:if="not tg.identity.anonymous">, ${tg.identity.user.display_name.split()[0]}</span>.</font></b></td>
                 <td align="right">
                     <table>
                         <tr>
