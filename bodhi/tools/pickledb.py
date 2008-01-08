@@ -70,6 +70,7 @@ def save_db():
         data['notes'] = update.notes
         data['request'] = update.request
         data['comments'] = [(c.timestamp, c.author, c.text, c.karma) for c in update.comments]
+        data['approved'] = hasattr(update, 'approved') and update.approved or False
         updates.append(data)
 
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
@@ -106,7 +107,8 @@ def load_db():
                                pushed=u['pushed'],
                                notes=u['notes'],
                                karma=u['karma'],
-                               request=request)
+                               request=request,
+                               approved=u['approved'])
 
         for pkg, nvr in u['builds']:
             try:
