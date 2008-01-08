@@ -10,7 +10,7 @@ import time
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild, Comment, User)
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
-                              PostgresIntegrityError, RPMNotFound)
+                              PostgresIntegrityError)
 
 from yum.update_md import UpdateMetadata
 
