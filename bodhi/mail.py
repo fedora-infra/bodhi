@@ -16,11 +16,10 @@ import rpm
 import logging
 import turbomail
 
-from os.path import join
 from turbomail import MailNotEnabledException
 from turbogears import config, identity
 
-from bodhi.util import sha1sum, rpm_fileheader
+from bodhi.util import rpm_fileheader
 from bodhi.exceptions import RPMNotFound
 
 log = logging.getLogger(__name__)
