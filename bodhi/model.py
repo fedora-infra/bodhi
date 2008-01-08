@@ -426,6 +426,7 @@ class PackageUpdate(SQLObject):
                     self.addBugzilla(bz)
             except SQLObjectNotFound:
                 bz = Bugzilla(bz_id=bug)
+                bz.fetch_details()
                 self.addBugzilla(bz)
 
     def update_cves(self, cves):
@@ -580,14 +581,6 @@ class Bugzilla(SQLObject):
     default_msg = "%s has been pushed to the %s repository.  If problems " + \
                   "still persist, please make note of it in this bug report."
 
-    def _set_bz_id(self, bz_id):
-        """
-        When the ID for this bug is set (upon creation), go out and fetch the
-        details and check if this bug is security related.
-        """
-        self._SO_set_bz_id(bz_id)
-        self._fetch_details()
-
     @staticmethod
     def get_bz():
         me = config.get('bodhi_email')
@@ -599,7 +592,7 @@ class Bugzilla(SQLObject):
             bz = bugzilla.Bugzilla(url=config.get("bz_server"))
         return bz
 
-    def _fetch_details(self):
+    def fetch_details(self):
         bz = Bugzilla.get_bz()
         try:
             bug = bz.getbug(self.bz_id)
