@@ -13,7 +13,9 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import os
+import sha
 import time
+import urllib2
 import logging
 import commands
 
@@ -22,6 +24,7 @@ from bodhi.util import synchronized
 from threading import Thread, Lock
 from turbogears import config
 from os.path import exists, join, islink
+from time import sleep
 
 log = logging.getLogger(__name__)
 masher = None
@@ -474,9 +477,6 @@ class MashTask(Thread):
         """
         Block until our repomd.xml hits the master mirror
         """
-        import sha
-        import urllib2
-        from time import sleep
         if not len(self.updates):
             log.debug("No updates in masher; skipping wait_for_sync")
             return
@@ -493,7 +493,6 @@ class MashTask(Thread):
         checksum = sha.new(file(repomd).read()).hexdigest()
         while True:
             sleep(600)
-            log.debug("Checking if repomd.xml is updated")
             masterrepomd = urllib2.urlopen('http://download.fedora.redhat.com/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml' % release.get_version())
             newsum = sha.new(masterrepomd.read()).hexdigest()
             if newsum == checksum:
