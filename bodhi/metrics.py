@@ -156,6 +156,7 @@ class Metrics(Controller):
         months = {}
         all = {} # { month : num }
         rel = Release.byName('F7')
+        starting_month = 6
         for update in PackageUpdate.select(PackageUpdate.q.releaseID == rel.id):
             if update.date_pushed:
                 if not timeline.has_key(update.type):
@@ -178,8 +179,35 @@ class Metrics(Controller):
                     for m, n in data:
                         if m == month:
                             timeline[type].remove((m, n))
-        self.cache['all'] = [dict(timeline=timeline, months=months.items(),
+
+        # Append earlier months for newer years to the end of the graph
+        # FIXME: make this less insane
+        months = months.items()
+        months.sort(key=lambda x: x[0])
+        m = []
+        for num, month in months:
+            if num < starting_month:
+                m.append([num, month])
+                months.remove((num, month))
+            else:
+                for i, n in enumerate(m):
+                    for amonth, anum in all.items():
+                        if amonth == m[i][0]:
+                            del all[amonth]
+                            all[amonth + months[-1][0]] = anum
+                    for type in timeline.keys():
+                        for tlmonth, tlnum in timeline[type]:
+                            if tlmonth == m[i][0]:
+                                timeline[type].remove((tlmonth, tlnum))
+                                timeline[type].append((tlmonth + months[-1][0],
+                                                       tlnum))
+                    m[i][0] += months[-1][0]
+                months += m
+                break
+
+        self.cache['all'] = [dict(timeline=timeline, months=months,
                                   all=all.items()), datetime.utcnow()]
+        print "returning ", self.cache['all']
         return self.cache['all'][0]
 
     def most_updated(self):
