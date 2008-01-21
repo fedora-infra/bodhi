@@ -16,6 +16,7 @@ import rpm
 import logging
 import turbomail
 
+from textwrap import wrap
 from turbomail import MailNotEnabledException
 from turbogears import config, identity
 
@@ -346,7 +347,8 @@ def get_template(update, use_template=errata_template):
                       % str(e))
 
         try:
-            templates.append((info['subject'], use_template % info))
+            templates.append((info['subject'],
+                              '\n'.join(wrap(use_template % info, width=80))))
         except UnicodeDecodeError:
             # We can't trust the strings we get from RPM
             log.debug("UnicodeDecodeError! Will try again after decoding")
