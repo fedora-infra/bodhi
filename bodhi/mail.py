@@ -297,7 +297,8 @@ def get_template(update, use_template=errata_template):
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
-            info['notes'] = u"Update Information:\n\n%s\n" % update.notes
+            info['notes'] = u"Update Information:\n\n%s\n" % \
+                    '\n'.join(wrap(update.notes, width=80))
             info['notes'] += line
 
         # Add this updates referenced Bugzillas and CVEs
@@ -347,8 +348,7 @@ def get_template(update, use_template=errata_template):
                       % str(e))
 
         try:
-            templates.append((info['subject'],
-                              '\n'.join(wrap(use_template % info, width=80))))
+            templates.append((info['subject'], use_template % info))
         except UnicodeDecodeError:
             # We can't trust the strings we get from RPM
             log.debug("UnicodeDecodeError! Will try again after decoding")
