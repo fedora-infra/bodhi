@@ -39,11 +39,9 @@ class ExtendedMetadata:
         self.doc = None
         self.updates = set()
         self.builds = {}
-        self.checksums = {} # { pkg-ver-rel : { arch : checksum, ... }, ... }
         self.koji = get_session()
         self._create_document()
         self._fetch_updates()
-        self._fetch_checksums()
         log.debug("Generating XML update metadata for updates")
         for update in self.updates:
             if update.update_id:
@@ -91,28 +89,6 @@ class ExtendedMetadata:
                    child.firstChild.nodeValue == update.update_id:
                     return elem
         return None
-
-    def _fetch_checksums(self):
-        """
-        Pull a list of 'name-version-release sha1' from our repodata and store
-        it in self.checksums = { n-v-r : { arch : sha1sum } }
-        """
-        log.debug("Fetching checksums from repodata")
-        for arch in os.listdir(self.repo):
-            archrepo = join(self.repo, arch)
-            if not isdir(archrepo): continue
-            repoid = "%s-%s" % (basename(self.repo), arch)
-            cmd = 'repoquery --repofrompath=%s,%s --repofrompath=%s-debug,%s -a --qf "%%{name}-%%{version}-%%{release} %%{id}" --repoid=%s --repoid=%s-debug' % (repoid, archrepo, repoid, join(archrepo, 'debug'), repoid, repoid)
-            log.debug("Running `%s`" % cmd)
-            out = commands.getoutput(cmd)
-            try:
-                for line in out.split('\n')[2:]:
-                    pkg, csum = line.split()
-                    if not self.checksums.has_key(pkg):
-                        self.checksums[pkg] = {}
-                    self.checksums[pkg][arch] = csum
-            except Exception, e:
-                log.error("Unable to parse repoquery output: %s" % e)
 
     #def remove_update(self, update):
     #    elem = self._get_notice(update)
@@ -198,11 +174,6 @@ class ExtendedMetadata:
                             'src'       : urlpath
                 })
                 self._insert(pkg, 'filename', text=filename)
-                try:
-                    self._insert(pkg, 'sum', attrs={ 'text' : 'sha1' },
-                                 text=self.checksums[rpm['nvr']][arch])
-                except KeyError:
-                    log.error("Unable to find checksum for %s" % rpm['nvr'])
 
                 if build.package.suggest_reboot:
                     self._insert(pkg, 'reboot_suggested', text='True')

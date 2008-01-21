@@ -429,7 +429,6 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        print cherrypy.response.body[0]
         assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
@@ -447,7 +446,7 @@ class TestControllers(testutil.DBTest):
         newupdate = PackageUpdate.byTitle(newparams['builds'])
         assert newupdate.status == 'pending'
         update = PackageUpdate.byTitle(params['builds'])
-        #assert update.status == 'obsolete'
+        assert update.status == 'obsolete'
 
     def test_list(self):
         """
@@ -577,7 +576,6 @@ class TestControllers(testutil.DBTest):
 
         url = '/updates/approve?update=' + params['builds']
         testutil.createRequest(url, headers=session, method='POST')
-        print cherrypy.response.body
         update = PackageUpdate.byTitle(params['builds'])
         assert update.approved
         assert update.request == 'stable'
