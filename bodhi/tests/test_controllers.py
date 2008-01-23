@@ -30,10 +30,7 @@ def login(username='lmacken', display_name='lmacken', group=None):
     assert cherrypy.response.status == '200 OK'
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
                      cherrypy.response.header_list)
-    cookiehdr = ""
-    for cookie in zip(cookies[0], cookies[1])[1]:
-        cookiehdr += cookie.split(';')[0] + '\r\n '
-    cookiehdr = cookiehdr.strip()
+    cookiehdr = cookies[0][1].strip()
     return { 'Cookie' : cookiehdr }
 
 class TestControllers(testutil.DBTest):
