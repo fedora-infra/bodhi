@@ -36,8 +36,6 @@ Client tools for interacting with bodhi
 Summary: A modular framework that facilitates publishing software updates
 Group: Applications/Internet
 Requires: TurboGears createrepo python-TurboMail intltool mash cvs python-fedora
-# We need the --repofrompath option from yum-utils
-Requires: yum-utils >= 1.1.7
 
 %description server
 Bodhi is a modular framework that facilitates the process of publishing
@@ -77,8 +75,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Mon Jan 21 2008 Luke Macken <lmacken@redhat.com> - 0.4.10-1
+* Fri Jan 25 2008 Luke Macken <lmacken@redhat.com> - 0.4.10-1
 - 0.4.10
+- Remove yum-utils requirement from bodhi-server
 
 * Sun Jan  6 2008 Luke Macken <lmacken@redhat.com> - 0.4.9-1
 - 0.4.9
