@@ -16,10 +16,9 @@ __version__ = '1.4'
 
 import os
 import logging
-import commands
 
 from xml.dom import minidom
-from os.path import join, isdir, basename
+from os.path import join
 from sqlobject import SQLObjectNotFound
 from turbogears import config
 
