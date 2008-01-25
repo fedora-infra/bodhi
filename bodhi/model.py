@@ -300,6 +300,7 @@ class PackageUpdate(SQLObject):
                                     log.debug("Tracker %d not yet closed" %
                                               bug.bz_id)
                                     depsclosed = False
+                                    break
                             if depsclosed:
                                 log.debug("Closing parent bug %d" % bug.bz_id)
                                 bug.close_bug()
