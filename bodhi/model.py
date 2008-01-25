@@ -647,21 +647,14 @@ class Bugzilla(SQLObject):
             log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))
 
     def close_bug(self, update):
-        me = config.get('bodhi_email')
-        password = config.get('bodhi_password')
-        if password:
-            log.debug("Closing Bug #%d" % self.bz_id)
+        bz = Bugzilla.get_bz()
+        try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
-            try:
-                server = xmlrpclib.Server(self._bz_server)
-                server.bugzilla.closeBug(self.bz_id, 'CURRENTRELEASE', me,
-                                         password, 0, ver)
-                del server
-            except Exception, e:
-                log.error("Cannot close bug #%d" % self.bz_id)
-                log.exception(e)
-        else:
-            log.warning("bodhi_password not defined; unable to close bug")
+            bug = bz.getbug(self.bz_id)
+            bug.close('CURRENTRELEASE', fixedin=ver)
+        except Exception, e:
+            log.error("Unable to close bug #%d" % self.bz_id)
+            log.exception(e)
 
     def get_url(self):
         return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
