@@ -271,7 +271,7 @@ class PackageUpdate(SQLObject):
         Comment on and close this updates bugs as necessary
         """
         if self.status == 'testing':
-            map(lambda bug: bug.add_comment(self), self.bugs)
+            map(lambda bug: bug.testing(self), self.bugs)
         elif self.status == 'stable':
             map(lambda bug: bug.add_comment(self), self.bugs)
 
@@ -300,6 +300,7 @@ class PackageUpdate(SQLObject):
                                     log.debug("Tracker %d not yet closed" %
                                               bug.bz_id)
                                     depsclosed = False
+                                    break
                             if depsclosed:
                                 log.debug("Closing parent bug %d" % bug.bz_id)
                                 bug.close_bug()
@@ -612,8 +613,10 @@ class Bugzilla(SQLObject):
         if update.status == "testing":
             message += "\n If you want to test the update, you can install " + \
                        "it with \n su -c 'yum --enablerepo=updates-testing " + \
-                       "update %s'" % (' '.join([build.package.name for build
-                                                 in update.builds]))
+                       "update %s'.  You can provide feedback for this " + \
+                       "update here: %s" % (' '.join([build.package.name for 
+                           build in update.builds]),
+                           config.get('base_address') + update.get_url())
 
         return message
 
@@ -629,22 +632,29 @@ class Bugzilla(SQLObject):
             log.error("Unable to add comment to bug #%d\n%s" % (self.bz_id,
                                                                 str(e)))
 
+    def testing(self, update):
+        """
+        Change the status of this bug to ON_QA, and comment on the bug with
+        some details on how to test and provide feedback for this update.
+        """
+        bz = Bugzilla.get_bz()
+        comment = self._default_message(update)
+        log.debug("Setting Bug #%d to ON_QA" % self.bz_id)
+        try:
+            bug = bz.getbug(self.bz_id)
+            bug.setstatus('ON_QA', comment=comment)
+        except Exception, e:
+            log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))
+
     def close_bug(self, update):
-        me = config.get('bodhi_email')
-        password = config.get('bodhi_password')
-        if password:
-            log.debug("Closing Bug #%d" % self.bz_id)
+        bz = Bugzilla.get_bz()
+        try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
-            try:
-                server = xmlrpclib.Server(self._bz_server)
-                server.bugzilla.closeBug(self.bz_id, 'CURRENTRELEASE', me,
-                                         password, 0, ver)
-                del server
-            except Exception, e:
-                log.error("Cannot close bug #%d" % self.bz_id)
-                log.exception(e)
-        else:
-            log.warning("bodhi_password not defined; unable to close bug")
+            bug = bz.getbug(self.bz_id)
+            bug.close('CURRENTRELEASE', fixedin=ver)
+        except Exception, e:
+            log.error("Unable to close bug #%d" % self.bz_id)
+            log.exception(e)
 
     def get_url(self):
         return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
