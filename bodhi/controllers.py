@@ -140,10 +140,8 @@ class Root(controllers.RootController):
                     comments=grids['comments'][GRID])
 
     @expose(template='bodhi.templates.pkgs')
-    @paginate('pkgs', default_order='name', limit=20, allow_limit_override=True)
     def pkgs(self):
-        pkgs = Package.select()
-        return dict(pkgs=pkgs, num_pkgs=pkgs.count())
+        return dict()
 
     @expose(template="bodhi.templates.login", allow_json=True)
     def login(self, forward_url=None, previous_url=None, *args, **kw):

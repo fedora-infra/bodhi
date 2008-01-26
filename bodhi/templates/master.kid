@@ -111,7 +111,6 @@ $(document).ready(function() {
                         </div>
                     </li>
                     <li><a href="${tg.url('/comments')}">Comments</a></li>
-                <li><a href="${tg.url('/pkgs')}">Packages</a></li>
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/logout')}">Logout</a></li>
                 <li py:if="tg.identity.anonymous"><a href="${tg.url('/login')}">Login</a></li>
             </ul>
