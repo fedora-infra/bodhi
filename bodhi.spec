@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.4.10
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -12,7 +12,7 @@ Source0:        bodhi-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-BuildRequires: python-setuptools-devel TurboGears python-genshi
+BuildRequires: python-setuptools-devel TurboGears python-genshi python-elixir
 
 %description
 Bodhi is a modular framework that facilitates the process of publishing
@@ -75,6 +75,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Jan 25 2008 Luke Macken <lmacken@redhat.com> - 0.4.10-2
+- Add python-elixir to BuildRequires to make the new TG happy
+
 * Fri Jan 25 2008 Luke Macken <lmacken@redhat.com> - 0.4.10-1
 - 0.4.10
 - Remove yum-utils requirement from bodhi-server

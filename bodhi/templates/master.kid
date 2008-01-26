@@ -20,7 +20,7 @@
         }
     </style>
     <style type="text/css" media="screen">
-        @import "${tg.url('/static/css/layout-uncompressed.css')}";
+        @import "${tg.url('/static/css/layout.css')}";
     </style>
 </head>
 
