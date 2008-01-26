@@ -656,7 +656,7 @@ class Bugzilla(SQLObject):
             bug = bz.getbug(self.bz_id)
             bug.close('CURRENTRELEASE', fixedin=ver)
         except xmlrpclib.Fault, f:
-            log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f))
+            log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f)))
 
     def get_url(self):
         return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
