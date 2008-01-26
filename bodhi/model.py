@@ -519,7 +519,7 @@ class PackageUpdate(SQLObject):
             return
         for build in self.builds:
             log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
-            koji.moveBuild(curtag, tag, build.nvr, force=True)
+            koji.moveBuild(curtag, newtag, build.nvr, force=True)
         self.pushed = False
         self.status = 'pending'
         mail.send_admin('unpushed', self)
