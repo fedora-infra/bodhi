@@ -544,12 +544,13 @@ class Root(controllers.RootController):
                 if len(oldBuild.updates) and \
                    oldBuild.updates[0].status in ('pending', 'testing'):
                     if release not in [up.release for up in oldBuild.updates]:
-                        log.debug("Skipping obsoleting %s" % oldBuild)
+                        log.debug("Skipping obsoleting %s" % oldBuild.nvr)
                         continue
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
-                        log.debug("Obsoleting %s" % oldBuild)
+                        log.debug("Obsoleting %s" % oldBuild.nvr)
                         oldBuild.updates[0].obsolete(newer=build)
                         note.append('This update has obsoleted %s' % oldBuild.nvr)
+
         # Modify or create the PackageUpdate
         if edited:
             p = edited
