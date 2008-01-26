@@ -512,11 +512,14 @@ class PackageUpdate(SQLObject):
         """ Move this update back to its dist-fX-updates-candidate tag """
         log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
-        tag = '%s-updates-candidate' % self.release.dist_tag
+        newtag = '%s-updates-candidate' % self.release.dist_tag
+        curtag = self.get_build_tag()
+        if curtag.endswith('-updates-candidate'):
+            log.debug("%s already unpushed")
+            return
         for build in self.builds:
-            log.debug("Moving %s from %s to %s" % (build.nvr,
-                      self.get_build_tag(), tag))
-            koji.moveBuild(self.get_build_tag(), tag, build.nvr, force=True)
+            log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
+            koji.moveBuild(curtag, tag, build.nvr, force=True)
         self.pushed = False
         self.status = 'pending'
         mail.send_admin('unpushed', self)
