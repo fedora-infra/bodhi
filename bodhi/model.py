@@ -619,7 +619,7 @@ class Bugzilla(SQLObject):
                        "update %s'.  You can provide feedback for this " +
                        "update here: %s") % (' '.join([build.package.name for 
                            build in update.builds]),
-                           config.get('base_address') + update.get_url())
+                           config.get('base_address') + url(update.get_url()))
 
         return message
 
