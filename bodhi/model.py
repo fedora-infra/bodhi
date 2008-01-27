@@ -426,9 +426,11 @@ class PackageUpdate(SQLObject):
                 if bz not in self.bugs:
                     self.addBugzilla(bz)
             except SQLObjectNotFound:
-                bz = Bugzilla(bz_id=bug)
-                bz.fetch_details()
-                self.addBugzilla(bz)
+                bugzilla = Bugzilla.get_bz()
+                bz = bugzilla.getbug(bug)
+                newbug = Bugzilla(bz_id=bz.bug_id)
+                newbug.fetch_details(bz)
+                self.addBugzilla(newbug)
 
     def update_cves(self, cves):
         """
@@ -515,7 +517,7 @@ class PackageUpdate(SQLObject):
         newtag = '%s-updates-candidate' % self.release.dist_tag
         curtag = self.get_build_tag()
         if curtag.endswith('-updates-candidate'):
-            log.debug("%s already unpushed")
+            log.debug("%s already unpushed" % self.title)
             return
         for build in self.builds:
             log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
@@ -596,14 +598,15 @@ class Bugzilla(SQLObject):
             bz = bugzilla.Bugzilla(url=config.get("bz_server"))
         return bz
 
-    def fetch_details(self):
-        bz = Bugzilla.get_bz()
-        try:
-            bug = bz.getbug(self.bz_id)
-        except xmlrpclib.Fault, f:
-            self.title = 'Invalid bug number'
-            log.warning("Got fault from Bugzilla: %s" % str(f))
-            return
+    def fetch_details(self, bug=None):
+        if not bug:
+            bz = Bugzilla.get_bz()
+            try:
+                bug = bz.getbug(self.bz_id)
+            except xmlrpclib.Fault, f:
+                self.title = 'Invalid bug number'
+                log.warning("Got fault from Bugzilla: %s" % str(f))
+                return
         if bug.product == 'Security Response':
             self.parent = True
         self.title = str(bug.short_desc)

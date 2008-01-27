@@ -95,7 +95,7 @@ class NewUpdateForm(Form):
             SingleSelectField('request', options=request_types,
                               validator=validators.OneOf( request_types +
                                   [r.lower() for r in request_types])),
-            TextField('bugs',
+            TextField('bugs', validator=BugValidator(),
                       attrs={'title' : 'Bug Numbers - A space or comma '
                                        'delimited list of bug numbers or '
                                        'aliases.  Example: #1234, 789 '
@@ -105,11 +105,6 @@ class NewUpdateForm(Form):
                      attrs={'title' : 'Advisory Notes - Some optional details '
                                       'about this update that will appear in '
                                       'the notice'}),
-            #CheckBox(name='close_bugs', help_text='Automatically close bugs',
-            #         default=True, attrs={'title' : 'Close Bugs - '
-            #                                        'Automatically close bugs '
-            #                                        'when this update is '
-            #                                        'pushed as stable'}),
             HiddenField('edited', default=None),
             CheckBox(name='suggest_reboot', label='Suggest Reboot',
                      default=False)
