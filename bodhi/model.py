@@ -654,7 +654,7 @@ class Bugzilla(SQLObject):
         try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             bug = bz.getbug(self.bz_id)
-            bug.close('CURRENTRELEASE', fixedin=ver)
+            bug.close('NEXTRELEASE', fixedin=ver)
         except xmlrpclib.Fault, f:
             log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f)))
 

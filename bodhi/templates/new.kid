@@ -35,10 +35,10 @@
                 extraClass: "pretty fancy", showBody:   " - ", left: 5,
                 top: -15, fixPNG: true, opacity: 1
         })
-        $("#form_close_bugs").Tooltip({
+        /*$("#form_close_bugs").Tooltip({
                 extraClass: "pretty fancy", showBody:   " - ", left: 5,
                 top: -15, fixPNG: true, opacity: 1
-        })
+        })*/
     });
     </script>
 
@@ -62,9 +62,9 @@
                       py:content="error_for(field)" />
             </font>
             <span py:replace="field.display(value_for(field), **params_for(field))"/>
-            <span py:if="i == 4">
+            <!--<span py:if="i == 4">
                 <label for="form_close_bugs">${display_field_for('close_bugs')} Close bugs when update is stable</label>
-            </span>
+            </span>-->
             <span py:if="field.help_text"
                   class="fieldhelp"
                   py:content="field.help_text" />

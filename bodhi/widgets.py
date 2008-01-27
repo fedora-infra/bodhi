@@ -95,20 +95,21 @@ class NewUpdateForm(Form):
             SingleSelectField('request', options=request_types,
                               validator=validators.OneOf( request_types +
                                   [r.lower() for r in request_types])),
-            TextField('bugs', validator=BugValidator(),
+            TextField('bugs',
                       attrs={'title' : 'Bug Numbers - A space or comma '
-                                       'delimited list of bug numbers.  '
-                                       'Example: #1234, 56 789'}),
+                                       'delimited list of bug numbers or '
+                                       'aliases.  Example: #1234, 789 '
+                                       'CVE-2008-0001'}),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=13, cols=65,
                      attrs={'title' : 'Advisory Notes - Some optional details '
                                       'about this update that will appear in '
                                       'the notice'}),
-            CheckBox(name='close_bugs', help_text='Automatically close bugs',
-                     default=True, attrs={'title' : 'Close Bugs - '
-                                                    'Automatically close bugs '
-                                                    'when this update is '
-                                                    'pushed as stable'}),
+            #CheckBox(name='close_bugs', help_text='Automatically close bugs',
+            #         default=True, attrs={'title' : 'Close Bugs - '
+            #                                        'Automatically close bugs '
+            #                                        'when this update is '
+            #                                        'pushed as stable'}),
             HiddenField('edited', default=None),
             CheckBox(name='suggest_reboot', label='Suggest Reboot',
                      default=False)
