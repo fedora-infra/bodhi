@@ -53,22 +53,3 @@ class AutoCompleteValidator(validators.Schema):
             else:
                 raise Invalid(self.message('empty_build', state), value, state)
         return results
-
-class BugValidator(validators.FancyValidator):
-    messages = {
-            'invalid_bug' : "Invalid bug(s).  Please supply a list of bug "
-                            "numbers. Example: 123, 456 #789"
-    }
-
-    def _to_python(self, value, state):
-        bugs = validators.UnicodeString().to_python(value.strip())
-        try:
-            bugs = map(int, bugs.replace(',', ' ').replace('#', '').split())
-        except ValueError:
-            raise Invalid(self.message('invalid_bug', state), bugs, state)
-        return bugs
-
-    def validate_python(self, bugs, state):
-        for bug in bugs:
-            if bug <= 0:
-                raise Invalid(self.message('invalid_bug', state), bugs, state)
