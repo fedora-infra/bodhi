@@ -53,3 +53,11 @@ class AutoCompleteValidator(validators.Schema):
             else:
                 raise Invalid(self.message('empty_build', state), value, state)
         return results
+
+
+class BugValidator(validators.FancyValidator):
+
+    def _to_python(self, value, state):
+        bugs = validators.UnicodeString().to_python(value.strip())
+        bugs = bugs.replace(',', ' ').replace('#', '').split()
+        return bugs

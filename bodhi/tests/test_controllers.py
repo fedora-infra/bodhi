@@ -81,7 +81,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
+        assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0], cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update
         assert update.title == params['builds']
@@ -386,19 +386,21 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable'
 
-    def test_bad_bugs(self):
+    def test_cve_bugs(self):
         session = login()
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
                 'type'    : 'enhancement',
-                'bugs'    : 'foobar',
+                'bugs'    : 'CVE-2007-5201',
                 'cves'    : '',
                 'notes'   : ''
         }
         self.save_update(params, session)
-        assert "Invalid bug(s)." in cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.bugs[0].bz_id == 293081
+        assert update.bugs[0].title == "CVE-2007-5201 Duplicity discloses password in FTP backend"
 
     def test_not_owner(self):
         session = login(username='guest')
