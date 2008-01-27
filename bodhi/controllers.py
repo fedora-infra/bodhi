@@ -808,7 +808,7 @@ class Root(controllers.RootController):
             flash_log("%s not found" % update)
             if self.jsonRequest(): return dict()
             raise redirect('/')
-        update.approved = True
+        update.approved = datetime.utcnow()
         update.request = 'stable'
         flash_log("%s has been approved and submitted for pushing to stable" %
                   update.title)
