@@ -392,13 +392,13 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, builds, release, type, notes, bugs, edited=False,
-             request='testing', suggest_reboot=False, **kw):
+    def save(self, builds, release, type, notes, bugs, close_bugs=False,
+             edited=False, request='testing', suggest_reboot=False, **kw):
         """
         Save an update.  This includes new updates and edited.
         """
-        log.debug("save(%s, %s, %s, %s, %s, %s, %s)" % (builds, release,
-            type, notes, bugs, edited, kw))
+        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s)" % (builds, release,
+            type, notes, bugs, close_bugs, edited, kw))
 
         note = []
         update_builds = []
@@ -414,7 +414,9 @@ class Root(controllers.RootController):
                 'type'        : type,
                 'bugs'        : ' '.join(map(str, bugs)),
                 'notes'       : notes,
-                'edited'      : edited
+                'edited'      : edited,
+                'close_bugs'  : close_bugs and 'True' or '',
+
         }
 
         if edited:
@@ -551,13 +553,14 @@ class Root(controllers.RootController):
         if edited:
             p = edited
             p.set(release=release, date_modified=datetime.utcnow(),
-                  notes=notes, type=type, title=','.join(builds))
+                  notes=notes, type=type, title=','.join(builds),
+                  close_bugs=close_bugs)
             log.debug("Edited update %s" % edited.title)
         else:
             try:
                 p = PackageUpdate(title=','.join(builds), release=release,
                                   submitter=identity.current.user_name,
-                                  notes=notes, type=type)
+                                  notes=notes, type=type, close_bugs=close_bugs)
                 log.info("Adding new update %s" % builds)
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):

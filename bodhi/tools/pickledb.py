@@ -70,7 +70,13 @@ def save_db():
         data['notes'] = update.notes
         data['request'] = update.request
         data['comments'] = [(c.timestamp, c.author, c.text, c.karma) for c in update.comments]
-        data['approved'] = hasattr(update, 'approved') and update.approved or None
+        if hasattr(update, 'approved') and update.approved not in (True, False):
+            print "setting approved to ", repr(update.approved)
+            data['approved'] = update.approved
+        else:
+            print "Defaulting to None"
+            data['approved'] = None
+
         updates.append(data)
 
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
@@ -95,6 +101,9 @@ def load_db():
             request = 'testing'
         elif u['request'] == 'unpush':
             request = 'obsolete'
+
+        if u['approved'] in (True, False):
+            u['approved'] = None
 
         update = PackageUpdate(title=u['title'],
                                date_submitted=u['date_submitted'],
