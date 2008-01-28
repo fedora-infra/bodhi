@@ -816,3 +816,13 @@ class Root(controllers.RootController):
         flash_log("%s has been approved and submitted for pushing to stable" %
                   update.title)
         raise redirect(update.get_url())
+
+    @expose(template="bodhi.templates.security")
+    @identity.require(identity.in_group("security_respons"))
+    def security(self):
+        """ Return a list of security updates pending approval """
+        updates = PackageUpdate.select(
+                    AND(PackageUpdate.q.type == 'security',
+                        PackageUpdate.q.status == 'pending',
+                        PackageUpdate.q.approved == None))
+        return dict(updates=updates)
