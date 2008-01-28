@@ -196,7 +196,7 @@ class PackageUpdate(SQLObject):
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
     nagged           = PickleCol(default={}) # { nagmail_name : datetime, ... }
-    approved         = BoolCol(default=False)
+    approved         = DateTimeCol(default=None)
 
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
