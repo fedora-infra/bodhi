@@ -626,7 +626,7 @@ class Root(controllers.RootController):
         order = PackageUpdate.q.date_pushed
         template = 'bodhi.templates.list'
         release = None
-        single = False
+        single = None
         query = []
 
         # /Package.name
@@ -671,6 +671,7 @@ class Root(controllers.RootController):
         # /Release.name/PackageUpdate.status/PackageUpdate.title
         if len(args):
             query.append(PackageUpdate.q.title == args[0])
+            single = args[0]
             del args[0]
 
         # Run the query that we just built
@@ -691,6 +692,15 @@ class Root(controllers.RootController):
                             num_items=num_updates, title='%s %s Updates' % (
                             release.long_name, status.title()))
             except AttributeError:
+                pass
+        elif single and num_updates == 0:
+            # A single update was specified, but not found.  Be nice and
+            # attempt to find the update that the user is looking for and 
+            # redirect them to it.  (Bug #426941)
+            try:
+                update = PackageUpdate.byTitle(single)
+                raise redirect(update.get_url())
+            except SQLObjectNotFound:
                 pass
         else:
             return dict(tg_template=template, updates=[], num_items=0,
