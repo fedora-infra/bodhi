@@ -210,12 +210,12 @@ the following URL:
         'body'    : u"""\
 %(submitter)s has submitted the following update.
 
+%(updatestr)s
+
 To approve this update and request that it be pushed to stable, you can use 
 the link below:
 
     http://admin.fedoraproject.org/updates/approve/%(package)s
-
-\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
