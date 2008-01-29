@@ -85,7 +85,7 @@ class BodhiClient(BaseClient):
             log.error(data['tg_flash'])
             sys.exit(-1)
         for update in data['updates']:
-            print update
+            log.info(update)
         if showcount:
             log.info("%d updates found (%d shown)" % (data['num_items'],
                                                       len(data['updates'])))
@@ -119,7 +119,7 @@ class BodhiClient(BaseClient):
         for tag in [tag + '-updates-candidate' for tag in data['tags']]:
             for build in self.koji_session.listTagged(tag, latest=True):
                 if build['owner_name'] == opts.username:
-                    print "%-40s %-20s" % (build['nvr'], build['tag_name'])
+                    log.info("%-40s %-20s" % (build['nvr'], build['tag_name']))
 
     def testable(self, opts):
         """
@@ -226,6 +226,7 @@ class BodhiClient(BaseClient):
         self.file_parsed = True
 
 def setup_logger():
+    global log
     sh = logging.StreamHandler()
     if opts.verbose:
         log.setLevel(logging.DEBUG)
