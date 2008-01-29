@@ -323,6 +323,8 @@ class Root(controllers.RootController):
             raise redirect(update.get_url())
 
         update.request = action
+        update.pushed = False
+        update.date_pushed = None
         flash_log("%s has been submitted for %s" % (update.title, action))
         mail.send_admin(action, update)
         if self.jsonRequest(): return dict()
