@@ -305,11 +305,14 @@ def get_template(update, use_template=errata_template):
         info['references'] = ""
         if len(update.bugs) or len(update.cves):
             info['references'] = u"References:\n\n"
+            parent = True in [bug.parent for bug in update.bugs]
             for bug in update.bugs:
                 # Don't show any tracker bugs for security updates
-                if update.type == 'security' and not bug.parent:
-                    log.debug("Skipping tracker bug %s" % bug)
-                    continue
+                if update.type == 'security':
+                    # If there is a parent bug, don't show trackers
+                    if parent and not bug.parent:
+                        log.debug("Skipping tracker bug %s" % bug)
+                        continue
                 title = (bug.title != 'Unable to fetch title' and
                          bug.title != 'Invalid bug number') and \
                         ' - %s' % bug.title or ''
