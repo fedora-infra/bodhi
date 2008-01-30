@@ -65,9 +65,6 @@ class Package(SQLObject):
         for build in self.builds:
             yield build.update
 
-    def num_updates(self):
-        return len(builds)
-
     def __str__(self):
         x = header(self.name)
         states = { 'pending' : [], 'testing' : [], 'stable' : [] }
