@@ -37,7 +37,7 @@ class TestPackageUpdate(testutil.DBTest):
                                notes='foobar',
                                type='security')
         build = self.get_build(name)
-        update.addPackageBuild(build)
+        build.update = update
         return update
 
     def get_bug(self):
@@ -107,18 +107,18 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_multibuild(self):
         from bodhi import util
-        builds = ('yum-3.2.1-1.fc7', 'httpd-2.2.4-4.1.fc7')
-        pkg_builds = []
-        for build in builds:
-            nvr = util.get_nvr(build)
-            pkg = Package(name=nvr[0])
-            b = PackageBuild(nvr=build, package=pkg)
-            pkg_builds.append(b)
+        builds = ['yum-3.2.1-1.fc7', 'httpd-2.2.4-4.1.fc7']
+        package_builds = []
         release = self.get_rel()
         update = PackageUpdate(title=','.join(builds), release=release,
                                submitter='foo@bar.com', notes='Testing!',
                                type='bugfix')
-        map(update.addPackageBuild, pkg_builds)
+        for build in builds:
+            nvr = util.get_nvr(build)
+            pkg = Package(name=nvr[0])
+            b = PackageBuild(nvr=build, package=pkg, update=update)
+            package_builds.append(b)
+
         assert update.builds[0].nvr == builds[0]
         assert update.builds[1].nvr == builds[1]
         assert update.title == ','.join(builds)
@@ -127,6 +127,9 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.status == 'pending'
         assert update.type == 'bugfix'
         assert update.notes == 'Testing!'
+
+        for build in package_builds:
+            assert build.update == update
 
     def test_encoding(self, buildnvr='yum-3.2.1-1.fc7'):
         update = PackageUpdate(title=buildnvr,
@@ -138,7 +141,9 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.notes == u'Testing \u2019t stuff'
         assert update.submitter == u'Foo \xc3\xa9 Bar <foo@bar.com>'
         build = self.get_build(buildnvr)
-        update.addPackageBuild(build)
+        build.update = update
+        update = PackageUpdate.byTitle(buildnvr)
+        assert update.builds[0].update == update
         return update
 
     def _verify_updateinfo(self, update, repo):

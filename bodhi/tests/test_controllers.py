@@ -259,7 +259,7 @@ class TestControllers(testutil.DBTest):
         for build in params['builds'].split():
             assert build in builds
             x = PackageBuild.byNvr(build)
-            assert x.updates[0] == update
+            assert x.update == update
         assert len(update.bugs) == 1
         assert update.bugs[0].bz_id == int(params['bugs'])
         bug = Bugzilla.byBz_id(int(params['bugs']))
@@ -282,7 +282,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert len(update.builds) == 1
         build = PackageBuild.byNvr(params['builds'])
-        assert build.updates[0] == update
+        assert build.update == update
         assert update.notes == params['notes']
         assert len(update.bugs) == 0
         try:

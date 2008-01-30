@@ -63,14 +63,10 @@ class Package(SQLObject):
 
     def updates(self):
         for build in self.builds:
-            for update in build.updates:
-                yield update
+            yield build.update
 
     def num_updates(self):
-        i = 0
-        for build in self.builds:
-            i += len(build.updates)
-        return i
+        return len(builds)
 
     def __str__(self):
         x = header(self.name)
@@ -78,8 +74,7 @@ class Package(SQLObject):
         if len(self.builds):
             for build in self.builds:
                 for state in states.keys():
-                    states[state] += filter(lambda u: u.status == state,
-                                            build.updates)
+                    states[build.update.status] = build.update
         for state in states.keys():
             if len(states[state]):
                 x += "\n %s Updates (%d)\n" % (state.title(),
@@ -92,7 +87,7 @@ class Package(SQLObject):
 class PackageBuild(SQLObject):
     nvr             = UnicodeCol(notNone=True, alternateID=True)
     package         = ForeignKey('Package')
-    updates         = RelatedJoin("PackageUpdate")
+    update          = ForeignKey('PackageUpdate', default=None)
 
     def get_rpm_header(self):
         """ Get the rpm header of this build """
@@ -149,7 +144,7 @@ class PackageBuild(SQLObject):
         # -updates, so we don't want to generate ChangeLogs against those.
         nvr = get_nvr(self.nvr)
         for tag in ['%s-updates', '%s']:
-            tag %= self.updates[0].release.dist_tag
+            tag %= self.update.release.dist_tag
             builds = koji_session.getLatestBuilds(tag, None, self.package.name)
             latest = None
 
@@ -176,7 +171,7 @@ class PackageBuild(SQLObject):
 class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """
     title            = UnicodeCol(notNone=True, alternateID=True, unique=True)
-    builds           = RelatedJoin("PackageBuild")
+    builds           = MultipleJoin("PackageBuild", joinColumn="update_id")
     date_submitted   = DateTimeCol(default=datetime.utcnow, notNone=True)
     date_modified    = DateTimeCol(default=None)
     date_pushed      = DateTimeCol(default=None)

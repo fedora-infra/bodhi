@@ -28,14 +28,13 @@ class TestExtendedMetadata(testutil.DBTest):
         release = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
                           dist_tag='dist-fc7')
         package = Package(name=builds[0]['package_name'])
-        build = PackageBuild(nvr=builds[0]['nvr'], package=package)
         update = PackageUpdate(title=builds[0]['nvr'],
                                release=release,
                                submitter=builds[0]['owner_name'],
                                status='testing',
                                notes='foobar',
                                type='bugfix')
-        update.addPackageBuild(build)
+        build = PackageBuild(nvr=builds[0]['nvr'], package=package, update=update)
         bug = Bugzilla(bz_id=1)
         update.addBugzilla(bug)
         cve = CVE(cve_id="CVE-2007-0000")
