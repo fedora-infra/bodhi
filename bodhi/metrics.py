@@ -31,8 +31,8 @@ class Metrics(Controller):
                 'bars'  : { 'show' : 'true' }
             },
             {
-                'data'  : all_data['timeline']['bugfix'],
-                'label' : 'Bugfix',
+                'data'   : all_data['timeline']['bugfix'],
+                'label'  : 'Bugfix',
                 'lines'  : { 'show' : 'true' },
                 'points' : { 'show' : 'true' }
             },
@@ -43,13 +43,13 @@ class Metrics(Controller):
                 'points' : { 'show' : 'true' }
             },
             {
-                'data' : all_data['timeline']['security'],
-                'label' : 'Security',
-                'lines' : { 'show' : 'true' },
+                'data'   : all_data['timeline']['security'],
+                'label'  : 'Security',
+                'lines'  : { 'show' : 'true' },
                 'points' : { 'show' : 'true' }
             }],
             {
-                'grid' : { 'backgroundColor' : '#fffaff' },
+                'grid'  : { 'backgroundColor' : '#fffaff' },
                 'xaxis' : { 'ticks' : all_data['months'] },
                 'yaxis' : { 'max' : '850' }
             }
@@ -207,7 +207,6 @@ class Metrics(Controller):
 
         self.cache['all'] = [dict(timeline=timeline, months=months,
                                   all=all.items()), datetime.utcnow()]
-        print "returning ", self.cache['all']
         return self.cache['all'][0]
 
     def most_updated(self):
@@ -219,7 +218,7 @@ class Metrics(Controller):
         data = {}
         pkgs = []
         for pkg in Package.select():
-            data[pkg.name] = pkg.num_updates()
+            data[pkg.name] = len(pkg.builds)
         items = data.items()
         items.sort(key=lambda x: x[1], reverse=True)
         items = items[:7]
