@@ -20,7 +20,7 @@
     </ul>
 </blockquote>
 
-&nbsp;&nbsp;${pkg.num_updates()} updates found
+&nbsp;&nbsp;${len(pkg.builds)} updates found
 <div class="list">
     <span py:for="page in tg.paginate.pages">
         <a py:if="page != tg.paginate.current_page"
