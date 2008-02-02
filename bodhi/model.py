@@ -295,7 +295,7 @@ class PackageUpdate(SQLObject):
                                     break
                             if depsclosed:
                                 log.debug("Closing parent bug %d" % bug.bz_id)
-                                bug.close_bug()
+                                bug.close_bug(self)
                 else:
                     map(lambda bug: bug.close_bug(self), self.bugs)
 
