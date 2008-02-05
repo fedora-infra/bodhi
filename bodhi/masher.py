@@ -222,10 +222,8 @@ class MashTask(Thread):
         for update in self.updates:
             release = update.release.name.lower()
             if self.resume:
-                if update.status == 'stable':
-                    self.repos.add('%s-updates' % release)
-                elif update.status == 'testing':
-                    self.repos.add('%s-updates-testing' % release)
+                self.repos.add('%s-updates' % release)
+                self.repos.add('%s-updates-testing' % release)
             elif update.request == 'stable':
                 self.repos.add('%s-updates' % release)
                 if update.status == 'testing':
