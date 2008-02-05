@@ -18,9 +18,12 @@ import time
 import urllib2
 import logging
 import commands
+import cPickle as pickle
 
 from bodhi import buildsys, mail
 from bodhi.util import synchronized
+from bodhi.model import PackageUpdate
+from sqlobject import SQLObjectNotFound
 from threading import Thread, Lock
 from turbogears import config
 from os.path import exists, join, islink
@@ -29,6 +32,10 @@ from time import sleep
 log = logging.getLogger(__name__)
 masher = None
 lock = Lock()
+
+# a file written to disk with the details of what we are mashing.  This lets
+# us easily resume pushes when something goes wrong
+mash_lock = join(config.get('mashed_dir'), 'MASHING')
 
 def get_masher():
     global masher
@@ -133,7 +140,7 @@ class MashTask(Thread):
 
     def __init__(self, id, updates, repos=set(), resume=False):
         Thread.__init__(self)
-        log.debug("MashTask(%d, %s)" % (id, updates))
+        log.debug("MashTask(%d, %s, %s, %s)" % (id, updates, repos, resume))
         self.id = id
         self.tag = None
         self.updates = set()
@@ -153,7 +160,36 @@ class MashTask(Thread):
         self.genmd = False
         self.resume = resume
         self.testing_digest = {}
+        self._lock()
         self._find_repos()
+
+    def _lock(self):
+        """ Write out what updates we are pushing to our MASHING lock """
+        if os.path.exists(mash_lock):
+            if self.resume:
+                log.debug("Resuming previous push!")
+                lock = file(mash_lock, 'r')
+                ups = pickle.load(lock)
+                lock.close()
+                for up in ups:
+                    try:
+                        up = PackageUpdate.byTitle(up)
+                        self.updates.add(up)
+                    except SQLObjectNotFound:
+                        log.warning("Cannot find %s" % up)
+            else:
+                log.error("Previous mash not complete!  Either resume the last "
+                          "push, or remove %s" % mash_lock)
+            raise MashTaskException
+        lock = file(mash_lock, 'w')
+        pickle.dump([update.title for update in self.updates], lock)
+        lock.close()
+
+    def _unlock(self):
+        if os.path.exists(mash_lock):
+            os.unlink(mash_lock)
+        else:
+            log.error("Cannot find MashTask lock at %s" % mash_lock)
 
     def safe_to_move(self):
         """
@@ -430,6 +466,7 @@ class MashTask(Thread):
         except MashTaskException:
             self.success = False
 
+        self._unlock()
         masher.done(self)
 
     def add_to_digest(self,update):
