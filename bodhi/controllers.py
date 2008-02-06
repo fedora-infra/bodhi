@@ -529,6 +529,8 @@ class Root(controllers.RootController):
                 package = Package(name=nvr[0])
             if suggest_reboot:
                 package.suggest_reboot = True
+            package.committers = people[0] # Update our ACL cache for this pkg
+
             try:
                 pkgBuild = PackageBuild(nvr=build, package=package)
                 update_builds.append(pkgBuild)

@@ -112,10 +112,10 @@ def authorized_user(update, identity):
         display = displayname(identity)
     except AttributeError:
         display = identity.current.user_name
-    return update.submitter == identity.current.user_name or \
-           'releng' in identity.current.groups or \
+    return 'releng' in identity.current.groups or \
            'cvsadmin' in identity.current.groups or \
            'security_respons' in identity.current.groups or \
+           identity.current.user_name in update.builds[0].package.committers or\
            display == update.submitter
 
 def make_update_link(obj):

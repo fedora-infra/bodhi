@@ -60,6 +60,7 @@ class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
     builds         = MultipleJoin('PackageBuild', joinColumn='package_id')
     suggest_reboot = BoolCol(default=False)
+    committers     = PickleCol(default=[])
 
     def updates(self):
         for build in self.builds:

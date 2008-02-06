@@ -578,3 +578,22 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.approved
         assert update.request == 'stable'
+
+    def test_cached_acls(self):
+        """
+        Make sure that the list of committers for this package is getting
+        updated in our db for each submission.
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert 'lmacken' in update.builds[0].package.committers
