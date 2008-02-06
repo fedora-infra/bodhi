@@ -33,10 +33,6 @@ log = logging.getLogger(__name__)
 masher = None
 lock = Lock()
 
-# a file written to disk with the details of what we are mashing.  This lets
-# us easily resume pushes when something goes wrong
-mash_lock = join(config.get('mashed_dir'), 'MASHING')
-
 def get_masher():
     global masher
     if not masher:
@@ -165,6 +161,7 @@ class MashTask(Thread):
 
     def _lock(self):
         """ Write out what updates we are pushing to our MASHING lock """
+        mash_lock = join(config.get('mashed_dir'), 'MASHING')
         if os.path.exists(mash_lock):
             if self.resume:
                 log.debug("Resuming previous push!")
@@ -186,6 +183,7 @@ class MashTask(Thread):
         lock.close()
 
     def _unlock(self):
+        mash_lock = join(config.get('mashed_dir'), 'MASHING')
         if os.path.exists(mash_lock):
             os.unlink(mash_lock)
         else:
