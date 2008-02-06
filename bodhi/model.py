@@ -379,8 +379,12 @@ class PackageUpdate(SQLObject):
             val += u"   Comments: "
             comments = []
             for comment in self.comments:
-                comments.append(u"%s%s - %s (karma %s)" % (' ' * 13,
-                                comment.author, comment.timestamp,
+                if comment.anonymous:
+                    anonymous = " (unauthenticated)"
+                else:
+                    anonymous = ""
+                comments.append(u"%s%s%s - %s (karma %s)" % (' ' * 13,
+                                comment.author, anonymous, comment.timestamp,
                                 comment.karma))
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,
@@ -547,8 +551,13 @@ class Comment(SQLObject):
         karma = '0'
         if self.karma != 0:
             karma = '%+d' % (self.karma,)
-        return "%s - %s (karma: %s)\n%s" % (self.author, self.timestamp,
-                                            karma, self.text)
+
+        if self.anonymous:
+            anonymous = " (unauthenticated)"
+        else:
+            anonymous = ""
+        return "%s%s - %s (karma: %s)\n%s" % (self.author, anonymous,
+                                            self.timestamp, karma, self.text)
 
 class CVE(SQLObject):
     """

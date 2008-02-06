@@ -50,7 +50,7 @@
                 <img src="${tg.url('/static/images/karma%d.png' % comment.karma)}" align="top"/> <b>${comment.karma}</b>
             </td>
             <td class="list">
-                ${comment.author}
+                ${comment.author}<span py:if="comment.anonymous"> (unauthenticated)</span>
             </td>
             <td class="list">
                 ${comment.timestamp}
