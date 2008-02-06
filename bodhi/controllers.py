@@ -418,7 +418,6 @@ class Root(controllers.RootController):
                 'notes'       : notes,
                 'edited'      : edited,
                 'close_bugs'  : close_bugs and 'True' or '',
-
         }
 
         if edited:
@@ -550,6 +549,8 @@ class Root(controllers.RootController):
                         continue
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
                         log.debug("Obsoleting %s" % oldBuild.nvr)
+                        for bug in oldBuild.update.bugs:
+                            bugs.append(unicode(bug.bz_id))
                         oldBuild.update.obsolete(newer=build)
                         note.append('This update has obsoleted %s'%oldBuild.nvr)
 
