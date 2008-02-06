@@ -479,9 +479,8 @@ class MashTask(Thread):
         prefix = update.release.long_name
         if not self.testing_digest.has_key(prefix):
             self.testing_digest[prefix] = {}
-        for subject, body in mail.get_template(update,use_template=mail.maillist_template):
-            for build in update.builds:
-                self.testing_digest[prefix][build.nvr]= body
+        for i, subbody in enumerate(mail.get_template(update,use_template=mail.maillist_template)):
+            self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
     def send_digest_mail(self):
         '''
