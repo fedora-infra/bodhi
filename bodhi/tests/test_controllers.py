@@ -437,7 +437,7 @@ class TestControllers(testutil.DBTest):
                 'builds'  : 'TurboGears-1.0.2.2-3.fc7',
                 'release' : 'Fedora 7',
                 'type'    : 'enhancement',
-                'bugs'    : '1234',
+                'bugs'    : '4321',
                 'cves'    : 'CVE-2020-0001',
                 'notes'   : 'foobar'
         }
@@ -446,6 +446,10 @@ class TestControllers(testutil.DBTest):
         assert newupdate.status == 'pending'
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'obsolete'
+
+        # The newer build should also inherit the obsolete updates bugs
+        bugz = [bug.bz_id for bug in newupdate.bugs]
+        assert 1234 in bugz and 4321 in bugz
 
     def test_list(self):
         """
@@ -597,3 +601,18 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert 'lmacken' in update.builds[0].package.committers
+
+    def test_bug_aliases(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : 'CVE-2007-2435',
+                'notes'   : 'foobar',
+                'request' : 'Stable'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.bugs[0].bz_id == 239660
