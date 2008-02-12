@@ -246,6 +246,8 @@ class MashTask(Thread):
                 else:
                     error_log("Unknown request '%s' for %s" % (update.request,
                                                                update.title))
+
+        del pending_nvrs, testing_nvrs, stable_nvrs
         return self.safe
 
     def _find_repos(self):
