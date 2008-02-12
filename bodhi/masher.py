@@ -584,7 +584,7 @@ class MashTask(Thread):
             val += '\n  Mashed the following repositories:\n'
             for repo in self.repos:
                 val += '  - %s\n' % repo
-        if self.log:
+        if not self.success and self.log:
             mashlog = file(self.log, 'r')
             val += '\nMash Output:\n\n%s' % mashlog.read()
             mashlog.close()
