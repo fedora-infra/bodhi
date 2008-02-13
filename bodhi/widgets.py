@@ -12,7 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import time
+import random
 import simplejson
 
 from turbogears import validators, url, config
@@ -63,7 +63,7 @@ class SearchForm(Form):
     template = "bodhi.templates.searchform"
     fields = [
             TextField("search", default="  Package | Bug # | CVE  ",
-                      attrs={ 'size' : 20 }),
+                      attrs={ 'size' : 25 }),
     ]
 
 class LocalJSLink(JSLink):
@@ -180,7 +180,8 @@ class TurboFlot(Widget):
                   LocalJSLink("bodhi", "/static/js/jquery.flot.js")]
 
     def __init__(self, data, options={}, height="300px", width="600px"):
-        self.id = str(time.time()).split('.')[0]
+        random.seed()
+        self.id = str(int(random.random() * 1000))
         self.data = simplejson.dumps(data)
         self.options = simplejson.dumps(options)
         self.height = height
