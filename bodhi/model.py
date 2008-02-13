@@ -288,7 +288,11 @@ class PackageUpdate(SQLObject):
                                 continue
                             depsclosed = True
                             for dep in parent.dependson:
-                                tracker = bz.getbug(dep)
+                                try:
+                                    tracker = bz.getbug(dep)
+                                except xmlrpclib.Fault, f:
+                                    log.error("Can't access bug: %s" % str(f))
+                                    break
                                 if tracker.bug_status != "CLOSED":
                                     log.debug("Tracker %d not yet closed" %
                                               bug.bz_id)
@@ -551,7 +555,6 @@ class Comment(SQLObject):
         karma = '0'
         if self.karma != 0:
             karma = '%+d' % (self.karma,)
-
         if self.anonymous:
             anonymous = " (unauthenticated)"
         else:
