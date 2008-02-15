@@ -23,6 +23,8 @@ import cPickle as pickle
 from bodhi import buildsys, mail
 from bodhi.util import synchronized
 from bodhi.model import PackageUpdate
+from bodhi.metadata import ExtendedMetadata
+
 from sqlobject import SQLObjectNotFound
 from threading import Thread, Lock
 from turbogears import config
@@ -348,6 +350,7 @@ class MashTask(Thread):
                     msg = "Cannot find arch %s in %s" % (arch, newrepo)
                     log.error(msg)
                     self.error_messages.append(msg)
+                    return
 
             # make sure that mash didn't symlink our packages
             for pkg in os.listdir(join(newrepo, 'i386')):
@@ -363,6 +366,23 @@ class MashTask(Thread):
                 os.unlink(link)
             os.symlink(newrepo, link)
             log.debug("Created symlink: %s => %s" % (newrepo, link))
+
+    def cache_repodata(self):
+        """
+        Cache repodata for the repositories that we just mashed, so we can
+        regenerate the updateinfo.xml with it later, along with letting
+        createrepo '--update' our fresh repositories.
+        """
+        log.debug("Caching latest repodata")
+        mashed_dir = config.get('mashed_dir')
+        for repo, mashdir in self.mashed_repos.items():
+            rdcache = join(mashed_dir, '%s.repodata' % repo)
+            if isdir(rdcache):
+                log.debug("Removing old repodata cache")
+                shutil.rmtree(rdcache)
+            for arch in os.listdir(join(mashdir, repo)):
+                shutil.copytree(join(mashdir, repo, arch, 'repodata'),
+                                join(rdcache, arch))
 
     def mash(self):
         t0 = time.time()
@@ -446,6 +466,9 @@ class MashTask(Thread):
 
             # Run some sanity checks and flip the bits live
             self.update_symlinks()
+
+            # Cache the latest repodata for later use
+            self.cache_repodata()
 
             # Poll our master mirror and block until our updates hit
             self.wait_for_sync()
@@ -541,13 +564,16 @@ class MashTask(Thread):
         repositories.
         """
         self.genmd = True
-        from bodhi.metadata import ExtendedMetadata
         t0 = time.time()
         for repo, mashdir in self.mashed_repos.items():
+            olduinfo = join(config.get('mashed_dir'), '%s.repodata' % repo,
+                            'updateinfo.xml.gz')
+            olduinfo = exists(olduinfo) and olduinfo or None
             repo = join(mashdir, repo)
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
-            uinfo = ExtendedMetadata(repo)
+            uinfo = ExtendedMetadata(repo, olduinfo)
             uinfo.insert_updateinfo()
+
         log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
         self.genmd = False
 

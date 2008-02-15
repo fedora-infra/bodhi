@@ -28,26 +28,50 @@ from bodhi.buildsys import get_session
 from bodhi.modifyrepo import RepoMetadata
 from bodhi.exceptions import RepositoryNotFound
 
+from yum.update_md import UpdateMetadata
+
 log = logging.getLogger(__name__)
 
 class ExtendedMetadata:
 
-    def __init__(self, repo):
+    def __init__(self, repo, cacheduinfo=None):
         self.tag = get_repo_tag(repo)
         self.repo = repo
         self.doc = None
         self.updates = set()
         self.builds = {}
+        self._from = config.get('release_team_address')
         self.koji = get_session()
         self._create_document()
         self._fetch_updates()
-        log.debug("Generating XML update metadata for updates")
-        for update in self.updates:
-            if update.update_id:
-                self.add_update(update)
-            else:
-                log.error("%s missing ID!" % update.title)
 
+        if cacheduinfo and exists(cacheduinfo):
+            log.debug("Loading cached updateinfo.xml.gz")
+            umd = UpdateMetadata()
+            umd.add(olduinfo)
+
+            # Generate metadata for any new builds
+            for update in self.updates:
+                for build in update.builds:
+                    if not umd.get_notice(build.nvr):
+                        log.debug("Adding %s to updateinfo" % build.nvr)
+                        self.add(update)
+                        break
+
+            # Add all relevant notices from the metadata to this document
+            ids = [update.update_id for update in self.updates]
+            for notice in umd.get_notices():
+                if notice['update_id'] in ids:
+                    self._add_notice(notice)
+                else:
+                    log.debug("Removing %s from updateinfo" % notice['title'])
+        else:
+            log.debug("Generating new updateinfo.xml")
+            for update in self.updates:
+                if update.update_id:
+                    self.add_update(update)
+                else:
+                    log.error("%s missing ID!" % update.title)
 
     def _fetch_updates(self):
         """
@@ -96,6 +120,56 @@ class ExtendedMetadata:
     #        self.doc.firstChild.removeChild(elem)
     #        return True
     #    return False
+
+    def _add_notice(self, notice):
+        """ Add a yum.update_md.UpdateNotice to the metadata """
+        log.debug("Adding UpdateNotice for %s" % notice['title'])
+
+        root = self._insert(self.doc.firstChild, 'update', attrs={
+                'type'      : notice['type'],
+                'status'    : notice['status'],
+                'version'   : __version__,
+                'from'      : self._from,
+        })
+
+        self._insert(root, 'id', text=notice['update_id'])
+        self._insert(root, 'title', text=notice['title'])
+        self._insert(root, 'release', text=notice['release'])
+        self._insert(root, 'issued', attrs={ 'date' : notice['issued'] })
+        self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
+
+        ## Build the references
+        refs = self.doc.createElement('references')
+        for ref in notice['references']:
+            self._insert(refs, 'reference', attrs={
+                    'type' : ref['type'],
+                    'href' : ref['href'],
+                    'id'   : ref['id']
+            })
+        root.appendChild(refs)
+
+        ## Errata description
+        self._insert(root, 'description', text=notice['description'])
+
+        ## The package list
+        pkglist = self.doc.createElement('pkglist')
+        for group in notice['pkglist']:
+            collection = self.doc.createElement('collection')
+            collection.setAttribute('short', group['short'])
+            self._insert(collection, 'name', text=group['name'])
+            for pkg in group['packages']:
+                pkg = self._insert(collection, 'package', attrs={
+                        'name'    : pkg['name'],
+                        'version' : pkg['version'],
+                        'release' : pkg['release'],
+                        'arch'    : pkg['arch'],
+                        'src'     : pkg['src']
+                })
+                self._insert(pkg, 'filename', text=pkg['filename'])
+                collection.appendChild(pkg)
+
+        pkglist.appendChild(collection)
+        root.appendChild(pkglist)
 
     def add_update(self, update):
         """
