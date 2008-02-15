@@ -15,9 +15,9 @@ from bodhi.controllers import Root
 
 cherrypy.root = Root()
 
-def create_release():
-    rel = Release(name='F7', long_name='Fedora 7', id_prefix='FEDORA',
-                  dist_tag='dist-fc7')
+def create_release(num='7'):
+    rel = Release(name='F'+num, long_name='Fedora '+num, id_prefix='FEDORA',
+                  dist_tag='dist-fc'+num)
     assert rel
 
 def login(username='lmacken', display_name='lmacken', group=None):
@@ -425,7 +425,8 @@ class TestControllers(testutil.DBTest):
                 'type'    : 'enhancement',
                 'bugs'    : '1234',
                 'cves'    : 'CVE-2020-0001',
-                'notes'   : 'foobar'
+                'notes'   : 'foobar',
+                'request' : None
         }
         self.save_update(params, session)
         assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
@@ -450,6 +451,39 @@ class TestControllers(testutil.DBTest):
         # The newer build should also inherit the obsolete updates bugs
         bugz = [bug.bz_id for bug in newupdate.bugs]
         assert 1234 in bugz and 4321 in bugz
+
+    def test_obsoleting_request(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar'
+        }
+        self.save_update(params, session)
+        assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+
+        # Throw a newer build in, which should *NOT* obsolete the previous,
+        # since it has an active request
+        newparams = {
+                'builds'  : 'TurboGears-1.0.2.2-3.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'enhancement',
+                'bugs'    : '4321',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar'
+        }
+        self.save_update(newparams, session)
+        newupdate = PackageUpdate.byTitle(newparams['builds'])
+        assert newupdate.status == 'pending'
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
 
     def test_list(self):
         """

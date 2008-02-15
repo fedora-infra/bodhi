@@ -547,6 +547,9 @@ class Root(controllers.RootController):
                     if release != oldBuild.update.release:
                         log.debug("Skipping obsoleting %s" % oldBuild.nvr)
                         continue
+                    if oldBuild.update.request:
+                        # Skip obsoleting updates that are headed somewhere
+                        continue 
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
                         log.debug("Obsoleting %s" % oldBuild.nvr)
                         for bug in oldBuild.update.bugs:
