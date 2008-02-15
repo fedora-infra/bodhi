@@ -29,10 +29,6 @@ from datetime import datetime
 from turbogears import config, url, flash
 from bodhi.exceptions import RPMNotFound
 
-## TODO: give createrepo a competent API
-sys.path.append('/usr/share/createrepo')
-import genpkgmetadata
-
 log = logging.getLogger(__name__)
 
 ## Display a given message as a heading
@@ -85,7 +81,21 @@ def mkmetadatadir(dir):
     if not isdir(dir):
         os.makedirs(dir)
     cache = config.get('createrepo_cache_dir')
-    genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
+    try:
+        import createrepo
+        conf = createrepo.MetaDataConfig()
+        conf.cachedir = cache
+        conf.outputdir = dir
+        conf.directory = dir
+        conf.quiet = True
+        mdgen = createrepo.MetaDataGenerator(conf)
+        mdgen.doPkgMetadata()
+        mdgen.doRepoMetadata()
+        mdgen.doFinalMove()
+    except ImportError:
+        sys.path.append('/usr/share/createrepo')
+        import genpkgmetadata
+        genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
 
 def synchronized(lock):
     """ Synchronization decorator """
