@@ -550,7 +550,10 @@ class MashTask(Thread):
         checksum = sha.new(file(repomd).read()).hexdigest()
         while True:
             sleep(600)
-            masterrepomd = urllib2.urlopen('http://download.fedora.redhat.com/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml' % release.get_version())
+            try:
+                masterrepomd = urllib2.urlopen('http://download.fedora.redhat.com/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml' % release.get_version())
+            except urllib2.URLError:
+                continue
             newsum = sha.new(masterrepomd.read()).hexdigest()
             if newsum == checksum:
                 log.debug("master repomd.xml matches!")
