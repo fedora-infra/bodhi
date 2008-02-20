@@ -18,7 +18,7 @@ import os
 import logging
 
 from xml.dom import minidom
-from os.path import join
+from os.path import join, exists
 from sqlobject import SQLObjectNotFound
 from turbogears import config
 
@@ -48,7 +48,7 @@ class ExtendedMetadata:
         if cacheduinfo and exists(cacheduinfo):
             log.debug("Loading cached updateinfo.xml.gz")
             umd = UpdateMetadata()
-            umd.add(olduinfo)
+            umd.add(cacheduinfo)
 
             # Generate metadata for any new builds
             for update in self.updates:
@@ -158,15 +158,15 @@ class ExtendedMetadata:
             collection.setAttribute('short', group['short'])
             self._insert(collection, 'name', text=group['name'])
             for pkg in group['packages']:
-                pkg = self._insert(collection, 'package', attrs={
+                p = self._insert(collection, 'package', attrs={
                         'name'    : pkg['name'],
                         'version' : pkg['version'],
                         'release' : pkg['release'],
                         'arch'    : pkg['arch'],
                         'src'     : pkg['src']
                 })
-                self._insert(pkg, 'filename', text=pkg['filename'])
-                collection.appendChild(pkg)
+                self._insert(p, 'filename', text=pkg['filename'])
+                collection.appendChild(p)
 
         pkglist.appendChild(collection)
         root.appendChild(pkglist)
