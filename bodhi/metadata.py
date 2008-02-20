@@ -113,14 +113,6 @@ class ExtendedMetadata:
                     return elem
         return None
 
-    #def remove_update(self, update):
-    #    elem = self._get_notice(update)
-    #    if elem:
-    #        log.debug("Removing %s from updateinfo.xml" % update.title)
-    #        self.doc.firstChild.removeChild(elem)
-    #        return True
-    #    return False
-
     def _add_notice(self, notice):
         """ Add a yum.update_md.UpdateNotice to the metadata """
         log.debug("Adding UpdateNotice for %s" % notice['title'])
