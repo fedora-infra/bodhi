@@ -505,7 +505,7 @@ class TestControllers(testutil.DBTest):
 
         url = '/updates/list?' + urllib.urlencode({ 'release' : 'F7' })
         testutil.createRequest(url, method='GET')
-        assert "1 updates found" in cherrypy.response.body[0]
+        assert "1 updates found" in cherrypy.response.body[0], cherrypy.response.body[0]
 
         url = '/updates/list?' + urllib.urlencode({
                 'release' : 'F7',

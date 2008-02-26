@@ -86,8 +86,8 @@ class TestPackageUpdate(testutil.DBTest):
     def test_id(self):
         update = self.get_update()
         update.assign_id()
-        assert update.update_id == '%s-%s-0001' % (update.release.id_prefix,
-                                                   time.localtime()[0])
+        assert update.updateid == '%s-%s-0001' % (update.release.id_prefix,
+                                                  time.localtime()[0])
 
     def test_url(self):
         update = self.get_update()
@@ -103,7 +103,7 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.get_url() == url(update)
         update.assign_id()
         assert update.get_url() == '/%s/%s' % (update.release.name,
-                                               update.update_id)
+                                               update.updateid)
 
     def test_multibuild(self):
         from bodhi import util
@@ -160,7 +160,7 @@ class TestPackageUpdate(testutil.DBTest):
         assert notice['release'] == update.release.long_name
         assert notice['type'] == update.type
         assert notice['status'] == update.status
-        assert notice['update_id'] == update.update_id
+        assert notice['update_id'] == update.updateid
         assert notice['issued'] == str(update.date_pushed)
         assert notice['description'] == update.notes
         for collection in notice['pkglist']:

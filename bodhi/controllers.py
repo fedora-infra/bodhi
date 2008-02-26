@@ -627,7 +627,7 @@ class Root(controllers.RootController):
 
             /release/status/update
             /release/security
-            /release/update_id
+            /release/updateid
             /packagename
         """
         args = list(args)
@@ -655,7 +655,7 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             pass
 
-        # /Release.name/{PackageUpdate.update_id,PackageUpdate.status}
+        # /Release.name/{PackageUpdate.updateid,PackageUpdate.status}
         if len(args):
             if args[0] in ('testing', 'stable', 'pending', 'obsolete'):
                 if args[0] == 'testing':
@@ -671,7 +671,7 @@ class Root(controllers.RootController):
                 query.append(PackageUpdate.q.status == status)
                 status = 'security'
             else:
-                query.append(PackageUpdate.q.update_id == args[0])
+                query.append(PackageUpdate.q.updateid == args[0])
                 single = True
             del args[0]
         else:

@@ -59,7 +59,7 @@ class ExtendedMetadata:
                         break
 
             # Add all relevant notices from the metadata to this document
-            ids = [update.update_id for update in self.updates]
+            ids = [update.updateid for update in self.updates]
             for notice in umd.get_notices():
                 if notice['update_id'] in ids:
                     self._add_notice(notice)
@@ -68,7 +68,7 @@ class ExtendedMetadata:
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:
-                if update.update_id:
+                if update.updateid:
                     self.add_update(update)
                 else:
                     log.error("%s missing ID!" % update.title)
@@ -109,7 +109,7 @@ class ExtendedMetadata:
         for elem in self.doc.getElementsByTagName('update'):
             for child in elem.childNodes:
                 if child.nodeName == 'id' and child.firstChild and \
-                   child.firstChild.nodeValue == update.update_id:
+                   child.firstChild.nodeValue == update.updateid:
                     return elem
         return None
 
@@ -181,7 +181,7 @@ class ExtendedMetadata:
                 'from'      : config.get('release_team_address')
         })
 
-        self._insert(root, 'id', text=update.update_id)
+        self._insert(root, 'id', text=update.updateid)
         self._insert(root, 'title', text=update.title)
         self._insert(root, 'release', text=update.release.long_name)
         self._insert(root, 'issued', attrs={ 'date' : update.date_pushed })

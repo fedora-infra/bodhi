@@ -70,7 +70,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['from'] == str(config.get('release_team_address'))
         assert notice['description'] == update.notes
         assert notice['issued'] == 'None'
-        assert notice['update_id'] == update.update_id
+        assert notice['update_id'] == update.updateid
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
         assert cve['href'] == update.cves[0].get_url()
@@ -141,7 +141,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['from'] == str(config.get('release_team_address'))
         assert notice['description'] == update.notes
         assert notice['issued'] == 'None'
-        assert notice['update_id'] == update.update_id
+        assert notice['update_id'] == update.updateid
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
         assert cve['href'] == update.cves[0].get_url()
@@ -176,7 +176,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['from'] == str(config.get('release_team_address'))
         assert notice['description'] == update.notes
         assert notice['issued'] == 'None'
-        assert notice['update_id'] == update.update_id
+        assert notice['update_id'] == update.updateid
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
         assert cve['href'] == update.cves[0].get_url()

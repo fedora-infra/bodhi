@@ -54,7 +54,7 @@ def save_db():
         data['release'] = [update.release.name, update.release.long_name,
                            update.release.id_prefix, update.release.dist_tag]
         data['submitter'] = update.submitter
-        data['update_id'] = update.update_id
+        data['update_id'] = update.updateid
         data['type'] = update.type
         data['karma'] = update.karma
         data['cves'] = [cve.cve_id for cve in update.cves]
@@ -94,6 +94,7 @@ def load_db():
         except SQLObjectNotFound:
             release = Release(name=u['release'][0], long_name=u['release'][1],
                               id_prefix=u['release'][2], dist_tag=u['release'][3])
+        ## Backwards compat crud
         request = u['request']
         if u['request'] == 'move':
             request = 'stable'
@@ -101,16 +102,17 @@ def load_db():
             request = 'testing'
         elif u['request'] == 'unpush':
             request = 'obsolete'
-
         if u['approved'] in (True, False):
             u['approved'] = None
+        if u.has_key('update_id'):
+            u['updateid'] = u['update_id']
 
         update = PackageUpdate(title=u['title'],
                                date_submitted=u['date_submitted'],
                                date_pushed=u['date_pushed'],
                                release=release,
                                submitter=u['submitter'],
-                               update_id=u['update_id'],
+                               updateid=u['updateid'],
                                type=u['type'],
                                status=u['status'],
                                pushed=u['pushed'],

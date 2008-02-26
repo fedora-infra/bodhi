@@ -174,7 +174,7 @@ class PackageUpdate(SQLObject):
     date_modified    = DateTimeCol(default=None)
     date_pushed      = DateTimeCol(default=None)
     submitter        = UnicodeCol(notNone=True)
-    update_id        = UnicodeCol(default=None)
+    updateid         = UnicodeCol(default=None)
     type             = EnumCol(enumValues=['security', 'bugfix', 'enhancement'])
     cves             = RelatedJoin("CVE")
     bugs             = RelatedJoin("Bugzilla")
@@ -221,22 +221,22 @@ class PackageUpdate(SQLObject):
         prefixes it with the id_prefix of the release and the year
         (ie FEDORA-2007-0001)
         """
-        if self.update_id != None and self.update_id != u'None':
-            log.debug("Keeping current update id %s" % self.update_id)
+        if self.updateid != None and self.updateid != u'None':
+            log.debug("Keeping current update id %s" % self.updateid)
             return
-        update = PackageUpdate.select(PackageUpdate.q.update_id != 'None',
-                                      orderBy=PackageUpdate.q.update_id)
+        update = PackageUpdate.select(PackageUpdate.q.updateid != 'None',
+                                      orderBy=PackageUpdate.q.updateid)
         try:
-            prefix, year, id = update[-1].update_id.split('-')
+            prefix, year, id = update[-1].updateid.split('-')
             if int(year) != time.localtime()[0]: # new year
                 id = 0
             id = int(id) + 1
         except (AttributeError, IndexError):
             id = 1
-        self.update_id = u'%s-%s-%0.4d' % (self.release.id_prefix,
+        self.updateid = u'%s-%s-%0.4d' % (self.release.id_prefix,
                                            time.localtime()[0],id)
-        log.debug("Setting update_id for %s to %s" % (self.title,
-                                                      self.update_id))
+        log.debug("Setting updateid for %s to %s" % (self.title,
+                                                     self.updateid))
         hub.commit()
 
     def request_complete(self):
@@ -346,8 +346,8 @@ class PackageUpdate(SQLObject):
     def get_url(self):
         """ Return the relative URL to this update """
         path = ['/%s' % self.release.name]
-        if self.update_id:
-            path.append(self.update_id)
+        if self.updateid:
+            path.append(self.updateid)
         else:
             path.append(self.status)
             path.append(self.title)
@@ -360,8 +360,8 @@ class PackageUpdate(SQLObject):
         val = u"%s\n%s\n%s\n" % ('=' * 80, u'\n'.join(wrap(
             self.title.replace(',', ', '), width=80, initial_indent=' '*5,
             subsequent_indent=' '*5)), '=' * 80)
-        if self.update_id:
-            val += u"  Update ID: %s\n" % self.update_id
+        if self.updateid:
+            val += u"  Update ID: %s\n" % self.updateid
         val += u"""    Release: %s
      Status: %s
        Type: %s

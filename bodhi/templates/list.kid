@@ -39,7 +39,7 @@
         <?python row_color = "#FFFFFF" ?>
         <tr class="list" bgcolor="${row_color}" py:for="update in updates">
             <td class="list">
-                ${update.update_id}
+                ${update.updateid}
             </td>
             <td class="list">
                 <a class="list" href="${tg.url(update.get_url())}">${update.title.replace(',', ', ')}</a>

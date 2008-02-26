@@ -229,7 +229,7 @@ the link below:
 errata_template = u"""\
 --------------------------------------------------------------------------------
 Fedora%(testing)s Update Notification
-%(update_id)s
+%(updateid)s
 %(date)s
 --------------------------------------------------------------------------------
 
@@ -257,7 +257,7 @@ http://fedoraproject.org/keys
 
 maillist_template = u"""\
 ================================================================================
- %(name)s-%(version)s-%(release)s (%(update_id)s)
+ %(name)s-%(version)s-%(release)s (%(updateid)s)
  %(summary)s
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
@@ -291,7 +291,7 @@ def get_template(update, use_template=errata_template):
         info['subject'] = u"%s%s%s Update: %s" % (
                 update.type == 'security' and '[SECURITY] ' or '',
                 update.release.long_name, info['testing'], build.nvr)
-        info['update_id'] = update.update_id
+        info['updateid'] = update.updateid
         info['description'] = h[rpm.RPMTAG_DESCRIPTION]
         info['product'] = update.release.long_name
         info['notes'] = ""
