@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.4.10
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -36,6 +36,7 @@ Client tools for interacting with bodhi
 Summary: A modular framework that facilitates publishing software updates
 Group: Applications/Internet
 Requires: TurboGears createrepo python-TurboMail intltool mash cvs python-fedora
+Requires: python-bugzilla
 
 %description server
 Bodhi is a modular framework that facilitates the process of publishing
@@ -75,6 +76,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Feb 26 2008 Luke Macken <lmacken@redhat.com> - 0.4.10-3
+- Add python-bugzilla to our server requirements
+
 * Fri Jan 25 2008 Luke Macken <lmacken@redhat.com> - 0.4.10-2
 - Add python-elixir to BuildRequires to make the new TG happy
 
