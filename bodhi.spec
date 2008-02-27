@@ -36,7 +36,7 @@ Client tools for interacting with bodhi
 Summary: A modular framework that facilitates publishing software updates
 Group: Applications/Internet
 Requires: TurboGears createrepo python-TurboMail intltool mash cvs python-fedora
-Requires: python-bugzilla
+Requires: python-bugzilla python-imaging
 
 %description server
 Bodhi is a modular framework that facilitates the process of publishing
