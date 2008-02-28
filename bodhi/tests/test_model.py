@@ -37,7 +37,7 @@ class TestPackageUpdate(testutil.DBTest):
                                notes='foobar',
                                type='security')
         build = self.get_build(name)
-        build.update = update
+        update.addPackageBuild(build)
         return update
 
     def get_bug(self):
@@ -116,8 +116,10 @@ class TestPackageUpdate(testutil.DBTest):
         for build in builds:
             nvr = util.get_nvr(build)
             pkg = Package(name=nvr[0])
-            b = PackageBuild(nvr=build, package=pkg, update=update)
+            b = PackageBuild(nvr=build, package=pkg)
             package_builds.append(b)
+
+        map(update.addPackageBuild, package_builds)
 
         assert update.builds[0].nvr == builds[0]
         assert update.builds[1].nvr == builds[1]
@@ -129,7 +131,7 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.notes == 'Testing!'
 
         for build in package_builds:
-            assert build.update == update
+            assert build.updates[0] == update
 
     def test_encoding(self, buildnvr='yum-3.2.1-1.fc7'):
         update = PackageUpdate(title=buildnvr,
@@ -141,9 +143,9 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.notes == u'Testing \u2019t stuff'
         assert update.submitter == u'Foo \xc3\xa9 Bar <foo@bar.com>'
         build = self.get_build(buildnvr)
-        build.update = update
+        update.addPackageBuild(build)
         update = PackageUpdate.byTitle(buildnvr)
-        assert update.builds[0].update == update
+        assert update.builds[0].updates[0] == update
         return update
 
     def _verify_updateinfo(self, update, repo):

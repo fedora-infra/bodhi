@@ -126,7 +126,8 @@ def load_db():
                 package = Package.byName(pkg)
             except SQLObjectNotFound:
                 package = Package(name=pkg)
-            build = PackageBuild(nvr=nvr, package=package, update=update)
+            build = PackageBuild(nvr=nvr, package=package)
+            update.addPackageBuild(build)
 
         for bug_num, bug_title, security, parent in u['bugs']:
             try:

@@ -259,7 +259,7 @@ class TestControllers(testutil.DBTest):
         for build in params['builds'].split():
             assert build in builds
             x = PackageBuild.byNvr(build)
-            assert x.update == update
+            assert x.updates[0] == update
         assert len(update.bugs) == 1
         assert update.bugs[0].bz_id == int(params['bugs'])
         bug = Bugzilla.byBz_id(int(params['bugs']))
@@ -282,7 +282,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert len(update.builds) == 1
         build = PackageBuild.byNvr(params['builds'])
-        assert build.update == update
+        assert build.updates[0] == update
         assert update.notes == params['notes']
         assert len(update.bugs) == 0
         try:
@@ -443,6 +443,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(newparams, session)
+        print cherrypy.response.body[0]
         newupdate = PackageUpdate.byTitle(newparams['builds'])
         assert newupdate.status == 'pending'
         update = PackageUpdate.byTitle(params['builds'])

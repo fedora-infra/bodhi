@@ -64,7 +64,8 @@ class Package(SQLObject):
 
     def updates(self):
         for build in self.builds:
-            yield build.update
+            for update in build.updates:
+                yield update
 
     def __str__(self):
         x = header(self.name)
@@ -72,7 +73,8 @@ class Package(SQLObject):
         if len(self.builds):
             for build in self.builds:
                 for state in states.keys():
-                    states[build.update.status] = build.update
+                    states[state] += filter(lambda u: u.status == state,
+                                            build.updates)
         for state in states.keys():
             if len(states[state]):
                 x += "\n %s Updates (%d)\n" % (state.title(),
@@ -85,7 +87,7 @@ class Package(SQLObject):
 class PackageBuild(SQLObject):
     nvr             = UnicodeCol(notNone=True, alternateID=True)
     package         = ForeignKey('Package')
-    update          = ForeignKey('PackageUpdate', default=None)
+    updates         = RelatedJoin("PackageUpdate")
 
     def get_rpm_header(self):
         """ Get the rpm header of this build """
@@ -142,7 +144,7 @@ class PackageBuild(SQLObject):
         # -updates, so we don't want to generate ChangeLogs against those.
         nvr = get_nvr(self.nvr)
         for tag in ['%s-updates', '%s']:
-            tag %= self.update.release.dist_tag
+            tag %= self.updates[0].release.dist_tag
             builds = koji_session.getLatestBuilds(tag, None, self.package.name)
             latest = None
 
@@ -169,7 +171,7 @@ class PackageBuild(SQLObject):
 class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """
     title            = UnicodeCol(notNone=True, alternateID=True, unique=True)
-    builds           = MultipleJoin("PackageBuild", joinColumn="update_id")
+    builds           = RelatedJoin("PackageBuild")
     date_submitted   = DateTimeCol(default=datetime.utcnow, notNone=True)
     date_modified    = DateTimeCol(default=None)
     date_pushed      = DateTimeCol(default=None)

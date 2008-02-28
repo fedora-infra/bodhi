@@ -34,7 +34,8 @@ class TestExtendedMetadata(testutil.DBTest):
                                status='testing',
                                notes='foobar',
                                type='bugfix')
-        build = PackageBuild(nvr=builds[0]['nvr'], package=package, update=update)
+        build = PackageBuild(nvr=builds[0]['nvr'], package=package)
+        update.addPackageBuild(update)
 
         bug = Bugzilla(bz_id=1)
         update.addBugzilla(bug)
@@ -106,7 +107,8 @@ class TestExtendedMetadata(testutil.DBTest):
                                status='testing',
                                notes='foobar',
                                type='bugfix')
-        build = PackageBuild(nvr=builds[0]['nvr'], package=package, update=update)
+        build = PackageBuild(nvr=builds[0]['nvr'], package=package)
+        update.addPackageBuild(build)
 
         bug = Bugzilla(bz_id=1)
         update.addBugzilla(bug)

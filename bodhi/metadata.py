@@ -84,7 +84,7 @@ class ExtendedMetadata:
             self.builds[build['nvr']] = build
             try:
                 b = PackageBuild.byNvr(build['nvr'])
-                self.updates.add(b.update)
+                map(self.updates.add, b.updates)
             except SQLObjectNotFound, e:
                 log.warning(e)
 

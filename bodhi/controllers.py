@@ -220,7 +220,7 @@ class Root(controllers.RootController):
                         try:
                             build = PackageBuild.byNvr(package)
                             if not release and not status and not type:
-                                updates = [build.update,]
+                                updates = build.updates
                             else:
                                 results = []
                                 for update in updates:
@@ -542,19 +542,19 @@ class Root(controllers.RootController):
 
             # Obsolete any older pending/testing updates
             for oldBuild in package.builds:
-                if oldBuild.update and \
-                   oldBuild.update.status in ('pending', 'testing'):
-                    if release != oldBuild.update.release:
+                if len(oldBuild.updates) and \
+                       oldBuild.updates[0].status in ('pending', 'testing'):
+                    if release not in [up.release for up in oldBuild.updates]:
                         log.debug("Skipping obsoleting %s" % oldBuild.nvr)
                         continue
-                    if oldBuild.update.request:
+                    if oldBuild.updates[0].request:
                         # Skip obsoleting updates that are headed somewhere
                         continue 
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
                         log.debug("Obsoleting %s" % oldBuild.nvr)
-                        for bug in oldBuild.update.bugs:
+                        for bug in oldBuild.updates[0].bugs:
                             bugs.append(unicode(bug.bz_id))
-                        oldBuild.update.obsolete(newer=build)
+                        oldBuild.updates[0].obsolete(newer=build)
                         note.append('This update has obsoleted %s'%oldBuild.nvr)
 
         # Modify or create the PackageUpdate
@@ -577,8 +577,7 @@ class Root(controllers.RootController):
                 raise redirect('/new', **params)
 
         # Add the PackageBuilds to our PackageUpdate
-        for build in update_builds:
-            build.update = p
+        map(p.addPackageBuild, update_builds)
 
         # Add/remove the necessary Bugzillas
         p.update_bugs(bugs)
@@ -788,7 +787,7 @@ class Root(controllers.RootController):
     def obsolete_dialog(self, update):
         from bodhi.widgets import ObsoleteForm
         package = Package.byName('-'.join(update.split('-')[:-2]))
-        builds = filter(lambda x: x.update.status in ('testing', 'pending'),
+        builds = filter(lambda x: x.updates[0].status in ('testing', 'pending'),
                         package.builds)
         if not len(builds):
             return dict(dialog=None)
@@ -805,7 +804,7 @@ class Root(controllers.RootController):
         if type(updates) != list:
             updates = [updates]
         for update in updates:
-            up = PackageBuild.byNvr(update).update
+            up = PackageBuild.byNvr(update).update[0]
             if not util.authorized_user(up, identity):
                 msg = "Unauthorized to obsolete %s" % up.title
                 errors.append(msg)
