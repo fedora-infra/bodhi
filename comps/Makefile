@@ -9,11 +9,12 @@ po: $(XMLINFILES)
 clean:
 	@rm -fv *~
 
-comps-fe7.xml.in: comps-f7.xml.in
-	ln -s comps-f7.xml.in comps-fe7.xml.in
-
 %.xml: %.xml.in
 	./update-comps $@
 	@if [ "$@" == "$(RAWHIDECOMPS)" ] ; then \
 		cat $(RAWHIDECOMPS) | sed 's/redhat-release/rawhide-release/g' > comps-rawhide.xml ; \
 	fi
+
+# Add an easy alias to generate a rawhide comps file
+comps-rawhide: comps-f9.xml
+	@mv comps-f9.xml comps-rawhide.xml

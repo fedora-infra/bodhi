@@ -117,6 +117,26 @@
     </packagelist>
   </group>
   <group>
+    <id>fedora-packager</id>
+    <_name>Fedora Packager</_name>
+    <_description>Tools and Utilities needed by a Fedora Packager</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="mandatory">bodhi-client</packagereq>
+      <packagereq type="mandatory">bzr</packagereq>
+      <packagereq type="mandatory">cvs</packagereq>
+      <packagereq type="mandatory">fedora-packager</packagereq>
+      <packagereq type="mandatory">git</packagereq>
+      <packagereq type="mandatory">koji</packagereq>
+      <packagereq type="mandatory">mercurial</packagereq>
+      <packagereq type="mandatory">mock</packagereq>
+      <packagereq type="mandatory">plague-client</packagereq>
+      <packagereq type="mandatory">rpm-build</packagereq>
+      <packagereq type="mandatory">rpmdevtools</packagereq>
+    </packagelist>
+  </group>
+  <group>
     <id>ftp-server</id>
     <_name>FTP Server</_name>
     <_description>These tools allow you to run an FTP server on the system.</_description>
@@ -178,8 +198,8 @@
     <default>false</default>
     <uservisible>true</uservisible>
     <packagelist>
-     <packagereq type="optional">ctapi-cyberjack</packagereq>
-     <packagereq type="optional">ctapi-cyberjack-tools</packagereq>
+      <packagereq type="optional">ctapi-cyberjack</packagereq>
+      <packagereq type="optional">ctapi-cyberjack-tools</packagereq>
     </packagelist>
   </group>
   <group>
@@ -385,6 +405,7 @@
     <_description>Packages which provide functionality for developing and building applications.</_description>
     <display_order>70</display_order>
     <grouplist>
+      <groupid>fedora-packager</groupid>
       <groupid>web-development</groupid>
       <groupid>xfce-software-development</groupid>
     </grouplist>

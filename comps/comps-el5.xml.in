@@ -62,8 +62,11 @@
     <default>false</default>
     <uservisible>true</uservisible>
     <packagelist>
+      <packagereq type="optional">ccache</packagereq>
       <packagereq type="optional">cmake</packagereq>
       <packagereq type="optional">cmucl</packagereq>
+      <packagereq type="optional">colordiff</packagereq>
+      <packagereq type="optional">cvsps</packagereq>
       <packagereq type="optional">ftnchek</packagereq>
       <packagereq type="optional">git</packagereq>
       <packagereq type="optional">lua</packagereq>
@@ -132,6 +135,26 @@
     </packagelist>
   </group>
   <group>
+    <id>fedora-packager</id>
+    <_name>Fedora Packager</_name>
+    <_description>Tools and Utilities needed by a Fedora Packager</_description>
+    <default>false</default>
+    <uservisible>true</uservisible>
+    <packagelist>
+      <packagereq type="mandatory">bodhi-client</packagereq>
+      <packagereq type="mandatory">bzr</packagereq>
+      <packagereq type="mandatory">cvs</packagereq>
+      <packagereq type="mandatory">fedora-packager</packagereq>
+      <packagereq type="mandatory">git</packagereq>
+      <packagereq type="mandatory">koji</packagereq>
+      <packagereq type="mandatory">mercurial</packagereq>
+      <packagereq type="mandatory">mock</packagereq>
+      <packagereq type="mandatory">plague-client</packagereq>
+      <packagereq type="mandatory">rpm-build</packagereq>
+      <packagereq type="mandatory">rpmdevtools</packagereq>
+    </packagelist>
+  </group>
+  <group>
     <id>ftp-server</id>
     <_name>FTP Server</_name>
     <_description>These tools allow you to run an FTP server on the system.</_description>
@@ -196,6 +219,7 @@
       <packagereq type="optional">ctapi-cyberjack</packagereq>
       <packagereq type="optional">ctapi-cyberjack-pcsc</packagereq>
       <packagereq type="optional">ctapi-cyberjack-tools</packagereq>
+      <packagereq type="optional">hddtemp</packagereq>
     </packagelist>
   </group>
   <group>
@@ -303,6 +327,7 @@
     <uservisible>true</uservisible>
     <packagelist>
       <packagereq type="optional">apcupsd</packagereq>
+      <packagereq type="optional">bash-completion</packagereq>
       <packagereq type="optional">cfengine</packagereq>
       <packagereq type="optional">chrpath</packagereq>
       <packagereq type="optional">denyhosts</packagereq>
@@ -310,6 +335,7 @@
       <packagereq type="optional">environment-modules</packagereq>
       <packagereq type="optional">ettercap</packagereq>
       <packagereq type="optional">ghex</packagereq>
+      <packagereq type="optional">gkrellm</packagereq>
       <packagereq type="optional">isic</packagereq>
       <packagereq type="optional">nagios</packagereq>
       <packagereq type="optional">p7zip</packagereq>
@@ -361,6 +387,7 @@
       <packagereq type="optional">moin</packagereq>
       <packagereq type="optional">plone</packagereq>
       <packagereq type="optional">Pound</packagereq>
+      <packagereq type="optional">tomcat-native</packagereq>
       <packagereq type="optional">zope</packagereq>
     </packagelist>
   </group>
@@ -407,6 +434,7 @@
     <_description>Packages which provide functionality for developing and building applications.</_description>
     <display_order>70</display_order>
     <grouplist>
+      <groupid>fedora-packager</groupid>
       <groupid>web-development</groupid>
       <groupid>xfce-software-development</groupid>
     </grouplist>
