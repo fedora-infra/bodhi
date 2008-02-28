@@ -9,22 +9,15 @@
 </head>
 <body>
     <center>
-
-        <h2>Fedora 7 Updates</h2>
         ${all.display()}
-
-        <h2>Security updates per month</h2>
+        <br/><br/>
         ${security.display()}
-
-        <h2>Most updates per package</h2>
+        <br/><br/>
         ${most_updates.display()}
-
-        <h2>Most updates per developer</h2>
+        <br/><br/>
         ${active_devs.display()}
-
-        <h2>Packages with the best karma</h2>
+        <br/><br/>
         ${best_karma.display()}
-
     </center>
 </body>
 </html>

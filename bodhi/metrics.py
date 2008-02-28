@@ -12,10 +12,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from datetime import datetime
+from turboflot import TurboFlot
 from turbogears import expose
 from turbogears.controllers import Controller
 from bodhi.model import PackageUpdate, Release, Package
-from bodhi.widgets import TurboFlot
 
 class Metrics(Controller):
 
@@ -52,7 +52,8 @@ class Metrics(Controller):
                 'grid'  : { 'backgroundColor' : '#fffaff' },
                 'xaxis' : { 'ticks' : all_data['months'] },
                 'yaxis' : { 'max' : '850' }
-            }
+            },
+            label = 'Fedora 7 Updates'
         )
 
         security_data = self.security()
@@ -64,7 +65,8 @@ class Metrics(Controller):
             {
                 'grid'  : { 'backgroundColor' : '#fffaff' },
                 'xaxis' : { 'ticks' : security_data['months'] }
-            }
+            },
+            label = 'Fedora 7 Security Updates'
         )
 
         most_data = self.most_updated()
@@ -79,7 +81,8 @@ class Metrics(Controller):
             {
                 'grid'  : { 'backgroundColor' : '#fffaff' },
                 'xaxis' : { 'ticks' : most_data['pkgs'] }
-            }
+            },
+            label = 'Most Updated Packages'
         )
 
         active_devs_data = self.active_devs()
@@ -92,7 +95,8 @@ class Metrics(Controller):
             {
                 'grid' : { 'backgroundColor' : '#fffaff' },
                 'xaxis' : { 'ticks' : active_devs_data['people'] }
-            }
+            },
+            label = 'Most updates per developer'
         )
 
         karma_data = self.karma()
@@ -104,7 +108,8 @@ class Metrics(Controller):
             {
                 'grid'  : { 'backgroundColor' : '#fffaff' },
                 'xaxis' : { 'ticks' : karma_data['bestpkgs'] }
-            }
+            },
+            label = 'Packages with best karma'
         )
         return dict(security=security, all=all, most_updates=most_updates,
                     active_devs=active_devs, best_karma=best_karma)
@@ -126,6 +131,7 @@ class Metrics(Controller):
             return self.cache['security'][0]
         timeline = {} # { release : { month : # of security updates } }
         months = {}
+        starting_month = 6
         for update in PackageUpdate.select(PackageUpdate.q.type == 'security'):
             if update.date_pushed:
                 if not timeline.has_key(update.release.name):
@@ -142,11 +148,33 @@ class Metrics(Controller):
                     if months.has_key(month):
                         del months[month]
             timeline[release] = timeline[release].items()
-        self.cache['security'] = [dict(timeline=timeline, months=months.items()),
-                                  datetime.utcnow()]
+
+        # Append earlier months for newer years to the end of the graph
+        # FIXME: make this less insane
+        months = months.items()
+        months.sort(key=lambda x: x[0])
+        m = []
+        for num, month in months:
+            if num < starting_month:
+                m.append([num, month])
+                months.remove((num, month))
+            else:
+                for i, n in enumerate(m):
+                    for type in timeline.keys():
+                        for tlmonth, tlnum in timeline[type]:
+                            if tlmonth == m[i][0]:
+                                timeline[type].remove((tlmonth, tlnum))
+                                timeline[type].append((tlmonth + months[-1][0],
+                                                       tlnum))
+                    m[i][0] += months[-1][0]
+                months += m
+                break
+
+        self.cache['security'] = [dict(timeline=timeline, months=months),
+                                       datetime.utcnow()]
         return self.cache['security'][0]
 
-    def all(self):
+    def all(self, release='F7'):
         """
             Return a timeline of update statistics for Fedora 7.
         """
@@ -155,7 +183,7 @@ class Metrics(Controller):
         timeline = {} # { type : { month : num } }
         months = {}
         all = {} # { month : num }
-        rel = Release.byName('F7')
+        rel = Release.byName(release)
         starting_month = 6
         for update in PackageUpdate.select(PackageUpdate.q.releaseID == rel.id):
             if update.date_pushed:
