@@ -46,7 +46,6 @@ bodhi/static/css/flora.css
 bodhi/static/css/flora.dialog.css
 bodhi/static/css/flora.resizable.css
 bodhi/static/css/jquery.tooltip.css
-bodhi/static/css/layout-uncompressed.css
 bodhi/static/css/layout.css
 bodhi/static/images/-1.png
 bodhi/static/images/0.png
@@ -114,6 +113,7 @@ bodhi/templates/pkg.kid
 bodhi/templates/pkgs.kid
 bodhi/templates/push.kid
 bodhi/templates/searchform.kid
+bodhi/templates/security.kid
 bodhi/templates/show.kid
 bodhi/templates/testing.kid
 bodhi/templates/text.kid
@@ -130,4 +130,13 @@ bodhi/tools/dev_init.py
 bodhi/tools/init.py
 bodhi/tools/pickledb.py
 bodhi/tools/test-bodhi.py
+comps/Makefile
+comps/comps-cleanup.xsl
+comps/comps-el4.xml.in
+comps/comps-el5.xml.in
+comps/comps-f7.xml.in
+comps/comps-f8.xml.in
+comps/comps-f9.xml.in
+comps/comps.dtd
+comps/update-comps
 docs/bodhi.1
