@@ -493,25 +493,25 @@ class PackageUpdate(SQLObject):
             if stable_karma and stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = 'stable'
-                mail.send(self.submitter, 'stablekarma', self)
+                mail.send(self.get_maintainers(), 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
             if self.status == 'testing' and unstable_karma and \
                self.karma == unstable_karma:
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
-                mail.send(self.submitter, 'unstable', self)
+                mail.send(self.get_maintainers(), 'unstable', self)
         Comment(text=text, karma=karma, update=self, author=author,
                 anonymous=anonymous)
 
         # Send a notification to everyone that has commented on this update
         people = set()
-        people.add(self.submitter)
+        for person in self.get_maintainers():
+            people.add(person)
         for comment in self.comments:
             if comment.author == 'bodhi' or comment.anonymous:
                 continue
             people.add(comment.author)
-        for person in people:
-            mail.send(person, 'comment', self)
+        mail.send(people, 'comment', self)
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """
@@ -544,6 +544,17 @@ class PackageUpdate(SQLObject):
                          author='bodhi')
         else:
             self.comment("This update has been obsoleted", author='bodhi')
+
+    def get_maintainers(self):
+        """
+        Return a list of people that have commit access to all of the packages
+        that are contained within this update.
+        """
+        people = set()
+        for build in self.builds:
+            for committer in build.package.committers:
+                people.add(committer)
+        return list(people)
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)

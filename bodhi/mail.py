@@ -378,8 +378,12 @@ def send(to, msg_type, update, sender=None):
     if not sender:
         log.warning("bodhi_email not defined in app.cfg; unable to send mail")
         return
-    send_mail(sender, to, '[Fedora Update] [%s] %s' % (msg_type, update.title),
-              messages[msg_type]['body'] % messages[msg_type]['fields'](update))
+    if type(to) not in (list, set, tuple):
+        to = [to]
+    for person in to:
+        send_mail(sender, person, '[Fedora Update] [%s] %s' % (msg_type,
+                  update.title), messages[msg_type]['body'] % 
+                  messages[msg_type]['fields'](update))
 
 def send_releng(subject, body):
     """ Send the Release Engineering team a message """

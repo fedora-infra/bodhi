@@ -590,14 +590,20 @@ class Root(controllers.RootController):
                     p.type = 'security'
                     break
 
+        # Gather all of the committers for the packages in this update
+        people = set()
+        for b in p.builds:
+            for committer in b.package.committers:
+                people.add(committer)
+
         if edited:
-            mail.send(p.submitter, 'edited', p)
+            mail.send(people, 'edited', p)
             note.insert(0, "Update successfully edited")
         else:
             # Notify security team of newly submitted security updates
             if p.type == 'security':
                 mail.send(config.get('security_team'), 'security', p)
-            mail.send(p.submitter, 'new', p)
+            mail.send(people, 'new', p)
             note.insert(0, "Update successfully created")
 
             # Comment on all bugs
