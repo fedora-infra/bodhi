@@ -294,6 +294,7 @@ class PackageUpdate(SQLObject):
                                     tracker = bz.getbug(dep)
                                 except xmlrpclib.Fault, f:
                                     log.error("Can't access bug: %s" % str(f))
+                                    depsclosed = False
                                     break
                                 if tracker.bug_status != "CLOSED":
                                     log.debug("Tracker %d not yet closed" %
