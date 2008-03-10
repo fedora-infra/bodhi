@@ -37,9 +37,9 @@ class AutoCompleteValidator(validators.Schema):
 
     def _to_python(self, value, state):
         tokens = []
-        if isinstance(value, str):
+        if type(value) in (str, unicode):
             tokens = value.split()
-        elif isinstance(value, dict):
+        elif type(value) ==  dict:
             if isinstance(value['text'], list):
                 tokens = value['text']
             else:
@@ -52,8 +52,8 @@ class AutoCompleteValidator(validators.Schema):
                     results.append(PackageValidator().to_python(build))
             else:
                 raise Invalid(self.message('empty_build', state), value, state)
-        return results
 
+        return results
 
 class BugValidator(validators.FancyValidator):
 
