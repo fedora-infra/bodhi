@@ -170,7 +170,7 @@ class PackageBuild(SQLObject):
 
 class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """
-    title            = UnicodeCol(notNone=True, alternateID=True, unique=True)
+    title            = UnicodeCol(notNone=True, alternateID=True)
     builds           = RelatedJoin("PackageBuild")
     date_submitted   = DateTimeCol(default=datetime.utcnow, notNone=True)
     date_modified    = DateTimeCol(default=None)
