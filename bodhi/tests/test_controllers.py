@@ -19,6 +19,7 @@ def create_release(num='7'):
     rel = Release(name='F'+num, long_name='Fedora '+num, id_prefix='FEDORA',
                   dist_tag='dist-fc'+num)
     assert rel
+    assert rel.name == 'F'+num
 
 def login(username='lmacken', display_name='lmacken', group=None):
     guest = User(user_name=username, display_name=display_name)
@@ -126,18 +127,19 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         assert "Invalid package name; must be in package-version-release format" in cherrypy.response.body[0]
 
-    def test_bad_release(self):
-        session = login()
-        params = {
-            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-            'release' : 'Ubuntu Bitchy Beaver',
-            'type'    : 'enhancement',
-            'bugs'    : '',
-            'cves'    : '',
-            'notes'   : ''
-        }
-        self.save_update(params, session)
-        assert "Value must be one of: F7; Fedora 7; F8; Fedora 8 (not \'Ubuntu Bitchy Beaver\')" in cherrypy.response.body[0]
+    # We don't need to specify releases anymore
+    #def test_bad_release(self):
+    #    session = login()
+    #    params = {
+    #        'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+    #        'release' : 'Ubuntu Bitchy Beaver',
+    #        'type'    : 'enhancement',
+    #        'bugs'    : '',
+    #        'cves'    : '',
+    #        'notes'   : ''
+    #    }
+    #    self.save_update(params, session)
+    #    assert "Value must be one of: F7; Fedora 7; F8; Fedora 8 (not \'Ubuntu Bitchy Beaver\')" in cherrypy.response.body[0]
 
     def test_bad_type(self):
         session = login()
@@ -150,7 +152,8 @@ class TestControllers(testutil.DBTest):
             'notes'   : ''
         }
         self.save_update(params, session)
-        assert "Value must be one of: bugfix; enhancement; security (not \'REGRESSION!\')" in cherrypy.response.body[0]
+        print cherrypy.response.body[0]
+        assert "Value must be one of: bugfix; enhancement; security (not u'REGRESSION!')" in cherrypy.response.body[0]
 
     def test_user_notes_encoding(self):
         session = login(username='lmacken', display_name='foo\xc3\xa9bar')
@@ -227,6 +230,10 @@ class TestControllers(testutil.DBTest):
                                    headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 0
+
+    # TODO: count the # of builds to make sure they don't get dupes
+    # - multi-release updates
+    # - duplicate titles with updates
 
     def test_edit(self):
         session = login()
@@ -328,6 +335,7 @@ class TestControllers(testutil.DBTest):
             'notes'   : ''
         }
         self.save_update(params, session)
+        print cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
 
         # Try unauthenticated first
