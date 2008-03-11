@@ -34,6 +34,8 @@ log = logging.getLogger(__name__)
 ## Display a given message as a heading
 header = lambda x: "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
+pluralize = lambda val, name: val == 1 and name or "%ss" % name
+
 def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)
     is_oldrpm = hasattr(rpm, 'opendb')
@@ -161,8 +163,6 @@ def make_karma_icon(update):
         karma = 0
     return Element('img', src=url('/static/images/karma%d.png' % karma))
 
-pluralize = lambda val, name: val == 1 and name or "%ss" % name
-
 def get_age(date):
     age = datetime.utcnow() - date
     if age.days == 0:
@@ -211,7 +211,7 @@ def get_repo_tag(repo):
         log.error("Cannot find mash configuration for %s: %s" % (repo,
                                                                  mashconfig))
 
-def get_pkg_pushers(pkgName, collectionName, collectionVersion):
+def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel'):
     """ Pull users who can commit and are watching a package
 
     Return two two-tuples of lists:
