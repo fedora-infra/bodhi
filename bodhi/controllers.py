@@ -248,11 +248,6 @@ class Root(controllers.RootController):
             if self.jsonRequest():
                 return dict(updates=[])
 
-        # If we're called via JSON, then simply return the PackageUpdate.__str__
-        # else, we return a list of PackageUpdate objects to our template
-        if self.jsonRequest():
-            updates = map(unicode, updates)
-
         if isinstance(updates, list): num_items = len(updates)
         else: num_items = updates.count()
 
