@@ -403,10 +403,6 @@ class Root(controllers.RootController):
                   type, notes, bugs, close_bugs, edited, request,
                   suggest_reboot, inheritance, kw))
 
-        print "save(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (builds,
-                  type, notes, bugs, close_bugs, edited, request,
-                  suggest_reboot, inheritance, kw)
-
         note = []
         updates = []
         if not bugs: bugs = []
@@ -443,15 +439,15 @@ class Root(controllers.RootController):
                     'nvr'       : util.get_nvr(build),
                     'releases'  : set()
             }
+            pkg = buildinfo[build]['nvr'][0]
             try:
                 # Grab a list of committers.  Note that this currently only
                 # gets people who can commit to the devel branch of the
                 # Fedora collection.
-                people, groups = get_pkg_pushers(buildinfo[build]['nvr'][0])
+                people, groups = get_pkg_pushers(pkg)
                 people = people[0] # we only care about committers, not watchers
                 buildinfo[build]['people'] = people
             except Exception, e:
-                print e
                 flash_log(e)
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
@@ -463,7 +459,7 @@ class Root(controllers.RootController):
                           config.get('admin_groups').split()) and \
                not filter(lambda x: x in identity.current.groups, groups[0]):
                 flash_log("%s does not have commit access to %s" % (
-                          identity.current.user_name, nvr[0]))
+                          identity.current.user_name, pkg))
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
@@ -473,7 +469,6 @@ class Root(controllers.RootController):
             try:
                 edited = PackageUpdate.byTitle(edited)
             except SQLObjectNotFound:
-                print "Cannot find update: ", edited
                 flash_log("Cannot find update '%s' to edit" % edited)
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
@@ -483,7 +478,6 @@ class Root(controllers.RootController):
                           config.get('release_team_address'))
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
-            print "Unpushing edited update"
             edited.unpush()
 
         # Make sure all builds are tagged appropriately.  We also determine
@@ -492,9 +486,7 @@ class Root(controllers.RootController):
             valid = False
             try:
                 tags = [tag['name'] for tag in koji.listTags(build)]
-                print "Tags =", tags
             except GenericError:
-                print "Invalid Build", build
                 flash_log("Invalid build: %s" % build)
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
@@ -507,7 +499,6 @@ class Root(controllers.RootController):
                     if rel.count():
                         rel = rel[0]
                         log.debug("Adding %s for %s" % (rel.name, build))
-                        print "Adding %s for %s" % (rel.name, build)
                         if not releases.has_key(rel):
                             releases[rel] = []
                         if build not in releases[rel]:
@@ -520,13 +511,11 @@ class Root(controllers.RootController):
             # matches the user-specified build
             if inheritance:
                 log.info("Following build inheritance")
-                print "Following build inheritance"
                 for rel in Release.select():
                     b = koji.listTagged(rel.dist_tag + '-updates-candidate',
                                         inherit=True, latest=True,
                                         package=buildinfo[build]['nvr'][0])[0]
                     if b['nvr'] == build:
-                        print "Adding %s for inheritance" % rel.name
                         log.info("Adding %s for inheritance" % rel.name)
                         if not releases.has_key(rel):
                             releases[rel] = []
@@ -536,7 +525,6 @@ class Root(controllers.RootController):
                         valid = True
 
             if not valid:
-                print "%s not candidate" % build
                 flash_log("%s not tagged as an update candidate" % build)
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
@@ -555,7 +543,6 @@ class Root(controllers.RootController):
                     for oldBuild in koji.listTagged(tag, package=pkg):
                         if rpm.labelCompare(util.build_evr(kojiBuild),
                                             util.build_evr(oldBuild)) < 0:
-                            print "Broken upgrade path!"
                             flash_log("Broken update path: %s is older "
                                       "than %s in %s" % (kojiBuild['nvr'],
                                       oldBuild['nvr'], tag))
@@ -595,7 +582,7 @@ class Root(controllers.RootController):
                         break
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
                         log.debug("%s is obsoletable" % oldBuild.nvr)
-                        obsoleteable = True
+                        obsoletable = True
                 if obsoletable:
                     for update in oldBuild.updates:
                         # Have the newer update inherit the older updates bugs
@@ -676,11 +663,8 @@ class Root(controllers.RootController):
 
         flash_log('. '.join(note))
 
-        # For command line submissions, return PackageUpdate.__str__()
         if self.jsonRequest():
-            return dict(update=unicode(update))
-
-        print "Created updates=", updates
+            return dict(updates=updates)
 
         # TODO: if there are more than 1 update, redirect to a list of them
         raise redirect(updates[0].get_url())
