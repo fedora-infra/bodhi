@@ -422,7 +422,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : ''
         }
         self.save_update(params, session)
-        assert "This resource resides temporarily" in cherrypy.response.body[0]
+        assert "This resource resides temporarily" in cherrypy.response.body[0], cherrypy.response.body[0]
 
     def test_obsoleting(self):
         session = login()
