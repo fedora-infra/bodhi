@@ -394,25 +394,31 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, builds, release, type, notes, bugs, close_bugs=False,
-             edited=False, request='testing', suggest_reboot=False, **kw):
+    def save(self, builds, type, notes, bugs, close_bugs=False, edited=False,
+             request='testing', suggest_reboot=False, inheritance=False, **kw):
         """
         Save an update.  This includes new updates and edited.
         """
-        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s)" % (builds, release,
-            type, notes, bugs, close_bugs, edited, kw))
+        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (builds,
+                  type, notes, bugs, close_bugs, edited, request,
+                  suggest_reboot, inheritance, kw))
+
+        print "save(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (builds,
+                  type, notes, bugs, close_bugs, edited, request,
+                  suggest_reboot, inheritance, kw)
 
         note = []
-        update_builds = []
+        updates = []
         if not bugs: bugs = []
-        release = Release.select(
-                        OR(Release.q.long_name == release,
-                           Release.q.name == release))[0]
+        koji = buildsys.get_session()
+        releases = {}  # { Release : [build, ...] }
+        buildinfo = {} # { nvr : { 'nvr' : (n, v, r), 'people' : [person, ...],
+                       #           'releases' : set(Release, ...),
+                       #           'build' : PackageBuild } }
 
         # Parameters used to re-populate the update form if something fails
         params = {
                 'builds.text' : ' '.join(builds),
-                'release'     : release.long_name,
                 'type'        : type,
                 'bugs'        : ' '.join(map(str, bugs)),
                 'notes'       : notes,
@@ -420,209 +426,264 @@ class Root(controllers.RootController):
                 'close_bugs'  : close_bugs and 'True' or '',
         }
 
-        if edited:
-            try:
-                edited = PackageUpdate.byTitle(edited)
-            except SQLObjectNotFound:
-                flash_log("Cannot find update '%s' to edit" % edited)
-                raise redirect('/new', **params)
+        # Make sure this update doesn't already exist
+        try:
+            update = PackageUpdate.byTitle(','.join(builds))
+            flash_log("%s update already exists!" % update.title)
+            if self.jsonRequest(): return dict()
+            raise redirect('/new', **params)
+        except SQLObjectNotFound:
+            pass
 
         # Make sure the submitter has commit access to these builds
         for build in builds:
-            nvr = util.get_nvr(build)
             people = None
             groups = None
+            buildinfo[build] = {
+                    'nvr'       : util.get_nvr(build),
+                    'releases'  : set()
+            }
             try:
-                people, groups = get_pkg_pushers(nvr[0],
-                                        release.long_name.split()[0],
-                                        release.long_name[-1])
+                # Grab a list of committers.  Note that this currently only
+                # gets people who can commit to the devel branch of the
+                # Fedora collection.
+                people, groups = get_pkg_pushers(buildinfo[build]['nvr'][0])
+                people = people[0] # we only care about committers, not watchers
+                buildinfo[build]['people'] = people
             except Exception, e:
+                print e
                 flash_log(e)
-                if self.jsonRequest():
-                    return dict()
+                if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
-            if not identity.current.user_name in people[0] and \
-               not 'releng' in identity.current.groups and \
-               not 'security_respons' in identity.current.groups and \
-               not 'cvsadmin' in identity.current.groups and \
+
+            # Verify that the user is either in the committers list, or is
+            # a member of a groups that has privileges to commit to this package
+            if not identity.current.user_name in people and \
+               not filter(lambda group: group in identity.current.groups,
+                          config.get('admin_groups').split()) and \
                not filter(lambda x: x in identity.current.groups, groups[0]):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, nvr[0]))
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
-        # Iterate over all of the builds, making sure they are all tagged
-        # appropriately in koji
-        koji = buildsys.get_session()
+        # If we're editing an update, unpush it first so we can assume all
+        # of the builds are tagged as update candidates
+        if edited:
+            try:
+                edited = PackageUpdate.byTitle(edited)
+            except SQLObjectNotFound:
+                print "Cannot find update: ", edited
+                flash_log("Cannot find update '%s' to edit" % edited)
+                if self.jsonRequest(): return dict()
+                raise redirect('/new', **params)
+            if edited.status == 'stable':
+                flash_log("Cannot edit stable updates.  Contact release "
+                          "engineering at %s about unpushing this update." %
+                          config.get('release_team_address'))
+                if self.jsonRequest(): return dict()
+                raise redirect('/new', **params)
+            print "Unpushing edited update"
+            edited.unpush()
+
+        # Make sure all builds are tagged appropriately.  We also determine
+        # which builds get pushed for which releases, based on the tag.
         for build in builds:
-            log.debug("Validating koji tag for %s" % build)
-            candidate = '%s-updates-candidate' % release.dist_tag
+            valid = False
             try:
                 tags = [tag['name'] for tag in koji.listTags(build)]
-                if edited:
-                    if build in edited.title:
-                        if edited.get_build_tag() not in tags:
-                            flash_log("%s not tagged with %s" % (edited.title,
-                                      edited.get_build_tag()))
-                            if self.jsonRequest(): return dict()
-                            raise redirect('/new', **params)
-                    else: # new build
-                        if candidate not in tags:
-                            flash_log("%s not tagged with %s" % (build,
-                                      candidate))
-                            if self.jsonRequest(): return dict()
-                            raise redirect('/new', **params)
-                else:
-                    if candidate not in tags:
-                        flash_log("%s not tagged with %s" % (build, candidate))
-                        if self.jsonRequest(): return dict()
-                        raise redirect('/new', **params)
-            except GenericError, e:
+                print "Tags =", tags
+            except GenericError:
+                print "Invalid Build", build
                 flash_log("Invalid build: %s" % build)
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 
-            # Check for broken update paths against all previous releases
+            # Determine which release this build is a candidate for
+            for tag in tags:
+                dist = tag.split('-updates-candidate')
+                if len(dist) == 2: # candidate tag
+                    rel = Release.selectBy(dist_tag=dist[0])
+                    if rel.count():
+                        rel = rel[0]
+                        log.debug("Adding %s for %s" % (rel.name, build))
+                        print "Adding %s for %s" % (rel.name, build)
+                        if not releases.has_key(rel):
+                            releases[rel] = []
+                        if build not in releases[rel]:
+                            releases[rel].append(build)
+                        buildinfo[build]['releases'].add(rel)
+                        valid = True
+
+            # if we're using build inheritance, iterate over each release
+            # looking to see if the latest build in its candidate tag 
+            # matches the user-specified build
+            if inheritance:
+                log.info("Following build inheritance")
+                print "Following build inheritance"
+                for rel in Release.select():
+                    b = koji.listTagged(rel.dist_tag + '-updates-candidate',
+                                        inherit=True, latest=True,
+                                        package=buildinfo[build]['nvr'][0])[0]
+                    if b['nvr'] == build:
+                        print "Adding %s for inheritance" % rel.name
+                        log.info("Adding %s for inheritance" % rel.name)
+                        if not releases.has_key(rel):
+                            releases[rel] = []
+                        if build not in releases[rel]:
+                            releases[rel].append(build)
+                        buildinfo[build]['releases'].add(rel)
+                        valid = True
+
+            if not valid:
+                print "%s not candidate" % build
+                flash_log("%s not tagged as an update candidate" % build)
+                if self.jsonRequest(): return dict()
+                raise redirect('/new', **params)
+
             kojiBuild = koji.getBuild(build)
             kojiBuild['nvr'] = "%s-%s-%s" % (kojiBuild['name'],
                                              kojiBuild['version'],
                                              kojiBuild['release'])
-            tag = release.dist_tag
-            nvr = util.get_nvr(build)
-            while True:
-                try:
-                    for kojiTag in (tag, tag + '-updates'):
-                        log.debug("Checking for broken update paths in " + kojiTag)
-                        for oldBuild in koji.listTagged(kojiTag,package=nvr[0]):
-                            if rpm.labelCompare(util.build_evr(kojiBuild),
-                                                util.build_evr(oldBuild)) < 0:
-                                flash_log("Broken update path: %s is older "
-                                          "than %s in %s" % (kojiBuild['nvr'],
-                                          oldBuild['nvr'], kojiTag))
-                                raise redirect('/new', **params)
-                except GenericError:
-                    break
 
-                # Check against the previous release (until one doesn't exist)
-                tag = tag[:-1] + str(int(tag[-1]) - 1)
+            # Check for broken update paths against all releases
+            for release in Release.select():
+                tags = [release.dist_tag, release.dist_tag + '-updates']
+                for tag in tags:
+                    log.info("Checking for broken update paths in " + tag)
+                    pkg = buildinfo[build]['nvr'][0]
+                    for oldBuild in koji.listTagged(tag, package=pkg):
+                        if rpm.labelCompare(util.build_evr(kojiBuild),
+                                            util.build_evr(oldBuild)) < 0:
+                            print "Broken upgrade path!"
+                            flash_log("Broken update path: %s is older "
+                                      "than %s in %s" % (kojiBuild['nvr'],
+                                      oldBuild['nvr'], tag))
+                            raise redirect('/new', **params)
 
-        # If we're editing a testing update, unpush it first.  Then destroy
-        # all associated builds, as they will be re-created in the next step.
-        if edited:
-            update = edited
-            if update.status == 'testing':
-                update.unpush()
-            elif update.status == 'stable':
-                flash_log("Cannot edit stable updates")
-                if self.jsonRequest(): return dict()
-                raise redirect('/new', **params)
-            for build in update.builds:
-                build.destroySelf()
-
-        # Create all of the PackageBuild and PackageUpdate objects
+        # Create all of the PackageBuild objects, obsoleting any older updates
         for build in builds:
-            nvr = util.get_nvr(build)
+            nvr = buildinfo[build]['nvr']
             try:
                 package = Package.byName(nvr[0])
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
             if suggest_reboot:
                 package.suggest_reboot = True
-            package.committers = people[0] # Update our ACL cache for this pkg
 
+            # Update our ACL cache for this pkg
+            package.committers = buildinfo[build]['people']
+
+            # Create or fetch the PackageBuild object for this build
             try:
                 pkgBuild = PackageBuild(nvr=build, package=package)
-                update_builds.append(pkgBuild)
             except (PostgresIntegrityError, SQLiteIntegrityError,
                     DuplicateEntryError):
-                flash_log("Update for %s already exists" % build)
-                map(lambda build: build.destroySelf(), update_builds)
-                if self.jsonRequest(): return dict()
-                raise redirect('/new', **params)
+                pkgBuild = PackageBuild.byNvr(build)
+            buildinfo[build]['build'] = pkgBuild
 
-            # Obsolete any older pending/testing updates
+            # Obsolete any older pending/testing updates.
+            # If a build is associated with multiple updates, make sure that
+            # all updates are safe to obsolete, or else just skip it.
             for oldBuild in package.builds:
-                if len(oldBuild.updates) and \
-                       oldBuild.updates[0].status in ('pending', 'testing'):
-                    if release not in [up.release for up in oldBuild.updates]:
-                        log.debug("Skipping obsoleting %s" % oldBuild.nvr)
-                        continue
-                    if oldBuild.updates[0].request:
-                        # Skip obsoleting updates that are headed somewhere
-                        continue 
+                obsoletable = False
+                for update in oldBuild.updates:
+                    if update.status not in ('pending', 'testing') or \
+                       update.request or \
+                       update.release not in buildinfo[build]['releases']:
+                        obsoletable = False
+                        break
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
-                        log.debug("Obsoleting %s" % oldBuild.nvr)
-                        for bug in oldBuild.updates[0].bugs:
+                        log.debug("%s is obsoletable" % oldBuild.nvr)
+                        obsoleteable = True
+                if obsoletable:
+                    for update in oldBuild.updates:
+                        # Have the newer update inherit the older updates bugs
+                        for bug in update.bugs:
                             bugs.append(unicode(bug.bz_id))
-                        oldBuild.updates[0].obsolete(newer=build)
-                        note.append('This update has obsoleted %s'%oldBuild.nvr)
+                        update.obsolete(newer=build)
+                    note.append('This update has obsoleted %s' % oldBuild.nvr)
 
-        # Modify or create the PackageUpdate
-        if edited:
-            p = edited
-            p.set(release=release, date_modified=datetime.utcnow(),
-                  notes=notes, type=type, title=','.join(builds),
-                  close_bugs=close_bugs)
-            log.debug("Edited update %s" % edited.title)
-        else:
-            try:
-                p = PackageUpdate(title=','.join(builds), release=release,
-                                  submitter=identity.current.user_name,
-                                  notes=notes, type=type, close_bugs=close_bugs)
-                log.info("Adding new update %s" % builds)
-            except (PostgresIntegrityError, SQLiteIntegrityError,
-                    DuplicateEntryError):
-                flash_log("Update for %s already exists" % builds)
-                if self.jsonRequest(): return dict()
-                raise redirect('/new', **params)
+        # Create or modify the necessary PackageUpdate objects
+        for release, builds in releases.items():
+            if edited:
+                update = edited
+                log.debug("Editing update %s" % edited.title)
+                update.set(release=release, date_modified=datetime.utcnow(),
+                           notes=notes, type=type, title=','.join(builds),
+                           close_bugs=close_bugs)
 
-        # Add the PackageBuilds to our PackageUpdate
-        map(p.addPackageBuild, update_builds)
+                # Remove any unnecessary builds
+                for build in update.builds:
+                    if build.nvr not in edited.title:
+                        log.debug("Removing unnecessary build: %s" % build.nvr)
+                        update.removePackageBuild(build)
+                        if len(build.updates) == 0:
+                            log.debug("Destroying %s" % build.nvr)
+                            build.destroySelf()
+            else:
+                update = PackageUpdate(title=','.join(builds), release=release,
+                                       submitter=identity.current.user_name,
+                                       notes=notes, type=type,
+                                       close_bugs=close_bugs)
+                log.info("Created PackageUpdate %s" % update.title)
+            updates.append(update)
 
-        # Add/remove the necessary Bugzillas
-        p.update_bugs(bugs)
+            # Add the PackageBuilds to our PackageUpdate
+            for build in [buildinfo[build]['build'] for build in builds]:
+                if build not in update.builds:
+                    update.addPackageBuild(build)
 
-        # If there are any security bugs, make sure this update is
-        # marked as security
-        if p.type != 'security':
-            for bug in p.bugs:
-                if bug.security:
-                    p.type = 'security'
-                    break
+            # Add/remove the necessary Bugzillas
+            update.update_bugs(bugs)
 
-        # Gather all of the committers for the packages in this update
-        people = set()
-        for b in p.builds:
-            for committer in b.package.committers:
-                people.add(committer)
+            # If there are any security bugs, make sure this update is
+            # properly marked as a security update
+            if update.type != 'security':
+                for bug in update.bugs:
+                    if bug.security:
+                        update.type = 'security'
+                        break
 
-        if edited:
-            mail.send(people, 'edited', p)
-            note.insert(0, "Update successfully edited")
-        else:
-            # Notify security team of newly submitted security updates
-            if p.type == 'security':
-                mail.send(config.get('security_team'), 'security', p)
-            mail.send(people, 'new', p)
-            note.insert(0, "Update successfully created")
+            # Gather all of the committers for the packages in this update
+            people = set()
+            for build in update.builds:
+                for committer in build.package.committers:
+                    people.add(committer)
 
-            # Comment on all bugs
-            for bug in p.bugs:
-                bug.add_comment(p, "%s has been submitted as an update "
-                                "for %s" % (p.title, p.release.long_name))
+            # Send out mail notifications
+            if edited:
+                mail.send(people, 'edited', update)
+                note.insert(0, "Update successfully edited")
+            else:
+                # Notify security team of newly submitted security updates
+                if update.type == 'security':
+                    mail.send(config.get('security_team'), 'security', update)
+                mail.send(people, 'new', update)
+                note.insert(0, "Update successfully created")
 
-        # If a request is specified, make it.  By default we're submitting new
-        # updates directly into testing
-        if request and request != "None" and request != p.request:
-            self.request(request.lower(), p.title)
+                # Comment on all bugs
+                for bug in update.bugs:
+                    bug.add_comment(update,
+                        "%s has been submitted as an update for %s.\n%s" %
+                            (update.title, release.long_name,
+                             url(update.get_url())))
+
+            # If a request is specified, make it.  By default we're submitting
+            # new updates directly into testing
+            if request and request != "None" and request != update.request:
+                self.request(request.lower(), update.title)
 
         flash_log('. '.join(note))
 
         # For command line submissions, return PackageUpdate.__str__()
         if self.jsonRequest():
-            return dict(update=unicode(p))
+            return dict(update=unicode(update))
 
-        raise redirect(p.get_url())
+        print "Created updates=", updates
+
+        # TODO: if there are more than 1 update, redirect to a list of them
+        raise redirect(updates[0].get_url())
 
     @expose(template='bodhi.templates.list')
     @paginate('updates', limit=20, allow_limit_override=True)
