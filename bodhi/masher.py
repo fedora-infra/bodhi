@@ -15,6 +15,7 @@
 import os
 import sha
 import time
+import shutil
 import urllib2
 import logging
 import commands
@@ -28,7 +29,7 @@ from bodhi.metadata import ExtendedMetadata
 from sqlobject import SQLObjectNotFound
 from threading import Thread, Lock
 from turbogears import config
-from os.path import exists, join, islink
+from os.path import exists, join, islink, isdir
 from time import sleep
 
 log = logging.getLogger(__name__)
@@ -282,7 +283,7 @@ class MashTask(Thread):
         """
         t0 = time.time()
         tasks = []
-        success = False
+        self.success = False
         self.moving = True
         for update in self.updates:
             if update.request == 'stable':
@@ -293,17 +294,23 @@ class MashTask(Thread):
                 self.tag = update.release.dist_tag + '-updates-candidate'
             current_tag = update.get_build_tag()
             for build in update.builds:
-                log.debug("Moving %s from %s to %s" % (build.nvr, current_tag,
-                                                       self.tag))
-                task_id = self.koji.moveBuild(current_tag, self.tag,
-                                              build.nvr, force=True)
+                if build.inherited:
+                    log.debug("Adding tag %s to %s" % (self.tag, build.nvr))
+                    task_id = self.koji.tagBuild(self.tag, build.nvr,
+                                                 force=True)
+                else:
+                    log.debug("Moving %s from %s to %s" % (build.nvr,
+                                                           current_tag,
+                                                           self.tag))
+                    task_id = self.koji.moveBuild(current_tag, self.tag,
+                                                  build.nvr, force=True)
                 self.actions.append((build.nvr, current_tag, self.tag))
                 tasks.append(task_id)
         if buildsys.wait_for_tasks(tasks) == 0:
-            success = True
+            self.success = True
         self.moving = False
         log.debug("Moved builds in %s seconds" % (time.time() - t0))
-        if not success:
+        if not self.success:
             raise MashTaskException("Failed to move builds")
 
     # With a large pushes, this tends to cause much buildsystem churn, as well
