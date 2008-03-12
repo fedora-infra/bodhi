@@ -88,6 +88,7 @@ class PackageBuild(SQLObject):
     nvr             = UnicodeCol(notNone=True, alternateID=True)
     package         = ForeignKey('Package')
     updates         = RelatedJoin("PackageUpdate")
+    inherited       = BoolCol(default=False)
 
     def get_rpm_header(self):
         """ Get the rpm header of this build """
@@ -524,8 +525,12 @@ class PackageUpdate(SQLObject):
             log.debug("%s already unpushed" % self.title)
             return
         for build in self.builds:
-            log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
-            koji.moveBuild(curtag, newtag, build.nvr, force=True)
+            if build.inherited:
+                log.debug("Removing %s tag from %s" % (curtag, build.nvr))
+                koji.untagBuild(curtag, build.nvr, force=True)
+            else:
+                log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
+                koji.moveBuild(curtag, newtag, build.nvr, force=True)
         self.pushed = False
         self.status = 'pending'
         mail.send_admin('unpushed', self)
