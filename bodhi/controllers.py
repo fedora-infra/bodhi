@@ -212,7 +212,7 @@ class Root(controllers.RootController):
                     try:
                         pkg = Package.byName(package)
                         if not release and not status and not type:
-                            updates = pkg.updates()
+                            updates = [pkg for pkg in pkg.updates()]
                         else:
                             updates = filter(lambda up: up in updates,
                                              pkg.updates())
