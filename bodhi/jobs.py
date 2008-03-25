@@ -81,6 +81,21 @@ def nagmail():
 
     log.info("nagmail complete!")
 
+def fix_bug_titles():
+    """
+    Go through all bugs with invalid titles and see if we can re-fetch them.
+    If bugzilla is down, then bodhi simply replaces the title with
+    'Unable to fetch bug title' or 'Invalid bug number'.  So lets occasionally
+    see if we can re-fetch those bugs.
+    """
+    from bodhi.model import Bugzilla
+    from sqlobject.sqlbuilder import OR
+    log.debug("Running fix_bug_titles job")
+    for bug in Bugzilla.select(
+                 OR(Bugzilla.q.title == 'Invalid bug number',
+                    Bugzilla.q.title == 'Unable to fetch bug title')):
+        bug.fetch_details()
+
 
 def schedule():
     """ Schedule our periodic tasks """
@@ -94,3 +109,9 @@ def schedule():
     scheduler.add_weekday_task(action=nagmail,
                                weekdays=range(1,8),
                                timeonday=(0,0))
+
+    # Fix invalid bug titles
+    scheduler.add_interval_task(action=fix_bug_titles,
+                                taskname='Fix bug titles',
+                                initialdelay=1200,
+                                interval=604800)
