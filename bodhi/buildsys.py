@@ -44,7 +44,7 @@ class Buildsystem:
 
 class DevBuildsys(Buildsystem):
     """
-    A dummy buildsystem instance used during development
+    A dummy buildsystem instance used during development and testing
     """
     def moveBuild(self, *args, **kw):
         log.debug("moveBuild(%s, %s)" % (args, kw))
@@ -58,25 +58,46 @@ class DevBuildsys(Buildsystem):
     def getTaskInfo(self, task):
         return { 'state' : koji.TASK_STATES['CLOSED'] }
 
-    def getBuild(self, *args, **kw):
-        return {'build_id': 16058,
-                'completion_time': '2007-08-24 23:26:10.890319',
-                'creation_event_id': 151517,
-                'creation_time': '2007-08-24 19:38:29.422344',
-                'epoch': None,
-                'id': 16058,
-                'name': 'TurboGears',
-                'nvr': 'TurboGears-1.0.2.2-2.fc7',
-                'owner_id': 388,
-                'owner_name': 'lmacken',
-                'package_id': 8,
-                'package_name': 'TurboGears',
-                'release': '2.fc7',
-                'state': 1,
-                'tag_id': 19,
-                'tag_name': 'dist-fc7-updates-testing',
-                'task_id': 127621,
-                'version': '1.0.2.2'}
+    def getBuild(self, build='fc7'):
+        if 'fc7' in build:
+            return {'build_id': 16058,
+                    'completion_time': '2007-08-24 23:26:10.890319',
+                    'creation_event_id': 151517,
+                    'creation_time': '2007-08-24 19:38:29.422344',
+                    'epoch': None,
+                    'id': 16058,
+                    'name': 'TurboGears',
+                    'nvr': 'TurboGears-1.0.2.2-2.fc7',
+                    'owner_id': 388,
+                    'owner_name': 'lmacken',
+                    'package_id': 8,
+                    'package_name': 'TurboGears',
+                    'release': '2.fc7',
+                    'state': 1,
+                    'tag_id': 19,
+                    'tag_name': 'dist-fc7-updates-testing',
+                    'task_id': 127621,
+                    'version': '1.0.2.2'}
+        else:
+            return {'build_id': 16058,
+                    'completion_time': '2007-08-24 23:26:10.890319',
+                    'creation_event_id': 151517,
+                    'creation_time': '2007-08-24 19:38:29.422344',
+                    'epoch': None,
+                    'id': 16058,
+                    'name': 'TurboGears',
+                    'nvr': 'TurboGears-1.0.2.2-2.fc8',
+                    'owner_id': 388,
+                    'owner_name': 'lmacken',
+                    'package_id': 8,
+                    'package_name': 'TurboGears',
+                    'release': '2.fc8',
+                    'state': 1,
+                    'tag_id': 19,
+                    'tag_name': 'dist-f8-updates-testing',
+                    'task_id': 127621,
+                    'version': '1.0.2.2'}
+
 
     def listBuildRPMs(self, *args, **kw):
         return [{'arch': 'src',
@@ -104,11 +125,17 @@ class DevBuildsys(Buildsystem):
                  'size': 1993385,
                  'version': '1.0.2.2'},]
 
-    def listTags(self, *args, **kw):
-        return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                 'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                 'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
+    def listTags(self, build, *args, **kw):
+        if 'fc7' in build:
+            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                     'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
+        else:
+            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': 'dist-f8-updates-candidate', 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                     'name': 'dist-f8', 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
         if tag not in ('dist-fc7', 'dist-fc7-updates-candidate',
