@@ -164,7 +164,8 @@ class Root(controllers.RootController):
             msg=_("Please log in.")
             forward_url= cherrypy.request.headers.get("Referer", "/")
 
-        cherrypy.response.status=403
+        # This seems to be the cause of some bodhi-client errors
+        # cherrypy.response.status=403
         return dict(message=msg, previous_url=previous_url, logging_in=True,
                     original_parameters=cherrypy.request.params,
                     forward_url=forward_url)
