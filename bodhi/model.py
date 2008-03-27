@@ -428,14 +428,13 @@ class PackageUpdate(SQLObject):
         for bug in bugs:
             try:
                 bz = Bugzilla.byBz_id(bug)
-                if bz not in self.bugs:
-                    self.addBugzilla(bz)
             except SQLObjectNotFound:
                 bugzilla = Bugzilla.get_bz()
-                bz = bugzilla.getbug(bug)
-                newbug = Bugzilla(bz_id=bz.bug_id)
-                newbug.fetch_details(bz)
-                self.addBugzilla(newbug)
+                newbug = bugzilla.getbug(bug)
+                bz = Bugzilla(bz_id=newbug.bug_id)
+                bz.fetch_details(newbug)
+            if bz not in self.bugs:
+                self.addBugzilla(bz)
 
     def update_cves(self, cves):
         """
@@ -558,8 +557,9 @@ class PackageUpdate(SQLObject):
         """
         people = set()
         for build in self.builds:
-            for committer in build.package.committers:
-                people.add(committer)
+            if build.package.committers:
+                for committer in build.package.committers:
+                    people.add(committer)
         return list(people)
 
 class Comment(SQLObject):
