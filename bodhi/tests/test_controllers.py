@@ -20,6 +20,7 @@ def create_release(num='7'):
                   dist_tag='dist-fc'+num)
     assert rel
     assert rel.name == 'F'+num
+    return rel
 
 def login(username='lmacken', display_name='lmacken', group=None):
     guest = User(user_name=username, display_name=display_name)
@@ -27,7 +28,7 @@ def login(username='lmacken', display_name='lmacken', group=None):
     if group:
         group = Group(group_name=group, display_name=group)
         guest.addGroup(group)
-    testutil.createRequest('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
+    testutil.create_request('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
     assert cherrypy.response.status == '200 OK'
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
                      cherrypy.response.header_list)
@@ -40,10 +41,10 @@ class TestControllers(testutil.DBTest):
         pairs = urllib.urlencode(params)
         url = '/updates/save?' + pairs
         print url
-        testutil.createRequest(url, headers=session, method='POST')
+        testutil.create_request(url, headers=session, method='POST')
 
     def test_bad_password(self):
-        x = testutil.createRequest('/updates/login?tg_format=json&login=Login&user_name=lmacken&password=foo', method='POST')
+        x = testutil.create_request('/updates/login?tg_format=json&login=Login&user_name=lmacken&password=foo', method='POST')
         assert "The credentials you supplied were not correct or did not grant access to this resource." in cherrypy.response.body[0]
         print cherrypy.response.status
 
@@ -55,7 +56,7 @@ class TestControllers(testutil.DBTest):
     def test_good_password(self):
         guest = User(user_name='lmacken')
         guest.password = 'guest'
-        x = testutil.createRequest('/updates/login?tg_format=json&login=Login&user_name=lmacken&password=guest', method='POST')
+        x = testutil.create_request('/updates/login?tg_format=json&login=Login&user_name=lmacken&password=guest', method='POST')
         assert cherrypy.response.status == '200 OK'
 
     def test_unauthenticated_update(self):
@@ -209,7 +210,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        x = testutil.createRequest('/updates/comment?text=foobar&title=%s&karma=1' % 
+        x = testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                    params['builds'], method='POST',
                                    headers=session)
         assert len(update.comments) == 1
@@ -218,22 +219,40 @@ class TestControllers(testutil.DBTest):
         assert update.comments[0].text == 'foobar'
 
         # Allow users to negate their original comment
-        x = testutil.createRequest('/updates/comment?text=bizbaz&title=%s&karma=-1' %
+        x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=-1' %
                                    params['builds'], method='POST',
                                    headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 0
 
         # but don't let them do it again
-        x = testutil.createRequest('/updates/comment?text=bizbaz&title=%s&karma=-1' %
+        x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=-1' %
                                    params['builds'], method='POST',
                                    headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 0
 
-    # TODO: count the # of builds to make sure they don't get dupes
+    # TODO:
     # - multi-release updates
     # - duplicate titles with updates
+
+    def test_multi_release(self):
+        session = login()
+        f7 = create_release()
+        f8 = create_release('8')
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 TurboGears-1.0.4.4-1.fc8',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        f7build, f8build = params['builds'].split()
+        f7up = PackageUpdate.byTitle(f7build)
+        assert f7up
+        f8up = PackageUpdate.byTitle(f8build)
+        assert f8up
 
     def test_edit(self):
         session = login()
@@ -274,6 +293,9 @@ class TestControllers(testutil.DBTest):
         # Make sure there are no stray builds
         for update in PackageUpdate.select():
             assert len(update.builds), "%s with no builds!" % update.title
+
+        for build in PackageBuild.select():
+            assert len(build.updates), "%s has no updates!" % build.nvr
 
         # Remove a build and bug
         params = {
@@ -339,13 +361,13 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
 
         # Try unauthenticated first
-        x = testutil.createRequest('/updates/delete?update=%s' % 
+        x = testutil.create_request('/updates/delete?update=%s' % 
                                    params['builds'], method='POST')
         update = PackageUpdate.byTitle(params['builds'])
         assert update
 
         # Now try again with our authenticated session cookie
-        x = testutil.createRequest('/updates/delete?update=%s' % 
+        x = testutil.create_request('/updates/delete?update=%s' % 
                                    params['builds'], method='POST',
                                    headers=session)
         try:
@@ -379,17 +401,17 @@ class TestControllers(testutil.DBTest):
         assert update.status == 'pending'
         assert update.request == 'testing'
 
-        testutil.createRequest('/updates/request/testing/%s' % params['builds'],
+        testutil.create_request('/updates/request/testing/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         print "update.request =", update.request
         assert update.request == 'testing'
-        testutil.createRequest('/updates/request/unpush/%s' % params['builds'],
+        testutil.create_request('/updates/request/unpush/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
         assert update.pushed == False
-        testutil.createRequest('/updates/request/stable/%s' % params['builds'],
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable'
@@ -513,14 +535,14 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
 
         url = '/updates/list?' + urllib.urlencode({ 'release' : 'F7' })
-        testutil.createRequest(url, method='GET')
+        testutil.create_request(url, method='GET')
         assert "1 updates found" in cherrypy.response.body[0], cherrypy.response.body[0]
 
         url = '/updates/list?' + urllib.urlencode({
                 'release' : 'F7',
                 'bugs'    : '1234'
         })
-        testutil.createRequest(url, method='GET')
+        testutil.create_request(url, method='GET')
         assert "1 updates found" in cherrypy.response.body[0]
 
         url = '/updates/list?' + urllib.urlencode({
@@ -528,7 +550,7 @@ class TestControllers(testutil.DBTest):
                 'bugs'    : '1234',
                 'type'    : 'enhancement'
         })
-        testutil.createRequest(url, method='GET')
+        testutil.create_request(url, method='GET')
         assert "1 updates found" in cherrypy.response.body[0]
 
         params = {
@@ -540,10 +562,6 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-
-        # TODO:
-        # populate db with a variety of releases and bugs, and do specific
-        # list queries
 
     def test_default_request(self):
         """
@@ -621,7 +639,7 @@ class TestControllers(testutil.DBTest):
         assert not update.approved
 
         url = '/updates/approve?update=' + params['builds']
-        testutil.createRequest(url, headers=session, method='POST')
+        testutil.create_request(url, headers=session, method='POST')
         update = PackageUpdate.byTitle(params['builds'])
         assert update.approved
         assert update.request == 'stable'
