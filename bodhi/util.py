@@ -285,3 +285,16 @@ def build_evr(build):
     if not build['epoch']:
         build['epoch'] = 0
     return (str(build['epoch']), build['version'], build['release'])
+
+
+class Singleton(type):
+    """ A singleton metaclass """
+
+    def __init__(cls, name, bases, dic):
+        super(Singleton, cls).__init__(name, bases, dic)
+        cls.instance = None
+
+    def __call__(cls, *args, **kw):
+        if cls.instance is None:
+            cls.instance = super(Singleton, cls).__call__(*args, **kw)
+        return cls.instance
