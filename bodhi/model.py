@@ -30,6 +30,7 @@ from textwrap import wrap
 
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
+from bodhi.util import Singleton
 from bodhi.exceptions import RPMNotFound
 from bodhi.identity.tables import *
 
@@ -688,13 +689,44 @@ class Bugzilla(SQLObject):
     def get_url(self):
         return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
 
-## Static list of releases -- used by master.kid, and the NewUpdateForm widget
-global _releases
-_releases = None
-def releases():
-    global _releases
-    if not _releases:
-        _releases = [(rel.name, rel.long_name, rel.id) for rel in \
-                     Release.select()]
-    for release in _releases:
-        yield release
+
+class Releases(object):
+    """ A cache of frequently used release data.
+
+    This entails all of our releases, and the number of updates for
+    every different type of update for each release.  This information
+    is utilized by our master template, among other modules, so we want to
+    avoid hitting the database for these frequent calls.
+
+    """
+    __metaclass__ = Singleton
+    data = []
+
+    def __init__(self):
+        self.update()
+
+    def update(self):
+        """ Refresh our release cache.
+
+        This is called automatically by the bodhi.jobs.cache_release_data
+        method periodically.
+        """
+        self.data = []
+        for release in Release.select():
+            rel = {
+                'long_name': release.long_name,
+                'name': release.name,
+                'id': release.id,
+            }
+
+            # Count the number of different types of updates for this release
+            for status in ('pending', 'testing', 'stable'):
+                rel['num_%s' % status] = PackageUpdate.select(
+                        AND(PackageUpdate.q.releaseID == release.id,
+                            PackageUpdate.q.status == status)).count()
+            rel['num_security'] = PackageUpdate.select(
+                    AND(PackageUpdate.q.type == 'security',
+                        PackageUpdate.q.releaseID == release.id,
+                        PackageUpdate.q.pushed == True)).count()
+
+            self.data.append(rel)
