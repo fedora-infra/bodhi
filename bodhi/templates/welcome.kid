@@ -13,13 +13,13 @@
 
     <script language="javascript">
         $(document).ready(function(){
-            $('#metricstip').Tooltip( { delay: 0 } );
-            $('#bodhitip').Tooltip( { delay: 0 } );
-            $('#wftip').Tooltip( { delay: 0 } );
-            $('#clitip').Tooltip( { delay: 0 } );
-            $('#kojitip').Tooltip( { delay: 0 } );
-            $('#mugtip').Tooltip( { delay: 0 } );
-            $('#bugtip').Tooltip( { delay: 0 } );
+            $('#metricstip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
+            $('#bodhitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
+            $('#wftip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
+            $('#clitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
+            $('#kojitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
+            $('#mugtip').Tooltip( { delay: 0, track: true, opacity: 0.85, } );
+            $('#bugtip').Tooltip( { delay: 0, track: true, opacity: 0.85, } );
         });
     </script>
 
