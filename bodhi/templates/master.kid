@@ -28,7 +28,7 @@
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
 
 <?python
-from bodhi.model import Release, PackageUpdate, releases
+from bodhi.model import Release, PackageUpdate, Releases
 from bodhi.search import search_form
 from sqlobject.sqlbuilder import AND
 ?>
@@ -102,21 +102,19 @@ $(document).ready(function() {
             <ul id="fedora-side-nav">
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/')}">${tg.identity.user_name}'s Home</a></li>
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
-                <li py:for="release in releases()">
-                <a id="${release[0]}" href="${tg.url('/%s' % release[0])}">${release[1]}</a>
-                        <div id="${release[0]}_releases">
-                            <ul>
-                                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/new?release=%s' % release[1])}">New Update</a></li>
-                                <li py:for="status in ('pending', 'testing', 'stable')" class="release">
-                                <a href="${tg.url('/%s/%s' % (release[0], status != 'stable' and status or ''))}" class="link">${status.title()} (${PackageUpdate.select(AND(PackageUpdate.q.releaseID == release[2], PackageUpdate.q.status == status)).count()})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s' % (release[0], status))}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
-                                </li>
-                                <li class="release">
-                                <a href="${tg.url('/%s/security' % release[0])}" class="link">Security (${PackageUpdate.select(AND(PackageUpdate.q.type == 'security', PackageUpdate.q.releaseID == release[2], PackageUpdate.q.pushed == True)).count()})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;type=security' % release[0])}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    <li><a href="${tg.url('/comments')}">Comments</a></li>
+                <li py:for="release in Releases().data">
+                <?python print "release =", release ?>
+                  <a id="${release['name']}" href="${tg.url('/%s' % release['name'])}">${release['long_name']}</a>
+                  <div id="${release['name']}_releases">
+                    <ul>
+                      <li py:if="not tg.identity.anonymous"><a href="${tg.url('/new?release=%s' % release['name'])}">New Update</a></li>
+                      <li py:for="status in ('pending', 'testing', 'stable', 'security')" class="release">
+                        <a href="${tg.url('/%s/%s' % (release['name'], status != 'stable' and status or ''))}" class="link">${status.title()} (${release['num_' + status]})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s' % (release['name'], status))}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li><a href="${tg.url('/comments')}">Comments</a></li>
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/logout')}">Logout</a></li>
                 <li py:if="tg.identity.anonymous"><a href="${tg.url('/login')}">Login</a></li>
             </ul>
@@ -144,7 +142,7 @@ $(document).ready(function() {
     <!-- content END -->
 
     <!-- footer BEGIN -->
-    <div id="fedora-footer">Copyright © 2007 Red Hat, Inc.</div>
+    <div id="fedora-footer">Copyright © 2008  Red Hat, Inc.</div>
     <!-- footer END -->
 
 </body>
