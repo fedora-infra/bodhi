@@ -28,7 +28,7 @@ from sqlobject.sqlbuilder import AND
 
 from bodhi import mail
 from bodhi.util import get_age_in_days
-from bodhi.model import Release, PackageUpdate
+from bodhi.model import Release, PackageUpdate, Releases
 
 log = logging.getLogger(__name__)
 
@@ -96,6 +96,9 @@ def fix_bug_titles():
                     Bugzilla.q.title == 'Unable to fetch bug title')):
         bug.fetch_details()
 
+def cache_release_data():
+    from bodhi.model import Releases
+    Releases().update()
 
 def schedule():
     """ Schedule our periodic tasks """
@@ -115,3 +118,8 @@ def schedule():
                                 taskname='Fix bug titles',
                                 initialdelay=1200,
                                 interval=604800)
+
+    scheduler.add_interval_task(action=cache_release_data,
+                                taskname='Cache release data',
+                                initialdelay=4,
+                                interval=1800)
