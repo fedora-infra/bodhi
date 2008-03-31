@@ -262,6 +262,14 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.karma == 3
         assert update.request == 'stable'
 
+    def test_maintainers(self):
+        # TODO: finish
+        update = self.get_update()
+        assert False, update.get_maintainers()
+
+    def test_update_bugs(self):
+        pass
+
     def test_build_tag(self):
         update = self.get_update()
         update.status = 'pending'
@@ -276,7 +284,12 @@ class TestPackageUpdate(testutil.DBTest):
     def test_release(self):
         rel = self.get_rel()
         assert rel.get_version() == 7
- 
+
+    def test_update_bugs(self):
+        update = self.get_update()
+
+
+
 class TestBugzilla(testutil.DBTest):
 
     def get_model(self):
