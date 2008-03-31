@@ -28,8 +28,9 @@ from turbogears.widgets import DataGrid
 
 from bodhi import buildsys, util
 from bodhi.rss import Feed
-from bodhi.util import flash_log, get_pkg_pushers
 from bodhi.new import NewUpdateController, update_form
+from bodhi.util import make_update_link, make_type_icon, make_karma_icon
+from bodhi.util import flash_log, get_pkg_pushers, make_request_icon
 from bodhi.admin import AdminController
 from bodhi.metrics import Metrics
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
@@ -73,8 +74,6 @@ class Root(controllers.RootController):
         The main dashboard.  Here we generate the DataGrids for My Updates and 
         the latest comments.
         """
-        from bodhi.util import make_update_link, make_type_icon, make_karma_icon
-        from bodhi.util import make_request_icon
         RESULTS, FIELDS, GRID = range(3)
         updates = None
 
@@ -126,6 +125,8 @@ class Root(controllers.RootController):
                 ]
             ]
 
+        from bodhi.widgets import SortableDataGrid
+
         for key, value in grids.items():
             if not value[RESULTS].count():
                 grids[key].append(None)
@@ -133,8 +134,8 @@ class Root(controllers.RootController):
             if value[RESULTS].count() > 5:
                 value[RESULTS] = value[RESULTS][:5]
             value[RESULTS] = list(value[RESULTS])
-            grids[key].append(DataGrid(fields=value[FIELDS],
-                                       default=value[RESULTS]))
+            grids[key].append(SortableDataGrid(name=key, fields=value[FIELDS],
+                                               default=value[RESULTS]))
 
         return dict(now=datetime.utcnow(), updates=grids[updates][GRID],
                     comments=grids['comments'][GRID])

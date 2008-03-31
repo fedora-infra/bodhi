@@ -12,19 +12,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import random
-import simplejson
-
+from tgcaptcha import CaptchaField
 from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
                                 HiddenField, RemoteForm, CheckBoxList, JSLink,
-                                Widget)
+                                Widget, DataGrid, CSSLink)
 
-from bodhi.util import get_release_names, get_release_tuples, make_update_link
+from bodhi.util import make_update_link
 from bodhi.validators import *
-
-from tgcaptcha import CaptchaField
 
 class CommentForm(Form):
     template = "bodhi.templates.commentform"
@@ -67,11 +63,15 @@ class SearchForm(Form):
     ]
 
 class LocalJSLink(JSLink):
-    """
-    Link to local Javascript files
-    """
+    """ Link to local Javascript files """
     def update_params(self, d):
-        super(JSLink, self).update_params(d)
+        super(LocalJSLink, self).update_params(d)
+        d["link"] = url(self.name)
+
+class LocalCSSLink(CSSLink):
+    """ Link to local CSS files """
+    def update_params(self, d):
+        super(LocalCSSLink, self).update_params(d)
         d["link"] = url(self.name)
 
 class AutoCompletePackage(AutoCompleteField):
@@ -89,12 +89,15 @@ class NewUpdateForm(Form):
                                 search_param='name', result_name='pkgs',
                                 template='bodhi.templates.packagefield',
                                 validator=AutoCompleteValidator()),
-            SingleSelectField('release', options=get_release_names,
-                              validator=validators.OneOf(get_release_tuples())),
+            CheckBox('inheritance', label='Follow Build inheritance',
+                     default=False, attrs={'title' : 'Build Inheritance - '
+                                                     'TODO'}),
+            #SingleSelectField('release', options=get_release_names,
+            #                  validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             SingleSelectField('request', options=request_types,
-                              validator=validators.OneOf( request_types +
+                              validator=validators.OneOf(request_types +
                                   [r.lower() for r in request_types])),
             TextField('bugs', validator=BugValidator(),
                       attrs={'title' : 'Bug Numbers - A space or comma '
@@ -128,8 +131,7 @@ class OkCancelForm(Form):
         name="${name}"
         action="${action}"
         method="${method}"
-        class="okcancelform"
-    >
+        class="okcancelform">
         <div >
             <div py:content="ok.display('Ok')" />
             <div py:content="cancel.display('Cancel')" />
@@ -148,9 +150,15 @@ class ObsoleteForm(RemoteForm):
     submit_text = "Obsolete"
 
     def __init__(self, builds):
-        super(RemoteForm, self).__init__()
+        super(ObsoleteForm, self).__init__()
         options = [(build.nvr, make_update_link(build)) for build in builds]
         self.fields = [
             CheckBoxList("updates", label="", options=options,
                          default=[build.nvr for build in builds])
         ]
+
+class SortableDataGrid(DataGrid):
+    template = "bodhi.templates.sortabletable"
+    javascript = [LocalJSLink('bodhi', '/static/js/jquery.js'),
+                  LocalJSLink('bodhi', '/static/js/jquery.tablesorter.js')]
+    css = [LocalCSSLink('bodhi', '/static/css/flora.tablesorter.css')]
