@@ -724,6 +724,8 @@ class Releases(object):
                 rel['num_%s' % status] = PackageUpdate.select(
                         AND(PackageUpdate.q.releaseID == release.id,
                             PackageUpdate.q.status == status)).count()
+
+            # Count the number of pushed security updates for this release
             rel['num_security'] = PackageUpdate.select(
                     AND(PackageUpdate.q.type == 'security',
                         PackageUpdate.q.releaseID == release.id,

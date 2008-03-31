@@ -67,6 +67,5 @@ class SearchController(Controller):
             map(lambda cve: map(results.add, cve.updates),
                 CVE.select(CVE.q.cve_id==search))
 
-
         return dict(updates=list(results), num_items=len(results),
                     title="%d Results Found" % len(results))

@@ -97,6 +97,14 @@ def fix_bug_titles():
         bug.fetch_details()
 
 def cache_release_data():
+    """Refresh some commonly used peices of information.
+
+    This entails things like all releases, and how many updates exist for
+    each type of update for each release.  These pieces of information are in
+    the master template, and we want to avoid hitting the db multiple times
+    for each visit (as much as possible).
+
+    """
     from bodhi.model import Releases
     Releases().update()
 
@@ -121,5 +129,5 @@ def schedule():
 
     scheduler.add_interval_task(action=cache_release_data,
                                 taskname='Cache release data',
-                                initialdelay=4,
+                                initialdelay=0,
                                 interval=1800)
