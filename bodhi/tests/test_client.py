@@ -37,7 +37,7 @@ class BodhiTestClient(BodhiClient):
         """ overload the BaseClient.send_request """
         pairs = urllib.urlencode(input)
         url = '/updates/' + method + '?%s&tg_format=json' % pairs
-        testutil.createRequest(url, headers=self.cookie, method='POST')
+        testutil.create_request(url, headers=self.cookie, method='POST')
         return simplejson.loads(cherrypy.response.body[0])
 
 class Opts:
