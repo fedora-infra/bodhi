@@ -37,6 +37,14 @@ def login(username='lmacken', display_name='lmacken', group=None):
 
 class TestControllers(testutil.DBTest):
 
+    def setUp(self):
+        testutil.DBTest.setUp(self)
+        turbogears.startup.startTurboGears()
+
+    def tearDown(self):
+        testutil.DBTest.tearDown(self)
+        turbogears.startup.stopTurboGears()
+
     def save_update(self, params, session={}):
         pairs = urllib.urlencode(params)
         url = '/updates/save?' + pairs
@@ -233,7 +241,6 @@ class TestControllers(testutil.DBTest):
         assert update.karma == 0
 
     # TODO:
-    # - multi-release updates
     # - duplicate titles with updates
 
     def test_multi_release(self):
@@ -249,6 +256,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         f7build, f8build = params['builds'].split()
+        print cherrypy.response.body[0]
         f7up = PackageUpdate.byTitle(f7build)
         assert f7up
         f8up = PackageUpdate.byTitle(f8build)
@@ -429,7 +437,9 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.bugs[0].bz_id == 293081
-        assert update.bugs[0].title == "CVE-2007-5201 Duplicity discloses password in FTP backend"
+        # disabled for now, since we want to try and avoid as much bugzilla
+        # contact during our test cases as possible :)
+        #assert update.bugs[0].title == "CVE-2007-5201 Duplicity discloses password in FTP backend"
 
     def test_not_owner(self):
         session = login(username='guest')

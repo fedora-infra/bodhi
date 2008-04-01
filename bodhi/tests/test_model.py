@@ -1,11 +1,13 @@
 # $Id: test_model.py,v 1.5 2006/12/31 09:10:25 lmacken Exp $
 
+import time
 import turbogears
+
 from turbogears import testutil, database, config
 turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
-import time
+from sqlobject import SQLObjectNotFound
 
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild, Comment, User)
@@ -18,11 +20,19 @@ from yum.update_md import UpdateMetadata
 class TestPackageUpdate(testutil.DBTest):
 
     def get_pkg(self, name='TurboGears'):
-        return Package(name=name)
+        try:
+            pkg = Package.byName(name)
+        except SQLObjectNotFound:
+            pkg = Package(name=name)
+        return pkg
 
     def get_rel(self):
-        rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
-                      dist_tag='dist-fc7')
+        rel = None
+        try:
+            rel = Release.byName('fc7')
+        except SQLObjectNotFound:
+            rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
+                          dist_tag='dist-fc7')
         return rel
 
     def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
@@ -89,6 +99,10 @@ class TestPackageUpdate(testutil.DBTest):
         update = self.get_update()
         update.assign_id()
         assert update.updateid == '%s-%s-0001' % (update.release.id_prefix,
+                                                  time.localtime()[0])
+        update = self.get_update(name='TurboGears-0.4.4-8.fc7')
+        update.assign_id()
+        assert update.updateid == '%s-%s-0002' % (update.release.id_prefix,
                                                   time.localtime()[0])
 
     def test_url(self):
@@ -279,10 +293,6 @@ class TestPackageUpdate(testutil.DBTest):
         update.status = 'obsolete'
         assert update.get_build_tag() == "%s-updates-candidate" % update.release.dist_tag
 
-    def test_release(self):
-        rel = self.get_rel()
-        assert rel.get_version() == 7
-
     def test_update_bugs(self):
         update = self.get_update()
 
@@ -317,6 +327,53 @@ class TestPackageUpdate(testutil.DBTest):
             assert False, "Stray bugzilla!"
         except SQLObjectNotFound:
             pass
+
+
+    def test_request_complete(self):
+        up = self.get_update()
+        up.request = 'testing'
+        up.status = 'pending'
+        up.request_complete()
+        assert not up.request
+        assert up.pushed
+        assert up.date_pushed
+        assert up.status == 'testing'
+        assert up.updateid == '%s-%s-0001' % (up.release.id_prefix,
+                                              time.localtime()[0])
+
+        up.request = 'stable'
+        up.request_complete()
+        assert not up.request
+        assert up.status == 'stable'
+        assert up.pushed
+        assert up.date_pushed
+        assert up.updateid == '%s-%s-0001' % (up.release.id_prefix,
+                                              time.localtime()[0])
+
+        up.request = 'obsolete'
+        up.request_complete()
+        assert not up.request
+        assert up.status == 'obsolete'
+        assert not up.pushed
+
+    def test_status_comment(self):
+        up = self.get_update()
+        assert len(up.comments) == 0
+        up.status = 'testing'
+        up.status_comment()
+        assert len(up.comments) == 1
+        assert up.comments[0].author == 'bodhi'
+        assert up.comments[0].text == 'This update has been pushed to testing'
+        up.status = 'stable'
+        up.status_comment()
+        assert len(up.comments) == 2
+        assert up.comments[1].author == 'bodhi'
+        assert up.comments[1].text == 'This update has been pushed to stable'
+        up.status = 'obsolete'
+        up.status_comment()
+        assert len(up.comments) == 3
+        assert up.comments[2].author == 'bodhi'
+        assert up.comments[2].text == 'This update has been obsoleted'
 
 
 class TestBugzilla(testutil.DBTest):
@@ -401,4 +458,3 @@ class TestPackage(testutil.DBTest):
         update = self.get_update()
         pkg = update.builds[0].package
         assert len([up for up in pkg.updates()]) == 1
-

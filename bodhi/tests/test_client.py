@@ -40,7 +40,7 @@ class BodhiTestClient(BodhiClient):
         testutil.create_request(url, headers=self.cookie, method='POST')
         return simplejson.loads(cherrypy.response.body[0])
 
-class Opts:
+class Opts(object):
     """ To represent our OptionParser """
     release = 'f7'
     type = 'bugfix'
@@ -60,6 +60,15 @@ class TestClient(testutil.DBTest):
         A test class to perform validation on the bodhi client as well as
         the JSON exposed methods.
     """
+
+    def setUp(self):
+        testutil.DBTest.setUp(self)
+        turbogears.startup.startTurboGears()
+
+    def tearDown(self):
+        testutil.DBTest.tearDown(self)
+        turbogears.startup.stopTurboGears()
+
     def __get_bodhi_client(self):
         return BodhiTestClient('http://localhost:8084/updates', 'guest', None)
 
@@ -89,10 +98,10 @@ class TestClient(testutil.DBTest):
         args = { 'release' : 'f7' }
         data = bodhi.send_request('list', input=args)
         update = data['updates'][0]
-        assert 'Release: Fedora 7' in update
-        assert build in update
-        assert 'Type: %s' % opts.type in update
-        assert 'Notes: %s' % opts.notes in update
+        assert update['release']['long_name'] == u'Fedora 7'
+        assert update['builds'][0]['nvr'] == build
+        assert update['type'] == opts.type
+        assert update['notes'] == opts.notes
 
     def test_delete(self):
         bodhi = self.__get_bodhi_client()
