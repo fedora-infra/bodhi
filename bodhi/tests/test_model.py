@@ -26,6 +26,7 @@ class TestPackageUpdate(testutil.DBTest):
 
     def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
         package = self.get_pkg('-'.join(nvr.split('-')[:-2]))
+        package.committers = ['bobvila',]
         build = PackageBuild(nvr=nvr, package=package)
         return build
 
@@ -263,12 +264,8 @@ class TestPackageUpdate(testutil.DBTest):
         assert update.request == 'stable'
 
     def test_maintainers(self):
-        # TODO: finish
         update = self.get_update()
-        assert False, update.get_maintainers()
-
-    def test_update_bugs(self):
-        pass
+        assert 'bobvila' in update.get_maintainers()
 
     def test_build_tag(self):
         update = self.get_update()
@@ -288,6 +285,37 @@ class TestPackageUpdate(testutil.DBTest):
     def test_update_bugs(self):
         update = self.get_update()
 
+        # try just adding bugs
+        bugs = ['1234']
+        update.update_bugs(bugs)
+        assert len(update.bugs) == 1
+        assert update.bugs[0].bz_id == 1234
+
+        # try just removing
+        bugs = []
+        update.update_bugs(bugs)
+        assert len(update.bugs) == 0
+        try:
+            Bugzilla.byBz_id(1234)
+            assert False, "Stray bugzilla!"
+        except SQLObjectNotFound:
+            pass
+
+        # Test new duplicate bugs
+        bugs = ['1234', '1234']
+        update.update_bugs(bugs)
+        assert len(update.bugs) == 1
+
+        # Try adding a new bug, and removing the rest
+        bugs = ['4321']
+        update.update_bugs(bugs)
+        assert len(update.bugs) == 1
+        assert update.bugs[0].bz_id == 4321
+        try:
+            Bugzilla.byBz_id(1234)
+            assert False, "Stray bugzilla!"
+        except SQLObjectNotFound:
+            pass
 
 
 class TestBugzilla(testutil.DBTest):
@@ -306,3 +334,33 @@ class TestBugzilla(testutil.DBTest):
 
     def test_bugzilla_module(self):
         assert Bugzilla.get_bz()
+
+class TestRelease(testutil.DBTest):
+
+    def get_model(self):
+        return Release
+
+    def get_instance(self):
+        return Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
+                       dist_tag='dist-fc7')
+
+    def test_creation(self):
+        rel = self.get_instance()
+        assert rel
+        assert rel.name == 'fc7'
+        assert rel.long_name == 'Fedora 7'
+        assert rel.id_prefix == 'FEDORA'
+        assert rel.dist_tag == 'dist-fc7'
+
+    def test_get_version(self):
+        rel = self.get_instance()
+        assert rel.get_version() == 7
+
+        # test multi-digit releases
+        rel.name = 'F10'
+        rel.long_name = 'Fedora 10'
+        assert rel.get_version() == 10, rel.get_version()
+
+        rel.name = 'F100'
+        rel.long_name = 'Fedora 100'
+        assert rel.get_version() == 100, rel.get_version()
