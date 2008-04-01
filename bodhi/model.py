@@ -688,7 +688,7 @@ class Bugzilla(SQLObject):
         return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
 
 
-class Releases(object):
+class Releases(Singleton):
     """ A cache of frequently used release data.
 
     This entails all of our releases, and the number of updates for
@@ -697,7 +697,6 @@ class Releases(object):
     avoid hitting the database for these frequent calls.
 
     """
-    __metaclass__ = Singleton
     data = []
 
     def __init__(self):

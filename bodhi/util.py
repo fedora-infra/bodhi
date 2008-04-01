@@ -287,14 +287,9 @@ def build_evr(build):
     return (str(build['epoch']), build['version'], build['release'])
 
 
-class Singleton(type):
-    """ A singleton metaclass """
+class Singleton(object):
 
-    def __init__(cls, name, bases, dic):
-        super(Singleton, cls).__init__(name, bases, dic)
-        cls.instance = None
-
-    def __call__(cls, *args, **kw):
-        if cls.instance is None:
-            cls.instance = super(Singleton, cls).__call__(*args, **kw)
-        return cls.instance
+    def __new__(cls, *args, **kw):
+        if not '_instance' in cls.__dict__:
+            cls._instance = object.__new__(cls)
+        return cls._instance
