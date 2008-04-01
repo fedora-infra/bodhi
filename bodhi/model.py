@@ -42,6 +42,7 @@ __connection__ = hub
 soClasses=('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
            'Bugzilla', 'Comment', 'User', 'Group', 'Visit')
 
+
 class Release(SQLObject):
     """ Table of releases that we will be pushing updates for """
     name        = UnicodeCol(alternateID=True, notNone=True)
@@ -54,6 +55,11 @@ class Release(SQLObject):
     def get_version(self):
         regex = re.compile('\D+(\d+)$')
         return int(regex.match(self.name).groups()[0])
+
+    def __json__(self):
+        return dict(name=self.name, long_name=self.long_name,
+                    id_prefix=self.id_prefix, dist_tag=self.dist_tag,
+                    locked=self.locked)
 
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
@@ -82,6 +88,10 @@ class Package(SQLObject):
                     x += "    o %s\n" % update.title
         del states
         return x
+
+    def __json__(self):
+        return dict(name=self.name, suggest_reboot=self.suggest_reboot,
+                    committers=self.committers)
 
 class PackageBuild(SQLObject):
     nvr             = UnicodeCol(notNone=True, alternateID=True)
@@ -167,6 +177,9 @@ class PackageBuild(SQLObject):
                 break
 
         return latest_srpm
+
+    def __json__(self):
+        return dict(nvr=self.nvr, package=self.package.__json__())
 
 class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """
@@ -561,6 +574,29 @@ class PackageUpdate(SQLObject):
                     people.add(committer)
         return list(people)
 
+    def __json__(self, *args, **kw):
+        """ Return a JSON representation of this update """
+        return dict(
+                title=self.title,
+                builds=[build.__json__() for build in self.builds],
+                date_submitted=self.date_submitted,
+                date_modified=self.date_modified,
+                date_pushed=self.date_pushed,
+                submitter=self.submitter,
+                updateid=self.updateid,
+                type=self.type,
+                bugs=[bug.__json__() for bug in self.bugs],
+                release=self.release.__json__(),
+                status=self.status,
+                notes=self.notes,
+                request=self.request,
+                comments=[comment.__json__() for comment in self.comments],
+                karma=self.karma,
+                close_bugs=self.close_bugs,
+                nagged=self.nagged,
+                approved=self.approved)
+
+
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
     update      = ForeignKey("PackageUpdate", notNone=True)
@@ -580,6 +616,12 @@ class Comment(SQLObject):
         return "%s%s - %s (karma: %s)\n%s" % (self.author, anonymous,
                                             self.timestamp, karma, self.text)
 
+    def __json__(self):
+        return dict(author=self.author, text=self.text,
+                    anonymous=self.anonymous, karma=self.karma,
+                    timestamp=self.timestamp)
+
+
 class CVE(SQLObject):
     """
     Table of CVEs fixed within updates that we know of.
@@ -598,6 +640,7 @@ class CVE(SQLObject):
     def get_url(self):
         return "http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s" % self.cve_id
 
+
 class Bugzilla(SQLObject):
     """ Table of Bugzillas that we know about. """
     bz_id    = IntCol(alternateID=True)
@@ -609,6 +652,10 @@ class Bugzilla(SQLObject):
     _bz_server = config.get("bz_server")
     default_msg = "%s has been pushed to the %s repository.  If problems " + \
                   "still persist, please make note of it in this bug report."
+
+    def __json__(self):
+        return dict(bz_id=self.bz_id, title=self.title, security=self.security,
+                    parent=self.parent)
 
     @staticmethod
     def get_bz():
@@ -622,6 +669,9 @@ class Bugzilla(SQLObject):
         return bz
 
     def fetch_details(self, bug=None):
+        if not config.get('bodhi_email'):
+            log.warning("No bodhi_email defined, not fetching bug details")
+            return
         if not bug:
             bz = Bugzilla.get_bz()
             try:
@@ -650,6 +700,9 @@ class Bugzilla(SQLObject):
         return message
 
     def add_comment(self, update, comment=None):
+        if not config.get('bodhi_email'):
+            log.warning("No bodhi_email defined; skipping bug comment")
+            return
         bz = Bugzilla.get_bz()
         if not comment:
             comment = self._default_message(update)
@@ -698,9 +751,6 @@ class Releases(Singleton):
 
     """
     data = []
-
-    def __init__(self):
-        self.update()
 
     def update(self):
         """ Refresh our release cache.
