@@ -12,6 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import re
 import rpm
 import time
 import logging
@@ -51,11 +52,8 @@ class Release(SQLObject):
     locked      = BoolCol(default=False)
 
     def get_version(self):
-        import re
-        regex = re.compile('\w+(\d+)$')
-        num = int(regex.match(self.name).groups()[0])
-        del re, regex
-        return num
+        regex = re.compile('\D+(\d+)$')
+        return int(regex.match(self.name).groups()[0])
 
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
