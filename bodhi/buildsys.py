@@ -140,7 +140,8 @@ class DevBuildsys(Buildsystem):
     def listTagged(self, tag, *args, **kw):
         if tag not in ('dist-fc7', 'dist-fc7-updates-candidate',
                        'dist-fc7-updates-testing', 'dist-fc7-updates',
-                       'dist-f8', 'dist-f8-updates', 'dist-f8-updates-testing'):
+                       'dist-f8', 'dist-f8-updates', 'dist-f8-updates-testing',
+                       'dist-fc8', 'dist-fc8-updates', 'dist-fc8-updates-testing'):
             raise koji.GenericError
         return [self.getBuild(),]
 
