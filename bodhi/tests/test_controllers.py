@@ -349,7 +349,7 @@ class TestControllers(testutil.DBTest):
         session = login()
         create_release()
         params = {
-            'builds'  : 'TurboGears-1.0.2.2-2.fc7,nethack-1.2.3-4',
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-1.6.3-13.fc7',
             'release' : 'Fedora 7',
             'type'    : 'bugfix',
             'bugs'    : '',
@@ -357,7 +357,6 @@ class TestControllers(testutil.DBTest):
             'notes'   : ''
         }
         self.save_update(params, session)
-        print cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
 
         # Try unauthenticated first
@@ -582,7 +581,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
         params = {
-                'builds'  : 'python-sqlobject-1.6.3-13.fc8',
+                'builds'  : 'python-sqlobject-1.6.3-13.fc7',
                 'release' : 'Fedora 7',
                 'type'    : 'enhancement',
                 'bugs'    : '321',
