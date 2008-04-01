@@ -4,7 +4,8 @@ class TestUtil:
 
     def test_singleton(self):
         """ Make sure our Singleton metaclass actually works """
-        class A(object): __metaclass__ = Singleton
+        class A(Singleton):
+            pass
         a = A()
         assert a
         b = A()
