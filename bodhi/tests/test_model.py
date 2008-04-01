@@ -14,6 +14,7 @@ from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
 
 from yum.update_md import UpdateMetadata
 
+
 class TestPackageUpdate(testutil.DBTest):
 
     def get_pkg(self, name='TurboGears'):
@@ -335,6 +336,7 @@ class TestBugzilla(testutil.DBTest):
     def test_bugzilla_module(self):
         assert Bugzilla.get_bz()
 
+
 class TestRelease(testutil.DBTest):
 
     def get_model(self):
@@ -364,3 +366,39 @@ class TestRelease(testutil.DBTest):
         rel.name = 'F100'
         rel.long_name = 'Fedora 100'
         assert rel.get_version() == 100, rel.get_version()
+
+
+class TestPackage(testutil.DBTest):
+
+    def get_model(self):
+        return Package
+
+    def get_rel(self):
+        rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
+                      dist_tag='dist-fc7')
+        return rel
+
+    def get_pkg(self, name='TurboGears'):
+        return Package(name=name)
+
+    def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
+        package = self.get_pkg('-'.join(nvr.split('-')[:-2]))
+        build = PackageBuild(nvr=nvr, package=package)
+        return build
+
+    def get_update(self, name='TurboGears-1.0.2.2-2.fc7'):
+        update = PackageUpdate(title=name,
+                               release=self.get_rel(),
+                               submitter='foo@bar.com',
+                               status='testing',
+                               notes='foobar',
+                               type='security')
+        build = self.get_build(name)
+        update.addPackageBuild(build)
+        return update
+
+    def test_update_generator(self):
+        update = self.get_update()
+        pkg = update.builds[0].package
+        assert len([up for up in pkg.updates()]) == 1
+
