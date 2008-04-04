@@ -18,8 +18,11 @@
 """ Bodhi Initialization """
 
 from os.path import isfile
+
 from turbogears import config, update_config
 from turbogears.database import PackageHub
+
+from bodhi.util import ProgressBar
 
 hub = PackageHub("bodhi")
 __connection__ = hub
@@ -42,13 +45,14 @@ releases = (
 def import_releases():
     """ Import the releases """
     from bodhi.model import Release
-    print "\nInitializing Release table..."
+    print "\nInitializing Release table"
+    progress = ProgressBar(maxValue=len(releases))
 
     for release in releases:
         rel = Release(name=release['name'], long_name=release['long_name'],
                       id_prefix=release['id_prefix'],
                       dist_tag=release['dist_tag'])
-        print rel
+        progress()
 
 def import_rebootpkgs():
     """

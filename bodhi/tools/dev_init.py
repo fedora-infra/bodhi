@@ -21,7 +21,7 @@ def main():
     hub.begin()
 
     try:
-        print "Creating guest user and giving it administrator priviliges"
+        print "\nCreating guest user and giving it administrator priviliges"
         guest = User(user_name='guest', display_name='Bodhi Hacker')
         guest.password = 'guest'
         admin = Group(group_name='releng', display_name='Bodhi administrators')

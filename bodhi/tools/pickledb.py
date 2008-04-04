@@ -27,6 +27,8 @@ from os.path import isfile
 from sqlobject import SQLObjectNotFound
 from turbogears.database import PackageHub
 from turbogears import update_config
+
+from bodhi.util import ProgressBar
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
                               PostgresIntegrityError)
 from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
@@ -43,18 +45,20 @@ def load_config():
 def save_db():
     load_config()
     updates = []
+    all_updates = PackageUpdate.select()
+    progress = ProgressBar(maxValue=all_updates.count())
 
-    for update in PackageUpdate.select():
-        print update.title
+    for update in all_updates:
         data = {}
         data['title'] = update.title
         data['builds'] = [(build.package.name, build.nvr) for build in update.builds]
         data['date_submitted'] = update.date_submitted
         data['date_pushed'] = update.date_pushed
+        data['date_modified'] = update.date_modified
         data['release'] = [update.release.name, update.release.long_name,
                            update.release.id_prefix, update.release.dist_tag]
         data['submitter'] = update.submitter
-        data['update_id'] = update.updateid
+        data['update_id'] = hasattr(update, 'update_id') and update.update_id or update.updateid
         data['type'] = update.type
         data['karma'] = update.karma
         data['cves'] = [cve.cve_id for cve in update.cves]
@@ -71,30 +75,32 @@ def save_db():
         data['request'] = update.request
         data['comments'] = [(c.timestamp, c.author, c.text, c.karma) for c in update.comments]
         if hasattr(update, 'approved') and update.approved not in (True, False):
-            print "setting approved to ", repr(update.approved)
             data['approved'] = update.approved
         else:
-            print "Defaulting to None"
             data['approved'] = None
 
         updates.append(data)
+        progress()
 
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
     pickle.dump(updates, dump)
     dump.close()
 
 def load_db():
-    print "Loading pickled database %s" % sys.argv[2]
+    print "\nLoading pickled database %s" % sys.argv[2]
     load_config()
     db = file(sys.argv[2], 'r')
     data = pickle.load(db)
+    progress = ProgressBar(maxValue=len(data))
+
     for u in data:
         try:
             release = Release.byName(u['release'][0])
         except SQLObjectNotFound:
             release = Release(name=u['release'][0], long_name=u['release'][1],
                               id_prefix=u['release'][2], dist_tag=u['release'][3])
-        ## Backwards compat crud
+
+        ## Backwards compatbility
         request = u['request']
         if u['request'] == 'move':
             request = 'stable'
@@ -110,6 +116,7 @@ def load_db():
         update = PackageUpdate(title=u['title'],
                                date_submitted=u['date_submitted'],
                                date_pushed=u['date_pushed'],
+                               date_modified=u['date_modified'],
                                release=release,
                                submitter=u['submitter'],
                                updateid=u['updateid'],
@@ -121,6 +128,7 @@ def load_db():
                                request=request,
                                approved=u['approved'])
 
+        ## Create Package and PackageBuild objects
         for pkg, nvr in u['builds']:
             try:
                 package = Package.byName(pkg)
@@ -129,6 +137,7 @@ def load_db():
             build = PackageBuild(nvr=nvr, package=package)
             update.addPackageBuild(build)
 
+        ## Create all Bugzilla objects for this update
         for bug_num, bug_title, security, parent in u['bugs']:
             try:
                 bug = Bugzilla(bz_id=bug_num, security=security, parent=parent)
@@ -138,6 +147,7 @@ def load_db():
                 bug = Bugzilla.byBz_id(bug_num)
             update.addBugzilla(bug)
 
+        ## Create all CVE objects for this update
         for cve_id in u['cves']:
             try:
                 cve = CVE(cve_id=cve_id)
@@ -149,8 +159,7 @@ def load_db():
             comment = Comment(timestamp=timestamp, author=author, text=text,
                               karma=karma, update=update)
 
-        print unicode(update)
-        print
+        progress()
 
 def usage():
     print "Usage: ./pickledb.py [ save | load <file> ]"
@@ -163,7 +172,6 @@ if __name__ == '__main__':
         print "Pickling database..."
         save_db()
     elif sys.argv[1] == 'load' and len(sys.argv) == 3:
-        print "Loading db"
         load_db()
     else:
         usage()
