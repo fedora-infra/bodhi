@@ -38,7 +38,7 @@
                             </td>
                             <td>
                                 <span id="bodhitip" title="Bodhi Project Homepage">
-                                    <a href="http://hosted.fedoraproject.org/projects/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
+                                    <a href="http://fedorahosted.org/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
                                 </span>
                             </td>
                             <td>
@@ -48,13 +48,13 @@
                             </td>
                             <td>
                                 <span id="clitip" title="Using the bodhi command-line client">
-                                    <a href="https://hosted.fedoraproject.org/projects/bodhi/wiki/CLI"><img src="${tg.url('/static/images/terminal.png')}" border="0" height="36" width="36"/></a>
+                                    <a href="https://fedorahosted.org/bodhi/wiki/CLI"><img src="${tg.url('/static/images/terminal.png')}" border="0" height="36" width="36"/></a>
                                 </span>
                             </td>
  
                             <td>
                                 <span id="bugtip" title="File a bug or feature request against bodhi">
-                                    <a href="https://hosted.fedoraproject.org/projects/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" border="0" /></a>
+                                    <a href="https://fedorahosted.org/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" border="0" /></a>
                                 </span>
                             </td>
                             <td>
