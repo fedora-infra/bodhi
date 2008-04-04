@@ -112,6 +112,8 @@ def load_db():
             u['approved'] = None
         if u.has_key('update_id'):
             u['updateid'] = u['update_id']
+        if not u.has_key('date_modified'):
+            u['date_modified'] = None
 
         update = PackageUpdate(title=u['title'],
                                date_submitted=u['date_submitted'],
