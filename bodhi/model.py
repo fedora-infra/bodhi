@@ -61,6 +61,7 @@ class Release(SQLObject):
                     id_prefix=self.id_prefix, dist_tag=self.dist_tag,
                     locked=self.locked)
 
+
 class Package(SQLObject):
     name           = UnicodeCol(alternateID=True, notNone=True)
     builds         = MultipleJoin('PackageBuild', joinColumn='package_id')
@@ -92,6 +93,7 @@ class Package(SQLObject):
     def __json__(self):
         return dict(name=self.name, suggest_reboot=self.suggest_reboot,
                     committers=self.committers)
+
 
 class PackageBuild(SQLObject):
     nvr             = UnicodeCol(notNone=True, alternateID=True)
@@ -180,6 +182,7 @@ class PackageBuild(SQLObject):
 
     def __json__(self):
         return dict(nvr=self.nvr, package=self.package.__json__())
+
 
 class PackageUpdate(SQLObject):
     """ This class defines an update in our system. """

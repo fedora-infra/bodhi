@@ -170,6 +170,7 @@ class Root(controllers.RootController):
         return dict(message=msg, previous_url=previous_url, logging_in=True,
                     original_parameters=cherrypy.request.params,
                     forward_url=forward_url)
+
     @expose()
     def logout(self):
         identity.current.logout()
