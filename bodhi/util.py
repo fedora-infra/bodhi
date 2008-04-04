@@ -295,7 +295,7 @@ class Singleton(object):
         return cls._instance
 
 
-class ProgressBar:
+class ProgressBar(object):
     """ Creates a text-based progress bar """
 
     def __init__(self, minValue=0, maxValue=100, totalWidth=80):
