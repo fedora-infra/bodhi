@@ -1,12 +1,11 @@
 # $Id: $
 
 import turbogears
-from turbogears import testutil, config, database
+from turbogears import config
 
 turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
-database.set_db_uri("sqlite:///:memory:")
 
-class TestBuildsystem(testutil.DBTest):
+class TestBuildsystem:
 
     def test_valid_buildsys(self):
         buildsys = config.get('buildsystem')

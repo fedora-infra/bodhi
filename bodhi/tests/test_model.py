@@ -19,6 +19,14 @@ from yum.update_md import UpdateMetadata
 
 class TestPackageUpdate(testutil.DBTest):
 
+    def setUp(self):
+        testutil.DBTest.setUp(self)
+        turbogears.startup.startTurboGears()
+
+    def tearDown(self):
+        testutil.DBTest.tearDown(self)
+        turbogears.startup.stopTurboGears()
+
     def get_pkg(self, name='TurboGears'):
         try:
             pkg = Package.byName(name)
@@ -328,7 +336,6 @@ class TestPackageUpdate(testutil.DBTest):
         except SQLObjectNotFound:
             pass
 
-
     def test_request_complete(self):
         up = self.get_update()
         up.request = 'testing'
@@ -378,6 +385,14 @@ class TestPackageUpdate(testutil.DBTest):
 
 class TestBugzilla(testutil.DBTest):
 
+    def setUp(self):
+        testutil.DBTest.setUp(self)
+        turbogears.startup.startTurboGears()
+
+    def tearDown(self):
+        testutil.DBTest.tearDown(self)
+        turbogears.startup.stopTurboGears()
+
     def get_model(self):
         return Bugzilla
 
@@ -395,6 +410,14 @@ class TestBugzilla(testutil.DBTest):
 
 
 class TestRelease(testutil.DBTest):
+
+    def setUp(self):
+        testutil.DBTest.setUp(self)
+        turbogears.startup.startTurboGears()
+
+    def tearDown(self):
+        testutil.DBTest.tearDown(self)
+        turbogears.startup.stopTurboGears()
 
     def get_model(self):
         return Release
@@ -426,6 +449,14 @@ class TestRelease(testutil.DBTest):
 
 
 class TestPackage(testutil.DBTest):
+
+    def setUp(self):
+        testutil.DBTest.setUp(self)
+        turbogears.startup.startTurboGears()
+
+    def tearDown(self):
+        testutil.DBTest.tearDown(self)
+        turbogears.startup.stopTurboGears()
 
     def get_model(self):
         return Package

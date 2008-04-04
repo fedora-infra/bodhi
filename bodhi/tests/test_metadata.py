@@ -19,6 +19,14 @@ from yum.update_md import UpdateMetadata
 
 class TestExtendedMetadata(testutil.DBTest):
 
+    def setUp(self):
+        testutil.DBTest.setUp(self)
+        turbogears.startup.startTurboGears()
+
+    def tearDown(self):
+        testutil.DBTest.tearDown(self)
+        turbogears.startup.stopTurboGears()
+
     def test_extended_metadata(self):
         # grab the name of a build in updates-testing, and create it in our db
         koji = get_session()
@@ -90,7 +98,6 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Clean up
         shutil.rmtree(temprepo)
-
 
     def test_extended_metadata_updating(self):
         # grab the name of a build in updates-testing, and create it in our db
@@ -197,4 +204,3 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Clean up
         shutil.rmtree(temprepo)
-

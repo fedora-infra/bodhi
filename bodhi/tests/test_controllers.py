@@ -136,20 +136,6 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         assert "Invalid package name; must be in package-version-release format" in cherrypy.response.body[0]
 
-    # We don't need to specify releases anymore
-    #def test_bad_release(self):
-    #    session = login()
-    #    params = {
-    #        'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-    #        'release' : 'Ubuntu Bitchy Beaver',
-    #        'type'    : 'enhancement',
-    #        'bugs'    : '',
-    #        'cves'    : '',
-    #        'notes'   : ''
-    #    }
-    #    self.save_update(params, session)
-    #    assert "Value must be one of: F7; Fedora 7; F8; Fedora 8 (not \'Ubuntu Bitchy Beaver\')" in cherrypy.response.body[0]
-
     def test_bad_type(self):
         session = login()
         params = {
@@ -256,9 +242,6 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         f7build, f8build = params['builds'].split()
-        print cherrypy.response.body[0]
-        f7up = PackageUpdate.byTitle(f7build)
-        assert f7up
         f8up = PackageUpdate.byTitle(f8build)
         assert f8up
 
