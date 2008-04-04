@@ -103,7 +103,6 @@ $(document).ready(function() {
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/')}">${tg.identity.user_name}'s Home</a></li>
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
                 <li py:for="release in Releases().data">
-                <?python print "release =", release ?>
                   <a id="${release['name']}" href="${tg.url('/%s' % release['name'])}">${release['long_name']}</a>
                   <div id="${release['name']}_releases">
                     <ul>
@@ -114,7 +113,8 @@ $(document).ready(function() {
                     </ul>
                   </div>
                 </li>
-                <li><a href="${tg.url('/comments')}">Comments</a></li>
+                <li class="release"><a href="${tg.url('/comments')}" class="link">Comments</a><a href="${tg.url('/rss/rss2.0?comments=True')}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
+                </li>
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/logout')}">Logout</a></li>
                 <li py:if="tg.identity.anonymous"><a href="${tg.url('/login')}">Login</a></li>
             </ul>

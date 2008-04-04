@@ -15,17 +15,20 @@ from turbogears.feed import FeedController
 from turbogears import config, url
 from sqlobject.sqlbuilder import AND
 
-from bodhi.model import Release, PackageUpdate
+from bodhi.model import Release, PackageUpdate, Comment
 
 class Feed(FeedController):
 
-    def get_feed_data(self, release=None, type=None, status=None, *args, **kw):
+    def get_feed_data(self, release=None, type=None, status=None,
+                      comments=False, *args, **kw):
         query = []
         entries = []
         date = lambda update: update.date_pushed
         order = PackageUpdate.q.date_pushed
         title = []
 
+        if comments:
+            return self.get_latest_comments()
         if release:
             rel = Release.byName(release.upper())
             query.append(PackageUpdate.q.releaseID == rel.id)
@@ -73,4 +76,27 @@ class Feed(FeedController):
                 subtitle = "",
                 link = config.get('base_address') + url('/'),
                 entries = entries
+        )
+
+    def get_latest_comments(self):
+        entries = []
+        comments = Comment.select(Comment.q.author != 'bodhi', 
+                                  orderBy=Comment.q.timestamp).reversed()[:20]
+        for comment in comments:
+            entries.append({
+                'id'        : config.get('base_address') + \
+                              url(comment.update.get_url()),
+                'summary'   : comment.text,
+                'published' : comment.timestamp,
+                'link'      : config.get('base_address') + \
+                              url(comment.update.get_url()),
+                              'title'     : "[%s] [%s] [%d]" % (
+                                  comment.update.title, comment.author,
+                                  comment.karma)
+            })
+        return dict(
+                title = 'Latest Comments',
+                subtitle = "",
+                link = config.get('base_address') + url('/'),
+                entries = entries,
         )
