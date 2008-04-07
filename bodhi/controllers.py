@@ -382,6 +382,7 @@ class Root(controllers.RootController):
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
                 'edited'    : update.title,
+                'close_bugs': update.close_bugs,
         }
         if update.status == 'testing':
             flash("Editing this update will move it back to a pending state.")
