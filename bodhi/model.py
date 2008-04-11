@@ -549,6 +549,15 @@ class PackageUpdate(SQLObject):
         self.status = 'pending'
         mail.send_admin('unpushed', self)
 
+    def untag(self):
+        """ Untag all of the builds in this update """
+        log.info("Untagging %s" % self.title)
+        koji = buildsys.get_session()
+        tag = self.get_build_tag()
+        for build in self.builds:
+            koji.untagBuild(tag, build.nvr, force=True)
+        self.pushed = False
+
     def obsolete(self, newer=None):
         """
         Obsolete this update. Even though unpushing/obsoletion is an "instant"
@@ -556,7 +565,7 @@ class PackageUpdate(SQLObject):
         mash takes place.
         """
         log.debug("Obsoleting %s" % self.title)
-        self.unpush()
+        self.untag()
         self.status = 'obsolete'
         self.request = None
         if newer:
