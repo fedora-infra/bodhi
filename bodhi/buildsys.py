@@ -40,6 +40,7 @@ class Buildsystem:
     def listTags(self): raise NotImplementedError
     def listTagged(self): raise NotImplementedError
     def taskFinished(self): raise NotImplementedError
+    def untagBuild(self): raise NotImplementedError
 
 
 class DevBuildsys(Buildsystem):
@@ -48,6 +49,9 @@ class DevBuildsys(Buildsystem):
     """
     def moveBuild(self, *args, **kw):
         log.debug("moveBuild(%s, %s)" % (args, kw))
+
+    def untagBuild(self, *args, **kw):
+        log.debug("untagBuild(%s, %s)" % (args, kw))
 
     def ssl_login(self, *args, **kw):
         log.debug("ssl_login(%s, %s)" % (args, kw))
