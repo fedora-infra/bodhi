@@ -797,7 +797,7 @@ class Root(controllers.RootController):
     @validate(form=comment_form)
     @validate(validators={ 'karma' : validators.Int() })
     @identity.require(identity.not_anonymous())
-    def comment(self, text, title, karma, tg_errors=None):
+    def comment(self, text, title, karma=0, tg_errors=None):
         if tg_errors:
             flash_log(tg_errors)
         elif karma not in (0, 1, -1):
