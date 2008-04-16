@@ -226,6 +226,14 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 0
 
+        # Add a new comment, and make sure we can access the comments in the proper order
+        x = testutil.create_request('/updates/comment?text=woopdywoop&title=%s' %
+                                   params['builds'], method='POST',
+                                   headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert len(update.get_comments()) == 4
+        assert update.get_comments()[-1].text == 'woopdywoop', update.get_comments()
+
     # TODO:
     # - duplicate titles with updates
 
