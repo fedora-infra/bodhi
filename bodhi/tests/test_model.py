@@ -1,5 +1,6 @@
 # $Id: test_model.py,v 1.5 2006/12/31 09:10:25 lmacken Exp $
 
+import rpm
 import time
 import turbogears
 
@@ -8,55 +9,52 @@ turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
 from sqlobject import SQLObjectNotFound
+from yum.update_md import UpdateMetadata
 
+from bodhi.util import rpm_fileheader, get_nvr
+from bodhi.mail import messages, get_template
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild, Comment, User)
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
                               PostgresIntegrityError)
 
-from yum.update_md import UpdateMetadata
+
+def get_rel():
+    rel = None
+    try:
+        rel = Release.byName('fc7')
+    except SQLObjectNotFound:
+        rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
+                      dist_tag='dist-fc7')
+    return rel
+
+def get_pkg(name='TurboGears'):
+    try:
+        pkg = Package.byName(name)
+    except SQLObjectNotFound:
+        pkg = Package(name=name)
+    return pkg
+
+def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
+    package = get_pkg('-'.join(nvr.split('-')[:-2]))
+    package.committers = ['bobvila',]
+    try:
+        build = PackageBuild.byNvr(nvr)
+    except SQLObjectNotFound:
+        build = PackageBuild(nvr=nvr, package=package)
+    return build
 
 
 class TestPackageUpdate(testutil.DBTest):
 
-    def setUp(self):
-        testutil.DBTest.setUp(self)
-        turbogears.startup.startTurboGears()
-
-    def tearDown(self):
-        testutil.DBTest.tearDown(self)
-        turbogears.startup.stopTurboGears()
-
-    def get_pkg(self, name='TurboGears'):
-        try:
-            pkg = Package.byName(name)
-        except SQLObjectNotFound:
-            pkg = Package(name=name)
-        return pkg
-
-    def get_rel(self):
-        rel = None
-        try:
-            rel = Release.byName('fc7')
-        except SQLObjectNotFound:
-            rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
-                          dist_tag='dist-fc7')
-        return rel
-
-    def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
-        package = self.get_pkg('-'.join(nvr.split('-')[:-2]))
-        package.committers = ['bobvila',]
-        build = PackageBuild(nvr=nvr, package=package)
-        return build
-
     def get_update(self, name='TurboGears-1.0.2.2-2.fc7'):
         update = PackageUpdate(title=name,
-                               release=self.get_rel(),
+                               release=get_rel(),
                                submitter='foo@bar.com',
                                status='testing',
                                notes='foobar',
                                type='security')
-        build = self.get_build(name)
+        build = get_build(name)
         update.addPackageBuild(build)
         return update
 
@@ -80,7 +78,6 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_mail_notices(self):
         """ Make sure all of our mail notices can expand properly """
-        from bodhi.mail import messages
         me = User(user_name='guest', display_name='Guest')
         update = self.get_update()
         self.get_comment(update)
@@ -130,15 +127,14 @@ class TestPackageUpdate(testutil.DBTest):
                                                update.updateid)
 
     def test_multibuild(self):
-        from bodhi import util
         builds = ['yum-3.2.1-1.fc7', 'httpd-2.2.4-4.1.fc7']
         package_builds = []
-        release = self.get_rel()
+        release = get_rel()
         update = PackageUpdate(title=','.join(builds), release=release,
                                submitter='foo@bar.com', notes='Testing!',
                                type='bugfix')
         for build in builds:
-            nvr = util.get_nvr(build)
+            nvr = get_nvr(build)
             pkg = Package(name=nvr[0])
             b = PackageBuild(nvr=build, package=pkg)
             package_builds.append(b)
@@ -159,14 +155,14 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_encoding(self, buildnvr='yum-3.2.1-1.fc7'):
         update = PackageUpdate(title=buildnvr,
-                               release=self.get_rel(),
+                               release=get_rel(),
                                submitter=u'Foo \xc3\xa9 Bar <foo@bar.com>',
                                notes=u'Testing \u2019t stuff',
                                type='security')
         assert update
         assert update.notes == u'Testing \u2019t stuff'
         assert update.submitter == u'Foo \xc3\xa9 Bar <foo@bar.com>'
-        build = self.get_build(buildnvr)
+        build = get_build(buildnvr)
         update.addPackageBuild(build)
         update = PackageUpdate.byTitle(buildnvr)
         assert update.builds[0].updates[0] == update
@@ -205,7 +201,6 @@ class TestPackageUpdate(testutil.DBTest):
                 assert found
 
     def test_email(self):
-        from bodhi import mail
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
         bug = self.get_bug()
         cve = self.get_cve()
@@ -234,7 +229,7 @@ class TestPackageUpdate(testutil.DBTest):
             build.get_rpm_header = rpm_header
             build.get_latest = latest
 
-        templates = mail.get_template(update)
+        templates = get_template(update)
         assert templates
         assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: TurboGears-1.0.2.2-2.fc7'
         assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2008-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : turbogears.org\nSummary     : summary\nDescription :\ndescription\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum --enablerepo=updates-testing update TurboGears\' at the command line.\nFor more information, refer to "Managing Software with yum",\navailable at http://docs.fedoraproject.org/yum/.\n\nAll packages are signed with the Fedora Project GPG key.  More details on the\nGPG keys used by the Fedora Project can be found at\nhttp://fedoraproject.org/keys\n--------------------------------------------------------------------------------\n'
@@ -248,8 +243,6 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_changelog(self):
         if config.get('buildsystem') != 'koji': return
-        import rpm
-        from bodhi.util import rpm_fileheader
         update = self.get_update(name='yum-3.2.1-1.fc7')
         oldh = rpm_fileheader(update.builds[0].get_latest())
         oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
@@ -385,14 +378,6 @@ class TestPackageUpdate(testutil.DBTest):
 
 class TestBugzilla(testutil.DBTest):
 
-    def setUp(self):
-        testutil.DBTest.setUp(self)
-        turbogears.startup.startTurboGears()
-
-    def tearDown(self):
-        testutil.DBTest.tearDown(self)
-        turbogears.startup.stopTurboGears()
-
     def get_model(self):
         return Bugzilla
 
@@ -410,14 +395,6 @@ class TestBugzilla(testutil.DBTest):
 
 
 class TestRelease(testutil.DBTest):
-
-    def setUp(self):
-        testutil.DBTest.setUp(self)
-        turbogears.startup.startTurboGears()
-
-    def tearDown(self):
-        testutil.DBTest.tearDown(self)
-        turbogears.startup.stopTurboGears()
 
     def get_model(self):
         return Release
@@ -450,38 +427,22 @@ class TestRelease(testutil.DBTest):
 
 class TestPackage(testutil.DBTest):
 
-    def setUp(self):
-        testutil.DBTest.setUp(self)
-        turbogears.startup.startTurboGears()
-
-    def tearDown(self):
-        testutil.DBTest.tearDown(self)
-        turbogears.startup.stopTurboGears()
-
     def get_model(self):
         return Package
 
-    def get_rel(self):
-        rel = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
-                      dist_tag='dist-fc7')
-        return rel
-
-    def get_pkg(self, name='TurboGears'):
-        return Package(name=name)
-
     def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
-        package = self.get_pkg('-'.join(nvr.split('-')[:-2]))
+        package = get_pkg('-'.join(nvr.split('-')[:-2]))
         build = PackageBuild(nvr=nvr, package=package)
         return build
 
     def get_update(self, name='TurboGears-1.0.2.2-2.fc7'):
         update = PackageUpdate(title=name,
-                               release=self.get_rel(),
+                               release=get_rel(),
                                submitter='foo@bar.com',
                                status='testing',
                                notes='foobar',
                                type='security')
-        build = self.get_build(name)
+        build = get_build(name)
         update.addPackageBuild(build)
         return update
 
