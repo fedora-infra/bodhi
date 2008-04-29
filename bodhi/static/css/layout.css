@@ -531,3 +531,9 @@ td.value {
   margin: 0;
   padding: 0;
 }
+
+#mashstatus 
+{
+    overflow: scroll;
+    height: 50em;
+}

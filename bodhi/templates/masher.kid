@@ -21,7 +21,7 @@ mashlinks = mashlinks[:-1] + ']'
         <b>Mash Tag:</b> ${XML(mashlinks)}<br/>
         <a href="${tg.url('/admin/masher/lastlog')}">View most recent mash log</a>
         <br/>
-        <pre><h3>${masher_str}</h3></pre>
+        <pre><div id="mashstatus"><h3>${masher_str}</h3></div></pre>
     </blockquote>
 </body>
 </html>
