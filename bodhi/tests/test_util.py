@@ -3,7 +3,7 @@ from bodhi.util import Singleton
 class TestUtil:
 
     def test_singleton(self):
-        """ Make sure our Singleton metaclass actually works """
+        """ Make sure our Singleton class actually works """
         class A(Singleton):
             pass
         a = A()
