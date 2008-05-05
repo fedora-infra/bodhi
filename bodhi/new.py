@@ -46,6 +46,7 @@ class NewUpdateController(controllers.Controller):
         If a package is specified (or 'pkg-'), return a list of available
         n-v-r's.  This method also auto-completes packages.
         """
+        if not name: return dict()
         matches = []
         if not self.packages: self.build_pkglist()
         if name[-1] == '-' and name[:-1] and name[:-1] in self.packages:
