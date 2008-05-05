@@ -228,12 +228,9 @@ class BodhiClient(BaseClient):
 def setup_logger():
     global log
     sh = logging.StreamHandler()
-    if opts.verbose:
-        log.setLevel(logging.DEBUG)
-        sh.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
-        sh.setLevel(logging.INFO)
+    level = opts.verbose and logging.DEBUG or logging.INFO
+    log.setLevel(level)
+    sh.setLevel(level)
     format = logging.Formatter("%(message)s")
     sh.setFormatter(format)
     log.addHandler(sh)
