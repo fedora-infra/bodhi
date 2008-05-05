@@ -3,7 +3,7 @@
         AutoCompleteManager${field_id} = new AutoCompleteManager('${field_id}',
         '${text_field.field_id}', '${hidden_field.field_id}',
         '${search_controller}', '${search_param}', '${result_name}',${str(only_suggest).lower()},
-        '${tg.widgets}/turbogears.widgets/spinner.gif', 0.2);
+        '${tg.widgets}/turbogears.widgets/spinner.gif', 0.2, false, 2);
         addLoadEvent(AutoCompleteManager${field_id}.initialize);
     </script>
     <table cellpadding="0" cellspacing="0" border="0">
