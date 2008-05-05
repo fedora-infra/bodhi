@@ -27,7 +27,7 @@ from getpass import getpass, getuser
 from optparse import OptionParser
 from ConfigParser import ConfigParser
 
-from fedora.tg.client import BaseClient, AuthError, ServerError
+from fedora.client import BaseClient, AuthError, ServerError
 
 __version__ = '$Revision: $'[11:-2]
 __description__ = 'Command line tool for interacting with Bodhi'
