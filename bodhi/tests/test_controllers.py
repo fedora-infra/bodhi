@@ -402,7 +402,6 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/testing/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        print "update.request =", update.request
         assert update.request == 'testing'
         testutil.create_request('/updates/request/unpush/%s' % params['builds'],
                                method='POST', headers=session)
@@ -413,6 +412,40 @@ class TestControllers(testutil.DBTest):
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable'
+
+    def test_unauthorized_request(self):
+        session = login()
+        create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : '',
+            'request' : 'testing',
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        update.submitter = 'bobvila'
+        testutil.create_request('/updates/request?action=stable&update=%s' %
+                                params['builds'])
+        assert "You must provide your credentials before accessing this resource." in cherrypy.response.body[0]
+
+    def test_invalid_request(self):
+        session = login()
+        create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : '',
+            'request' : 'foobar!',
+        }
+        self.save_update(params, session)
+        assert "Value must be one of: Testing; Stable; None; testing; stable; none (not u'foobar!')" in cherrypy.response.body[0]
 
     def test_cve_bugs(self):
         session = login()
