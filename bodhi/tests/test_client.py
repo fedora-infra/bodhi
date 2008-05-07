@@ -66,8 +66,8 @@ class TestClient(testutil.DBTest):
         turbogears.startup.startTurboGears()
 
     def tearDown(self):
-        testutil.DBTest.tearDown(self)
         turbogears.startup.stopTurboGears()
+        testutil.DBTest.tearDown(self)
 
     def __get_bodhi_client(self):
         return BodhiTestClient('http://localhost:8084/updates', 'guest', None)
