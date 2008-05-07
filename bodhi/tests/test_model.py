@@ -357,6 +357,8 @@ class TestPackageUpdate(testutil.DBTest):
         assert not up.pushed
 
     def test_status_comment(self):
+        """ Make sure that we can properly add status comments to updates,
+            and that they appear in the correct order. """
         up = self.get_update()
         assert len(up.comments) == 0
         up.status = 'testing'
@@ -376,6 +378,7 @@ class TestPackageUpdate(testutil.DBTest):
         assert up.comments[2].text == 'This update has been obsoleted'
 
 
+
 class TestBugzilla(testutil.DBTest):
 
     def get_model(self):
@@ -390,21 +393,12 @@ class TestBugzilla(testutil.DBTest):
         if config.get('bodhi_password'):
             assert bug.title == 'CVE-2007-2165: proftpd auth bypass vulnerability'
 
-    def test_bugzilla_module(self):
-        assert Bugzilla.get_bz()
-
-
-class TestRelease(testutil.DBTest):
-
-    def get_model(self):
-        return Release
-
-    def get_instance(self):
+    def get_release(self):
         return Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
                        dist_tag='dist-fc7')
 
     def test_creation(self):
-        rel = self.get_instance()
+        rel = self.get_release()
         assert rel
         assert rel.name == 'fc7'
         assert rel.long_name == 'Fedora 7'
@@ -412,7 +406,7 @@ class TestRelease(testutil.DBTest):
         assert rel.dist_tag == 'dist-fc7'
 
     def test_get_version(self):
-        rel = self.get_instance()
+        rel = self.get_release()
         assert rel.get_version() == 7
 
         # test multi-digit releases
