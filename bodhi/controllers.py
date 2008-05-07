@@ -125,8 +125,6 @@ class Root(controllers.RootController):
                 ]
             ]
 
-        from bodhi.widgets import SortableDataGrid
-
         for key, value in grids.items():
             if not value[RESULTS].count():
                 grids[key].append(None)
@@ -134,8 +132,8 @@ class Root(controllers.RootController):
             if value[RESULTS].count() > 5:
                 value[RESULTS] = value[RESULTS][:5]
             value[RESULTS] = list(value[RESULTS])
-            grids[key].append(SortableDataGrid(name=key, fields=value[FIELDS],
-                                               default=value[RESULTS]))
+            grids[key].append(DataGrid(name=key, fields=value[FIELDS],
+                                       default=value[RESULTS]))
 
         return dict(now=datetime.utcnow(), updates=grids[updates][GRID],
                     comments=grids['comments'][GRID])
