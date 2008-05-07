@@ -74,9 +74,6 @@ class LocalCSSLink(CSSLink):
         super(LocalCSSLink, self).update_params(d)
         d["link"] = url(self.name)
 
-class AutoCompletePackage(AutoCompleteField):
-    javascript = [LocalJSLink('bodhi', '/static/js/MochiKit.js'),
-                  JSLink("turbogears.widgets","autocompletefield.js")]
 
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
@@ -84,11 +81,11 @@ class NewUpdateForm(Form):
     update_types = config.get('update_types').split()
     request_types = ['Testing', 'Stable', 'None']
     fields = [
-            AutoCompletePackage('builds', label='Package',
-                                search_controller=url('/new/search'),
-                                search_param='name', result_name='pkgs',
-                                template='bodhi.templates.packagefield',
-                                validator=AutoCompleteValidator()),
+            AutoCompleteField('builds', label='Package',
+                              search_controller=url('/new/search'),
+                              search_param='name', result_name='pkgs',
+                              template='bodhi.templates.packagefield',
+                              validator=AutoCompleteValidator()),
             CheckBox('inheritance', label='Follow Build inheritance',
                      default=False, attrs={'title' : 'Build Inheritance - '
                                                      'TODO'}),
