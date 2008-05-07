@@ -286,6 +286,8 @@ def build_evr(build):
         build['epoch'] = 0
     return (str(build['epoch']), build['version'], build['release'])
 
+def link(text, href):
+    return '<a href="%s">%s</a>' % (url(href), text)
 
 class Singleton(object):
 

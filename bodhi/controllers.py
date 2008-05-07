@@ -29,7 +29,7 @@ from turbogears.widgets import DataGrid
 from bodhi import buildsys, util
 from bodhi.rss import Feed
 from bodhi.new import NewUpdateController, update_form
-from bodhi.util import make_update_link, make_type_icon, make_karma_icon
+from bodhi.util import make_update_link, make_type_icon, make_karma_icon, link
 from bodhi.util import flash_log, get_pkg_pushers, make_request_icon
 from bodhi.admin import AdminController
 from bodhi.metrics import Metrics
@@ -420,13 +420,16 @@ class Root(controllers.RootController):
         }
 
         # Make sure this update doesn't already exist
-        try:
-            update = PackageUpdate.byTitle(','.join(builds))
-            flash_log("%s update already exists!" % update.title)
-            if self.jsonRequest(): return dict()
-            raise redirect('/new', **params)
-        except SQLObjectNotFound:
-            pass
+        if not edited:
+            for build in builds:
+                try:
+                    b = PackageBuild.byNvr(build)
+                    flash_log("%s update already exists!" % 
+                              link(build, b.updates[0].get_url()))
+                    if self.jsonRequest(): return dict()
+                    raise redirect('/new', **params)
+                except SQLObjectNotFound:
+                    pass
 
         # Make sure the submitter has commit access to these builds
         for build in builds:
@@ -606,7 +609,8 @@ class Root(controllers.RootController):
                             log.debug("Destroying %s" % build.nvr)
                             build.destroySelf()
             else:
-                update = PackageUpdate(title=','.join(builds), release=release,
+                update = PackageUpdate(title=','.join(builds),
+                                       release=release,
                                        submitter=identity.current.user_name,
                                        notes=notes, type=type,
                                        close_bugs=close_bugs)
