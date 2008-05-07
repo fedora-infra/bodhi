@@ -49,7 +49,7 @@
             type="hidden" name="${name}" value="${value}"/>
     </form>
     <blockquote>
-        <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/reset-password.cgi">Fedora Accounts System</a>.</p>
+        <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/user/resetpass">Fedora Accounts System</a>.</p>
     </blockquote>
 
 </body>
