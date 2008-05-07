@@ -130,7 +130,7 @@ $(document).ready(function() {
             <div id="page-main">
 
                 <center>
-                    <div style="display: none;" id="flash" py:if="tg_flash" class="flash" py:content="tg_flash"></div>
+                    <div style="display: none;" id="flash" py:if="tg_flash" class="flash" py:content="XML(tg_flash)"></div>
                 </center>
                 <div py:replace="[item.text]+item[:]"/>
 
