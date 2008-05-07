@@ -74,7 +74,7 @@ def save_db():
         data['notes'] = update.notes
         data['request'] = update.request
         data['comments'] = [(c.timestamp, c.author, c.text, c.karma) for c in update.comments]
-        if hasattr(update, 'approved') and update.approved not in (True, False):
+        if hasattr(update, 'approved'):
             data['approved'] = update.approved
         else:
             data['approved'] = None
