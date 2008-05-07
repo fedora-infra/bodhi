@@ -182,7 +182,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
         <span py:if="update.comments">
             <td class="title"><b>Comments:</b></td>
             <td class="value">
-                <div py:for="comment in update.comments">
+                <div py:for="comment in update.get_comments()">
                     <img py:attrs="{'src' : tg.url('/static/images/comment-%d.png' % comment.karma)}" hspace="3"/><b>${comment.author}</b> - ${comment.timestamp}<br/>
                     <div py:replace="comment.text">Comment</div>
                 </div>

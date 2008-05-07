@@ -646,6 +646,12 @@ class PackageUpdate(SQLObject):
                 nagged=self.nagged,
                 approved=self.approved)
 
+    def get_comments(self):
+        sorted = []
+        sorted.extend(self.comments)
+        sorted.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
+        return sorted
+
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
