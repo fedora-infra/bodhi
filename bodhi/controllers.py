@@ -37,7 +37,7 @@ from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
 from bodhi.widgets import CommentForm, OkCancelForm, CommentCaptchaForm
-from bodhi.exceptions import (DuplicateEntryError,
+from bodhi.exceptions import (DuplicateEntryError, InvalidRequest,
                               PostgresIntegrityError, SQLiteIntegrityError)
 
 log = logging.getLogger(__name__)
@@ -278,52 +278,14 @@ class Root(controllers.RootController):
         log.debug("request(%s, %s)" % (action, update))
         try:
             update = PackageUpdate.byTitle(update)
+            update.set_request(action)
         except SQLObjectNotFound:
             flash_log("Cannot find update %s for action: %s" % (update, action))
             if self.jsonRequest(): return dict()
             raise redirect('/')
-        if not util.authorized_user(update, identity):
-            flash_log("Unauthorized to perform action on %s" % update.title)
-            if self.jsonRequest(): return dict()
-            raise redirect(update.get_url())
-        if action == update.status:
-            flash_log("%s already %s" % (update.title, action))
-            if self.jsonRequest: return dict()
-            raise redirect(update.get_url())
-        if action == update.request:
-            flash_log("%s has already been submitted to %s" % (update.title,
-                                                               update.request))
-            if self.jsonRequest: return dict()
-            raise redirect(update.get_url())
-        if action == 'unpush':
-            update.unpush()
-            flash_log("%s has been unpushed" % update.title)
-            if self.jsonRequest(): return dict(update=unicode(update))
-            raise redirect(update.get_url())
-        if action == 'obsolete':
-            update.obsolete()
-            flash_log("%s has been obsoleted" % update.title)
-            if self.jsonRequest(): return dict(update=unicode(update))
-            raise redirect(update.get_url())
-        if action not in ('testing', 'stable', 'obsolete'):
-            flash_log("Unknown request: %s" % action)
-            if self.jsonRequest(): return dict()
-            raise redirect(update.get_url())
-        if action == 'stable' and update.type == 'security' and \
-           not update.approved:
-            flash_log("%s will be pushed to testing while it awaits approval "
-                      "of the Security Team" % update.title)
-            update.request = 'testing'
-            mail.send(config.get('security_team'), 'security', update)
-            if self.jsonRequest(): return dict()
-            raise redirect(update.get_url())
-
-        update.request = action
-        update.pushed = False
-        update.date_pushed = None
-        flash_log("%s has been submitted for %s" % (update.title, action))
-        mail.send_admin(action, update)
-        if self.jsonRequest(): return dict()
+        except InvalidRequest, e:
+            flash_log(str(e))
+        if self.jsonRequest(): return dict(update=update)
         raise redirect(update.get_url())
 
     @expose()

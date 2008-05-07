@@ -31,8 +31,8 @@ from textwrap import wrap
 
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
-from bodhi.util import Singleton
-from bodhi.exceptions import RPMNotFound
+from bodhi.util import Singleton, authorized_user, flash_log
+from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 
 log = logging.getLogger(__name__)
@@ -252,10 +252,48 @@ class PackageUpdate(SQLObject):
         except (AttributeError, IndexError):
             id = 1
         self.updateid = u'%s-%s-%0.4d' % (self.release.id_prefix,
-                                           time.localtime()[0],id)
+                                          time.localtime()[0],id)
         log.debug("Setting updateid for %s to %s" % (self.title,
                                                      self.updateid))
         hub.commit()
+
+    def set_request(self, action):
+        """ Attempt to request an action for this update.
+
+        This method either sets the given request on this update, or raises
+        an InvalidRequest exception.
+
+        At the moment, this method cannot be called outside of a request.
+        """
+        if not authorized_user(self, identity):
+            raise InvalidRequest("Unauthorized to perform action on %s" %
+                                 self.title)
+        if action not in ('testing', 'stable', 'obsolete', 'unpush'):
+            raise InvalidRequest("Unknown request: %s" % action)
+        if action == self.status:
+            raise InvalidRequest("%s already %s" % (self.title, action))
+        if action == self.request:
+            raise InvalidRequest("%s has already been submitted to %s" % (
+                                 self.title, self.request))
+
+        if action == 'unpush':
+            self.unpush()
+            flash_log("%s has been unpushed" % self.title)
+        elif action == 'obsolete':
+            self.obsolete()
+            flash_log("%s has been obsoleted" % self.title)
+        elif action == 'stable' and self.type == 'security' and \
+                not self.approved:
+            flash_log("%s will be pushed to testing while it awaits approval "
+                      "of the Security Team" % self.title)
+            self.request = 'testing'
+            mail.send(config.get('security_team'), 'security', self)
+        else:
+            self.request = action
+            self.pushed = False
+            self.date_pushed = None
+            flash_log("%s has been submitted for %s" % (self.title, action))
+            mail.send_admin(action, self)
 
     def request_complete(self):
         """
