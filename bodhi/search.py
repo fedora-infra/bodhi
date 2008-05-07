@@ -67,5 +67,10 @@ class SearchController(Controller):
             map(lambda cve: map(results.add, cve.updates),
                 CVE.select(CVE.q.cve_id==search))
 
-        return dict(updates=list(results), num_items=len(results),
-                    title="%d Results Found" % len(results))
+        # If there is only 1 result, then jump right to it
+        num_items = len(results)
+        if len(results) == 1:
+            raise redirect(results.pop().get_url())
+
+        return dict(updates=list(results), num_items=num_items,
+                    title="%d Results Found" % num_items)
