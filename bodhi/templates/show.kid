@@ -20,7 +20,6 @@ for bug in update.bugs:
     bugs += '<a href="%s">%d</a> ' % (bug.get_url(), bug.bz_id)
     if bug.title:
         bugs += '- %s<br/>' % (escape(bug.title))
-bugs = bugs.replace('&', '&amp;')
 cves = ''
 for cve in update.cves:
     cves += '<a href="%s">%s</a><br/>'% (cve.get_url(), cve.cve_id)
