@@ -113,8 +113,7 @@ class TestPackageUpdate(testutil.DBTest):
     def test_url(self):
         update = self.get_update()
         print "URL = ", update.get_url()
-        url = lambda update: '/%s/%s/%s' % (update.release.name, update.status,
-                                            update.title)
+        url = lambda update: '/%s' % update.title
         update.status = 'pending'
         assert update.get_url() == url(update)
         update.status = 'testing'
@@ -447,3 +446,10 @@ class TestPackage(testutil.DBTest):
         update = self.get_update()
         pkg = update.builds[0].package
         assert len([up for up in pkg.updates()]) == 1
+
+class TestPackageBuild(testutil.DBTest):
+
+    def test_url(self):
+        nvr = 'TurboGears-4.0.3.3-1.fc9'
+        build = PackageBuild(nvr=nvr, package=0)
+        assert build.get_url() == '/' + nvr
