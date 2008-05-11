@@ -393,6 +393,9 @@ class TestBugzilla(testutil.DBTest):
         if config.get('bodhi_password'):
             assert bug.title == 'CVE-2007-2165: proftpd auth bypass vulnerability'
 
+
+class TestRelease(testutil.DBTest):
+
     def get_release(self):
         return Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
                        dist_tag='dist-fc7')
