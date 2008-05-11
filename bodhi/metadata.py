@@ -55,7 +55,7 @@ class ExtendedMetadata:
                 for build in update.builds:
                     if not umd.get_notice(build.nvr):
                         log.debug("Adding %s to updateinfo" % build.nvr)
-                        self.add(update)
+                        self.updates.add(update)
                         break
 
             # Add all relevant notices from the metadata to this document
