@@ -638,10 +638,13 @@ class Root(controllers.RootController):
         """
         This method allows for the following requests
 
-            /release/status/update
-            /release/security
-            /release/updateid
-            /packagename
+            /Package.name
+            /PackageUpdate.title
+            /PackageBuild.nvr
+            /Release.name
+            /Release.name/PackageUpdate.update_id
+            /Release.name/PackageUpdate.status
+            /Release.name/PackageUpdate.status/PackageUpdate.title
         """
         args = list(args)
         status = 'stable'
@@ -650,13 +653,42 @@ class Root(controllers.RootController):
         release = None
         single = None
         query = []
-
+        form = identity.current.anonymous and self.comment_captcha_form \
+                                           or self.comment_form
         # /Package.name
         if len(args) == 1:
             try:
                 package = Package.byName(args[0])
                 return dict(tg_template='bodhi.templates.pkg', pkg=package,
                             updates=[])
+            except SQLObjectNotFound:
+                pass
+
+            # /PackageUpdate.title
+            try:
+                update = PackageUpdate.byTitle(args[0])
+                return dict(tg_template='bodhi.templates.show', update=update,
+                            updates=[], comment_form=form,
+                            values={'title': update.title})
+            except SQLObjectNotFound:
+                pass
+
+            # /Build.nvr
+            try:
+                build = PackageBuild.byNvr(args[0])
+                if not len(build.updates):
+                    # no updates associated with this build
+                    return dict(tg_template=template, updates=[], num_items=0,
+                                title='There are no updates for %s' % build.nvr)
+                elif len(build.updates) > 1:
+                    # multiple updates associated with this build
+                    return dict(tg_templates=template, updates=build.updates,
+                                num_items=len(build.updates),
+                                title='Updates for %s' % build.nvr)
+                # show the update associated with this build
+                return dict(tg_template='bodhi.templates.show',
+                            update=build.updates[0], updates=[], comment_form=form,
+                            values={'title' : build.updates[0].title})
             except SQLObjectNotFound:
                 pass
 
@@ -703,8 +735,6 @@ class Root(controllers.RootController):
         if num_updates and (num_updates == 1 or single):
             update = updates[0]
             update.comments.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
-            form = identity.current.anonymous and self.comment_captcha_form \
-                    or self.comment_form
             return dict(tg_template='bodhi.templates.show', update=update,
                         updates=[], comment_form=form,
                         values={'title' : update.title})
