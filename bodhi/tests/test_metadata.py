@@ -83,7 +83,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         # FC6's yum update metadata parser doesn't know about some stuff
         from yum import __version__
-        if __version__ != '3.0.6':
+        if __version__ >= '3.0.6':
             assert notice['title'] == update.title
             assert notice['release'] == update.release.long_name
             assert cve['title'] == None
@@ -154,7 +154,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         # FC6's yum update metadata parser doesn't know about some stuff
         from yum import __version__
-        if __version__ != '3.0.6':
+        if __version__ >= '3.0.6':
             assert notice['title'] == update.title
             assert notice['release'] == update.release.long_name
             assert cve['title'] == None
@@ -189,7 +189,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         # FC6's yum update metadata parser doesn't know about some stuff
         from yum import __version__
-        if __version__ != '3.0.6':
+        if __version__ >= '3.0.6':
             assert notice['title'] == update.title
             assert notice['release'] == update.release.long_name
             assert cve['title'] == None
