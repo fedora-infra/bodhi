@@ -180,6 +180,10 @@ class PackageBuild(SQLObject):
 
         return latest_srpm
 
+    def get_url(self):
+        """ Return a the url to details about this build """
+        return '/' + self.nvr
+
     def __json__(self):
         return dict(nvr=self.nvr, package=self.package.__json__())
 
