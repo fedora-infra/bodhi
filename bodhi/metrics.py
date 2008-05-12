@@ -172,8 +172,7 @@ class MetricData(Singleton):
                     for tlmonth, tlnum in timeline[update_type]:
                         if tlmonth == m[i][0]:
                             timeline[update_type].remove((tlmonth, tlnum))
-                            timeline[update_type].append(
-                                    (newid, tlnum))
+                            timeline[update_type].append((newid, tlnum))
                 m[i][0] = newid
             months += m
 
