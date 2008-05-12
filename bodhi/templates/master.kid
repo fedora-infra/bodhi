@@ -102,6 +102,7 @@ $(document).ready(function() {
             <ul id="fedora-side-nav">
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/')}">${tg.identity.user_name}'s Home</a></li>
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
+                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/new')}">New Update</a></li>
                 <li py:for="release in Releases().data">
                   <a id="${release['name']}" href="${tg.url('/%s' % release['name'])}">${release['long_name']}</a>
                   <div id="${release['name']}_releases">
