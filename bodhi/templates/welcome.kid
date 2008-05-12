@@ -13,7 +13,6 @@
 
     <script language="javascript">
         $(document).ready(function(){
-            $('#metricstip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
             $('#bodhitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
             $('#wftip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
             $('#clitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
@@ -31,11 +30,6 @@
                 <td align="right">
                     <table>
                         <tr>
-                            <td>
-                                <span id="metricstip" title="Metrics">
-                                    <a href="${tg.url('/metrics')}"><img src="${tg.url('/static/images/metrics.png')}" border="0" /></a>
-                                </span>
-                            </td>
                             <td>
                                 <span id="bodhitip" title="Bodhi Project Homepage">
                                     <a href="http://fedorahosted.org/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>

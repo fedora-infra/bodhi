@@ -270,4 +270,4 @@ class Metrics(Controller):
         return dict(all=metrics['all'], most_updates=metrics['most_updates'],
                     active_devs=metrics['active_devs'],
                     best_karma=metrics['best_karma'],
-                    title="%s Metrics" % rel.long_name)
+                    title="%s Update Metrics" % rel.long_name)
