@@ -89,8 +89,6 @@ class NewUpdateForm(Form):
             CheckBox('inheritance', label='Follow Build inheritance',
                      default=False, attrs={'title' : 'Build Inheritance - '
                                                      'TODO'}),
-            #SingleSelectField('release', options=get_release_names,
-            #                  validator=validators.OneOf(get_release_tuples())),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             SingleSelectField('request', options=request_types,
@@ -113,7 +111,11 @@ class NewUpdateForm(Form):
                                                     'pushed as stable'}),
             HiddenField('edited', default=None),
             CheckBox(name='suggest_reboot', label='Suggest Reboot',
-                     default=False)
+                     default=False, attrs={'title': 'Suggest Reboot - '
+                                                    'Recommend that the user '
+                                                    'restarts their machine '
+                                                    'after installing this '
+                                                    'update'})
     ]
 
 class OkCancelForm(Form):
