@@ -125,11 +125,12 @@ def schedule():
     """ Schedule our periodic tasks """
 
     # Weekly repository cleanup
-    scheduler.add_weekday_task(action=clean_repo,
-                               weekdays=range(1,8),
-                               timeonday=(0,0))
+    scheduler.add_interval_task(action=clean_repo,
+                                taskname="Clean update repositories",
+                                initialdelay=604800,
+                                interval=604800)
 
-    # Weekly nagmail
+    # Daily nagmail
     scheduler.add_weekday_task(action=nagmail,
                                weekdays=range(1,8),
                                timeonday=(0,0))
@@ -148,4 +149,4 @@ def schedule():
     scheduler.add_interval_task(action=refresh_metrics,
                                 taskname='Refresh our metrics',
                                 initialdelay=0,
-                                interval=604800)
+                                interval=172800)
