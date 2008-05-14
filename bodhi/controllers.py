@@ -387,7 +387,7 @@ class Root(controllers.RootController):
                 try:
                     b = PackageBuild.byNvr(build)
                     flash_log("%s update already exists!" % 
-                              link(build, b.updates[0].get_url()))
+                              link(build, b.get_url()))
                     if self.jsonRequest(): return dict()
                     raise redirect('/new', **params)
                 except SQLObjectNotFound:
@@ -430,6 +430,7 @@ class Root(controllers.RootController):
         if edited:
             try:
                 edited = PackageUpdate.byTitle(edited)
+                edited.unpush()
             except SQLObjectNotFound:
                 flash_log("Cannot find update '%s' to edit" % edited)
                 if self.jsonRequest(): return dict()
@@ -440,7 +441,6 @@ class Root(controllers.RootController):
                           config.get('release_team_address'))
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
-            edited.unpush()
 
         # Make sure all builds are tagged appropriately.  We also determine
         # which builds get pushed for which releases, based on the tag.
@@ -467,6 +467,8 @@ class Root(controllers.RootController):
                             releases[rel].append(build)
                         buildinfo[build]['releases'].add(rel)
                         valid = True
+                    else:
+                        log.error("Cannot find release for %s" % dist[0])
 
             # if we're using build inheritance, iterate over each release
             # looking to see if the latest build in its candidate tag 
@@ -595,21 +597,15 @@ class Root(controllers.RootController):
                         update.type = 'security'
                         break
 
-            # Gather all of the committers for the packages in this update
-            people = set()
-            for build in update.builds:
-                for committer in build.package.committers:
-                    people.add(committer)
-
             # Send out mail notifications
             if edited:
-                mail.send(people, 'edited', update)
+                mail.send(update.get_maintainers(), 'edited', update)
                 note.insert(0, "Update successfully edited")
             else:
                 # Notify security team of newly submitted security updates
                 if update.type == 'security':
                     mail.send(config.get('security_team'), 'security', update)
-                mail.send(people, 'new', update)
+                mail.send(update.get_maintainers(), 'new', update)
                 note.insert(0, "Update successfully created")
 
                 # Comment on all bugs
@@ -622,15 +618,23 @@ class Root(controllers.RootController):
             # If a request is specified, make it.  By default we're submitting
             # new updates directly into testing
             if request and request != "None" and request != update.request:
-                self.request(request.lower(), update.title)
+                try:
+                    update.set_request(request.lower())
+                except InvalidRequest, e:
+                    flash_log(str(e))
+                    if self.jsonRequest(): return dict()
+                    raise redirect('/new', **params)
 
         flash_log('. '.join(note))
 
         if self.jsonRequest():
             return dict(updates=updates)
-
-        # TODO: if there are more than 1 update, redirect to a list of them
-        raise redirect(updates[0].get_url())
+        elif len(updates) > 1:
+            return dict(tg_template='bodhi.templates.list',
+                        updates=updates, num_items=0,
+                        title='Updates sucessfully created!')
+        else:
+            raise redirect(updates[0].get_url())
 
     @expose(template='bodhi.templates.list')
     @paginate('updates', limit=20, allow_limit_override=True)
@@ -682,7 +686,7 @@ class Root(controllers.RootController):
                                 title='There are no updates for %s' % build.nvr)
                 elif len(build.updates) > 1:
                     # multiple updates associated with this build
-                    return dict(tg_templates=template, updates=build.updates,
+                    return dict(tg_template=template, updates=build.updates,
                                 num_items=len(build.updates),
                                 title='Updates for %s' % build.nvr)
                 # show the update associated with this build
