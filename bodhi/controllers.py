@@ -80,7 +80,8 @@ class Root(controllers.RootController):
         # { 'Title' : [SelectResults, [(row, row_callback),]], ... }
         grids = {
             'comments' : [
-                Comment.select(orderBy=Comment.q.timestamp).reversed(),
+                Comment.select(Comment.q.author != 'bodhi',
+                               orderBy=Comment.q.timestamp).reversed(),
                 [
                     ('Update', make_update_link),
                     ('Comment', lambda row: row.text),
