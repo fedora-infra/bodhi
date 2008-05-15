@@ -37,7 +37,8 @@ class MetricData(Singleton):
 
             # Start all of our co-routines
             coroutines = [self.all(), self.most_updated(),
-                          self.active_devs(), self.karma()]
+                          self.active_devs(), self.karma(),
+                          self.top_testers()]
             for coroutine in coroutines:
                 coroutine.next()
 
@@ -120,6 +121,17 @@ class MetricData(Singleton):
                     'xaxis': {'ticks': self.karma_data['bestpkgs']}
                 },
                 label = 'Packages with best karma'
+            )
+
+            self.widgets[release.name]['top_testers'] = TurboFlot([
+                {
+                    'data': self.tester_data['data'],
+                    'bars': {'show': True}
+                }],
+                {
+                    'xaxis': {'ticks': self.tester_data['people']}
+                },
+                label = 'Top testers'
             )
 
     def all(self):
@@ -251,6 +263,27 @@ class MetricData(Singleton):
             del worstitems, bestitems
             self.karma_data = dict(best=bestdata, bestpkgs=bestpkgs.items(),
                                    worst=worstdata, worstpkgs=worstpkgs.items())
+
+    def top_testers(self):
+        data = {}
+        people = {}
+        try:
+            while True:
+                update = (yield)
+                for comment in update.comments:
+                    if comment.author == 'bodhi': continue
+                    if not data.has_key(comment.author):
+                        data[comment.author] = 0
+                    data[comment.author] += 1
+        except GeneratorExit:
+            items = data.items()
+            items.sort(key=lambda x: x[1], reverse=True)
+            items = items[:10]
+            data = []
+            for i, item in enumerate(items):
+                people[i + 0.5] = item[0]
+                data.append((i, item[1]))
+            self.tester_data = dict(people=people.items(), data=data)
 
 
 class Metrics(Controller):
