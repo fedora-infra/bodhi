@@ -504,7 +504,8 @@ class Root(controllers.RootController):
                 for tag in tags:
                     log.info("Checking for broken update paths in " + tag)
                     pkg = buildinfo[build]['nvr'][0]
-                    for oldBuild in koji.listTagged(tag, package=pkg):
+                    for oldBuild in koji.listTagged(tag, package=pkg,
+                                                    latest=True):
                         if rpm.labelCompare(util.build_evr(kojiBuild),
                                             util.build_evr(oldBuild)) < 0:
                             flash_log("Broken update path: %s is older "
