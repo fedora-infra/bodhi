@@ -589,7 +589,10 @@ class Root(controllers.RootController):
                     update.addPackageBuild(build)
 
             # Add/remove the necessary Bugzillas
-            update.update_bugs(bugs)
+            try:
+                update.update_bugs(bugs)
+            except xmlrpclib.Fault:
+                note.insert(0, "Unable to access one or more bugs")
 
             # If there are any security bugs, make sure this update is
             # properly marked as a security update
