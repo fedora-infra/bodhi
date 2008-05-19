@@ -14,6 +14,7 @@
 
 import rpm
 import mail
+import urllib2
 import logging
 import cherrypy
 
@@ -409,8 +410,9 @@ class Root(controllers.RootController):
                 people, groups = get_pkg_pushers(pkg)
                 people = people[0] # we only care about committers, not watchers
                 buildinfo[build]['people'] = people
-            except Exception, e:
-                flash_log(e)
+            except urllib2.URLError:
+                flash_log("Unable to access the package database.  Please "
+                          "notify an administrator in #fedora-admin")
                 if self.jsonRequest(): return dict()
                 raise redirect('/new', **params)
 

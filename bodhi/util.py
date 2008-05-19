@@ -228,13 +228,9 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
       if so.
     """
     pkgPage = None
-    try:
-        pkgPage = urllib2.urlopen(config.get('pkgdb_url') +
-                                  '/packages/name/%s/%s/%s?tg_format=json' % (
-                                  pkgName, collectionName, collectionVersion))
-    except urllib2.URLError:
-        log.error("Cannot connect to pkgdb")
-        raise
+    pkgPage = urllib2.urlopen(config.get('pkgdb_url') +
+                              '/packages/name/%s/%s/%s?tg_format=json' % (
+                              pkgName, collectionName, collectionVersion))
 
     pkg = simplejson.load(pkgPage)
     if pkg.has_key('status') and not pkg['status']:
