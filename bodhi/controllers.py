@@ -262,8 +262,7 @@ class Root(controllers.RootController):
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
-                    OR(PackageUpdate.q.submitter == util.displayname(identity),
-                       PackageUpdate.q.submitter == identity.current.user_name),
+                       PackageUpdate.q.submitter == identity.current.user_name,
                     orderBy=PackageUpdate.q.date_pushed).reversed()
         return dict(updates=self.jsonRequest() and map(unicode, updates) or
                     updates, title='%s\'s updates' % identity.current.user_name,

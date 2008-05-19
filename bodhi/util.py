@@ -111,24 +111,12 @@ def synchronized(lock):
         return new
     return wrap
 
-def displayname(identity):
-    """
-    Return the Full Name <email@address> of the current identity
-    """
-    return '%s %s' % (identity.current.user.display_name,
-                      hasattr(identity.current.user, 'user') and
-                      '<%s>' % identity.current.user.user['email'] or '')
-
 def authorized_user(update, identity):
-    try:
-        display = displayname(identity)
-    except AttributeError:
-        display = identity.current.user_name
     return 'releng' in identity.current.groups or \
            'cvsadmin' in identity.current.groups or \
            'security_respons' in identity.current.groups or \
            identity.current.user_name in update.builds[0].package.committers or\
-           display == update.submitter
+           identity.current.user_name == update.submitter
 
 def make_update_link(obj):
     """ Return a link Element for a given PackageUpdate or PackageBuild """
