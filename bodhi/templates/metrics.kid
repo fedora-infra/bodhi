@@ -7,15 +7,12 @@
     <script language="javascript" type="text/javascript" src="${tg.url('/static/js/excanvas.js')}"></script>
 </head>
 <body>
-    <center>
-        <h1>${title}</h1><br/>
-        ${all.display()}
+  <center>
+    <h1>${title}</h1><br/>
+      <div py:for="metric in metrics">
+        ${metric.display()}
         <br/><br/>
-        ${most_updates.display()}
-        <br/><br/>
-        ${active_devs.display()}
-        <br/><br/>
-        ${best_karma.display()}
+      </div>
     </center>
 </body>
 </html>

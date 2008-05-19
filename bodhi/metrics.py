@@ -22,6 +22,8 @@ from turbogears.controllers import Controller
 from bodhi.util import Singleton
 from bodhi.model import PackageUpdate, Release, Package
 
+metrics = ('all', 'most_updates', 'best_karma', 'active_devs', 'top_testers')
+
 
 class MetricData(Singleton):
 
@@ -124,6 +126,8 @@ class MetricData(Singleton):
             )
 
             self.widgets[release.name]['top_testers'] = TurboFlot([
+                {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+                {'data': [[0,0]]}, {'data': [[0,0]]},
                 {
                     'data': self.tester_data['data'],
                     'bars': {'show': True}
@@ -265,13 +269,14 @@ class MetricData(Singleton):
                                    worst=worstdata, worstpkgs=worstpkgs.items())
 
     def top_testers(self):
-        data = {}
+        data = {}   # { person : # of comments }
         people = {}
         try:
             while True:
                 update = (yield)
                 for comment in update.comments:
-                    if comment.author == 'bodhi': continue
+                    if comment.author == 'bodhi' or comment.karma == 0:
+                        continue
                     if not data.has_key(comment.author):
                         data[comment.author] = 0
                     data[comment.author] += 1
@@ -299,8 +304,6 @@ class Metrics(Controller):
         except SQLObjectNotFound:
             flash("Unknown Release: %s" % release)
             raise redirect('/metrics')
-        metrics = MetricData().get_data(release)
-        return dict(all=metrics['all'], most_updates=metrics['most_updates'],
-                    active_devs=metrics['active_devs'],
-                    best_karma=metrics['best_karma'],
+        data = MetricData().get_data(release)
+        return dict(metrics=[data[name] for name in metrics],
                     title="%s Update Metrics" % rel.long_name)
