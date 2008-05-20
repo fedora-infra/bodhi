@@ -227,6 +227,9 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
       translation.  The pkgdb will have to figure out how to deal with that
       if so.
     """
+    if config.get('acl_system') == 'dummy':
+        return (['guest'], ['guest']), (['guest'], ['guest'])
+
     pkgPage = None
     pkgPage = urllib2.urlopen(config.get('pkgdb_url') +
                               '/packages/name/%s/%s/%s?tg_format=json' % (
@@ -272,6 +275,7 @@ def build_evr(build):
 
 def link(text, href):
     return '<a href="%s">%s</a>' % (url(href), text)
+
 
 class Singleton(object):
 
