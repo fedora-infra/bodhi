@@ -476,6 +476,10 @@ class PackageUpdate(SQLObject):
         Create any new bugs, and remove any missing ones.  Destroy removed bugs
         that are no longer referenced anymore
         """
+        fetchdetails = True
+        if not config.get('bodhi_email'):
+            log.warning("No bodhi_email defined; not fetching bug details")
+            fetchdetails = False
         for bug in self.bugs:
             if bug.bz_id not in bugs:
                 self.removeBugzilla(bug)
@@ -486,10 +490,13 @@ class PackageUpdate(SQLObject):
             try:
                 bz = Bugzilla.byBz_id(bug)
             except SQLObjectNotFound:
-                bugzilla = Bugzilla.get_bz()
-                newbug = bugzilla.getbug(bug)
-                bz = Bugzilla(bz_id=newbug.bug_id)
-                bz.fetch_details(newbug)
+                if fetchdetails:
+                    bugzilla = Bugzilla.get_bz()
+                    newbug = bugzilla.getbug(bug)
+                    bz = Bugzilla(bz_id=newbug.bug_id)
+                    bz.fetch_details(newbug)
+                else:
+                    bz = Bugzilla(bz_id=int(bug))
             if bz not in self.bugs:
                 self.addBugzilla(bz)
 
@@ -729,9 +736,6 @@ class Bugzilla(SQLObject):
         return bz
 
     def fetch_details(self, bug=None):
-        if not config.get('bodhi_email'):
-            log.warning("No bodhi_email defined, not fetching bug details")
-            return
         if not bug:
             bz = Bugzilla.get_bz()
             try:
