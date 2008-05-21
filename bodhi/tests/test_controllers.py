@@ -478,23 +478,25 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         assert "Value must be one of: Testing; Stable; None; testing; stable; none (not u'foobar!')" in cherrypy.response.body[0], cherrypy.response.body[0]
 
-    def test_cve_bugs(self):
-        session = login()
-        create_release()
-        params = {
-                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-                'release' : 'Fedora 7',
-                'type'    : 'enhancement',
-                'bugs'    : 'CVE-2007-5201',
-                'cves'    : '',
-                'notes'   : ''
-        }
-        self.save_update(params, session)
-        update = PackageUpdate.byTitle(params['builds'])
-        assert update.bugs[0].bz_id == 293081
-        # disabled for now, since we want to try and avoid as much bugzilla
-        # contact during our test cases as possible :)
-        #assert update.bugs[0].title == "CVE-2007-5201 Duplicity discloses password in FTP backend"
+    # Disabled for now, since we want to try and avoid as much bugzilla
+    # contact during our test cases as possible :)
+    # We could probably put some sort of facade in place that can handle this
+    # case like we did with the buildsys module.
+    #def test_cve_bugs(self):
+    #    session = login()
+    #    create_release()
+    #    params = {
+    #            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+    #            'release' : 'Fedora 7',
+    #            'type'    : 'enhancement',
+    #            'bugs'    : 'CVE-2007-5201',
+    #            'cves'    : '',
+    #            'notes'   : ''
+    #    }
+    #    self.save_update(params, session)
+    #    update = PackageUpdate.byTitle(params['builds'])
+    #    assert update.bugs[0].bz_id == 293081
+    #    #assert update.bugs[0].title == "CVE-2007-5201 Duplicity discloses password in FTP backend"
 
     def test_not_owner(self):
         session = login(username='guest')
@@ -727,18 +729,3 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert 'guest' in update.builds[0].package.committers
-
-    def test_bug_aliases(self):
-        session = login()
-        create_release()
-        params = {
-                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
-                'release' : 'Fedora 7',
-                'type'    : 'security',
-                'bugs'    : 'CVE-2007-2435',
-                'notes'   : 'foobar',
-                'request' : 'Stable'
-        }
-        self.save_update(params, session)
-        update = PackageUpdate.byTitle(params['builds'])
-        assert update.bugs[0].bz_id == 239660
