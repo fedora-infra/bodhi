@@ -15,14 +15,13 @@ from bodhi.controllers import Root
 
 cherrypy.root = Root()
 
-def create_release(num='7'):
+def create_release(num='7', dist='dist-fc'):
     rel = Release(name='F'+num, long_name='Fedora '+num, id_prefix='FEDORA',
-                  dist_tag='dist-fc'+num)
+                  dist_tag=dist+num)
     assert rel
-    assert rel.name == 'F'+num
     return rel
 
-def login(username='lmacken', display_name='lmacken', group=None):
+def login(username='guest', display_name='guest', group=None):
     guest = User(user_name=username, display_name=display_name)
     guest.password = 'guest'
     if group:
@@ -52,7 +51,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request(url, headers=session, method='POST')
 
     def test_bad_password(self):
-        x = testutil.create_request('/updates/login?tg_format=json&login=Login&user_name=lmacken&password=foo', method='POST')
+        x = testutil.create_request('/updates/login?tg_format=json&login=Login&user_name=guest&password=foooo', method='POST')
         assert "The credentials you supplied were not correct or did not grant access to this resource." in cherrypy.response.body[0]
         print cherrypy.response.status
 
@@ -62,9 +61,9 @@ class TestControllers(testutil.DBTest):
         #assert cherrypy.response.status == '403 Forbidden'
 
     def test_good_password(self):
-        guest = User(user_name='lmacken')
+        guest = User(user_name='guest')
         guest.password = 'guest'
-        x = testutil.create_request('/updates/login?tg_format=json&login=Login&user_name=lmacken&password=guest', method='POST')
+        x = testutil.create_request('/updates/login?tg_format=json&login=Login&user_name=guest&password=guest', method='POST')
         assert cherrypy.response.status == '200 OK'
 
     def test_unauthenticated_update(self):
@@ -91,7 +90,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0], cherrypy.response.body[0]
+        assert "This resource resides temporarily at <a href='http://localhost/updates/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0], cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update
         assert update.title == params['builds']
@@ -151,7 +150,7 @@ class TestControllers(testutil.DBTest):
         assert "Value must be one of: bugfix; enhancement; security (not u'REGRESSION!')" in cherrypy.response.body[0]
 
     def test_user_notes_encoding(self):
-        session = login(username='lmacken', display_name='foo\xc3\xa9bar')
+        session = login(username='guest', display_name='foo\xc3\xa9bar')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -209,7 +208,7 @@ class TestControllers(testutil.DBTest):
                                    headers=session)
         assert len(update.comments) == 1
         assert update.karma == 1
-        assert update.comments[0].author == 'lmacken'
+        assert update.comments[0].author == 'guest'
         assert update.comments[0].text == 'foobar'
 
         # Allow users to negate their original comment
@@ -233,14 +232,31 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert len(update.get_comments()) == 4
         assert update.get_comments()[-1].text == 'woopdywoop', update.get_comments()
+        assert update.get_comments()[0].text == 'foobar'
 
-    # TODO:
-    # - duplicate titles with updates
+    def test_duplicate_titles(self):
+        session = login()
+        f8 = create_release('8')
+        params = {
+            'builds'  : 'TurboGears-1.0.4.4-1.fc8',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        print cherrypy.response.body[0]
+        f8up = PackageUpdate.byTitle(params['builds'])
+        assert f8up.title == params['builds']
+
+        self.save_update(params, session)
+        assert False, cherrypy.response.body[0]
 
     def test_multi_release(self):
         session = login()
         f7 = create_release()
-        f8 = create_release('8')
+        f8 = create_release('8', dist='dist-f')
+        print f8
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 TurboGears-1.0.4.4-1.fc8',
             'type'    : 'bugfix',
@@ -250,8 +266,22 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         f7build, f8build = params['builds'].split()
+
         f8up = PackageUpdate.byTitle(f8build)
         assert f8up
+        assert f8up.title == f8build
+        assert f8up.type == 'bugfix'
+        assert len(f8up.builds) == 1
+        assert f8up.builds[0].nvr == f8build
+        assert f8up.builds[0].package.name == 'TurboGears'
+
+        f7up = PackageUpdate.byTitle(f7build)
+        assert f7up
+        assert f7up.title == f7build
+        assert f7up.type == 'bugfix'
+        assert len(f7up.builds) == 1
+        assert f7up.builds[0].nvr == f7build
+        assert f7up.builds[0].package.name == 'TurboGears'
 
     def test_edit(self):
         session = login()
@@ -395,6 +425,7 @@ class TestControllers(testutil.DBTest):
             'notes'   : ''
         }
         self.save_update(params, session)
+        print cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
         assert update.request == 'testing'
@@ -445,7 +476,7 @@ class TestControllers(testutil.DBTest):
             'request' : 'foobar!',
         }
         self.save_update(params, session)
-        assert "Value must be one of: Testing; Stable; None; testing; stable; none (not u'foobar!')" in cherrypy.response.body[0]
+        assert "Value must be one of: Testing; Stable; None; testing; stable; none (not u'foobar!')" in cherrypy.response.body[0], cherrypy.response.body[0]
 
     def test_cve_bugs(self):
         session = login()
@@ -492,7 +523,8 @@ class TestControllers(testutil.DBTest):
                 'request' : None
         }
         self.save_update(params, session)
-        assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
+        print cherrypy.response.body[0]
+        assert "This resource resides temporarily at <a href='http://localhost/updates/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
 
@@ -528,7 +560,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foobar'
         }
         self.save_update(params, session)
-        assert "This resource resides temporarily at <a href='http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/F7/pending/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
+        assert "This resource resides temporarily at <a href='http://localhost/updates/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
         assert update.request == 'testing'
@@ -694,7 +726,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert 'lmacken' in update.builds[0].package.committers
+        assert 'guest' in update.builds[0].package.committers
 
     def test_bug_aliases(self):
         session = login()
