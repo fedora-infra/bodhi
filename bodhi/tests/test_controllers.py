@@ -252,6 +252,61 @@ class TestControllers(testutil.DBTest):
         log = testutil.get_log()
         assert '<a href="/updates/TurboGears-1.0.4.4-1.fc8">TurboGears-1.0.4.4-1.fc8</a> update already exists!' in log
 
+    def test_duplicate_multibuild_same_release(self):
+        session = login()
+        f7 = create_release('7')
+        params = {
+            'builds'  : 'TurboGears-1.0.4.4-1.fc7 nethack-3.4.3-17.fc7',
+            'type'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        testutil.capture_log("bodhi.util")
+        self.save_update(params, session)
+        params['builds'] = params['builds'].replace(' ', ',')
+        up = PackageUpdate.byTitle(params['builds'])
+        assert up.title == params['builds']
+
+        # Remove one of the builds and then try again
+        params['builds'] = params['builds'].split(',')[0]
+        self.save_update(params, session)
+        log = testutil.get_log()
+        assert '<a href="/updates/TurboGears-1.0.4.4-1.fc7">TurboGears-1.0.4.4-1.fc7</a> update already exists!' in log
+
+    def test_duplicate_multibuild_different_release(self):
+        session = login()
+        f7 = create_release('7')
+        f8 = create_release('8', dist='dist-f')
+        params = {
+            'builds'  : 'TurboGears-1.0.4.4-1.fc7 nethack-3.4.3-17.fc8',
+            'type'    : 'bugfix',
+            'bugs'    : '', 'cves'    : '', 'notes'   : ''
+        }
+        self.save_update(params, session)
+        params['builds'] = params['builds'].replace(' ', ',')
+
+        # Make sure they were not created as a single update
+        try:
+            up = PackageUpdate.byTitle(params['builds'])
+            assert False, "Multi-release update created as single PackageUpdate?"
+        except SQLObjectNotFound:
+            pass
+
+        # Try again
+        testutil.capture_log("bodhi.util")
+        self.save_update(params, session)
+        log = testutil.get_log()
+        assert '<a href="/updates/TurboGears-1.0.4.4-1.fc7">TurboGears-1.0.4.4-1.fc7</a> update already exists!' in log
+
+        # Remove one of the builds and then try again
+        params['builds'] = params['builds'].split(',')[0]
+        testutil.capture_log("bodhi.util")
+        self.save_update(params, session)
+        log = testutil.get_log()
+        assert '<a href="/updates/TurboGears-1.0.4.4-1.fc7">TurboGears-1.0.4.4-1.fc7</a> update already exists!' in log
+
+
     def test_multi_release(self):
         session = login()
         f7 = create_release()
