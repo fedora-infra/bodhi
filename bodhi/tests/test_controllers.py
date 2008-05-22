@@ -236,7 +236,7 @@ class TestControllers(testutil.DBTest):
 
     def test_duplicate_titles(self):
         session = login()
-        f8 = create_release('8')
+        f8 = create_release('8', dist='dist-f')
         params = {
             'builds'  : 'TurboGears-1.0.4.4-1.fc8',
             'type'    : 'bugfix',
@@ -244,13 +244,13 @@ class TestControllers(testutil.DBTest):
             'cves'    : '',
             'notes'   : ''
         }
+        testutil.capture_log("bodhi.util")
         self.save_update(params, session)
-        print cherrypy.response.body[0]
         f8up = PackageUpdate.byTitle(params['builds'])
         assert f8up.title == params['builds']
-
         self.save_update(params, session)
-        assert False, cherrypy.response.body[0]
+        log = testutil.get_log()
+        assert '<a href="/updates/TurboGears-1.0.4.4-1.fc8">TurboGears-1.0.4.4-1.fc8</a> update already exists!' in log
 
     def test_multi_release(self):
         session = login()
