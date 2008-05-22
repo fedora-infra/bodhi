@@ -36,11 +36,6 @@ from sqlobject.sqlbuilder import AND
 <!-- Make any form submission change the bodhi logo into a spinner -->
 <script type="text/javascript">
 $(document).ready(function() {
-    // This kills our fedora-content border.  We'll keep using the 4 rounded
-    // corner images until we can figure out how to round them with jquery and
-    // maintain our 1px content border.
-    //$("div[@id=fedora-content]").corner();
-
     $("form").submit( function() {
         $("div[@id=bodhi-logo]").hide();
         $("div[@id=wait]").show();
