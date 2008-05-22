@@ -151,7 +151,7 @@ class TestClient(testutil.DBTest):
         assert PackageUpdate.byTitle(build)
         data = bodhi.send_request('mine', input={}, auth=True)
         print data
-        assert data['title'] == u"lmacken's updates"
+        assert data['title'] == u"guest's updates"
         assert len(data['updates']) == 1
 
     def test_file_input(self):
