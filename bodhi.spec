@@ -9,19 +9,24 @@ Group:          Applications/Internet
 License:        GPLv2+
 URL:            https://hosted.fedoraproject.org/projects/bodhi
 Source0:        bodhi-%{version}.tar.bz2
+
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-BuildRequires: python-setuptools-devel TurboGears python-genshi python-elixir
+BuildRequires: python-setuptools-devel
+BuildRequires: TurboGears
+BuildRequires: python-genshi 
+BuildRequires: python-elixir
 
 %description
-Bodhi is a modular framework that facilitates the process of publishing
+Bodhi is a web application that facilitates the process of publishing
 updates for a software distribution.
 
 A modular piece of the Fedora Infrastructure stack
 * Utilizes the Koji Buildsystem for tracking RPMs
 * Creates the update repositories using Mash, which composes a repository based
   on tagged builds in Koji. 
+
 
 %package client
 Summary: Bodhi Client
@@ -35,8 +40,19 @@ Client tools for interacting with bodhi
 %package server
 Summary: A modular framework that facilitates publishing software updates
 Group: Applications/Internet
-Requires: TurboGears createrepo python-TurboMail intltool mash cvs python-fedora
-Requires: python-bugzilla python-imaging python-turboflot python-tgcaptcha
+Requires: TurboGears 
+Requires: python-TurboMail
+Requires: intltool 
+Requires: mash
+Requires: cvs
+Requires: koji
+Requires: python-fedora
+Requires: python-bugzilla 
+Requires: python-imaging
+Requires: python-crypto
+Requires: python-turboflot 
+Requires: python-tgcaptcha
+
 
 %description server
 Bodhi is a modular framework that facilitates the process of publishing
