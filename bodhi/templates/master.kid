@@ -105,8 +105,11 @@ $(document).ready(function() {
                       <li class="release">
                         <a href="${tg.url('/metrics?release=%s' % release['name'])}" class="link">Metrics</a><a href="${tg.url('/metrics?release=%s' % release['name'])}" class="rsslink"><img src="${tg.url('/static/images/metrics-small.png')}"/></a>
                       </li>
-                      <li py:for="status in ('pending', 'testing', 'stable', 'security')" class="release">
+                      <li py:for="status in ('pending', 'testing', 'stable')" class="release">
                         <a href="${tg.url('/%s/%s' % (release['name'], status != 'stable' and status or ''))}" class="link">${status.title()} (${release['num_' + status]})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s' % (release['name'], status))}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
+                      </li>
+                      <li class="release">
+                        <a href="${tg.url('/%s/%s' % (release['name'], status))}" class="link">Security (${release['num_security']})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;type=security' % release['name'])}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
                       </li>
                     </ul>
                   </div>
