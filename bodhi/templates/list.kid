@@ -24,7 +24,7 @@
                 <b>ID</b>
             </th>
             <th class="list">
-                <b>Package</b>
+                <b>Update</b>
             </th>
             <th class="list">
                 <center><b>Type</b></center>
@@ -41,14 +41,14 @@
             <td class="list">
                 ${update.updateid}
             </td>
-            <td class="list">
+            <td class="list" width="35%">
                 <a class="list" href="${tg.url(update.get_url())}">${update.title.replace(',', ', ')}</a>
             </td>
             <td class="list" align="center">
                 <img src="${tg.url('/static/images/%s.png' % update.type)}" title="${update.type}" />
             </td>
             <td class="list">
-                ${update.submitter}
+                <a href="${tg.url('/user/' + update.submitter)}">${update.submitter}</a>
             </td>
             <td class="list">
                 ${update.date_pushed}

@@ -35,7 +35,7 @@
             <b>ID</b>
         </th>
         <th class="list">
-            <b>Package</b>
+            <b>Update</b>
         </th>
         <th class="list">
             <b>Release</b>
@@ -48,6 +48,9 @@
         </th>
         <th class="list">
             <center><b>Request</b></center>
+        </th>
+        <th class="list">
+            <center><b>Submitter</b></center>
         </th>
         <th class="list">
             <b>Submitted</b>
@@ -74,6 +77,9 @@
             <center>
                 <img src="${tg.url('/static/images/%s-large.png' % update.request)}" title="${update.request}"/> ${update.request}
             </center>
+        </td>
+        <td class="list">
+            <a href="${tg.url('/user/' + update.submitter)}">${update.submitter}</a>
         </td>
         <td class="list">
             ${update.date_submitted}

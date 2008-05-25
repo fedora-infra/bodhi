@@ -37,9 +37,8 @@ for build in update.builds:
     title += "<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]) + ", "
 title = title[:-2]
 
-release = '<a href="%s">%s</a>' % (tg.url('/%s' % update.release.name),
-                                   update.release.long_name)
-
+release = util.link(update.release.long_name, '/' + update.release.name)
+submitter = util.link(update.submitter, '/user/' + update.submitter)
 notes = escape(update.notes).replace('\r\n', '<br/>')
 
 if update.karma < 0: karma = -1
@@ -51,7 +50,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 <body>
 <center>
 <table width="97%">
-    <tr>
+   <tr>
         <td>
             <div class="show">${XML(title)}</div>
         </td>
@@ -155,7 +154,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
         ['Requested',     update.request],
         ['Pushed',        update.pushed],
         ['Date Pushed',   update.date_pushed],
-        ['Submitter',     update.submitter],
+        ['Submitter',     XML(submitter)],
         ['Submitted',     update.date_submitted],
         ['Modified',      update.date_modified],
         ['Close bugs',    update.close_bugs],

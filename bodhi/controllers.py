@@ -898,3 +898,13 @@ class Root(controllers.RootController):
                         PackageUpdate.q.status == 'pending',
                         PackageUpdate.q.approved == None))
         return dict(updates=updates)
+
+    @expose(template="bodhi.templates.user")
+    @paginate('updates', limit=25, allow_limit_override=True)
+    def user(self, username):
+        """ Return a list of updates submitted by a given person """
+        updates = PackageUpdate.select(PackageUpdate.q.submitter == username,
+                                       orderBy=PackageUpdate.q.date_submitted)
+        num_items = updates.count()
+        return dict(updates=updates.reversed(), title="%s's %d updates" % (username,
+                    num_items), num_items=num_items)

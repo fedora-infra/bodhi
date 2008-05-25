@@ -15,6 +15,9 @@
                 <b>Update</b>
             </th>
             <th class="list">
+                <b>Release</b>
+            </th>
+            <th class="list">
                 <b>Status</b>
             </th>
             <th class="list">
@@ -33,10 +36,13 @@
                 <a class="list" href="${tg.url(update.get_url())}">${update.title.replace(',', ', ')}</a>
             </td>
             <td class="list">
+                <a class="list" href="${tg.url('/%s' % update.release.name)}">${update.release.long_name}</a>
+            </td>
+            <td class="list">
                 ${update.status}
             </td>
             <td class="list">
-                ${update.submitter}
+                <a href="${tg.url('/user/' + update.submitter)}">${update.submitter}</a>
             </td>
             <td class="list">
                 ${update.get_submitted_age()}
