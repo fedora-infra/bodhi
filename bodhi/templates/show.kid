@@ -14,21 +14,11 @@ from cgi import escape
 from bodhi import util
 from turbogears import identity
 
-## Build our reference links
-bugs = ''
-for bug in update.bugs:
-    bugs += '<a href="%s">%d</a> ' % (bug.get_url(), bug.bz_id)
-    if bug.title:
-        bugs += '- %s<br/>' % (escape(bug.title))
-cves = ''
-for cve in update.cves:
-    cves += '<a href="%s">%s</a><br/>'% (cve.get_url(), cve.cve_id)
-
 ## Link to build info and logs
 buildinfo = ''
 for build in update.builds:
     nvr = util.get_nvr(build.nvr)
-    buildinfo += '<a href="http://koji.fedoraproject.org/koji/search?terms=%s&amp;type=build&amp;match=glob">%s</a> <b>[</b> <a href="http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs">logs</a> <b>]</b><br/>' % (build.nvr, build.nvr, nvr[0], nvr[1], nvr[2])
+    buildinfo += '<a href="http://koji.fedoraproject.org/koji/search?terms=%s&amp;type=build&amp;match=glob">%s</a> (<a href="http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs">logs</a>)<br/>' % (build.nvr, build.nvr, nvr[0], nvr[1], nvr[2])
 
 ## Make the package name linkable in the n-v-r
 title = ''
@@ -52,7 +42,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 <table width="97%">
    <tr>
         <td>
-            <div class="show">${XML(title)}</div>
+            <div class="show"><img src="${tg.url('/static/images/%s.png' % update.type)}" /> ${XML(title)} ${update.type} update</div>
         </td>
 
         <!-- update options -->
@@ -143,58 +133,80 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 
 <table class="show">
     <tr py:for="field in (
-        ['Builds',        XML(buildinfo)],
-        ['Release',       XML(release)],
         ['Update ID',     update.updateid],
+        ['Release',       XML(release)],
+        ['Builds',        XML(buildinfo)],
+        ['Date Released', update.date_pushed],
         ['Status',        update.status],
-        ['Type',          update.type],
-        ['Bugs',          (bugs) and XML(bugs) or ''],
-        ['CVEs',          (cves) and XML(cves) or ''],
-        ['Karma',         XML(karma)],
-        ['Requested',     update.request],
-        ['Pushed',        update.pushed],
-        ['Date Pushed',   update.date_pushed],
         ['Submitter',     XML(submitter)],
-        ['Submitted',     update.date_submitted],
-        ['Modified',      update.date_modified],
-        ['Close bugs',    update.close_bugs],
-    )">
-            <span py:if="field[1] != None and field[1] != ''">
-                <td class="title"><b>${field[0]}:</b></td>
-                <td class="value">${field[1]}</td>
-            </span>
+        ['Karma',         XML(karma)],)">
+      <div py:if="field[1] != None and field[1] != ''">
+          <td class="title"><b>${field[0]}:</b></td>
+          <td class="value">${field[1]}</td>
+      </div >
     </tr>
-    <tr>
-        <span py:if="update.type == 'security'">
-            <td class="title"><b>Security Team Approval</b></td>
-            <td class="value">${update.approved}</td>
-        </span>
-    </tr>
-    <tr>
-        <span py:if="update.notes">
-            <td class="title"><b>Notes:</b></td>
-            <td class="value">${XML(notes)}</td>
-        </span>
-    </tr>
-    <tr>
-        <span py:if="update.comments">
-            <td class="title"><b>Comments:</b></td>
-            <td class="value">
-                <div py:for="comment in update.get_comments()">
-                    <img py:attrs="{'src' : tg.url('/static/images/comment-%d.png' % comment.karma)}" hspace="3"/><b>${comment.author}</b> - ${comment.timestamp}<br/>
-                    <div py:replace="comment.text">Comment</div>
-                </div>
-            </td>
-        </span>
-    </tr>
-    <tr>
-        <td class="title"></td>
-        <td class="value">
-            ${comment_form.display(value=values)}
-        </td>
-    </tr>
-    <tr><td class="title"></td></tr>
+    <div py:if="not tg.identity.anonymous and 
+                util.authorized_user(update, identity)">
+      <tr py:for="title, value in (
+            ['Requested', update.request],
+            ['Pushed', update.pushed],
+            ['Modified', update.date_modified],
+            ['Close bugs', update.close_bugs],
+            ['Date Submitted', update.date_submitted])">
+        <div py:if="value and value != ''">
+          <td class="title"><b>${title}:</b></td>
+          <td class="value">${value}</td>
+        </div>
+      </tr>
+      <tr>
+        <div py:if="update.type == 'security'">
+          <td class="title"><b>Security Team Approval</b></td>
+          <td class="value">${update.approved}</td>
+        </div>
+      </tr>
+    </div>
 </table>
+
+<blockquote>
+  <div py:if="update.notes">
+    <div class="show">Details</div>
+    <blockquote>${XML(notes)}</blockquote>
+  </div>
+
+  <div py:if="update.bugs">
+    <div class="show">Bugs Fixed</div>
+    <blockquote>
+      <div py:for="bug in update.bugs">
+        <?python
+        title = escape(bug.title)
+        cve = title.split()[0].replace(':', '')
+        if cve.startswith('CVE-'):
+          title = util.link(cve, 'http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cve) + ': ' + escape(' '.join(title.split()[1:]))
+        ?>
+        <a href="${bug.get_url()}">${bug.bz_id}</a> - ${XML(title)}
+     </div>
+    </blockquote>
+  </div>
+
+  <div class="show">Feedback</div>
+  <blockquote>
+    <div py:if="update.comments">
+      <div py:for="comment in update.get_comments()">
+        <img py:attrs="{'src' : tg.url('/static/images/comment-%d.png' % comment.karma)}" hspace="3"/><b>${comment.author}</b> - ${comment.timestamp}<br/>
+        <div py:replace="comment.text">Comment</div>
+      </div>
+    </div>
+    <div py:if="not update.comments">
+      There are no comments on this update.
+    </div>
+    <h3 id="addcomment"><a href="#" onclick="$('#addcomment').hide(); $('#commentform').show('slow')">Add a comment >></a></h3>
+    <div id="commentform" style="display: none">
+      <h3>Add a comment</h3>
+      ${comment_form.display(value=values)}
+    </div>
+  </blockquote>
+
+</blockquote>
 
 </body>
 </html>
