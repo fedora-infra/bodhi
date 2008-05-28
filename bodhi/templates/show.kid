@@ -42,7 +42,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 <table width="97%">
    <tr>
         <td>
-            <div class="show"><img src="${tg.url('/static/images/%s.png' % update.type)}" /> ${XML(title)} ${update.type} update</div>
+            <div class="show"><img align="absmiddle" src="${tg.url('/static/images/%s.png' % update.type)}" alt="${update.type}"/> ${XML(title)} ${update.type} update</div>
         </td>
 
         <!-- update options -->
