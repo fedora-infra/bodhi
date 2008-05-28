@@ -148,6 +148,8 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
     <div py:if="not tg.identity.anonymous and 
                 util.authorized_user(update, identity)">
       <tr py:for="title, value in (
+            ['Stable karma', update.builds[0].package.stable_karma],
+            ['Unstable karma', update.builds[0].package.unstable_karma],
             ['Requested', update.request],
             ['Pushed', update.pushed],
             ['Modified', update.date_modified],
