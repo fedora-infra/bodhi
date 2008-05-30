@@ -577,8 +577,9 @@ class PackageUpdate(SQLObject):
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
         if not author: author = identity.current.user_name
-        if karma != 0 and not filter(lambda c: c.author == author and
-                                     c.karma == karma, self.comments):
+        if not anonymous and karma != 0 and \
+           not filter(lambda c: c.author == author and c.karma == karma,
+                      self.comments):
             mycomments = [c.karma for c in self.comments if c.author == author]
             if karma == 1 and -1 in mycomments:
                 self.karma += 2

@@ -376,6 +376,11 @@ class TestPackageUpdate(testutil.DBTest):
         assert up.comments[2].author == 'bodhi'
         assert up.comments[2].text == 'This update has been obsoleted'
 
+    def test_anonymous_karma(self):
+        """ Make sure that anonymous comments don't effect karma """
+        update = self.get_update()
+        update.comment('foo', karma=1, author='bob', anonymous=True)
+        assert update.karma == 0
 
 class TestBugzilla(testutil.DBTest):
 
