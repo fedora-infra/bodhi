@@ -802,7 +802,10 @@ class Root(controllers.RootController):
             elif tg_errors.has_key('author'):
                 flash_log(tg_errors['author'])
             elif tg_errors.has_key('captcha'):
-                flash_log("Problem with captcha: %s" % tg_errors['captcha'])
+                if tg_errors['captcha'].has_key('captchainput'):
+                    flash_log("Problem with captcha: %s" % tg_errors['captcha']['captchainput'])
+                else:
+                    flash_log("Problem with captcha: %s" % tg_errors['captcha'])
             else:
                 flash_log(tg_errors)
             return dict(update=update, updates=[], 
