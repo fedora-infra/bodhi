@@ -48,10 +48,8 @@ class CommentCaptchaForm(Form):
                             validators.NotEmpty(),
                             validators.UnicodeString())),
             TextField(name='author', label='Author',
-                      default='Anonymous Tester',
-                      validator=validators.All(
-                          validators.NotEmpty(),
-                          validators.UnicodeString())),
+                      default='E-Mail Address',
+                      validator=validators.Email()),
             CaptchaField(name='captcha', label='Enter the code shown')
     ]
 

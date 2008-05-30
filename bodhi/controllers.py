@@ -797,9 +797,14 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             flash_log("Update %s does not exist" % title)
         if tg_errors:
-            if tg_errors.has_key('text') or tg_errors.has_key('author'):
+            if tg_errors.has_key('text'):
                 flash_log("Please fill in all comment fields")
-            flash_log(tg_errors)
+            elif tg_errors.has_key('author'):
+                flash_log(tg_errors['author'])
+            elif tg_errors.has_key('captcha'):
+                flash_log("Problem with captcha: %s" % tg_errors['captcha'])
+            else:
+                flash_log(tg_errors)
             return dict(update=update, updates=[], 
                         values={'title':update.title},
                         comment_form=self.comment_captcha_form)

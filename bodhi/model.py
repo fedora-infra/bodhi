@@ -556,18 +556,12 @@ class PackageUpdate(SQLObject):
         if not author: author = identity.current.user_name
         if karma != 0 and not filter(lambda c: c.author == author and
                                      c.karma == karma, self.comments):
-            # If they gave a -1 and are now giving +1, karma += 2
             mycomments = [c.karma for c in self.comments if c.author == author]
-            log.debug("mycomments = %s" % mycomments)
             if karma == 1 and -1 in mycomments:
-                log.debug(" += 2")
                 self.karma += 2
-            # If they gave a +1 and are now giving -1, karma -=2
             elif karma == -1 and 1 in mycomments:
-                log.debug(" -= 2")
                 self.karma -= 2
             else:
-                log.debug(" += karma")
                 self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if self.stable_karma != 0 and self.stable_karma == self.karma:
@@ -590,7 +584,7 @@ class PackageUpdate(SQLObject):
         for person in self.get_maintainers():
             people.add(person)
         for comment in self.comments:
-            if comment.author == 'bodhi' or comment.anonymous:
+            if comment.author == 'bodhi':
                 continue
             people.add(comment.author)
         mail.send(people, 'comment', self)
