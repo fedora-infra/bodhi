@@ -199,7 +199,8 @@ class PackageUpdate(SQLObject):
     date_pushed      = DateTimeCol(default=None)
     submitter        = UnicodeCol(notNone=True)
     updateid         = UnicodeCol(default=None)
-    type             = EnumCol(enumValues=['security', 'bugfix', 'enhancement'])
+    type             = EnumCol(enumValues=['security', 'bugfix', 'enhancement',
+                                           'newpackage'])
     cves             = RelatedJoin("CVE")
     bugs             = RelatedJoin("Bugzilla")
     release          = ForeignKey('Release')

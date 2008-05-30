@@ -937,3 +937,17 @@ class TestControllers(testutil.DBTest):
         x = testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                    params['builds'], method='POST')
         assert 'You must provide your credentials before accessing this resource.' in cherrypy.response.body[0]
+
+    def test_newpackage_update(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'newpackage',
+                'bugs'    : '',
+                'notes'   : 'Initial release of new package!',
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.type == 'newpackage'
