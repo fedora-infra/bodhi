@@ -806,7 +806,7 @@ class Root(controllers.RootController):
             else:
                 flash_log(tg_errors)
             return dict(update=update, updates=[], 
-                        values={'title':update.title},
+                        values={'title':update.title, 'karma' : karma},
                         comment_form=self.comment_captcha_form)
         elif karma not in (0, 1, -1):
             flash_log("Karma must be one of (1, 0, -1)")

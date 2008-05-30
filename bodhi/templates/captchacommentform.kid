@@ -38,4 +38,13 @@
             <td colspan="3" py:content="submit.display(submit_text)" />
         </tr>
     </table>
+    <div py:if="value.has_key('karma')">
+      <script type="text/javascript">
+        if( ${value['karma']} == 1 ){
+            $('#wfm').attr('checked', true);
+        } else if( ${value['karma']} == -1 ){
+            $('#dnw').attr('checked', true);
+        }
+      </script>
+    </div>
 </form>
