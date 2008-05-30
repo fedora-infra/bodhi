@@ -63,10 +63,12 @@ class Release(SQLObject):
 
 
 class Package(SQLObject):
-    name           = UnicodeCol(alternateID=True, notNone=True)
-    builds         = MultipleJoin('PackageBuild', joinColumn='package_id')
-    suggest_reboot = BoolCol(default=False)
-    committers     = PickleCol(default=[])
+    name            = UnicodeCol(alternateID=True, notNone=True)
+    builds          = MultipleJoin('PackageBuild', joinColumn='package_id')
+    suggest_reboot  = BoolCol(default=False)
+    committers      = PickleCol(default=[])
+    stable_karma    = IntCol(default=3)
+    unstable_karma  = IntCol(default=-3)
 
     def updates(self):
         for build in self.builds:
@@ -545,22 +547,22 @@ class PackageUpdate(SQLObject):
         Add a comment to this update, adjusting the karma appropriately.
         Each user can adjust an updates karma once in each direction, thus
         being able to negate their original choice.  If the karma reaches
-        the 'stable_karma' configuration option, then request that this update
-        be marked as stable.
+        the 'stable_karma' value, then request that this update be marked
+        as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
-        stable_karma = config.get('stable_karma')
-        unstable_karma = config.get('unstable_karma')
         if not author: author = identity.current.user_name
         if karma != 0 and not filter(lambda c: c.author == author and
                                      c.karma == karma, self.comments):
             self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
-            if stable_karma and stable_karma == self.karma:
+            if self.stable_karma != 0 and self.stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = 'stable'
+                self.pushed = False
+                self.date_pushed = None
                 mail.send(self.get_maintainers(), 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
-            if self.status == 'testing' and unstable_karma and \
+            if self.status == 'testing' and self.unstable_karma != 0 and \
                self.karma == unstable_karma:
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()

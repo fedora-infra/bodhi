@@ -115,7 +115,22 @@ class NewUpdateForm(Form):
                                                     'Recommend that the user '
                                                     'restarts their machine '
                                                     'after installing this '
-                                                    'update'})
+                                                    'update'}),
+            CheckBox(name='autokarma', label='Enable karma automatism',
+                     default=True, attrs={'onclick': 
+                         '$("#form_stable_karma").attr("disabled", !$("#form_stable_karma").attr("disabled"));'
+                         '$("#form_unstable_karma").attr("disabled", !$("#form_unstable_karma").attr("disabled"));'
+            }),
+            TextField('stable_karma', label='Threshold for pushing to stable',
+                      validator=validators.Int(), default='3',
+                      attrs={'title' : 'Stable Karma - The threshold for '
+                             'automatically pushing this update to stable',
+                             'size' : '1'}),
+            TextField('unstable_karma', label='Threshold for unpushing',
+                      validator=validators.Int(), default='-3',
+                      attrs={'title' : 'Unstable Karma - The threshold for '
+                             'automatically unpushing an unstable update',
+                             'size' : '1'})
     ]
 
 class OkCancelForm(Form):

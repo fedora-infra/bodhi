@@ -98,6 +98,8 @@ class TestControllers(testutil.DBTest):
         assert update.release.long_name == params['release']
         assert update.bugs[0].bz_id == int(params['bugs'])
         assert update.notes == params['notes']
+        assert update.builds[0].package.stable_karma == 3
+        assert update.builds[0].package.unstable_karma == -3
 
     def test_multibuild_update(self):
         session = login()
@@ -784,3 +786,41 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert 'guest' in update.builds[0].package.committers
+
+    def test_karma_thresholds(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.builds[0].package.stable_karma == 5
+        assert update.builds[0].package.unstable_karma == -5
+
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7 python-sqlobject-1.2-3.fc7',
+                'edited'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'stable_karma' : 1,
+                'unstable_karma' : -1,
+        }
+        testutil.capture_log(['bodhi.controller', 'bodhi.util'])
+        self.save_update(params, session)
+        print testutil.get_log()
+        update = PackageUpdate.byTitle(params['builds'].replace(' ', ','))
+        assert update.builds[0].package.stable_karma == params['stable_karma']
+        assert update.builds[0].package.unstable_karma == params['unstable_karma']
+        assert update.builds[1].package.stable_karma == params['stable_karma']
+        assert update.builds[1].package.unstable_karma == params['unstable_karma']

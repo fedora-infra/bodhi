@@ -197,11 +197,15 @@ the following URL:
 
     http://admin.fedoraproject.org/updates/request/stable/%(package)s
 
+or by running the following command with the bodhi-client:
+
+    bodhi -R stable %(package)s
+
 %(updatestr)s
 """,
         'fields' : lambda x: {
                         'package'     : x.title,
-                        'stablekarma' : config.get('stable_karma', 3),
+                        'stablekarma' : x.builds[0].package.stable_karma,
                         'updatestr'   : unicode(x)
                    }
     },

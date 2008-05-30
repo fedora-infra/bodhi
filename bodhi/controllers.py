@@ -344,6 +344,8 @@ class Root(controllers.RootController):
                 'bugs'      : update.get_bugstring(),
                 'edited'    : update.title,
                 'close_bugs': update.close_bugs,
+                'stable_karma' : update.builds[0].package.stable_karma,
+                'unstable_karma' : update.builds[0].package.unstable_karma,
         }
         if update.status == 'testing':
             flash("Editing this update will move it back to a pending state.")
@@ -355,22 +357,25 @@ class Root(controllers.RootController):
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
     def save(self, builds, type, notes, bugs, close_bugs=False, edited=False,
-             request='testing', suggest_reboot=False, inheritance=False, **kw):
+             request='testing', suggest_reboot=False, inheritance=False, 
+             autokarma=True, stable_karma=3, unstable_karma=-3, **kw):
         """
         Save an update.  This includes new updates and edited.
         """
-        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (builds,
-                  type, notes, bugs, close_bugs, edited, request,
-                  suggest_reboot, inheritance, kw))
+        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (
+                  builds, type, notes, bugs, close_bugs, edited, request,
+                  suggest_reboot, inheritance, stable_karma, unstable_karma,
+                  kw))
 
-        note = []
-        updates = []
-        if not bugs: bugs = []
-        koji = buildsys.get_session()
+        note = []      # Messages to flash to the user
+        updates = []   # PackageUpdate objects 
         releases = {}  # { Release : [build, ...] }
         buildinfo = {} # { nvr : { 'nvr' : (n, v, r), 'people' : [person, ...],
                        #           'releases' : set(Release, ...),
                        #           'build' : PackageBuild } }
+
+        if not bugs: bugs = []
+        koji = buildsys.get_session()
 
         # Parameters used to re-populate the update form if something fails
         params = {
@@ -380,6 +385,9 @@ class Root(controllers.RootController):
                 'notes'       : notes,
                 'edited'      : edited,
                 'close_bugs'  : close_bugs and 'True' or '',
+                'autokarma'   : autokarma,
+                'stable_karma': stable_karma,
+                'unstable_karma': unstable_karma,
         }
 
         # Make sure this update doesn't already exist
@@ -527,6 +535,14 @@ class Root(controllers.RootController):
 
             # Update our ACL cache for this pkg
             package.committers = buildinfo[build]['people']
+
+            # If new karma thresholds are specified, save them
+            if not autokarma:
+                stable_karma = unstable_karma = 0
+            if package.stable_karma != stable_karma:
+                package.stable_karma = stable_karma
+            if package.unstable_karma != stable_karma:
+                package.unstable_karma = unstable_karma
 
             # Create or fetch the PackageBuild object for this build
             try:
