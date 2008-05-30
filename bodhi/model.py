@@ -546,17 +546,29 @@ class PackageUpdate(SQLObject):
         return color
 
     def comment(self, text, karma=0, author=None, anonymous=False):
-        """
-        Add a comment to this update, adjusting the karma appropriately.
-        Each user can adjust an updates karma once in each direction, thus
-        being able to negate their original choice.  If the karma reaches
+        """ Add a comment to this update, adjusting the karma appropriately.
+
+        Each user has the ability to comment as much as they want, but only
+        their last karma adjustment will be counted.  If the karma reaches
         the 'stable_karma' value, then request that this update be marked
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
         if not author: author = identity.current.user_name
         if karma != 0 and not filter(lambda c: c.author == author and
                                      c.karma == karma, self.comments):
-            self.karma += karma
+            # If they gave a -1 and are now giving +1, karma += 2
+            mycomments = [c.karma for c in self.comments if c.author == author]
+            log.debug("mycomments = %s" % mycomments)
+            if karma == 1 and -1 in mycomments:
+                log.debug(" += 2")
+                self.karma += 2
+            # If they gave a +1 and are now giving -1, karma -=2
+            elif karma == -1 and 1 in mycomments:
+                log.debug(" -= 2")
+                self.karma -= 2
+            else:
+                log.debug(" += karma")
+                self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if self.stable_karma != 0 and self.stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)

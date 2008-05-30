@@ -218,21 +218,28 @@ class TestControllers(testutil.DBTest):
                                    params['builds'], method='POST',
                                    headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.karma == 0
+        assert update.karma == -1
 
         # but don't let them do it again
         x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=-1' %
                                    params['builds'], method='POST',
                                    headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.karma == 0
+        assert update.karma == -1
+
+        # don't let them do it again
+        x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=1' %
+                                   params['builds'], method='POST',
+                                   headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.karma == -1
 
         # Add a new comment, and make sure we can access the comments in the proper order
         x = testutil.create_request('/updates/comment?text=woopdywoop&title=%s' %
                                    params['builds'], method='POST',
                                    headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert len(update.get_comments()) == 4
+        assert len(update.get_comments()) == 5
         assert update.get_comments()[-1].text == 'woopdywoop', update.get_comments()
         assert update.get_comments()[0].text == 'foobar'
 
