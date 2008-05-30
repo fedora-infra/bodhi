@@ -31,7 +31,7 @@ from textwrap import wrap
 
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
-from bodhi.util import Singleton, authorized_user, flash_log
+from bodhi.util import Singleton, authorized_user, flash_log, build_evr
 from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 
@@ -288,21 +288,42 @@ class PackageUpdate(SQLObject):
         if action == 'unpush':
             self.unpush()
             flash_log("%s has been unpushed" % self.title)
+            return
         elif action == 'obsolete':
             self.obsolete()
             flash_log("%s has been obsoleted" % self.title)
+            return
         elif action == 'stable' and self.type == 'security' and \
                 not self.approved:
             flash_log("%s will be pushed to testing while it awaits approval "
                       "of the Security Team" % self.title)
             self.request = 'testing'
             mail.send(config.get('security_team'), 'security', self)
-        else:
-            self.request = action
-            self.pushed = False
-            self.date_pushed = None
-            flash_log("%s has been submitted for %s" % (self.title, action))
-            mail.send_admin(action, self)
+            return
+        elif action == 'stable':
+            # Make sure we don't break update paths by trying to push out
+            # an update that is older than than the latest.
+            koji = buildsys.get_session()
+            for build in self.builds:
+                mybuild = koji.getBuild(build.nvr)
+                mybuild['nvr'] = "%s-%s-%s" % (mybuild['name'],
+                                               mybuild['version'],
+                                               mybuild['release'])
+                kojiBuilds = koji.listTagged(self.release.dist_tag + '-updates',
+                                             package=build.package.name,
+                                             latest=True)
+                for oldBuild in kojiBuilds:
+                    if rpm.labelCompare(build_evr(mybuild),
+                                        build_evr(oldBuild)) < 0:
+                        raise InvalidRequest("Broken update path: %s is "
+                                             "already released, and is newer "
+                                             "than %s" % (oldBuild['nvr'],
+                                                          mybuild['nvr']))
+        self.request = action
+        self.pushed = False
+        self.date_pushed = None
+        flash_log("%s has been submitted for %s" % (self.title, action))
+        mail.send_admin(action, self)
 
     def request_complete(self):
         """
