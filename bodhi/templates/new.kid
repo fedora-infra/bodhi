@@ -47,6 +47,18 @@
                 extraClass: "pretty fancy", showBody: " - ", left: 5,
                 top: -15, fixPNG: true,
         });
+        $("#form_autokarma").Tooltip({
+                extraClass: "pretty fancy", showBody: " - ", left: 5,
+                top: -15, fixPNG: true,
+        });
+        $("#form_stable_karma").Tooltip({
+                extraClass: "pretty fancy", showBody: " - ", left: 5,
+                top: -15, fixPNG: true,
+        });
+        $("#form_unstable_karma").Tooltip({
+                extraClass: "pretty fancy", showBody: " - ", left: 5,
+                top: -15, fixPNG: true,
+        });
     });
     </script>
 
