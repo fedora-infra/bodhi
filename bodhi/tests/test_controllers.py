@@ -909,3 +909,31 @@ class TestControllers(testutil.DBTest):
         assert update.builds[0].package.unstable_karma == params['unstable_karma']
         assert update.builds[1].package.stable_karma == params['stable_karma']
         assert update.builds[1].package.unstable_karma == params['unstable_karma']
+
+    def test_anonymous_captcha(self):
+        """ Make sure our captcha does its job """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        testutil.create_request('/updates/captcha_comment?text=bizbaz&title=%s&author=bobvila&karma=-1' %
+                                params['builds'], method='POST')
+        assert 'An email address must contain a single @' in cherrypy.response.body[0]
+
+        testutil.create_request('/updates/captcha_comment?text=bizbaz&title=%s&author=bob@vila.com&karma=-1' %
+                                params['builds'], method='POST')
+        assert 'Problem with captcha: Please enter a value' in cherrypy.response.body[0]
+
+        x = testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                   params['builds'], method='POST')
+        assert 'You must provide your credentials before accessing this resource.' in cherrypy.response.body[0]
