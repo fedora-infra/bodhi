@@ -641,7 +641,7 @@ class Root(controllers.RootController):
             # new updates directly into testing
             if request and request != "None" and request != update.request:
                 try:
-                    update.set_request(request.lower())
+                    update.set_request(request.lower(), pathcheck=False)
                 except InvalidRequest, e:
                     flash_log(str(e))
                     if self.jsonRequest(): return dict()

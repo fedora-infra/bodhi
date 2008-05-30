@@ -266,13 +266,15 @@ class PackageUpdate(SQLObject):
                                                      self.updateid))
         hub.commit()
 
-    def set_request(self, action):
+    def set_request(self, action, pathcheck=True):
         """ Attempt to request an action for this update.
 
         This method either sets the given request on this update, or raises
         an InvalidRequest exception.
 
         At the moment, this method cannot be called outside of a request.
+
+        @param pathcheck: Check for broken update paths for stable requests
         """
         if not authorized_user(self, identity):
             raise InvalidRequest("Unauthorized to perform action on %s" %
@@ -300,7 +302,7 @@ class PackageUpdate(SQLObject):
             self.request = 'testing'
             mail.send(config.get('security_team'), 'security', self)
             return
-        elif action == 'stable':
+        elif action == 'stable' and pathcheck:
             # Make sure we don't break update paths by trying to push out
             # an update that is older than than the latest.
             koji = buildsys.get_session()
