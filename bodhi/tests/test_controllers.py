@@ -558,6 +558,7 @@ class TestControllers(testutil.DBTest):
         }
 
         # Monkey-patch our DevBuildsys 
+        oldGetBuild = koji.getBuild
         koji.getBuild = lambda x: {'epoch': None, 'name': 'TurboGears',
                                    'nvr': 'TurboGears-1.0.2.2-2.fc7',
                                    'release': '2.fc7',
@@ -565,6 +566,7 @@ class TestControllers(testutil.DBTest):
                                    'version': '1.0.2.2'}
 
         # Make a newer build already exist
+        oldListTagged = koji.listTagged
         koji.listTagged = lambda *x, **y: [
                 {'epoch': None, 'name': 'TurboGears',
                  'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
@@ -573,6 +575,8 @@ class TestControllers(testutil.DBTest):
 
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
+        koji.getBuild = oldGetBuild
+        koji.listTagged = oldListTagged
         assert 'Broken update path: TurboGears-1.0.2.2-2.fc7 is older than TurboGears-1.0.2.3-2.fc7 in dist-fc7' in testutil.get_log()
 
     def test_broken_update_path_on_request(self):
@@ -594,6 +598,7 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
 
         # Monkey-patch our DevBuildsys 
+        oldGetBuild = koji.getBuild
         koji.getBuild = lambda x: {'epoch': None, 'name': 'TurboGears',
                                    'nvr': 'TurboGears-1.0.2.2-2.fc7',
                                    'release': '2.fc7',
@@ -601,6 +606,7 @@ class TestControllers(testutil.DBTest):
                                    'version': '1.0.2.2'}
 
         # Make a newer build already exist
+        oldListTagged = koji.listTagged
         koji.listTagged = lambda *x, **y: [
                 {'epoch': None, 'name': 'TurboGears',
                  'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
@@ -610,6 +616,8 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log('bodhi.util')
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
+        koji.getBuild = oldGetBuild
+        koji.listTagged = oldListTagged
         assert 'Broken update path: TurboGears-1.0.2.3-2.fc7 is already released, and is newer than TurboGears-1.0.2.2-2.fc7' in testutil.get_log()
 
     # Disabled for now, since we want to try and avoid as much bugzilla
