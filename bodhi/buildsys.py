@@ -1,4 +1,3 @@
-# $Id: $
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; version 2 of the License.
@@ -153,6 +152,7 @@ class DevBuildsys(Buildsystem):
     def getLatestBuilds(self, *args, **kw):
         return [self.getBuild(),]
 
+
 def koji_login(client=join(expanduser('~'), '.fedora.cert'),
                clientca=join(expanduser('~'), '.fedora-upload-ca.cert'),
                serverca=join(expanduser('~'), '.fedora-server-ca.cert')):
@@ -162,6 +162,7 @@ def koji_login(client=join(expanduser('~'), '.fedora.cert'),
     koji_session = koji.ClientSession(config.get('koji_hub'), {})
     koji_session.ssl_login(client, clientca, serverca)
     return koji_session
+
 
 def get_session():
     """
@@ -176,6 +177,7 @@ def get_session():
         elif buildsys == 'dev':
             session = DevBuildsys()
     return session
+
 
 def wait_for_tasks(tasks):
     """
