@@ -215,6 +215,9 @@ class PackageUpdate(SQLObject):
     nagged           = PickleCol(default={}) # { nagmail_name : datetime, ... }
     approved         = DateTimeCol(default=None)
 
+    stable_karma     = property(lambda self: self.builds[0].package.stable_karma)
+    unstable_karma   = property(lambda self: self.builds[0].package.unstable_karma)
+
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
 
@@ -563,7 +566,7 @@ class PackageUpdate(SQLObject):
                 mail.send(self.get_maintainers(), 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
             if self.status == 'testing' and self.unstable_karma != 0 and \
-               self.karma == unstable_karma:
+               self.karma == self.unstable_karma:
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
                 mail.send(self.get_maintainers(), 'unstable', self)

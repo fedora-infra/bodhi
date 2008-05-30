@@ -377,7 +377,6 @@ class TestPackageUpdate(testutil.DBTest):
         assert up.comments[2].text == 'This update has been obsoleted'
 
 
-
 class TestBugzilla(testutil.DBTest):
 
     def get_model(self):
