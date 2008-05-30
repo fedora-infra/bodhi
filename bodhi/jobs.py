@@ -21,14 +21,14 @@ import os
 import shutil
 import logging
 
-from os.path import isdir, realpath, dirname, join, islink
+from os.path import isdir, realpath, dirname, join, islink, exists
 from datetime import datetime
 from turbogears import scheduler, config
 from sqlobject.sqlbuilder import AND
 
 from bodhi import mail
 from bodhi.util import get_age_in_days
-from bodhi.model import Release, PackageUpdate, Releases
+from bodhi.model import Release, PackageUpdate
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +40,9 @@ def clean_repo():
     log.info("Starting clean_repo job")
     liverepos = []
     repos = config.get('mashed_dir')
+    if exists(join(repos, 'MASHING')):
+        log.info("Mash in progress.  Aborting clean_repo job")
+        return
     for release in [rel.name.lower() for rel in Release.select()]:
         # TODO: keep the 2 most recent repos!
         for repo in [release + '-updates', release + '-updates-testing']:
