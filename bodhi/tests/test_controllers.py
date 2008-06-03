@@ -149,7 +149,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         print cherrypy.response.body[0]
-        assert "Value must be one of: bugfix; enhancement; security (not u'REGRESSION!')" in cherrypy.response.body[0]
+        assert "Value must be one of: bugfix; enhancement; security; newpackage (not u'REGRESSION!')" in cherrypy.response.body[0]
 
     def test_user_notes_encoding(self):
         session = login(username='guest', display_name='foo\xc3\xa9bar')
