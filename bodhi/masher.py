@@ -363,6 +363,16 @@ class MashTask(Thread):
         os.chdir(olddir)
 
     def update_symlinks(self):
+        """ Stage our updates repository.
+
+        This entail doing various sanity checking, such as:
+            - make sure each repo contains all supported arches
+            - make sure we didn't compose a repo full of symlinks
+            - sanity check our repodata
+
+        If the above tests pass, then bodhi moves the repository to the
+        mashed_stage_dir, and updates the live symlinks appropriately.
+        """
         mashed_dir = config.get('mashed_dir')
         for repo, mashdir in self.mashed_repos.items():
             link = join(mashed_dir, repo)
@@ -374,6 +384,15 @@ class MashTask(Thread):
             for arch in ('i386', 'x86_64', 'ppc'):
                 if arch not in arches:
                     msg = "Cannot find arch %s in %s" % (arch, newrepo)
+                    log.error(msg)
+                    self.error_messages.append(msg)
+                    return
+
+                # sanity check our repodata 
+                try:
+                    sanity_check_repodata(join(newrepo, arch, 'repodata'))
+                except Exception, e:
+                    msg = "Repodata sanity check failed!\n%s" % str(e)
                     log.error(msg)
                     self.error_messages.append(msg)
                     return
