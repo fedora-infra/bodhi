@@ -407,6 +407,10 @@ class MashTask(Thread):
                         return
                     break
 
+            # move the new repo to our mash stage
+            shutil.move(mashdir, config.get('mashed_stage_dir'))
+
+            # create a mashed_stage_dir/repo symlink so it goes live
             if islink(link):
                 os.unlink(link)
             os.symlink(newrepo, link)
