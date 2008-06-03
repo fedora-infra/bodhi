@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: comps 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-26 14:03-0400\n"
+"POT-Creation-Date: 2008-04-17 07:36-0400\n"
 "PO-Revision-Date: 2007-03-07 12:00+0000\n"
 "Last-Translator: Richard Allen <ra@ra.is>\n"
 "Language-Team: is <kde-isl@molar.is>\n"
@@ -15,98 +15,235 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../comps-fe5.xml.in.h:1 ../comps-fe6.xml.in.h:1 ../comps-f7.xml.in.h:1
-#: ../comps-f8.xml.in.h:1
+#: ../comps-f7.xml.in.h:1 ../comps-f8.xml.in.h:1 ../comps-f9.xml.in.h:1
 msgid "A lightweight desktop environment that works well on low end machines."
 msgstr "Létt skjáborðsumhverfi sem virkar vel á aflminni vélum."
 
-#: ../comps-fe5.xml.in.h:2 ../comps-fe6.xml.in.h:2 ../comps-f7.xml.in.h:2
-#: ../comps-f8.xml.in.h:2 ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+#: ../comps-f7.xml.in.h:2 ../comps-f8.xml.in.h:2 ../comps-f9.xml.in.h:2
+#: ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
 msgid "Administration Tools"
 msgstr "Kerfisstjórnunartól"
 
-#: ../comps-fe5.xml.in.h:3 ../comps-fe6.xml.in.h:3 ../comps-f7.xml.in.h:5
-#: ../comps-f8.xml.in.h:5 ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3 ../comps-f9.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "Afríkanska"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4 ../comps-f9.xml.in.h:4
+#, fuzzy
+msgid "Albanian Support"
+msgstr "Canadíska"
+
+#: ../comps-f7.xml.in.h:5 ../comps-f8.xml.in.h:5 ../comps-f9.xml.in.h:5
+#: ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
 msgid "Applications"
 msgstr "Forrit"
 
-#: ../comps-fe5.xml.in.h:4 ../comps-fe6.xml.in.h:4 ../comps-el4.xml.in.h:3
-#: ../comps-el5.xml.in.h:3
-msgid "Applications for a variety of tasks"
-msgstr "Ýmis forrit"
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6 ../comps-f9.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
+msgstr "Ýmis forrit sem leysa mörg verkefni af hendi"
 
-#: ../comps-fe5.xml.in.h:5 ../comps-fe6.xml.in.h:5 ../comps-f7.xml.in.h:7
-#: ../comps-f8.xml.in.h:7 ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+#: ../comps-f7.xml.in.h:7 ../comps-f8.xml.in.h:7 ../comps-f9.xml.in.h:7
+#: ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
 msgid "Arabic Support"
 msgstr "Arabíska"
 
-#: ../comps-fe5.xml.in.h:6 ../comps-fe6.xml.in.h:6 ../comps-f7.xml.in.h:8
-#: ../comps-f8.xml.in.h:8 ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+#: ../comps-f7.xml.in.h:8 ../comps-f8.xml.in.h:8 ../comps-f9.xml.in.h:8
+#: ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
 msgid "Armenian Support"
 msgstr "Armenska"
 
-#: ../comps-fe5.xml.in.h:7 ../comps-fe6.xml.in.h:7 ../comps-f7.xml.in.h:10
-#: ../comps-f8.xml.in.h:10 ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9 ../comps-f9.xml.in.h:9
+msgid "Assamese Support"
+msgstr "Assamíska"
+
+#: ../comps-f7.xml.in.h:10 ../comps-f8.xml.in.h:10 ../comps-f9.xml.in.h:10
+#: ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
 msgid "Authoring and Publishing"
 msgstr "Umbrot og ritstörf"
 
-#: ../comps-fe5.xml.in.h:8 ../comps-fe6.xml.in.h:8 ../comps-f7.xml.in.h:12
-#: ../comps-f8.xml.in.h:12 ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11 ../comps-f9.xml.in.h:11
+msgid "Base"
+msgstr "Grunnur"
+
+#: ../comps-f7.xml.in.h:12 ../comps-f8.xml.in.h:12 ../comps-f9.xml.in.h:12
+#: ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
 msgid "Base System"
 msgstr "Grunnkerfið"
 
-#: ../comps-fe5.xml.in.h:9 ../comps-fe6.xml.in.h:10 ../comps-f7.xml.in.h:31
-#: ../comps-f8.xml.in.h:31 ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13 ../comps-f9.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "Grunnstuðningur við forritunarmálið Ruby"
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14 ../comps-f9.xml.in.h:14
+msgid "Basque Support"
+msgstr "Basque"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15 ../comps-f9.xml.in.h:15
+#, fuzzy
+msgid "Belarusian Support"
+msgstr "Búlgarska"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16 ../comps-f9.xml.in.h:16
+msgid "Bengali Support"
+msgstr "Bengalíska"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17 ../comps-f9.xml.in.h:17
+#, fuzzy
+msgid "Bhutanese Support"
+msgstr "Kínverska"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18 ../comps-f9.xml.in.h:18
+#, fuzzy
+msgid "Bosnian Support"
+msgstr "Eistneska"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19 ../comps-f9.xml.in.h:19
+msgid "Brazilian Portuguese Support"
+msgstr "Brasílísk portúgalska"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20 ../comps-f9.xml.in.h:20
+msgid "Breton Support"
+msgstr "Bretónska"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:22 ../comps-f9.xml.in.h:22
+msgid "Bulgarian Support"
+msgstr "Búlgarska"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:23 ../comps-f9.xml.in.h:23
+msgid "Catalan Support"
+msgstr "Catalónska"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:24 ../comps-f9.xml.in.h:24
+msgid "Chinese Support"
+msgstr "Kínverska"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:25 ../comps-f9.xml.in.h:25
+msgid "Clustering"
+msgstr "Klösun"
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:26 ../comps-f9.xml.in.h:26
+msgid "Clustering Support"
+msgstr "Klasastuðningur"
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:27 ../comps-f9.xml.in.h:27
+msgid "Core"
+msgstr "Lágmarkskerfi"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:28 ../comps-f9.xml.in.h:28
+msgid "Croatian Support"
+msgstr "Króatíska"
+
+#: ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:29 ../comps-f9.xml.in.h:29
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "Tjékkneska"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:30 ../comps-f9.xml.in.h:30
+msgid "DNS Name Server"
+msgstr "DNS nafnaþjónn"
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:31 ../comps-f9.xml.in.h:31
+msgid "Danish Support"
+msgstr "Danska"
+
+#: ../comps-f7.xml.in.h:31 ../comps-f8.xml.in.h:32 ../comps-f9.xml.in.h:32
+#: ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
 msgid "Desktop Environments"
 msgstr "Skjáborðsumhverfi"
 
-#: ../comps-fe5.xml.in.h:10 ../comps-fe6.xml.in.h:11 ../comps-f7.xml.in.h:32
-#: ../comps-f8.xml.in.h:32 ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+#: ../comps-f7.xml.in.h:32 ../comps-f8.xml.in.h:33 ../comps-f9.xml.in.h:33
+#: ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
 msgid "Desktop environments"
 msgstr "Skjáborðsumhverfi"
 
-#: ../comps-fe5.xml.in.h:11 ../comps-fe6.xml.in.h:12 ../comps-f7.xml.in.h:33
-#: ../comps-f8.xml.in.h:33 ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+#: ../comps-f7.xml.in.h:33 ../comps-f8.xml.in.h:34 ../comps-f9.xml.in.h:34
+#: ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
 msgid "Development"
 msgstr "Þróun"
 
-#: ../comps-fe5.xml.in.h:12 ../comps-fe6.xml.in.h:13 ../comps-f7.xml.in.h:35
-#: ../comps-f8.xml.in.h:35 ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:35 ../comps-f9.xml.in.h:35
+msgid "Development Libraries"
+msgstr "Þróunaraðgerðasöfn"
+
+#: ../comps-f7.xml.in.h:35 ../comps-f8.xml.in.h:36 ../comps-f9.xml.in.h:36
+#: ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
 msgid "Development Tools"
 msgstr "Þróunartól"
 
-#: ../comps-fe5.xml.in.h:13 ../comps-fe6.xml.in.h:14 ../comps-el4.xml.in.h:12
-#: ../comps-el5.xml.in.h:13
-msgid "Dialup Networking Support"
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:37 ../comps-f9.xml.in.h:37
+msgid "Dial-up Networking Support"
 msgstr "Upphringinetsstuðningur"
 
-#: ../comps-fe5.xml.in.h:14 ../comps-fe6.xml.in.h:15 ../comps-f7.xml.in.h:39
-#: ../comps-f8.xml.in.h:39 ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:38 ../comps-f9.xml.in.h:38
+msgid "Dutch Support"
+msgstr "Hollenska"
+
+#: ../comps-f7.xml.in.h:38
+msgid "Eclipse"
+msgstr "Eclipse"
+
+#: ../comps-f7.xml.in.h:39 ../comps-f8.xml.in.h:39 ../comps-f9.xml.in.h:39
+#: ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
 msgid "Editors"
 msgstr "Ritlar"
 
-#: ../comps-fe5.xml.in.h:15 ../comps-fe6.xml.in.h:16 ../comps-f7.xml.in.h:40
-#: ../comps-f8.xml.in.h:40 ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+#: ../comps-f7.xml.in.h:40 ../comps-f8.xml.in.h:40 ../comps-f9.xml.in.h:40
+#: ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
 msgid "Educational Software"
 msgstr "Fræðsluhugbúnaður"
 
-#: ../comps-fe5.xml.in.h:16 ../comps-fe6.xml.in.h:17 ../comps-f7.xml.in.h:41
-#: ../comps-f8.xml.in.h:41 ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+#: ../comps-f7.xml.in.h:41 ../comps-f8.xml.in.h:41 ../comps-f9.xml.in.h:41
+#: ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
 msgid "Educational software for learning"
 msgstr "Fræðsluhugbúnaður"
 
-#: ../comps-fe5.xml.in.h:17 ../comps-fe6.xml.in.h:18 ../comps-f7.xml.in.h:42
-#: ../comps-f8.xml.in.h:42 ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+#: ../comps-f7.xml.in.h:42 ../comps-f8.xml.in.h:42 ../comps-f9.xml.in.h:42
+#: ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
 msgid "Engineering and Scientific"
 msgstr "Vísindi og verkfræði"
 
-#: ../comps-fe5.xml.in.h:18 ../comps-fe6.xml.in.h:19 ../comps-f7.xml.in.h:46
-#: ../comps-f8.xml.in.h:46 ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43 ../comps-f9.xml.in.h:43
+msgid "English (UK) Support"
+msgstr "Enskustuðningur (UK)"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44 ../comps-f9.xml.in.h:45
+msgid "Estonian Support"
+msgstr "Eistneska"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45 ../comps-f9.xml.in.h:46
+msgid "Ethiopic Support"
+msgstr "Eþíópa"
+
+#: ../comps-f7.xml.in.h:46 ../comps-f8.xml.in.h:46 ../comps-f9.xml.in.h:47
+#: ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
 msgid "FTP Server"
 msgstr "FTP þjónn"
 
-#: ../comps-fe5.xml.in.h:19 ../comps-fe6.xml.in.h:20 ../comps-f7.xml.in.h:51
-#: ../comps-f8.xml.in.h:51 ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47 ../comps-f9.xml.in.h:48
+msgid "Faeroese Support"
+msgstr "Færeyska"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:49 ../comps-f9.xml.in.h:50
+#: ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#, fuzzy
+msgid "Fedora Packager"
+msgstr "Eclipse"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:50 ../comps-f9.xml.in.h:51
+#, fuzzy
+msgid "Filipino Support"
+msgstr "Katalónska"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:51 ../comps-f9.xml.in.h:52
+msgid "Finnish Support"
+msgstr "Finnska"
+
+#: ../comps-f7.xml.in.h:51 ../comps-f8.xml.in.h:54 ../comps-f9.xml.in.h:55
+msgid "French Support"
+msgstr "Franska"
+
+#: ../comps-f7.xml.in.h:52 ../comps-f8.xml.in.h:55 ../comps-f9.xml.in.h:56
+#: ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
 msgid ""
 "From CD recording to playing audio CDs and multimedia files, this package "
 "group allows you to work with sound and video on the system."
@@ -114,519 +251,17 @@ msgstr ""
 "Allt frá brennslu geisladiska til að spila geisladiska og margmiðlunarskrár. "
 "Þessi pakkahópur gerir þér kleyft að vinna með hljóð og mynd."
 
-#: ../comps-fe5.xml.in.h:20 ../comps-fe6.xml.in.h:21 ../comps-f7.xml.in.h:52
-#: ../comps-f8.xml.in.h:52 ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+#: ../comps-f7.xml.in.h:53 ../comps-f8.xml.in.h:56 ../comps-f9.xml.in.h:57
+#: ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
 msgid "GNOME Desktop Environment"
 msgstr "GNOME skjáborðið"
 
-#: ../comps-fe5.xml.in.h:21 ../comps-fe6.xml.in.h:22 ../comps-f7.xml.in.h:53
-#: ../comps-f8.xml.in.h:53 ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:57 ../comps-f9.xml.in.h:58
+#: ../comps-el4.xml.in.h:21 ../comps-el5.xml.in.h:22
 msgid "GNOME Software Development"
 msgstr "Hugbúnaðarþróun fyrir GNOME"
 
-#: ../comps-fe5.xml.in.h:22 ../comps-fe6.xml.in.h:23 ../comps-el4.xml.in.h:21
-#: ../comps-el5.xml.in.h:22
-msgid ""
-"GNOME is a powerful, graphical user interface which includes a panel, "
-"desktop, system icons, and a graphical file manager."
-msgstr ""
-"GNOME er öflugt myndrænt vinnuumhverfi sem inniheldur spjald, skjáborð, "
-"kerfissmámyndir og myndrænann skráarstjóra."
-
-#: ../comps-fe5.xml.in.h:23 ../comps-fe6.xml.in.h:24 ../comps-f7.xml.in.h:57
-#: ../comps-f8.xml.in.h:57 ../comps-el5.xml.in.h:23
-msgid "Games and Entertainment"
-msgstr "Leikir og skemmtun"
-
-#: ../comps-fe5.xml.in.h:24 ../comps-fe6.xml.in.h:25 ../comps-f7.xml.in.h:60
-#: ../comps-f8.xml.in.h:60 ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:24
-msgid "Graphical Internet"
-msgstr "Myndræn Internettól"
-
-#: ../comps-fe5.xml.in.h:25 ../comps-fe6.xml.in.h:26 ../comps-f7.xml.in.h:61
-#: ../comps-f8.xml.in.h:61 ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
-msgid "Graphics"
-msgstr "Myndvinnsla"
-
-#: ../comps-fe5.xml.in.h:26 ../comps-fe6.xml.in.h:27 ../comps-f7.xml.in.h:64
-#: ../comps-f8.xml.in.h:64 ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
-msgid "Hardware Support"
-msgstr "Vélbúnaðarstuðningur"
-
-#: ../comps-fe5.xml.in.h:27 ../comps-fe6.xml.in.h:28 ../comps-f7.xml.in.h:65
-#: ../comps-f8.xml.in.h:65 ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
-msgid "Hebrew Support"
-msgstr "Hebreska"
-
-#: ../comps-fe5.xml.in.h:28 ../comps-fe6.xml.in.h:29 ../comps-f7.xml.in.h:70
-#: ../comps-f8.xml.in.h:70 ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
-msgid ""
-"Install these packages in order to develop GTK+ and GNOME graphical "
-"applications."
-msgstr "Settu þessa pakka inn ef þú vilt þróa GTK+ og GNOME forrit."
-
-#: ../comps-fe5.xml.in.h:29 ../comps-fe6.xml.in.h:30 ../comps-f7.xml.in.h:71
-#: ../comps-f8.xml.in.h:71
-msgid ""
-"Install these packages in order to develop GTK+ and XFCE graphical "
-"applications."
-msgstr "Settu þessa pakka inn ef þú vilt þróa GTK+ og XFCE forrit."
-
-#: ../comps-fe5.xml.in.h:30 ../comps-fe6.xml.in.h:31 ../comps-f7.xml.in.h:72
-#: ../comps-f8.xml.in.h:72 ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
-msgid "Install these packages to develop QT and KDE graphical applications."
-msgstr "Settu þessa pakka inn ef þú vilt þróa QT og KDE forrit"
-
-#: ../comps-fe5.xml.in.h:31 ../comps-fe6.xml.in.h:32 ../comps-f7.xml.in.h:74
-#: ../comps-f8.xml.in.h:74 ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
-msgid ""
-"Install this group of packages to use the base graphical (X) user interface."
-msgstr "Settu þessa pakka inn ef þú vilt nota myndræn forrit (X)."
-
-#: ../comps-fe5.xml.in.h:32 ../comps-fe6.xml.in.h:33 ../comps-f7.xml.in.h:78
-#: ../comps-f8.xml.in.h:78 ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
-msgid "Japanese Support"
-msgstr "Japanska"
-
-#: ../comps-fe5.xml.in.h:33 ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:79
-#: ../comps-el4.xml.in.h:30
-msgid "Java"
-msgstr "Java"
-
-#: ../comps-fe5.xml.in.h:34 ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:80
-#: ../comps-el4.xml.in.h:31
-msgid "Java Development"
-msgstr "Java þróun"
-
-#: ../comps-fe5.xml.in.h:35 ../comps-fe6.xml.in.h:34 ../comps-f7.xml.in.h:81
-#: ../comps-f8.xml.in.h:81 ../comps-el4.xml.in.h:32 ../comps-el5.xml.in.h:32
-msgid "KDE (K Desktop Environment)"
-msgstr "KDE (K skjáborðið)"
-
-#: ../comps-fe5.xml.in.h:36 ../comps-fe6.xml.in.h:35 ../comps-f7.xml.in.h:82
-#: ../comps-f8.xml.in.h:82 ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
-msgid "KDE Software Development"
-msgstr "Hugbúnaðarþróun fyrir KDE"
-
-#: ../comps-fe5.xml.in.h:37 ../comps-fe6.xml.in.h:36 ../comps-el4.xml.in.h:34
-#: ../comps-el5.xml.in.h:34
-msgid ""
-"KDE is a powerful, graphical user interface which includes a panel, desktop, "
-"system icons, and a graphical file manager."
-msgstr ""
-"KDE er öflugt myndrænt vinnuumhverfi sem inniheldur spjald, skjáborð, "
-"kerfissmámyndir og myndrænann skráarstjóra."
-
-#: ../comps-fe5.xml.in.h:38 ../comps-fe6.xml.in.h:37 ../comps-f7.xml.in.h:94
-#: ../comps-f8.xml.in.h:94 ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
-msgid "Mail Server"
-msgstr "Póstþjónn"
-
-#: ../comps-fe5.xml.in.h:39 ../comps-fe6.xml.in.h:38 ../comps-f7.xml.in.h:100
-#: ../comps-f8.xml.in.h:100 ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
-msgid "Network Servers"
-msgstr "Netþjónustur"
-
-#: ../comps-fe5.xml.in.h:40 ../comps-fe6.xml.in.h:39 ../comps-f7.xml.in.h:101
-#: ../comps-f8.xml.in.h:101 ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
-msgid "News Server"
-msgstr "Fréttaþjónn"
-
-#: ../comps-fe5.xml.in.h:41 ../comps-fe6.xml.in.h:40 ../comps-f7.xml.in.h:104
-#: ../comps-f8.xml.in.h:104 ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
-msgid "Office/Productivity"
-msgstr "Skrifstofuforrit"
-
-#: ../comps-fe5.xml.in.h:42 ../comps-fe6.xml.in.h:41 ../comps-f7.xml.in.h:106
-#: ../comps-f8.xml.in.h:106 ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
-msgid ""
-"Packages which provide functionality for developing and building "
-"applications."
-msgstr "Pakkar sem innihalda virkni til að þróa og smíða hugbúnað."
-
-#: ../comps-fe5.xml.in.h:43 ../comps-fe6.xml.in.h:42 ../comps-f7.xml.in.h:119
-#: ../comps-f8.xml.in.h:119 ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
-msgid "Servers"
-msgstr "Þjónar"
-
-#: ../comps-fe5.xml.in.h:44 ../comps-fe6.xml.in.h:43 ../comps-f7.xml.in.h:120
-#: ../comps-f8.xml.in.h:120 ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
-msgid ""
-"Simple window managers that aren't part of a larger desktop environment."
-msgstr "Einfaldir gluggastjórar sem tilheyra ekki stærri skjáborðsumhverfum."
-
-#: ../comps-fe5.xml.in.h:45 ../comps-fe6.xml.in.h:44 ../comps-f7.xml.in.h:125
-#: ../comps-f8.xml.in.h:125 ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
-msgid "Software used for running network servers"
-msgstr "Hugbúnaður til að keyra netþjóna"
-
-#: ../comps-fe5.xml.in.h:46 ../comps-fe6.xml.in.h:45 ../comps-el4.xml.in.h:43
-#: ../comps-el5.xml.in.h:43
-msgid ""
-"Sometimes called text editors, these are programs that allow you to create "
-"and edit files. These include Emacs and Vi."
-msgstr ""
-"Forrit sem kallast ritlar. Þetta eru tólin sem gera þér kleyft að búa til og "
-"breyta skrám. Þetta inniheldur meðal annars Emacs og Vi."
-
-#: ../comps-fe5.xml.in.h:47 ../comps-fe6.xml.in.h:46 ../comps-f7.xml.in.h:128
-#: ../comps-f8.xml.in.h:128 ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
-msgid "Sound and Video"
-msgstr "Hljóð og mynd"
-
-#: ../comps-fe5.xml.in.h:48 ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:132
-#: ../comps-el4.xml.in.h:45
-msgid "Support for developing programs in the Java programming language."
-msgstr "Þróunartól fyrir Java forritunarmálið."
-
-#: ../comps-fe5.xml.in.h:49 ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:133
-#: ../comps-el4.xml.in.h:46
-msgid "Support for running programs written in the Java programming language."
-msgstr "Grunnstuðningur við Java forritunarmálið."
-
-#: ../comps-fe5.xml.in.h:50 ../comps-fe6.xml.in.h:47 ../comps-f7.xml.in.h:136
-#: ../comps-f8.xml.in.h:136 ../comps-el4.xml.in.h:47 ../comps-el5.xml.in.h:45
-msgid "System Tools"
-msgstr "Kerfistól"
-
-#: ../comps-fe5.xml.in.h:51 ../comps-fe6.xml.in.h:48 ../comps-f7.xml.in.h:140
-#: ../comps-f8.xml.in.h:140 ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
-msgid "Text-based Internet"
-msgstr "Internet með textaskilum"
-
-#: ../comps-fe5.xml.in.h:52 ../comps-fe6.xml.in.h:49 ../comps-el4.xml.in.h:49
-#: ../comps-el5.xml.in.h:47
-msgid "The XEmacs text editor."
-msgstr "XEmacs ritillinn."
-
-#: ../comps-fe5.xml.in.h:53 ../comps-fe6.xml.in.h:50 ../comps-f7.xml.in.h:143
-#: ../comps-f8.xml.in.h:143 ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
-msgid "The applications include office suites, PDF viewers, and more."
-msgstr "Forritin innihalda meðal annars skrifstofutól, PDF sjár og fleira."
-
-#: ../comps-fe5.xml.in.h:54 ../comps-fe6.xml.in.h:51 ../comps-f7.xml.in.h:145
-#: ../comps-f8.xml.in.h:145 ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
-msgid "These packages allow you to configure an IMAP or SMTP mail server."
-msgstr "Þessir pakkar gera þér kleyft að setja upp IMAP eða SMTP pósthús."
-
-#: ../comps-fe5.xml.in.h:55 ../comps-fe6.xml.in.h:52 ../comps-f7.xml.in.h:147
-#: ../comps-f8.xml.in.h:147 ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
-msgid ""
-"These packages are helpful when developing web applications or web pages."
-msgstr "Þessir pakkar gera þér kleyft að þróa vefforrit og vefsíður."
-
-#: ../comps-fe5.xml.in.h:56 ../comps-fe6.xml.in.h:53 ../comps-el4.xml.in.h:53
-#: ../comps-el5.xml.in.h:51
-msgid ""
-"These tools allow you to create documentation in the DocBook format and "
-"convert them to HTML, PDF, Postscript, and text."
-msgstr ""
-"Þessi tól gera þér kleyft að búa til skjöl á DocBook sniði og breyta þeim í "
-"HTML, PDF, Postscript og texta."
-
-#: ../comps-fe5.xml.in.h:57 ../comps-fe6.xml.in.h:54 ../comps-f7.xml.in.h:154
-#: ../comps-f8.xml.in.h:154 ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
-msgid "These tools allow you to run a Web server on the system."
-msgstr "Þessi tól gera þér kleyft að keyra vefþjón á vélinni."
-
-#: ../comps-fe5.xml.in.h:58 ../comps-fe6.xml.in.h:55 ../comps-f7.xml.in.h:155
-#: ../comps-f8.xml.in.h:155 ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
-msgid "These tools allow you to run an FTP server on the system."
-msgstr "Þessi tól gera þér kleyft að keyra FTP þjón á vélinni."
-
-#: ../comps-fe5.xml.in.h:59 ../comps-fe6.xml.in.h:56 ../comps-f7.xml.in.h:156
-#: ../comps-f8.xml.in.h:156 ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
-msgid ""
-"These tools include core development tools such as automake, gcc, perl, "
-"python, and debuggers."
-msgstr ""
-"Þessi tól eru meðal annars automake, gcc, perl, python og aflúsunartól."
-
-#: ../comps-fe5.xml.in.h:60 ../comps-fe6.xml.in.h:57 ../comps-f7.xml.in.h:157
-#: ../comps-f8.xml.in.h:157 ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
-msgid "This group allows you to configure the system as a news server."
-msgstr "Þessi tól gera þér kleyft að stilla vélina sem news þjón."
-
-#: ../comps-fe5.xml.in.h:61 ../comps-fe6.xml.in.h:58 ../comps-f7.xml.in.h:160
-#: ../comps-f8.xml.in.h:160 ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
-msgid "This group includes graphical email, Web, and chat clients."
-msgstr "Þessi hópur inniheldur myndræn póst, vef og spjallforrit."
-
-#: ../comps-fe5.xml.in.h:62 ../comps-fe6.xml.in.h:59 ../comps-f7.xml.in.h:161
-#: ../comps-f8.xml.in.h:161 ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
-msgid ""
-"This group includes packages for performing mathematical and scientific "
-"computations and plotting, as well as unit conversion."
-msgstr ""
-"Þessi hópur inniheldur pakka til að framkvæma stærðfræði og "
-"vísindaútreikninga ásamt tólum til að umbreyta milli eininga."
-
-#: ../comps-fe5.xml.in.h:63 ../comps-fe6.xml.in.h:60 ../comps-f7.xml.in.h:162
-#: ../comps-f8.xml.in.h:162 ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
-msgid "This group includes packages to help you manipulate and scan images."
-msgstr ""
-"Þessi hópur inniheldur pakka sem gera þér kleyft að skanna og breyta myndum."
-
-#: ../comps-fe5.xml.in.h:64 ../comps-fe6.xml.in.h:61 ../comps-f7.xml.in.h:163
-#: ../comps-f8.xml.in.h:163 ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
-msgid ""
-"This group includes text-based email, Web, and chat clients. These "
-"applications do not require the X Window System."
-msgstr ""
-"Þessi hópur inniheldur póst, vef og spjallforrit með textaskilum. Þessi tól "
-"þurfa ekki X gluggakerfið."
-
-#: ../comps-fe5.xml.in.h:65 ../comps-fe6.xml.in.h:62 ../comps-f7.xml.in.h:164
-#: ../comps-f8.xml.in.h:164 ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
-msgid ""
-"This group is a collection of graphical administration tools for the system, "
-"such as for managing user accounts and configuring system hardware."
-msgstr ""
-"Þessi hópur inniheldur safn myndrænna kerfisstjórnunartóla fyrir vélina eins "
-"og til dæmis tól til að vinna með notendur og stilla vélbúnað."
-
-#: ../comps-fe5.xml.in.h:66 ../comps-fe6.xml.in.h:63 ../comps-el4.xml.in.h:63
-#: ../comps-el5.xml.in.h:61
-#, fuzzy
-msgid "This group is a collection of network servers for specific purposes"
-msgstr "Þessi pakkahópur inniheldur ýmis vélbúnaðartól."
-
-#: ../comps-fe5.xml.in.h:67 ../comps-fe6.xml.in.h:64 ../comps-el4.xml.in.h:64
-#: ../comps-el5.xml.in.h:62
-#, fuzzy
-msgid ""
-"This group is a collection of tools and resources of Arabic environments."
-msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
-
-#: ../comps-fe5.xml.in.h:68 ../comps-fe6.xml.in.h:65 ../comps-f7.xml.in.h:165
-#: ../comps-f8.xml.in.h:165 ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
-msgid ""
-"This group is a collection of tools and resources of Armenian environments."
-msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
-
-#: ../comps-fe5.xml.in.h:69 ../comps-fe6.xml.in.h:67 ../comps-el4.xml.in.h:66
-#: ../comps-el5.xml.in.h:65
-#, fuzzy
-msgid ""
-"This group is a collection of tools and resources of Hebrew environments."
-msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
-
-#: ../comps-fe5.xml.in.h:70 ../comps-fe6.xml.in.h:68 ../comps-el4.xml.in.h:67
-#: ../comps-el5.xml.in.h:66
-#, fuzzy
-msgid ""
-"This group is a collection of tools and resources of Japanese environments."
-msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
-
-#: ../comps-fe5.xml.in.h:71 ../comps-fe6.xml.in.h:69 ../comps-f7.xml.in.h:166
-#: ../comps-f8.xml.in.h:166 ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
-msgid ""
-"This group is a collection of tools for various hardware specific utilities."
-msgstr "Þessi pakkahópur inniheldur ýmis vélbúnaðartól."
-
-#: ../comps-fe5.xml.in.h:72 ../comps-fe6.xml.in.h:70 ../comps-f7.xml.in.h:167
-#: ../comps-f8.xml.in.h:167 ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
-msgid ""
-"This group is a collection of various tools for the system, such as the "
-"client for connecting to SMB shares and tools to monitor network traffic."
-msgstr ""
-"Þessi hópur inniheldur safn kerfistóla eins og til dæmis tól til að tengjast "
-"SMB netdrifum og tól til að fylgjast með umferð á neti."
-
-#: ../comps-fe5.xml.in.h:73 ../comps-fe6.xml.in.h:71 ../comps-f7.xml.in.h:179
-#: ../comps-f8.xml.in.h:179 ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
-msgid "Various core pieces of the system."
-msgstr "Ýmsir hlutar grunnkerfisins."
-
-#: ../comps-fe5.xml.in.h:74 ../comps-fe6.xml.in.h:72 ../comps-f7.xml.in.h:180
-#: ../comps-f8.xml.in.h:180 ../comps-el5.xml.in.h:70
-msgid "Various ways to relax and spend your free time."
-msgstr "Ýmslegt til að slappa af yfir og eyða lausum tíma."
-
-#: ../comps-fe5.xml.in.h:75 ../comps-fe6.xml.in.h:73 ../comps-f7.xml.in.h:184
-#: ../comps-f8.xml.in.h:184 ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:71
-msgid "Web Development"
-msgstr "Vefþróun"
-
-#: ../comps-fe5.xml.in.h:76 ../comps-fe6.xml.in.h:74 ../comps-f7.xml.in.h:185
-#: ../comps-f8.xml.in.h:185 ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:72
-msgid "Web Server"
-msgstr "Vefþjónn"
-
-#: ../comps-fe5.xml.in.h:77 ../comps-fe6.xml.in.h:75 ../comps-f7.xml.in.h:187
-#: ../comps-f8.xml.in.h:187 ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
-msgid "Window Managers"
-msgstr "Gluggastjórar"
-
-#: ../comps-fe5.xml.in.h:78 ../comps-fe6.xml.in.h:76 ../comps-f7.xml.in.h:190
-#: ../comps-f8.xml.in.h:190 ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
-msgid "X Window System"
-msgstr "X gluggakerfið"
-
-#: ../comps-fe5.xml.in.h:79 ../comps-fe6.xml.in.h:77 ../comps-el4.xml.in.h:75
-#: ../comps-el5.xml.in.h:75
-msgid "XEmacs"
-msgstr "XEmacs"
-
-#: ../comps-fe5.xml.in.h:80 ../comps-fe6.xml.in.h:78 ../comps-f7.xml.in.h:191
-#: ../comps-f8.xml.in.h:191
-msgid "XFCE"
-msgstr "XFCE"
-
-#: ../comps-fe5.xml.in.h:81 ../comps-fe6.xml.in.h:79 ../comps-f7.xml.in.h:192
-#: ../comps-f8.xml.in.h:192
-msgid "XFCE Software Development"
-msgstr "Hugbúnaðarþróun fyrir XFCE umhverfið"
-
-#: ../comps-fe6.xml.in.h:9 ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:28
-#: ../comps-el5.xml.in.h:8
-msgid "Czech Support"
-msgstr "Tjékkneska"
-
-#: ../comps-fe6.xml.in.h:66 ../comps-el5.xml.in.h:64
-#, fuzzy
-msgid ""
-"This group is a collection of tools and resources of Czech environments."
-msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
-
-#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3
-msgid "Afrikaans Support"
-msgstr "Afríkanska"
-
-#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4
-#, fuzzy
-msgid "Albanian Support"
-msgstr "Canadíska"
-
-#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6
-msgid "Applications to perform a variety of tasks"
-msgstr "Ýmis forrit sem leysa mörg verkefni af hendi"
-
-#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9
-msgid "Assamese Support"
-msgstr "Assamíska"
-
-#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11
-msgid "Base"
-msgstr "Grunnur"
-
-#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13
-msgid "Basic support for the Ruby programming language."
-msgstr "Grunnstuðningur við forritunarmálið Ruby"
-
-#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14
-msgid "Basque Support"
-msgstr "Basque"
-
-#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15
-#, fuzzy
-msgid "Belarusian Support"
-msgstr "Búlgarska"
-
-#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16
-msgid "Bengali Support"
-msgstr "Bengalíska"
-
-#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17
-#, fuzzy
-msgid "Bhutanese Support"
-msgstr "Kínverska"
-
-#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18
-#, fuzzy
-msgid "Bosnian Support"
-msgstr "Eistneska"
-
-#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19
-msgid "Brazilian Portuguese Support"
-msgstr "Brasílísk portúgalska"
-
-#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20
-msgid "Breton Support"
-msgstr "Bretónska"
-
-#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:21
-msgid "Bulgarian Support"
-msgstr "Búlgarska"
-
-#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:22
-msgid "Catalan Support"
-msgstr "Catalónska"
-
-#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:23
-msgid "Chinese Support"
-msgstr "Kínverska"
-
-#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:24
-msgid "Clustering"
-msgstr "Klösun"
-
-#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:25
-msgid "Clustering Support"
-msgstr "Klasastuðningur"
-
-#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:26
-msgid "Core"
-msgstr "Lágmarkskerfi"
-
-#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:27
-msgid "Croatian Support"
-msgstr "Króatíska"
-
-#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:29
-msgid "DNS Name Server"
-msgstr "DNS nafnaþjónn"
-
-#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:30
-msgid "Danish Support"
-msgstr "Danska"
-
-#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:34
-msgid "Development Libraries"
-msgstr "Þróunaraðgerðasöfn"
-
-#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:36
-msgid "Dial-up Networking Support"
-msgstr "Upphringinetsstuðningur"
-
-#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:37
-msgid "Dutch Support"
-msgstr "Hollenska"
-
-#: ../comps-f7.xml.in.h:38 ../comps-f8.xml.in.h:38
-msgid "Eclipse"
-msgstr "Eclipse"
-
-#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43
-msgid "English (UK) Support"
-msgstr "Enskustuðningur (UK)"
-
-#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44
-msgid "Estonian Support"
-msgstr "Eistneska"
-
-#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45
-msgid "Ethiopic Support"
-msgstr "Eþíópa"
-
-#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47
-msgid "Faeroese Support"
-msgstr "Færeyska"
-
-#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:48
-#, fuzzy
-msgid "Filipino Support"
-msgstr "Katalónska"
-
-#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:49
-msgid "Finnish Support"
-msgstr "Finnska"
-
-#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:50
-msgid "French Support"
-msgstr "Franska"
-
-#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:54
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:58 ../comps-f9.xml.in.h:59
 msgid ""
 "GNOME is a powerful graphical user interface which includes a panel, "
 "desktop, system icons, and a graphical file manager."
@@ -634,66 +269,140 @@ msgstr ""
 "GNOME er öflugt myndrænt vinnuumhverfi sem inniheldur spjald, skjáborð, "
 "kerfissmámyndir og myndrænan skráarstjóra."
 
-#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:55
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:59 ../comps-f9.xml.in.h:60
 msgid "Gaelic Support"
 msgstr "Velska"
 
-#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:56
+#: ../comps-f7.xml.in.h:57 ../comps-f8.xml.in.h:60 ../comps-f9.xml.in.h:61
 msgid "Galician Support"
 msgstr "Katalónska"
 
-#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:58
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:61 ../comps-f9.xml.in.h:62
+#: ../comps-el5.xml.in.h:24
+msgid "Games and Entertainment"
+msgstr "Leikir og skemmtun"
+
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:62 ../comps-f9.xml.in.h:63
 #, fuzzy
 msgid "Georgian Support"
 msgstr "Þýska"
 
-#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:59
+#: ../comps-f7.xml.in.h:60 ../comps-f8.xml.in.h:63 ../comps-f9.xml.in.h:64
 msgid "German Support"
 msgstr "Þýska"
 
-#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:62
+#: ../comps-f7.xml.in.h:61 ../comps-f8.xml.in.h:64 ../comps-f9.xml.in.h:65
+#: ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+msgid "Graphical Internet"
+msgstr "Myndræn Internettól"
+
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:65 ../comps-f9.xml.in.h:66
+#: ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+msgid "Graphics"
+msgstr "Myndvinnsla"
+
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:66 ../comps-f9.xml.in.h:67
 msgid "Greek Support"
 msgstr "Gríska"
 
-#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:63
+#: ../comps-f7.xml.in.h:64 ../comps-f8.xml.in.h:67 ../comps-f9.xml.in.h:68
 msgid "Gujarati Support"
 msgstr "Gujarati"
 
-#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:66
+#: ../comps-f7.xml.in.h:65 ../comps-f8.xml.in.h:68 ../comps-f9.xml.in.h:69
+#: ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+msgid "Hardware Support"
+msgstr "Vélbúnaðarstuðningur"
+
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:69 ../comps-f9.xml.in.h:70
+#: ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+msgid "Hebrew Support"
+msgstr "Hebreska"
+
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:70 ../comps-f9.xml.in.h:71
 msgid "Hindi Support"
 msgstr "Hindí"
 
-#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:67
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:71 ../comps-f9.xml.in.h:72
 msgid "Hungarian Support"
 msgstr "Ungverska"
 
-#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:68
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:72 ../comps-f9.xml.in.h:73
 msgid "Icelandic Support"
 msgstr "Íslenska"
 
-#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:69
+#: ../comps-f7.xml.in.h:70 ../comps-f8.xml.in.h:73 ../comps-f9.xml.in.h:74
 msgid "Indonesian Support"
 msgstr "Indóneskíska"
 
-#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:73
+#: ../comps-f7.xml.in.h:71 ../comps-f8.xml.in.h:74 ../comps-f9.xml.in.h:75
+#: ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+msgid ""
+"Install these packages in order to develop GTK+ and GNOME graphical "
+"applications."
+msgstr "Settu þessa pakka inn ef þú vilt þróa GTK+ og GNOME forrit."
+
+#: ../comps-f7.xml.in.h:72 ../comps-f8.xml.in.h:75 ../comps-f9.xml.in.h:76
+msgid ""
+"Install these packages in order to develop GTK+ and XFCE graphical "
+"applications."
+msgstr "Settu þessa pakka inn ef þú vilt þróa GTK+ og XFCE forrit."
+
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:76 ../comps-f9.xml.in.h:77
+#: ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+msgid "Install these packages to develop QT and KDE graphical applications."
+msgstr "Settu þessa pakka inn ef þú vilt þróa QT og KDE forrit"
+
+#: ../comps-f7.xml.in.h:74 ../comps-f8.xml.in.h:77 ../comps-f9.xml.in.h:78
 msgid ""
 "Install these tools to enable the system to print or act as a print server."
 msgstr "Settu þessa pakka inn ef þú vilt prenta eða setja upp prentþjón."
 
-#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:75
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:78 ../comps-f9.xml.in.h:79
+#: ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+msgid ""
+"Install this group of packages to use the base graphical (X) user interface."
+msgstr "Settu þessa pakka inn ef þú vilt nota myndræn forrit (X)."
+
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:80 ../comps-f9.xml.in.h:81
 #, fuzzy
 msgid "Inuktitut Support"
 msgstr "Zúlú"
 
-#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:76
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:81 ../comps-f9.xml.in.h:82
 msgid "Irish Support"
 msgstr "Írska"
 
-#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:77
+#: ../comps-f7.xml.in.h:78 ../comps-f8.xml.in.h:82 ../comps-f9.xml.in.h:83
 msgid "Italian Support"
 msgstr "Ítalska"
 
-#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:83
+#: ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:83 ../comps-f9.xml.in.h:84
+#: ../comps-el4.xml.in.h:30 ../comps-el5.xml.in.h:32
+msgid "Japanese Support"
+msgstr "Japanska"
+
+#: ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:84 ../comps-f9.xml.in.h:85
+#: ../comps-el4.xml.in.h:31
+msgid "Java"
+msgstr "Java"
+
+#: ../comps-f7.xml.in.h:81 ../comps-f8.xml.in.h:85 ../comps-f9.xml.in.h:86
+#: ../comps-el4.xml.in.h:32
+msgid "Java Development"
+msgstr "Java þróun"
+
+#: ../comps-f7.xml.in.h:82 ../comps-f8.xml.in.h:86 ../comps-f9.xml.in.h:87
+#: ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+msgid "KDE (K Desktop Environment)"
+msgstr "KDE (K skjáborðið)"
+
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:87 ../comps-f9.xml.in.h:88
+#: ../comps-el4.xml.in.h:34 ../comps-el5.xml.in.h:34
+msgid "KDE Software Development"
+msgstr "Hugbúnaðarþróun fyrir KDE"
+
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:88 ../comps-f9.xml.in.h:89
 msgid ""
 "KDE is a powerful graphical user interface which includes a panel, desktop, "
 "system icons, and a graphical file manager."
@@ -701,154 +410,197 @@ msgstr ""
 "KDE er öflugt myndrænt vinnuumhverfi sem inniheldur spjald, skjáborð, "
 "kerfissmámyndir og myndrænan skráarstjóra."
 
-#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:84
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:89 ../comps-f9.xml.in.h:90
 msgid "Kannada Support"
 msgstr "Kannada"
 
-#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:85
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:90 ../comps-f9.xml.in.h:92
 #, fuzzy
 msgid "Khmer Support"
 msgstr "Þýska"
 
-#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:86
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:91 ../comps-f9.xml.in.h:93
 msgid "Korean Support"
 msgstr "Kóreska"
 
-#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:87
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:92 ../comps-f9.xml.in.h:94
 msgid "Languages"
 msgstr "Tungumál"
 
-#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:88
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:93 ../comps-f9.xml.in.h:95
 #, fuzzy
 msgid "Lao Support"
 msgstr "Tælenska"
 
-#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:89
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:94 ../comps-f9.xml.in.h:96
 #, fuzzy
 msgid "Latvian Support"
 msgstr "Króatíska"
 
-#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:90
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:96 ../comps-f9.xml.in.h:98
 msgid "Legacy Network Server"
 msgstr "Gamlar netþjónustur"
 
-#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:91
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:97 ../comps-f9.xml.in.h:99
 msgid "Legacy Software Development"
 msgstr "Þróunartól fyrir gömul forrit"
 
-#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:92
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:98 ../comps-f9.xml.in.h:100
 msgid "Legacy Software Support"
 msgstr "Stuðningur við gömul forrit"
 
-#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:93
+#: ../comps-f7.xml.in.h:94 ../comps-f8.xml.in.h:99 ../comps-f9.xml.in.h:101
 msgid "Lithuanian Support"
 msgstr "Litháenska"
 
-#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:95
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:101 ../comps-f9.xml.in.h:104
+#: ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+msgid "Mail Server"
+msgstr "Póstþjónn"
+
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:102 ../comps-f9.xml.in.h:105
 msgid "Malay Support"
 msgstr "Malaíska"
 
-#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:96
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:103 ../comps-f9.xml.in.h:106
 msgid "Malayalam Support"
 msgstr "Malayalam"
 
-#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:97
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:104 ../comps-f9.xml.in.h:107
 #, fuzzy
 msgid "Maori Support"
 msgstr "Marathi"
 
-#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:98
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:105 ../comps-f9.xml.in.h:108
 msgid "Marathi Support"
 msgstr "Marathi"
 
-#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:99
+#: ../comps-f7.xml.in.h:100 ../comps-f8.xml.in.h:107 ../comps-f9.xml.in.h:110
 msgid "MySQL Database"
 msgstr "MySQL gagnagrunnur"
 
-#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:102
+#: ../comps-f7.xml.in.h:101 ../comps-f8.xml.in.h:109 ../comps-f9.xml.in.h:112
+#: ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+msgid "Network Servers"
+msgstr "Netþjónustur"
+
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:110 ../comps-f9.xml.in.h:113
+#: ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+msgid "News Server"
+msgstr "Fréttaþjónn"
+
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:111 ../comps-f9.xml.in.h:115
 msgid "Northern Sotho Support"
 msgstr "Norður Sotho"
 
-#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:103
+#: ../comps-f7.xml.in.h:104 ../comps-f8.xml.in.h:112 ../comps-f9.xml.in.h:116
 msgid "Norwegian Support"
 msgstr "Norska"
 
-#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:105
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:113 ../comps-f9.xml.in.h:117
+#: ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+msgid "Office/Productivity"
+msgstr "Skrifstofuforrit"
+
+#: ../comps-f7.xml.in.h:106 ../comps-f8.xml.in.h:115 ../comps-f9.xml.in.h:119
 msgid "Oriya Support"
 msgstr "Oriya"
 
-#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:107
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:116 ../comps-f9.xml.in.h:120
+#: ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+msgid ""
+"Packages which provide functionality for developing and building "
+"applications."
+msgstr "Pakkar sem innihalda virkni til að þróa og smíða hugbúnað."
+
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:117 ../comps-f9.xml.in.h:121
 #, fuzzy
 msgid "Persian Support"
 msgstr "Serbneska"
 
-#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:108
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:118 ../comps-f9.xml.in.h:122
 msgid "Polish Support"
 msgstr "Pólska"
 
-#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:109
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:119 ../comps-f9.xml.in.h:123
 msgid "Portuguese Support"
 msgstr "Portúgalska"
 
-#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:110
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:120 ../comps-f9.xml.in.h:124
 msgid "PostgreSQL Database"
 msgstr "PostgreSQL gagnagrunnur"
 
-#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:111
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:121 ../comps-f9.xml.in.h:125
 msgid "Printing Support"
 msgstr "Prentstuðningur"
 
-#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:112
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:122 ../comps-f9.xml.in.h:126
 msgid "Punjabi Support"
 msgstr "Punjabi"
 
-#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:113
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:123 ../comps-f9.xml.in.h:127
 msgid "Romanian Support"
 msgstr "Rómanska"
 
-#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:114
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:124 ../comps-f9.xml.in.h:128
 msgid "Ruby"
 msgstr "Ruby"
 
-#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:115
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:125 ../comps-f9.xml.in.h:129
 msgid "Russian Support"
 msgstr "Rússnenska"
 
-#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:116
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:126 ../comps-f9.xml.in.h:130
 #, fuzzy
 msgid "Samoan Support"
 msgstr "Þýska"
 
-#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:117
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:127 ../comps-f9.xml.in.h:131
 msgid "Serbian Support"
 msgstr "Serbneska"
 
-#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:118
+#: ../comps-f7.xml.in.h:119 ../comps-f8.xml.in.h:128 ../comps-f9.xml.in.h:132
 msgid "Server Configuration Tools"
 msgstr "Stillingatól fyrir þjóna"
 
-#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:121
+#: ../comps-f7.xml.in.h:120 ../comps-f8.xml.in.h:129 ../comps-f9.xml.in.h:133
+#: ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+msgid "Servers"
+msgstr "Þjónar"
+
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:130 ../comps-f9.xml.in.h:134
+#: ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+msgid ""
+"Simple window managers that aren't part of a larger desktop environment."
+msgstr "Einfaldir gluggastjórar sem tilheyra ekki stærri skjáborðsumhverfum."
+
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:131 ../comps-f9.xml.in.h:135
 msgid "Sinhala Support"
 msgstr "Sinhala"
 
-#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:122
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:132 ../comps-f9.xml.in.h:136
 msgid "Slovak Support"
 msgstr "Slóvak"
 
-#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:123
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:133 ../comps-f9.xml.in.h:137
 msgid "Slovenian Support"
 msgstr "Slóvnenska"
 
-#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:124
+#: ../comps-f7.xml.in.h:125 ../comps-f8.xml.in.h:134 ../comps-f9.xml.in.h:138
 msgid "Smallest possible installation"
 msgstr "Lágmarks uppsetning"
 
-#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:126
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:135 ../comps-f9.xml.in.h:139
+#: ../comps-el4.xml.in.h:43 ../comps-el5.xml.in.h:43
+msgid "Software used for running network servers"
+msgstr "Hugbúnaður til að keyra netþjóna"
+
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:136 ../comps-f9.xml.in.h:140
 #, fuzzy
-msgid "Somail Support"
+msgid "Somali Support"
 msgstr "Swati"
 
-#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:127
+#: ../comps-f7.xml.in.h:128 ../comps-f8.xml.in.h:137 ../comps-f9.xml.in.h:141
 msgid ""
 "Sometimes called text editors, these are programs that allow you to create "
 "and edit text files. This includes Emacs and Vi."
@@ -856,78 +608,119 @@ msgstr ""
 "Forrit sem kallast ritlar. Þetta eru tólin sem gera þér kleyft að búa til og "
 "breyta textaskrám. Þetta inniheldur meðal annars Emacs og Vi."
 
-#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:129
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:138 ../comps-f9.xml.in.h:142
+#: ../comps-el4.xml.in.h:45 ../comps-el5.xml.in.h:45
+msgid "Sound and Video"
+msgstr "Hljóð og mynd"
+
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:139 ../comps-f9.xml.in.h:143
 msgid "Southern Ndebele Support"
 msgstr "Suður-Ndebele"
 
-#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:130
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:140 ../comps-f9.xml.in.h:144
 msgid "Southern Sotho Support"
 msgstr "Suður-Sotho"
 
-#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:131
+#: ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:141 ../comps-f9.xml.in.h:145
 msgid "Spanish Support"
 msgstr "Spánska"
 
-#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:134
+#: ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:142 ../comps-f9.xml.in.h:146
+#: ../comps-el4.xml.in.h:46
+msgid "Support for developing programs in the Java programming language."
+msgstr "Þróunartól fyrir Java forritunarmálið."
+
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:143 ../comps-f9.xml.in.h:147
+#: ../comps-el4.xml.in.h:47
+msgid "Support for running programs written in the Java programming language."
+msgstr "Grunnstuðningur við Java forritunarmálið."
+
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:144 ../comps-f9.xml.in.h:148
 msgid "Swati Support"
 msgstr "Swati"
 
-#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:135
+#: ../comps-f7.xml.in.h:136 ../comps-f8.xml.in.h:145 ../comps-f9.xml.in.h:149
 msgid "Swedish Support"
 msgstr "Sænska"
 
-#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:137
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:146 ../comps-f9.xml.in.h:150
+#: ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+msgid "System Tools"
+msgstr "Kerfistól"
+
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:147 ../comps-f9.xml.in.h:151
 #, fuzzy
 msgid "Tagalog Support"
 msgstr "Tamílska"
 
-#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:138
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:148 ../comps-f9.xml.in.h:152
 msgid "Tamil Support"
 msgstr "Tamílska"
 
-#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:139
+#: ../comps-f7.xml.in.h:140 ../comps-f8.xml.in.h:149 ../comps-f9.xml.in.h:153
 msgid "Telugu Support"
 msgstr "Telugu"
 
-#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:141
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:150 ../comps-f9.xml.in.h:154
+#: ../comps-el4.xml.in.h:49 ../comps-el5.xml.in.h:47
+msgid "Text-based Internet"
+msgstr "Internet með textaskilum"
+
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:151 ../comps-f9.xml.in.h:155
 msgid "Thai Support"
 msgstr "Tælenska"
 
-#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:142
+#: ../comps-f7.xml.in.h:143
 msgid "The Eclipse Integrated Development Environment."
 msgstr "Eclipse þróunarumhverfið."
 
-#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:144
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:152 ../comps-f9.xml.in.h:156
+#: ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+msgid "The applications include office suites, PDF viewers, and more."
+msgstr "Forritin innihalda meðal annars skrifstofutól, PDF sjár og fleira."
+
+#: ../comps-f7.xml.in.h:145 ../comps-f8.xml.in.h:153 ../comps-f9.xml.in.h:157
 msgid ""
 "The packages in this group are core libraries needed to develop applications."
 msgstr ""
 "Pakkarnir í þessum hóp eru grunnaðgerðasöfnin sem þarf til að þróa hugbúnað."
 
-#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:146
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:154 ../comps-f9.xml.in.h:158
+#: ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+msgid "These packages allow you to configure an IMAP or SMTP mail server."
+msgstr "Þessir pakkar gera þér kleyft að setja upp IMAP eða SMTP pósthús."
+
+#: ../comps-f7.xml.in.h:147 ../comps-f8.xml.in.h:155 ../comps-f9.xml.in.h:159
 msgid ""
 "These packages allow you to develop applications for the X Window System."
 msgstr "Þessir pakkar gera þér kleyft að þróa hugbúnað fyrir X gluggakerfið."
 
-#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:148
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:156 ../comps-f9.xml.in.h:160
+#: ../comps-el4.xml.in.h:53 ../comps-el5.xml.in.h:51
+msgid ""
+"These packages are helpful when developing web applications or web pages."
+msgstr "Þessir pakkar gera þér kleyft að þróa vefforrit og vefsíður."
+
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:157 ../comps-f9.xml.in.h:161
 msgid ""
 "These packages include network-based servers such as DHCP, Kerberos and NIS."
 msgstr "Þessir pakkar innihalda netþjónustur eins og DHCP, Kerberos og NIS."
 
-#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:149
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:158 ../comps-f9.xml.in.h:162
 msgid ""
 "These packages include servers for old network protocols such as rsh and "
 "telnet."
 msgstr "Þessir pakkar innihalda gamlar netþjónustur eins og rsh og telnet."
 
-#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:150
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:159 ../comps-f9.xml.in.h:163
 msgid "These packages provide a virtualization environment."
 msgstr "Þessir pakkar veita stuðning fyrir sýndarumhverfið."
 
-#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:151
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:160 ../comps-f9.xml.in.h:164
 msgid "These packages provide compatibility with previous releases."
 msgstr "Þessir pakkar veita stuðning við fyrri útgáfur."
 
-#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:152
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:161 ../comps-f9.xml.in.h:165
 msgid ""
 "These packages provide support for various locales including fonts and input "
 "methods."
@@ -935,7 +728,7 @@ msgstr ""
 "Þessir pakkar veita stuðning við ýmis tungumál ásamt letri og "
 "innsláttargerðum."
 
-#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:153
+#: ../comps-f7.xml.in.h:154 ../comps-f8.xml.in.h:162 ../comps-f9.xml.in.h:166
 msgid ""
 "These tools allow you to create documents in the DocBook format and convert "
 "them into HTML, PDF, Postscript, and text."
@@ -943,11 +736,34 @@ msgstr ""
 "Þessi tól gera þér kleyft að búa til skjöl á DocBook sniði og breyta þeim í "
 "HTML, PDF, Postscript og texta."
 
-#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:158
+#: ../comps-f7.xml.in.h:155 ../comps-f8.xml.in.h:163 ../comps-f9.xml.in.h:167
+#: ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+msgid "These tools allow you to run a Web server on the system."
+msgstr "Þessi tól gera þér kleyft að keyra vefþjón á vélinni."
+
+#: ../comps-f7.xml.in.h:156 ../comps-f8.xml.in.h:164 ../comps-f9.xml.in.h:168
+#: ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+msgid "These tools allow you to run an FTP server on the system."
+msgstr "Þessi tól gera þér kleyft að keyra FTP þjón á vélinni."
+
+#: ../comps-f7.xml.in.h:157 ../comps-f8.xml.in.h:165 ../comps-f9.xml.in.h:169
+#: ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+msgid ""
+"These tools include core development tools such as automake, gcc, perl, "
+"python, and debuggers."
+msgstr ""
+"Þessi tól eru meðal annars automake, gcc, perl, python og aflúsunartól."
+
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:166 ../comps-f9.xml.in.h:170
+#: ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+msgid "This group allows you to configure the system as a news server."
+msgstr "Þessi tól gera þér kleyft að stilla vélina sem news þjón."
+
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:167 ../comps-f9.xml.in.h:171
 msgid "This group contains all of Red Hat's custom server configuration tools."
 msgstr "Þessi hópur inniheldur öll Red Hat stillingatólin."
 
-#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:159
+#: ../comps-f7.xml.in.h:160 ../comps-f8.xml.in.h:168 ../comps-f9.xml.in.h:172
 msgid ""
 "This group includes a minimal set of packages. Useful for creating small "
 "router/firewall boxes, for example."
@@ -955,14 +771,73 @@ msgstr ""
 "Þessi hópur inniheldur lágmarksfjölda af pökkum og er gagnlegur til að búa "
 "til smáar uppsetningar fyrir til dæmis beina eða eldveggi."
 
-#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:168
+#: ../comps-f7.xml.in.h:161 ../comps-f8.xml.in.h:169 ../comps-f9.xml.in.h:173
+#: ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+msgid "This group includes graphical email, Web, and chat clients."
+msgstr "Þessi hópur inniheldur myndræn póst, vef og spjallforrit."
+
+#: ../comps-f7.xml.in.h:162 ../comps-f8.xml.in.h:170 ../comps-f9.xml.in.h:174
+#: ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+msgid ""
+"This group includes packages for performing mathematical and scientific "
+"computations and plotting, as well as unit conversion."
+msgstr ""
+"Þessi hópur inniheldur pakka til að framkvæma stærðfræði og "
+"vísindaútreikninga ásamt tólum til að umbreyta milli eininga."
+
+#: ../comps-f7.xml.in.h:163 ../comps-f8.xml.in.h:171 ../comps-f9.xml.in.h:175
+#: ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+msgid "This group includes packages to help you manipulate and scan images."
+msgstr ""
+"Þessi hópur inniheldur pakka sem gera þér kleyft að skanna og breyta myndum."
+
+#: ../comps-f7.xml.in.h:164 ../comps-f8.xml.in.h:172 ../comps-f9.xml.in.h:176
+#: ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+msgid ""
+"This group includes text-based email, Web, and chat clients. These "
+"applications do not require the X Window System."
+msgstr ""
+"Þessi hópur inniheldur póst, vef og spjallforrit með textaskilum. Þessi tól "
+"þurfa ekki X gluggakerfið."
+
+#: ../comps-f7.xml.in.h:165 ../comps-f8.xml.in.h:173 ../comps-f9.xml.in.h:177
+#: ../comps-el4.xml.in.h:63 ../comps-el5.xml.in.h:61
+msgid ""
+"This group is a collection of graphical administration tools for the system, "
+"such as for managing user accounts and configuring system hardware."
+msgstr ""
+"Þessi hópur inniheldur safn myndrænna kerfisstjórnunartóla fyrir vélina eins "
+"og til dæmis tól til að vinna með notendur og stilla vélbúnað."
+
+#: ../comps-f7.xml.in.h:166 ../comps-f8.xml.in.h:174 ../comps-f9.xml.in.h:178
+#: ../comps-el4.xml.in.h:66 ../comps-el5.xml.in.h:64
+msgid ""
+"This group is a collection of tools and resources of Armenian environments."
+msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
+
+#: ../comps-f7.xml.in.h:167 ../comps-f8.xml.in.h:175 ../comps-f9.xml.in.h:179
+#: ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+msgid ""
+"This group is a collection of tools for various hardware specific utilities."
+msgstr "Þessi pakkahópur inniheldur ýmis vélbúnaðartól."
+
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:176 ../comps-f9.xml.in.h:180
+#: ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
+msgid ""
+"This group is a collection of various tools for the system, such as the "
+"client for connecting to SMB shares and tools to monitor network traffic."
+msgstr ""
+"Þessi hópur inniheldur safn kerfistóla eins og til dæmis tól til að tengjast "
+"SMB netdrifum og tól til að fylgjast með umferð á neti."
+
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:177 ../comps-f9.xml.in.h:181
 msgid ""
 "This package group allows you to run a DNS name server (BIND) on the system."
 msgstr ""
 "Þessi pakkahópur gerir þér kleyft að keyra DNS nafnaþjón (BIND) á vélinni "
 "þinni."
 
-#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:169
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:178 ../comps-f9.xml.in.h:182
 msgid ""
 "This package group allows you to share files between Linux and MS Windows"
 "(tm) systems."
@@ -970,84 +845,326 @@ msgstr ""
 "Þessi pakkahópur gerir þér kleyft að skiptast á skrám milli Linux og MS "
 "Windows véla."
 
-#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:170
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:179 ../comps-f9.xml.in.h:183
 msgid "This package group contains packages useful for use with MySQL."
 msgstr "Þessi hópur inniheldur pakka sem gera þér kleyft að vinna með MySQL."
 
-#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:171
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:180 ../comps-f9.xml.in.h:184
 msgid "This package group includes packages useful for use with Postgresql."
 msgstr ""
 "Þessi hópur inniheldur pakka sem gera þér kleyft að vinna með Postgresql."
 
-#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:172
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:181 ../comps-f9.xml.in.h:185
 #, fuzzy
 msgid "Tibetan Support"
 msgstr "Þýska"
 
-#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:173
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:182 ../comps-f9.xml.in.h:186
 #, fuzzy
 msgid "Tonga Support"
 msgstr "Tsonga"
 
-#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:174
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:183 ../comps-f9.xml.in.h:187
+#: ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:70
+msgid "Tools and Utilities needed by a Fedora Packager"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:184 ../comps-f9.xml.in.h:188
 msgid "Tsonga Support"
 msgstr "Tsonga"
 
-#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:175
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:185 ../comps-f9.xml.in.h:189
 msgid "Tswana Support"
 msgstr "Tswana"
 
-#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:176
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:186 ../comps-f9.xml.in.h:190
 msgid "Turkish Support"
 msgstr "Tyrkneska"
 
-#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:177
+#: ../comps-f7.xml.in.h:179 ../comps-f8.xml.in.h:187 ../comps-f9.xml.in.h:191
 msgid "Ukrainian Support"
 msgstr "Úkraínska"
 
-#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:178
+#: ../comps-f7.xml.in.h:180 ../comps-f8.xml.in.h:188 ../comps-f9.xml.in.h:192
 #, fuzzy
 msgid "Urdu Support"
 msgstr "Zúlú"
 
-#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:181
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:189 ../comps-f9.xml.in.h:193
+#: ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:71
+msgid "Various core pieces of the system."
+msgstr "Ýmsir hlutar grunnkerfisins."
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:190 ../comps-f9.xml.in.h:194
+#: ../comps-el5.xml.in.h:72
+msgid "Various ways to relax and spend your free time."
+msgstr "Ýmslegt til að slappa af yfir og eyða lausum tíma."
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:191 ../comps-f9.xml.in.h:195
 msgid "Venda Support"
 msgstr "Venda"
 
-#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:182
+#: ../comps-f7.xml.in.h:184 ../comps-f8.xml.in.h:192 ../comps-f9.xml.in.h:196
 #, fuzzy
 msgid "Vietnamese Support"
 msgstr "Kínverska"
 
-#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:183
+#: ../comps-f7.xml.in.h:185 ../comps-f8.xml.in.h:193 ../comps-f9.xml.in.h:197
 msgid "Virtualization"
 msgstr "Sýndarvélar"
 
-#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:186
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:194 ../comps-f9.xml.in.h:199
+#: ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+msgid "Web Development"
+msgstr "Vefþróun"
+
+#: ../comps-f7.xml.in.h:187 ../comps-f8.xml.in.h:195 ../comps-f9.xml.in.h:200
+#: ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "Web Server"
+msgstr "Vefþjónn"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:196 ../comps-f9.xml.in.h:201
 msgid "Welsh Support"
 msgstr "Velska"
 
-#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:188
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:197 ../comps-f9.xml.in.h:202
+#: ../comps-el4.xml.in.h:75 ../comps-el5.xml.in.h:75
+msgid "Window Managers"
+msgstr "Gluggastjórar"
+
+#: ../comps-f7.xml.in.h:190 ../comps-f8.xml.in.h:198 ../comps-f9.xml.in.h:203
 msgid "Windows File Server"
 msgstr "Skráaþjónn fyrir Windows"
 
-#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:189
+#: ../comps-f7.xml.in.h:191 ../comps-f8.xml.in.h:199 ../comps-f9.xml.in.h:204
 msgid "X Software Development"
 msgstr "Hugbúnaðarþróun fyrir X gluggakerfið"
 
-#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:193
+#: ../comps-f7.xml.in.h:192 ../comps-f8.xml.in.h:200 ../comps-f9.xml.in.h:205
+#: ../comps-el4.xml.in.h:76 ../comps-el5.xml.in.h:76
+msgid "X Window System"
+msgstr "X gluggakerfið"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:201 ../comps-f9.xml.in.h:206
+msgid "XFCE"
+msgstr "XFCE"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:202 ../comps-f9.xml.in.h:207
+msgid "XFCE Software Development"
+msgstr "Hugbúnaðarþróun fyrir XFCE umhverfið"
+
+#: ../comps-f7.xml.in.h:195 ../comps-f8.xml.in.h:203 ../comps-f9.xml.in.h:208
 msgid "Xhosa Support"
 msgstr "Xhosa"
 
-#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:194
+#: ../comps-f7.xml.in.h:196 ../comps-f8.xml.in.h:204 ../comps-f9.xml.in.h:209
 msgid "Zulu Support"
 msgstr "Zúlú"
 
-#~ msgid "Brazilian Support"
-#~ msgstr "Brasílíska"
+#: ../comps-f8.xml.in.h:21 ../comps-f9.xml.in.h:21
+msgid "Buildsystem building group"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:48 ../comps-f9.xml.in.h:49
+#, fuzzy
+msgid "Fedora Eclipse"
+msgstr "Eclipse"
+
+#: ../comps-f8.xml.in.h:52 ../comps-f9.xml.in.h:53
+msgid "Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:53 ../comps-f9.xml.in.h:54
+msgid "Fonts packages for rendering text on the desktop."
+msgstr ""
+
+#: ../comps-f8.xml.in.h:79 ../comps-f9.xml.in.h:80
+#, fuzzy
+msgid "Integrated Development Environments based on Eclipse."
+msgstr "Eclipse þróunarumhverfið."
+
+#: ../comps-f8.xml.in.h:95 ../comps-f9.xml.in.h:97
+msgid "Legacy Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:100 ../comps-f9.xml.in.h:102
+#, fuzzy
+msgid "Low Saxon Support"
+msgstr "Tælenska"
+
+#: ../comps-f8.xml.in.h:106 ../comps-f9.xml.in.h:109
+#, fuzzy
+msgid "Mongolian Support"
+msgstr "Eistneska"
+
+#: ../comps-f8.xml.in.h:108 ../comps-f9.xml.in.h:111
+#, fuzzy
+msgid "Nepali Support"
+msgstr "Bengalíska"
+
+#: ../comps-f8.xml.in.h:114 ../comps-f9.xml.in.h:118
+msgid "Older bitmap and vector fonts packages"
+msgstr ""
+
+#: ../comps-f9.xml.in.h:44
+#, fuzzy
+msgid "Esperanto Support"
+msgstr "Þýska"
+
+#: ../comps-f9.xml.in.h:91
+#, fuzzy
+msgid "Kashubian Support"
+msgstr "Eistneska"
+
+#: ../comps-f9.xml.in.h:103
+#, fuzzy
+msgid "Macedonian Support"
+msgstr "Eistneska"
+
+#: ../comps-f9.xml.in.h:114
+#, fuzzy
+msgid "Northern Sami Support"
+msgstr "Norður Sotho"
+
+#: ../comps-f9.xml.in.h:198
+#, fuzzy
+msgid "Walloon Support"
+msgstr "Tælenska"
+
+#: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr "Ýmis forrit"
+
+#: ../comps-el4.xml.in.h:12 ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "Upphringinetsstuðningur"
+
+#: ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:23
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME er öflugt myndrænt vinnuumhverfi sem inniheldur spjald, skjáborð, "
+"kerfissmámyndir og myndrænann skráarstjóra."
+
+#: ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE er öflugt myndrænt vinnuumhverfi sem inniheldur spjald, skjáborð, "
+"kerfissmámyndir og myndrænann skráarstjóra."
+
+#: ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+"Forrit sem kallast ritlar. Þetta eru tólin sem gera þér kleyft að búa til og "
+"breyta skrám. Þetta inniheldur meðal annars Emacs og Vi."
+
+#: ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The XEmacs text editor."
+msgstr "XEmacs ritillinn."
+
+#: ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"Þessi tól gera þér kleyft að búa til skjöl á DocBook sniði og breyta þeim í "
+"HTML, PDF, Postscript og texta."
+
+#: ../comps-el4.xml.in.h:64 ../comps-el5.xml.in.h:62
+#, fuzzy
+msgid "This group is a collection of network servers for specific purposes"
+msgstr "Þessi pakkahópur inniheldur ýmis vélbúnaðartól."
+
+#: ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+#, fuzzy
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
+
+#: ../comps-el4.xml.in.h:67 ../comps-el5.xml.in.h:66
+#, fuzzy
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
+
+#: ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+#, fuzzy
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
+
+#: ../comps-el4.xml.in.h:77 ../comps-el5.xml.in.h:77
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-el5.xml.in.h:65
+#, fuzzy
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr "Þessi pakkahópur inniheldur ýmis tól fyrir Armenskustuðning."
 
 #~ msgid "British Support"
 #~ msgstr "Breska"
+
+#~ msgid "Cluster Storage"
+#~ msgstr "Klasadiskar"
+
+#~ msgid "Clustering Support."
+#~ msgstr "Klasastuðningur."
+
+#~ msgid "Miscellaneous Included Packages"
+#~ msgstr "Ýmsir pakkar sem eru innifaldir"
+
+#~ msgid "Packages which provide support for cluster storage."
+#~ msgstr "Pakkar sem veita stuðning við klasadiska"
+
+#~ msgid "Packages which provide support for single-node GFS."
+#~ msgstr "Pakkar sem veita GFS stuðning fyrir eina vél."
+
+#~ msgid "Single Node GFS Support"
+#~ msgstr "Einnar vélar GFS"
+
+#~ msgid "These packages provide compatibility support with previous releases."
+#~ msgstr "Þessir pakkar veita stuðning við fyrri útgáfur."
+
+#~ msgid "Java Runtime Environments and Development Kits"
+#~ msgstr "Keyrsluumhverfi og þróunarskrár fyrir Java"
+
+#~ msgid "Misc"
+#~ msgstr "Ýmislegt"
+
+#~ msgid "Misc packages"
+#~ msgstr "Ýmsir pakkar"
+
+#~ msgid "Multimedia"
+#~ msgstr "Margmiðlun"
+
+#~ msgid "Multimedia applications"
+#~ msgstr "Margmiðlunarforrit"
+
+#~ msgid ""
+#~ "Packages which provide additional functionality for Red Hat Enterprise "
+#~ "Linux"
+#~ msgstr "Þessir pakkar veita aukna virkni fyrir Red Hat Enterprise Linux."
+
+#, fuzzy
+#~ msgid "Red Hat Enterprise Linux Supplementary"
+#~ msgstr "Red Hat Enterprise Linux 3 handbækur"
+
+#~ msgid "Virtualization Support."
+#~ msgstr "Sýndarvélastuðningur."
+
+#, fuzzy
+#~ msgid "Somail Support"
+#~ msgstr "Swati"
+
+#~ msgid "Brazilian Support"
+#~ msgstr "Brasílíska"
 
 #~ msgid "Compatibility Arch Development Support"
 #~ msgstr "Samhæfnisþróunartól"
@@ -1093,9 +1210,6 @@ msgstr "Zúlú"
 
 #~ msgid "Kernel Development"
 #~ msgstr "Kjarnaþróun"
-
-#~ msgid "Miscellaneous Included Packages"
-#~ msgstr "Ýmsir pakkar sem eru innifaldir"
 
 #~ msgid "Mozilla packages for the x86 platform"
 #~ msgstr "Mozilla pakkar fyrir x86 vélar"
@@ -1162,9 +1276,6 @@ msgstr "Zúlú"
 
 #~ msgid "Italian"
 #~ msgstr "Ítalska"
-
-#~ msgid "Red Hat Enterprise Linux 3 Documentation"
-#~ msgstr "Red Hat Enterprise Linux 3 handbækur"
 
 #~ msgid "Spanish"
 #~ msgstr "Spánska"
@@ -1303,44 +1414,6 @@ msgstr "Zúlú"
 #~ msgstr ""
 #~ "Þessi pakkahópur inniheldur Red Hat Enterprise Linux handbækurnar á Tamil."
 
-#~ msgid "Cluster Storage"
-#~ msgstr "Klasadiskar"
-
-#~ msgid "Clustering Support."
-#~ msgstr "Klasastuðningur."
-
-#~ msgid "Packages which provide support for cluster storage."
-#~ msgstr "Pakkar sem veita stuðning við klasadiska"
-
-#~ msgid "Packages which provide support for single-node GFS."
-#~ msgstr "Pakkar sem veita GFS stuðning fyrir eina vél."
-
-#~ msgid "Single Node GFS Support"
-#~ msgstr "Einnar vélar GFS"
-
-#~ msgid "These packages provide compatibility support with previous releases."
-#~ msgstr "Þessir pakkar veita stuðning við fyrri útgáfur."
-
-#~ msgid "Java Runtime Environments and Development Kits"
-#~ msgstr "Keyrsluumhverfi og þróunarskrár fyrir Java"
-
-#~ msgid "Misc"
-#~ msgstr "Ýmislegt"
-
-#~ msgid "Misc packages"
-#~ msgstr "Ýmsir pakkar"
-
-#~ msgid "Multimedia"
-#~ msgstr "Margmiðlun"
-
-#~ msgid "Multimedia applications"
-#~ msgstr "Margmiðlunarforrit"
-
-#~ msgid ""
-#~ "Packages which provide additional functionality for Red Hat Enterprise "
-#~ "Linux"
-#~ msgstr "Þessir pakkar veita aukna virkni fyrir Red Hat Enterprise Linux."
-
 #~ msgid "Red Hat Enterprise Linux Extras"
 #~ msgstr "Red Hat Enterprise Linux aukahugbúnaður"
 
@@ -1349,9 +1422,6 @@ msgstr "Zúlú"
 
 #~ msgid "Workstation applications and utilities."
 #~ msgstr "Forrit og tól frir vinnustöðvar."
-
-#~ msgid "Virtualization Support."
-#~ msgstr "Sýndarvélastuðningur."
 
 #~ msgid "Compatibility Arch"
 #~ msgstr "Vélbúnaðar samhæfnistól"

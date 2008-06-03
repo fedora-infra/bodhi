@@ -3,13 +3,13 @@
 # Copyright (C) 2007 THE PACKAGE'S COPYRIGHT HOLDER.
 # Alexander Agung <redtux@sby.dnet.net.id>, 2004.
 # Teguh DC <dheche@bradjamoesti.or.id>, 2005.
-# $Id: id.po,v 1.2 2007/06/26 18:07:26 notting Exp $
+# $Id: id.po,v 1.9 2008/04/17 11:39:32 dgregor Exp $
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: comps\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-26 14:03-0400\n"
+"POT-Creation-Date: 2008-04-17 07:36-0400\n"
 "PO-Revision-Date: 2007-02-24 14:17+0700\n"
 "Last-Translator: Teguh DC <dheche@bradjamoesti.or.id>\n"
 "Language-Team: Bahasa Indonesia <viribus@traderweb.net>\n"
@@ -17,100 +17,237 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../comps-fe5.xml.in.h:1 ../comps-fe6.xml.in.h:1 ../comps-f7.xml.in.h:1
-#: ../comps-f8.xml.in.h:1
+#: ../comps-f7.xml.in.h:1 ../comps-f8.xml.in.h:1 ../comps-f9.xml.in.h:1
 msgid "A lightweight desktop environment that works well on low end machines."
 msgstr ""
 "Lingkungan dekstop yang ringan yang dapat bekerja dengan baik pada mesin "
 "yang rendah."
 
-#: ../comps-fe5.xml.in.h:2 ../comps-fe6.xml.in.h:2 ../comps-f7.xml.in.h:2
-#: ../comps-f8.xml.in.h:2 ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+#: ../comps-f7.xml.in.h:2 ../comps-f8.xml.in.h:2 ../comps-f9.xml.in.h:2
+#: ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
 msgid "Administration Tools"
 msgstr "Peralatan Administrasi"
 
-#: ../comps-fe5.xml.in.h:3 ../comps-fe6.xml.in.h:3 ../comps-f7.xml.in.h:5
-#: ../comps-f8.xml.in.h:5 ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3 ../comps-f9.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "Dukungan Afrika"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4 ../comps-f9.xml.in.h:4
+#, fuzzy
+msgid "Albanian Support"
+msgstr "Dukungan Kanada"
+
+#: ../comps-f7.xml.in.h:5 ../comps-f8.xml.in.h:5 ../comps-f9.xml.in.h:5
+#: ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
 msgid "Applications"
 msgstr "Aplikasi"
 
-#: ../comps-fe5.xml.in.h:4 ../comps-fe6.xml.in.h:4 ../comps-el4.xml.in.h:3
-#: ../comps-el5.xml.in.h:3
-msgid "Applications for a variety of tasks"
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6 ../comps-f9.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:5 ../comps-fe6.xml.in.h:5 ../comps-f7.xml.in.h:7
-#: ../comps-f8.xml.in.h:7 ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+#: ../comps-f7.xml.in.h:7 ../comps-f8.xml.in.h:7 ../comps-f9.xml.in.h:7
+#: ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
 msgid "Arabic Support"
 msgstr "Dukungan Arab"
 
-#: ../comps-fe5.xml.in.h:6 ../comps-fe6.xml.in.h:6 ../comps-f7.xml.in.h:8
-#: ../comps-f8.xml.in.h:8 ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+#: ../comps-f7.xml.in.h:8 ../comps-f8.xml.in.h:8 ../comps-f9.xml.in.h:8
+#: ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
 msgid "Armenian Support"
 msgstr "Dukungan Armenia"
 
-#: ../comps-fe5.xml.in.h:7 ../comps-fe6.xml.in.h:7 ../comps-f7.xml.in.h:10
-#: ../comps-f8.xml.in.h:10 ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9 ../comps-f9.xml.in.h:9
+msgid "Assamese Support"
+msgstr "Dukungan Assamese"
+
+#: ../comps-f7.xml.in.h:10 ../comps-f8.xml.in.h:10 ../comps-f9.xml.in.h:10
+#: ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
 msgid "Authoring and Publishing"
 msgstr "Penulisan dan Penerbitan"
 
-#: ../comps-fe5.xml.in.h:8 ../comps-fe6.xml.in.h:8 ../comps-f7.xml.in.h:12
-#: ../comps-f8.xml.in.h:12 ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11 ../comps-f9.xml.in.h:11
+msgid "Base"
+msgstr "Dasar"
+
+#: ../comps-f7.xml.in.h:12 ../comps-f8.xml.in.h:12 ../comps-f9.xml.in.h:12
+#: ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
 msgid "Base System"
 msgstr "Sistem Dasar"
 
-#: ../comps-fe5.xml.in.h:9 ../comps-fe6.xml.in.h:10 ../comps-f7.xml.in.h:31
-#: ../comps-f8.xml.in.h:31 ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13 ../comps-f9.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "Dukungan dasar untuk bahasa pemrograman "
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14 ../comps-f9.xml.in.h:14
+msgid "Basque Support"
+msgstr "Dukungan Basque"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15 ../comps-f9.xml.in.h:15
+#, fuzzy
+msgid "Belarusian Support"
+msgstr "Dukungan Bulgaria"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16 ../comps-f9.xml.in.h:16
+msgid "Bengali Support"
+msgstr "Dukungan Bengali"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17 ../comps-f9.xml.in.h:17
+#, fuzzy
+msgid "Bhutanese Support"
+msgstr "Dukungan Cina"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18 ../comps-f9.xml.in.h:18
+#, fuzzy
+msgid "Bosnian Support"
+msgstr "Dukungan Estonia"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19 ../comps-f9.xml.in.h:19
+msgid "Brazilian Portuguese Support"
+msgstr "Dukungan Brazil Portugis"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20 ../comps-f9.xml.in.h:20
+msgid "Breton Support"
+msgstr "Dukungan Breton"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:22 ../comps-f9.xml.in.h:22
+msgid "Bulgarian Support"
+msgstr "Dukungan Bulgaria"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:23 ../comps-f9.xml.in.h:23
+msgid "Catalan Support"
+msgstr "Dukungan Catalan"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:24 ../comps-f9.xml.in.h:24
+msgid "Chinese Support"
+msgstr "Dukungan Cina"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:25 ../comps-f9.xml.in.h:25
+msgid "Clustering"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:26 ../comps-f9.xml.in.h:26
+msgid "Clustering Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:27 ../comps-f9.xml.in.h:27
+msgid "Core"
+msgstr "Inti"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:28 ../comps-f9.xml.in.h:28
+msgid "Croatian Support"
+msgstr "Dukungan Kroasia"
+
+#: ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:29 ../comps-f9.xml.in.h:29
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "Dukungan Ceko"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:30 ../comps-f9.xml.in.h:30
+msgid "DNS Name Server"
+msgstr "DNS Name Server"
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:31 ../comps-f9.xml.in.h:31
+msgid "Danish Support"
+msgstr "Dukungan Danish"
+
+#: ../comps-f7.xml.in.h:31 ../comps-f8.xml.in.h:32 ../comps-f9.xml.in.h:32
+#: ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
 msgid "Desktop Environments"
 msgstr "Lingkungan Desktop"
 
-#: ../comps-fe5.xml.in.h:10 ../comps-fe6.xml.in.h:11 ../comps-f7.xml.in.h:32
-#: ../comps-f8.xml.in.h:32 ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+#: ../comps-f7.xml.in.h:32 ../comps-f8.xml.in.h:33 ../comps-f9.xml.in.h:33
+#: ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
 msgid "Desktop environments"
 msgstr "Lingkungan Desktop"
 
-#: ../comps-fe5.xml.in.h:11 ../comps-fe6.xml.in.h:12 ../comps-f7.xml.in.h:33
-#: ../comps-f8.xml.in.h:33 ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+#: ../comps-f7.xml.in.h:33 ../comps-f8.xml.in.h:34 ../comps-f9.xml.in.h:34
+#: ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
 msgid "Development"
 msgstr "Pengembangan"
 
-#: ../comps-fe5.xml.in.h:12 ../comps-fe6.xml.in.h:13 ../comps-f7.xml.in.h:35
-#: ../comps-f8.xml.in.h:35 ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:35 ../comps-f9.xml.in.h:35
+msgid "Development Libraries"
+msgstr "Pustaka Pengembangan"
+
+#: ../comps-f7.xml.in.h:35 ../comps-f8.xml.in.h:36 ../comps-f9.xml.in.h:36
+#: ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
 msgid "Development Tools"
 msgstr "Peralatan Pengembangan"
 
-#: ../comps-fe5.xml.in.h:13 ../comps-fe6.xml.in.h:14 ../comps-el4.xml.in.h:12
-#: ../comps-el5.xml.in.h:13
-msgid "Dialup Networking Support"
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:37 ../comps-f9.xml.in.h:37
+msgid "Dial-up Networking Support"
 msgstr "Dukungan Dialup Networking"
 
-#: ../comps-fe5.xml.in.h:14 ../comps-fe6.xml.in.h:15 ../comps-f7.xml.in.h:39
-#: ../comps-f8.xml.in.h:39 ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:38 ../comps-f9.xml.in.h:38
+msgid "Dutch Support"
+msgstr "Dukungan Belanda"
+
+#: ../comps-f7.xml.in.h:38
+msgid "Eclipse"
+msgstr "Eclipse"
+
+#: ../comps-f7.xml.in.h:39 ../comps-f8.xml.in.h:39 ../comps-f9.xml.in.h:39
+#: ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
 msgid "Editors"
 msgstr "Editor"
 
-#: ../comps-fe5.xml.in.h:15 ../comps-fe6.xml.in.h:16 ../comps-f7.xml.in.h:40
-#: ../comps-f8.xml.in.h:40 ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+#: ../comps-f7.xml.in.h:40 ../comps-f8.xml.in.h:40 ../comps-f9.xml.in.h:40
+#: ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
 msgid "Educational Software"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:16 ../comps-fe6.xml.in.h:17 ../comps-f7.xml.in.h:41
-#: ../comps-f8.xml.in.h:41 ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+#: ../comps-f7.xml.in.h:41 ../comps-f8.xml.in.h:41 ../comps-f9.xml.in.h:41
+#: ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
 msgid "Educational software for learning"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:17 ../comps-fe6.xml.in.h:18 ../comps-f7.xml.in.h:42
-#: ../comps-f8.xml.in.h:42 ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+#: ../comps-f7.xml.in.h:42 ../comps-f8.xml.in.h:42 ../comps-f9.xml.in.h:42
+#: ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
 msgid "Engineering and Scientific"
 msgstr "Rekayasa dan Keilmuan"
 
-#: ../comps-fe5.xml.in.h:18 ../comps-fe6.xml.in.h:19 ../comps-f7.xml.in.h:46
-#: ../comps-f8.xml.in.h:46 ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43 ../comps-f9.xml.in.h:43
+msgid "English (UK) Support"
+msgstr "Dukungan Inggris (UK)"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44 ../comps-f9.xml.in.h:45
+msgid "Estonian Support"
+msgstr "Dukungan Estonia"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45 ../comps-f9.xml.in.h:46
+msgid "Ethiopic Support"
+msgstr "Dukungan Ethiopia"
+
+#: ../comps-f7.xml.in.h:46 ../comps-f8.xml.in.h:46 ../comps-f9.xml.in.h:47
+#: ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
 msgid "FTP Server"
 msgstr "Server FTP"
 
-#: ../comps-fe5.xml.in.h:19 ../comps-fe6.xml.in.h:20 ../comps-f7.xml.in.h:51
-#: ../comps-f8.xml.in.h:51 ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47 ../comps-f9.xml.in.h:48
+msgid "Faeroese Support"
+msgstr "Dukungan Faeroese"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:49 ../comps-f9.xml.in.h:50
+#: ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#, fuzzy
+msgid "Fedora Packager"
+msgstr "Eclipse"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:50 ../comps-f9.xml.in.h:51
+#, fuzzy
+msgid "Filipino Support"
+msgstr "Dukungan Galician"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:51 ../comps-f9.xml.in.h:52
+msgid "Finnish Support"
+msgstr "Dukungan Finlandia"
+
+#: ../comps-f7.xml.in.h:51 ../comps-f8.xml.in.h:54 ../comps-f9.xml.in.h:55
+msgid "French Support"
+msgstr "Dukungan Perancis"
+
+#: ../comps-f7.xml.in.h:52 ../comps-f8.xml.in.h:55 ../comps-f9.xml.in.h:56
+#: ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
 msgid ""
 "From CD recording to playing audio CDs and multimedia files, this package "
 "group allows you to work with sound and video on the system."
@@ -118,236 +255,521 @@ msgstr ""
 "Dari merekam sampai dengan mainkan  CD dan berkas multimedia, kelompok paket "
 "ini membolehkan anda bekerja dengan suara dan video pada sistem."
 
-#: ../comps-fe5.xml.in.h:20 ../comps-fe6.xml.in.h:21 ../comps-f7.xml.in.h:52
-#: ../comps-f8.xml.in.h:52 ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+#: ../comps-f7.xml.in.h:53 ../comps-f8.xml.in.h:56 ../comps-f9.xml.in.h:57
+#: ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
 msgid "GNOME Desktop Environment"
 msgstr "Lingkungan Desktop GNOME"
 
-#: ../comps-fe5.xml.in.h:21 ../comps-fe6.xml.in.h:22 ../comps-f7.xml.in.h:53
-#: ../comps-f8.xml.in.h:53 ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:57 ../comps-f9.xml.in.h:58
+#: ../comps-el4.xml.in.h:21 ../comps-el5.xml.in.h:22
 msgid "GNOME Software Development"
 msgstr "Pengembangan Piranti Lunak GNOME"
 
-#: ../comps-fe5.xml.in.h:22 ../comps-fe6.xml.in.h:23 ../comps-el4.xml.in.h:21
-#: ../comps-el5.xml.in.h:22
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:58 ../comps-f9.xml.in.h:59
 msgid ""
-"GNOME is a powerful, graphical user interface which includes a panel, "
+"GNOME is a powerful graphical user interface which includes a panel, "
 "desktop, system icons, and a graphical file manager."
 msgstr ""
-"GNOME adalah user interface grafis  yang powerful dalam panel, dekstop, "
-"icons sitem, dan file manager grafis."
+"GNOME adalah user interface grafis yang powerful yang di dalam terdapat "
+"panel, dekstop, icons sitem, dan file manager grafis."
 
-#: ../comps-fe5.xml.in.h:23 ../comps-fe6.xml.in.h:24 ../comps-f7.xml.in.h:57
-#: ../comps-f8.xml.in.h:57 ../comps-el5.xml.in.h:23
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:59 ../comps-f9.xml.in.h:60
+msgid "Gaelic Support"
+msgstr "Dukungan Gaelic"
+
+#: ../comps-f7.xml.in.h:57 ../comps-f8.xml.in.h:60 ../comps-f9.xml.in.h:61
+msgid "Galician Support"
+msgstr "Dukungan Galician"
+
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:61 ../comps-f9.xml.in.h:62
+#: ../comps-el5.xml.in.h:24
 msgid "Games and Entertainment"
 msgstr "Permainan dan Hiburan"
 
-#: ../comps-fe5.xml.in.h:24 ../comps-fe6.xml.in.h:25 ../comps-f7.xml.in.h:60
-#: ../comps-f8.xml.in.h:60 ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:24
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:62 ../comps-f9.xml.in.h:63
+#, fuzzy
+msgid "Georgian Support"
+msgstr "Dukungan Jerman"
+
+#: ../comps-f7.xml.in.h:60 ../comps-f8.xml.in.h:63 ../comps-f9.xml.in.h:64
+msgid "German Support"
+msgstr "Dukungan Jerman"
+
+#: ../comps-f7.xml.in.h:61 ../comps-f8.xml.in.h:64 ../comps-f9.xml.in.h:65
+#: ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
 msgid "Graphical Internet"
 msgstr "Internet Grafis"
 
-#: ../comps-fe5.xml.in.h:25 ../comps-fe6.xml.in.h:26 ../comps-f7.xml.in.h:61
-#: ../comps-f8.xml.in.h:61 ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:65 ../comps-f9.xml.in.h:66
+#: ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
 msgid "Graphics"
 msgstr "Grafis"
 
-#: ../comps-fe5.xml.in.h:26 ../comps-fe6.xml.in.h:27 ../comps-f7.xml.in.h:64
-#: ../comps-f8.xml.in.h:64 ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:66 ../comps-f9.xml.in.h:67
+msgid "Greek Support"
+msgstr "Dukungan Yunani"
+
+#: ../comps-f7.xml.in.h:64 ../comps-f8.xml.in.h:67 ../comps-f9.xml.in.h:68
+msgid "Gujarati Support"
+msgstr "Dukungan Gujarati"
+
+#: ../comps-f7.xml.in.h:65 ../comps-f8.xml.in.h:68 ../comps-f9.xml.in.h:69
+#: ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
 msgid "Hardware Support"
 msgstr "Dukungan Perangkat Keras"
 
-#: ../comps-fe5.xml.in.h:27 ../comps-fe6.xml.in.h:28 ../comps-f7.xml.in.h:65
-#: ../comps-f8.xml.in.h:65 ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:69 ../comps-f9.xml.in.h:70
+#: ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
 msgid "Hebrew Support"
 msgstr "Dukungan Hebrew"
 
-#: ../comps-fe5.xml.in.h:28 ../comps-fe6.xml.in.h:29 ../comps-f7.xml.in.h:70
-#: ../comps-f8.xml.in.h:70 ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:70 ../comps-f9.xml.in.h:71
+msgid "Hindi Support"
+msgstr "Dukungan Hindi"
+
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:71 ../comps-f9.xml.in.h:72
+msgid "Hungarian Support"
+msgstr "Dukungan Hungary"
+
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:72 ../comps-f9.xml.in.h:73
+msgid "Icelandic Support"
+msgstr "Dukungan Islandia"
+
+#: ../comps-f7.xml.in.h:70 ../comps-f8.xml.in.h:73 ../comps-f9.xml.in.h:74
+msgid "Indonesian Support"
+msgstr "Dukungan Indonesia"
+
+#: ../comps-f7.xml.in.h:71 ../comps-f8.xml.in.h:74 ../comps-f9.xml.in.h:75
+#: ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
 msgid ""
 "Install these packages in order to develop GTK+ and GNOME graphical "
 "applications."
 msgstr "Install paket ini untuk develop GTK+ dan aplikasi grafis GNOME."
 
-#: ../comps-fe5.xml.in.h:29 ../comps-fe6.xml.in.h:30 ../comps-f7.xml.in.h:71
-#: ../comps-f8.xml.in.h:71
+#: ../comps-f7.xml.in.h:72 ../comps-f8.xml.in.h:75 ../comps-f9.xml.in.h:76
 msgid ""
 "Install these packages in order to develop GTK+ and XFCE graphical "
 "applications."
 msgstr "Install paket ini untuk develop GTK+ dan aplikasi grafis XFCE."
 
-#: ../comps-fe5.xml.in.h:30 ../comps-fe6.xml.in.h:31 ../comps-f7.xml.in.h:72
-#: ../comps-f8.xml.in.h:72 ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:76 ../comps-f9.xml.in.h:77
+#: ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
 msgid "Install these packages to develop QT and KDE graphical applications."
 msgstr "Install paket ini untuk develop QT dan aplikasi grafis KDE."
 
-#: ../comps-fe5.xml.in.h:31 ../comps-fe6.xml.in.h:32 ../comps-f7.xml.in.h:74
-#: ../comps-f8.xml.in.h:74 ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+#: ../comps-f7.xml.in.h:74 ../comps-f8.xml.in.h:77 ../comps-f9.xml.in.h:78
+msgid ""
+"Install these tools to enable the system to print or act as a print server."
+msgstr ""
+"Install tool-tool untuk mengatifkan sisyem agar bisa melakukan pencetakan "
+"atau bertindak sebagai print server."
+
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:78 ../comps-f9.xml.in.h:79
+#: ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
 msgid ""
 "Install this group of packages to use the base graphical (X) user interface."
 msgstr "Install paket dari group ini untuk grasif dasar (X) interface user."
 
-#: ../comps-fe5.xml.in.h:32 ../comps-fe6.xml.in.h:33 ../comps-f7.xml.in.h:78
-#: ../comps-f8.xml.in.h:78 ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:80 ../comps-f9.xml.in.h:81
+#, fuzzy
+msgid "Inuktitut Support"
+msgstr "Dukungan Zulu"
+
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:81 ../comps-f9.xml.in.h:82
+msgid "Irish Support"
+msgstr "Dukungan Irlandia"
+
+#: ../comps-f7.xml.in.h:78 ../comps-f8.xml.in.h:82 ../comps-f9.xml.in.h:83
+msgid "Italian Support"
+msgstr "Dukungan Italia"
+
+#: ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:83 ../comps-f9.xml.in.h:84
+#: ../comps-el4.xml.in.h:30 ../comps-el5.xml.in.h:32
 msgid "Japanese Support"
 msgstr "Dukungan Jepang"
 
-#: ../comps-fe5.xml.in.h:33 ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:79
-#: ../comps-el4.xml.in.h:30
+#: ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:84 ../comps-f9.xml.in.h:85
+#: ../comps-el4.xml.in.h:31
 msgid "Java"
 msgstr "Java"
 
-#: ../comps-fe5.xml.in.h:34 ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:80
-#: ../comps-el4.xml.in.h:31
+#: ../comps-f7.xml.in.h:81 ../comps-f8.xml.in.h:85 ../comps-f9.xml.in.h:86
+#: ../comps-el4.xml.in.h:32
 msgid "Java Development"
 msgstr "Pengembangan Java"
 
-#: ../comps-fe5.xml.in.h:35 ../comps-fe6.xml.in.h:34 ../comps-f7.xml.in.h:81
-#: ../comps-f8.xml.in.h:81 ../comps-el4.xml.in.h:32 ../comps-el5.xml.in.h:32
+#: ../comps-f7.xml.in.h:82 ../comps-f8.xml.in.h:86 ../comps-f9.xml.in.h:87
+#: ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
 msgid "KDE (K Desktop Environment)"
 msgstr "KDE (K Desktop Environment)"
 
-#: ../comps-fe5.xml.in.h:36 ../comps-fe6.xml.in.h:35 ../comps-f7.xml.in.h:82
-#: ../comps-f8.xml.in.h:82 ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:87 ../comps-f9.xml.in.h:88
+#: ../comps-el4.xml.in.h:34 ../comps-el5.xml.in.h:34
 msgid "KDE Software Development"
 msgstr "Pengembangan Piranti Lunak KDE"
 
-#: ../comps-fe5.xml.in.h:37 ../comps-fe6.xml.in.h:36 ../comps-el4.xml.in.h:34
-#: ../comps-el5.xml.in.h:34
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:88 ../comps-f9.xml.in.h:89
 msgid ""
-"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"KDE is a powerful graphical user interface which includes a panel, desktop, "
 "system icons, and a graphical file manager."
 msgstr ""
-"KDE adalah user interface grafis yang powerful dalam panel, dekstop, icons "
-"sitem, dan file manager grafis."
+"KDE adalah user interface grafis yang powerful yang di dalam terdapat panel, "
+"dekstop, icons sitem, dan file manager grafis."
 
-#: ../comps-fe5.xml.in.h:38 ../comps-fe6.xml.in.h:37 ../comps-f7.xml.in.h:94
-#: ../comps-f8.xml.in.h:94 ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:89 ../comps-f9.xml.in.h:90
+msgid "Kannada Support"
+msgstr "Dukungan Kanada"
+
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:90 ../comps-f9.xml.in.h:92
+#, fuzzy
+msgid "Khmer Support"
+msgstr "Dukungan Jerman"
+
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:91 ../comps-f9.xml.in.h:93
+msgid "Korean Support"
+msgstr "Dukungan Korea"
+
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:92 ../comps-f9.xml.in.h:94
+msgid "Languages"
+msgstr "Bahasa"
+
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:93 ../comps-f9.xml.in.h:95
+#, fuzzy
+msgid "Lao Support"
+msgstr "Dukungan Thailand"
+
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:94 ../comps-f9.xml.in.h:96
+#, fuzzy
+msgid "Latvian Support"
+msgstr "Dukungan Kroasia"
+
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:96 ../comps-f9.xml.in.h:98
+msgid "Legacy Network Server"
+msgstr "Server Jaringan Legasi"
+
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:97 ../comps-f9.xml.in.h:99
+msgid "Legacy Software Development"
+msgstr "Legacy Software Development"
+
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:98 ../comps-f9.xml.in.h:100
+msgid "Legacy Software Support"
+msgstr "Dukungan Perangkat Lunak legasi"
+
+#: ../comps-f7.xml.in.h:94 ../comps-f8.xml.in.h:99 ../comps-f9.xml.in.h:101
+msgid "Lithuanian Support"
+msgstr "Dukungan Lithuania"
+
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:101 ../comps-f9.xml.in.h:104
+#: ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
 msgid "Mail Server"
 msgstr "Server Mail"
 
-#: ../comps-fe5.xml.in.h:39 ../comps-fe6.xml.in.h:38 ../comps-f7.xml.in.h:100
-#: ../comps-f8.xml.in.h:100 ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:102 ../comps-f9.xml.in.h:105
+msgid "Malay Support"
+msgstr "Dukungan Malaysia"
+
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:103 ../comps-f9.xml.in.h:106
+msgid "Malayalam Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:104 ../comps-f9.xml.in.h:107
+#, fuzzy
+msgid "Maori Support"
+msgstr "Dukungan Thailand"
+
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:105 ../comps-f9.xml.in.h:108
+msgid "Marathi Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:100 ../comps-f8.xml.in.h:107 ../comps-f9.xml.in.h:110
+msgid "MySQL Database"
+msgstr "Basisdata MySQL"
+
+#: ../comps-f7.xml.in.h:101 ../comps-f8.xml.in.h:109 ../comps-f9.xml.in.h:112
+#: ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
 msgid "Network Servers"
 msgstr "Server Jaringan"
 
-#: ../comps-fe5.xml.in.h:40 ../comps-fe6.xml.in.h:39 ../comps-f7.xml.in.h:101
-#: ../comps-f8.xml.in.h:101 ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:110 ../comps-f9.xml.in.h:113
+#: ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
 msgid "News Server"
 msgstr "Server News"
 
-#: ../comps-fe5.xml.in.h:41 ../comps-fe6.xml.in.h:40 ../comps-f7.xml.in.h:104
-#: ../comps-f8.xml.in.h:104 ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:111 ../comps-f9.xml.in.h:115
+msgid "Northern Sotho Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:104 ../comps-f8.xml.in.h:112 ../comps-f9.xml.in.h:116
+msgid "Norwegian Support"
+msgstr "Dukungan Norwegia"
+
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:113 ../comps-f9.xml.in.h:117
+#: ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
 msgid "Office/Productivity"
 msgstr "Kantor/Produktivitas"
 
-#: ../comps-fe5.xml.in.h:42 ../comps-fe6.xml.in.h:41 ../comps-f7.xml.in.h:106
-#: ../comps-f8.xml.in.h:106 ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+#: ../comps-f7.xml.in.h:106 ../comps-f8.xml.in.h:115 ../comps-f9.xml.in.h:119
+msgid "Oriya Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:116 ../comps-f9.xml.in.h:120
+#: ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
 msgid ""
 "Packages which provide functionality for developing and building "
 "applications."
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:43 ../comps-fe6.xml.in.h:42 ../comps-f7.xml.in.h:119
-#: ../comps-f8.xml.in.h:119 ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:117 ../comps-f9.xml.in.h:121
+#, fuzzy
+msgid "Persian Support"
+msgstr "Dukungan Serbia"
+
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:118 ../comps-f9.xml.in.h:122
+msgid "Polish Support"
+msgstr "Dukungan Polandia"
+
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:119 ../comps-f9.xml.in.h:123
+msgid "Portuguese Support"
+msgstr "Dukungan Portugis"
+
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:120 ../comps-f9.xml.in.h:124
+msgid "PostgreSQL Database"
+msgstr "Basisdata PostgreSQL"
+
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:121 ../comps-f9.xml.in.h:125
+msgid "Printing Support"
+msgstr "Dukungan Pencetakan"
+
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:122 ../comps-f9.xml.in.h:126
+msgid "Punjabi Support"
+msgstr "Dukungan Punjabi"
+
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:123 ../comps-f9.xml.in.h:127
+msgid "Romanian Support"
+msgstr "Dukungan Rumania"
+
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:124 ../comps-f9.xml.in.h:128
+msgid "Ruby"
+msgstr "Ruby"
+
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:125 ../comps-f9.xml.in.h:129
+msgid "Russian Support"
+msgstr "Dukungan Rusia"
+
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:126 ../comps-f9.xml.in.h:130
+#, fuzzy
+msgid "Samoan Support"
+msgstr "Dukungan Jerman"
+
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:127 ../comps-f9.xml.in.h:131
+msgid "Serbian Support"
+msgstr "Dukungan Serbia"
+
+#: ../comps-f7.xml.in.h:119 ../comps-f8.xml.in.h:128 ../comps-f9.xml.in.h:132
+msgid "Server Configuration Tools"
+msgstr "Peralatan Konfigurasi Server"
+
+#: ../comps-f7.xml.in.h:120 ../comps-f8.xml.in.h:129 ../comps-f9.xml.in.h:133
+#: ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
 msgid "Servers"
 msgstr "Server"
 
-#: ../comps-fe5.xml.in.h:44 ../comps-fe6.xml.in.h:43 ../comps-f7.xml.in.h:120
-#: ../comps-f8.xml.in.h:120 ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:130 ../comps-f9.xml.in.h:134
+#: ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
 msgid ""
 "Simple window managers that aren't part of a larger desktop environment."
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:45 ../comps-fe6.xml.in.h:44 ../comps-f7.xml.in.h:125
-#: ../comps-f8.xml.in.h:125 ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:131 ../comps-f9.xml.in.h:135
+msgid "Sinhala Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:132 ../comps-f9.xml.in.h:136
+msgid "Slovak Support"
+msgstr "Dukungan Slovakia"
+
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:133 ../comps-f9.xml.in.h:137
+msgid "Slovenian Support"
+msgstr "Dukungan Slovenia"
+
+#: ../comps-f7.xml.in.h:125 ../comps-f8.xml.in.h:134 ../comps-f9.xml.in.h:138
+msgid "Smallest possible installation"
+msgstr "Instalasi sekecil mungkin"
+
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:135 ../comps-f9.xml.in.h:139
+#: ../comps-el4.xml.in.h:43 ../comps-el5.xml.in.h:43
 msgid "Software used for running network servers"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:46 ../comps-fe6.xml.in.h:45 ../comps-el4.xml.in.h:43
-#: ../comps-el5.xml.in.h:43
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:136 ../comps-f9.xml.in.h:140
+#, fuzzy
+msgid "Somali Support"
+msgstr "Dukungan Tamil"
+
+#: ../comps-f7.xml.in.h:128 ../comps-f8.xml.in.h:137 ../comps-f9.xml.in.h:141
 msgid ""
 "Sometimes called text editors, these are programs that allow you to create "
-"and edit files. These include Emacs and Vi."
+"and edit text files. This includes Emacs and Vi."
 msgstr ""
-"Kadang2 disebut sebagai text editor, program ini membolehkan kita untuk "
-"membuat dan mengedit berkas. Paket ini termasuk Emacs dan Vi."
+"Kadang-kadang disebut sebagai editor teks, ini adalah program yang membantu "
+"kita untuk membuat dan mengedit berkas teks. Paket ini termasuk Emacs dan Vi."
 
-#: ../comps-fe5.xml.in.h:47 ../comps-fe6.xml.in.h:46 ../comps-f7.xml.in.h:128
-#: ../comps-f8.xml.in.h:128 ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:138 ../comps-f9.xml.in.h:142
+#: ../comps-el4.xml.in.h:45 ../comps-el5.xml.in.h:45
 msgid "Sound and Video"
 msgstr "Suara dan Video"
 
-#: ../comps-fe5.xml.in.h:48 ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:132
-#: ../comps-el4.xml.in.h:45
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:139 ../comps-f9.xml.in.h:143
+msgid "Southern Ndebele Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:140 ../comps-f9.xml.in.h:144
+msgid "Southern Sotho Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:141 ../comps-f9.xml.in.h:145
+msgid "Spanish Support"
+msgstr "Dukungan Spanyol"
+
+#: ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:142 ../comps-f9.xml.in.h:146
+#: ../comps-el4.xml.in.h:46
 msgid "Support for developing programs in the Java programming language."
 msgstr "Dukungan untuk mengembangkan program dalam bahasa pemrograman Java. "
 
-#: ../comps-fe5.xml.in.h:49 ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:133
-#: ../comps-el4.xml.in.h:46
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:143 ../comps-f9.xml.in.h:147
+#: ../comps-el4.xml.in.h:47
 msgid "Support for running programs written in the Java programming language."
 msgstr ""
 "Dukungan untuk menjalankan program yang ditulis dalam bahasa pemrograman "
 "Java."
 
-#: ../comps-fe5.xml.in.h:50 ../comps-fe6.xml.in.h:47 ../comps-f7.xml.in.h:136
-#: ../comps-f8.xml.in.h:136 ../comps-el4.xml.in.h:47 ../comps-el5.xml.in.h:45
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:144 ../comps-f9.xml.in.h:148
+msgid "Swati Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:136 ../comps-f8.xml.in.h:145 ../comps-f9.xml.in.h:149
+msgid "Swedish Support"
+msgstr "Dukungan Swedia"
+
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:146 ../comps-f9.xml.in.h:150
+#: ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
 msgid "System Tools"
 msgstr "Peralatan Sistem"
 
-#: ../comps-fe5.xml.in.h:51 ../comps-fe6.xml.in.h:48 ../comps-f7.xml.in.h:140
-#: ../comps-f8.xml.in.h:140 ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:147 ../comps-f9.xml.in.h:151
+#, fuzzy
+msgid "Tagalog Support"
+msgstr "Dukungan Tamil"
+
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:148 ../comps-f9.xml.in.h:152
+msgid "Tamil Support"
+msgstr "Dukungan Tamil"
+
+#: ../comps-f7.xml.in.h:140 ../comps-f8.xml.in.h:149 ../comps-f9.xml.in.h:153
+msgid "Telugu Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:150 ../comps-f9.xml.in.h:154
+#: ../comps-el4.xml.in.h:49 ../comps-el5.xml.in.h:47
 msgid "Text-based Internet"
 msgstr "Internet berbasis text"
 
-#: ../comps-fe5.xml.in.h:52 ../comps-fe6.xml.in.h:49 ../comps-el4.xml.in.h:49
-#: ../comps-el5.xml.in.h:47
-msgid "The XEmacs text editor."
-msgstr "Editor teks XEmacs."
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:151 ../comps-f9.xml.in.h:155
+msgid "Thai Support"
+msgstr "Dukungan Thailand"
 
-#: ../comps-fe5.xml.in.h:53 ../comps-fe6.xml.in.h:50 ../comps-f7.xml.in.h:143
-#: ../comps-f8.xml.in.h:143 ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+#: ../comps-f7.xml.in.h:143
+msgid "The Eclipse Integrated Development Environment."
+msgstr "Lingkungan Pengembangan Eclipse yang Terpadu."
+
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:152 ../comps-f9.xml.in.h:156
+#: ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
 msgid "The applications include office suites, PDF viewers, and more."
 msgstr "Aplikasi ini termasuk office suite, PDF viewer dan banyak lagi."
 
-#: ../comps-fe5.xml.in.h:54 ../comps-fe6.xml.in.h:51 ../comps-f7.xml.in.h:145
-#: ../comps-f8.xml.in.h:145 ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+#: ../comps-f7.xml.in.h:145 ../comps-f8.xml.in.h:153 ../comps-f9.xml.in.h:157
+msgid ""
+"The packages in this group are core libraries needed to develop applications."
+msgstr ""
+"Paket dalam group ini adalah core dari librari yang dibutuhkan untuk "
+"mendevelop aplikasi."
+
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:154 ../comps-f9.xml.in.h:158
+#: ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
 msgid "These packages allow you to configure an IMAP or SMTP mail server."
 msgstr ""
 "Paket-paket ini membolehkan anda untuk mengkonfigurasi server mail IMAP atau "
 "SMTP."
 
-#: ../comps-fe5.xml.in.h:55 ../comps-fe6.xml.in.h:52 ../comps-f7.xml.in.h:147
-#: ../comps-f8.xml.in.h:147 ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+#: ../comps-f7.xml.in.h:147 ../comps-f8.xml.in.h:155 ../comps-f9.xml.in.h:159
+msgid ""
+"These packages allow you to develop applications for the X Window System."
+msgstr ""
+"Paket-paket ini membolehkan anda untuk mengembangkan aplikasi untuk Sistem X "
+"Windows."
+
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:156 ../comps-f9.xml.in.h:160
+#: ../comps-el4.xml.in.h:53 ../comps-el5.xml.in.h:51
 msgid ""
 "These packages are helpful when developing web applications or web pages."
 msgstr ""
 "Paket-paket ini sangat membantu untuk mengembangkan aplikasi web atau "
 "halaman web."
 
-#: ../comps-fe5.xml.in.h:56 ../comps-fe6.xml.in.h:53 ../comps-el4.xml.in.h:53
-#: ../comps-el5.xml.in.h:51
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:157 ../comps-f9.xml.in.h:161
 msgid ""
-"These tools allow you to create documentation in the DocBook format and "
-"convert them to HTML, PDF, Postscript, and text."
+"These packages include network-based servers such as DHCP, Kerberos and NIS."
 msgstr ""
-"Alat bantu ini membolehkan anda untuk membuat dokumentasi dalam format "
-"DocBook and mengkonversinya dalam HTML, PDF, Postscript dan text."
+"Di dalam paket-paket ini termasuk server berbasis jaringan seperti DHCP, "
+"karberos dan NIS."
 
-#: ../comps-fe5.xml.in.h:57 ../comps-fe6.xml.in.h:54 ../comps-f7.xml.in.h:154
-#: ../comps-f8.xml.in.h:154 ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:158 ../comps-f9.xml.in.h:162
+msgid ""
+"These packages include servers for old network protocols such as rsh and "
+"telnet."
+msgstr ""
+"Di dalam paket-paket ini termasuk server untuk protokol jaringan yang lama "
+"seperti rsh dan telnet."
+
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:159 ../comps-f9.xml.in.h:163
+msgid "These packages provide a virtualization environment."
+msgstr "Paket-paket ini menyediakan lingkungan virtualisasi"
+
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:160 ../comps-f9.xml.in.h:164
+msgid "These packages provide compatibility with previous releases."
+msgstr ""
+"Paket-paket ini menyediakan dukungan kompabilitas dengan rilis sebelumnya."
+
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:161 ../comps-f9.xml.in.h:165
+msgid ""
+"These packages provide support for various locales including fonts and input "
+"methods."
+msgstr ""
+"Paket-paket ini menyediakan dukungan untuk berbagai locale termasuk font dan "
+"metode input."
+
+#: ../comps-f7.xml.in.h:154 ../comps-f8.xml.in.h:162 ../comps-f9.xml.in.h:166
+msgid ""
+"These tools allow you to create documents in the DocBook format and convert "
+"them into HTML, PDF, Postscript, and text."
+msgstr ""
+"Perkakas ini membantu anda untuk membuat dokumentasi dalam format DocBook "
+"dan mengkonversinya menjadi HTML, PDF, Postscript dan teks."
+
+#: ../comps-f7.xml.in.h:155 ../comps-f8.xml.in.h:163 ../comps-f9.xml.in.h:167
+#: ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
 msgid "These tools allow you to run a Web server on the system."
 msgstr ""
 "Alat bantu ini membolehkan anda untuk menjalankan WebServer dalam sistem."
 
-#: ../comps-fe5.xml.in.h:58 ../comps-fe6.xml.in.h:55 ../comps-f7.xml.in.h:155
-#: ../comps-f8.xml.in.h:155 ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+#: ../comps-f7.xml.in.h:156 ../comps-f8.xml.in.h:164 ../comps-f9.xml.in.h:168
+#: ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
 msgid "These tools allow you to run an FTP server on the system."
 msgstr ""
 "Alat bantu ini membolehkan anda untuk menjalankan server FTP dalam sistem."
 
-#: ../comps-fe5.xml.in.h:59 ../comps-fe6.xml.in.h:56 ../comps-f7.xml.in.h:156
-#: ../comps-f8.xml.in.h:156 ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+#: ../comps-f7.xml.in.h:157 ../comps-f8.xml.in.h:165 ../comps-f9.xml.in.h:169
+#: ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
 msgid ""
 "These tools include core development tools such as automake, gcc, perl, "
 "python, and debuggers."
@@ -355,20 +777,34 @@ msgstr ""
 "Di dalam alat bantu ini termasuk alat bantu pengembangan utama seperti "
 "automake, gcc, perl, python dan debuger-debuger lainnya."
 
-#: ../comps-fe5.xml.in.h:60 ../comps-fe6.xml.in.h:57 ../comps-f7.xml.in.h:157
-#: ../comps-f8.xml.in.h:157 ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:166 ../comps-f9.xml.in.h:170
+#: ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
 msgid "This group allows you to configure the system as a news server."
 msgstr ""
 "Grup ini membolehkan anda untuk melakukan konfigurasi pada sistem seperti "
 "server news."
 
-#: ../comps-fe5.xml.in.h:61 ../comps-fe6.xml.in.h:58 ../comps-f7.xml.in.h:160
-#: ../comps-f8.xml.in.h:160 ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:167 ../comps-f9.xml.in.h:171
+msgid "This group contains all of Red Hat's custom server configuration tools."
+msgstr ""
+"Grup ini berisikan semua alat bantu konfigurasi server yang dicustom di Red "
+"Hat."
+
+#: ../comps-f7.xml.in.h:160 ../comps-f8.xml.in.h:168 ../comps-f9.xml.in.h:172
+msgid ""
+"This group includes a minimal set of packages. Useful for creating small "
+"router/firewall boxes, for example."
+msgstr ""
+"Dalam grup ini telah diset paket-paket minimal. Contohnya, program-program "
+"yang berguna untuk membuat router/firewall sederhana."
+
+#: ../comps-f7.xml.in.h:161 ../comps-f8.xml.in.h:169 ../comps-f9.xml.in.h:173
+#: ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
 msgid "This group includes graphical email, Web, and chat clients."
 msgstr "Grup ini termasuk email grafis, Web dan klien untuk chat."
 
-#: ../comps-fe5.xml.in.h:62 ../comps-fe6.xml.in.h:59 ../comps-f7.xml.in.h:161
-#: ../comps-f8.xml.in.h:161 ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+#: ../comps-f7.xml.in.h:162 ../comps-f8.xml.in.h:170 ../comps-f9.xml.in.h:174
+#: ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
 msgid ""
 "This group includes packages for performing mathematical and scientific "
 "computations and plotting, as well as unit conversion."
@@ -376,15 +812,15 @@ msgstr ""
 "Di dalam grup ini termasuk paket-paket untuk matematika, komputasi science "
 "dan ploting, termasuk juga konversi unit."
 
-#: ../comps-fe5.xml.in.h:63 ../comps-fe6.xml.in.h:60 ../comps-f7.xml.in.h:162
-#: ../comps-f8.xml.in.h:162 ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+#: ../comps-f7.xml.in.h:163 ../comps-f8.xml.in.h:171 ../comps-f9.xml.in.h:175
+#: ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
 msgid "This group includes packages to help you manipulate and scan images."
 msgstr ""
 "Di dalam grup ini termasuk paket-paket yang akan membantu anda memanipulasi "
 "dan memindai gambar-gambar."
 
-#: ../comps-fe5.xml.in.h:64 ../comps-fe6.xml.in.h:61 ../comps-f7.xml.in.h:163
-#: ../comps-f8.xml.in.h:163 ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+#: ../comps-f7.xml.in.h:164 ../comps-f8.xml.in.h:172 ../comps-f9.xml.in.h:176
+#: ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
 msgid ""
 "This group includes text-based email, Web, and chat clients. These "
 "applications do not require the X Window System."
@@ -392,8 +828,8 @@ msgstr ""
 "Di dalam grup ini termasuk email berbasis text, Web dan klien untuk chat. "
 "Aplikasi ini tidak memerlukan Sistem X Window."
 
-#: ../comps-fe5.xml.in.h:65 ../comps-fe6.xml.in.h:62 ../comps-f7.xml.in.h:164
-#: ../comps-f8.xml.in.h:164 ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+#: ../comps-f7.xml.in.h:165 ../comps-f8.xml.in.h:173 ../comps-f9.xml.in.h:177
+#: ../comps-el4.xml.in.h:63 ../comps-el5.xml.in.h:61
 msgid ""
 "This group is a collection of graphical administration tools for the system, "
 "such as for managing user accounts and configuring system hardware."
@@ -402,43 +838,20 @@ msgstr ""
 "sistem, seperti untuk mengatur akun pengguna dan mengkonfigurasi perangkat "
 "keras sistem."
 
-#: ../comps-fe5.xml.in.h:66 ../comps-fe6.xml.in.h:63 ../comps-el4.xml.in.h:63
-#: ../comps-el5.xml.in.h:61
-msgid "This group is a collection of network servers for specific purposes"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:67 ../comps-fe6.xml.in.h:64 ../comps-el4.xml.in.h:64
-#: ../comps-el5.xml.in.h:62
-msgid ""
-"This group is a collection of tools and resources of Arabic environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:68 ../comps-fe6.xml.in.h:65 ../comps-f7.xml.in.h:165
-#: ../comps-f8.xml.in.h:165 ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+#: ../comps-f7.xml.in.h:166 ../comps-f8.xml.in.h:174 ../comps-f9.xml.in.h:178
+#: ../comps-el4.xml.in.h:66 ../comps-el5.xml.in.h:64
 msgid ""
 "This group is a collection of tools and resources of Armenian environments."
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:69 ../comps-fe6.xml.in.h:67 ../comps-el4.xml.in.h:66
-#: ../comps-el5.xml.in.h:65
-msgid ""
-"This group is a collection of tools and resources of Hebrew environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:70 ../comps-fe6.xml.in.h:68 ../comps-el4.xml.in.h:67
-#: ../comps-el5.xml.in.h:66
-msgid ""
-"This group is a collection of tools and resources of Japanese environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:71 ../comps-fe6.xml.in.h:69 ../comps-f7.xml.in.h:166
-#: ../comps-f8.xml.in.h:166 ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+#: ../comps-f7.xml.in.h:167 ../comps-f8.xml.in.h:175 ../comps-f9.xml.in.h:179
+#: ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
 msgid ""
 "This group is a collection of tools for various hardware specific utilities."
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:72 ../comps-fe6.xml.in.h:70 ../comps-f7.xml.in.h:167
-#: ../comps-f8.xml.in.h:167 ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:176 ../comps-f9.xml.in.h:180
+#: ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
 msgid ""
 "This group is a collection of various tools for the system, such as the "
 "client for connecting to SMB shares and tools to monitor network traffic."
@@ -447,547 +860,14 @@ msgstr ""
 "untuk melakukan koneksi ke sharing SMB dan alat bantu untuk monitor trafik "
 "jaringan."
 
-#: ../comps-fe5.xml.in.h:73 ../comps-fe6.xml.in.h:71 ../comps-f7.xml.in.h:179
-#: ../comps-f8.xml.in.h:179 ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
-msgid "Various core pieces of the system."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:74 ../comps-fe6.xml.in.h:72 ../comps-f7.xml.in.h:180
-#: ../comps-f8.xml.in.h:180 ../comps-el5.xml.in.h:70
-msgid "Various ways to relax and spend your free time."
-msgstr "Berbagai cara untuk bersantai dan menghabiskan waktu luang anda."
-
-#: ../comps-fe5.xml.in.h:75 ../comps-fe6.xml.in.h:73 ../comps-f7.xml.in.h:184
-#: ../comps-f8.xml.in.h:184 ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:71
-msgid "Web Development"
-msgstr "Pengembangan Web"
-
-#: ../comps-fe5.xml.in.h:76 ../comps-fe6.xml.in.h:74 ../comps-f7.xml.in.h:185
-#: ../comps-f8.xml.in.h:185 ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:72
-msgid "Web Server"
-msgstr "Server Web"
-
-#: ../comps-fe5.xml.in.h:77 ../comps-fe6.xml.in.h:75 ../comps-f7.xml.in.h:187
-#: ../comps-f8.xml.in.h:187 ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
-msgid "Window Managers"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:78 ../comps-fe6.xml.in.h:76 ../comps-f7.xml.in.h:190
-#: ../comps-f8.xml.in.h:190 ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
-msgid "X Window System"
-msgstr "Sistem X Window"
-
-#: ../comps-fe5.xml.in.h:79 ../comps-fe6.xml.in.h:77 ../comps-el4.xml.in.h:75
-#: ../comps-el5.xml.in.h:75
-msgid "XEmacs"
-msgstr "XEmacs"
-
-#: ../comps-fe5.xml.in.h:80 ../comps-fe6.xml.in.h:78 ../comps-f7.xml.in.h:191
-#: ../comps-f8.xml.in.h:191
-msgid "XFCE"
-msgstr "XFCE"
-
-#: ../comps-fe5.xml.in.h:81 ../comps-fe6.xml.in.h:79 ../comps-f7.xml.in.h:192
-#: ../comps-f8.xml.in.h:192
-msgid "XFCE Software Development"
-msgstr "XFCE Software Development"
-
-#: ../comps-fe6.xml.in.h:9 ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:28
-#: ../comps-el5.xml.in.h:8
-msgid "Czech Support"
-msgstr "Dukungan Ceko"
-
-#: ../comps-fe6.xml.in.h:66 ../comps-el5.xml.in.h:64
-msgid ""
-"This group is a collection of tools and resources of Czech environments."
-msgstr ""
-
-#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3
-msgid "Afrikaans Support"
-msgstr "Dukungan Afrika"
-
-#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4
-#, fuzzy
-msgid "Albanian Support"
-msgstr "Dukungan Kanada"
-
-#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6
-msgid "Applications to perform a variety of tasks"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9
-msgid "Assamese Support"
-msgstr "Dukungan Assamese"
-
-#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11
-msgid "Base"
-msgstr "Dasar"
-
-#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13
-msgid "Basic support for the Ruby programming language."
-msgstr "Dukungan dasar untuk bahasa pemrograman "
-
-#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14
-msgid "Basque Support"
-msgstr "Dukungan Basque"
-
-#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15
-#, fuzzy
-msgid "Belarusian Support"
-msgstr "Dukungan Bulgaria"
-
-#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16
-msgid "Bengali Support"
-msgstr "Dukungan Bengali"
-
-#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17
-#, fuzzy
-msgid "Bhutanese Support"
-msgstr "Dukungan Cina"
-
-#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18
-#, fuzzy
-msgid "Bosnian Support"
-msgstr "Dukungan Estonia"
-
-#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19
-msgid "Brazilian Portuguese Support"
-msgstr "Dukungan Brazil Portugis"
-
-#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20
-msgid "Breton Support"
-msgstr "Dukungan Breton"
-
-#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:21
-msgid "Bulgarian Support"
-msgstr "Dukungan Bulgaria"
-
-#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:22
-msgid "Catalan Support"
-msgstr "Dukungan Catalan"
-
-#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:23
-msgid "Chinese Support"
-msgstr "Dukungan Cina"
-
-#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:24
-msgid "Clustering"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:25
-msgid "Clustering Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:26
-msgid "Core"
-msgstr "Inti"
-
-#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:27
-msgid "Croatian Support"
-msgstr "Dukungan Kroasia"
-
-#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:29
-msgid "DNS Name Server"
-msgstr "DNS Name Server"
-
-#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:30
-msgid "Danish Support"
-msgstr "Dukungan Danish"
-
-#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:34
-msgid "Development Libraries"
-msgstr "Pustaka Pengembangan"
-
-#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:36
-msgid "Dial-up Networking Support"
-msgstr "Dukungan Dialup Networking"
-
-#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:37
-msgid "Dutch Support"
-msgstr "Dukungan Belanda"
-
-#: ../comps-f7.xml.in.h:38 ../comps-f8.xml.in.h:38
-msgid "Eclipse"
-msgstr "Eclipse"
-
-#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43
-msgid "English (UK) Support"
-msgstr "Dukungan Inggris (UK)"
-
-#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44
-msgid "Estonian Support"
-msgstr "Dukungan Estonia"
-
-#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45
-msgid "Ethiopic Support"
-msgstr "Dukungan Ethiopia"
-
-#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47
-msgid "Faeroese Support"
-msgstr "Dukungan Faeroese"
-
-#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:48
-#, fuzzy
-msgid "Filipino Support"
-msgstr "Dukungan Galician"
-
-#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:49
-msgid "Finnish Support"
-msgstr "Dukungan Finlandia"
-
-#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:50
-msgid "French Support"
-msgstr "Dukungan Perancis"
-
-#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:54
-msgid ""
-"GNOME is a powerful graphical user interface which includes a panel, "
-"desktop, system icons, and a graphical file manager."
-msgstr ""
-"GNOME adalah user interface grafis yang powerful yang di dalam terdapat "
-"panel, dekstop, icons sitem, dan file manager grafis."
-
-#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:55
-msgid "Gaelic Support"
-msgstr "Dukungan Gaelic"
-
-#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:56
-msgid "Galician Support"
-msgstr "Dukungan Galician"
-
-#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:58
-#, fuzzy
-msgid "Georgian Support"
-msgstr "Dukungan Jerman"
-
-#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:59
-msgid "German Support"
-msgstr "Dukungan Jerman"
-
-#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:62
-msgid "Greek Support"
-msgstr "Dukungan Yunani"
-
-#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:63
-msgid "Gujarati Support"
-msgstr "Dukungan Gujarati"
-
-#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:66
-msgid "Hindi Support"
-msgstr "Dukungan Hindi"
-
-#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:67
-msgid "Hungarian Support"
-msgstr "Dukungan Hungary"
-
-#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:68
-msgid "Icelandic Support"
-msgstr "Dukungan Islandia"
-
-#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:69
-msgid "Indonesian Support"
-msgstr "Dukungan Indonesia"
-
-#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:73
-msgid ""
-"Install these tools to enable the system to print or act as a print server."
-msgstr ""
-"Install tool-tool untuk mengatifkan sisyem agar bisa melakukan pencetakan "
-"atau bertindak sebagai print server."
-
-#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:75
-#, fuzzy
-msgid "Inuktitut Support"
-msgstr "Dukungan Zulu"
-
-#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:76
-msgid "Irish Support"
-msgstr "Dukungan Irlandia"
-
-#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:77
-msgid "Italian Support"
-msgstr "Dukungan Italia"
-
-#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:83
-msgid ""
-"KDE is a powerful graphical user interface which includes a panel, desktop, "
-"system icons, and a graphical file manager."
-msgstr ""
-"KDE adalah user interface grafis yang powerful yang di dalam terdapat panel, "
-"dekstop, icons sitem, dan file manager grafis."
-
-#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:84
-msgid "Kannada Support"
-msgstr "Dukungan Kanada"
-
-#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:85
-#, fuzzy
-msgid "Khmer Support"
-msgstr "Dukungan Jerman"
-
-#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:86
-msgid "Korean Support"
-msgstr "Dukungan Korea"
-
-#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:87
-msgid "Languages"
-msgstr "Bahasa"
-
-#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:88
-#, fuzzy
-msgid "Lao Support"
-msgstr "Dukungan Thailand"
-
-#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:89
-#, fuzzy
-msgid "Latvian Support"
-msgstr "Dukungan Kroasia"
-
-#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:90
-msgid "Legacy Network Server"
-msgstr "Server Jaringan Legasi"
-
-#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:91
-msgid "Legacy Software Development"
-msgstr "Legacy Software Development"
-
-#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:92
-msgid "Legacy Software Support"
-msgstr "Dukungan Perangkat Lunak legasi"
-
-#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:93
-msgid "Lithuanian Support"
-msgstr "Dukungan Lithuania"
-
-#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:95
-msgid "Malay Support"
-msgstr "Dukungan Malaysia"
-
-#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:96
-msgid "Malayalam Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:97
-#, fuzzy
-msgid "Maori Support"
-msgstr "Dukungan Thailand"
-
-#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:98
-msgid "Marathi Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:99
-msgid "MySQL Database"
-msgstr "Basisdata MySQL"
-
-#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:102
-msgid "Northern Sotho Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:103
-msgid "Norwegian Support"
-msgstr "Dukungan Norwegia"
-
-#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:105
-msgid "Oriya Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:107
-#, fuzzy
-msgid "Persian Support"
-msgstr "Dukungan Serbia"
-
-#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:108
-msgid "Polish Support"
-msgstr "Dukungan Polandia"
-
-#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:109
-msgid "Portuguese Support"
-msgstr "Dukungan Portugis"
-
-#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:110
-msgid "PostgreSQL Database"
-msgstr "Basisdata PostgreSQL"
-
-#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:111
-msgid "Printing Support"
-msgstr "Dukungan Pencetakan"
-
-#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:112
-msgid "Punjabi Support"
-msgstr "Dukungan Punjabi"
-
-#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:113
-msgid "Romanian Support"
-msgstr "Dukungan Rumania"
-
-#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:114
-msgid "Ruby"
-msgstr "Ruby"
-
-#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:115
-msgid "Russian Support"
-msgstr "Dukungan Rusia"
-
-#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:116
-#, fuzzy
-msgid "Samoan Support"
-msgstr "Dukungan Jerman"
-
-#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:117
-msgid "Serbian Support"
-msgstr "Dukungan Serbia"
-
-#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:118
-msgid "Server Configuration Tools"
-msgstr "Peralatan Konfigurasi Server"
-
-#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:121
-msgid "Sinhala Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:122
-msgid "Slovak Support"
-msgstr "Dukungan Slovakia"
-
-#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:123
-msgid "Slovenian Support"
-msgstr "Dukungan Slovenia"
-
-#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:124
-msgid "Smallest possible installation"
-msgstr "Instalasi sekecil mungkin"
-
-#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:126
-#, fuzzy
-msgid "Somail Support"
-msgstr "Dukungan Tamil"
-
-#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:127
-msgid ""
-"Sometimes called text editors, these are programs that allow you to create "
-"and edit text files. This includes Emacs and Vi."
-msgstr ""
-"Kadang-kadang disebut sebagai editor teks, ini adalah program yang membantu "
-"kita untuk membuat dan mengedit berkas teks. Paket ini termasuk Emacs dan Vi."
-
-#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:129
-msgid "Southern Ndebele Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:130
-msgid "Southern Sotho Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:131
-msgid "Spanish Support"
-msgstr "Dukungan Spanyol"
-
-#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:134
-msgid "Swati Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:135
-msgid "Swedish Support"
-msgstr "Dukungan Swedia"
-
-#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:137
-#, fuzzy
-msgid "Tagalog Support"
-msgstr "Dukungan Tamil"
-
-#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:138
-msgid "Tamil Support"
-msgstr "Dukungan Tamil"
-
-#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:139
-msgid "Telugu Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:141
-msgid "Thai Support"
-msgstr "Dukungan Thailand"
-
-#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:142
-msgid "The Eclipse Integrated Development Environment."
-msgstr "Lingkungan Pengembangan Eclipse yang Terpadu."
-
-#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:144
-msgid ""
-"The packages in this group are core libraries needed to develop applications."
-msgstr ""
-"Paket dalam group ini adalah core dari librari yang dibutuhkan untuk "
-"mendevelop aplikasi."
-
-#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:146
-msgid ""
-"These packages allow you to develop applications for the X Window System."
-msgstr ""
-"Paket-paket ini membolehkan anda untuk mengembangkan aplikasi untuk Sistem X "
-"Windows."
-
-#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:148
-msgid ""
-"These packages include network-based servers such as DHCP, Kerberos and NIS."
-msgstr ""
-"Di dalam paket-paket ini termasuk server berbasis jaringan seperti DHCP, "
-"karberos dan NIS."
-
-#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:149
-msgid ""
-"These packages include servers for old network protocols such as rsh and "
-"telnet."
-msgstr ""
-"Di dalam paket-paket ini termasuk server untuk protokol jaringan yang lama "
-"seperti rsh dan telnet."
-
-#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:150
-msgid "These packages provide a virtualization environment."
-msgstr "Paket-paket ini menyediakan lingkungan virtualisasi"
-
-#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:151
-msgid "These packages provide compatibility with previous releases."
-msgstr ""
-"Paket-paket ini menyediakan dukungan kompabilitas dengan rilis sebelumnya."
-
-#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:152
-msgid ""
-"These packages provide support for various locales including fonts and input "
-"methods."
-msgstr ""
-"Paket-paket ini menyediakan dukungan untuk berbagai locale termasuk font dan "
-"metode input."
-
-#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:153
-msgid ""
-"These tools allow you to create documents in the DocBook format and convert "
-"them into HTML, PDF, Postscript, and text."
-msgstr ""
-"Perkakas ini membantu anda untuk membuat dokumentasi dalam format DocBook "
-"dan mengkonversinya menjadi HTML, PDF, Postscript dan teks."
-
-#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:158
-msgid "This group contains all of Red Hat's custom server configuration tools."
-msgstr ""
-"Grup ini berisikan semua alat bantu konfigurasi server yang dicustom di Red "
-"Hat."
-
-#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:159
-msgid ""
-"This group includes a minimal set of packages. Useful for creating small "
-"router/firewall boxes, for example."
-msgstr ""
-"Dalam grup ini telah diset paket-paket minimal. Contohnya, program-program "
-"yang berguna untuk membuat router/firewall sederhana."
-
-#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:168
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:177 ../comps-f9.xml.in.h:181
 msgid ""
 "This package group allows you to run a DNS name server (BIND) on the system."
 msgstr ""
 "Di grup paket ini membolehkan anda untuk menjalakan server name DNS (BIND) "
 "pada sistem."
 
-#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:169
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:178 ../comps-f9.xml.in.h:182
 msgid ""
 "This package group allows you to share files between Linux and MS Windows"
 "(tm) systems."
@@ -995,87 +875,321 @@ msgstr ""
 "Di grup paket ini membolehkan anda untuk melakukan file share antara sistem "
 "Linux dan MS Windows(tm)."
 
-#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:170
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:179 ../comps-f9.xml.in.h:183
 msgid "This package group contains packages useful for use with MySQL."
 msgstr ""
 "Di grup paket ini berisikan paket-paket yang berguna untuk digunakan dengan "
 "MySQL."
 
-#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:171
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:180 ../comps-f9.xml.in.h:184
 msgid "This package group includes packages useful for use with Postgresql."
 msgstr ""
 "Di grup paket ini termasuk paket-paket yang berguna untuk digunakan dengan "
 "Postgresql."
 
-#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:172
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:181 ../comps-f9.xml.in.h:185
 #, fuzzy
 msgid "Tibetan Support"
 msgstr "Dukungan Jerman"
 
-#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:173
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:182 ../comps-f9.xml.in.h:186
 #, fuzzy
 msgid "Tonga Support"
 msgstr "Dukungan Thailand"
 
-#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:174
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:183 ../comps-f9.xml.in.h:187
+#: ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:70
+msgid "Tools and Utilities needed by a Fedora Packager"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:184 ../comps-f9.xml.in.h:188
 msgid "Tsonga Support"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:175
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:185 ../comps-f9.xml.in.h:189
 msgid "Tswana Support"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:176
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:186 ../comps-f9.xml.in.h:190
 msgid "Turkish Support"
 msgstr "Dukungan Turki"
 
-#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:177
+#: ../comps-f7.xml.in.h:179 ../comps-f8.xml.in.h:187 ../comps-f9.xml.in.h:191
 msgid "Ukrainian Support"
 msgstr "Dukungan Ukraina"
 
-#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:178
+#: ../comps-f7.xml.in.h:180 ../comps-f8.xml.in.h:188 ../comps-f9.xml.in.h:192
 #, fuzzy
 msgid "Urdu Support"
 msgstr "Dukungan Zulu"
 
-#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:181
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:189 ../comps-f9.xml.in.h:193
+#: ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:71
+msgid "Various core pieces of the system."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:190 ../comps-f9.xml.in.h:194
+#: ../comps-el5.xml.in.h:72
+msgid "Various ways to relax and spend your free time."
+msgstr "Berbagai cara untuk bersantai dan menghabiskan waktu luang anda."
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:191 ../comps-f9.xml.in.h:195
 msgid "Venda Support"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:182
+#: ../comps-f7.xml.in.h:184 ../comps-f8.xml.in.h:192 ../comps-f9.xml.in.h:196
 #, fuzzy
 msgid "Vietnamese Support"
 msgstr "Dukungan Cina"
 
-#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:183
+#: ../comps-f7.xml.in.h:185 ../comps-f8.xml.in.h:193 ../comps-f9.xml.in.h:197
 msgid "Virtualization"
 msgstr "Virtualisasi"
 
-#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:186
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:194 ../comps-f9.xml.in.h:199
+#: ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+msgid "Web Development"
+msgstr "Pengembangan Web"
+
+#: ../comps-f7.xml.in.h:187 ../comps-f8.xml.in.h:195 ../comps-f9.xml.in.h:200
+#: ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "Web Server"
+msgstr "Server Web"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:196 ../comps-f9.xml.in.h:201
 msgid "Welsh Support"
 msgstr "Dukungan Wales"
 
-#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:188
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:197 ../comps-f9.xml.in.h:202
+#: ../comps-el4.xml.in.h:75 ../comps-el5.xml.in.h:75
+msgid "Window Managers"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:190 ../comps-f8.xml.in.h:198 ../comps-f9.xml.in.h:203
 msgid "Windows File Server"
 msgstr "File Server Windows"
 
-#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:189
+#: ../comps-f7.xml.in.h:191 ../comps-f8.xml.in.h:199 ../comps-f9.xml.in.h:204
 msgid "X Software Development"
 msgstr "Pengembangan Perangkat Lunak X"
 
-#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:193
+#: ../comps-f7.xml.in.h:192 ../comps-f8.xml.in.h:200 ../comps-f9.xml.in.h:205
+#: ../comps-el4.xml.in.h:76 ../comps-el5.xml.in.h:76
+msgid "X Window System"
+msgstr "Sistem X Window"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:201 ../comps-f9.xml.in.h:206
+msgid "XFCE"
+msgstr "XFCE"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:202 ../comps-f9.xml.in.h:207
+msgid "XFCE Software Development"
+msgstr "XFCE Software Development"
+
+#: ../comps-f7.xml.in.h:195 ../comps-f8.xml.in.h:203 ../comps-f9.xml.in.h:208
 msgid "Xhosa Support"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:194
+#: ../comps-f7.xml.in.h:196 ../comps-f8.xml.in.h:204 ../comps-f9.xml.in.h:209
 msgid "Zulu Support"
 msgstr "Dukungan Zulu"
 
-#~ msgid "Brazilian Support"
-#~ msgstr "Dukungan Brasil"
+#: ../comps-f8.xml.in.h:21 ../comps-f9.xml.in.h:21
+msgid "Buildsystem building group"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:48 ../comps-f9.xml.in.h:49
+#, fuzzy
+msgid "Fedora Eclipse"
+msgstr "Eclipse"
+
+#: ../comps-f8.xml.in.h:52 ../comps-f9.xml.in.h:53
+msgid "Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:53 ../comps-f9.xml.in.h:54
+msgid "Fonts packages for rendering text on the desktop."
+msgstr ""
+
+#: ../comps-f8.xml.in.h:79 ../comps-f9.xml.in.h:80
+#, fuzzy
+msgid "Integrated Development Environments based on Eclipse."
+msgstr "Lingkungan Pengembangan Eclipse yang Terpadu."
+
+#: ../comps-f8.xml.in.h:95 ../comps-f9.xml.in.h:97
+msgid "Legacy Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:100 ../comps-f9.xml.in.h:102
+#, fuzzy
+msgid "Low Saxon Support"
+msgstr "Dukungan Thailand"
+
+#: ../comps-f8.xml.in.h:106 ../comps-f9.xml.in.h:109
+#, fuzzy
+msgid "Mongolian Support"
+msgstr "Dukungan Estonia"
+
+#: ../comps-f8.xml.in.h:108 ../comps-f9.xml.in.h:111
+#, fuzzy
+msgid "Nepali Support"
+msgstr "Dukungan Bengali"
+
+#: ../comps-f8.xml.in.h:114 ../comps-f9.xml.in.h:118
+msgid "Older bitmap and vector fonts packages"
+msgstr ""
+
+#: ../comps-f9.xml.in.h:44
+#, fuzzy
+msgid "Esperanto Support"
+msgstr "Dukungan Jerman"
+
+#: ../comps-f9.xml.in.h:91
+#, fuzzy
+msgid "Kashubian Support"
+msgstr "Dukungan Estonia"
+
+#: ../comps-f9.xml.in.h:103
+#, fuzzy
+msgid "Macedonian Support"
+msgstr "Dukungan Estonia"
+
+#: ../comps-f9.xml.in.h:114
+#, fuzzy
+msgid "Northern Sami Support"
+msgstr "Dukungan Korea"
+
+#: ../comps-f9.xml.in.h:198
+#, fuzzy
+msgid "Walloon Support"
+msgstr "Dukungan Thailand"
+
+#: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:12 ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "Dukungan Dialup Networking"
+
+#: ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:23
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME adalah user interface grafis  yang powerful dalam panel, dekstop, "
+"icons sitem, dan file manager grafis."
+
+#: ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE adalah user interface grafis yang powerful dalam panel, dekstop, icons "
+"sitem, dan file manager grafis."
+
+#: ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+"Kadang2 disebut sebagai text editor, program ini membolehkan kita untuk "
+"membuat dan mengedit berkas. Paket ini termasuk Emacs dan Vi."
+
+#: ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The XEmacs text editor."
+msgstr "Editor teks XEmacs."
+
+#: ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"Alat bantu ini membolehkan anda untuk membuat dokumentasi dalam format "
+"DocBook and mengkonversinya dalam HTML, PDF, Postscript dan text."
+
+#: ../comps-el4.xml.in.h:64 ../comps-el5.xml.in.h:62
+msgid "This group is a collection of network servers for specific purposes"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:67 ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:77 ../comps-el5.xml.in.h:77
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr ""
 
 #~ msgid "British Support"
 #~ msgstr "Dukungan Inggris"
+
+#, fuzzy
+#~ msgid "Cluster Storage"
+#~ msgstr "Dukungan Rusia"
+
+#, fuzzy
+#~ msgid "Clustering Support."
+#~ msgstr "Dukungan Serbia"
+
+#~ msgid "Miscellaneous Included Packages"
+#~ msgstr "Miscellaneous Included Packages"
+
+#, fuzzy
+#~ msgid "Single Node GFS Support"
+#~ msgstr "Dukungan Cina"
+
+#~ msgid "These packages provide compatibility support with previous releases."
+#~ msgstr ""
+#~ "Paket-paket ini menyediakan dukungan kompabilitas dengan rilis sebelumnya."
+
+#~ msgid "Misc"
+#~ msgstr "Lain-lain"
+
+#~ msgid "Misc packages"
+#~ msgstr "Paket-paket lainnya"
+
+#~ msgid "Multimedia"
+#~ msgstr "Multimedia"
+
+#~ msgid "Multimedia applications"
+#~ msgstr "Aplikasi Multimedia"
+
+#~ msgid ""
+#~ "Packages which provide additional functionality for Red Hat Enterprise "
+#~ "Linux"
+#~ msgstr ""
+#~ "Paket-paket ini menyediakan fungsionalitas tambahan untuk Linux Red Hat "
+#~ "Enterprise"
+
+#, fuzzy
+#~ msgid "Red Hat Enterprise Linux Supplementary"
+#~ msgstr "Dokumentasi Red Hat Enterprise Linux 3"
+
+#~ msgid "Virtualization Support."
+#~ msgstr "Dukungan Virtualisasi"
+
+#, fuzzy
+#~ msgid "Somail Support"
+#~ msgstr "Dukungan Tamil"
+
+#~ msgid "Brazilian Support"
+#~ msgstr "Dukungan Brasil"
 
 #~ msgid "Compatibility Arch Development Support"
 #~ msgstr "Dukungan Kompabilitas Arsitektur pengembangan"
@@ -1121,9 +1235,6 @@ msgstr "Dukungan Zulu"
 
 #~ msgid "Kernel Development"
 #~ msgstr "Pengembangan Kernel"
-
-#~ msgid "Miscellaneous Included Packages"
-#~ msgstr "Miscellaneous Included Packages"
 
 #~ msgid "Mozilla packages for the x86 platform"
 #~ msgstr "Paket Mozilla untuk platform x86"
@@ -1191,9 +1302,6 @@ msgstr "Dukungan Zulu"
 
 #~ msgid "Italian"
 #~ msgstr "Italia"
-
-#~ msgid "Red Hat Enterprise Linux 3 Documentation"
-#~ msgstr "Dokumentasi Red Hat Enterprise Linux 3"
 
 #~ msgid "Spanish"
 #~ msgstr "Spanyol"
@@ -1336,41 +1444,11 @@ msgstr "Dukungan Zulu"
 #~ "Di dalam grup ini berisikan  dokumentasi Linux Red Hat Enterprise dalam "
 #~ "bahasa Tamil."
 
-#, fuzzy
-#~ msgid "Cluster Storage"
-#~ msgstr "Dukungan Rusia"
-
-#~ msgid "These packages provide compatibility support with previous releases."
-#~ msgstr ""
-#~ "Paket-paket ini menyediakan dukungan kompabilitas dengan rilis sebelumnya."
-
-#~ msgid "Misc"
-#~ msgstr "Lain-lain"
-
-#~ msgid "Misc packages"
-#~ msgstr "Paket-paket lainnya"
-
-#~ msgid "Multimedia"
-#~ msgstr "Multimedia"
-
-#~ msgid "Multimedia applications"
-#~ msgstr "Aplikasi Multimedia"
-
-#~ msgid ""
-#~ "Packages which provide additional functionality for Red Hat Enterprise "
-#~ "Linux"
-#~ msgstr ""
-#~ "Paket-paket ini menyediakan fungsionalitas tambahan untuk Linux Red Hat "
-#~ "Enterprise"
-
 #~ msgid "Red Hat Enterprise Linux Extras"
 #~ msgstr "Red Hat Enterprise Linux Extras"
 
 #~ msgid "Workstation"
 #~ msgstr "Workstation"
-
-#~ msgid "Virtualization Support."
-#~ msgstr "Dukungan Virtualisasi"
 
 #, fuzzy
 #~ msgid ""

@@ -8,6 +8,7 @@
     <default>true</default>
     <uservisible>true</uservisible>
     <packagelist>
+      <packagereq type="optional">dbench</packagereq>
       <packagereq type="optional">yumex</packagereq>
     </packagelist>
   </group>
@@ -67,6 +68,7 @@
       <packagereq type="optional">cmucl</packagereq>
       <packagereq type="optional">colordiff</packagereq>
       <packagereq type="optional">cvsps</packagereq>
+      <packagereq type="optional">email2trac</packagereq>
       <packagereq type="optional">ftnchek</packagereq>
       <packagereq type="optional">git</packagereq>
       <packagereq type="optional">lua</packagereq>
@@ -193,6 +195,7 @@
     <default>true</default>
     <uservisible>true</uservisible>
     <packagelist>
+      <packagereq type="optional">checkgmail</packagereq>
       <packagereq type="optional">konversation</packagereq>
       <packagereq type="optional">mail-notification</packagereq>
     </packagelist>
@@ -245,7 +248,9 @@
     <default>false</default>
     <uservisible>true</uservisible>
     <packagelist>
+      <packagereq type="optional">amarok</packagereq>
       <packagereq type="optional">kmymoney2</packagereq>
+      <packagereq type="optional">xsettings-kde</packagereq>
     </packagelist>
   </group>
   <group>
@@ -316,6 +321,7 @@
     <uservisible>true</uservisible>
     <packagelist>
       <packagereq type="optional">akode</packagereq>
+      <packagereq type="optional">amarok</packagereq>
       <packagereq type="optional">ushare</packagereq>
     </packagelist>
   </group>

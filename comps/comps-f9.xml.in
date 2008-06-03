@@ -9,23 +9,25 @@
     <uservisible>true</uservisible>
     <packagelist>
       <packagereq type="default">authconfig-gtk</packagereq>
-      <packagereq type="default">pirut</packagereq>
+      <packagereq type="default">gnome-packagekit</packagereq>
       <packagereq type="default">system-config-boot</packagereq>
       <packagereq type="default">system-config-date</packagereq>
+      <packagereq type="default">system-config-firewall</packagereq>
       <packagereq type="default">system-config-keyboard</packagereq>
       <packagereq type="default">system-config-language</packagereq>
       <packagereq type="default">system-config-lvm</packagereq>
       <packagereq type="default">system-config-network</packagereq>
       <packagereq type="default">system-config-rootpassword</packagereq>
-      <packagereq type="default">system-config-soundcard</packagereq>
       <packagereq type="default">system-config-users</packagereq>
       <packagereq type="optional">cacti</packagereq>
+      <packagereq type="optional">dbench</packagereq>
       <packagereq type="optional">etherape</packagereq>
       <packagereq type="optional">ettercap-gtk</packagereq>
       <packagereq type="optional">galternatives</packagereq>
       <packagereq type="optional">gparted</packagereq>
       <packagereq type="optional">gsynaptics</packagereq>
       <packagereq type="optional">lat</packagereq>
+      <packagereq type="optional">lshw-gui</packagereq>
       <packagereq type="optional">luma</packagereq>
       <packagereq type="optional">opyum</packagereq>
       <packagereq type="optional">pessulus</packagereq>
@@ -69,14 +71,15 @@
     <packagelist>
       <packagereq type="conditional" requires="aspell">aspell-ar</packagereq>
       <packagereq type="conditional" requires="gcompris">gcompris-sound-ar</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-ar</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Arabic</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Arabic</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-ar</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-ar</packagereq>
       <packagereq type="default">dejavu-fonts</packagereq>
+      <packagereq type="default">dejavu-fonts-experimental</packagereq>
       <packagereq type="default">kacst-fonts</packagereq>
       <packagereq type="default">paktype-fonts</packagereq>
-      <packagereq type="optional">dejavu-fonts-experimental</packagereq>
       <packagereq type="optional">m17n-db-arabic</packagereq>
       <packagereq type="optional">scim-tables-arabic</packagereq>
     </packagelist>
@@ -90,6 +93,7 @@
     <langonly>hy</langonly>
     <packagelist>
       <packagereq type="mandatory">dejavu-fonts</packagereq>
+      <packagereq type="conditional" requires="moodle">moodle-hy</packagereq>
       <packagereq type="default">dejavu-fonts-experimental</packagereq>
       <packagereq type="optional">m17n-db-armenian</packagereq>
     </packagelist>
@@ -116,6 +120,8 @@
     <default>false</default>
     <uservisible>true</uservisible>
     <packagelist>
+      <packagereq type="conditional" requires="texlive">tetex-eurofont</packagereq>
+      <packagereq type="conditional" requires="texlive">tetex-font-cm-lgc</packagereq>
       <packagereq type="default">docbook-slides</packagereq>
       <packagereq type="default">docbook-style-dsssl</packagereq>
       <packagereq type="default">docbook-style-xsl</packagereq>
@@ -139,10 +145,9 @@
       <packagereq type="optional">ooo2txt</packagereq>
       <packagereq type="optional">python-docutils</packagereq>
       <packagereq type="optional">scribus</packagereq>
-      <packagereq type="optional">tetex-eurofont</packagereq>
       <packagereq type="optional">tetex-prosper</packagereq>
-      <packagereq type="optional">tetex-xdvi</packagereq>
       <packagereq type="optional">w3c-markup-validator</packagereq>
+      <packagereq type="optional">xdvik</packagereq>
       <packagereq type="optional">xmlcopyeditor</packagereq>
     </packagelist>
   </group>
@@ -160,12 +165,14 @@
       <packagereq type="mandatory">bc</packagereq>
       <packagereq type="mandatory">bind-utils</packagereq>
       <packagereq type="mandatory">bzip2</packagereq>
+      <packagereq type="mandatory">cronie</packagereq>
       <packagereq type="mandatory">crontabs</packagereq>
       <packagereq type="mandatory">cyrus-sasl-plain</packagereq>
       <packagereq type="mandatory">logrotate</packagereq>
       <packagereq type="mandatory">lsof</packagereq>
       <packagereq type="mandatory">mailcap</packagereq>
       <packagereq type="mandatory">man</packagereq>
+      <packagereq type="mandatory">NetworkManager</packagereq>
       <packagereq type="mandatory">ntsysv</packagereq>
       <packagereq type="mandatory">parted</packagereq>
       <packagereq type="mandatory">pciutils</packagereq>
@@ -173,13 +180,9 @@
       <packagereq type="mandatory">quota</packagereq>
       <packagereq type="mandatory">tmpwatch</packagereq>
       <packagereq type="mandatory">traceroute</packagereq>
-      <packagereq type="mandatory">vixie-cron</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-en</packagereq>
       <packagereq type="default">acpid</packagereq>
       <packagereq type="default">anacron</packagereq>
-      <packagereq type="default">aspell</packagereq>
-      <packagereq type="default">aspell-en</packagereq>
-      <packagereq type="default">autofs</packagereq>
       <packagereq type="default">bluez-utils</packagereq>
       <packagereq type="default">ccid</packagereq>
       <packagereq type="default">coolkey</packagereq>
@@ -198,6 +201,7 @@
       <packagereq type="default">ftp</packagereq>
       <packagereq type="default">gnupg</packagereq>
       <packagereq type="default">gpm</packagereq>
+      <packagereq type="default">hunspell</packagereq>
       <packagereq type="default">iptstate</packagereq>
       <packagereq type="default">irda-utils</packagereq>
       <packagereq type="default">irqbalance</packagereq>
@@ -213,7 +217,6 @@
       <packagereq type="default">mtr</packagereq>
       <packagereq type="default">nano</packagereq>
       <packagereq type="default">nc</packagereq>
-      <packagereq type="default">NetworkManager</packagereq>
       <packagereq type="default">nfs-utils</packagereq>
       <packagereq type="default">nss_db</packagereq>
       <packagereq type="default">nss_ldap</packagereq>
@@ -240,6 +243,7 @@
       <packagereq type="default">sendmail</packagereq>
       <packagereq type="default">setuptool</packagereq>
       <packagereq type="default">smartmontools</packagereq>
+      <packagereq type="default">smartmontools-config</packagereq>
       <packagereq type="default">specspo</packagereq>
       <packagereq type="default">stunnel</packagereq>
       <packagereq type="default">sudo</packagereq>
@@ -263,14 +267,16 @@
       <packagereq type="default">words</packagereq>
       <packagereq type="default">ypbind</packagereq>
       <packagereq type="default">yum</packagereq>
-      <packagereq type="default">yum-updatesd</packagereq>
       <packagereq type="default">yum-utils</packagereq>
       <packagereq type="default">zip</packagereq>
       <packagereq type="optional">apmd</packagereq>
+      <packagereq type="optional">aspell</packagereq>
       <packagereq type="optional">authd</packagereq>
       <packagereq type="optional">bridge-utils</packagereq>
       <packagereq type="optional">brltty</packagereq>
+      <packagereq type="optional">gnupg2</packagereq>
       <packagereq type="optional">gpart</packagereq>
+      <packagereq type="optional">gpgme</packagereq>
       <packagereq type="optional">hardlink</packagereq>
       <packagereq type="optional">hfsutils</packagereq>
       <packagereq type="optional">iscsi-initiator-utils</packagereq>
@@ -288,6 +294,7 @@
       <packagereq type="optional">tcsh</packagereq>
       <packagereq type="optional">x86info</packagereq>
       <packagereq type="optional">xfsprogs</packagereq>
+      <packagereq type="optional">yum-updatesd</packagereq>
     </packagelist>
   </group>
   <group>
@@ -311,20 +318,20 @@
       <packagereq type="default">firstboot</packagereq>
       <packagereq type="default">gdm</packagereq>
       <packagereq type="default">glx-utils</packagereq>
+      <packagereq type="default">gnome-packagekit</packagereq>
       <packagereq type="default">kerneloops</packagereq>
       <packagereq type="default">krb5-auth-dialog</packagereq>
       <packagereq type="default">openssh-askpass</packagereq>
-      <packagereq type="default">pirut</packagereq>
       <packagereq type="default">policycoreutils-gui</packagereq>
       <packagereq type="default">rhgb</packagereq>
       <packagereq type="default">setroubleshoot</packagereq>
       <packagereq type="default">smolt-firstboot</packagereq>
       <packagereq type="default">system-config-date</packagereq>
       <packagereq type="default">system-config-display</packagereq>
+      <packagereq type="default">system-config-firewall</packagereq>
       <packagereq type="default">system-config-network</packagereq>
       <packagereq type="default">system-config-printer</packagereq>
       <packagereq type="default">system-config-services</packagereq>
-      <packagereq type="default">system-config-soundcard</packagereq>
       <packagereq type="default">system-config-users</packagereq>
       <packagereq type="default">xorg-x11-apps</packagereq>
       <packagereq type="default">xorg-x11-twm</packagereq>
@@ -342,6 +349,7 @@
       <packagereq type="optional">rss-glx</packagereq>
       <packagereq type="optional">rss-glx-xscreensaver</packagereq>
       <packagereq type="optional">rxvt</packagereq>
+      <packagereq type="optional">scim-rawcode</packagereq>
       <packagereq type="optional">switchdesk</packagereq>
       <packagereq type="optional">uim-gtk2</packagereq>
       <packagereq type="optional">uim-m17n</packagereq>
@@ -387,6 +395,7 @@
     <packagelist>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Belarusian</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-be</packagereq>
+      <packagereq type="optional">edrip-fonts</packagereq>
     </packagelist>
   </group>
   <group>
@@ -401,6 +410,7 @@
       <packagereq type="mandatory">m17n-contrib-bengali</packagereq>
       <packagereq type="mandatory">m17n-db-bengali</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-bn</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-bn</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Bengali</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-bn</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-bengali</packagereq>
@@ -438,6 +448,7 @@
     <langonly>pt_BR</langonly>
     <packagelist>
       <packagereq type="conditional" requires="aspell">aspell-pt</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-pt</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Brazil</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Brazil</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-pt_BR</packagereq>
@@ -510,15 +521,16 @@
     <uservisible>false</uservisible>
     <langonly>bg</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-bg</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-bg</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Bulgarian</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Bulgarian</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-bg</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-bg</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-bg_BG</packagereq>
+      <packagereq type="optional">edrip-fonts</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
     </packagelist>
   </group>
@@ -563,12 +575,18 @@
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-chinese</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-python-chinese</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-tables-chinese</packagereq>
+      <packagereq type="default">scim-python-pinyin</packagereq>
+      <packagereq type="default">scim-python-xingma-cangjie</packagereq>
+      <packagereq type="default">scim-python-xingma-erbi</packagereq>
+      <packagereq type="default">scim-python-xingma-wubi</packagereq>
+      <packagereq type="default">scim-python-xingma-zhengma</packagereq>
       <packagereq type="default">taipeifonts</packagereq>
       <packagereq type="default">wqy-bitmap-fonts</packagereq>
       <packagereq type="optional">gcin</packagereq>
       <packagereq type="optional">lv</packagereq>
       <packagereq type="optional">m17n-db-chinese</packagereq>
       <packagereq type="optional">scim-array</packagereq>
+      <packagereq type="optional">scim-fcitx</packagereq>
       <packagereq type="optional">scim-pinyin</packagereq>
       <packagereq type="optional">stardict-dic-zh_CN</packagereq>
       <packagereq type="optional">stardict-dic-zh_TW</packagereq>
@@ -615,7 +633,6 @@
       <packagereq type="mandatory">iprutils</packagereq>
       <packagereq type="mandatory">iputils</packagereq>
       <packagereq type="mandatory">kbd</packagereq>
-      <packagereq type="mandatory">kudzu</packagereq>
       <packagereq type="mandatory">libgcc</packagereq>
       <packagereq type="mandatory">passwd</packagereq>
       <packagereq type="mandatory">policycoreutils</packagereq>
@@ -629,10 +646,9 @@
       <packagereq type="mandatory">setserial</packagereq>
       <packagereq type="mandatory">setup</packagereq>
       <packagereq type="mandatory">shadow-utils</packagereq>
-      <packagereq type="mandatory">sysvinit</packagereq>
       <packagereq type="mandatory">util-linux-ng</packagereq>
       <packagereq type="mandatory">vim-minimal</packagereq>
-      <packagereq type="default">elilo</packagereq>
+      <packagereq type="default">efibootmgr</packagereq>
       <packagereq type="default">grub</packagereq>
       <packagereq type="default">ppc64-utils</packagereq>
       <packagereq type="default">s390utils</packagereq>
@@ -647,12 +663,12 @@
     <uservisible>false</uservisible>
     <langonly>hr</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-hr</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-hr</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-hr</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-hr_HR</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
       <packagereq type="optional">m17n-db-croatian</packagereq>
     </packagelist>
@@ -665,9 +681,7 @@
     <uservisible>false</uservisible>
     <langonly>cs</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-cs</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="gcompris">gcompris-sound-cs</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-cs</packagereq>
       <packagereq type="conditional" requires="hyphen">hyphen-cs</packagereq>
@@ -677,6 +691,8 @@
       <packagereq type="conditional" requires="man-pages">man-pages-cs</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-cs</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-cs_CZ</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
     </packagelist>
   </group>
@@ -697,6 +713,7 @@
       <packagereq type="conditional" requires="man-pages">man-pages-da</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-da</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-da_DK</packagereq>
+      <packagereq type="optional">m17n-db-danish</packagereq>
     </packagelist>
   </group>
   <group>
@@ -787,7 +804,6 @@
       <packagereq basearchonly="true" type="default">oprofile</packagereq>
       <packagereq basearchonly="true" type="default">oprofile-gui</packagereq>
       <packagereq type="default">patchutils</packagereq>
-      <packagereq basearchonly="true" type="default">pstack</packagereq>
       <packagereq type="default">python-ldap</packagereq>
       <packagereq type="default">rcs</packagereq>
       <packagereq type="default">subversion</packagereq>
@@ -911,6 +927,7 @@
       <packagereq type="optional">sbcl</packagereq>
       <packagereq type="optional">scanmem</packagereq>
       <packagereq type="optional">scons</packagereq>
+      <packagereq type="optional">sigscheme</packagereq>
       <packagereq type="optional">smarteiffel</packagereq>
       <packagereq type="optional">splint</packagereq>
       <packagereq type="optional">Sprog</packagereq>
@@ -920,7 +937,6 @@
       <packagereq type="optional">svn2cl</packagereq>
       <packagereq type="optional">svnmailer</packagereq>
       <packagereq type="optional">sysconftool</packagereq>
-      <packagereq type="optional">sysprof</packagereq>
       <packagereq type="optional">tailor</packagereq>
       <packagereq type="optional">tclpro</packagereq>
       <packagereq type="optional">tkcon</packagereq>
@@ -1061,6 +1077,7 @@
       <packagereq type="optional">childsplay</packagereq>
       <packagereq type="optional">drgeo</packagereq>
       <packagereq type="optional">drgeo-doc</packagereq>
+      <packagereq type="optional">fantasdic</packagereq>
       <packagereq type="optional">gcompris</packagereq>
       <packagereq type="optional">genchemlab</packagereq>
       <packagereq type="optional">gperiodic</packagereq>
@@ -1121,7 +1138,6 @@
       <packagereq type="optional">hdf5</packagereq>
       <packagereq type="optional">hmmer</packagereq>
       <packagereq type="optional">irsim</packagereq>
-      <packagereq type="optional">kalgebra</packagereq>
       <packagereq type="optional">kicad</packagereq>
       <packagereq type="optional">kpolynome</packagereq>
       <packagereq type="optional">kst</packagereq>
@@ -1135,9 +1151,11 @@
       <packagereq type="optional">libtcd</packagereq>
       <packagereq type="optional">Macaulay2</packagereq>
       <packagereq type="optional">magic</packagereq>
+      <packagereq type="optional">malaga</packagereq>
+      <packagereq type="optional">mathml-fonts</packagereq>
       <packagereq type="optional">maxima</packagereq>
       <packagereq type="optional">maxima-gui</packagereq>
-      <packagereq type="optional">ncarg</packagereq>
+      <packagereq type="optional">ncl</packagereq>
       <packagereq type="optional">nco</packagereq>
       <packagereq type="optional">ncview</packagereq>
       <packagereq type="optional">netcdf</packagereq>
@@ -1199,6 +1217,18 @@
     </packagelist>
   </group>
   <group>
+    <id>esperanto-support</id>
+    <_name>Esperanto Support</_name>
+    <_description/>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <langonly>eo</langonly>
+    <packagelist>
+      <packagereq type="conditional" requires="kdelibs">kde-l10n-Esperanto</packagereq>
+      <packagereq type="optional">m17n-contrib-esperanto</packagereq>
+    </packagelist>
+  </group>
+  <group>
     <id>estonian-support</id>
     <_name>Estonian Support</_name>
     <_description/>
@@ -1206,14 +1236,15 @@
     <uservisible>false</uservisible>
     <langonly>et</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-ee</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Estonian</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Estonian</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-et</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-et</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-et_EE</packagereq>
+      <packagereq type="optional">edrip-fonts</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
     </packagelist>
   </group>
@@ -1225,10 +1256,10 @@
     <uservisible>false</uservisible>
     <langonly>am</langonly>
     <packagelist>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">xorg-x11-fonts-ethiopic</packagereq>
       <packagereq type="default">abyssinica-fonts</packagereq>
       <packagereq type="optional">m17n-db-amharic</packagereq>
       <packagereq type="optional">scim-tables-amharic</packagereq>
+      <packagereq type="optional">xorg-x11-fonts-ethiopic</packagereq>
     </packagelist>
   </group>
   <group>
@@ -1240,6 +1271,7 @@
     <langonly>fo</langonly>
     <packagelist>
       <packagereq type="conditional" requires="aspell">aspell-fo</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-fo</packagereq>
     </packagelist>
   </group>
   <group>
@@ -1287,6 +1319,7 @@
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-fi</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-fi</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-fi_FI</packagereq>
+      <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-voikko</packagereq>
     </packagelist>
   </group>
   <group>
@@ -1315,16 +1348,19 @@
       <packagereq type="default">lohit-fonts-tamil</packagereq>
       <packagereq type="default">lohit-fonts-telugu</packagereq>
       <packagereq type="default">paktype-fonts</packagereq>
+      <packagereq type="default">stix-fonts</packagereq>
       <packagereq type="default">thaifonts-scalable</packagereq>
       <packagereq type="default">VLGothic-fonts</packagereq>
       <packagereq type="optional">baekmuk-ttf-fonts-batang</packagereq>
       <packagereq type="optional">baekmuk-ttf-fonts-dotum</packagereq>
       <packagereq type="optional">baekmuk-ttf-fonts-hline</packagereq>
       <packagereq type="optional">bitstream-vera-fonts</packagereq>
+      <packagereq type="optional">brettfont-fonts</packagereq>
       <packagereq type="optional">charis-fonts</packagereq>
       <packagereq type="optional">cjkunifonts-ukai</packagereq>
       <packagereq type="optional">dejavu-lgc-fonts</packagereq>
       <packagereq type="optional">doulos-fonts</packagereq>
+      <packagereq type="optional">edrip-fonts</packagereq>
       <packagereq type="optional">fonts-truetype-apl</packagereq>
       <packagereq type="optional">freefont</packagereq>
       <packagereq type="optional">gentium-fonts</packagereq>
@@ -1347,20 +1383,30 @@
       <packagereq type="optional">mathml-fonts</packagereq>
       <packagereq type="optional">mgopen-fonts</packagereq>
       <packagereq type="optional">nafees-web-naskh-fonts</packagereq>
-      <packagereq type="optional">samyak-fonts</packagereq>
+      <packagereq type="optional">roadstencil-fonts</packagereq>
+      <packagereq type="optional">samyak-fonts-devanagari</packagereq>
+      <packagereq type="optional">samyak-fonts-gujarati</packagereq>
+      <packagereq type="optional">samyak-fonts-malayalam</packagereq>
+      <packagereq type="optional">samyak-fonts-oriya</packagereq>
+      <packagereq type="optional">samyak-fonts-tamil</packagereq>
+      <packagereq type="optional">sarai-fonts</packagereq>
       <packagereq type="optional">sazanami-fonts-gothic</packagereq>
       <packagereq type="optional">sazanami-fonts-mincho</packagereq>
       <packagereq type="optional">silkscreen-fonts</packagereq>
-      <packagereq type="optional">stix-fonts</packagereq>
+      <packagereq type="optional">smc-fonts-dyuthi</packagereq>
+      <packagereq type="optional">smc-fonts-meera</packagereq>
+      <packagereq type="optional">smc-fonts-rachana</packagereq>
+      <packagereq type="optional">smc-fonts-raghumalayalam</packagereq>
+      <packagereq type="optional">smc-fonts-suruma</packagereq>
       <packagereq type="optional">stix-fonts-integrals</packagereq>
       <packagereq type="optional">stix-fonts-pua</packagereq>
       <packagereq type="optional">stix-fonts-sizes</packagereq>
       <packagereq type="optional">stix-fonts-variants</packagereq>
       <packagereq type="optional">tibetan-machine-uni-fonts</packagereq>
       <packagereq type="optional">tiresias-fonts</packagereq>
+      <packagereq type="optional">VLGothic-fonts-proportional</packagereq>
       <packagereq type="optional">wqy-zenhei-fonts</packagereq>
       <packagereq type="optional">xorg-x11-fonts-ethiopic</packagereq>
-      <packagereq type="optional">xorg-x11-fonts-syriac</packagereq>
       <packagereq type="optional">yanone-kaffeesatz-fonts</packagereq>
     </packagelist>
   </group>
@@ -1384,6 +1430,7 @@
       <packagereq type="conditional" requires="moodle">moodle-fr_ca</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-fr</packagereq>
       <packagereq type="conditional" requires="tesseract">tesseract-langpack-fr</packagereq>
+      <packagereq type="optional">m17n-db-french</packagereq>
     </packagelist>
   </group>
   <group>
@@ -1408,6 +1455,7 @@
     <langonly>gd</langonly>
     <packagelist>
       <packagereq type="conditional" requires="aspell">aspell-gd</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-gd</packagereq>
     </packagelist>
   </group>
   <group>
@@ -1492,11 +1540,13 @@
       <packagereq type="optional">egoboo</packagereq>
       <packagereq type="optional">enigma</packagereq>
       <packagereq type="optional">escape</packagereq>
+      <packagereq type="optional">extremetuxracer</packagereq>
       <packagereq type="optional">fbg</packagereq>
       <packagereq type="optional">fillets-ng</packagereq>
       <packagereq type="optional">flight-of-the-amazon-queen</packagereq>
       <packagereq type="optional">flight-of-the-amazon-queen-cd</packagereq>
       <packagereq type="optional">FlightGear</packagereq>
+      <packagereq type="optional">flobopuyo</packagereq>
       <packagereq type="optional">foobillard</packagereq>
       <packagereq type="optional">fortune-mod</packagereq>
       <packagereq type="optional">fRaBs</packagereq>
@@ -1509,6 +1559,7 @@
       <packagereq type="optional">freetennis</packagereq>
       <packagereq type="optional">frozen-bubble</packagereq>
       <packagereq type="optional">games-menus</packagereq>
+      <packagereq type="optional">gbrainy</packagereq>
       <packagereq type="optional">gemdropx</packagereq>
       <packagereq type="optional">gl-117</packagereq>
       <packagereq type="optional">glaxium</packagereq>
@@ -1531,11 +1582,13 @@
       <packagereq type="optional">koules</packagereq>
       <packagereq type="optional">ksirk</packagereq>
       <packagereq type="optional">lacewing</packagereq>
+      <packagereq type="optional">lbrickbuster2</packagereq>
       <packagereq type="optional">lincity-ng</packagereq>
       <packagereq type="optional">liquidwar</packagereq>
       <packagereq type="optional">lmarbles</packagereq>
       <packagereq type="optional">londonlaw</packagereq>
       <packagereq type="optional">lucidlife</packagereq>
+      <packagereq type="optional">lure</packagereq>
       <packagereq type="optional">machineball</packagereq>
       <packagereq type="optional">Maelstrom</packagereq>
       <packagereq type="optional">magicmaze</packagereq>
@@ -1576,7 +1629,6 @@
       <packagereq type="optional">poker2d</packagereq>
       <packagereq type="optional">poker3d</packagereq>
       <packagereq type="optional">powermanga</packagereq>
-      <packagereq type="optional">ppracer</packagereq>
       <packagereq type="optional">prboom</packagereq>
       <packagereq type="optional">professor-is-missing</packagereq>
       <packagereq type="optional">pychess</packagereq>
@@ -1719,9 +1771,9 @@
       <packagereq type="default">evince</packagereq>
       <packagereq type="default">evince-djvu</packagereq>
       <packagereq type="default">evince-dvi</packagereq>
-      <packagereq type="default">fast-user-switch-applet</packagereq>
       <packagereq type="default">file-roller</packagereq>
       <packagereq type="default">gcalctool</packagereq>
+      <packagereq type="default">gdm-user-switch-applet</packagereq>
       <packagereq type="default">gedit</packagereq>
       <packagereq type="default">gnome-audio</packagereq>
       <packagereq type="default">gnome-backgrounds</packagereq>
@@ -1738,11 +1790,12 @@
       <packagereq type="default">gnome-utils</packagereq>
       <packagereq type="default">gnome-vfs2-obexftp</packagereq>
       <packagereq type="default">gnome-vfs2-smb</packagereq>
-      <packagereq type="default">gnome-volume-manager</packagereq>
       <packagereq type="default">gok</packagereq>
       <packagereq type="default">gthumb</packagereq>
       <packagereq type="default">gtk2-engines</packagereq>
       <packagereq type="default">gucharmap</packagereq>
+      <packagereq type="default">gvfs-fuse</packagereq>
+      <packagereq type="default">mousetweaks</packagereq>
       <packagereq type="default">nautilus-cd-burner</packagereq>
       <packagereq type="default">nautilus-sendto</packagereq>
       <packagereq type="default">NetworkManager-gnome</packagereq>
@@ -1757,9 +1810,10 @@
       <packagereq type="default">zenity</packagereq>
       <packagereq type="optional">avant-window-navigator</packagereq>
       <packagereq type="optional">beagle-evolution</packagereq>
-      <packagereq type="optional">beagle-gui</packagereq>
+      <packagereq type="optional">beagle-gnome</packagereq>
       <packagereq type="optional">buoh</packagereq>
       <packagereq type="optional">byzanz</packagereq>
+      <packagereq type="optional">cairo-dock</packagereq>
       <packagereq type="optional">deskbar-applet</packagereq>
       <packagereq type="optional">esc</packagereq>
       <packagereq type="optional">gconf-editor</packagereq>
@@ -1794,8 +1848,11 @@
       <packagereq type="optional">nautilus-open-terminal</packagereq>
       <packagereq type="optional">nautilus-search-tool</packagereq>
       <packagereq type="optional">panelfm</packagereq>
+      <packagereq type="optional">pcmanfm</packagereq>
       <packagereq type="optional">rss-glx-gnome-screensaver</packagereq>
       <packagereq type="optional">sabayon</packagereq>
+      <packagereq type="optional">scim-bridge-gtk</packagereq>
+      <packagereq type="optional">scim-gtk</packagereq>
       <packagereq type="optional">scim-input-pad</packagereq>
       <packagereq type="optional">scim-tomoe</packagereq>
       <packagereq type="optional">seahorse</packagereq>
@@ -1838,7 +1895,6 @@
       <packagereq type="default">eel2-devel</packagereq>
       <packagereq type="default">evolution-data-server-devel</packagereq>
       <packagereq type="default">gail-devel</packagereq>
-      <packagereq type="default">gecko-devel</packagereq>
       <packagereq type="default">glade2</packagereq>
       <packagereq type="default">gnome-desktop-devel</packagereq>
       <packagereq type="default">gnome-devel-docs</packagereq>
@@ -1850,8 +1906,9 @@
       <packagereq type="default">libgnomeprintui22-devel</packagereq>
       <packagereq type="default">libgtop2-devel</packagereq>
       <packagereq type="default">pygtk2-devel</packagereq>
+      <packagereq type="default">xulrunner-devel</packagereq>
       <packagereq type="optional">anjuta</packagereq>
-      <packagereq type="optional">anjuta-docs</packagereq>
+      <packagereq type="optional">anjuta-doc</packagereq>
       <packagereq type="optional">bakery-devel</packagereq>
       <packagereq type="optional">bit-devel</packagereq>
       <packagereq type="optional">bitgtkmm-devel</packagereq>
@@ -1895,15 +1952,12 @@
     <default>true</default>
     <uservisible>true</uservisible>
     <packagelist>
-      <packagereq type="default">ekiga</packagereq>
       <packagereq type="default">evolution</packagereq>
       <packagereq type="default">evolution-help</packagereq>
       <packagereq type="default">evolution-webcal</packagereq>
       <packagereq type="default">firefox</packagereq>
-      <packagereq type="default">libflashsupport</packagereq>
       <packagereq type="default">nspluginwrapper</packagereq>
       <packagereq type="default">pidgin</packagereq>
-      <packagereq type="default">swfdec-mozilla</packagereq>
       <packagereq type="default">transmission</packagereq>
       <packagereq type="optional">amsn</packagereq>
       <packagereq type="optional">apollon</packagereq>
@@ -1913,6 +1967,7 @@
       <packagereq type="optional">blam</packagereq>
       <packagereq type="optional">blogtk</packagereq>
       <packagereq type="optional">bluefish</packagereq>
+      <packagereq type="optional">checkgmail</packagereq>
       <packagereq type="optional">claws-mail</packagereq>
       <packagereq type="optional">contact-lookup-applet</packagereq>
       <packagereq type="optional">d4x</packagereq>
@@ -1920,12 +1975,14 @@
       <packagereq type="optional">deskbar-applet</packagereq>
       <packagereq type="optional">dillo</packagereq>
       <packagereq type="optional">drivel</packagereq>
+      <packagereq type="optional">ekiga</packagereq>
       <packagereq type="optional">empathy</packagereq>
       <packagereq type="optional">epiphany</packagereq>
       <packagereq type="optional">epiphany-extensions</packagereq>
       <packagereq type="optional">evolution-bogofilter</packagereq>
       <packagereq type="optional">evolution-conduits</packagereq>
       <packagereq type="optional">evolution-exchange</packagereq>
+      <packagereq type="optional">filezilla</packagereq>
       <packagereq type="optional">fwbuilder</packagereq>
       <packagereq type="optional">gajim</packagereq>
       <packagereq type="optional">galeon</packagereq>
@@ -1942,23 +1999,28 @@
       <packagereq type="optional">gtk-gnutella</packagereq>
       <packagereq type="optional">gtorrentviewer</packagereq>
       <packagereq type="optional">gwget</packagereq>
+      <packagereq type="optional">gyachi</packagereq>
       <packagereq type="optional">jd</packagereq>
       <packagereq type="optional">kadu</packagereq>
       <packagereq type="optional">kasablanca</packagereq>
       <packagereq type="optional">kazehakase</packagereq>
+      <packagereq type="optional">kdepim</packagereq>
       <packagereq type="optional">kdewebdev</packagereq>
       <packagereq type="optional">kftpgrabber</packagereq>
       <packagereq type="optional">kickpim</packagereq>
       <packagereq type="optional">kita</packagereq>
       <packagereq type="optional">knetstats</packagereq>
       <packagereq type="optional">konversation</packagereq>
+      <packagereq type="optional">libflashsupport</packagereq>
       <packagereq type="optional">licq</packagereq>
       <packagereq type="optional">liferea</packagereq>
       <packagereq type="optional">linphone</packagereq>
       <packagereq type="optional">logjam</packagereq>
       <packagereq type="optional">mail-notification</packagereq>
+      <packagereq type="optional">midori</packagereq>
       <packagereq type="optional">Miro</packagereq>
       <packagereq type="optional">mugshot</packagereq>
+      <packagereq type="optional">nntpgrab-gui</packagereq>
       <packagereq type="optional">ochusha</packagereq>
       <packagereq type="optional">pan</packagereq>
       <packagereq type="optional">pidgin-libnotify</packagereq>
@@ -1967,6 +2029,7 @@
       <packagereq type="optional">putty</packagereq>
       <packagereq type="optional">seamonkey</packagereq>
       <packagereq type="optional">streamtuner</packagereq>
+      <packagereq type="optional">swfdec-mozilla</packagereq>
       <packagereq type="optional">sylpheed</packagereq>
       <packagereq type="optional">thunderbird</packagereq>
       <packagereq type="optional">twinkle</packagereq>
@@ -1995,6 +2058,7 @@
       <packagereq type="optional">argyllcms</packagereq>
       <packagereq type="optional">asymptote</packagereq>
       <packagereq type="optional">blender</packagereq>
+      <packagereq type="optional">cbrpager</packagereq>
       <packagereq type="optional">cheese</packagereq>
       <packagereq type="optional">comix</packagereq>
       <packagereq type="optional">dcraw</packagereq>
@@ -2040,6 +2104,8 @@
       <packagereq type="optional">uniconvertor</packagereq>
       <packagereq type="optional">wings</packagereq>
       <packagereq type="optional">xfig</packagereq>
+      <packagereq type="optional">xgridfit</packagereq>
+      <packagereq type="optional">xgridfit-doc</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2058,6 +2124,7 @@
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-el</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-el</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-el_GR</packagereq>
+      <packagereq type="conditional" requires="texlive">tetex-font-kerkis</packagereq>
       <packagereq type="optional">gfs-artemisia-fonts</packagereq>
       <packagereq type="optional">gfs-baskerville-fonts</packagereq>
       <packagereq type="optional">gfs-bodoni-classic-fonts</packagereq>
@@ -2090,7 +2157,7 @@
       <packagereq type="conditional" requires="moodle">moodle-gu</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-gu_IN</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-gujarati</packagereq>
-      <packagereq type="default">samyak-fonts</packagereq>
+      <packagereq type="default">samyak-fonts-gujarati</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2168,12 +2235,14 @@
       <packagereq type="mandatory">m17n-db-hindi</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-hi</packagereq>
       <packagereq type="conditional" requires="gcompris">gcompris-sound-hi</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-hi</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Hindi</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Hindi</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-hi</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-hi_IN</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-hindi</packagereq>
-      <packagereq type="default">samyak-fonts</packagereq>
+      <packagereq type="default">samyak-fonts-devanagari</packagereq>
+      <packagereq type="default">sarai-fonts</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2184,8 +2253,6 @@
     <uservisible>false</uservisible>
     <langonly>hu</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="gcompris">gcompris-sound-hu</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-hu</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Hungarian</packagereq>
@@ -2193,6 +2260,8 @@
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-hu</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-hu</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-hu_HU</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
     </packagelist>
   </group>
@@ -2299,6 +2368,7 @@
       <packagereq type="optional">eblook</packagereq>
       <packagereq type="optional">ebview</packagereq>
       <packagereq type="optional">jfbterm</packagereq>
+      <packagereq type="optional">jisksp16-1990-fonts</packagereq>
       <packagereq type="optional">kcc</packagereq>
       <packagereq type="optional">kinput2</packagereq>
       <packagereq type="optional">lv</packagereq>
@@ -2328,8 +2398,8 @@
     <packagelist>
       <packagereq type="mandatory">java-1.5.0-gcj</packagereq>
       <packagereq type="mandatory">libgcj</packagereq>
-      <packagereq type="default">java-1.7.0-icedtea</packagereq>
-      <packagereq type="default">java-1.7.0-icedtea-plugin</packagereq>
+      <packagereq type="default">java-1.6.0-openjdk</packagereq>
+      <packagereq type="default">java-1.6.0-openjdk-plugin</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2409,12 +2479,11 @@
       <packagereq type="default">jakarta-oro-javadoc</packagereq>
       <packagereq type="default">jakarta-taglibs-standard</packagereq>
       <packagereq type="default">jakarta-taglibs-standard-javadoc</packagereq>
-      <packagereq type="default">java-1.5.0-gcj-javadoc</packagereq>
       <packagereq type="default">java-1.5.0-gcj-src</packagereq>
-      <packagereq type="default">java-1.7.0-icedtea-demo</packagereq>
-      <packagereq type="default">java-1.7.0-icedtea-devel</packagereq>
-      <packagereq type="default">java-1.7.0-icedtea-javadoc</packagereq>
-      <packagereq type="default">java-1.7.0-icedtea-src</packagereq>
+      <packagereq type="default">java-1.6.0-openjdk-demo</packagereq>
+      <packagereq type="default">java-1.6.0-openjdk-devel</packagereq>
+      <packagereq type="default">java-1.6.0-openjdk-javadoc</packagereq>
+      <packagereq type="default">java-1.6.0-openjdk-src</packagereq>
       <packagereq type="default">java_cup</packagereq>
       <packagereq type="default">java_cup-javadoc</packagereq>
       <packagereq type="default">java_cup-manual</packagereq>
@@ -2459,6 +2528,7 @@
       <packagereq type="default">xml-commons-resolver-javadoc</packagereq>
       <packagereq type="default">xml-commons-which</packagereq>
       <packagereq type="default">xml-commons-which-javadoc</packagereq>
+      <packagereq type="optional">java-1.5.0-gcj-javadoc</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2478,6 +2548,17 @@
     </packagelist>
   </group>
   <group>
+    <id>kashubian-support</id>
+    <_name>Kashubian Support</_name>
+    <_description/>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <langonly>csb</langonly>
+    <packagelist>
+      <packagereq type="conditional" requires="kdelibs">kde-l10n-Kashubian</packagereq>
+    </packagelist>
+  </group>
+  <group>
     <id>kde-desktop</id>
     <_name>KDE (K Desktop Environment)</_name>
     <_description>KDE is a powerful graphical user interface which includes a panel, desktop, system icons, and a graphical file manager.</_description>
@@ -2485,11 +2566,10 @@
     <uservisible>true</uservisible>
     <packagelist>
       <packagereq type="mandatory">kdebase-workspace</packagereq>
-      <packagereq type="conditional" requires="scim">scim-qtimm</packagereq>
+      <packagereq type="conditional" requires="scim">scim-bridge-qt</packagereq>
       <packagereq type="default">amarok</packagereq>
       <packagereq type="default">digikam</packagereq>
       <packagereq type="default">extragear-plasma</packagereq>
-      <packagereq type="default">gpgme</packagereq>
       <packagereq type="default">kaffeine</packagereq>
       <packagereq type="default">kde-settings-pulseaudio</packagereq>
       <packagereq type="default">kdeaccessibility</packagereq>
@@ -2504,38 +2584,41 @@
       <packagereq type="default">kdeutils</packagereq>
       <packagereq type="default">kftpgrabber</packagereq>
       <packagereq type="default">kipi-plugins</packagereq>
-      <packagereq type="default">knetworkmanager</packagereq>
       <packagereq type="default">konversation</packagereq>
       <packagereq type="default">kpowersave</packagereq>
+      <packagereq type="default">ksshaskpass</packagereq>
       <packagereq type="default">ktorrent</packagereq>
+      <packagereq type="default">NetworkManager-gnome</packagereq>
       <packagereq type="default">pinentry-qt</packagereq>
       <packagereq type="default">scribus</packagereq>
-      <packagereq type="default">xine-lib-arts</packagereq>
       <packagereq type="default">zenity</packagereq>
       <packagereq type="optional">apollon</packagereq>
       <packagereq type="optional">basket</packagereq>
       <packagereq type="optional">compiz-kde</packagereq>
       <packagereq type="optional">crystal</packagereq>
+      <packagereq type="optional">dragonplayer</packagereq>
       <packagereq type="optional">gtk-qt-engine</packagereq>
       <packagereq type="optional">katapult</packagereq>
       <packagereq type="optional">kbackup</packagereq>
       <packagereq type="optional">kbibtex</packagereq>
       <packagereq type="optional">kbilliards</packagereq>
       <packagereq type="optional">kchmviewer</packagereq>
+      <packagereq type="optional">kcoloredit</packagereq>
       <packagereq type="optional">kdeadmin</packagereq>
       <packagereq type="optional">kdeartwork-extras</packagereq>
       <packagereq type="optional">kdetoys</packagereq>
       <packagereq type="optional">kdissert</packagereq>
       <packagereq type="optional">kerry</packagereq>
+      <packagereq type="optional">kgrab</packagereq>
       <packagereq type="optional">kickpim</packagereq>
+      <packagereq type="optional">kiconedit</packagereq>
       <packagereq type="optional">kiosktool</packagereq>
-      <packagereq type="optional">kio_resources</packagereq>
       <packagereq type="optional">klamav</packagereq>
       <packagereq type="optional">kleansweep</packagereq>
       <packagereq type="optional">kmenu-gnome</packagereq>
+      <packagereq type="optional">kmid</packagereq>
       <packagereq type="optional">kmobiletools</packagereq>
       <packagereq type="optional">kmymoney2</packagereq>
-      <packagereq type="optional">knemo</packagereq>
       <packagereq type="optional">koffice-suite</packagereq>
       <packagereq type="optional">kompose</packagereq>
       <packagereq type="optional">kooldock</packagereq>
@@ -2545,6 +2628,7 @@
       <packagereq type="optional">krusader</packagereq>
       <packagereq type="optional">ksensors</packagereq>
       <packagereq type="optional">kshutdown</packagereq>
+      <packagereq type="optional">ksig</packagereq>
       <packagereq type="optional">ksynaptics</packagereq>
       <packagereq type="optional">kyum</packagereq>
       <packagereq type="optional">lineak-kdeplugins</packagereq>
@@ -2555,9 +2639,12 @@
       <packagereq type="optional">rekall</packagereq>
       <packagereq type="optional">rsibreak</packagereq>
       <packagereq type="optional">rss-glx-kde</packagereq>
+      <packagereq type="optional">scim-bridge-qt3</packagereq>
+      <packagereq type="optional">scim-qtimm</packagereq>
       <packagereq type="optional">smb4k</packagereq>
       <packagereq type="optional">speedcrunch</packagereq>
-      <packagereq type="optional">uim-qt</packagereq>
+      <packagereq type="optional">uim-qt3</packagereq>
+      <packagereq type="optional">yakuake</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2568,7 +2655,7 @@
     <uservisible>true</uservisible>
     <packagelist>
       <packagereq type="mandatory">kdelibs-devel</packagereq>
-      <packagereq type="mandatory">qt4-devel</packagereq>
+      <packagereq type="mandatory">qt-devel</packagereq>
       <packagereq type="default">kaider</packagereq>
       <packagereq type="default">kdbg</packagereq>
       <packagereq type="default">kdebase-workspace-devel</packagereq>
@@ -2578,8 +2665,8 @@
       <packagereq type="default">kdesdk</packagereq>
       <packagereq type="default">kdevelop</packagereq>
       <packagereq type="default">PyQt4-devel</packagereq>
-      <packagereq type="default">qt-designer</packagereq>
-      <packagereq type="default">qt-devel</packagereq>
+      <packagereq type="default">qt3-designer</packagereq>
+      <packagereq type="default">qt3-devel</packagereq>
       <packagereq type="optional">gambas</packagereq>
       <packagereq type="optional">kdebase-devel</packagereq>
       <packagereq type="optional">kdebindings-devel</packagereq>
@@ -2669,7 +2756,7 @@
     <packagelist>
       <packagereq type="default">bitmap-fonts</packagereq>
       <packagereq type="default">xorg-x11-fonts-100dpi</packagereq>
-      <packagereq type="default">xorg-x11-fonts-ISO8859-1-100dpi</packagereq>
+      <packagereq type="default">xorg-x11-fonts-ISO8859-15-100dpi</packagereq>
       <packagereq type="default">xorg-x11-fonts-misc</packagereq>
       <packagereq type="default">xorg-x11-fonts-Type1</packagereq>
       <packagereq type="optional">artwiz-aleczapka-fonts</packagereq>
@@ -2687,6 +2774,8 @@
       <packagereq type="optional">fonts-KOI8-R-75dpi</packagereq>
       <packagereq type="optional">fonts-x11-apl</packagereq>
       <packagereq type="optional">ghostscript-fonts</packagereq>
+      <packagereq type="optional">jisksp16-1990-fonts</packagereq>
+      <packagereq type="optional">knm_new-fonts</packagereq>
       <packagereq type="optional">libdockapp-fonts</packagereq>
       <packagereq type="optional">taipeifonts</packagereq>
       <packagereq type="optional">terminus-font-console</packagereq>
@@ -2696,10 +2785,10 @@
       <packagereq type="optional">wqy-unibit-fonts</packagereq>
       <packagereq type="optional">xorg-x11-fonts-75dpi</packagereq>
       <packagereq type="optional">xorg-x11-fonts-cyrillic</packagereq>
+      <packagereq type="optional">xorg-x11-fonts-ISO8859-1-100dpi</packagereq>
       <packagereq type="optional">xorg-x11-fonts-ISO8859-1-75dpi</packagereq>
       <packagereq type="optional">xorg-x11-fonts-ISO8859-14-100dpi</packagereq>
       <packagereq type="optional">xorg-x11-fonts-ISO8859-14-75dpi</packagereq>
-      <packagereq type="optional">xorg-x11-fonts-ISO8859-15-100dpi</packagereq>
       <packagereq type="optional">xorg-x11-fonts-ISO8859-15-75dpi</packagereq>
       <packagereq type="optional">xorg-x11-fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">xorg-x11-fonts-ISO8859-2-75dpi</packagereq>
@@ -2751,7 +2840,6 @@
       <packagereq type="default">compat-libstdc++-296</packagereq>
       <packagereq type="default">compat-libstdc++-33</packagereq>
       <packagereq type="optional">compat-db</packagereq>
-      <packagereq type="optional">compat-openldap</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2778,6 +2866,18 @@
     <packagelist>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-LowSaxon</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-nds</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>macedonian-support</id>
+    <_name>Macedonian Support</_name>
+    <_description/>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <langonly>mk</langonly>
+    <packagelist>
+      <packagereq type="conditional" requires="kdelibs">kde-l10n-Macedonian</packagereq>
+      <packagereq type="conditional" requires="moodle">moodle-mk</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2840,13 +2940,18 @@
     <uservisible>false</uservisible>
     <langonly>ml</langonly>
     <packagelist>
-      <packagereq type="mandatory">lohit-fonts-malayalam</packagereq>
       <packagereq type="mandatory">m17n-contrib-malayalam</packagereq>
       <packagereq type="mandatory">m17n-db-malayalam</packagereq>
+      <packagereq type="mandatory">smc-fonts-meera</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-ml</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-ml_IN</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-malayalam</packagereq>
-      <packagereq type="default">samyak-fonts</packagereq>
+      <packagereq type="default">lohit-fonts-malayalam</packagereq>
+      <packagereq type="default">samyak-fonts-malayalam</packagereq>
+      <packagereq type="default">smc-fonts-dyuthi</packagereq>
+      <packagereq type="default">smc-fonts-rachana</packagereq>
+      <packagereq type="default">smc-fonts-raghumalayalam</packagereq>
+      <packagereq type="default">smc-fonts-suruma</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2873,9 +2978,10 @@
       <packagereq type="mandatory">m17n-contrib-marathi</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-mr</packagereq>
       <packagereq type="conditional" requires="gcompris">gcompris-sound-mr</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-mr</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-mr_IN</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-marathi</packagereq>
-      <packagereq type="default">samyak-fonts</packagereq>
+      <packagereq type="default">samyak-fonts-devanagari</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2907,7 +3013,8 @@
       <packagereq type="optional">mysql-bench</packagereq>
       <packagereq type="optional">mysql-devel</packagereq>
       <packagereq type="optional">php-mysql</packagereq>
-      <packagereq type="optional">qt-MySQL</packagereq>
+      <packagereq type="optional">qt-mysql</packagereq>
+      <packagereq type="optional">qt3-MySQL</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2921,6 +3028,7 @@
       <packagereq type="mandatory">lohit-fonts-hindi</packagereq>
       <packagereq type="mandatory">m17n-contrib-nepali</packagereq>
       <packagereq type="mandatory">madan-fonts</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-ne</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Nepali</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-ne</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-nepali</packagereq>
@@ -2989,6 +3097,17 @@
     </packagelist>
   </group>
   <group>
+    <id>northern-sami-support</id>
+    <_name>Northern Sami Support</_name>
+    <_description/>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <langonly>se</langonly>
+    <packagelist>
+      <packagereq type="conditional" requires="kdelibs">kde-l10n-NorthernSami</packagereq>
+    </packagelist>
+  </group>
+  <group>
     <id>northern-sotho-support</id>
     <_name>Northern Sotho Support</_name>
     <_description/>
@@ -3043,6 +3162,7 @@
       <packagereq type="optional">abiword</packagereq>
       <packagereq type="optional">aiksaurus-gtk</packagereq>
       <packagereq type="optional">alexandria</packagereq>
+      <packagereq type="optional">bibus</packagereq>
       <packagereq type="optional">calcurse</packagereq>
       <packagereq type="optional">contacts</packagereq>
       <packagereq type="optional">dates</packagereq>
@@ -3073,9 +3193,12 @@
       <packagereq type="optional">notecase</packagereq>
       <packagereq type="optional">openoffice.org-base</packagereq>
       <packagereq type="optional">openoffice.org-emailmerge</packagereq>
+      <packagereq type="optional">openoffice.org-extendedPDF</packagereq>
       <packagereq type="optional">openoffice.org-javafilter</packagereq>
+      <packagereq type="optional">openoffice.org-ooolatex</packagereq>
       <packagereq basearchonly="true" type="optional">openoffice.org-pyuno</packagereq>
       <packagereq type="optional">openoffice.org-testtools</packagereq>
+      <packagereq type="optional">openoffice.org-voikko</packagereq>
       <packagereq type="optional">pybliographer</packagereq>
       <packagereq type="optional">qa-assistant</packagereq>
       <packagereq type="optional">qcad</packagereq>
@@ -3105,9 +3228,10 @@
       <packagereq type="mandatory">m17n-contrib-oriya</packagereq>
       <packagereq type="mandatory">m17n-db-oriya</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-or</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-or</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-or_IN</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-oriya</packagereq>
-      <packagereq type="default">samyak-fonts</packagereq>
+      <packagereq type="default">samyak-fonts-oriya</packagereq>
     </packagelist>
   </group>
   <group>
@@ -3120,6 +3244,7 @@
     <packagelist>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-fa</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-fa</packagereq>
+      <packagereq type="optional">m17n-db-farsi</packagereq>
     </packagelist>
   </group>
   <group>
@@ -3130,9 +3255,7 @@
     <uservisible>false</uservisible>
     <langonly>pl</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-pl</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-pl</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Polish</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Polish</packagereq>
@@ -3141,6 +3264,8 @@
       <packagereq type="conditional" requires="man-pages">man-pages-pl</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-pl</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-pl_PL</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
     </packagelist>
   </group>
@@ -3196,6 +3321,7 @@
       <packagereq type="mandatory">m17n-contrib-punjabi</packagereq>
       <packagereq type="mandatory">m17n-db-punjabi</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-pa</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-pa</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Punjabi</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Punjabi</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-pa_IN</packagereq>
@@ -3210,10 +3336,10 @@
     <uservisible>false</uservisible>
     <langonly>ro</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Romanian</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-ro</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
     </packagelist>
   </group>
@@ -3239,8 +3365,6 @@
     <uservisible>false</uservisible>
     <langonly>ru</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-KOI8-R</packagereq>
-      <packagereq type="mandatory">fonts-KOI8-R-100dpi</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-ru</packagereq>
       <packagereq type="conditional" requires="gcompris">gcompris-sound-ru</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-ru</packagereq>
@@ -3250,12 +3374,15 @@
       <packagereq type="conditional" requires="man-pages">man-pages-ru</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-ru</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-ru</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">xorg-x11-fonts-cyrillic</packagereq>
+      <packagereq type="optional">edrip-fonts</packagereq>
+      <packagereq type="optional">fonts-KOI8-R</packagereq>
+      <packagereq type="optional">fonts-KOI8-R-100dpi</packagereq>
       <packagereq type="optional">fonts-KOI8-R-75dpi</packagereq>
       <packagereq type="optional">m17n-contrib-russian</packagereq>
       <packagereq type="optional">m17n-db-russian</packagereq>
       <packagereq type="optional">scim-tables-russian</packagereq>
       <packagereq type="optional">stardict-dic-ru</packagereq>
+      <packagereq type="optional">xorg-x11-fonts-cyrillic</packagereq>
     </packagelist>
   </group>
   <group>
@@ -3277,9 +3404,7 @@
     <uservisible>false</uservisible>
     <langonly>sr</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-sr</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="gcompris">gcompris-sound-sr</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Serbian</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-sr</packagereq>
@@ -3288,6 +3413,9 @@
       <packagereq type="conditional" requires="moodle">moodle-sr_cr_bo</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-sr_lt</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-sr</packagereq>
+      <packagereq type="optional">edrip-fonts</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
       <packagereq type="optional">m17n-db-serbian</packagereq>
     </packagelist>
@@ -3299,7 +3427,6 @@
     <default>false</default>
     <uservisible>true</uservisible>
     <packagelist>
-      <packagereq type="default">system-config-firewall</packagereq>
       <packagereq type="default">system-config-httpd</packagereq>
       <packagereq type="default">system-config-nfs</packagereq>
       <packagereq type="default">system-config-printer</packagereq>
@@ -3333,13 +3460,14 @@
     <uservisible>false</uservisible>
     <langonly>sk</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
+      <packagereq type="conditional" requires="aspell">aspell-sk</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-sk</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Slovak</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-sk</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-sk</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-sk_SK</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
       <packagereq type="optional">m17n-db-slovak</packagereq>
     </packagelist>
@@ -3352,15 +3480,15 @@
     <uservisible>false</uservisible>
     <langonly>sl</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-ISO8859-2</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-sl</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="conditional" requires="hunspell">hunspell-sl</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Slovenian</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Slovenian</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-sl</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-sl</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-sl_SI</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2</packagereq>
+      <packagereq type="optional">fonts-ISO8859-2-100dpi</packagereq>
       <packagereq type="optional">fonts-ISO8859-2-75dpi</packagereq>
     </packagelist>
   </group>
@@ -3460,6 +3588,7 @@
       <packagereq type="optional">mikmod</packagereq>
       <packagereq type="optional">Miro</packagereq>
       <packagereq type="optional">muine</packagereq>
+      <packagereq type="optional">mybashburn</packagereq>
       <packagereq type="optional">nyquist</packagereq>
       <packagereq type="optional">padevchooser</packagereq>
       <packagereq type="optional">paman</packagereq>
@@ -3486,10 +3615,11 @@
       <packagereq type="optional">vdr-femon</packagereq>
       <packagereq type="optional">vdr-osdteletext</packagereq>
       <packagereq type="optional">vdr-skins</packagereq>
-      <packagereq type="optional">vdr-subtitles</packagereq>
+      <packagereq type="optional">vdr-skinsoppalusikka</packagereq>
       <packagereq type="optional">vdr-sudoku</packagereq>
       <packagereq type="optional">vdr-text2skin</packagereq>
       <packagereq type="optional">vdr-ttxtsubs</packagereq>
+      <packagereq type="optional">vdr-tvonscreen</packagereq>
       <packagereq type="optional">vdr-wapd</packagereq>
       <packagereq type="optional">vdradmin-am</packagereq>
       <packagereq type="optional">wmix</packagereq>
@@ -3562,7 +3692,10 @@
       <packagereq type="optional">postgresql-odbc</packagereq>
       <packagereq type="optional">postgresql-tcl</packagereq>
       <packagereq type="optional">postgresql-test</packagereq>
-      <packagereq type="optional">qt-ODBC</packagereq>
+      <packagereq type="optional">qt-odbc</packagereq>
+      <packagereq type="optional">qt-postgresql</packagereq>
+      <packagereq type="optional">qt3-ODBC</packagereq>
+      <packagereq type="optional">qt3-PostgreSQL</packagereq>
       <packagereq type="optional">unixODBC-kde</packagereq>
     </packagelist>
   </group>
@@ -3636,6 +3769,7 @@
       <packagereq type="optional">arptables_jf</packagereq>
       <packagereq type="optional">arpwatch</packagereq>
       <packagereq type="optional">audit</packagereq>
+      <packagereq type="optional">autofs</packagereq>
       <packagereq type="optional">avahi-tools</packagereq>
       <packagereq type="optional">bash-completion</packagereq>
       <packagereq type="optional">bochs</packagereq>
@@ -3757,7 +3891,8 @@
       <packagereq type="optional">torque-gui</packagereq>
       <packagereq type="optional">tsclient</packagereq>
       <packagereq type="optional">ttywatch</packagereq>
-      <packagereq type="optional">unison</packagereq>
+      <packagereq type="optional">unison213</packagereq>
+      <packagereq type="optional">unison227</packagereq>
       <packagereq type="optional">upx</packagereq>
       <packagereq type="optional">uucp</packagereq>
       <packagereq type="optional">vbetool</packagereq>
@@ -3796,11 +3931,13 @@
       <packagereq type="mandatory">m17n-contrib-tamil</packagereq>
       <packagereq type="mandatory">m17n-db-tamil</packagereq>
       <packagereq type="conditional" requires="aspell">aspell-ta</packagereq>
+      <packagereq type="conditional" requires="hunspell">hunspell-ta</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Tamil</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-ta</packagereq>
+      <packagereq type="conditional" requires="moodle">moodle-ta_lk</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-ta_IN</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-tamil</packagereq>
-      <packagereq type="default">samyak-fonts</packagereq>
+      <packagereq type="default">samyak-fonts-tamil</packagereq>
     </packagelist>
   </group>
   <group>
@@ -3835,7 +3972,7 @@
       <packagereq type="optional">abook</packagereq>
       <packagereq type="optional">archivemail</packagereq>
       <packagereq type="optional">argus</packagereq>
-      <packagereq type="optional">centericq</packagereq>
+      <packagereq type="optional">centerim</packagereq>
       <packagereq type="optional">cone</packagereq>
       <packagereq type="optional">ctorrent</packagereq>
       <packagereq type="optional">ekg</packagereq>
@@ -3954,15 +4091,16 @@
     <uservisible>false</uservisible>
     <langonly>uk</langonly>
     <packagelist>
-      <packagereq type="mandatory">fonts-KOI8-R</packagereq>
       <packagereq type="mandatory">fonts-KOI8-R-100dpi</packagereq>
       <packagereq type="conditional" requires="kdelibs3">kde-i18n-Ukrainian</packagereq>
       <packagereq type="conditional" requires="kdelibs">kde-l10n-Ukrainian</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-uk</packagereq>
       <packagereq type="conditional" requires="man-pages">man-pages-uk</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-uk</packagereq>
-      <packagereq type="conditional" requires="xorg-x11-server-Xorg">xorg-x11-fonts-cyrillic</packagereq>
+      <packagereq type="optional">edrip-fonts</packagereq>
+      <packagereq type="optional">fonts-KOI8-R</packagereq>
       <packagereq type="optional">fonts-KOI8-R-75dpi</packagereq>
+      <packagereq type="optional">xorg-x11-fonts-cyrillic</packagereq>
     </packagelist>
   </group>
   <group>
@@ -4019,9 +4157,19 @@
       <packagereq type="default">virt-manager</packagereq>
       <packagereq type="default">virt-viewer</packagereq>
       <packagereq type="optional">gnome-applet-vm</packagereq>
-      <packagereq type="optional">kernel-xen</packagereq>
       <packagereq type="optional">virt-top</packagereq>
       <packagereq type="optional">xen</packagereq>
+    </packagelist>
+  </group>
+  <group>
+    <id>walloon-support</id>
+    <_name>Walloon Support</_name>
+    <_description/>
+    <default>false</default>
+    <uservisible>false</uservisible>
+    <langonly>wa</langonly>
+    <packagelist>
+      <packagereq type="conditional" requires="kdelibs">kde-l10n-Walloon</packagereq>
     </packagelist>
   </group>
   <group>
@@ -4130,7 +4278,6 @@
       <packagereq type="optional">openbox</packagereq>
       <packagereq type="optional">pekwm</packagereq>
       <packagereq type="optional">ratpoison</packagereq>
-      <packagereq type="optional">windowlab</packagereq>
       <packagereq type="optional">WindowMaker</packagereq>
       <packagereq type="optional">wmx</packagereq>
       <packagereq type="optional">xcompmgr</packagereq>
@@ -4192,7 +4339,7 @@
       <packagereq type="optional">icon-slicer</packagereq>
       <packagereq type="optional">libXp-devel</packagereq>
       <packagereq type="optional">mesa-libGLU-devel</packagereq>
-      <packagereq type="optional">xorg-x11-server-sdk</packagereq>
+      <packagereq type="optional">xorg-x11-server-devel</packagereq>
       <packagereq type="optional">xorg-x11-xbitmaps</packagereq>
     </packagelist>
   </group>
@@ -4203,6 +4350,7 @@
     <default>false</default>
     <uservisible>true</uservisible>
     <packagelist>
+      <packagereq type="mandatory">desktop-backgrounds-compat</packagereq>
       <packagereq type="mandatory">libxfce4mcs</packagereq>
       <packagereq type="mandatory">libxfce4util</packagereq>
       <packagereq type="mandatory">libxfcegui4</packagereq>
@@ -4213,19 +4361,22 @@
       <packagereq type="mandatory">xfce4-session-engines</packagereq>
       <packagereq type="mandatory">xfdesktop</packagereq>
       <packagereq type="mandatory">xfwm4</packagereq>
+      <packagereq type="conditional" requires="im-chooser">imsettings-xfce</packagereq>
       <packagereq type="default">mousepad</packagereq>
+      <packagereq type="default">thunar-volman</packagereq>
+      <packagereq type="default">xarchiver</packagereq>
       <packagereq type="default">xfce-mcs-manager</packagereq>
       <packagereq type="default">xfce-mcs-plugins</packagereq>
       <packagereq type="default">xfce4-appfinder</packagereq>
       <packagereq type="default">xfce4-icon-theme</packagereq>
       <packagereq type="default">xfce4-mailwatch-plugin</packagereq>
       <packagereq type="default">xfce4-mixer</packagereq>
+      <packagereq type="default">xfwm4-theme-nodoka</packagereq>
       <packagereq type="optional">orage</packagereq>
       <packagereq type="optional">Terminal</packagereq>
       <packagereq type="optional">thunar-archive-plugin</packagereq>
       <packagereq type="optional">thunar-media-tags-plugin</packagereq>
-      <packagereq type="optional">thunar-volman</packagereq>
-      <packagereq type="optional">xarchiver</packagereq>
+      <packagereq type="optional">thunar-shares</packagereq>
       <packagereq type="optional">xfce4-battery-plugin</packagereq>
       <packagereq type="optional">xfce4-clipman-plugin</packagereq>
       <packagereq type="optional">xfce4-cpugraph-plugin</packagereq>
@@ -4235,6 +4386,7 @@
       <packagereq type="optional">xfce4-eyes-plugin</packagereq>
       <packagereq type="optional">xfce4-fsguard-plugin</packagereq>
       <packagereq type="optional">xfce4-genmon-plugin</packagereq>
+      <packagereq type="optional">xfce4-gsynaptics-mcs-plugin</packagereq>
       <packagereq type="optional">xfce4-minicmd-plugin</packagereq>
       <packagereq type="optional">xfce4-mount-plugin</packagereq>
       <packagereq type="optional">xfce4-netload-plugin</packagereq>
@@ -4246,6 +4398,7 @@
       <packagereq type="optional">xfce4-smartbookmark-plugin</packagereq>
       <packagereq type="optional">xfce4-systemload-plugin</packagereq>
       <packagereq type="optional">xfce4-taskmanager</packagereq>
+      <packagereq type="optional">xfce4-time-out-plugin</packagereq>
       <packagereq type="optional">xfce4-timer-plugin</packagereq>
       <packagereq type="optional">xfce4-verve-plugin</packagereq>
       <packagereq type="optional">xfce4-wavelan-plugin</packagereq>
@@ -4274,6 +4427,7 @@
       <packagereq type="mandatory">xfce-mcs-manager-devel</packagereq>
       <packagereq type="mandatory">xfce4-panel-devel</packagereq>
       <packagereq type="mandatory">xfce4-session-devel</packagereq>
+      <packagereq type="default">Thunar-devel</packagereq>
       <packagereq type="optional">xfce4-dev-tools</packagereq>
     </packagelist>
   </group>
@@ -4325,6 +4479,7 @@
       <groupid>czech-support</groupid>
       <groupid>danish-support</groupid>
       <groupid>dutch-support</groupid>
+      <groupid>esperanto-support</groupid>
       <groupid>estonian-support</groupid>
       <groupid>ethiopic-support</groupid>
       <groupid>faeroese-support</groupid>
@@ -4347,18 +4502,21 @@
       <groupid>italian-support</groupid>
       <groupid>japanese-support</groupid>
       <groupid>kannada-support</groupid>
+      <groupid>kashubian-support</groupid>
       <groupid>khmer-support</groupid>
       <groupid>korean-support</groupid>
       <groupid>lao-support</groupid>
       <groupid>latvian-support</groupid>
       <groupid>lithuanian-support</groupid>
       <groupid>low-saxon-support</groupid>
+      <groupid>macedonian-support</groupid>
       <groupid>malay-support</groupid>
       <groupid>malayalam-support</groupid>
       <groupid>maori-support</groupid>
       <groupid>marathi-support</groupid>
       <groupid>mongolian-support</groupid>
       <groupid>nepali-support</groupid>
+      <groupid>northern-sami-support</groupid>
       <groupid>northern-sotho-support</groupid>
       <groupid>norwegian-support</groupid>
       <groupid>oriya-support</groupid>
@@ -4392,6 +4550,7 @@
       <groupid>urdu-support</groupid>
       <groupid>venda-support</groupid>
       <groupid>vietnamese-support</groupid>
+      <groupid>walloon-support</groupid>
       <groupid>welsh-support</groupid>
       <groupid>xhosa-support</groupid>
       <groupid>zulu-support</groupid>

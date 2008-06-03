@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Iloko\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-26 14:03-0400\n"
+"POT-Creation-Date: 2008-04-17 07:36-0400\n"
 "PO-Revision-Date: 2007-01-12 14:10+0800\n"
 "Last-Translator: rva <rvaragon@gmail.com>\n"
 "Language-Team: \n"
@@ -12,1000 +12,1090 @@ msgstr ""
 "X-Poedit-Language: Iloko\n"
 "X-Poedit-Country: PHILIPPINES\n"
 
-#: ../comps-fe5.xml.in.h:1 ../comps-fe6.xml.in.h:1 ../comps-f7.xml.in.h:1
-#: ../comps-f8.xml.in.h:1
+#: ../comps-f7.xml.in.h:1 ../comps-f8.xml.in.h:1 ../comps-f9.xml.in.h:1
 msgid "A lightweight desktop environment that works well on low end machines."
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:2 ../comps-fe6.xml.in.h:2 ../comps-f7.xml.in.h:2
-#: ../comps-f8.xml.in.h:2 ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+#: ../comps-f7.xml.in.h:2 ../comps-f8.xml.in.h:2 ../comps-f9.xml.in.h:2
+#: ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
 msgid "Administration Tools"
 msgstr "Ramramit a pangtarawidwid"
 
-#: ../comps-fe5.xml.in.h:3 ../comps-fe6.xml.in.h:3 ../comps-f7.xml.in.h:5
-#: ../comps-f8.xml.in.h:5 ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3 ../comps-f9.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4 ../comps-f9.xml.in.h:4
+#, fuzzy
+msgid "Albanian Support"
+msgstr "Panagsayangkat ti Ingles a Kanadiense"
+
+#: ../comps-f7.xml.in.h:5 ../comps-f8.xml.in.h:5 ../comps-f9.xml.in.h:5
+#: ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
 msgid "Applications"
 msgstr "Dagiti Aplikasion"
 
-#: ../comps-fe5.xml.in.h:4 ../comps-fe6.xml.in.h:4 ../comps-el4.xml.in.h:3
-#: ../comps-el5.xml.in.h:3
-msgid "Applications for a variety of tasks"
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6 ../comps-f9.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:5 ../comps-fe6.xml.in.h:5 ../comps-f7.xml.in.h:7
-#: ../comps-f8.xml.in.h:7 ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+#: ../comps-f7.xml.in.h:7 ../comps-f8.xml.in.h:7 ../comps-f9.xml.in.h:7
+#: ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
 msgid "Arabic Support"
 msgstr "Panagsayangkat ti Arabiko"
 
-#: ../comps-fe5.xml.in.h:6 ../comps-fe6.xml.in.h:6 ../comps-f7.xml.in.h:8
-#: ../comps-f8.xml.in.h:8 ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+#: ../comps-f7.xml.in.h:8 ../comps-f8.xml.in.h:8 ../comps-f9.xml.in.h:8
+#: ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
 #, fuzzy
 msgid "Armenian Support"
 msgstr "Panagsayangkat ti Romaniano"
 
-#: ../comps-fe5.xml.in.h:7 ../comps-fe6.xml.in.h:7 ../comps-f7.xml.in.h:10
-#: ../comps-f8.xml.in.h:10 ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9 ../comps-f9.xml.in.h:9
+msgid "Assamese Support"
+msgstr "Panagsayangkat ti Asames"
+
+#: ../comps-f7.xml.in.h:10 ../comps-f8.xml.in.h:10 ../comps-f9.xml.in.h:10
+#: ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
 msgid "Authoring and Publishing"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:8 ../comps-fe6.xml.in.h:8 ../comps-f7.xml.in.h:12
-#: ../comps-f8.xml.in.h:12 ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11 ../comps-f9.xml.in.h:11
+msgid "Base"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:12 ../comps-f8.xml.in.h:12 ../comps-f9.xml.in.h:12
+#: ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
 msgid "Base System"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:9 ../comps-fe6.xml.in.h:10 ../comps-f7.xml.in.h:31
-#: ../comps-f8.xml.in.h:31 ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13 ../comps-f9.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14 ../comps-f9.xml.in.h:14
+msgid "Basque Support"
+msgstr "Panagsayangkat ti Basko"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15 ../comps-f9.xml.in.h:15
+#, fuzzy
+msgid "Belarusian Support"
+msgstr "Panagsayangkat ti Bulgaro"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16 ../comps-f9.xml.in.h:16
+msgid "Bengali Support"
+msgstr "Panagsayangkat ti Benggali"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17 ../comps-f9.xml.in.h:17
+#, fuzzy
+msgid "Bhutanese Support"
+msgstr "Panagsayangkat ti Insik"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18 ../comps-f9.xml.in.h:18
+#, fuzzy
+msgid "Bosnian Support"
+msgstr "Panagsayangkat ti Estonio"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19 ../comps-f9.xml.in.h:19
+msgid "Brazilian Portuguese Support"
+msgstr "Panagsayangkat ti Portuges a Brasilenio"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20 ../comps-f9.xml.in.h:20
+msgid "Breton Support"
+msgstr "Panagsayangkat ti Breton"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:22 ../comps-f9.xml.in.h:22
+msgid "Bulgarian Support"
+msgstr "Panagsayangkat ti Bulgaro"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:23 ../comps-f9.xml.in.h:23
+msgid "Catalan Support"
+msgstr "Panagsayangkat ti Katalan"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:24 ../comps-f9.xml.in.h:24
+msgid "Chinese Support"
+msgstr "Panagsayangkat ti Insik"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:25 ../comps-f9.xml.in.h:25
+msgid "Clustering"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:26 ../comps-f9.xml.in.h:26
+msgid "Clustering Support"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:27 ../comps-f9.xml.in.h:27
+msgid "Core"
+msgstr "Bugas"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:28 ../comps-f9.xml.in.h:28
+msgid "Croatian Support"
+msgstr "Panagsayangkat ti Kroata"
+
+#: ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:29 ../comps-f9.xml.in.h:29
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "Panagsayangkat ti Tseko"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:30 ../comps-f9.xml.in.h:30
+msgid "DNS Name Server"
+msgstr "Serbidor ti DNS a Nagnagan"
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:31 ../comps-f9.xml.in.h:31
+msgid "Danish Support"
+msgstr "Panagsayangkat ti Danes"
+
+#: ../comps-f7.xml.in.h:31 ../comps-f8.xml.in.h:32 ../comps-f9.xml.in.h:32
+#: ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
 msgid "Desktop Environments"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:10 ../comps-fe6.xml.in.h:11 ../comps-f7.xml.in.h:32
-#: ../comps-f8.xml.in.h:32 ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+#: ../comps-f7.xml.in.h:32 ../comps-f8.xml.in.h:33 ../comps-f9.xml.in.h:33
+#: ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
 msgid "Desktop environments"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:11 ../comps-fe6.xml.in.h:12 ../comps-f7.xml.in.h:33
-#: ../comps-f8.xml.in.h:33 ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+#: ../comps-f7.xml.in.h:33 ../comps-f8.xml.in.h:34 ../comps-f9.xml.in.h:34
+#: ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
 msgid "Development"
 msgstr "Panagbukel"
 
-#: ../comps-fe5.xml.in.h:12 ../comps-fe6.xml.in.h:13 ../comps-f7.xml.in.h:35
-#: ../comps-f8.xml.in.h:35 ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:35 ../comps-f9.xml.in.h:35
+msgid "Development Libraries"
+msgstr "Biblioteka Pambukel"
+
+#: ../comps-f7.xml.in.h:35 ../comps-f8.xml.in.h:36 ../comps-f9.xml.in.h:36
+#: ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
 msgid "Development Tools"
 msgstr "Ramramit a Pambukel"
 
-#: ../comps-fe5.xml.in.h:13 ../comps-fe6.xml.in.h:14 ../comps-el4.xml.in.h:12
-#: ../comps-el5.xml.in.h:13
-msgid "Dialup Networking Support"
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:37 ../comps-f9.xml.in.h:37
+msgid "Dial-up Networking Support"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:14 ../comps-fe6.xml.in.h:15 ../comps-f7.xml.in.h:39
-#: ../comps-f8.xml.in.h:39 ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:38 ../comps-f9.xml.in.h:38
+msgid "Dutch Support"
+msgstr "Panagsayangkat ti Olandes"
+
+#: ../comps-f7.xml.in.h:38
+msgid "Eclipse"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:39 ../comps-f8.xml.in.h:39 ../comps-f9.xml.in.h:39
+#: ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
 msgid "Editors"
 msgstr "Pagbaliw"
 
-#: ../comps-fe5.xml.in.h:15 ../comps-fe6.xml.in.h:16 ../comps-f7.xml.in.h:40
-#: ../comps-f8.xml.in.h:40 ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+#: ../comps-f7.xml.in.h:40 ../comps-f8.xml.in.h:40 ../comps-f9.xml.in.h:40
+#: ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
 msgid "Educational Software"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:16 ../comps-fe6.xml.in.h:17 ../comps-f7.xml.in.h:41
-#: ../comps-f8.xml.in.h:41 ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+#: ../comps-f7.xml.in.h:41 ../comps-f8.xml.in.h:41 ../comps-f9.xml.in.h:41
+#: ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
 msgid "Educational software for learning"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:17 ../comps-fe6.xml.in.h:18 ../comps-f7.xml.in.h:42
-#: ../comps-f8.xml.in.h:42 ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+#: ../comps-f7.xml.in.h:42 ../comps-f8.xml.in.h:42 ../comps-f9.xml.in.h:42
+#: ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
 msgid "Engineering and Scientific"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:18 ../comps-fe6.xml.in.h:19 ../comps-f7.xml.in.h:46
-#: ../comps-f8.xml.in.h:46 ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43 ../comps-f9.xml.in.h:43
+msgid "English (UK) Support"
+msgstr "Panagsayangkat ti Inggles (Nagkaykaysa a Pangarian)"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44 ../comps-f9.xml.in.h:45
+msgid "Estonian Support"
+msgstr "Panagsayangkat ti Estonio"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45 ../comps-f9.xml.in.h:46
+msgid "Ethiopic Support"
+msgstr "Panagsayangkat ti Etiopiko"
+
+#: ../comps-f7.xml.in.h:46 ../comps-f8.xml.in.h:46 ../comps-f9.xml.in.h:47
+#: ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
 msgid "FTP Server"
 msgstr "Serbidor a FTP"
 
-#: ../comps-fe5.xml.in.h:19 ../comps-fe6.xml.in.h:20 ../comps-f7.xml.in.h:51
-#: ../comps-f8.xml.in.h:51 ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47 ../comps-f9.xml.in.h:48
+msgid "Faeroese Support"
+msgstr "Panagsayangkat ti Paroes"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:49 ../comps-f9.xml.in.h:50
+#: ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+msgid "Fedora Packager"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:50 ../comps-f9.xml.in.h:51
+#, fuzzy
+msgid "Filipino Support"
+msgstr "Panagsayangkat ti Galiego"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:51 ../comps-f9.xml.in.h:52
+msgid "Finnish Support"
+msgstr "Panagsayangkat ti Pinlandes"
+
+#: ../comps-f7.xml.in.h:51 ../comps-f8.xml.in.h:54 ../comps-f9.xml.in.h:55
+msgid "French Support"
+msgstr "Panagsayangkat ti Pranses"
+
+#: ../comps-f7.xml.in.h:52 ../comps-f8.xml.in.h:55 ../comps-f9.xml.in.h:56
+#: ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
 msgid ""
 "From CD recording to playing audio CDs and multimedia files, this package "
 "group allows you to work with sound and video on the system."
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:20 ../comps-fe6.xml.in.h:21 ../comps-f7.xml.in.h:52
-#: ../comps-f8.xml.in.h:52 ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+#: ../comps-f7.xml.in.h:53 ../comps-f8.xml.in.h:56 ../comps-f9.xml.in.h:57
+#: ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
 msgid "GNOME Desktop Environment"
 msgstr "Aglawlaw ti GNOME nga Eskritorio"
 
-#: ../comps-fe5.xml.in.h:21 ../comps-fe6.xml.in.h:22 ../comps-f7.xml.in.h:53
-#: ../comps-f8.xml.in.h:53 ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:57 ../comps-f9.xml.in.h:58
+#: ../comps-el4.xml.in.h:21 ../comps-el5.xml.in.h:22
 msgid "GNOME Software Development"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:22 ../comps-fe6.xml.in.h:23 ../comps-el4.xml.in.h:21
-#: ../comps-el5.xml.in.h:22
-msgid ""
-"GNOME is a powerful, graphical user interface which includes a panel, "
-"desktop, system icons, and a graphical file manager."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:23 ../comps-fe6.xml.in.h:24 ../comps-f7.xml.in.h:57
-#: ../comps-f8.xml.in.h:57 ../comps-el5.xml.in.h:23
-msgid "Games and Entertainment"
-msgstr "Ay-ayam ken Pagliwliwaan"
-
-#: ../comps-fe5.xml.in.h:24 ../comps-fe6.xml.in.h:25 ../comps-f7.xml.in.h:60
-#: ../comps-f8.xml.in.h:60 ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:24
-msgid "Graphical Internet"
-msgstr "Grapikal nga Internet"
-
-#: ../comps-fe5.xml.in.h:25 ../comps-fe6.xml.in.h:26 ../comps-f7.xml.in.h:61
-#: ../comps-f8.xml.in.h:61 ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
-msgid "Graphics"
-msgstr "Grapika"
-
-#: ../comps-fe5.xml.in.h:26 ../comps-fe6.xml.in.h:27 ../comps-f7.xml.in.h:64
-#: ../comps-f8.xml.in.h:64 ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
-#, fuzzy
-msgid "Hardware Support"
-msgstr "Panagsayangkat ti Hudio"
-
-#: ../comps-fe5.xml.in.h:27 ../comps-fe6.xml.in.h:28 ../comps-f7.xml.in.h:65
-#: ../comps-f8.xml.in.h:65 ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
-msgid "Hebrew Support"
-msgstr "Panagsayangkat ti Hudio"
-
-#: ../comps-fe5.xml.in.h:28 ../comps-fe6.xml.in.h:29 ../comps-f7.xml.in.h:70
-#: ../comps-f8.xml.in.h:70 ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
-msgid ""
-"Install these packages in order to develop GTK+ and GNOME graphical "
-"applications."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:29 ../comps-fe6.xml.in.h:30 ../comps-f7.xml.in.h:71
-#: ../comps-f8.xml.in.h:71
-msgid ""
-"Install these packages in order to develop GTK+ and XFCE graphical "
-"applications."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:30 ../comps-fe6.xml.in.h:31 ../comps-f7.xml.in.h:72
-#: ../comps-f8.xml.in.h:72 ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
-msgid "Install these packages to develop QT and KDE graphical applications."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:31 ../comps-fe6.xml.in.h:32 ../comps-f7.xml.in.h:74
-#: ../comps-f8.xml.in.h:74 ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
-msgid ""
-"Install this group of packages to use the base graphical (X) user interface."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:32 ../comps-fe6.xml.in.h:33 ../comps-f7.xml.in.h:78
-#: ../comps-f8.xml.in.h:78 ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
-msgid "Japanese Support"
-msgstr "Panagsayangkat ti Hapon"
-
-#: ../comps-fe5.xml.in.h:33 ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:79
-#: ../comps-el4.xml.in.h:30
-msgid "Java"
-msgstr "Java"
-
-#: ../comps-fe5.xml.in.h:34 ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:80
-#: ../comps-el4.xml.in.h:31
-msgid "Java Development"
-msgstr "Panagbukel ti Java"
-
-#: ../comps-fe5.xml.in.h:35 ../comps-fe6.xml.in.h:34 ../comps-f7.xml.in.h:81
-#: ../comps-f8.xml.in.h:81 ../comps-el4.xml.in.h:32 ../comps-el5.xml.in.h:32
-msgid "KDE (K Desktop Environment)"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:36 ../comps-fe6.xml.in.h:35 ../comps-f7.xml.in.h:82
-#: ../comps-f8.xml.in.h:82 ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
-msgid "KDE Software Development"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:37 ../comps-fe6.xml.in.h:36 ../comps-el4.xml.in.h:34
-#: ../comps-el5.xml.in.h:34
-msgid ""
-"KDE is a powerful, graphical user interface which includes a panel, desktop, "
-"system icons, and a graphical file manager."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:38 ../comps-fe6.xml.in.h:37 ../comps-f7.xml.in.h:94
-#: ../comps-f8.xml.in.h:94 ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
-msgid "Mail Server"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:39 ../comps-fe6.xml.in.h:38 ../comps-f7.xml.in.h:100
-#: ../comps-f8.xml.in.h:100 ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
-msgid "Network Servers"
-msgstr "Serbidor ti Iket"
-
-#: ../comps-fe5.xml.in.h:40 ../comps-fe6.xml.in.h:39 ../comps-f7.xml.in.h:101
-#: ../comps-f8.xml.in.h:101 ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
-msgid "News Server"
-msgstr "Serbidor ti Damdamag"
-
-#: ../comps-fe5.xml.in.h:41 ../comps-fe6.xml.in.h:40 ../comps-f7.xml.in.h:104
-#: ../comps-f8.xml.in.h:104 ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
-msgid "Office/Productivity"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:42 ../comps-fe6.xml.in.h:41 ../comps-f7.xml.in.h:106
-#: ../comps-f8.xml.in.h:106 ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
-msgid ""
-"Packages which provide functionality for developing and building "
-"applications."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:43 ../comps-fe6.xml.in.h:42 ../comps-f7.xml.in.h:119
-#: ../comps-f8.xml.in.h:119 ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
-msgid "Servers"
-msgstr "Serbidor"
-
-#: ../comps-fe5.xml.in.h:44 ../comps-fe6.xml.in.h:43 ../comps-f7.xml.in.h:120
-#: ../comps-f8.xml.in.h:120 ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
-msgid ""
-"Simple window managers that aren't part of a larger desktop environment."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:45 ../comps-fe6.xml.in.h:44 ../comps-f7.xml.in.h:125
-#: ../comps-f8.xml.in.h:125 ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
-msgid "Software used for running network servers"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:46 ../comps-fe6.xml.in.h:45 ../comps-el4.xml.in.h:43
-#: ../comps-el5.xml.in.h:43
-msgid ""
-"Sometimes called text editors, these are programs that allow you to create "
-"and edit files. These include Emacs and Vi."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:47 ../comps-fe6.xml.in.h:46 ../comps-f7.xml.in.h:128
-#: ../comps-f8.xml.in.h:128 ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
-msgid "Sound and Video"
-msgstr "Uni ken Video"
-
-#: ../comps-fe5.xml.in.h:48 ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:132
-#: ../comps-el4.xml.in.h:45
-msgid "Support for developing programs in the Java programming language."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:49 ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:133
-#: ../comps-el4.xml.in.h:46
-msgid "Support for running programs written in the Java programming language."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:50 ../comps-fe6.xml.in.h:47 ../comps-f7.xml.in.h:136
-#: ../comps-f8.xml.in.h:136 ../comps-el4.xml.in.h:47 ../comps-el5.xml.in.h:45
-msgid "System Tools"
-msgstr "Ramramit ti Sistema"
-
-#: ../comps-fe5.xml.in.h:51 ../comps-fe6.xml.in.h:48 ../comps-f7.xml.in.h:140
-#: ../comps-f8.xml.in.h:140 ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
-msgid "Text-based Internet"
-msgstr "Internet a naibasar iti texto"
-
-#: ../comps-fe5.xml.in.h:52 ../comps-fe6.xml.in.h:49 ../comps-el4.xml.in.h:49
-#: ../comps-el5.xml.in.h:47
-msgid "The XEmacs text editor."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:53 ../comps-fe6.xml.in.h:50 ../comps-f7.xml.in.h:143
-#: ../comps-f8.xml.in.h:143 ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
-msgid "The applications include office suites, PDF viewers, and more."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:54 ../comps-fe6.xml.in.h:51 ../comps-f7.xml.in.h:145
-#: ../comps-f8.xml.in.h:145 ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
-msgid "These packages allow you to configure an IMAP or SMTP mail server."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:55 ../comps-fe6.xml.in.h:52 ../comps-f7.xml.in.h:147
-#: ../comps-f8.xml.in.h:147 ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
-msgid ""
-"These packages are helpful when developing web applications or web pages."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:56 ../comps-fe6.xml.in.h:53 ../comps-el4.xml.in.h:53
-#: ../comps-el5.xml.in.h:51
-msgid ""
-"These tools allow you to create documentation in the DocBook format and "
-"convert them to HTML, PDF, Postscript, and text."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:57 ../comps-fe6.xml.in.h:54 ../comps-f7.xml.in.h:154
-#: ../comps-f8.xml.in.h:154 ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
-msgid "These tools allow you to run a Web server on the system."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:58 ../comps-fe6.xml.in.h:55 ../comps-f7.xml.in.h:155
-#: ../comps-f8.xml.in.h:155 ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
-msgid "These tools allow you to run an FTP server on the system."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:59 ../comps-fe6.xml.in.h:56 ../comps-f7.xml.in.h:156
-#: ../comps-f8.xml.in.h:156 ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
-msgid ""
-"These tools include core development tools such as automake, gcc, perl, "
-"python, and debuggers."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:60 ../comps-fe6.xml.in.h:57 ../comps-f7.xml.in.h:157
-#: ../comps-f8.xml.in.h:157 ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
-msgid "This group allows you to configure the system as a news server."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:61 ../comps-fe6.xml.in.h:58 ../comps-f7.xml.in.h:160
-#: ../comps-f8.xml.in.h:160 ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
-msgid "This group includes graphical email, Web, and chat clients."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:62 ../comps-fe6.xml.in.h:59 ../comps-f7.xml.in.h:161
-#: ../comps-f8.xml.in.h:161 ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
-msgid ""
-"This group includes packages for performing mathematical and scientific "
-"computations and plotting, as well as unit conversion."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:63 ../comps-fe6.xml.in.h:60 ../comps-f7.xml.in.h:162
-#: ../comps-f8.xml.in.h:162 ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
-msgid "This group includes packages to help you manipulate and scan images."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:64 ../comps-fe6.xml.in.h:61 ../comps-f7.xml.in.h:163
-#: ../comps-f8.xml.in.h:163 ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
-msgid ""
-"This group includes text-based email, Web, and chat clients. These "
-"applications do not require the X Window System."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:65 ../comps-fe6.xml.in.h:62 ../comps-f7.xml.in.h:164
-#: ../comps-f8.xml.in.h:164 ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
-msgid ""
-"This group is a collection of graphical administration tools for the system, "
-"such as for managing user accounts and configuring system hardware."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:66 ../comps-fe6.xml.in.h:63 ../comps-el4.xml.in.h:63
-#: ../comps-el5.xml.in.h:61
-msgid "This group is a collection of network servers for specific purposes"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:67 ../comps-fe6.xml.in.h:64 ../comps-el4.xml.in.h:64
-#: ../comps-el5.xml.in.h:62
-msgid ""
-"This group is a collection of tools and resources of Arabic environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:68 ../comps-fe6.xml.in.h:65 ../comps-f7.xml.in.h:165
-#: ../comps-f8.xml.in.h:165 ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
-msgid ""
-"This group is a collection of tools and resources of Armenian environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:69 ../comps-fe6.xml.in.h:67 ../comps-el4.xml.in.h:66
-#: ../comps-el5.xml.in.h:65
-msgid ""
-"This group is a collection of tools and resources of Hebrew environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:70 ../comps-fe6.xml.in.h:68 ../comps-el4.xml.in.h:67
-#: ../comps-el5.xml.in.h:66
-msgid ""
-"This group is a collection of tools and resources of Japanese environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:71 ../comps-fe6.xml.in.h:69 ../comps-f7.xml.in.h:166
-#: ../comps-f8.xml.in.h:166 ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
-msgid ""
-"This group is a collection of tools for various hardware specific utilities."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:72 ../comps-fe6.xml.in.h:70 ../comps-f7.xml.in.h:167
-#: ../comps-f8.xml.in.h:167 ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
-msgid ""
-"This group is a collection of various tools for the system, such as the "
-"client for connecting to SMB shares and tools to monitor network traffic."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:73 ../comps-fe6.xml.in.h:71 ../comps-f7.xml.in.h:179
-#: ../comps-f8.xml.in.h:179 ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
-msgid "Various core pieces of the system."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:74 ../comps-fe6.xml.in.h:72 ../comps-f7.xml.in.h:180
-#: ../comps-f8.xml.in.h:180 ../comps-el5.xml.in.h:70
-msgid "Various ways to relax and spend your free time."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:75 ../comps-fe6.xml.in.h:73 ../comps-f7.xml.in.h:184
-#: ../comps-f8.xml.in.h:184 ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:71
-#, fuzzy
-msgid "Web Development"
-msgstr "Panagbukel"
-
-#: ../comps-fe5.xml.in.h:76 ../comps-fe6.xml.in.h:74 ../comps-f7.xml.in.h:185
-#: ../comps-f8.xml.in.h:185 ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:72
-msgid "Web Server"
-msgstr "Serbidor ti Saput"
-
-#: ../comps-fe5.xml.in.h:77 ../comps-fe6.xml.in.h:75 ../comps-f7.xml.in.h:187
-#: ../comps-f8.xml.in.h:187 ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
-msgid "Window Managers"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:78 ../comps-fe6.xml.in.h:76 ../comps-f7.xml.in.h:190
-#: ../comps-f8.xml.in.h:190 ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
-msgid "X Window System"
-msgstr "Sistema ti X Window"
-
-#: ../comps-fe5.xml.in.h:79 ../comps-fe6.xml.in.h:77 ../comps-el4.xml.in.h:75
-#: ../comps-el5.xml.in.h:75
-msgid "XEmacs"
-msgstr "XEmacs"
-
-#: ../comps-fe5.xml.in.h:80 ../comps-fe6.xml.in.h:78 ../comps-f7.xml.in.h:191
-#: ../comps-f8.xml.in.h:191
-msgid "XFCE"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:81 ../comps-fe6.xml.in.h:79 ../comps-f7.xml.in.h:192
-#: ../comps-f8.xml.in.h:192
-#, fuzzy
-msgid "XFCE Software Development"
-msgstr "Panagbukel ti Java"
-
-#: ../comps-fe6.xml.in.h:9 ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:28
-#: ../comps-el5.xml.in.h:8
-msgid "Czech Support"
-msgstr "Panagsayangkat ti Tseko"
-
-#: ../comps-fe6.xml.in.h:66 ../comps-el5.xml.in.h:64
-msgid ""
-"This group is a collection of tools and resources of Czech environments."
-msgstr ""
-
-#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3
-msgid "Afrikaans Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4
-#, fuzzy
-msgid "Albanian Support"
-msgstr "Panagsayangkat ti Ingles a Kanadiense"
-
-#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6
-msgid "Applications to perform a variety of tasks"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9
-msgid "Assamese Support"
-msgstr "Panagsayangkat ti Asames"
-
-#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11
-msgid "Base"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13
-msgid "Basic support for the Ruby programming language."
-msgstr ""
-
-#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14
-msgid "Basque Support"
-msgstr "Panagsayangkat ti Basko"
-
-#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15
-#, fuzzy
-msgid "Belarusian Support"
-msgstr "Panagsayangkat ti Bulgaro"
-
-#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16
-msgid "Bengali Support"
-msgstr "Panagsayangkat ti Benggali"
-
-#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17
-#, fuzzy
-msgid "Bhutanese Support"
-msgstr "Panagsayangkat ti Insik"
-
-#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18
-#, fuzzy
-msgid "Bosnian Support"
-msgstr "Panagsayangkat ti Estonio"
-
-#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19
-msgid "Brazilian Portuguese Support"
-msgstr "Panagsayangkat ti Portuges a Brasilenio"
-
-#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20
-msgid "Breton Support"
-msgstr "Panagsayangkat ti Breton"
-
-#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:21
-msgid "Bulgarian Support"
-msgstr "Panagsayangkat ti Bulgaro"
-
-#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:22
-msgid "Catalan Support"
-msgstr "Panagsayangkat ti Katalan"
-
-#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:23
-msgid "Chinese Support"
-msgstr "Panagsayangkat ti Insik"
-
-#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:24
-msgid "Clustering"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:25
-msgid "Clustering Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:26
-msgid "Core"
-msgstr "Bugas"
-
-#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:27
-msgid "Croatian Support"
-msgstr "Panagsayangkat ti Kroata"
-
-#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:29
-msgid "DNS Name Server"
-msgstr "Serbidor ti DNS a Nagnagan"
-
-#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:30
-msgid "Danish Support"
-msgstr "Panagsayangkat ti Danes"
-
-#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:34
-msgid "Development Libraries"
-msgstr "Biblioteka Pambukel"
-
-#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:36
-msgid "Dial-up Networking Support"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:37
-msgid "Dutch Support"
-msgstr "Panagsayangkat ti Olandes"
-
-#: ../comps-f7.xml.in.h:38 ../comps-f8.xml.in.h:38
-msgid "Eclipse"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43
-msgid "English (UK) Support"
-msgstr "Panagsayangkat ti Inggles (Nagkaykaysa a Pangarian)"
-
-#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44
-msgid "Estonian Support"
-msgstr "Panagsayangkat ti Estonio"
-
-#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45
-msgid "Ethiopic Support"
-msgstr "Panagsayangkat ti Etiopiko"
-
-#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47
-msgid "Faeroese Support"
-msgstr "Panagsayangkat ti Paroes"
-
-#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:48
-#, fuzzy
-msgid "Filipino Support"
-msgstr "Panagsayangkat ti Galiego"
-
-#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:49
-msgid "Finnish Support"
-msgstr "Panagsayangkat ti Pinlandes"
-
-#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:50
-msgid "French Support"
-msgstr "Panagsayangkat ti Pranses"
-
-#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:54
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:58 ../comps-f9.xml.in.h:59
 msgid ""
 "GNOME is a powerful graphical user interface which includes a panel, "
 "desktop, system icons, and a graphical file manager."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:55
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:59 ../comps-f9.xml.in.h:60
 msgid "Gaelic Support"
 msgstr "Panagsayangkat ti Galiko"
 
-#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:56
+#: ../comps-f7.xml.in.h:57 ../comps-f8.xml.in.h:60 ../comps-f9.xml.in.h:61
 msgid "Galician Support"
 msgstr "Panagsayangkat ti Galiego"
 
-#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:58
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:61 ../comps-f9.xml.in.h:62
+#: ../comps-el5.xml.in.h:24
+msgid "Games and Entertainment"
+msgstr "Ay-ayam ken Pagliwliwaan"
+
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:62 ../comps-f9.xml.in.h:63
 #, fuzzy
 msgid "Georgian Support"
 msgstr "Panagsayangkat ti Aleman"
 
-#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:59
+#: ../comps-f7.xml.in.h:60 ../comps-f8.xml.in.h:63 ../comps-f9.xml.in.h:64
 msgid "German Support"
 msgstr "Panagsayangkat ti Aleman"
 
-#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:62
+#: ../comps-f7.xml.in.h:61 ../comps-f8.xml.in.h:64 ../comps-f9.xml.in.h:65
+#: ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+msgid "Graphical Internet"
+msgstr "Grapikal nga Internet"
+
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:65 ../comps-f9.xml.in.h:66
+#: ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+msgid "Graphics"
+msgstr "Grapika"
+
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:66 ../comps-f9.xml.in.h:67
 msgid "Greek Support"
 msgstr "Panagsayangkat ti Griego"
 
-#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:63
+#: ../comps-f7.xml.in.h:64 ../comps-f8.xml.in.h:67 ../comps-f9.xml.in.h:68
 msgid "Gujarati Support"
 msgstr "Panagsayangkat ti Gujarati"
 
-#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:66
+#: ../comps-f7.xml.in.h:65 ../comps-f8.xml.in.h:68 ../comps-f9.xml.in.h:69
+#: ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+#, fuzzy
+msgid "Hardware Support"
+msgstr "Panagsayangkat ti Hudio"
+
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:69 ../comps-f9.xml.in.h:70
+#: ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+msgid "Hebrew Support"
+msgstr "Panagsayangkat ti Hudio"
+
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:70 ../comps-f9.xml.in.h:71
 msgid "Hindi Support"
 msgstr "Panagsayangkat ti Hindi"
 
-#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:67
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:71 ../comps-f9.xml.in.h:72
 msgid "Hungarian Support"
 msgstr "Panagsayangkat ti Ungaro"
 
-#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:68
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:72 ../comps-f9.xml.in.h:73
 msgid "Icelandic Support"
 msgstr "Panagsayangkat ti Islandes"
 
-#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:69
+#: ../comps-f7.xml.in.h:70 ../comps-f8.xml.in.h:73 ../comps-f9.xml.in.h:74
 msgid "Indonesian Support"
 msgstr "Panagsayangkat ti Indonesiano"
 
-#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:73
+#: ../comps-f7.xml.in.h:71 ../comps-f8.xml.in.h:74 ../comps-f9.xml.in.h:75
+#: ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+msgid ""
+"Install these packages in order to develop GTK+ and GNOME graphical "
+"applications."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:72 ../comps-f8.xml.in.h:75 ../comps-f9.xml.in.h:76
+msgid ""
+"Install these packages in order to develop GTK+ and XFCE graphical "
+"applications."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:76 ../comps-f9.xml.in.h:77
+#: ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+msgid "Install these packages to develop QT and KDE graphical applications."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:74 ../comps-f8.xml.in.h:77 ../comps-f9.xml.in.h:78
 msgid ""
 "Install these tools to enable the system to print or act as a print server."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:75
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:78 ../comps-f9.xml.in.h:79
+#: ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+msgid ""
+"Install this group of packages to use the base graphical (X) user interface."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:80 ../comps-f9.xml.in.h:81
 #, fuzzy
 msgid "Inuktitut Support"
 msgstr "Panagsayangkat ti Zulu"
 
-#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:76
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:81 ../comps-f9.xml.in.h:82
 msgid "Irish Support"
 msgstr "Panagsayangkat ti Irlandes"
 
-#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:77
+#: ../comps-f7.xml.in.h:78 ../comps-f8.xml.in.h:82 ../comps-f9.xml.in.h:83
 msgid "Italian Support"
 msgstr "Panagsayangkat ti Italiano"
 
-#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:83
+#: ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:83 ../comps-f9.xml.in.h:84
+#: ../comps-el4.xml.in.h:30 ../comps-el5.xml.in.h:32
+msgid "Japanese Support"
+msgstr "Panagsayangkat ti Hapon"
+
+#: ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:84 ../comps-f9.xml.in.h:85
+#: ../comps-el4.xml.in.h:31
+msgid "Java"
+msgstr "Java"
+
+#: ../comps-f7.xml.in.h:81 ../comps-f8.xml.in.h:85 ../comps-f9.xml.in.h:86
+#: ../comps-el4.xml.in.h:32
+msgid "Java Development"
+msgstr "Panagbukel ti Java"
+
+#: ../comps-f7.xml.in.h:82 ../comps-f8.xml.in.h:86 ../comps-f9.xml.in.h:87
+#: ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+msgid "KDE (K Desktop Environment)"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:87 ../comps-f9.xml.in.h:88
+#: ../comps-el4.xml.in.h:34 ../comps-el5.xml.in.h:34
+msgid "KDE Software Development"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:88 ../comps-f9.xml.in.h:89
 msgid ""
 "KDE is a powerful graphical user interface which includes a panel, desktop, "
 "system icons, and a graphical file manager."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:84
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:89 ../comps-f9.xml.in.h:90
 msgid "Kannada Support"
 msgstr "Panagsayangkat ti Kannada"
 
-#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:85
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:90 ../comps-f9.xml.in.h:92
 #, fuzzy
 msgid "Khmer Support"
 msgstr "Panagsayangkat ti Aleman"
 
-#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:86
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:91 ../comps-f9.xml.in.h:93
 msgid "Korean Support"
 msgstr "Panagsayangkat ti Koreano"
 
-#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:87
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:92 ../comps-f9.xml.in.h:94
 msgid "Languages"
 msgstr "Pagsasao"
 
-#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:88
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:93 ../comps-f9.xml.in.h:95
 #, fuzzy
 msgid "Lao Support"
 msgstr "Panagsayangkat ti Tailandes"
 
-#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:89
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:94 ../comps-f9.xml.in.h:96
 #, fuzzy
 msgid "Latvian Support"
 msgstr "Panagsayangkat ti Kroata"
 
-#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:90
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:96 ../comps-f9.xml.in.h:98
 msgid "Legacy Network Server"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:91
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:97 ../comps-f9.xml.in.h:99
 msgid "Legacy Software Development"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:92
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:98 ../comps-f9.xml.in.h:100
 msgid "Legacy Software Support"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:93
+#: ../comps-f7.xml.in.h:94 ../comps-f8.xml.in.h:99 ../comps-f9.xml.in.h:101
 msgid "Lithuanian Support"
 msgstr "Panagsayangkat ti Lituano"
 
-#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:95
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:101 ../comps-f9.xml.in.h:104
+#: ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+msgid "Mail Server"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:102 ../comps-f9.xml.in.h:105
 msgid "Malay Support"
 msgstr "Panagsayangkat ti Malayo"
 
-#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:96
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:103 ../comps-f9.xml.in.h:106
 msgid "Malayalam Support"
 msgstr "Panagsayangkat ti Malayalam"
 
-#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:97
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:104 ../comps-f9.xml.in.h:107
 #, fuzzy
 msgid "Maori Support"
 msgstr "Panagsayangkat ti Marathi"
 
-#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:98
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:105 ../comps-f9.xml.in.h:108
 msgid "Marathi Support"
 msgstr "Panagsayangkat ti Marathi"
 
-#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:99
+#: ../comps-f7.xml.in.h:100 ../comps-f8.xml.in.h:107 ../comps-f9.xml.in.h:110
 msgid "MySQL Database"
 msgstr "MySQL a Base ti Datos"
 
-#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:102
+#: ../comps-f7.xml.in.h:101 ../comps-f8.xml.in.h:109 ../comps-f9.xml.in.h:112
+#: ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+msgid "Network Servers"
+msgstr "Serbidor ti Iket"
+
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:110 ../comps-f9.xml.in.h:113
+#: ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+msgid "News Server"
+msgstr "Serbidor ti Damdamag"
+
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:111 ../comps-f9.xml.in.h:115
 msgid "Northern Sotho Support"
 msgstr "Panagsayangkat ti Akinamianan a Sotho"
 
-#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:103
+#: ../comps-f7.xml.in.h:104 ../comps-f8.xml.in.h:112 ../comps-f9.xml.in.h:116
 msgid "Norwegian Support"
 msgstr "Panagsayangkat ti Norwego"
 
-#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:105
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:113 ../comps-f9.xml.in.h:117
+#: ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+msgid "Office/Productivity"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:106 ../comps-f8.xml.in.h:115 ../comps-f9.xml.in.h:119
 msgid "Oriya Support"
 msgstr "Panagsayangkat ti Oriya"
 
-#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:107
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:116 ../comps-f9.xml.in.h:120
+#: ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+msgid ""
+"Packages which provide functionality for developing and building "
+"applications."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:117 ../comps-f9.xml.in.h:121
 #, fuzzy
 msgid "Persian Support"
 msgstr "Panagsayangkat ti Serbio"
 
-#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:108
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:118 ../comps-f9.xml.in.h:122
 msgid "Polish Support"
 msgstr "Panagsayangkat ti Polako"
 
-#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:109
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:119 ../comps-f9.xml.in.h:123
 msgid "Portuguese Support"
 msgstr "Panagsayangkat ti Portuges"
 
-#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:110
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:120 ../comps-f9.xml.in.h:124
 msgid "PostgreSQL Database"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:111
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:121 ../comps-f9.xml.in.h:125
 msgid "Printing Support"
 msgstr "Panagsayangkat ti Maldit"
 
-#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:112
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:122 ../comps-f9.xml.in.h:126
 msgid "Punjabi Support"
 msgstr "Panagsayangkat ti Punjabi"
 
-#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:113
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:123 ../comps-f9.xml.in.h:127
 msgid "Romanian Support"
 msgstr "Panagsayangkat ti Romaniano"
 
-#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:114
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:124 ../comps-f9.xml.in.h:128
 msgid "Ruby"
 msgstr "Ruby"
 
-#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:115
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:125 ../comps-f9.xml.in.h:129
 msgid "Russian Support"
 msgstr "Panagsayangkat ti Ruso"
 
-#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:116
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:126 ../comps-f9.xml.in.h:130
 #, fuzzy
 msgid "Samoan Support"
 msgstr "Panagsayangkat ti Aleman"
 
-#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:117
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:127 ../comps-f9.xml.in.h:131
 msgid "Serbian Support"
 msgstr "Panagsayangkat ti Serbio"
 
-#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:118
+#: ../comps-f7.xml.in.h:119 ../comps-f8.xml.in.h:128 ../comps-f9.xml.in.h:132
 msgid "Server Configuration Tools"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:121
+#: ../comps-f7.xml.in.h:120 ../comps-f8.xml.in.h:129 ../comps-f9.xml.in.h:133
+#: ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+msgid "Servers"
+msgstr "Serbidor"
+
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:130 ../comps-f9.xml.in.h:134
+#: ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+msgid ""
+"Simple window managers that aren't part of a larger desktop environment."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:131 ../comps-f9.xml.in.h:135
 msgid "Sinhala Support"
 msgstr "Panagsayangkat ti Sinhala"
 
-#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:122
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:132 ../comps-f9.xml.in.h:136
 msgid "Slovak Support"
 msgstr "Panagsayangkat ti Eslobako"
 
-#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:123
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:133 ../comps-f9.xml.in.h:137
 msgid "Slovenian Support"
 msgstr "Panagsayangkat ti Esloveno"
 
-#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:124
+#: ../comps-f7.xml.in.h:125 ../comps-f8.xml.in.h:134 ../comps-f9.xml.in.h:138
 msgid "Smallest possible installation"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:126
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:135 ../comps-f9.xml.in.h:139
+#: ../comps-el4.xml.in.h:43 ../comps-el5.xml.in.h:43
+msgid "Software used for running network servers"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:136 ../comps-f9.xml.in.h:140
 #, fuzzy
-msgid "Somail Support"
+msgid "Somali Support"
 msgstr "Panagsayangkat ti Swati"
 
-#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:127
+#: ../comps-f7.xml.in.h:128 ../comps-f8.xml.in.h:137 ../comps-f9.xml.in.h:141
 msgid ""
 "Sometimes called text editors, these are programs that allow you to create "
 "and edit text files. This includes Emacs and Vi."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:129
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:138 ../comps-f9.xml.in.h:142
+#: ../comps-el4.xml.in.h:45 ../comps-el5.xml.in.h:45
+msgid "Sound and Video"
+msgstr "Uni ken Video"
+
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:139 ../comps-f9.xml.in.h:143
 msgid "Southern Ndebele Support"
 msgstr "Panagsayangkat ti Akinabagatan a Ndebele"
 
-#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:130
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:140 ../comps-f9.xml.in.h:144
 msgid "Southern Sotho Support"
 msgstr "Panagsayangkat ti Akinabagatan a Sotho"
 
-#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:131
+#: ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:141 ../comps-f9.xml.in.h:145
 msgid "Spanish Support"
 msgstr "Panagsayangkat ti Espaniol"
 
-#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:134
+#: ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:142 ../comps-f9.xml.in.h:146
+#: ../comps-el4.xml.in.h:46
+msgid "Support for developing programs in the Java programming language."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:143 ../comps-f9.xml.in.h:147
+#: ../comps-el4.xml.in.h:47
+msgid "Support for running programs written in the Java programming language."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:144 ../comps-f9.xml.in.h:148
 msgid "Swati Support"
 msgstr "Panagsayangkat ti Swati"
 
-#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:135
+#: ../comps-f7.xml.in.h:136 ../comps-f8.xml.in.h:145 ../comps-f9.xml.in.h:149
 msgid "Swedish Support"
 msgstr "Panagsayangkat ti Sueko"
 
-#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:137
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:146 ../comps-f9.xml.in.h:150
+#: ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+msgid "System Tools"
+msgstr "Ramramit ti Sistema"
+
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:147 ../comps-f9.xml.in.h:151
 #, fuzzy
 msgid "Tagalog Support"
 msgstr "Panagsayangkat ti Tamil"
 
-#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:138
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:148 ../comps-f9.xml.in.h:152
 msgid "Tamil Support"
 msgstr "Panagsayangkat ti Tamil"
 
-#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:139
+#: ../comps-f7.xml.in.h:140 ../comps-f8.xml.in.h:149 ../comps-f9.xml.in.h:153
 msgid "Telugu Support"
 msgstr "Panagsayangkat ti Telugu"
 
-#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:141
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:150 ../comps-f9.xml.in.h:154
+#: ../comps-el4.xml.in.h:49 ../comps-el5.xml.in.h:47
+msgid "Text-based Internet"
+msgstr "Internet a naibasar iti texto"
+
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:151 ../comps-f9.xml.in.h:155
 msgid "Thai Support"
 msgstr "Panagsayangkat ti Tailandes"
 
-#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:142
+#: ../comps-f7.xml.in.h:143
 msgid "The Eclipse Integrated Development Environment."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:144
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:152 ../comps-f9.xml.in.h:156
+#: ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+msgid "The applications include office suites, PDF viewers, and more."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:145 ../comps-f8.xml.in.h:153 ../comps-f9.xml.in.h:157
 msgid ""
 "The packages in this group are core libraries needed to develop applications."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:146
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:154 ../comps-f9.xml.in.h:158
+#: ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+msgid "These packages allow you to configure an IMAP or SMTP mail server."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:147 ../comps-f8.xml.in.h:155 ../comps-f9.xml.in.h:159
 msgid ""
 "These packages allow you to develop applications for the X Window System."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:148
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:156 ../comps-f9.xml.in.h:160
+#: ../comps-el4.xml.in.h:53 ../comps-el5.xml.in.h:51
+msgid ""
+"These packages are helpful when developing web applications or web pages."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:157 ../comps-f9.xml.in.h:161
 msgid ""
 "These packages include network-based servers such as DHCP, Kerberos and NIS."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:149
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:158 ../comps-f9.xml.in.h:162
 msgid ""
 "These packages include servers for old network protocols such as rsh and "
 "telnet."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:150
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:159 ../comps-f9.xml.in.h:163
 msgid "These packages provide a virtualization environment."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:151
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:160 ../comps-f9.xml.in.h:164
 msgid "These packages provide compatibility with previous releases."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:152
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:161 ../comps-f9.xml.in.h:165
 msgid ""
 "These packages provide support for various locales including fonts and input "
 "methods."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:153
+#: ../comps-f7.xml.in.h:154 ../comps-f8.xml.in.h:162 ../comps-f9.xml.in.h:166
 msgid ""
 "These tools allow you to create documents in the DocBook format and convert "
 "them into HTML, PDF, Postscript, and text."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:158
+#: ../comps-f7.xml.in.h:155 ../comps-f8.xml.in.h:163 ../comps-f9.xml.in.h:167
+#: ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+msgid "These tools allow you to run a Web server on the system."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:156 ../comps-f8.xml.in.h:164 ../comps-f9.xml.in.h:168
+#: ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+msgid "These tools allow you to run an FTP server on the system."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:157 ../comps-f8.xml.in.h:165 ../comps-f9.xml.in.h:169
+#: ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+msgid ""
+"These tools include core development tools such as automake, gcc, perl, "
+"python, and debuggers."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:166 ../comps-f9.xml.in.h:170
+#: ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+msgid "This group allows you to configure the system as a news server."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:167 ../comps-f9.xml.in.h:171
 msgid "This group contains all of Red Hat's custom server configuration tools."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:159
+#: ../comps-f7.xml.in.h:160 ../comps-f8.xml.in.h:168 ../comps-f9.xml.in.h:172
 msgid ""
 "This group includes a minimal set of packages. Useful for creating small "
 "router/firewall boxes, for example."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:168
+#: ../comps-f7.xml.in.h:161 ../comps-f8.xml.in.h:169 ../comps-f9.xml.in.h:173
+#: ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+msgid "This group includes graphical email, Web, and chat clients."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:162 ../comps-f8.xml.in.h:170 ../comps-f9.xml.in.h:174
+#: ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+msgid ""
+"This group includes packages for performing mathematical and scientific "
+"computations and plotting, as well as unit conversion."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:163 ../comps-f8.xml.in.h:171 ../comps-f9.xml.in.h:175
+#: ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+msgid "This group includes packages to help you manipulate and scan images."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:164 ../comps-f8.xml.in.h:172 ../comps-f9.xml.in.h:176
+#: ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+msgid ""
+"This group includes text-based email, Web, and chat clients. These "
+"applications do not require the X Window System."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:165 ../comps-f8.xml.in.h:173 ../comps-f9.xml.in.h:177
+#: ../comps-el4.xml.in.h:63 ../comps-el5.xml.in.h:61
+msgid ""
+"This group is a collection of graphical administration tools for the system, "
+"such as for managing user accounts and configuring system hardware."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:166 ../comps-f8.xml.in.h:174 ../comps-f9.xml.in.h:178
+#: ../comps-el4.xml.in.h:66 ../comps-el5.xml.in.h:64
+msgid ""
+"This group is a collection of tools and resources of Armenian environments."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:167 ../comps-f8.xml.in.h:175 ../comps-f9.xml.in.h:179
+#: ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+msgid ""
+"This group is a collection of tools for various hardware specific utilities."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:176 ../comps-f9.xml.in.h:180
+#: ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
+msgid ""
+"This group is a collection of various tools for the system, such as the "
+"client for connecting to SMB shares and tools to monitor network traffic."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:177 ../comps-f9.xml.in.h:181
 msgid ""
 "This package group allows you to run a DNS name server (BIND) on the system."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:169
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:178 ../comps-f9.xml.in.h:182
 msgid ""
 "This package group allows you to share files between Linux and MS Windows"
 "(tm) systems."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:170
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:179 ../comps-f9.xml.in.h:183
 msgid "This package group contains packages useful for use with MySQL."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:171
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:180 ../comps-f9.xml.in.h:184
 msgid "This package group includes packages useful for use with Postgresql."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:172
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:181 ../comps-f9.xml.in.h:185
 #, fuzzy
 msgid "Tibetan Support"
 msgstr "Panagsayangkat ti Aleman"
 
-#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:173
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:182 ../comps-f9.xml.in.h:186
 #, fuzzy
 msgid "Tonga Support"
 msgstr "Panagsayangkat ti Tsongga"
 
-#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:174
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:183 ../comps-f9.xml.in.h:187
+#: ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:70
+msgid "Tools and Utilities needed by a Fedora Packager"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:184 ../comps-f9.xml.in.h:188
 msgid "Tsonga Support"
 msgstr "Panagsayangkat ti Tsongga"
 
-#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:175
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:185 ../comps-f9.xml.in.h:189
 msgid "Tswana Support"
 msgstr "Panagsayangkat ti Tswana"
 
-#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:176
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:186 ../comps-f9.xml.in.h:190
 msgid "Turkish Support"
 msgstr "Panagsayangkat ti Turko"
 
-#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:177
+#: ../comps-f7.xml.in.h:179 ../comps-f8.xml.in.h:187 ../comps-f9.xml.in.h:191
 msgid "Ukrainian Support"
 msgstr "Panagsayangkat ti Ukranio"
 
-#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:178
+#: ../comps-f7.xml.in.h:180 ../comps-f8.xml.in.h:188 ../comps-f9.xml.in.h:192
 #, fuzzy
 msgid "Urdu Support"
 msgstr "Panagsayangkat ti Zulu"
 
-#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:181
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:189 ../comps-f9.xml.in.h:193
+#: ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:71
+msgid "Various core pieces of the system."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:190 ../comps-f9.xml.in.h:194
+#: ../comps-el5.xml.in.h:72
+msgid "Various ways to relax and spend your free time."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:191 ../comps-f9.xml.in.h:195
 msgid "Venda Support"
 msgstr "Panagsayangkat ti Venda"
 
-#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:182
+#: ../comps-f7.xml.in.h:184 ../comps-f8.xml.in.h:192 ../comps-f9.xml.in.h:196
 #, fuzzy
 msgid "Vietnamese Support"
 msgstr "Panagsayangkat ti Insik"
 
-#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:183
+#: ../comps-f7.xml.in.h:185 ../comps-f8.xml.in.h:193 ../comps-f9.xml.in.h:197
 msgid "Virtualization"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:186
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:194 ../comps-f9.xml.in.h:199
+#: ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+#, fuzzy
+msgid "Web Development"
+msgstr "Panagbukel"
+
+#: ../comps-f7.xml.in.h:187 ../comps-f8.xml.in.h:195 ../comps-f9.xml.in.h:200
+#: ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "Web Server"
+msgstr "Serbidor ti Saput"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:196 ../comps-f9.xml.in.h:201
 msgid "Welsh Support"
 msgstr "Panagsayangkat ti Gales"
 
-#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:188
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:197 ../comps-f9.xml.in.h:202
+#: ../comps-el4.xml.in.h:75 ../comps-el5.xml.in.h:75
+msgid "Window Managers"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:190 ../comps-f8.xml.in.h:198 ../comps-f9.xml.in.h:203
 msgid "Windows File Server"
 msgstr "Serbidor ti Windows nga Intar"
 
-#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:189
+#: ../comps-f7.xml.in.h:191 ../comps-f8.xml.in.h:199 ../comps-f9.xml.in.h:204
 msgid "X Software Development"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:193
+#: ../comps-f7.xml.in.h:192 ../comps-f8.xml.in.h:200 ../comps-f9.xml.in.h:205
+#: ../comps-el4.xml.in.h:76 ../comps-el5.xml.in.h:76
+msgid "X Window System"
+msgstr "Sistema ti X Window"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:201 ../comps-f9.xml.in.h:206
+msgid "XFCE"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:202 ../comps-f9.xml.in.h:207
+#, fuzzy
+msgid "XFCE Software Development"
+msgstr "Panagbukel ti Java"
+
+#: ../comps-f7.xml.in.h:195 ../comps-f8.xml.in.h:203 ../comps-f9.xml.in.h:208
 msgid "Xhosa Support"
 msgstr "Panagsayangkat ti Xhosa"
 
-#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:194
+#: ../comps-f7.xml.in.h:196 ../comps-f8.xml.in.h:204 ../comps-f9.xml.in.h:209
 msgid "Zulu Support"
 msgstr "Panagsayangkat ti Zulu"
 
-#~ msgid "Brazilian Support"
-#~ msgstr "Panagsayangkat ti Portuges a Brasilenio"
+#: ../comps-f8.xml.in.h:21 ../comps-f9.xml.in.h:21
+msgid "Buildsystem building group"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:48 ../comps-f9.xml.in.h:49
+msgid "Fedora Eclipse"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:52 ../comps-f9.xml.in.h:53
+msgid "Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:53 ../comps-f9.xml.in.h:54
+msgid "Fonts packages for rendering text on the desktop."
+msgstr ""
+
+#: ../comps-f8.xml.in.h:79 ../comps-f9.xml.in.h:80
+msgid "Integrated Development Environments based on Eclipse."
+msgstr ""
+
+#: ../comps-f8.xml.in.h:95 ../comps-f9.xml.in.h:97
+msgid "Legacy Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:100 ../comps-f9.xml.in.h:102
+#, fuzzy
+msgid "Low Saxon Support"
+msgstr "Panagsayangkat ti Tailandes"
+
+#: ../comps-f8.xml.in.h:106 ../comps-f9.xml.in.h:109
+#, fuzzy
+msgid "Mongolian Support"
+msgstr "Panagsayangkat ti Estonio"
+
+#: ../comps-f8.xml.in.h:108 ../comps-f9.xml.in.h:111
+#, fuzzy
+msgid "Nepali Support"
+msgstr "Panagsayangkat ti Benggali"
+
+#: ../comps-f8.xml.in.h:114 ../comps-f9.xml.in.h:118
+msgid "Older bitmap and vector fonts packages"
+msgstr ""
+
+#: ../comps-f9.xml.in.h:44
+#, fuzzy
+msgid "Esperanto Support"
+msgstr "Panagsayangkat ti Aleman"
+
+#: ../comps-f9.xml.in.h:91
+#, fuzzy
+msgid "Kashubian Support"
+msgstr "Panagsayangkat ti Estonio"
+
+#: ../comps-f9.xml.in.h:103
+#, fuzzy
+msgid "Macedonian Support"
+msgstr "Panagsayangkat ti Estonio"
+
+#: ../comps-f9.xml.in.h:114
+#, fuzzy
+msgid "Northern Sami Support"
+msgstr "Panagsayangkat ti Akinamianan a Sotho"
+
+#: ../comps-f9.xml.in.h:198
+#, fuzzy
+msgid "Walloon Support"
+msgstr "Panagsayangkat ti Tailandes"
+
+#: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:12 ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:23
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The XEmacs text editor."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:64 ../comps-el5.xml.in.h:62
+msgid "This group is a collection of network servers for specific purposes"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:67 ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:77 ../comps-el5.xml.in.h:77
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr ""
 
 #~ msgid "British Support"
 #~ msgstr "Panagsayangkat ti Ingles a Britaniko"
+
+#, fuzzy
+#~ msgid "Cluster Storage"
+#~ msgstr "Suporta iti Clustering"
+
+#~ msgid "Clustering Support."
+#~ msgstr "Suporta iti Clustering"
+
+#, fuzzy
+#~ msgid "Single Node GFS Support"
+#~ msgstr "Panagsayangkat ti Insik"
+
+#~ msgid "Misc"
+#~ msgstr "Nadumaduma"
+
+#~ msgid "Misc packages"
+#~ msgstr "Nadumaduma nga Aplikasion"
+
+#, fuzzy
+#~ msgid "Multimedia applications"
+#~ msgstr "Dagiti Aplikasion"
+
+#~ msgid "Virtualization Support."
+#~ msgstr "Suporta iti Virtualisasion"
+
+#, fuzzy
+#~ msgid "Somail Support"
+#~ msgstr "Panagsayangkat ti Swati"
+
+#~ msgid "Brazilian Support"
+#~ msgstr "Panagsayangkat ti Portuges a Brasilenio"
 
 #~ msgid "Cyrillic Support"
 #~ msgstr "Panagsayangkat ti Siriliko"
@@ -1084,22 +1174,6 @@ msgstr "Panagsayangkat ti Zulu"
 
 #~ msgid "Tamil"
 #~ msgstr "Tamil"
-
-#, fuzzy
-#~ msgid "Cluster Storage"
-#~ msgstr "Suporta iti Clustering"
-
-#~ msgid "Clustering Support."
-#~ msgstr "Suporta iti Clustering"
-
-#~ msgid "Misc"
-#~ msgstr "Nadumaduma"
-
-#~ msgid "Misc packages"
-#~ msgstr "Nadumaduma nga Aplikasion"
-
-#~ msgid "Virtualization Support."
-#~ msgstr "Suporta iti Virtualisasion"
 
 #~ msgid "Xen"
 #~ msgstr "Xen"

@@ -20,12 +20,14 @@
       <packagereq type="default">system-config-soundcard</packagereq>
       <packagereq type="default">system-config-users</packagereq>
       <packagereq type="optional">cacti</packagereq>
+      <packagereq type="optional">dbench</packagereq>
       <packagereq type="optional">etherape</packagereq>
       <packagereq type="optional">ettercap-gtk</packagereq>
       <packagereq type="optional">galternatives</packagereq>
       <packagereq type="optional">gparted</packagereq>
       <packagereq type="optional">gsynaptics</packagereq>
       <packagereq type="optional">lat</packagereq>
+      <packagereq type="optional">lshw-gui</packagereq>
       <packagereq type="optional">luma</packagereq>
       <packagereq type="optional">opyum</packagereq>
       <packagereq type="optional">pessulus</packagereq>
@@ -1068,6 +1070,7 @@
       <packagereq type="optional">childsplay</packagereq>
       <packagereq type="optional">drgeo</packagereq>
       <packagereq type="optional">drgeo-doc</packagereq>
+      <packagereq type="optional">fantasdic</packagereq>
       <packagereq type="optional">gcompris</packagereq>
       <packagereq type="optional">genchemlab</packagereq>
       <packagereq type="optional">gperiodic</packagereq>
@@ -1322,6 +1325,7 @@
       <packagereq type="optional">baekmuk-ttf-fonts-dotum</packagereq>
       <packagereq type="optional">baekmuk-ttf-fonts-hline</packagereq>
       <packagereq type="optional">bitstream-vera-fonts</packagereq>
+      <packagereq type="optional">brettfont-fonts</packagereq>
       <packagereq type="optional">charis-fonts</packagereq>
       <packagereq type="optional">cjkunifonts-ukai</packagereq>
       <packagereq type="optional">dejavu-fonts</packagereq>
@@ -1351,6 +1355,7 @@
       <packagereq type="optional">linux-libertine-fonts</packagereq>
       <packagereq type="optional">mathml-fonts</packagereq>
       <packagereq type="optional">mgopen-fonts</packagereq>
+      <packagereq type="optional">roadstencil-fonts</packagereq>
       <packagereq type="optional">sazanami-fonts-mincho</packagereq>
       <packagereq type="optional">stix-fonts</packagereq>
       <packagereq type="optional">stix-fonts-integrals</packagereq>
@@ -1491,6 +1496,7 @@
       <packagereq type="optional">egoboo</packagereq>
       <packagereq type="optional">enigma</packagereq>
       <packagereq type="optional">escape</packagereq>
+      <packagereq type="optional">extremetuxracer</packagereq>
       <packagereq type="optional">fbg</packagereq>
       <packagereq type="optional">fillets-ng</packagereq>
       <packagereq type="optional">flight-of-the-amazon-queen</packagereq>
@@ -1508,6 +1514,7 @@
       <packagereq type="optional">freetennis</packagereq>
       <packagereq type="optional">frozen-bubble</packagereq>
       <packagereq type="optional">games-menus</packagereq>
+      <packagereq type="optional">gbrainy</packagereq>
       <packagereq type="optional">gemdropx</packagereq>
       <packagereq type="optional">gl-117</packagereq>
       <packagereq type="optional">glaxium</packagereq>
@@ -1530,11 +1537,13 @@
       <packagereq type="optional">ksirk</packagereq>
       <packagereq type="optional">ksudoku</packagereq>
       <packagereq type="optional">lacewing</packagereq>
+      <packagereq type="optional">lbrickbuster2</packagereq>
       <packagereq type="optional">lincity-ng</packagereq>
       <packagereq type="optional">liquidwar</packagereq>
       <packagereq type="optional">lmarbles</packagereq>
       <packagereq type="optional">londonlaw</packagereq>
       <packagereq type="optional">lucidlife</packagereq>
+      <packagereq type="optional">lure</packagereq>
       <packagereq type="optional">machineball</packagereq>
       <packagereq type="optional">Maelstrom</packagereq>
       <packagereq type="optional">magicmaze</packagereq>
@@ -1575,7 +1584,6 @@
       <packagereq type="optional">poker2d</packagereq>
       <packagereq type="optional">poker3d</packagereq>
       <packagereq type="optional">powermanga</packagereq>
-      <packagereq type="optional">ppracer</packagereq>
       <packagereq type="optional">prboom</packagereq>
       <packagereq type="optional">professor-is-missing</packagereq>
       <packagereq type="optional">pychess</packagereq>
@@ -1754,6 +1762,7 @@
       <packagereq type="optional">beagle-gui</packagereq>
       <packagereq type="optional">buoh</packagereq>
       <packagereq type="optional">byzanz</packagereq>
+      <packagereq type="optional">cairo-dock</packagereq>
       <packagereq type="optional">dasher</packagereq>
       <packagereq type="optional">deskbar-applet</packagereq>
       <packagereq type="optional">esc</packagereq>
@@ -1790,6 +1799,7 @@
       <packagereq type="optional">nautilus-open-terminal</packagereq>
       <packagereq type="optional">nautilus-search-tool</packagereq>
       <packagereq type="optional">panelfm</packagereq>
+      <packagereq type="optional">pcmanfm</packagereq>
       <packagereq type="optional">rss-glx-gnome-screensaver</packagereq>
       <packagereq type="optional">sabayon</packagereq>
       <packagereq type="optional">scim-input-pad</packagereq>
@@ -1906,6 +1916,7 @@
       <packagereq type="optional">blam</packagereq>
       <packagereq type="optional">blogtk</packagereq>
       <packagereq type="optional">bluefish</packagereq>
+      <packagereq type="optional">checkgmail</packagereq>
       <packagereq type="optional">claws-mail</packagereq>
       <packagereq type="optional">contact-lookup-applet</packagereq>
       <packagereq type="optional">d4x</packagereq>
@@ -1933,6 +1944,7 @@
       <packagereq type="optional">gtk-gnutella</packagereq>
       <packagereq type="optional">gtorrentviewer</packagereq>
       <packagereq type="optional">gwget</packagereq>
+      <packagereq type="optional">gyachi</packagereq>
       <packagereq type="optional">jd</packagereq>
       <packagereq type="optional">kadu</packagereq>
       <packagereq type="optional">kasablanca</packagereq>
@@ -1948,8 +1960,10 @@
       <packagereq type="optional">linphone</packagereq>
       <packagereq type="optional">logjam</packagereq>
       <packagereq type="optional">mail-notification</packagereq>
+      <packagereq type="optional">midori</packagereq>
       <packagereq type="optional">Miro</packagereq>
       <packagereq type="optional">mugshot</packagereq>
+      <packagereq type="optional">nntpgrab-gui</packagereq>
       <packagereq type="optional">ochusha</packagereq>
       <packagereq type="optional">pan</packagereq>
       <packagereq type="optional">pidgin-libnotify</packagereq>
@@ -1986,6 +2000,7 @@
       <packagereq type="optional">argyllcms</packagereq>
       <packagereq type="optional">asymptote</packagereq>
       <packagereq type="optional">blender</packagereq>
+      <packagereq type="optional">cbrpager</packagereq>
       <packagereq type="optional">cheese</packagereq>
       <packagereq type="optional">comix</packagereq>
       <packagereq type="optional">dcraw</packagereq>
@@ -2032,6 +2047,8 @@
       <packagereq type="optional">uniconvertor</packagereq>
       <packagereq type="optional">wings</packagereq>
       <packagereq type="optional">xfig</packagereq>
+      <packagereq type="optional">xgridfit</packagereq>
+      <packagereq type="optional">xgridfit-doc</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2535,6 +2552,7 @@
       <packagereq type="optional">krusader</packagereq>
       <packagereq type="optional">ksensors</packagereq>
       <packagereq type="optional">kshutdown</packagereq>
+      <packagereq type="optional">ksshaskpass</packagereq>
       <packagereq type="optional">ksynaptics</packagereq>
       <packagereq type="optional">kyum</packagereq>
       <packagereq type="optional">lineak-kdeplugins</packagereq>
@@ -2548,6 +2566,7 @@
       <packagereq type="optional">smb4k</packagereq>
       <packagereq type="optional">speedcrunch</packagereq>
       <packagereq type="optional">uim-qt</packagereq>
+      <packagereq type="optional">xsettings-kde</packagereq>
     </packagelist>
   </group>
   <group>
@@ -2895,6 +2914,7 @@
       <packagereq type="mandatory">m17n-contrib-nepali</packagereq>
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-ne</packagereq>
       <packagereq type="conditional" requires="xorg-x11-server-Xorg">scim-lang-nepali</packagereq>
+      <packagereq type="default">sarai-fonts</packagereq>
       <packagereq type="optional">scim-tables-nepali</packagereq>
     </packagelist>
   </group>
@@ -3012,6 +3032,7 @@
       <packagereq type="optional">abiword</packagereq>
       <packagereq type="optional">aiksaurus-gtk</packagereq>
       <packagereq type="optional">alexandria</packagereq>
+      <packagereq type="optional">bibus</packagereq>
       <packagereq type="optional">calcurse</packagereq>
       <packagereq type="optional">contacts</packagereq>
       <packagereq type="optional">dates</packagereq>
@@ -3041,9 +3062,12 @@
       <packagereq type="optional">notecase</packagereq>
       <packagereq type="optional">openoffice.org-base</packagereq>
       <packagereq type="optional">openoffice.org-emailmerge</packagereq>
+      <packagereq type="optional">openoffice.org-extendedPDF</packagereq>
       <packagereq type="optional">openoffice.org-javafilter</packagereq>
+      <packagereq type="optional">openoffice.org-ooolatex</packagereq>
       <packagereq basearchonly="true" type="optional">openoffice.org-pyuno</packagereq>
       <packagereq type="optional">openoffice.org-testtools</packagereq>
+      <packagereq type="optional">openoffice.org-voikko</packagereq>
       <packagereq type="optional">pybliographer</packagereq>
       <packagereq type="optional">qa-assistant</packagereq>
       <packagereq type="optional">qcad</packagereq>
@@ -3423,6 +3447,7 @@
       <packagereq type="optional">mikmod</packagereq>
       <packagereq type="optional">Miro</packagereq>
       <packagereq type="optional">muine</packagereq>
+      <packagereq type="optional">mybashburn</packagereq>
       <packagereq type="optional">nyquist</packagereq>
       <packagereq type="optional">padevchooser</packagereq>
       <packagereq type="optional">paman</packagereq>
@@ -3716,7 +3741,8 @@
       <packagereq type="optional">torque-gui</packagereq>
       <packagereq type="optional">tsclient</packagereq>
       <packagereq type="optional">ttywatch</packagereq>
-      <packagereq type="optional">unison</packagereq>
+      <packagereq type="optional">unison213</packagereq>
+      <packagereq type="optional">unison227</packagereq>
       <packagereq type="optional">upx</packagereq>
       <packagereq type="optional">uucp</packagereq>
       <packagereq type="optional">vbetool</packagereq>
@@ -4165,18 +4191,20 @@
       <packagereq type="mandatory">xfdesktop</packagereq>
       <packagereq type="mandatory">xfwm4</packagereq>
       <packagereq type="default">mousepad</packagereq>
+      <packagereq type="default">thunar-volman</packagereq>
+      <packagereq type="default">xarchiver</packagereq>
       <packagereq type="default">xfce-mcs-manager</packagereq>
       <packagereq type="default">xfce-mcs-plugins</packagereq>
       <packagereq type="default">xfce4-appfinder</packagereq>
       <packagereq type="default">xfce4-icon-theme</packagereq>
       <packagereq type="default">xfce4-mailwatch-plugin</packagereq>
       <packagereq type="default">xfce4-mixer</packagereq>
+      <packagereq type="default">xfwm4-theme-nokoda</packagereq>
       <packagereq type="optional">orage</packagereq>
       <packagereq type="optional">Terminal</packagereq>
       <packagereq type="optional">thunar-archive-plugin</packagereq>
       <packagereq type="optional">thunar-media-tags-plugin</packagereq>
-      <packagereq type="optional">thunar-volman</packagereq>
-      <packagereq type="optional">xarchiver</packagereq>
+      <packagereq type="optional">thunar-shares</packagereq>
       <packagereq type="optional">xfce4-battery-plugin</packagereq>
       <packagereq type="optional">xfce4-clipman-plugin</packagereq>
       <packagereq type="optional">xfce4-cpugraph-plugin</packagereq>
@@ -4186,6 +4214,7 @@
       <packagereq type="optional">xfce4-eyes-plugin</packagereq>
       <packagereq type="optional">xfce4-fsguard-plugin</packagereq>
       <packagereq type="optional">xfce4-genmon-plugin</packagereq>
+      <packagereq type="optional">xfce4-gsynaptics-mcs-plugin</packagereq>
       <packagereq type="optional">xfce4-minicmd-plugin</packagereq>
       <packagereq type="optional">xfce4-mount-plugin</packagereq>
       <packagereq type="optional">xfce4-netload-plugin</packagereq>
@@ -4197,6 +4226,7 @@
       <packagereq type="optional">xfce4-smartbookmark-plugin</packagereq>
       <packagereq type="optional">xfce4-systemload-plugin</packagereq>
       <packagereq type="optional">xfce4-taskmanager</packagereq>
+      <packagereq type="optional">xfce4-time-out-plugin</packagereq>
       <packagereq type="optional">xfce4-timer-plugin</packagereq>
       <packagereq type="optional">xfce4-verve-plugin</packagereq>
       <packagereq type="optional">xfce4-wavelan-plugin</packagereq>
@@ -4225,6 +4255,7 @@
       <packagereq type="mandatory">xfce-mcs-manager-devel</packagereq>
       <packagereq type="mandatory">xfce4-panel-devel</packagereq>
       <packagereq type="mandatory">xfce4-session-devel</packagereq>
+      <packagereq type="default">Thunar-devel</packagereq>
       <packagereq type="optional">xfce4-dev-tools</packagereq>
     </packagelist>
   </group>

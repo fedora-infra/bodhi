@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: comps\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-26 14:03-0400\n"
+"POT-Creation-Date: 2008-04-17 07:36-0400\n"
 "PO-Revision-Date: 2005-02-15 13:30+0200\n"
 "Last-Translator: Translate.org.za <info@translate.org.za>\n"
 "Language-Team: Afrikaans <translate-discuss-af@lists.sourceforge.net>\n"
@@ -15,102 +15,249 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../comps-fe5.xml.in.h:1 ../comps-fe6.xml.in.h:1 ../comps-f7.xml.in.h:1
-#: ../comps-f8.xml.in.h:1
+#: ../comps-f7.xml.in.h:1 ../comps-f8.xml.in.h:1 ../comps-f9.xml.in.h:1
 msgid "A lightweight desktop environment that works well on low end machines."
 msgstr "'n Liggewig werkskermomgewing wat goed werk op stadige rekenaars."
 
-#: ../comps-fe5.xml.in.h:2 ../comps-fe6.xml.in.h:2 ../comps-f7.xml.in.h:2
-#: ../comps-f8.xml.in.h:2 ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+#: ../comps-f7.xml.in.h:2 ../comps-f8.xml.in.h:2 ../comps-f9.xml.in.h:2
+#: ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
 msgid "Administration Tools"
 msgstr "Administrasienutsgoed"
 
-#: ../comps-fe5.xml.in.h:3 ../comps-fe6.xml.in.h:3 ../comps-f7.xml.in.h:5
-#: ../comps-f8.xml.in.h:5 ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3 ../comps-f9.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "Afrikaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4 ../comps-f9.xml.in.h:4
+#, fuzzy
+msgid "Albanian Support"
+msgstr "Roemeense taalsteun"
+
+#: ../comps-f7.xml.in.h:5 ../comps-f8.xml.in.h:5 ../comps-f9.xml.in.h:5
+#: ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
 msgid "Applications"
 msgstr "Toepassings"
 
-#: ../comps-fe5.xml.in.h:4 ../comps-fe6.xml.in.h:4 ../comps-el4.xml.in.h:3
-#: ../comps-el5.xml.in.h:3
-msgid "Applications for a variety of tasks"
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6 ../comps-f9.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:5 ../comps-fe6.xml.in.h:5 ../comps-f7.xml.in.h:7
-#: ../comps-f8.xml.in.h:7 ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+#: ../comps-f7.xml.in.h:7 ../comps-f8.xml.in.h:7 ../comps-f9.xml.in.h:7
+#: ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
 msgid "Arabic Support"
 msgstr "Arabiese taalsteun"
 
-#: ../comps-fe5.xml.in.h:6 ../comps-fe6.xml.in.h:6 ../comps-f7.xml.in.h:8
-#: ../comps-f8.xml.in.h:8 ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+#: ../comps-f7.xml.in.h:8 ../comps-f8.xml.in.h:8 ../comps-f9.xml.in.h:8
+#: ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
 #, fuzzy
 msgid "Armenian Support"
 msgstr "Roemeense taalsteun"
 
-#: ../comps-fe5.xml.in.h:7 ../comps-fe6.xml.in.h:7 ../comps-f7.xml.in.h:10
-#: ../comps-f8.xml.in.h:10 ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9 ../comps-f9.xml.in.h:9
+msgid "Assamese Support"
+msgstr "Assamese taalsteun"
+
+#: ../comps-f7.xml.in.h:10 ../comps-f8.xml.in.h:10 ../comps-f9.xml.in.h:10
+#: ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
 msgid "Authoring and Publishing"
 msgstr "Skrywery en publisering"
 
-#: ../comps-fe5.xml.in.h:8 ../comps-fe6.xml.in.h:8 ../comps-f7.xml.in.h:12
-#: ../comps-f8.xml.in.h:12 ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11 ../comps-f9.xml.in.h:11
+msgid "Base"
+msgstr "Basis"
+
+#: ../comps-f7.xml.in.h:12 ../comps-f8.xml.in.h:12 ../comps-f9.xml.in.h:12
+#: ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
 #, fuzzy
 msgid "Base System"
 msgstr "Rekenaar"
 
-#: ../comps-fe5.xml.in.h:9 ../comps-fe6.xml.in.h:10 ../comps-f7.xml.in.h:31
-#: ../comps-f8.xml.in.h:31 ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13 ../comps-f9.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14 ../comps-f9.xml.in.h:14
+#, fuzzy
+msgid "Basque Support"
+msgstr "Assamese taalsteun"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15 ../comps-f9.xml.in.h:15
+#, fuzzy
+msgid "Belarusian Support"
+msgstr "Hongaarse taalsteun"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16 ../comps-f9.xml.in.h:16
+msgid "Bengali Support"
+msgstr "Bengaalse taalsteun"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17 ../comps-f9.xml.in.h:17
+#, fuzzy
+msgid "Bhutanese Support"
+msgstr "Sjinese taalsteun"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18 ../comps-f9.xml.in.h:18
+#, fuzzy
+msgid "Bosnian Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19 ../comps-f9.xml.in.h:19
+#, fuzzy
+msgid "Brazilian Portuguese Support"
+msgstr "Brasiliaanse Portugees"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20 ../comps-f9.xml.in.h:20
+#, fuzzy
+msgid "Breton Support"
+msgstr "Koreaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:22 ../comps-f9.xml.in.h:22
+#, fuzzy
+msgid "Bulgarian Support"
+msgstr "Hongaarse taalsteun"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:23 ../comps-f9.xml.in.h:23
+msgid "Catalan Support"
+msgstr "Katalaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:24 ../comps-f9.xml.in.h:24
+msgid "Chinese Support"
+msgstr "Sjinese taalsteun"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:25 ../comps-f9.xml.in.h:25
+msgid "Clustering"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:26 ../comps-f9.xml.in.h:26
+#, fuzzy
+msgid "Clustering Support"
+msgstr "Russiese taalsteun"
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:27 ../comps-f9.xml.in.h:27
+msgid "Core"
+msgstr "Kern"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:28 ../comps-f9.xml.in.h:28
+#, fuzzy
+msgid "Croatian Support"
+msgstr "Katalaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:29 ../comps-f9.xml.in.h:29
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "Tjseggiese taalsteun"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:30 ../comps-f9.xml.in.h:30
+msgid "DNS Name Server"
+msgstr "DNS-naambediener"
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:31 ../comps-f9.xml.in.h:31
+msgid "Danish Support"
+msgstr "Deense taalsteun"
+
+#: ../comps-f7.xml.in.h:31 ../comps-f8.xml.in.h:32 ../comps-f9.xml.in.h:32
+#: ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
 #, fuzzy
 msgid "Desktop Environments"
 msgstr "KDE-werkskermomgewing"
 
-#: ../comps-fe5.xml.in.h:10 ../comps-fe6.xml.in.h:11 ../comps-f7.xml.in.h:32
-#: ../comps-f8.xml.in.h:32 ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+#: ../comps-f7.xml.in.h:32 ../comps-f8.xml.in.h:33 ../comps-f9.xml.in.h:33
+#: ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
 #, fuzzy
 msgid "Desktop environments"
 msgstr "KDE-werkskermomgewing"
 
-#: ../comps-fe5.xml.in.h:11 ../comps-fe6.xml.in.h:12 ../comps-f7.xml.in.h:33
-#: ../comps-f8.xml.in.h:33 ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+#: ../comps-f7.xml.in.h:33 ../comps-f8.xml.in.h:34 ../comps-f9.xml.in.h:34
+#: ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
 msgid "Development"
 msgstr "Ontwikkeling"
 
-#: ../comps-fe5.xml.in.h:12 ../comps-fe6.xml.in.h:13 ../comps-f7.xml.in.h:35
-#: ../comps-f8.xml.in.h:35 ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:35 ../comps-f9.xml.in.h:35
+msgid "Development Libraries"
+msgstr "Ontwikkelingsprogrammateke"
+
+#: ../comps-f7.xml.in.h:35 ../comps-f8.xml.in.h:36 ../comps-f9.xml.in.h:36
+#: ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
 msgid "Development Tools"
 msgstr "Ontwikkelingsnutsgoed"
 
-#: ../comps-fe5.xml.in.h:13 ../comps-fe6.xml.in.h:14 ../comps-el4.xml.in.h:12
-#: ../comps-el5.xml.in.h:13
-msgid "Dialup Networking Support"
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:37 ../comps-f9.xml.in.h:37
+#, fuzzy
+msgid "Dial-up Networking Support"
 msgstr "Inbelnetwerksteun"
 
-#: ../comps-fe5.xml.in.h:14 ../comps-fe6.xml.in.h:15 ../comps-f7.xml.in.h:39
-#: ../comps-f8.xml.in.h:39 ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:38 ../comps-f9.xml.in.h:38
+msgid "Dutch Support"
+msgstr "Nederlandse taalsteun"
+
+#: ../comps-f7.xml.in.h:38
+msgid "Eclipse"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:39 ../comps-f8.xml.in.h:39 ../comps-f9.xml.in.h:39
+#: ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
 msgid "Editors"
 msgstr "Redigeerders"
 
-#: ../comps-fe5.xml.in.h:15 ../comps-fe6.xml.in.h:16 ../comps-f7.xml.in.h:40
-#: ../comps-f8.xml.in.h:40 ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+#: ../comps-f7.xml.in.h:40 ../comps-f8.xml.in.h:40 ../comps-f9.xml.in.h:40
+#: ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
 msgid "Educational Software"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:16 ../comps-fe6.xml.in.h:17 ../comps-f7.xml.in.h:41
-#: ../comps-f8.xml.in.h:41 ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+#: ../comps-f7.xml.in.h:41 ../comps-f8.xml.in.h:41 ../comps-f9.xml.in.h:41
+#: ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
 msgid "Educational software for learning"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:17 ../comps-fe6.xml.in.h:18 ../comps-f7.xml.in.h:42
-#: ../comps-f8.xml.in.h:42 ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+#: ../comps-f7.xml.in.h:42 ../comps-f8.xml.in.h:42 ../comps-f9.xml.in.h:42
+#: ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
 msgid "Engineering and Scientific"
 msgstr "Ingenieurs en wetenskaplik"
 
-#: ../comps-fe5.xml.in.h:18 ../comps-fe6.xml.in.h:19 ../comps-f7.xml.in.h:46
-#: ../comps-f8.xml.in.h:46 ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43 ../comps-f9.xml.in.h:43
+#, fuzzy
+msgid "English (UK) Support"
+msgstr "Deense taalsteun"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44 ../comps-f9.xml.in.h:45
+msgid "Estonian Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45 ../comps-f9.xml.in.h:46
+#, fuzzy
+msgid "Ethiopic Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f7.xml.in.h:46 ../comps-f8.xml.in.h:46 ../comps-f9.xml.in.h:47
+#: ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
 msgid "FTP Server"
 msgstr "FTP-bediener"
 
-#: ../comps-fe5.xml.in.h:19 ../comps-fe6.xml.in.h:20 ../comps-f7.xml.in.h:51
-#: ../comps-f8.xml.in.h:51 ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47 ../comps-f9.xml.in.h:48
+#, fuzzy
+msgid "Faeroese Support"
+msgstr "Griekse taalsteun"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:49 ../comps-f9.xml.in.h:50
+#: ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#, fuzzy
+msgid "Fedora Packager"
+msgstr "Ondersteunde pakkette"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:50 ../comps-f9.xml.in.h:51
+#, fuzzy
+msgid "Filipino Support"
+msgstr "Italiaanse taalsteun"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:51 ../comps-f9.xml.in.h:52
+msgid "Finnish Support"
+msgstr "Finse taalsteun"
+
+#: ../comps-f7.xml.in.h:51 ../comps-f8.xml.in.h:54 ../comps-f9.xml.in.h:55
+msgid "French Support"
+msgstr "Franse taalsteun"
+
+#: ../comps-f7.xml.in.h:52 ../comps-f8.xml.in.h:55 ../comps-f9.xml.in.h:56
+#: ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
 msgid ""
 "From CD recording to playing audio CDs and multimedia files, this package "
 "group allows you to work with sound and video on the system."
@@ -119,552 +266,17 @@ msgstr ""
 "gebruik - alles van CD-opnames tot by die speel van musiek-CD's en "
 "multimedialêers."
 
-#: ../comps-fe5.xml.in.h:20 ../comps-fe6.xml.in.h:21 ../comps-f7.xml.in.h:52
-#: ../comps-f8.xml.in.h:52 ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+#: ../comps-f7.xml.in.h:53 ../comps-f8.xml.in.h:56 ../comps-f9.xml.in.h:57
+#: ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
 msgid "GNOME Desktop Environment"
 msgstr "GNOME-werkskermomgewing"
 
-#: ../comps-fe5.xml.in.h:21 ../comps-fe6.xml.in.h:22 ../comps-f7.xml.in.h:53
-#: ../comps-f8.xml.in.h:53 ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:57 ../comps-f9.xml.in.h:58
+#: ../comps-el4.xml.in.h:21 ../comps-el5.xml.in.h:22
 msgid "GNOME Software Development"
 msgstr "GNOME-sagtewareontwikkeling"
 
-#: ../comps-fe5.xml.in.h:22 ../comps-fe6.xml.in.h:23 ../comps-el4.xml.in.h:21
-#: ../comps-el5.xml.in.h:22
-msgid ""
-"GNOME is a powerful, graphical user interface which includes a panel, "
-"desktop, system icons, and a graphical file manager."
-msgstr ""
-"GNOME is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, "
-"werkskerm, stelselikone en 'n grafiese lêerreëler."
-
-#: ../comps-fe5.xml.in.h:23 ../comps-fe6.xml.in.h:24 ../comps-f7.xml.in.h:57
-#: ../comps-f8.xml.in.h:57 ../comps-el5.xml.in.h:23
-msgid "Games and Entertainment"
-msgstr "Speletjies en vermaak"
-
-#: ../comps-fe5.xml.in.h:24 ../comps-fe6.xml.in.h:25 ../comps-f7.xml.in.h:60
-#: ../comps-f8.xml.in.h:60 ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:24
-msgid "Graphical Internet"
-msgstr "Grafiese internet"
-
-#: ../comps-fe5.xml.in.h:25 ../comps-fe6.xml.in.h:26 ../comps-f7.xml.in.h:61
-#: ../comps-f8.xml.in.h:61 ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
-msgid "Graphics"
-msgstr "Grafika"
-
-#: ../comps-fe5.xml.in.h:26 ../comps-fe6.xml.in.h:27 ../comps-f7.xml.in.h:64
-#: ../comps-f8.xml.in.h:64 ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
-#, fuzzy
-msgid "Hardware Support"
-msgstr "Hebreeuse taalsteun"
-
-#: ../comps-fe5.xml.in.h:27 ../comps-fe6.xml.in.h:28 ../comps-f7.xml.in.h:65
-#: ../comps-f8.xml.in.h:65 ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
-msgid "Hebrew Support"
-msgstr "Hebreeuse taalsteun"
-
-#: ../comps-fe5.xml.in.h:28 ../comps-fe6.xml.in.h:29 ../comps-f7.xml.in.h:70
-#: ../comps-f8.xml.in.h:70 ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
-msgid ""
-"Install these packages in order to develop GTK+ and GNOME graphical "
-"applications."
-msgstr ""
-"Installeer hierdie pakkette om grafiese toepassings vir GTK+ en GNOME te "
-"ontwikkel."
-
-#: ../comps-fe5.xml.in.h:29 ../comps-fe6.xml.in.h:30 ../comps-f7.xml.in.h:71
-#: ../comps-f8.xml.in.h:71
-msgid ""
-"Install these packages in order to develop GTK+ and XFCE graphical "
-"applications."
-msgstr ""
-"Installeer hierdie pakkette om GTK+- en XFCE- grafiese toepassings te "
-"ontwikkel."
-
-#: ../comps-fe5.xml.in.h:30 ../comps-fe6.xml.in.h:31 ../comps-f7.xml.in.h:72
-#: ../comps-f8.xml.in.h:72 ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
-msgid "Install these packages to develop QT and KDE graphical applications."
-msgstr ""
-"Installeer hierdie pakkette om grafiese toepassings vir QT en KDE te "
-"ontwikkel."
-
-#: ../comps-fe5.xml.in.h:31 ../comps-fe6.xml.in.h:32 ../comps-f7.xml.in.h:74
-#: ../comps-f8.xml.in.h:74 ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
-msgid ""
-"Install this group of packages to use the base graphical (X) user interface."
-msgstr ""
-"Installeer hierdie groep pakkette om die basiese grafiese "
-"gebruikerskoppelvlak (X) te gebruik."
-
-#: ../comps-fe5.xml.in.h:32 ../comps-fe6.xml.in.h:33 ../comps-f7.xml.in.h:78
-#: ../comps-f8.xml.in.h:78 ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
-msgid "Japanese Support"
-msgstr "Japanese taalsteun"
-
-#: ../comps-fe5.xml.in.h:33 ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:79
-#: ../comps-el4.xml.in.h:30
-msgid "Java"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:34 ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:80
-#: ../comps-el4.xml.in.h:31
-#, fuzzy
-msgid "Java Development"
-msgstr "Ontwikkeling"
-
-#: ../comps-fe5.xml.in.h:35 ../comps-fe6.xml.in.h:34 ../comps-f7.xml.in.h:81
-#: ../comps-f8.xml.in.h:81 ../comps-el4.xml.in.h:32 ../comps-el5.xml.in.h:32
-msgid "KDE (K Desktop Environment)"
-msgstr "KDE (K Desktop Environment)"
-
-#: ../comps-fe5.xml.in.h:36 ../comps-fe6.xml.in.h:35 ../comps-f7.xml.in.h:82
-#: ../comps-f8.xml.in.h:82 ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
-msgid "KDE Software Development"
-msgstr "Sagtewareontwikkeling vir KDE"
-
-#: ../comps-fe5.xml.in.h:37 ../comps-fe6.xml.in.h:36 ../comps-el4.xml.in.h:34
-#: ../comps-el5.xml.in.h:34
-msgid ""
-"KDE is a powerful, graphical user interface which includes a panel, desktop, "
-"system icons, and a graphical file manager."
-msgstr ""
-"KDE is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, werkskerm, "
-"rekenaarikone en 'n grafiese lêerreëler."
-
-#: ../comps-fe5.xml.in.h:38 ../comps-fe6.xml.in.h:37 ../comps-f7.xml.in.h:94
-#: ../comps-f8.xml.in.h:94 ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
-msgid "Mail Server"
-msgstr "Posbediener"
-
-#: ../comps-fe5.xml.in.h:39 ../comps-fe6.xml.in.h:38 ../comps-f7.xml.in.h:100
-#: ../comps-f8.xml.in.h:100 ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
-msgid "Network Servers"
-msgstr "Netwerkbedieners"
-
-#: ../comps-fe5.xml.in.h:40 ../comps-fe6.xml.in.h:39 ../comps-f7.xml.in.h:101
-#: ../comps-f8.xml.in.h:101 ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
-msgid "News Server"
-msgstr "Nuusbediener"
-
-#: ../comps-fe5.xml.in.h:41 ../comps-fe6.xml.in.h:40 ../comps-f7.xml.in.h:104
-#: ../comps-f8.xml.in.h:104 ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
-msgid "Office/Productivity"
-msgstr "Kantoor/produktiwiteit"
-
-#: ../comps-fe5.xml.in.h:42 ../comps-fe6.xml.in.h:41 ../comps-f7.xml.in.h:106
-#: ../comps-f8.xml.in.h:106 ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
-msgid ""
-"Packages which provide functionality for developing and building "
-"applications."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:43 ../comps-fe6.xml.in.h:42 ../comps-f7.xml.in.h:119
-#: ../comps-f8.xml.in.h:119 ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
-msgid "Servers"
-msgstr "Bedieners"
-
-#: ../comps-fe5.xml.in.h:44 ../comps-fe6.xml.in.h:43 ../comps-f7.xml.in.h:120
-#: ../comps-f8.xml.in.h:120 ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
-msgid ""
-"Simple window managers that aren't part of a larger desktop environment."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:45 ../comps-fe6.xml.in.h:44 ../comps-f7.xml.in.h:125
-#: ../comps-f8.xml.in.h:125 ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
-msgid "Software used for running network servers"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:46 ../comps-fe6.xml.in.h:45 ../comps-el4.xml.in.h:43
-#: ../comps-el5.xml.in.h:43
-msgid ""
-"Sometimes called text editors, these are programs that allow you to create "
-"and edit files. These include Emacs and Vi."
-msgstr ""
-"Hierdie programme word soms teksredigeerders genoem en stel jou in staat om "
-"lêers te skep en redigeer. Dit sluit Emacs en Vi in."
-
-#: ../comps-fe5.xml.in.h:47 ../comps-fe6.xml.in.h:46 ../comps-f7.xml.in.h:128
-#: ../comps-f8.xml.in.h:128 ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
-msgid "Sound and Video"
-msgstr "Klank en video"
-
-#: ../comps-fe5.xml.in.h:48 ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:132
-#: ../comps-el4.xml.in.h:45
-#, fuzzy
-msgid "Support for developing programs in the Java programming language."
-msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
-
-#: ../comps-fe5.xml.in.h:49 ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:133
-#: ../comps-el4.xml.in.h:46
-#, fuzzy
-msgid "Support for running programs written in the Java programming language."
-msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
-
-#: ../comps-fe5.xml.in.h:50 ../comps-fe6.xml.in.h:47 ../comps-f7.xml.in.h:136
-#: ../comps-f8.xml.in.h:136 ../comps-el4.xml.in.h:47 ../comps-el5.xml.in.h:45
-msgid "System Tools"
-msgstr "Rekenaarnutsgoed"
-
-#: ../comps-fe5.xml.in.h:51 ../comps-fe6.xml.in.h:48 ../comps-f7.xml.in.h:140
-#: ../comps-f8.xml.in.h:140 ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
-msgid "Text-based Internet"
-msgstr "Teksgebaseerde internet"
-
-#: ../comps-fe5.xml.in.h:52 ../comps-fe6.xml.in.h:49 ../comps-el4.xml.in.h:49
-#: ../comps-el5.xml.in.h:47
-msgid "The XEmacs text editor."
-msgstr "Die Xemacs-teksredigeerder."
-
-#: ../comps-fe5.xml.in.h:53 ../comps-fe6.xml.in.h:50 ../comps-f7.xml.in.h:143
-#: ../comps-f8.xml.in.h:143 ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
-msgid "The applications include office suites, PDF viewers, and more."
-msgstr "Die toepassings sluit kantoorsuites, PDF-lesers en nog meer in."
-
-#: ../comps-fe5.xml.in.h:54 ../comps-fe6.xml.in.h:51 ../comps-f7.xml.in.h:145
-#: ../comps-f8.xml.in.h:145 ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
-#, fuzzy
-msgid "These packages allow you to configure an IMAP or SMTP mail server."
-msgstr ""
-"Hierdie pakkette laat jou toe om 'n IMAP- of Postfix-posbediener in te stel."
-
-#: ../comps-fe5.xml.in.h:55 ../comps-fe6.xml.in.h:52 ../comps-f7.xml.in.h:147
-#: ../comps-f8.xml.in.h:147 ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
-#, fuzzy
-msgid ""
-"These packages are helpful when developing web applications or web pages."
-msgstr ""
-"Hierdie pakkette stel jou in staat om toepassings vir die X Window-stelsel "
-"te ontwikkel."
-
-#: ../comps-fe5.xml.in.h:56 ../comps-fe6.xml.in.h:53 ../comps-el4.xml.in.h:53
-#: ../comps-el5.xml.in.h:51
-msgid ""
-"These tools allow you to create documentation in the DocBook format and "
-"convert them to HTML, PDF, Postscript, and text."
-msgstr ""
-"Hierdie nutsgoed stel jou in staat om dokumentasie in Docbook-formaat te "
-"skep en dit na HTML, PDF, Postscript en teks om te skakel."
-
-#: ../comps-fe5.xml.in.h:57 ../comps-fe6.xml.in.h:54 ../comps-f7.xml.in.h:154
-#: ../comps-f8.xml.in.h:154 ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
-msgid "These tools allow you to run a Web server on the system."
-msgstr ""
-"Hierdie nutsgoed stel jou in staat om 'n webbediener op die rekenaar te laat "
-"loop."
-
-#: ../comps-fe5.xml.in.h:58 ../comps-fe6.xml.in.h:55 ../comps-f7.xml.in.h:155
-#: ../comps-f8.xml.in.h:155 ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
-msgid "These tools allow you to run an FTP server on the system."
-msgstr ""
-"Hierdie nutsgoed stel jou in staat om 'n FTP-bediener op die rekenaar te "
-"laat loop."
-
-#: ../comps-fe5.xml.in.h:59 ../comps-fe6.xml.in.h:56 ../comps-f7.xml.in.h:156
-#: ../comps-f8.xml.in.h:156 ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
-msgid ""
-"These tools include core development tools such as automake, gcc, perl, "
-"python, and debuggers."
-msgstr ""
-"Hierdie nutsgoed sluit kernontwikkelingsnutsgoed soos automake,gcc, perl, "
-"python en ontfouters in."
-
-#: ../comps-fe5.xml.in.h:60 ../comps-fe6.xml.in.h:57 ../comps-f7.xml.in.h:157
-#: ../comps-f8.xml.in.h:157 ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
-msgid "This group allows you to configure the system as a news server."
-msgstr ""
-"Hierdie groep stel jou in staat om die rekenaar as 'n nuusbediener op te "
-"stel."
-
-#: ../comps-fe5.xml.in.h:61 ../comps-fe6.xml.in.h:58 ../comps-f7.xml.in.h:160
-#: ../comps-f8.xml.in.h:160 ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
-msgid "This group includes graphical email, Web, and chat clients."
-msgstr "Hierdie groep sluit grafiese e-pos-, web- en kletskliënte in."
-
-#: ../comps-fe5.xml.in.h:62 ../comps-fe6.xml.in.h:59 ../comps-f7.xml.in.h:161
-#: ../comps-f8.xml.in.h:161 ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
-msgid ""
-"This group includes packages for performing mathematical and scientific "
-"computations and plotting, as well as unit conversion."
-msgstr ""
-"Hierdie groep sluit pakkette in vir die uitvoer van wiskundige en "
-"wetenskaplike berekenings en meting, asook eenheidomskakeling."
-
-#: ../comps-fe5.xml.in.h:63 ../comps-fe6.xml.in.h:60 ../comps-f7.xml.in.h:162
-#: ../comps-f8.xml.in.h:162 ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
-msgid "This group includes packages to help you manipulate and scan images."
-msgstr ""
-"Hierdie groep sluit pakkette in wat jou help om prente te manipuleer en te "
-"skandeer."
-
-#: ../comps-fe5.xml.in.h:64 ../comps-fe6.xml.in.h:61 ../comps-f7.xml.in.h:163
-#: ../comps-f8.xml.in.h:163 ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
-msgid ""
-"This group includes text-based email, Web, and chat clients. These "
-"applications do not require the X Window System."
-msgstr ""
-"Hierdie groep sluit teksgebaseerde e-pos-, web- en kletskliënte in. Hierdie "
-"toepassings vereis nie die X Window-stelsel nie."
-
-#: ../comps-fe5.xml.in.h:65 ../comps-fe6.xml.in.h:62 ../comps-f7.xml.in.h:164
-#: ../comps-f8.xml.in.h:164 ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
-msgid ""
-"This group is a collection of graphical administration tools for the system, "
-"such as for managing user accounts and configuring system hardware."
-msgstr ""
-"Hierdie groep is 'n versameling grafiese administrasienutsgoed vir die "
-"rekenaar, byvoorbeeld vir die bestuur van gebruikersrekeninge en die "
-"opstelling van rekenaarhardeware."
-
-#: ../comps-fe5.xml.in.h:66 ../comps-fe6.xml.in.h:63 ../comps-el4.xml.in.h:63
-#: ../comps-el5.xml.in.h:61
-msgid "This group is a collection of network servers for specific purposes"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:67 ../comps-fe6.xml.in.h:64 ../comps-el4.xml.in.h:64
-#: ../comps-el5.xml.in.h:62
-msgid ""
-"This group is a collection of tools and resources of Arabic environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:68 ../comps-fe6.xml.in.h:65 ../comps-f7.xml.in.h:165
-#: ../comps-f8.xml.in.h:165 ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
-msgid ""
-"This group is a collection of tools and resources of Armenian environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:69 ../comps-fe6.xml.in.h:67 ../comps-el4.xml.in.h:66
-#: ../comps-el5.xml.in.h:65
-msgid ""
-"This group is a collection of tools and resources of Hebrew environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:70 ../comps-fe6.xml.in.h:68 ../comps-el4.xml.in.h:67
-#: ../comps-el5.xml.in.h:66
-msgid ""
-"This group is a collection of tools and resources of Japanese environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:71 ../comps-fe6.xml.in.h:69 ../comps-f7.xml.in.h:166
-#: ../comps-f8.xml.in.h:166 ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
-msgid ""
-"This group is a collection of tools for various hardware specific utilities."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:72 ../comps-fe6.xml.in.h:70 ../comps-f7.xml.in.h:167
-#: ../comps-f8.xml.in.h:167 ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
-msgid ""
-"This group is a collection of various tools for the system, such as the "
-"client for connecting to SMB shares and tools to monitor network traffic."
-msgstr ""
-"Hierdie groep is 'n versameling diverse nutsgoed vir die rekenaar, soos die "
-"kliënt om aan gedeelte SMB-hulpbronne te koppel en nutsgoed om "
-"netwerkverkeer te monitor."
-
-#: ../comps-fe5.xml.in.h:73 ../comps-fe6.xml.in.h:71 ../comps-f7.xml.in.h:179
-#: ../comps-f8.xml.in.h:179 ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
-msgid "Various core pieces of the system."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:74 ../comps-fe6.xml.in.h:72 ../comps-f7.xml.in.h:180
-#: ../comps-f8.xml.in.h:180 ../comps-el5.xml.in.h:70
-msgid "Various ways to relax and spend your free time."
-msgstr "'n Verskeidenheid maniere van ontspan en jou vrye tyd deurbring."
-
-#: ../comps-fe5.xml.in.h:75 ../comps-fe6.xml.in.h:73 ../comps-f7.xml.in.h:184
-#: ../comps-f8.xml.in.h:184 ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:71
-#, fuzzy
-msgid "Web Development"
-msgstr "Ontwikkeling"
-
-#: ../comps-fe5.xml.in.h:76 ../comps-fe6.xml.in.h:74 ../comps-f7.xml.in.h:185
-#: ../comps-f8.xml.in.h:185 ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:72
-msgid "Web Server"
-msgstr "Webbediener"
-
-#: ../comps-fe5.xml.in.h:77 ../comps-fe6.xml.in.h:75 ../comps-f7.xml.in.h:187
-#: ../comps-f8.xml.in.h:187 ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
-msgid "Window Managers"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:78 ../comps-fe6.xml.in.h:76 ../comps-f7.xml.in.h:190
-#: ../comps-f8.xml.in.h:190 ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
-msgid "X Window System"
-msgstr "X Window-stelsel"
-
-#: ../comps-fe5.xml.in.h:79 ../comps-fe6.xml.in.h:77 ../comps-el4.xml.in.h:75
-#: ../comps-el5.xml.in.h:75
-msgid "XEmacs"
-msgstr "XEmacs"
-
-#: ../comps-fe5.xml.in.h:80 ../comps-fe6.xml.in.h:78 ../comps-f7.xml.in.h:191
-#: ../comps-f8.xml.in.h:191
-msgid "XFCE"
-msgstr "XFCE"
-
-#: ../comps-fe5.xml.in.h:81 ../comps-fe6.xml.in.h:79 ../comps-f7.xml.in.h:192
-#: ../comps-f8.xml.in.h:192
-msgid "XFCE Software Development"
-msgstr "Sagtewareontwikkeling: XFCE"
-
-#: ../comps-fe6.xml.in.h:9 ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:28
-#: ../comps-el5.xml.in.h:8
-msgid "Czech Support"
-msgstr "Tjseggiese taalsteun"
-
-#: ../comps-fe6.xml.in.h:66 ../comps-el5.xml.in.h:64
-msgid ""
-"This group is a collection of tools and resources of Czech environments."
-msgstr ""
-
-#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3
-msgid "Afrikaans Support"
-msgstr "Afrikaanse taalsteun"
-
-#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4
-#, fuzzy
-msgid "Albanian Support"
-msgstr "Roemeense taalsteun"
-
-#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6
-msgid "Applications to perform a variety of tasks"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9
-msgid "Assamese Support"
-msgstr "Assamese taalsteun"
-
-#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11
-msgid "Base"
-msgstr "Basis"
-
-#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13
-msgid "Basic support for the Ruby programming language."
-msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
-
-#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14
-#, fuzzy
-msgid "Basque Support"
-msgstr "Assamese taalsteun"
-
-#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15
-#, fuzzy
-msgid "Belarusian Support"
-msgstr "Hongaarse taalsteun"
-
-#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16
-msgid "Bengali Support"
-msgstr "Bengaalse taalsteun"
-
-#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17
-#, fuzzy
-msgid "Bhutanese Support"
-msgstr "Sjinese taalsteun"
-
-#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18
-#, fuzzy
-msgid "Bosnian Support"
-msgstr "Estniese taalsteun"
-
-#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19
-#, fuzzy
-msgid "Brazilian Portuguese Support"
-msgstr "Brasiliaanse Portugees"
-
-#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20
-#, fuzzy
-msgid "Breton Support"
-msgstr "Koreaanse taalsteun"
-
-#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:21
-#, fuzzy
-msgid "Bulgarian Support"
-msgstr "Hongaarse taalsteun"
-
-#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:22
-msgid "Catalan Support"
-msgstr "Katalaanse taalsteun"
-
-#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:23
-msgid "Chinese Support"
-msgstr "Sjinese taalsteun"
-
-#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:24
-msgid "Clustering"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:25
-#, fuzzy
-msgid "Clustering Support"
-msgstr "Russiese taalsteun"
-
-#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:26
-msgid "Core"
-msgstr "Kern"
-
-#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:27
-#, fuzzy
-msgid "Croatian Support"
-msgstr "Katalaanse taalsteun"
-
-#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:29
-msgid "DNS Name Server"
-msgstr "DNS-naambediener"
-
-#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:30
-msgid "Danish Support"
-msgstr "Deense taalsteun"
-
-#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:34
-msgid "Development Libraries"
-msgstr "Ontwikkelingsprogrammateke"
-
-#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:36
-#, fuzzy
-msgid "Dial-up Networking Support"
-msgstr "Inbelnetwerksteun"
-
-#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:37
-msgid "Dutch Support"
-msgstr "Nederlandse taalsteun"
-
-#: ../comps-f7.xml.in.h:38 ../comps-f8.xml.in.h:38
-msgid "Eclipse"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43
-#, fuzzy
-msgid "English (UK) Support"
-msgstr "Deense taalsteun"
-
-#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44
-msgid "Estonian Support"
-msgstr "Estniese taalsteun"
-
-#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45
-#, fuzzy
-msgid "Ethiopic Support"
-msgstr "Estniese taalsteun"
-
-#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47
-#, fuzzy
-msgid "Faeroese Support"
-msgstr "Griekse taalsteun"
-
-#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:48
-#, fuzzy
-msgid "Filipino Support"
-msgstr "Italiaanse taalsteun"
-
-#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:49
-msgid "Finnish Support"
-msgstr "Finse taalsteun"
-
-#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:50
-msgid "French Support"
-msgstr "Franse taalsteun"
-
-#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:54
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:58 ../comps-f9.xml.in.h:59
 #, fuzzy
 msgid ""
 "GNOME is a powerful graphical user interface which includes a panel, "
@@ -673,74 +285,158 @@ msgstr ""
 "GNOME is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, "
 "werkskerm, stelselikone en 'n grafiese lêerreëler."
 
-#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:55
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:59 ../comps-f9.xml.in.h:60
 #, fuzzy
 msgid "Gaelic Support"
 msgstr "Arabiese taalsteun"
 
-#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:56
+#: ../comps-f7.xml.in.h:57 ../comps-f8.xml.in.h:60 ../comps-f9.xml.in.h:61
 #, fuzzy
 msgid "Galician Support"
 msgstr "Italiaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:58
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:61 ../comps-f9.xml.in.h:62
+#: ../comps-el5.xml.in.h:24
+msgid "Games and Entertainment"
+msgstr "Speletjies en vermaak"
+
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:62 ../comps-f9.xml.in.h:63
 #, fuzzy
 msgid "Georgian Support"
 msgstr "Duitse taalsteun"
 
-#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:59
+#: ../comps-f7.xml.in.h:60 ../comps-f8.xml.in.h:63 ../comps-f9.xml.in.h:64
 msgid "German Support"
 msgstr "Duitse taalsteun"
 
-#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:62
+#: ../comps-f7.xml.in.h:61 ../comps-f8.xml.in.h:64 ../comps-f9.xml.in.h:65
+#: ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+msgid "Graphical Internet"
+msgstr "Grafiese internet"
+
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:65 ../comps-f9.xml.in.h:66
+#: ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+msgid "Graphics"
+msgstr "Grafika"
+
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:66 ../comps-f9.xml.in.h:67
 msgid "Greek Support"
 msgstr "Griekse taalsteun"
 
-#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:63
+#: ../comps-f7.xml.in.h:64 ../comps-f8.xml.in.h:67 ../comps-f9.xml.in.h:68
 #, fuzzy
 msgid "Gujarati Support"
 msgstr "Pandjab taalsteun"
 
-#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:66
+#: ../comps-f7.xml.in.h:65 ../comps-f8.xml.in.h:68 ../comps-f9.xml.in.h:69
+#: ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+#, fuzzy
+msgid "Hardware Support"
+msgstr "Hebreeuse taalsteun"
+
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:69 ../comps-f9.xml.in.h:70
+#: ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+msgid "Hebrew Support"
+msgstr "Hebreeuse taalsteun"
+
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:70 ../comps-f9.xml.in.h:71
 #, fuzzy
 msgid "Hindi Support"
 msgstr "Finse taalsteun"
 
-#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:67
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:71 ../comps-f9.xml.in.h:72
 msgid "Hungarian Support"
 msgstr "Hongaarse taalsteun"
 
-#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:68
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:72 ../comps-f9.xml.in.h:73
 msgid "Icelandic Support"
 msgstr "Yslandse taalsteun"
 
-#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:69
+#: ../comps-f7.xml.in.h:70 ../comps-f8.xml.in.h:73 ../comps-f9.xml.in.h:74
 #, fuzzy
 msgid "Indonesian Support"
 msgstr "Roemeense taalsteun"
 
-#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:73
+#: ../comps-f7.xml.in.h:71 ../comps-f8.xml.in.h:74 ../comps-f9.xml.in.h:75
+#: ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+msgid ""
+"Install these packages in order to develop GTK+ and GNOME graphical "
+"applications."
+msgstr ""
+"Installeer hierdie pakkette om grafiese toepassings vir GTK+ en GNOME te "
+"ontwikkel."
+
+#: ../comps-f7.xml.in.h:72 ../comps-f8.xml.in.h:75 ../comps-f9.xml.in.h:76
+msgid ""
+"Install these packages in order to develop GTK+ and XFCE graphical "
+"applications."
+msgstr ""
+"Installeer hierdie pakkette om GTK+- en XFCE- grafiese toepassings te "
+"ontwikkel."
+
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:76 ../comps-f9.xml.in.h:77
+#: ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+msgid "Install these packages to develop QT and KDE graphical applications."
+msgstr ""
+"Installeer hierdie pakkette om grafiese toepassings vir QT en KDE te "
+"ontwikkel."
+
+#: ../comps-f7.xml.in.h:74 ../comps-f8.xml.in.h:77 ../comps-f9.xml.in.h:78
 msgid ""
 "Install these tools to enable the system to print or act as a print server."
 msgstr ""
 "Installeer hierdie nutsgoed sodat die rekenaar kan druk of as drukbediener "
 "kan optree."
 
-#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:75
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:78 ../comps-f9.xml.in.h:79
+#: ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+msgid ""
+"Install this group of packages to use the base graphical (X) user interface."
+msgstr ""
+"Installeer hierdie groep pakkette om die basiese grafiese "
+"gebruikerskoppelvlak (X) te gebruik."
+
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:80 ../comps-f9.xml.in.h:81
 #, fuzzy
 msgid "Inuktitut Support"
 msgstr "Walliese taalsteun"
 
-#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:76
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:81 ../comps-f9.xml.in.h:82
 #, fuzzy
 msgid "Irish Support"
 msgstr "Turkse taalsteun"
 
-#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:77
+#: ../comps-f7.xml.in.h:78 ../comps-f8.xml.in.h:82 ../comps-f9.xml.in.h:83
 msgid "Italian Support"
 msgstr "Italiaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:83
+#: ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:83 ../comps-f9.xml.in.h:84
+#: ../comps-el4.xml.in.h:30 ../comps-el5.xml.in.h:32
+msgid "Japanese Support"
+msgstr "Japanese taalsteun"
+
+#: ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:84 ../comps-f9.xml.in.h:85
+#: ../comps-el4.xml.in.h:31
+msgid "Java"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:81 ../comps-f8.xml.in.h:85 ../comps-f9.xml.in.h:86
+#: ../comps-el4.xml.in.h:32
+#, fuzzy
+msgid "Java Development"
+msgstr "Ontwikkeling"
+
+#: ../comps-f7.xml.in.h:82 ../comps-f8.xml.in.h:86 ../comps-f9.xml.in.h:87
+#: ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+msgid "KDE (K Desktop Environment)"
+msgstr "KDE (K Desktop Environment)"
+
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:87 ../comps-f9.xml.in.h:88
+#: ../comps-el4.xml.in.h:34 ../comps-el5.xml.in.h:34
+msgid "KDE Software Development"
+msgstr "Sagtewareontwikkeling vir KDE"
+
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:88 ../comps-f9.xml.in.h:89
 #, fuzzy
 msgid ""
 "KDE is a powerful graphical user interface which includes a panel, desktop, "
@@ -749,163 +445,206 @@ msgstr ""
 "KDE is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, werkskerm, "
 "rekenaarikone en 'n grafiese lêerreëler."
 
-#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:84
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:89 ../comps-f9.xml.in.h:90
 #, fuzzy
 msgid "Kannada Support"
 msgstr "Kanadese taalsteun"
 
-#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:85
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:90 ../comps-f9.xml.in.h:92
 #, fuzzy
 msgid "Khmer Support"
 msgstr "Hebreeuse taalsteun"
 
-#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:86
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:91 ../comps-f9.xml.in.h:93
 msgid "Korean Support"
 msgstr "Koreaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:87
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:92 ../comps-f9.xml.in.h:94
 #, fuzzy
 msgid "Languages"
 msgstr "Bengaalse taalsteun"
 
-#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:88
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:93 ../comps-f9.xml.in.h:95
 #, fuzzy
 msgid "Lao Support"
 msgstr "Tamil taalsteun"
 
-#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:89
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:94 ../comps-f9.xml.in.h:96
 #, fuzzy
 msgid "Latvian Support"
 msgstr "Katalaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:90
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:96 ../comps-f9.xml.in.h:98
 msgid "Legacy Network Server"
 msgstr "Argaïese netwerkbediener"
 
-#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:91
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:97 ../comps-f9.xml.in.h:99
 msgid "Legacy Software Development"
 msgstr "Argaïese sagtewareontwikkeling"
 
-#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:92
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:98 ../comps-f9.xml.in.h:100
 msgid "Legacy Software Support"
 msgstr "Steun: argaïese sagteware"
 
-#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:93
+#: ../comps-f7.xml.in.h:94 ../comps-f8.xml.in.h:99 ../comps-f9.xml.in.h:101
 #, fuzzy
 msgid "Lithuanian Support"
 msgstr "Italiaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:95
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:101 ../comps-f9.xml.in.h:104
+#: ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+msgid "Mail Server"
+msgstr "Posbediener"
+
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:102 ../comps-f9.xml.in.h:105
 #, fuzzy
 msgid "Malay Support"
 msgstr "Italiaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:96
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:103 ../comps-f9.xml.in.h:106
 #, fuzzy
 msgid "Malayalam Support"
 msgstr "Italiaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:97
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:104 ../comps-f9.xml.in.h:107
 #, fuzzy
 msgid "Maori Support"
 msgstr "Pandjab taalsteun"
 
-#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:98
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:105 ../comps-f9.xml.in.h:108
 #, fuzzy
 msgid "Marathi Support"
 msgstr "Pandjab taalsteun"
 
-#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:99
+#: ../comps-f7.xml.in.h:100 ../comps-f8.xml.in.h:107 ../comps-f9.xml.in.h:110
 msgid "MySQL Database"
 msgstr "MySQL-databasis"
 
-#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:102
+#: ../comps-f7.xml.in.h:101 ../comps-f8.xml.in.h:109 ../comps-f9.xml.in.h:112
+#: ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+msgid "Network Servers"
+msgstr "Netwerkbedieners"
+
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:110 ../comps-f9.xml.in.h:113
+#: ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+msgid "News Server"
+msgstr "Nuusbediener"
+
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:111 ../comps-f9.xml.in.h:115
 #, fuzzy
 msgid "Northern Sotho Support"
 msgstr "Koreaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:103
+#: ../comps-f7.xml.in.h:104 ../comps-f8.xml.in.h:112 ../comps-f9.xml.in.h:116
 msgid "Norwegian Support"
 msgstr "Noorweegse taalsteun"
 
-#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:105
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:113 ../comps-f9.xml.in.h:117
+#: ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+msgid "Office/Productivity"
+msgstr "Kantoor/produktiwiteit"
+
+#: ../comps-f7.xml.in.h:106 ../comps-f8.xml.in.h:115 ../comps-f9.xml.in.h:119
 #, fuzzy
 msgid "Oriya Support"
 msgstr "Siriese taalsteun"
 
-#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:107
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:116 ../comps-f9.xml.in.h:120
+#: ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+msgid ""
+"Packages which provide functionality for developing and building "
+"applications."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:117 ../comps-f9.xml.in.h:121
 #, fuzzy
 msgid "Persian Support"
 msgstr "Serwiese taalsteun"
 
-#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:108
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:118 ../comps-f9.xml.in.h:122
 msgid "Polish Support"
 msgstr "Poolse taalsteun"
 
-#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:109
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:119 ../comps-f9.xml.in.h:123
 msgid "Portuguese Support"
 msgstr "Portugese taalsteun"
 
-#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:110
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:120 ../comps-f9.xml.in.h:124
 msgid "PostgreSQL Database"
 msgstr "PostgreSQL-databasis"
 
-#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:111
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:121 ../comps-f9.xml.in.h:125
 msgid "Printing Support"
 msgstr "Druksteun"
 
-#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:112
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:122 ../comps-f9.xml.in.h:126
 msgid "Punjabi Support"
 msgstr "Pandjab taalsteun"
 
-#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:113
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:123 ../comps-f9.xml.in.h:127
 msgid "Romanian Support"
 msgstr "Roemeense taalsteun"
 
-#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:114
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:124 ../comps-f9.xml.in.h:128
 msgid "Ruby"
 msgstr "Ruby"
 
-#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:115
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:125 ../comps-f9.xml.in.h:129
 msgid "Russian Support"
 msgstr "Russiese taalsteun"
 
-#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:116
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:126 ../comps-f9.xml.in.h:130
 #, fuzzy
 msgid "Samoan Support"
 msgstr "Duitse taalsteun"
 
-#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:117
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:127 ../comps-f9.xml.in.h:131
 msgid "Serbian Support"
 msgstr "Serwiese taalsteun"
 
-#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:118
+#: ../comps-f7.xml.in.h:119 ../comps-f8.xml.in.h:128 ../comps-f9.xml.in.h:132
 msgid "Server Configuration Tools"
 msgstr "Bedienerinstelling-nutsgoed"
 
-#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:121
+#: ../comps-f7.xml.in.h:120 ../comps-f8.xml.in.h:129 ../comps-f9.xml.in.h:133
+#: ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+msgid "Servers"
+msgstr "Bedieners"
+
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:130 ../comps-f9.xml.in.h:134
+#: ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+msgid ""
+"Simple window managers that aren't part of a larger desktop environment."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:131 ../comps-f9.xml.in.h:135
 #, fuzzy
 msgid "Sinhala Support"
 msgstr "Italiaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:122
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:132 ../comps-f9.xml.in.h:136
 msgid "Slovak Support"
 msgstr "Slowaakse taalsteun"
 
-#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:123
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:133 ../comps-f9.xml.in.h:137
 msgid "Slovenian Support"
 msgstr "Sloweense taalsteun"
 
-#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:124
+#: ../comps-f7.xml.in.h:125 ../comps-f8.xml.in.h:134 ../comps-f9.xml.in.h:138
 msgid "Smallest possible installation"
 msgstr "Kleinste moontlike installasie"
 
-#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:126
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:135 ../comps-f9.xml.in.h:139
+#: ../comps-el4.xml.in.h:43 ../comps-el5.xml.in.h:43
+msgid "Software used for running network servers"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:136 ../comps-f9.xml.in.h:140
 #, fuzzy
-msgid "Somail Support"
+msgid "Somali Support"
 msgstr "Tamil taalsteun"
 
-#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:127
+#: ../comps-f7.xml.in.h:128 ../comps-f8.xml.in.h:137 ../comps-f9.xml.in.h:141
 #, fuzzy
 msgid ""
 "Sometimes called text editors, these are programs that allow you to create "
@@ -914,74 +653,122 @@ msgstr ""
 "Hierdie programme word soms teksredigeerders genoem en stel jou in staat om "
 "lêers te skep en redigeer. Dit sluit Emacs en Vi in."
 
-#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:129
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:138 ../comps-f9.xml.in.h:142
+#: ../comps-el4.xml.in.h:45 ../comps-el5.xml.in.h:45
+msgid "Sound and Video"
+msgstr "Klank en video"
+
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:139 ../comps-f9.xml.in.h:143
 #, fuzzy
 msgid "Southern Ndebele Support"
 msgstr "Koreaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:130
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:140 ../comps-f9.xml.in.h:144
 #, fuzzy
 msgid "Southern Sotho Support"
 msgstr "Koreaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:131
+#: ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:141 ../comps-f9.xml.in.h:145
 msgid "Spanish Support"
 msgstr "Spaanse taalsteun"
 
-#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:134
+#: ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:142 ../comps-f9.xml.in.h:146
+#: ../comps-el4.xml.in.h:46
+#, fuzzy
+msgid "Support for developing programs in the Java programming language."
+msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
+
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:143 ../comps-f9.xml.in.h:147
+#: ../comps-el4.xml.in.h:47
+#, fuzzy
+msgid "Support for running programs written in the Java programming language."
+msgstr "Basiese ondersteuning vir die Ruby-programmeringtaal."
+
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:144 ../comps-f9.xml.in.h:148
 #, fuzzy
 msgid "Swati Support"
 msgstr "Tamil taalsteun"
 
-#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:135
+#: ../comps-f7.xml.in.h:136 ../comps-f8.xml.in.h:145 ../comps-f9.xml.in.h:149
 msgid "Swedish Support"
 msgstr "Sweedse taalsteun"
 
-#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:137
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:146 ../comps-f9.xml.in.h:150
+#: ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+msgid "System Tools"
+msgstr "Rekenaarnutsgoed"
+
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:147 ../comps-f9.xml.in.h:151
 #, fuzzy
 msgid "Tagalog Support"
 msgstr "Tamil taalsteun"
 
-#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:138
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:148 ../comps-f9.xml.in.h:152
 msgid "Tamil Support"
 msgstr "Tamil taalsteun"
 
-#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:139
+#: ../comps-f7.xml.in.h:140 ../comps-f8.xml.in.h:149 ../comps-f9.xml.in.h:153
 #, fuzzy
 msgid "Telugu Support"
 msgstr "Walliese taalsteun"
 
-#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:141
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:150 ../comps-f9.xml.in.h:154
+#: ../comps-el4.xml.in.h:49 ../comps-el5.xml.in.h:47
+msgid "Text-based Internet"
+msgstr "Teksgebaseerde internet"
+
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:151 ../comps-f9.xml.in.h:155
 #, fuzzy
 msgid "Thai Support"
 msgstr "Tamil taalsteun"
 
-#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:142
+#: ../comps-f7.xml.in.h:143
 msgid "The Eclipse Integrated Development Environment."
 msgstr ""
 
-#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:144
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:152 ../comps-f9.xml.in.h:156
+#: ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+msgid "The applications include office suites, PDF viewers, and more."
+msgstr "Die toepassings sluit kantoorsuites, PDF-lesers en nog meer in."
+
+#: ../comps-f7.xml.in.h:145 ../comps-f8.xml.in.h:153 ../comps-f9.xml.in.h:157
 msgid ""
 "The packages in this group are core libraries needed to develop applications."
 msgstr ""
 "Die pakkette in hierdie groep is kernprogrammateke wat benodig word om "
 "toepassings te ontwikkel."
 
-#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:146
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:154 ../comps-f9.xml.in.h:158
+#: ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+#, fuzzy
+msgid "These packages allow you to configure an IMAP or SMTP mail server."
+msgstr ""
+"Hierdie pakkette laat jou toe om 'n IMAP- of Postfix-posbediener in te stel."
+
+#: ../comps-f7.xml.in.h:147 ../comps-f8.xml.in.h:155 ../comps-f9.xml.in.h:159
 msgid ""
 "These packages allow you to develop applications for the X Window System."
 msgstr ""
 "Hierdie pakkette stel jou in staat om toepassings vir die X Window-stelsel "
 "te ontwikkel."
 
-#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:148
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:156 ../comps-f9.xml.in.h:160
+#: ../comps-el4.xml.in.h:53 ../comps-el5.xml.in.h:51
+#, fuzzy
+msgid ""
+"These packages are helpful when developing web applications or web pages."
+msgstr ""
+"Hierdie pakkette stel jou in staat om toepassings vir die X Window-stelsel "
+"te ontwikkel."
+
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:157 ../comps-f9.xml.in.h:161
 msgid ""
 "These packages include network-based servers such as DHCP, Kerberos and NIS."
 msgstr ""
 "Hierdie pakkette sluit netwerkgebaseerde bedieners soos DHCP, Kerberos en "
 "NIS in."
 
-#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:149
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:158 ../comps-f9.xml.in.h:162
 msgid ""
 "These packages include servers for old network protocols such as rsh and "
 "telnet."
@@ -989,21 +776,21 @@ msgstr ""
 "Hierdie pakkette sluit bedieners vir ou netwerkprotokols soos rsh en telnet "
 "in."
 
-#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:150
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:159 ../comps-f9.xml.in.h:163
 #, fuzzy
 msgid "These packages provide a virtualization environment."
 msgstr ""
 "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red Hat "
 "Enterprise Linux."
 
-#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:151
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:160 ../comps-f9.xml.in.h:164
 #, fuzzy
 msgid "These packages provide compatibility with previous releases."
 msgstr ""
 "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red Hat "
 "Enterprise Linux."
 
-#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:152
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:161 ../comps-f9.xml.in.h:165
 #, fuzzy
 msgid ""
 "These packages provide support for various locales including fonts and input "
@@ -1012,7 +799,7 @@ msgstr ""
 "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red Hat "
 "Enterprise Linux."
 
-#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:153
+#: ../comps-f7.xml.in.h:154 ../comps-f8.xml.in.h:162 ../comps-f9.xml.in.h:166
 #, fuzzy
 msgid ""
 "These tools allow you to create documents in the DocBook format and convert "
@@ -1021,13 +808,43 @@ msgstr ""
 "Hierdie nutsgoed stel jou in staat om dokumentasie in Docbook-formaat te "
 "skep en dit na HTML, PDF, Postscript en teks om te skakel."
 
-#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:158
+#: ../comps-f7.xml.in.h:155 ../comps-f8.xml.in.h:163 ../comps-f9.xml.in.h:167
+#: ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+msgid "These tools allow you to run a Web server on the system."
+msgstr ""
+"Hierdie nutsgoed stel jou in staat om 'n webbediener op die rekenaar te laat "
+"loop."
+
+#: ../comps-f7.xml.in.h:156 ../comps-f8.xml.in.h:164 ../comps-f9.xml.in.h:168
+#: ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+msgid "These tools allow you to run an FTP server on the system."
+msgstr ""
+"Hierdie nutsgoed stel jou in staat om 'n FTP-bediener op die rekenaar te "
+"laat loop."
+
+#: ../comps-f7.xml.in.h:157 ../comps-f8.xml.in.h:165 ../comps-f9.xml.in.h:169
+#: ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+msgid ""
+"These tools include core development tools such as automake, gcc, perl, "
+"python, and debuggers."
+msgstr ""
+"Hierdie nutsgoed sluit kernontwikkelingsnutsgoed soos automake,gcc, perl, "
+"python en ontfouters in."
+
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:166 ../comps-f9.xml.in.h:170
+#: ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+msgid "This group allows you to configure the system as a news server."
+msgstr ""
+"Hierdie groep stel jou in staat om die rekenaar as 'n nuusbediener op te "
+"stel."
+
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:167 ../comps-f9.xml.in.h:171
 msgid "This group contains all of Red Hat's custom server configuration tools."
 msgstr ""
 "Hierdie groep bevat al die doelgemaakte bedienerinstelling-nutsgoed vir Red "
 "Hat."
 
-#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:159
+#: ../comps-f7.xml.in.h:160 ../comps-f8.xml.in.h:168 ../comps-f9.xml.in.h:172
 msgid ""
 "This group includes a minimal set of packages. Useful for creating small "
 "router/firewall boxes, for example."
@@ -1035,14 +852,76 @@ msgstr ""
 "Hierdie groep sluit die minimum stel pakkette in. Nuttig vir byvoorbeeld die "
 "skep van klein roeteerder- en brandmuurrekenaars."
 
-#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:168
+#: ../comps-f7.xml.in.h:161 ../comps-f8.xml.in.h:169 ../comps-f9.xml.in.h:173
+#: ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+msgid "This group includes graphical email, Web, and chat clients."
+msgstr "Hierdie groep sluit grafiese e-pos-, web- en kletskliënte in."
+
+#: ../comps-f7.xml.in.h:162 ../comps-f8.xml.in.h:170 ../comps-f9.xml.in.h:174
+#: ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+msgid ""
+"This group includes packages for performing mathematical and scientific "
+"computations and plotting, as well as unit conversion."
+msgstr ""
+"Hierdie groep sluit pakkette in vir die uitvoer van wiskundige en "
+"wetenskaplike berekenings en meting, asook eenheidomskakeling."
+
+#: ../comps-f7.xml.in.h:163 ../comps-f8.xml.in.h:171 ../comps-f9.xml.in.h:175
+#: ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+msgid "This group includes packages to help you manipulate and scan images."
+msgstr ""
+"Hierdie groep sluit pakkette in wat jou help om prente te manipuleer en te "
+"skandeer."
+
+#: ../comps-f7.xml.in.h:164 ../comps-f8.xml.in.h:172 ../comps-f9.xml.in.h:176
+#: ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+msgid ""
+"This group includes text-based email, Web, and chat clients. These "
+"applications do not require the X Window System."
+msgstr ""
+"Hierdie groep sluit teksgebaseerde e-pos-, web- en kletskliënte in. Hierdie "
+"toepassings vereis nie die X Window-stelsel nie."
+
+#: ../comps-f7.xml.in.h:165 ../comps-f8.xml.in.h:173 ../comps-f9.xml.in.h:177
+#: ../comps-el4.xml.in.h:63 ../comps-el5.xml.in.h:61
+msgid ""
+"This group is a collection of graphical administration tools for the system, "
+"such as for managing user accounts and configuring system hardware."
+msgstr ""
+"Hierdie groep is 'n versameling grafiese administrasienutsgoed vir die "
+"rekenaar, byvoorbeeld vir die bestuur van gebruikersrekeninge en die "
+"opstelling van rekenaarhardeware."
+
+#: ../comps-f7.xml.in.h:166 ../comps-f8.xml.in.h:174 ../comps-f9.xml.in.h:178
+#: ../comps-el4.xml.in.h:66 ../comps-el5.xml.in.h:64
+msgid ""
+"This group is a collection of tools and resources of Armenian environments."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:167 ../comps-f8.xml.in.h:175 ../comps-f9.xml.in.h:179
+#: ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+msgid ""
+"This group is a collection of tools for various hardware specific utilities."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:176 ../comps-f9.xml.in.h:180
+#: ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
+msgid ""
+"This group is a collection of various tools for the system, such as the "
+"client for connecting to SMB shares and tools to monitor network traffic."
+msgstr ""
+"Hierdie groep is 'n versameling diverse nutsgoed vir die rekenaar, soos die "
+"kliënt om aan gedeelte SMB-hulpbronne te koppel en nutsgoed om "
+"netwerkverkeer te monitor."
+
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:177 ../comps-f9.xml.in.h:181
 msgid ""
 "This package group allows you to run a DNS name server (BIND) on the system."
 msgstr ""
 "Hierdie pakket stel jou in staat om 'n DNS-naambediener (BIND) op die "
 "rekenaar te laat loop."
 
-#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:169
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:178 ../comps-f9.xml.in.h:182
 msgid ""
 "This package group allows you to share files between Linux and MS Windows"
 "(tm) systems."
@@ -1050,86 +929,332 @@ msgstr ""
 "Hierdie pakketgroep stel jou in staat om lêers tussen Linux- en MS Windows-"
 "rekenaars te deel."
 
-#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:170
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:179 ../comps-f9.xml.in.h:183
 msgid "This package group contains packages useful for use with MySQL."
 msgstr ""
 "Hierdie pakketgroep bevat pakkette wat nuttig saam met MySQL gebruik kan "
 "word."
 
-#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:171
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:180 ../comps-f9.xml.in.h:184
 msgid "This package group includes packages useful for use with Postgresql."
 msgstr ""
 "Hierdie pakketgroep bevat pakkette wat nuttig saam met PostgreSQL gebruik "
 "kan word."
 
-#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:172
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:181 ../comps-f9.xml.in.h:185
 #, fuzzy
 msgid "Tibetan Support"
 msgstr "Duitse taalsteun"
 
-#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:173
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:182 ../comps-f9.xml.in.h:186
 #, fuzzy
 msgid "Tonga Support"
 msgstr "Estniese taalsteun"
 
-#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:174
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:183 ../comps-f9.xml.in.h:187
+#: ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:70
+msgid "Tools and Utilities needed by a Fedora Packager"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:184 ../comps-f9.xml.in.h:188
 #, fuzzy
 msgid "Tsonga Support"
 msgstr "Estniese taalsteun"
 
-#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:175
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:185 ../comps-f9.xml.in.h:189
 #, fuzzy
 msgid "Tswana Support"
 msgstr "Tamil taalsteun"
 
-#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:176
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:186 ../comps-f9.xml.in.h:190
 msgid "Turkish Support"
 msgstr "Turkse taalsteun"
 
-#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:177
+#: ../comps-f7.xml.in.h:179 ../comps-f8.xml.in.h:187 ../comps-f9.xml.in.h:191
 msgid "Ukrainian Support"
 msgstr "Oekraïense taalsteun"
 
-#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:178
+#: ../comps-f7.xml.in.h:180 ../comps-f8.xml.in.h:188 ../comps-f9.xml.in.h:192
 #, fuzzy
 msgid "Urdu Support"
 msgstr "Walliese taalsteun"
 
-#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:181
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:189 ../comps-f9.xml.in.h:193
+#: ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:71
+msgid "Various core pieces of the system."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:190 ../comps-f9.xml.in.h:194
+#: ../comps-el5.xml.in.h:72
+msgid "Various ways to relax and spend your free time."
+msgstr "'n Verskeidenheid maniere van ontspan en jou vrye tyd deurbring."
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:191 ../comps-f9.xml.in.h:195
 #, fuzzy
 msgid "Venda Support"
 msgstr "Kanadese taalsteun"
 
-#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:182
+#: ../comps-f7.xml.in.h:184 ../comps-f8.xml.in.h:192 ../comps-f9.xml.in.h:196
 #, fuzzy
 msgid "Vietnamese Support"
 msgstr "Sjinese taalsteun"
 
-#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:183
+#: ../comps-f7.xml.in.h:185 ../comps-f8.xml.in.h:193 ../comps-f9.xml.in.h:197
 msgid "Virtualization"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:186
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:194 ../comps-f9.xml.in.h:199
+#: ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+#, fuzzy
+msgid "Web Development"
+msgstr "Ontwikkeling"
+
+#: ../comps-f7.xml.in.h:187 ../comps-f8.xml.in.h:195 ../comps-f9.xml.in.h:200
+#: ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "Web Server"
+msgstr "Webbediener"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:196 ../comps-f9.xml.in.h:201
 msgid "Welsh Support"
 msgstr "Walliese taalsteun"
 
-#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:188
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:197 ../comps-f9.xml.in.h:202
+#: ../comps-el4.xml.in.h:75 ../comps-el5.xml.in.h:75
+msgid "Window Managers"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:190 ../comps-f8.xml.in.h:198 ../comps-f9.xml.in.h:203
 msgid "Windows File Server"
 msgstr "Windows-lêerbediener"
 
-#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:189
+#: ../comps-f7.xml.in.h:191 ../comps-f8.xml.in.h:199 ../comps-f9.xml.in.h:204
 msgid "X Software Development"
 msgstr "X Sagtewareontwikkeling"
 
-#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:193
+#: ../comps-f7.xml.in.h:192 ../comps-f8.xml.in.h:200 ../comps-f9.xml.in.h:205
+#: ../comps-el4.xml.in.h:76 ../comps-el5.xml.in.h:76
+msgid "X Window System"
+msgstr "X Window-stelsel"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:201 ../comps-f9.xml.in.h:206
+msgid "XFCE"
+msgstr "XFCE"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:202 ../comps-f9.xml.in.h:207
+msgid "XFCE Software Development"
+msgstr "Sagtewareontwikkeling: XFCE"
+
+#: ../comps-f7.xml.in.h:195 ../comps-f8.xml.in.h:203 ../comps-f9.xml.in.h:208
 #, fuzzy
 msgid "Xhosa Support"
 msgstr "Tamil taalsteun"
 
-#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:194
+#: ../comps-f7.xml.in.h:196 ../comps-f8.xml.in.h:204 ../comps-f9.xml.in.h:209
 #, fuzzy
 msgid "Zulu Support"
 msgstr "Walliese taalsteun"
+
+#: ../comps-f8.xml.in.h:21 ../comps-f9.xml.in.h:21
+msgid "Buildsystem building group"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:48 ../comps-f9.xml.in.h:49
+msgid "Fedora Eclipse"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:52 ../comps-f9.xml.in.h:53
+msgid "Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:53 ../comps-f9.xml.in.h:54
+msgid "Fonts packages for rendering text on the desktop."
+msgstr ""
+
+#: ../comps-f8.xml.in.h:79 ../comps-f9.xml.in.h:80
+msgid "Integrated Development Environments based on Eclipse."
+msgstr ""
+
+#: ../comps-f8.xml.in.h:95 ../comps-f9.xml.in.h:97
+msgid "Legacy Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:100 ../comps-f9.xml.in.h:102
+#, fuzzy
+msgid "Low Saxon Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-f8.xml.in.h:106 ../comps-f9.xml.in.h:109
+#, fuzzy
+msgid "Mongolian Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f8.xml.in.h:108 ../comps-f9.xml.in.h:111
+#, fuzzy
+msgid "Nepali Support"
+msgstr "Bengaalse taalsteun"
+
+#: ../comps-f8.xml.in.h:114 ../comps-f9.xml.in.h:118
+msgid "Older bitmap and vector fonts packages"
+msgstr ""
+
+#: ../comps-f9.xml.in.h:44
+#, fuzzy
+msgid "Esperanto Support"
+msgstr "Duitse taalsteun"
+
+#: ../comps-f9.xml.in.h:91
+#, fuzzy
+msgid "Kashubian Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f9.xml.in.h:103
+#, fuzzy
+msgid "Macedonian Support"
+msgstr "Estniese taalsteun"
+
+#: ../comps-f9.xml.in.h:114
+#, fuzzy
+msgid "Northern Sami Support"
+msgstr "Koreaanse taalsteun"
+
+#: ../comps-f9.xml.in.h:198
+#, fuzzy
+msgid "Walloon Support"
+msgstr "Tamil taalsteun"
+
+#: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:12 ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "Inbelnetwerksteun"
+
+#: ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:23
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, "
+"werkskerm, stelselikone en 'n grafiese lêerreëler."
+
+#: ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE is 'n kragtige, grafiese gebruikerskoppelvlak met 'n paneel, werkskerm, "
+"rekenaarikone en 'n grafiese lêerreëler."
+
+#: ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+"Hierdie programme word soms teksredigeerders genoem en stel jou in staat om "
+"lêers te skep en redigeer. Dit sluit Emacs en Vi in."
+
+#: ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The XEmacs text editor."
+msgstr "Die Xemacs-teksredigeerder."
+
+#: ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"Hierdie nutsgoed stel jou in staat om dokumentasie in Docbook-formaat te "
+"skep en dit na HTML, PDF, Postscript en teks om te skakel."
+
+#: ../comps-el4.xml.in.h:64 ../comps-el5.xml.in.h:62
+msgid "This group is a collection of network servers for specific purposes"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:67 ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:77 ../comps-el5.xml.in.h:77
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr ""
+
+#~ msgid "British Support"
+#~ msgstr "Britse taalsteun"
+
+#, fuzzy
+#~ msgid "Cluster Storage"
+#~ msgstr "Russiese taalsteun"
+
+#, fuzzy
+#~ msgid "Clustering Support."
+#~ msgstr "Russiese taalsteun"
+
+#~ msgid "Miscellaneous Included Packages"
+#~ msgstr "Diverse ingeslote pakkette"
+
+#, fuzzy
+#~ msgid "Packages which provide support for cluster storage."
+#~ msgstr ""
+#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
+#~ "Hat Enterprise Linux."
+
+#, fuzzy
+#~ msgid "Single Node GFS Support"
+#~ msgstr "Sjinese taalsteun"
+
+#, fuzzy
+#~ msgid "These packages provide compatibility support with previous releases."
+#~ msgstr ""
+#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
+#~ "Hat Enterprise Linux."
+
+#, fuzzy
+#~ msgid "Misc packages"
+#~ msgstr "Pakkette vir Multilib-werking"
+
+#, fuzzy
+#~ msgid "Multimedia"
+#~ msgstr "Toepassings"
+
+#, fuzzy
+#~ msgid "Multimedia applications"
+#~ msgstr "Toepassings"
+
+#, fuzzy
+#~ msgid ""
+#~ "Packages which provide additional functionality for Red Hat Enterprise "
+#~ "Linux"
+#~ msgstr ""
+#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
+#~ "Hat Enterprise Linux."
+
+#, fuzzy
+#~ msgid "Red Hat Enterprise Linux Supplementary"
+#~ msgstr "Red Hat Enterprise Linux 3-dokumentasie"
+
+#, fuzzy
+#~ msgid "Virtualization Support."
+#~ msgstr "Italiaanse taalsteun"
+
+#, fuzzy
+#~ msgid "Somail Support"
+#~ msgstr "Tamil taalsteun"
 
 #~ msgid "Emacs"
 #~ msgstr "Emacs"
@@ -1139,9 +1264,6 @@ msgstr "Walliese taalsteun"
 
 #~ msgid "Brazilian Support"
 #~ msgstr "Brasiliaanse taalsteun"
-
-#~ msgid "British Support"
-#~ msgstr "Britse taalsteun"
 
 #~ msgid "Canadian Support"
 #~ msgstr "Kanadese taalsteun"
@@ -1187,9 +1309,6 @@ msgstr "Walliese taalsteun"
 
 #~ msgid "Kernel Development"
 #~ msgstr "Kernontwikkeling"
-
-#~ msgid "Miscellaneous Included Packages"
-#~ msgstr "Diverse ingeslote pakkette"
 
 #~ msgid "Mozilla packages for the x86 platform"
 #~ msgstr "Mozilla-pakkette vir die x86-platform"
@@ -1255,9 +1374,6 @@ msgstr "Walliese taalsteun"
 
 #~ msgid "Italian"
 #~ msgstr "Italiaans"
-
-#~ msgid "Red Hat Enterprise Linux 3 Documentation"
-#~ msgstr "Red Hat Enterprise Linux 3-dokumentasie"
 
 #~ msgid "Spanish"
 #~ msgstr "Spaans"
@@ -1394,50 +1510,12 @@ msgstr "Walliese taalsteun"
 #~ "Hierdie groep bevat die Tamil dokumentasie vir Red Hat Enterprise Linux."
 
 #, fuzzy
-#~ msgid "Cluster Storage"
-#~ msgstr "Russiese taalsteun"
-
-#, fuzzy
-#~ msgid "Clustering Support."
-#~ msgstr "Russiese taalsteun"
-
-#, fuzzy
-#~ msgid "Single Node GFS Support"
-#~ msgstr "Sjinese taalsteun"
-
-#, fuzzy
-#~ msgid "These packages provide compatibility support with previous releases."
-#~ msgstr ""
-#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
-#~ "Hat Enterprise Linux."
-
-#, fuzzy
-#~ msgid "Misc packages"
-#~ msgstr "Pakkette vir Multilib-werking"
-
-#, fuzzy
-#~ msgid "Multimedia applications"
-#~ msgstr "Toepassings"
-
-#, fuzzy
-#~ msgid ""
-#~ "Packages which provide additional functionality for Red Hat Enterprise "
-#~ "Linux"
-#~ msgstr ""
-#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
-#~ "Hat Enterprise Linux."
-
-#, fuzzy
 #~ msgid "Red Hat Enterprise Linux Extras"
 #~ msgstr "Red Hat Enterprise Linux 4-dokumentasie"
 
 #, fuzzy
 #~ msgid "Workstation"
 #~ msgstr "Werkstasiegemenebes"
-
-#, fuzzy
-#~ msgid "Virtualization Support."
-#~ msgstr "Italiaanse taalsteun"
 
 #, fuzzy
 #~ msgid "Compatibility Arch"
@@ -1450,13 +1528,6 @@ msgstr "Walliese taalsteun"
 #, fuzzy
 #~ msgid "Multilib library packages"
 #~ msgstr "Pakkette vir Multilib-werking"
-
-#, fuzzy
-#~ msgid ""
-#~ "Packages which provide functionality for the compatibility architecture."
-#~ msgstr ""
-#~ "Hierdie pakkette verseker versoenbaarheid met vorige weergawes van Red "
-#~ "Hat Enterprise Linux."
 
 #, fuzzy
 #~ msgid ""
@@ -2391,9 +2462,6 @@ msgstr "Walliese taalsteun"
 
 #~ msgid "SQL Database Server"
 #~ msgstr "SQL-databasisbediener"
-
-#~ msgid "Supported Packages"
-#~ msgstr "Ondersteunde pakkette"
 
 #~ msgid ""
 #~ "These packages include network-based servers such as CIPE, DHCP, and "

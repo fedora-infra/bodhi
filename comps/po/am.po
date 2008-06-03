@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: comps VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-26 14:03-0400\n"
+"POT-Creation-Date: 2008-04-17 07:36-0400\n"
 "PO-Revision-Date: 2005-05-12 07:02+EST\n"
 "Last-Translator: Ge'ez Frontier Foundation <locales@geez.org>\n"
 "Language-Team: Amharic <am-translate@geez.org>\n"
@@ -16,102 +16,243 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../comps-fe5.xml.in.h:1 ../comps-fe6.xml.in.h:1 ../comps-f7.xml.in.h:1
-#: ../comps-f8.xml.in.h:1
+#: ../comps-f7.xml.in.h:1 ../comps-f8.xml.in.h:1 ../comps-f9.xml.in.h:1
 msgid "A lightweight desktop environment that works well on low end machines."
 msgstr "የቀላል ክብደት ያለው ሠሌዳ አካባኪ በዝቅተኛው ጫፍ የማሽን ክፍል የሚሰራ።"
 
-#: ../comps-fe5.xml.in.h:2 ../comps-fe6.xml.in.h:2 ../comps-f7.xml.in.h:2
-#: ../comps-f8.xml.in.h:2 ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+#: ../comps-f7.xml.in.h:2 ../comps-f8.xml.in.h:2 ../comps-f9.xml.in.h:2
+#: ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
 msgid "Administration Tools"
 msgstr "የአስተዳደሩ መሣሪያዎች"
 
-#: ../comps-fe5.xml.in.h:3 ../comps-fe6.xml.in.h:3 ../comps-f7.xml.in.h:5
-#: ../comps-f8.xml.in.h:5 ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3 ../comps-f9.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "የአፍሪካዊያን ድጋፍ"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4 ../comps-f9.xml.in.h:4
+#, fuzzy
+msgid "Albanian Support"
+msgstr "የሮማኒያዊ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:5 ../comps-f8.xml.in.h:5 ../comps-f9.xml.in.h:5
+#: ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
 msgid "Applications"
 msgstr "መጠቀሚያ ፕሮግራሞች"
 
-#: ../comps-fe5.xml.in.h:4 ../comps-fe6.xml.in.h:4 ../comps-el4.xml.in.h:3
-#: ../comps-el5.xml.in.h:3
-msgid "Applications for a variety of tasks"
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6 ../comps-f9.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:5 ../comps-fe6.xml.in.h:5 ../comps-f7.xml.in.h:7
-#: ../comps-f8.xml.in.h:7 ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+#: ../comps-f7.xml.in.h:7 ../comps-f8.xml.in.h:7 ../comps-f9.xml.in.h:7
+#: ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
 msgid "Arabic Support"
 msgstr "የአረብ ድጋፍ"
 
-#: ../comps-fe5.xml.in.h:6 ../comps-fe6.xml.in.h:6 ../comps-f7.xml.in.h:8
-#: ../comps-f8.xml.in.h:8 ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+#: ../comps-f7.xml.in.h:8 ../comps-f8.xml.in.h:8 ../comps-f9.xml.in.h:8
+#: ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
 #, fuzzy
 msgid "Armenian Support"
 msgstr "የሮማኒያዊ ድጋፍ"
 
-#: ../comps-fe5.xml.in.h:7 ../comps-fe6.xml.in.h:7 ../comps-f7.xml.in.h:10
-#: ../comps-f8.xml.in.h:10 ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9 ../comps-f9.xml.in.h:9
+msgid "Assamese Support"
+msgstr "የአሳሜሳዊ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:10 ../comps-f8.xml.in.h:10 ../comps-f9.xml.in.h:10
+#: ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
 msgid "Authoring and Publishing"
 msgstr "መጻፍ እና ማተም"
 
-#: ../comps-fe5.xml.in.h:8 ../comps-fe6.xml.in.h:8 ../comps-f7.xml.in.h:12
-#: ../comps-f8.xml.in.h:12 ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11 ../comps-f9.xml.in.h:11
+msgid "Base"
+msgstr "መሠረት"
+
+#: ../comps-f7.xml.in.h:12 ../comps-f8.xml.in.h:12 ../comps-f9.xml.in.h:12
+#: ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
 #, fuzzy
 msgid "Base System"
 msgstr "ሲስተም"
 
-#: ../comps-fe5.xml.in.h:9 ../comps-fe6.xml.in.h:10 ../comps-f7.xml.in.h:31
-#: ../comps-f8.xml.in.h:31 ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13 ../comps-f9.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "መሠረታዊ ድጋፍ ለRuby ፕሮግራም ቋንቋ።"
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14 ../comps-f9.xml.in.h:14
+msgid "Basque Support"
+msgstr "ባስክኛ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15 ../comps-f9.xml.in.h:15
+#, fuzzy
+msgid "Belarusian Support"
+msgstr "ቡልጋሪኛ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16 ../comps-f9.xml.in.h:16
+msgid "Bengali Support"
+msgstr "የቤንጋሊ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17 ../comps-f9.xml.in.h:17
+#, fuzzy
+msgid "Bhutanese Support"
+msgstr "የቻይናዊ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18 ../comps-f9.xml.in.h:18
+#, fuzzy
+msgid "Bosnian Support"
+msgstr "የኢስቶኒያ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19 ../comps-f9.xml.in.h:19
+msgid "Brazilian Portuguese Support"
+msgstr "የብራዚላዊ ፖርቱጋሊኛ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20 ../comps-f9.xml.in.h:20
+msgid "Breton Support"
+msgstr "ብሬቶንኛ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:22 ../comps-f9.xml.in.h:22
+msgid "Bulgarian Support"
+msgstr "ቡልጋሪኛ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:23 ../comps-f9.xml.in.h:23
+msgid "Catalan Support"
+msgstr "የካታላን ድጋፍ"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:24 ../comps-f9.xml.in.h:24
+msgid "Chinese Support"
+msgstr "የቻይናዊ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:25 ../comps-f9.xml.in.h:25
+msgid "Clustering"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:26 ../comps-f9.xml.in.h:26
+#, fuzzy
+msgid "Clustering Support"
+msgstr "የራሺያዊ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:27 ../comps-f9.xml.in.h:27
+msgid "Core"
+msgstr "ማዕከላዊ ቦታ"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:28 ../comps-f9.xml.in.h:28
+msgid "Croatian Support"
+msgstr "ክሮሽያንኛ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:29 ../comps-f9.xml.in.h:29
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "የቼክ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:30 ../comps-f9.xml.in.h:30
+msgid "DNS Name Server"
+msgstr "DNS የስም ሰርቨር"
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:31 ../comps-f9.xml.in.h:31
+msgid "Danish Support"
+msgstr "የዴንማርክ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:31 ../comps-f8.xml.in.h:32 ../comps-f9.xml.in.h:32
+#: ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
 #, fuzzy
 msgid "Desktop Environments"
 msgstr "የኬዲኢ ዴስክቶፕ አካባቢ"
 
-#: ../comps-fe5.xml.in.h:10 ../comps-fe6.xml.in.h:11 ../comps-f7.xml.in.h:32
-#: ../comps-f8.xml.in.h:32 ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+#: ../comps-f7.xml.in.h:32 ../comps-f8.xml.in.h:33 ../comps-f9.xml.in.h:33
+#: ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
 #, fuzzy
 msgid "Desktop environments"
 msgstr "የኬዲኢ ዴስክቶፕ አካባቢ"
 
-#: ../comps-fe5.xml.in.h:11 ../comps-fe6.xml.in.h:12 ../comps-f7.xml.in.h:33
-#: ../comps-f8.xml.in.h:33 ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+#: ../comps-f7.xml.in.h:33 ../comps-f8.xml.in.h:34 ../comps-f9.xml.in.h:34
+#: ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
 msgid "Development"
 msgstr "እድገት"
 
-#: ../comps-fe5.xml.in.h:12 ../comps-fe6.xml.in.h:13 ../comps-f7.xml.in.h:35
-#: ../comps-f8.xml.in.h:35 ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:35 ../comps-f9.xml.in.h:35
+msgid "Development Libraries"
+msgstr "ማሳደጊያ መጽሐፍት ቤቶች"
+
+#: ../comps-f7.xml.in.h:35 ../comps-f8.xml.in.h:36 ../comps-f9.xml.in.h:36
+#: ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
 msgid "Development Tools"
 msgstr "ማሳደጊያ መሣሪያዎች"
 
-#: ../comps-fe5.xml.in.h:13 ../comps-fe6.xml.in.h:14 ../comps-el4.xml.in.h:12
-#: ../comps-el5.xml.in.h:13
-msgid "Dialup Networking Support"
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:37 ../comps-f9.xml.in.h:37
+#, fuzzy
+msgid "Dial-up Networking Support"
 msgstr "የመረቡ ደጋፊ ጋር ደውል"
 
-#: ../comps-fe5.xml.in.h:14 ../comps-fe6.xml.in.h:15 ../comps-f7.xml.in.h:39
-#: ../comps-f8.xml.in.h:39 ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:38 ../comps-f9.xml.in.h:38
+msgid "Dutch Support"
+msgstr "የደች ድጋፍ"
+
+#: ../comps-f7.xml.in.h:38
+msgid "Eclipse"
+msgstr "ኢክሊፕስ"
+
+#: ../comps-f7.xml.in.h:39 ../comps-f8.xml.in.h:39 ../comps-f9.xml.in.h:39
+#: ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
 msgid "Editors"
 msgstr "አዘጋጆች"
 
-#: ../comps-fe5.xml.in.h:15 ../comps-fe6.xml.in.h:16 ../comps-f7.xml.in.h:40
-#: ../comps-f8.xml.in.h:40 ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+#: ../comps-f7.xml.in.h:40 ../comps-f8.xml.in.h:40 ../comps-f9.xml.in.h:40
+#: ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
 msgid "Educational Software"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:16 ../comps-fe6.xml.in.h:17 ../comps-f7.xml.in.h:41
-#: ../comps-f8.xml.in.h:41 ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+#: ../comps-f7.xml.in.h:41 ../comps-f8.xml.in.h:41 ../comps-f9.xml.in.h:41
+#: ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
 msgid "Educational software for learning"
 msgstr ""
 
-#: ../comps-fe5.xml.in.h:17 ../comps-fe6.xml.in.h:18 ../comps-f7.xml.in.h:42
-#: ../comps-f8.xml.in.h:42 ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+#: ../comps-f7.xml.in.h:42 ../comps-f8.xml.in.h:42 ../comps-f9.xml.in.h:42
+#: ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
 msgid "Engineering and Scientific"
 msgstr "መሀንዲስነት እና ሳይንሳዊ"
 
-#: ../comps-fe5.xml.in.h:18 ../comps-fe6.xml.in.h:19 ../comps-f7.xml.in.h:46
-#: ../comps-f8.xml.in.h:46 ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43 ../comps-f9.xml.in.h:43
+#, fuzzy
+msgid "English (UK) Support"
+msgstr "የዴንማርክ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44 ../comps-f9.xml.in.h:45
+msgid "Estonian Support"
+msgstr "የኢስቶኒያ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45 ../comps-f9.xml.in.h:46
+#, fuzzy
+msgid "Ethiopic Support"
+msgstr "የኢስቶኒያ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:46 ../comps-f8.xml.in.h:46 ../comps-f9.xml.in.h:47
+#: ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
 msgid "FTP Server"
 msgstr "FTP ሰርቨር"
 
-#: ../comps-fe5.xml.in.h:19 ../comps-fe6.xml.in.h:20 ../comps-f7.xml.in.h:51
-#: ../comps-f8.xml.in.h:51 ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47 ../comps-f9.xml.in.h:48
+msgid "Faeroese Support"
+msgstr "ፋሮኛ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:49 ../comps-f9.xml.in.h:50
+#: ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#, fuzzy
+msgid "Fedora Packager"
+msgstr "ኢክሊፕስ"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:50 ../comps-f9.xml.in.h:51
+#, fuzzy
+msgid "Filipino Support"
+msgstr "ጋለጋኛ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:51 ../comps-f9.xml.in.h:52
+msgid "Finnish Support"
+msgstr "የፊኒሽ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:51 ../comps-f8.xml.in.h:54 ../comps-f9.xml.in.h:55
+msgid "French Support"
+msgstr "የፈረንሳይ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:52 ../comps-f8.xml.in.h:55 ../comps-f9.xml.in.h:56
+#: ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
 msgid ""
 "From CD recording to playing audio CDs and multimedia files, this package "
 "group allows you to work with sound and video on the system."
@@ -119,582 +260,158 @@ msgstr ""
 "ከሲዲ ቅጂ ወደ የድምጽ ሲዲዎችን እና መልቲሚዲያ ፋይሎችን ለማጫወት የዚህ ጥቅል ቡድን ከድምጹ ጋር እና ሲስተሙ ላይ "
 "ካለው ቪዲዮ ጋር እንዲሰሩ ያስችልዎታል።"
 
-#: ../comps-fe5.xml.in.h:20 ../comps-fe6.xml.in.h:21 ../comps-f7.xml.in.h:52
-#: ../comps-f8.xml.in.h:52 ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+#: ../comps-f7.xml.in.h:53 ../comps-f8.xml.in.h:56 ../comps-f9.xml.in.h:57
+#: ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
 msgid "GNOME Desktop Environment"
 msgstr "የኖም ዴስክቶፕ አካባቢ"
 
-#: ../comps-fe5.xml.in.h:21 ../comps-fe6.xml.in.h:22 ../comps-f7.xml.in.h:53
-#: ../comps-f8.xml.in.h:53 ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:57 ../comps-f9.xml.in.h:58
+#: ../comps-el4.xml.in.h:21 ../comps-el5.xml.in.h:22
 msgid "GNOME Software Development"
 msgstr "የኖም ሶፍትዌር እድገት"
 
-#: ../comps-fe5.xml.in.h:22 ../comps-fe6.xml.in.h:23 ../comps-el4.xml.in.h:21
-#: ../comps-el5.xml.in.h:22
-msgid ""
-"GNOME is a powerful, graphical user interface which includes a panel, "
-"desktop, system icons, and a graphical file manager."
-msgstr "የኖም ሀይለኛ ነው"
-
-#: ../comps-fe5.xml.in.h:23 ../comps-fe6.xml.in.h:24 ../comps-f7.xml.in.h:57
-#: ../comps-f8.xml.in.h:57 ../comps-el5.xml.in.h:23
-msgid "Games and Entertainment"
-msgstr "ጨዋታዎች እና መዝናኛዎች"
-
-#: ../comps-fe5.xml.in.h:24 ../comps-fe6.xml.in.h:25 ../comps-f7.xml.in.h:60
-#: ../comps-f8.xml.in.h:60 ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:24
-msgid "Graphical Internet"
-msgstr "ንድፋዊ ኢንተርኔት"
-
-#: ../comps-fe5.xml.in.h:25 ../comps-fe6.xml.in.h:26 ../comps-f7.xml.in.h:61
-#: ../comps-f8.xml.in.h:61 ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
-msgid "Graphics"
-msgstr "ንድፍ"
-
-#: ../comps-fe5.xml.in.h:26 ../comps-fe6.xml.in.h:27 ../comps-f7.xml.in.h:64
-#: ../comps-f8.xml.in.h:64 ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
-#, fuzzy
-msgid "Hardware Support"
-msgstr "የእብራይስጥ ድጋፍ"
-
-#: ../comps-fe5.xml.in.h:27 ../comps-fe6.xml.in.h:28 ../comps-f7.xml.in.h:65
-#: ../comps-f8.xml.in.h:65 ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
-msgid "Hebrew Support"
-msgstr "የእብራይስጥ ድጋፍ"
-
-#: ../comps-fe5.xml.in.h:28 ../comps-fe6.xml.in.h:29 ../comps-f7.xml.in.h:70
-#: ../comps-f8.xml.in.h:70 ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
-msgid ""
-"Install these packages in order to develop GTK+ and GNOME graphical "
-"applications."
-msgstr "GTK+ን እና የኖም ንድፍን ለማሳደግ እነዚህን ጥቅሎች አስገባቸው።"
-
-#: ../comps-fe5.xml.in.h:29 ../comps-fe6.xml.in.h:30 ../comps-f7.xml.in.h:71
-#: ../comps-f8.xml.in.h:71
-msgid ""
-"Install these packages in order to develop GTK+ and XFCE graphical "
-"applications."
-msgstr "GTK+ እና XFCEን የንድፍ መጠቀሚያ ፕሮግራሞችን ለማሳደግ እነዚህን ጥቅሎች አስገባ።"
-
-#: ../comps-fe5.xml.in.h:30 ../comps-fe6.xml.in.h:31 ../comps-f7.xml.in.h:72
-#: ../comps-f8.xml.in.h:72 ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
-msgid "Install these packages to develop QT and KDE graphical applications."
-msgstr "QT እና የKDEን ንድፋዊ መጠቀሚያ ፕሮግራሞችን ለማሳደግ እነዚህን ጥቅሎች አስገባቸው፡፡"
-
-#: ../comps-fe5.xml.in.h:31 ../comps-fe6.xml.in.h:32 ../comps-f7.xml.in.h:74
-#: ../comps-f8.xml.in.h:74 ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
-msgid ""
-"Install this group of packages to use the base graphical (X) user interface."
-msgstr "የንድፋዊ (X) መሠረቱ ወሰንን ለመጠቀም ይህንን የጥቅሎች ስብስብ አስገባ።"
-
-#: ../comps-fe5.xml.in.h:32 ../comps-fe6.xml.in.h:33 ../comps-f7.xml.in.h:78
-#: ../comps-f8.xml.in.h:78 ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
-msgid "Japanese Support"
-msgstr "የጃፓናዊ ድጋፍ"
-
-#: ../comps-fe5.xml.in.h:33 ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:79
-#: ../comps-el4.xml.in.h:30
-msgid "Java"
-msgstr "ጃቫ"
-
-#: ../comps-fe5.xml.in.h:34 ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:80
-#: ../comps-el4.xml.in.h:31
-msgid "Java Development"
-msgstr "የጃቫ እድገት"
-
-#: ../comps-fe5.xml.in.h:35 ../comps-fe6.xml.in.h:34 ../comps-f7.xml.in.h:81
-#: ../comps-f8.xml.in.h:81 ../comps-el4.xml.in.h:32 ../comps-el5.xml.in.h:32
-msgid "KDE (K Desktop Environment)"
-msgstr "KDE (K የዴስክቶፕ አካባቢ)"
-
-#: ../comps-fe5.xml.in.h:36 ../comps-fe6.xml.in.h:35 ../comps-f7.xml.in.h:82
-#: ../comps-f8.xml.in.h:82 ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
-msgid "KDE Software Development"
-msgstr "የኬዲኢ ሶፍትዌር እድገት"
-
-#: ../comps-fe5.xml.in.h:37 ../comps-fe6.xml.in.h:36 ../comps-el4.xml.in.h:34
-#: ../comps-el5.xml.in.h:34
-msgid ""
-"KDE is a powerful, graphical user interface which includes a panel, desktop, "
-"system icons, and a graphical file manager."
-msgstr ""
-"ኬዲኢ ኃይለኛ የሆነ የንድፋዊ ወሰን ተጠቃሚ ፓነል፣ ዴስክቶፕ፣ የሲስተም ምልክቶች እና የንድፋዊ ፋይል አስተዳደርን "
-"የሚያጠቃልል ነው።"
-
-#: ../comps-fe5.xml.in.h:38 ../comps-fe6.xml.in.h:37 ../comps-f7.xml.in.h:94
-#: ../comps-f8.xml.in.h:94 ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
-msgid "Mail Server"
-msgstr "የደብዳቤዎች ሰርቨር"
-
-#: ../comps-fe5.xml.in.h:39 ../comps-fe6.xml.in.h:38 ../comps-f7.xml.in.h:100
-#: ../comps-f8.xml.in.h:100 ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
-msgid "Network Servers"
-msgstr "የመረብ ሰርቨር"
-
-#: ../comps-fe5.xml.in.h:40 ../comps-fe6.xml.in.h:39 ../comps-f7.xml.in.h:101
-#: ../comps-f8.xml.in.h:101 ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
-msgid "News Server"
-msgstr "የዜና ሰርቨር"
-
-#: ../comps-fe5.xml.in.h:41 ../comps-fe6.xml.in.h:40 ../comps-f7.xml.in.h:104
-#: ../comps-f8.xml.in.h:104 ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
-msgid "Office/Productivity"
-msgstr "ኦፊስ/ምርታማነት"
-
-#: ../comps-fe5.xml.in.h:42 ../comps-fe6.xml.in.h:41 ../comps-f7.xml.in.h:106
-#: ../comps-f8.xml.in.h:106 ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
-msgid ""
-"Packages which provide functionality for developing and building "
-"applications."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:43 ../comps-fe6.xml.in.h:42 ../comps-f7.xml.in.h:119
-#: ../comps-f8.xml.in.h:119 ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
-msgid "Servers"
-msgstr "ሰርቨሮች"
-
-#: ../comps-fe5.xml.in.h:44 ../comps-fe6.xml.in.h:43 ../comps-f7.xml.in.h:120
-#: ../comps-f8.xml.in.h:120 ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
-msgid ""
-"Simple window managers that aren't part of a larger desktop environment."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:45 ../comps-fe6.xml.in.h:44 ../comps-f7.xml.in.h:125
-#: ../comps-f8.xml.in.h:125 ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
-msgid "Software used for running network servers"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:46 ../comps-fe6.xml.in.h:45 ../comps-el4.xml.in.h:43
-#: ../comps-el5.xml.in.h:43
-msgid ""
-"Sometimes called text editors, these are programs that allow you to create "
-"and edit files. These include Emacs and Vi."
-msgstr ""
-" እነዚህ ፋይሎችን ለመፍጠር እና ለማረም የሚያስችሉ ፕሮግራሞች ናቸው፣ አንዳንዴ የጽሑፍ አዘጋጆች ይባላሉ። ኢማክስን እና "
-"ቪአይን እነዚህ ያጠቃልላሉ።"
-
-#: ../comps-fe5.xml.in.h:47 ../comps-fe6.xml.in.h:46 ../comps-f7.xml.in.h:128
-#: ../comps-f8.xml.in.h:128 ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
-msgid "Sound and Video"
-msgstr "ድምጽ እና ቪዲዮ"
-
-#: ../comps-fe5.xml.in.h:48 ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:132
-#: ../comps-el4.xml.in.h:45
-msgid "Support for developing programs in the Java programming language."
-msgstr "ድጋፍ በማደግ ላይ ላሉ ፕሮግራሞች በጃቫ የፕሮግራም ቋንቋ ውስጥ።"
-
-#: ../comps-fe5.xml.in.h:49 ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:133
-#: ../comps-el4.xml.in.h:46
-msgid "Support for running programs written in the Java programming language."
-msgstr "በጃቫ የፕሮግራም ቋንቋ ውስጥ ለተጻፉት በመሄድ ላይ ላሉ ፕሮግራሞች ድጋፍ።"
-
-#: ../comps-fe5.xml.in.h:50 ../comps-fe6.xml.in.h:47 ../comps-f7.xml.in.h:136
-#: ../comps-f8.xml.in.h:136 ../comps-el4.xml.in.h:47 ../comps-el5.xml.in.h:45
-msgid "System Tools"
-msgstr "የሲስተም ቱልስ"
-
-#: ../comps-fe5.xml.in.h:51 ../comps-fe6.xml.in.h:48 ../comps-f7.xml.in.h:140
-#: ../comps-f8.xml.in.h:140 ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
-msgid "Text-based Internet"
-msgstr "በጽሑፍ ላይ የተመሰረተ ኢንተርኔት"
-
-#: ../comps-fe5.xml.in.h:52 ../comps-fe6.xml.in.h:49 ../comps-el4.xml.in.h:49
-#: ../comps-el5.xml.in.h:47
-msgid "The XEmacs text editor."
-msgstr "የXemacs ጽሑፍ አዘጋጅ።"
-
-#: ../comps-fe5.xml.in.h:53 ../comps-fe6.xml.in.h:50 ../comps-f7.xml.in.h:143
-#: ../comps-f8.xml.in.h:143 ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
-msgid "The applications include office suites, PDF viewers, and more."
-msgstr "የመጠቀሚያው ፕሮግራሞች ለኦፊስ የሚመቹ፣ ፒዲኤፍ ተመልካቾች እና ሌሎችንም ያጠቃልላል።"
-
-#: ../comps-fe5.xml.in.h:54 ../comps-fe6.xml.in.h:51 ../comps-f7.xml.in.h:145
-#: ../comps-f8.xml.in.h:145 ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
-msgid "These packages allow you to configure an IMAP or SMTP mail server."
-msgstr "የIMPAን እና የSMTP የሆነ የደብዳቤ ሰርቨርን ለማስተካከል እነዚህ ጥቅሎች ያስችላሉ።"
-
-#: ../comps-fe5.xml.in.h:55 ../comps-fe6.xml.in.h:52 ../comps-f7.xml.in.h:147
-#: ../comps-f8.xml.in.h:147 ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
-#, fuzzy
-msgid ""
-"These packages are helpful when developing web applications or web pages."
-msgstr "እነዚህ ጥቅሎች ለX መስኮት ሲስተም የመጠቀሚያ ፕሮግራሞችን ለማሳደግ ያስችላሉ።"
-
-#: ../comps-fe5.xml.in.h:56 ../comps-fe6.xml.in.h:53 ../comps-el4.xml.in.h:53
-#: ../comps-el5.xml.in.h:51
-msgid ""
-"These tools allow you to create documentation in the DocBook format and "
-"convert them to HTML, PDF, Postscript, and text."
-msgstr ""
-"እነዚህ መሣሪያዎች መረጃዎችን በDocBook አሠራር ውስጥ ወደ HTML, PDF፣ ፖስትስክሪፕት እና ጽሑፍ ለመለወጥ "
-"ያስችላሉ።"
-
-#: ../comps-fe5.xml.in.h:57 ../comps-fe6.xml.in.h:54 ../comps-f7.xml.in.h:154
-#: ../comps-f8.xml.in.h:154 ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
-msgid "These tools allow you to run a Web server on the system."
-msgstr "እነዚህ መሣሪያዎች የመረብ ሰርበሩን በሲስተሙ ላይ ለማስኬድ ያስችላሉ።"
-
-#: ../comps-fe5.xml.in.h:58 ../comps-fe6.xml.in.h:55 ../comps-f7.xml.in.h:155
-#: ../comps-f8.xml.in.h:155 ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
-msgid "These tools allow you to run an FTP server on the system."
-msgstr "እነዚህ መሣሪያዎች የFTPን ሰርቨር በሲስተሙ ላይ ለማስኬድ ያስችላሉ።"
-
-#: ../comps-fe5.xml.in.h:59 ../comps-fe6.xml.in.h:56 ../comps-f7.xml.in.h:156
-#: ../comps-f8.xml.in.h:156 ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
-msgid ""
-"These tools include core development tools such as automake, gcc, perl, "
-"python, and debuggers."
-msgstr ""
-"እነዚህ መሣሪያዎች እንደ አውቶሜክ፣ ጂጂሲ፣ ፐርል፣ ፓይተን እና ማስተካከያውች ያሉ ዋና የእድገት መሣሪያዎችን ያጠቃልላሉ።"
-
-#: ../comps-fe5.xml.in.h:60 ../comps-fe6.xml.in.h:57 ../comps-f7.xml.in.h:157
-#: ../comps-f8.xml.in.h:157 ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
-msgid "This group allows you to configure the system as a news server."
-msgstr "ይህ ቡድን ሲስተሙን እንደ ዜና ሰርበር ለማስተካከል ያስችላል።"
-
-#: ../comps-fe5.xml.in.h:61 ../comps-fe6.xml.in.h:58 ../comps-f7.xml.in.h:160
-#: ../comps-f8.xml.in.h:160 ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
-msgid "This group includes graphical email, Web, and chat clients."
-msgstr "ይህ ቡድን የንድፋዊ ኢሜይልን፣ መረብ እና ተወያይ ደንበኞችን ያጠቃልላል።"
-
-#: ../comps-fe5.xml.in.h:62 ../comps-fe6.xml.in.h:59 ../comps-f7.xml.in.h:161
-#: ../comps-f8.xml.in.h:161 ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
-msgid ""
-"This group includes packages for performing mathematical and scientific "
-"computations and plotting, as well as unit conversion."
-msgstr ""
-"ይን ቡድን የሂሣባዊና ሳይንሳዊ ማስሊያዎችን እና ማቀጃ እንዲሁም ቁጥር መለወጫን የሚያቀርቡ ጥቅሎችን ያጠቃልላል።"
-
-#: ../comps-fe5.xml.in.h:63 ../comps-fe6.xml.in.h:60 ../comps-f7.xml.in.h:162
-#: ../comps-f8.xml.in.h:162 ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
-msgid "This group includes packages to help you manipulate and scan images."
-msgstr "ይህ ቡድን ምስሎችን ለመቆጣጠር እና እስካን ለማድረግ የሚረዱ ጥቅሎችን ያጠቃልላል።"
-
-#: ../comps-fe5.xml.in.h:64 ../comps-fe6.xml.in.h:61 ../comps-f7.xml.in.h:163
-#: ../comps-f8.xml.in.h:163 ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
-msgid ""
-"This group includes text-based email, Web, and chat clients. These "
-"applications do not require the X Window System."
-msgstr ""
-"ይህ ቡድን በጽሑፍ ላይ የተመሠረተ ኢሜይል፣ መረብ እና ተወያይ ደንበኞችን ያጠቃልላል። እነዚህ የመተቀሚያ ፕሮግራሞች የX "
-"መስኮት ሲስተምን አይጠይቁም።"
-
-#: ../comps-fe5.xml.in.h:65 ../comps-fe6.xml.in.h:62 ../comps-f7.xml.in.h:164
-#: ../comps-f8.xml.in.h:164 ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
-msgid ""
-"This group is a collection of graphical administration tools for the system, "
-"such as for managing user accounts and configuring system hardware."
-msgstr ""
-"ይህ ቡድን ለሲስተሙ የንድፋዊ አስተዳደር መሣሪያ ለተጠቃሚው ታሪክ እና የሲስተሙን ሀርድዌር ማስተካከያ ስብስብ ነው።"
-
-#: ../comps-fe5.xml.in.h:66 ../comps-fe6.xml.in.h:63 ../comps-el4.xml.in.h:63
-#: ../comps-el5.xml.in.h:61
-msgid "This group is a collection of network servers for specific purposes"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:67 ../comps-fe6.xml.in.h:64 ../comps-el4.xml.in.h:64
-#: ../comps-el5.xml.in.h:62
-msgid ""
-"This group is a collection of tools and resources of Arabic environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:68 ../comps-fe6.xml.in.h:65 ../comps-f7.xml.in.h:165
-#: ../comps-f8.xml.in.h:165 ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
-msgid ""
-"This group is a collection of tools and resources of Armenian environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:69 ../comps-fe6.xml.in.h:67 ../comps-el4.xml.in.h:66
-#: ../comps-el5.xml.in.h:65
-msgid ""
-"This group is a collection of tools and resources of Hebrew environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:70 ../comps-fe6.xml.in.h:68 ../comps-el4.xml.in.h:67
-#: ../comps-el5.xml.in.h:66
-msgid ""
-"This group is a collection of tools and resources of Japanese environments."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:71 ../comps-fe6.xml.in.h:69 ../comps-f7.xml.in.h:166
-#: ../comps-f8.xml.in.h:166 ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
-msgid ""
-"This group is a collection of tools for various hardware specific utilities."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:72 ../comps-fe6.xml.in.h:70 ../comps-f7.xml.in.h:167
-#: ../comps-f8.xml.in.h:167 ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
-msgid ""
-"This group is a collection of various tools for the system, such as the "
-"client for connecting to SMB shares and tools to monitor network traffic."
-msgstr ""
-"ይህ ቡድን ለሲስተሙ ደንበኞችን  የመረቡን ዝውውር የሚቆጣጠሩ መሣሪያዎች እና ከSMB ጋር የሚያገናኙ የተለያዩ መሣሪያዎች "
-"ስብስብ ነው።"
-
-#: ../comps-fe5.xml.in.h:73 ../comps-fe6.xml.in.h:71 ../comps-f7.xml.in.h:179
-#: ../comps-f8.xml.in.h:179 ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
-msgid "Various core pieces of the system."
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:74 ../comps-fe6.xml.in.h:72 ../comps-f7.xml.in.h:180
-#: ../comps-f8.xml.in.h:180 ../comps-el5.xml.in.h:70
-msgid "Various ways to relax and spend your free time."
-msgstr "የተለያዩ የሚዝናኑበት እና የእረፍት ጊዜዎትን የሚያሳልፉባቸው መንገዶች።"
-
-#: ../comps-fe5.xml.in.h:75 ../comps-fe6.xml.in.h:73 ../comps-f7.xml.in.h:184
-#: ../comps-f8.xml.in.h:184 ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:71
-#, fuzzy
-msgid "Web Development"
-msgstr "እድገት"
-
-#: ../comps-fe5.xml.in.h:76 ../comps-fe6.xml.in.h:74 ../comps-f7.xml.in.h:185
-#: ../comps-f8.xml.in.h:185 ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:72
-msgid "Web Server"
-msgstr "የድር ሰርቨር"
-
-#: ../comps-fe5.xml.in.h:77 ../comps-fe6.xml.in.h:75 ../comps-f7.xml.in.h:187
-#: ../comps-f8.xml.in.h:187 ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
-msgid "Window Managers"
-msgstr ""
-
-#: ../comps-fe5.xml.in.h:78 ../comps-fe6.xml.in.h:76 ../comps-f7.xml.in.h:190
-#: ../comps-f8.xml.in.h:190 ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
-msgid "X Window System"
-msgstr "የX መስኮት ሲስተም"
-
-#: ../comps-fe5.xml.in.h:79 ../comps-fe6.xml.in.h:77 ../comps-el4.xml.in.h:75
-#: ../comps-el5.xml.in.h:75
-msgid "XEmacs"
-msgstr "XEmacs"
-
-#: ../comps-fe5.xml.in.h:80 ../comps-fe6.xml.in.h:78 ../comps-f7.xml.in.h:191
-#: ../comps-f8.xml.in.h:191
-msgid "XFCE"
-msgstr "XFCE"
-
-#: ../comps-fe5.xml.in.h:81 ../comps-fe6.xml.in.h:79 ../comps-f7.xml.in.h:192
-#: ../comps-f8.xml.in.h:192
-msgid "XFCE Software Development"
-msgstr "የXFCE ሶፍትዌር እድገት"
-
-#: ../comps-fe6.xml.in.h:9 ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:28
-#: ../comps-el5.xml.in.h:8
-msgid "Czech Support"
-msgstr "የቼክ ድጋፍ"
-
-#: ../comps-fe6.xml.in.h:66 ../comps-el5.xml.in.h:64
-msgid ""
-"This group is a collection of tools and resources of Czech environments."
-msgstr ""
-
-#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3
-msgid "Afrikaans Support"
-msgstr "የአፍሪካዊያን ድጋፍ"
-
-#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4
-#, fuzzy
-msgid "Albanian Support"
-msgstr "የሮማኒያዊ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6
-msgid "Applications to perform a variety of tasks"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9
-msgid "Assamese Support"
-msgstr "የአሳሜሳዊ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11
-msgid "Base"
-msgstr "መሠረት"
-
-#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13
-msgid "Basic support for the Ruby programming language."
-msgstr "መሠረታዊ ድጋፍ ለRuby ፕሮግራም ቋንቋ።"
-
-#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14
-msgid "Basque Support"
-msgstr "ባስክኛ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15
-#, fuzzy
-msgid "Belarusian Support"
-msgstr "ቡልጋሪኛ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16
-msgid "Bengali Support"
-msgstr "የቤንጋሊ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17
-#, fuzzy
-msgid "Bhutanese Support"
-msgstr "የቻይናዊ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18
-#, fuzzy
-msgid "Bosnian Support"
-msgstr "የኢስቶኒያ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19
-msgid "Brazilian Portuguese Support"
-msgstr "የብራዚላዊ ፖርቱጋሊኛ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20
-msgid "Breton Support"
-msgstr "ብሬቶንኛ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:21
-msgid "Bulgarian Support"
-msgstr "ቡልጋሪኛ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:22
-msgid "Catalan Support"
-msgstr "የካታላን ድጋፍ"
-
-#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:23
-msgid "Chinese Support"
-msgstr "የቻይናዊ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:24
-msgid "Clustering"
-msgstr ""
-
-#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:25
-#, fuzzy
-msgid "Clustering Support"
-msgstr "የራሺያዊ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:26
-msgid "Core"
-msgstr "ማዕከላዊ ቦታ"
-
-#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:27
-msgid "Croatian Support"
-msgstr "ክሮሽያንኛ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:29
-msgid "DNS Name Server"
-msgstr "DNS የስም ሰርቨር"
-
-#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:30
-msgid "Danish Support"
-msgstr "የዴንማርክ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:34
-msgid "Development Libraries"
-msgstr "ማሳደጊያ መጽሐፍት ቤቶች"
-
-#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:36
-#, fuzzy
-msgid "Dial-up Networking Support"
-msgstr "የመረቡ ደጋፊ ጋር ደውል"
-
-#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:37
-msgid "Dutch Support"
-msgstr "የደች ድጋፍ"
-
-#: ../comps-f7.xml.in.h:38 ../comps-f8.xml.in.h:38
-msgid "Eclipse"
-msgstr "ኢክሊፕስ"
-
-#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43
-#, fuzzy
-msgid "English (UK) Support"
-msgstr "የዴንማርክ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44
-msgid "Estonian Support"
-msgstr "የኢስቶኒያ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45
-#, fuzzy
-msgid "Ethiopic Support"
-msgstr "የኢስቶኒያ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47
-msgid "Faeroese Support"
-msgstr "ፋሮኛ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:48
-#, fuzzy
-msgid "Filipino Support"
-msgstr "ጋለጋኛ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:49
-msgid "Finnish Support"
-msgstr "የፊኒሽ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:50
-msgid "French Support"
-msgstr "የፈረንሳይ ድጋፍ"
-
-#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:54
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:58 ../comps-f9.xml.in.h:59
 #, fuzzy
 msgid ""
 "GNOME is a powerful graphical user interface which includes a panel, "
 "desktop, system icons, and a graphical file manager."
 msgstr "የኖም ሀይለኛ ነው"
 
-#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:55
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:59 ../comps-f9.xml.in.h:60
 msgid "Gaelic Support"
 msgstr "ጌልክኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:56
+#: ../comps-f7.xml.in.h:57 ../comps-f8.xml.in.h:60 ../comps-f9.xml.in.h:61
 msgid "Galician Support"
 msgstr "ጋለጋኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:58
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:61 ../comps-f9.xml.in.h:62
+#: ../comps-el5.xml.in.h:24
+msgid "Games and Entertainment"
+msgstr "ጨዋታዎች እና መዝናኛዎች"
+
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:62 ../comps-f9.xml.in.h:63
 #, fuzzy
 msgid "Georgian Support"
 msgstr "የጀርመን ድጋፍ"
 
-#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:59
+#: ../comps-f7.xml.in.h:60 ../comps-f8.xml.in.h:63 ../comps-f9.xml.in.h:64
 msgid "German Support"
 msgstr "የጀርመን ድጋፍ"
 
-#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:62
+#: ../comps-f7.xml.in.h:61 ../comps-f8.xml.in.h:64 ../comps-f9.xml.in.h:65
+#: ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+msgid "Graphical Internet"
+msgstr "ንድፋዊ ኢንተርኔት"
+
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:65 ../comps-f9.xml.in.h:66
+#: ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+msgid "Graphics"
+msgstr "ንድፍ"
+
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:66 ../comps-f9.xml.in.h:67
 msgid "Greek Support"
 msgstr "የግሪክ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:63
+#: ../comps-f7.xml.in.h:64 ../comps-f8.xml.in.h:67 ../comps-f9.xml.in.h:68
 msgid "Gujarati Support"
 msgstr "ጉጃርቲኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:66
+#: ../comps-f7.xml.in.h:65 ../comps-f8.xml.in.h:68 ../comps-f9.xml.in.h:69
+#: ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+#, fuzzy
+msgid "Hardware Support"
+msgstr "የእብራይስጥ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:69 ../comps-f9.xml.in.h:70
+#: ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+msgid "Hebrew Support"
+msgstr "የእብራይስጥ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:70 ../comps-f9.xml.in.h:71
 msgid "Hindi Support"
 msgstr "ሒንዲ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:67
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:71 ../comps-f9.xml.in.h:72
 msgid "Hungarian Support"
 msgstr "የሀንጋሪዎች ድጋፍ"
 
-#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:68
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:72 ../comps-f9.xml.in.h:73
 msgid "Icelandic Support"
 msgstr "የአይስላንድ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:69
+#: ../comps-f7.xml.in.h:70 ../comps-f8.xml.in.h:73 ../comps-f9.xml.in.h:74
 msgid "Indonesian Support"
 msgstr "እንዶኒሲኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:73
+#: ../comps-f7.xml.in.h:71 ../comps-f8.xml.in.h:74 ../comps-f9.xml.in.h:75
+#: ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+msgid ""
+"Install these packages in order to develop GTK+ and GNOME graphical "
+"applications."
+msgstr "GTK+ን እና የኖም ንድፍን ለማሳደግ እነዚህን ጥቅሎች አስገባቸው።"
+
+#: ../comps-f7.xml.in.h:72 ../comps-f8.xml.in.h:75 ../comps-f9.xml.in.h:76
+msgid ""
+"Install these packages in order to develop GTK+ and XFCE graphical "
+"applications."
+msgstr "GTK+ እና XFCEን የንድፍ መጠቀሚያ ፕሮግራሞችን ለማሳደግ እነዚህን ጥቅሎች አስገባ።"
+
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:76 ../comps-f9.xml.in.h:77
+#: ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+msgid "Install these packages to develop QT and KDE graphical applications."
+msgstr "QT እና የKDEን ንድፋዊ መጠቀሚያ ፕሮግራሞችን ለማሳደግ እነዚህን ጥቅሎች አስገባቸው፡፡"
+
+#: ../comps-f7.xml.in.h:74 ../comps-f8.xml.in.h:77 ../comps-f9.xml.in.h:78
 msgid ""
 "Install these tools to enable the system to print or act as a print server."
 msgstr "ሲስተሙ ማተም ወይንም እንደ ማተሚያ ሰርቨር መሆን እንዲያስችለው እነዚህን መሣሪያዎች አስገባቸው።"
 
-#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:75
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:78 ../comps-f9.xml.in.h:79
+#: ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+msgid ""
+"Install this group of packages to use the base graphical (X) user interface."
+msgstr "የንድፋዊ (X) መሠረቱ ወሰንን ለመጠቀም ይህንን የጥቅሎች ስብስብ አስገባ።"
+
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:80 ../comps-f9.xml.in.h:81
 #, fuzzy
 msgid "Inuktitut Support"
 msgstr "ዙሉኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:76
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:81 ../comps-f9.xml.in.h:82
 msgid "Irish Support"
 msgstr "አይሪሽ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:77
+#: ../comps-f7.xml.in.h:78 ../comps-f8.xml.in.h:82 ../comps-f9.xml.in.h:83
 msgid "Italian Support"
 msgstr "የጣሊያናዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:83
+#: ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:83 ../comps-f9.xml.in.h:84
+#: ../comps-el4.xml.in.h:30 ../comps-el5.xml.in.h:32
+msgid "Japanese Support"
+msgstr "የጃፓናዊ ድጋፍ"
+
+#: ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:84 ../comps-f9.xml.in.h:85
+#: ../comps-el4.xml.in.h:31
+msgid "Java"
+msgstr "ጃቫ"
+
+#: ../comps-f7.xml.in.h:81 ../comps-f8.xml.in.h:85 ../comps-f9.xml.in.h:86
+#: ../comps-el4.xml.in.h:32
+msgid "Java Development"
+msgstr "የጃቫ እድገት"
+
+#: ../comps-f7.xml.in.h:82 ../comps-f8.xml.in.h:86 ../comps-f9.xml.in.h:87
+#: ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+msgid "KDE (K Desktop Environment)"
+msgstr "KDE (K የዴስክቶፕ አካባቢ)"
+
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:87 ../comps-f9.xml.in.h:88
+#: ../comps-el4.xml.in.h:34 ../comps-el5.xml.in.h:34
+msgid "KDE Software Development"
+msgstr "የኬዲኢ ሶፍትዌር እድገት"
+
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:88 ../comps-f9.xml.in.h:89
 #, fuzzy
 msgid ""
 "KDE is a powerful graphical user interface which includes a panel, desktop, "
@@ -703,160 +420,203 @@ msgstr ""
 "ኬዲኢ ኃይለኛ የሆነ የንድፋዊ ወሰን ተጠቃሚ ፓነል፣ ዴስክቶፕ፣ የሲስተም ምልክቶች እና የንድፋዊ ፋይል አስተዳደርን "
 "የሚያጠቃልል ነው።"
 
-#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:84
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:89 ../comps-f9.xml.in.h:90
 msgid "Kannada Support"
 msgstr "ካናዳኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:85
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:90 ../comps-f9.xml.in.h:92
 #, fuzzy
 msgid "Khmer Support"
 msgstr "የእብራይስጥ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:86
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:91 ../comps-f9.xml.in.h:93
 msgid "Korean Support"
 msgstr "የኮሪያዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:87
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:92 ../comps-f9.xml.in.h:94
 #, fuzzy
 msgid "Languages"
 msgstr "ቋንቋ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:88
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:93 ../comps-f9.xml.in.h:95
 #, fuzzy
 msgid "Lao Support"
 msgstr "ታይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:89
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:94 ../comps-f9.xml.in.h:96
 #, fuzzy
 msgid "Latvian Support"
 msgstr "ክሮሽያንኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:90
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:96 ../comps-f9.xml.in.h:98
 msgid "Legacy Network Server"
 msgstr "የተወረሰ የመረብ ሰርቨር"
 
-#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:91
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:97 ../comps-f9.xml.in.h:99
 msgid "Legacy Software Development"
 msgstr "የውርስ ሶፍትዌር እድገት"
 
-#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:92
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:98 ../comps-f9.xml.in.h:100
 msgid "Legacy Software Support"
 msgstr "የተወረሰ የሶፍትዌር ድጋፍ"
 
-#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:93
+#: ../comps-f7.xml.in.h:94 ../comps-f8.xml.in.h:99 ../comps-f9.xml.in.h:101
 msgid "Lithuanian Support"
 msgstr "ሊቱአኒያን ድጋፍ"
 
-#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:95
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:101 ../comps-f9.xml.in.h:104
+#: ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+msgid "Mail Server"
+msgstr "የደብዳቤዎች ሰርቨር"
+
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:102 ../comps-f9.xml.in.h:105
 msgid "Malay Support"
 msgstr "ማላይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:96
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:103 ../comps-f9.xml.in.h:106
 #, fuzzy
 msgid "Malayalam Support"
 msgstr "ማላይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:97
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:104 ../comps-f9.xml.in.h:107
 #, fuzzy
 msgid "Maori Support"
 msgstr "ጉጃርቲኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:98
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:105 ../comps-f9.xml.in.h:108
 #, fuzzy
 msgid "Marathi Support"
 msgstr "ጉጃርቲኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:99
+#: ../comps-f7.xml.in.h:100 ../comps-f8.xml.in.h:107 ../comps-f9.xml.in.h:110
 msgid "MySQL Database"
 msgstr "የMySQL የኮምፒውተር መረጃ"
 
-#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:102
+#: ../comps-f7.xml.in.h:101 ../comps-f8.xml.in.h:109 ../comps-f9.xml.in.h:112
+#: ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+msgid "Network Servers"
+msgstr "የመረብ ሰርቨር"
+
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:110 ../comps-f9.xml.in.h:113
+#: ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+msgid "News Server"
+msgstr "የዜና ሰርቨር"
+
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:111 ../comps-f9.xml.in.h:115
 #, fuzzy
 msgid "Northern Sotho Support"
 msgstr "ብሬቶንኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:103
+#: ../comps-f7.xml.in.h:104 ../comps-f8.xml.in.h:112 ../comps-f9.xml.in.h:116
 msgid "Norwegian Support"
 msgstr "የኖርዌጂያናዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:105
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:113 ../comps-f9.xml.in.h:117
+#: ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+msgid "Office/Productivity"
+msgstr "ኦፊስ/ምርታማነት"
+
+#: ../comps-f7.xml.in.h:106 ../comps-f8.xml.in.h:115 ../comps-f9.xml.in.h:119
 #, fuzzy
 msgid "Oriya Support"
 msgstr "የሲሪያዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:107
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:116 ../comps-f9.xml.in.h:120
+#: ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+msgid ""
+"Packages which provide functionality for developing and building "
+"applications."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:117 ../comps-f9.xml.in.h:121
 #, fuzzy
 msgid "Persian Support"
 msgstr "የሰርቢያናዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:108
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:118 ../comps-f9.xml.in.h:122
 msgid "Polish Support"
 msgstr "የፖላንዳዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:109
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:119 ../comps-f9.xml.in.h:123
 msgid "Portuguese Support"
 msgstr "የፖርቱጋላዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:110
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:120 ../comps-f9.xml.in.h:124
 msgid "PostgreSQL Database"
 msgstr "PostgreSQL የኮምፒውተር መረጃ"
 
-#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:111
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:121 ../comps-f9.xml.in.h:125
 msgid "Printing Support"
 msgstr "የሕትመት ድጋፍ"
 
-#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:112
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:122 ../comps-f9.xml.in.h:126
 msgid "Punjabi Support"
 msgstr "የፑንጃቢ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:113
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:123 ../comps-f9.xml.in.h:127
 msgid "Romanian Support"
 msgstr "የሮማኒያዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:114
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:124 ../comps-f9.xml.in.h:128
 msgid "Ruby"
 msgstr "Ruby"
 
-#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:115
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:125 ../comps-f9.xml.in.h:129
 msgid "Russian Support"
 msgstr "የራሺያዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:116
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:126 ../comps-f9.xml.in.h:130
 #, fuzzy
 msgid "Samoan Support"
 msgstr "የጀርመን ድጋፍ"
 
-#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:117
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:127 ../comps-f9.xml.in.h:131
 msgid "Serbian Support"
 msgstr "የሰርቢያናዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:118
+#: ../comps-f7.xml.in.h:119 ../comps-f8.xml.in.h:128 ../comps-f9.xml.in.h:132
 msgid "Server Configuration Tools"
 msgstr "የሰርቨር ማስተካከያ መሣሪያዎች"
 
-#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:121
+#: ../comps-f7.xml.in.h:120 ../comps-f8.xml.in.h:129 ../comps-f9.xml.in.h:133
+#: ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+msgid "Servers"
+msgstr "ሰርቨሮች"
+
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:130 ../comps-f9.xml.in.h:134
+#: ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+msgid ""
+"Simple window managers that aren't part of a larger desktop environment."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:131 ../comps-f9.xml.in.h:135
 #, fuzzy
 msgid "Sinhala Support"
 msgstr "ማላይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:122
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:132 ../comps-f9.xml.in.h:136
 msgid "Slovak Support"
 msgstr "የስሎቫኪያዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:123
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:133 ../comps-f9.xml.in.h:137
 msgid "Slovenian Support"
 msgstr "የስሎቬኒያዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:124
+#: ../comps-f7.xml.in.h:125 ../comps-f8.xml.in.h:134 ../comps-f9.xml.in.h:138
 msgid "Smallest possible installation"
 msgstr "ትንሹ የሚቻለው የማስገባት ሥራ"
 
-#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:126
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:135 ../comps-f9.xml.in.h:139
+#: ../comps-el4.xml.in.h:43 ../comps-el5.xml.in.h:43
+msgid "Software used for running network servers"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:136 ../comps-f9.xml.in.h:140
 #, fuzzy
-msgid "Somail Support"
+msgid "Somali Support"
 msgstr "ታይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:127
+#: ../comps-f7.xml.in.h:128 ../comps-f8.xml.in.h:137 ../comps-f9.xml.in.h:141
 #, fuzzy
 msgid ""
 "Sometimes called text editors, these are programs that allow you to create "
@@ -865,89 +625,131 @@ msgstr ""
 " እነዚህ ፋይሎችን ለመፍጠር እና ለማረም የሚያስችሉ ፕሮግራሞች ናቸው፣ አንዳንዴ የጽሑፍ አዘጋጆች ይባላሉ። ኢማክስን እና "
 "ቪአይን እነዚህ ያጠቃልላሉ።"
 
-#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:129
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:138 ../comps-f9.xml.in.h:142
+#: ../comps-el4.xml.in.h:45 ../comps-el5.xml.in.h:45
+msgid "Sound and Video"
+msgstr "ድምጽ እና ቪዲዮ"
+
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:139 ../comps-f9.xml.in.h:143
 #, fuzzy
 msgid "Southern Ndebele Support"
 msgstr "ብሬቶንኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:130
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:140 ../comps-f9.xml.in.h:144
 #, fuzzy
 msgid "Southern Sotho Support"
 msgstr "ብሬቶንኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:131
+#: ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:141 ../comps-f9.xml.in.h:145
 msgid "Spanish Support"
 msgstr "የስፔናዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:134
+#: ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:142 ../comps-f9.xml.in.h:146
+#: ../comps-el4.xml.in.h:46
+msgid "Support for developing programs in the Java programming language."
+msgstr "ድጋፍ በማደግ ላይ ላሉ ፕሮግራሞች በጃቫ የፕሮግራም ቋንቋ ውስጥ።"
+
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:143 ../comps-f9.xml.in.h:147
+#: ../comps-el4.xml.in.h:47
+msgid "Support for running programs written in the Java programming language."
+msgstr "በጃቫ የፕሮግራም ቋንቋ ውስጥ ለተጻፉት በመሄድ ላይ ላሉ ፕሮግራሞች ድጋፍ።"
+
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:144 ../comps-f9.xml.in.h:148
 #, fuzzy
 msgid "Swati Support"
 msgstr "ታይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:135
+#: ../comps-f7.xml.in.h:136 ../comps-f8.xml.in.h:145 ../comps-f9.xml.in.h:149
 msgid "Swedish Support"
 msgstr "የስዊድናዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:137
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:146 ../comps-f9.xml.in.h:150
+#: ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+msgid "System Tools"
+msgstr "የሲስተም ቱልስ"
+
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:147 ../comps-f9.xml.in.h:151
 #, fuzzy
 msgid "Tagalog Support"
 msgstr "የታሚል ድጋፍ"
 
-#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:138
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:148 ../comps-f9.xml.in.h:152
 msgid "Tamil Support"
 msgstr "የታሚል ድጋፍ"
 
-#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:139
+#: ../comps-f7.xml.in.h:140 ../comps-f8.xml.in.h:149 ../comps-f9.xml.in.h:153
 #, fuzzy
 msgid "Telugu Support"
 msgstr "ዙሉኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:141
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:150 ../comps-f9.xml.in.h:154
+#: ../comps-el4.xml.in.h:49 ../comps-el5.xml.in.h:47
+msgid "Text-based Internet"
+msgstr "በጽሑፍ ላይ የተመሰረተ ኢንተርኔት"
+
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:151 ../comps-f9.xml.in.h:155
 msgid "Thai Support"
 msgstr "ታይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:142
+#: ../comps-f7.xml.in.h:143
 msgid "The Eclipse Integrated Development Environment."
 msgstr "የኢክሊፕስ ውህድ እድገት አካባቢ"
 
-#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:144
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:152 ../comps-f9.xml.in.h:156
+#: ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+msgid "The applications include office suites, PDF viewers, and more."
+msgstr "የመጠቀሚያው ፕሮግራሞች ለኦፊስ የሚመቹ፣ ፒዲኤፍ ተመልካቾች እና ሌሎችንም ያጠቃልላል።"
+
+#: ../comps-f7.xml.in.h:145 ../comps-f8.xml.in.h:153 ../comps-f9.xml.in.h:157
 msgid ""
 "The packages in this group are core libraries needed to develop applications."
 msgstr "በዚህ ቡድን ውስጥ ያሉት ጥቅሎች የመጠቀሚያ ፕሮግራሞችን ለማሳደግ የሚያስፈልጉ ዋናው የመጽሐፍት ቤቶች ናቸው።"
 
-#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:146
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:154 ../comps-f9.xml.in.h:158
+#: ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+msgid "These packages allow you to configure an IMAP or SMTP mail server."
+msgstr "የIMPAን እና የSMTP የሆነ የደብዳቤ ሰርቨርን ለማስተካከል እነዚህ ጥቅሎች ያስችላሉ።"
+
+#: ../comps-f7.xml.in.h:147 ../comps-f8.xml.in.h:155 ../comps-f9.xml.in.h:159
 msgid ""
 "These packages allow you to develop applications for the X Window System."
 msgstr "እነዚህ ጥቅሎች ለX መስኮት ሲስተም የመጠቀሚያ ፕሮግራሞችን ለማሳደግ ያስችላሉ።"
 
-#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:148
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:156 ../comps-f9.xml.in.h:160
+#: ../comps-el4.xml.in.h:53 ../comps-el5.xml.in.h:51
+#, fuzzy
+msgid ""
+"These packages are helpful when developing web applications or web pages."
+msgstr "እነዚህ ጥቅሎች ለX መስኮት ሲስተም የመጠቀሚያ ፕሮግራሞችን ለማሳደግ ያስችላሉ።"
+
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:157 ../comps-f9.xml.in.h:161
 msgid ""
 "These packages include network-based servers such as DHCP, Kerberos and NIS."
 msgstr "እነዚህ ጥቅሎች በመረብ ላይ የተመሠረቱ እንደ DHCP, Kerberos እና NIS ያሉትን ሰረቨሮች ያጠቃልላሉ።"
 
-#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:149
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:158 ../comps-f9.xml.in.h:162
 msgid ""
 "These packages include servers for old network protocols such as rsh and "
 "telnet."
 msgstr "እነዚህ ጥቅሎች ለአሮጌው የመረብ ፕሮቶኮሎች እንደ rsh እና telnet ያሉትን ሰርቨሮች ያጠቃልላሉ። "
 
-#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:150
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:159 ../comps-f9.xml.in.h:163
 #, fuzzy
 msgid "These packages provide a virtualization environment."
 msgstr "እነዚህ ጥቅሎች በፊት ለተለቀቁት ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
 
-#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:151
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:160 ../comps-f9.xml.in.h:164
 #, fuzzy
 msgid "These packages provide compatibility with previous releases."
 msgstr "እነዚህ ጥቅሎች በፊት ለተለቀቁት ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
 
-#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:152
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:161 ../comps-f9.xml.in.h:165
 msgid ""
 "These packages provide support for various locales including fonts and input "
 "methods."
 msgstr "እነዚህ ጥቅሎች ለተለያዩ ውስጣዊዎች የጽሑፍ ዓይነቶች እና የማስገቢያ ዘዴዎች ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
 
-#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:153
+#: ../comps-f7.xml.in.h:154 ../comps-f8.xml.in.h:162 ../comps-f9.xml.in.h:166
 #, fuzzy
 msgid ""
 "These tools allow you to create documents in the DocBook format and convert "
@@ -956,103 +758,422 @@ msgstr ""
 "እነዚህ መሣሪያዎች መረጃዎችን በDocBook አሠራር ውስጥ ወደ HTML, PDF፣ ፖስትስክሪፕት እና ጽሑፍ ለመለወጥ "
 "ያስችላሉ።"
 
-#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:158
+#: ../comps-f7.xml.in.h:155 ../comps-f8.xml.in.h:163 ../comps-f9.xml.in.h:167
+#: ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+msgid "These tools allow you to run a Web server on the system."
+msgstr "እነዚህ መሣሪያዎች የመረብ ሰርበሩን በሲስተሙ ላይ ለማስኬድ ያስችላሉ።"
+
+#: ../comps-f7.xml.in.h:156 ../comps-f8.xml.in.h:164 ../comps-f9.xml.in.h:168
+#: ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+msgid "These tools allow you to run an FTP server on the system."
+msgstr "እነዚህ መሣሪያዎች የFTPን ሰርቨር በሲስተሙ ላይ ለማስኬድ ያስችላሉ።"
+
+#: ../comps-f7.xml.in.h:157 ../comps-f8.xml.in.h:165 ../comps-f9.xml.in.h:169
+#: ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+msgid ""
+"These tools include core development tools such as automake, gcc, perl, "
+"python, and debuggers."
+msgstr ""
+"እነዚህ መሣሪያዎች እንደ አውቶሜክ፣ ጂጂሲ፣ ፐርል፣ ፓይተን እና ማስተካከያውች ያሉ ዋና የእድገት መሣሪያዎችን ያጠቃልላሉ።"
+
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:166 ../comps-f9.xml.in.h:170
+#: ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+msgid "This group allows you to configure the system as a news server."
+msgstr "ይህ ቡድን ሲስተሙን እንደ ዜና ሰርበር ለማስተካከል ያስችላል።"
+
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:167 ../comps-f9.xml.in.h:171
 msgid "This group contains all of Red Hat's custom server configuration tools."
 msgstr "ይህ ቡድን ሁሉንም የሬድ ሃትን የተለመደው ሰርቨር ማስተካከያ መሣሪያዎችን ያጠቃልላል።"
 
-#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:159
+#: ../comps-f7.xml.in.h:160 ../comps-f8.xml.in.h:168 ../comps-f9.xml.in.h:172
 msgid ""
 "This group includes a minimal set of packages. Useful for creating small "
 "router/firewall boxes, for example."
 msgstr ""
 "ይህ ቡድን የአነስተኛ የጥቅሎች ስብስብን ያጠቃልላል። ለምሳሌ፣ ትንንሽ የሩተር/የፋየርዎል ሣጥኖችን ለመፍጠር ጠቃሚ ነው።"
 
-#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:168
+#: ../comps-f7.xml.in.h:161 ../comps-f8.xml.in.h:169 ../comps-f9.xml.in.h:173
+#: ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+msgid "This group includes graphical email, Web, and chat clients."
+msgstr "ይህ ቡድን የንድፋዊ ኢሜይልን፣ መረብ እና ተወያይ ደንበኞችን ያጠቃልላል።"
+
+#: ../comps-f7.xml.in.h:162 ../comps-f8.xml.in.h:170 ../comps-f9.xml.in.h:174
+#: ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+msgid ""
+"This group includes packages for performing mathematical and scientific "
+"computations and plotting, as well as unit conversion."
+msgstr ""
+"ይን ቡድን የሂሣባዊና ሳይንሳዊ ማስሊያዎችን እና ማቀጃ እንዲሁም ቁጥር መለወጫን የሚያቀርቡ ጥቅሎችን ያጠቃልላል።"
+
+#: ../comps-f7.xml.in.h:163 ../comps-f8.xml.in.h:171 ../comps-f9.xml.in.h:175
+#: ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+msgid "This group includes packages to help you manipulate and scan images."
+msgstr "ይህ ቡድን ምስሎችን ለመቆጣጠር እና እስካን ለማድረግ የሚረዱ ጥቅሎችን ያጠቃልላል።"
+
+#: ../comps-f7.xml.in.h:164 ../comps-f8.xml.in.h:172 ../comps-f9.xml.in.h:176
+#: ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+msgid ""
+"This group includes text-based email, Web, and chat clients. These "
+"applications do not require the X Window System."
+msgstr ""
+"ይህ ቡድን በጽሑፍ ላይ የተመሠረተ ኢሜይል፣ መረብ እና ተወያይ ደንበኞችን ያጠቃልላል። እነዚህ የመተቀሚያ ፕሮግራሞች የX "
+"መስኮት ሲስተምን አይጠይቁም።"
+
+#: ../comps-f7.xml.in.h:165 ../comps-f8.xml.in.h:173 ../comps-f9.xml.in.h:177
+#: ../comps-el4.xml.in.h:63 ../comps-el5.xml.in.h:61
+msgid ""
+"This group is a collection of graphical administration tools for the system, "
+"such as for managing user accounts and configuring system hardware."
+msgstr ""
+"ይህ ቡድን ለሲስተሙ የንድፋዊ አስተዳደር መሣሪያ ለተጠቃሚው ታሪክ እና የሲስተሙን ሀርድዌር ማስተካከያ ስብስብ ነው።"
+
+#: ../comps-f7.xml.in.h:166 ../comps-f8.xml.in.h:174 ../comps-f9.xml.in.h:178
+#: ../comps-el4.xml.in.h:66 ../comps-el5.xml.in.h:64
+msgid ""
+"This group is a collection of tools and resources of Armenian environments."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:167 ../comps-f8.xml.in.h:175 ../comps-f9.xml.in.h:179
+#: ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+msgid ""
+"This group is a collection of tools for various hardware specific utilities."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:176 ../comps-f9.xml.in.h:180
+#: ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
+msgid ""
+"This group is a collection of various tools for the system, such as the "
+"client for connecting to SMB shares and tools to monitor network traffic."
+msgstr ""
+"ይህ ቡድን ለሲስተሙ ደንበኞችን  የመረቡን ዝውውር የሚቆጣጠሩ መሣሪያዎች እና ከSMB ጋር የሚያገናኙ የተለያዩ መሣሪያዎች "
+"ስብስብ ነው።"
+
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:177 ../comps-f9.xml.in.h:181
 msgid ""
 "This package group allows you to run a DNS name server (BIND) on the system."
 msgstr "የዚህ ጥቅል ቡድን የDNS የስም ሰርቨር (BIND)ን በሲስተሙ ላይ ለማስኬድ ያስችልዎታል።"
 
-#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:169
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:178 ../comps-f9.xml.in.h:182
 msgid ""
 "This package group allows you to share files between Linux and MS Windows"
 "(tm) systems."
 msgstr "የዚህ ጥቅል ቡድን በሊኑክስ እና በMS Windows (tm) ሲስተሞች መካከል ፋይሎችን እንዲካፈሉ ያስችልዎታል።"
 
-#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:170
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:179 ../comps-f9.xml.in.h:183
 msgid "This package group contains packages useful for use with MySQL."
 msgstr "የዚህ ጥቅል ቡድን ከMySQL ጋር ለመጠቀም ጠቃሚ የሆኑ ጥቅሎችን ይዟል።"
 
-#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:171
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:180 ../comps-f9.xml.in.h:184
 msgid "This package group includes packages useful for use with Postgresql."
 msgstr "የዚህ ጥቅል ቡድን ከPostgresql ጋር ለመጠቅም ጠቃሚ የሆኑ ጥቅሎችን ይዟል።"
 
-#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:172
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:181 ../comps-f9.xml.in.h:185
 #, fuzzy
 msgid "Tibetan Support"
 msgstr "የጀርመን ድጋፍ"
 
-#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:173
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:182 ../comps-f9.xml.in.h:186
 #, fuzzy
 msgid "Tonga Support"
 msgstr "የኢስቶኒያ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:174
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:183 ../comps-f9.xml.in.h:187
+#: ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:70
+msgid "Tools and Utilities needed by a Fedora Packager"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:184 ../comps-f9.xml.in.h:188
 #, fuzzy
 msgid "Tsonga Support"
 msgstr "የኢስቶኒያ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:175
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:185 ../comps-f9.xml.in.h:189
 #, fuzzy
 msgid "Tswana Support"
 msgstr "ታይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:176
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:186 ../comps-f9.xml.in.h:190
 msgid "Turkish Support"
 msgstr "የቱርካዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:177
+#: ../comps-f7.xml.in.h:179 ../comps-f8.xml.in.h:187 ../comps-f9.xml.in.h:191
 msgid "Ukrainian Support"
 msgstr "የዩክሬናዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:178
+#: ../comps-f7.xml.in.h:180 ../comps-f8.xml.in.h:188 ../comps-f9.xml.in.h:192
 #, fuzzy
 msgid "Urdu Support"
 msgstr "ዙሉኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:181
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:189 ../comps-f9.xml.in.h:193
+#: ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:71
+msgid "Various core pieces of the system."
+msgstr ""
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:190 ../comps-f9.xml.in.h:194
+#: ../comps-el5.xml.in.h:72
+msgid "Various ways to relax and spend your free time."
+msgstr "የተለያዩ የሚዝናኑበት እና የእረፍት ጊዜዎትን የሚያሳልፉባቸው መንገዶች።"
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:191 ../comps-f9.xml.in.h:195
 #, fuzzy
 msgid "Venda Support"
 msgstr "ካናዳኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:182
+#: ../comps-f7.xml.in.h:184 ../comps-f8.xml.in.h:192 ../comps-f9.xml.in.h:196
 #, fuzzy
 msgid "Vietnamese Support"
 msgstr "የቻይናዊ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:183
+#: ../comps-f7.xml.in.h:185 ../comps-f8.xml.in.h:193 ../comps-f9.xml.in.h:197
 msgid "Virtualization"
 msgstr ""
 
-#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:186
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:194 ../comps-f9.xml.in.h:199
+#: ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+#, fuzzy
+msgid "Web Development"
+msgstr "እድገት"
+
+#: ../comps-f7.xml.in.h:187 ../comps-f8.xml.in.h:195 ../comps-f9.xml.in.h:200
+#: ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "Web Server"
+msgstr "የድር ሰርቨር"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:196 ../comps-f9.xml.in.h:201
 msgid "Welsh Support"
 msgstr "የዌልሽ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:188
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:197 ../comps-f9.xml.in.h:202
+#: ../comps-el4.xml.in.h:75 ../comps-el5.xml.in.h:75
+msgid "Window Managers"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:190 ../comps-f8.xml.in.h:198 ../comps-f9.xml.in.h:203
 msgid "Windows File Server"
 msgstr "የመስኮቶች ፋይል ሰርቨር"
 
-#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:189
+#: ../comps-f7.xml.in.h:191 ../comps-f8.xml.in.h:199 ../comps-f9.xml.in.h:204
 msgid "X Software Development"
 msgstr "የX ሶፍትዌር እድገት"
 
-#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:193
+#: ../comps-f7.xml.in.h:192 ../comps-f8.xml.in.h:200 ../comps-f9.xml.in.h:205
+#: ../comps-el4.xml.in.h:76 ../comps-el5.xml.in.h:76
+msgid "X Window System"
+msgstr "የX መስኮት ሲስተም"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:201 ../comps-f9.xml.in.h:206
+msgid "XFCE"
+msgstr "XFCE"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:202 ../comps-f9.xml.in.h:207
+msgid "XFCE Software Development"
+msgstr "የXFCE ሶፍትዌር እድገት"
+
+#: ../comps-f7.xml.in.h:195 ../comps-f8.xml.in.h:203 ../comps-f9.xml.in.h:208
 #, fuzzy
 msgid "Xhosa Support"
 msgstr "ታይኛ ድጋፍ"
 
-#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:194
+#: ../comps-f7.xml.in.h:196 ../comps-f8.xml.in.h:204 ../comps-f9.xml.in.h:209
 msgid "Zulu Support"
 msgstr "ዙሉኛ ድጋፍ"
+
+#: ../comps-f8.xml.in.h:21 ../comps-f9.xml.in.h:21
+msgid "Buildsystem building group"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:48 ../comps-f9.xml.in.h:49
+#, fuzzy
+msgid "Fedora Eclipse"
+msgstr "ኢክሊፕስ"
+
+#: ../comps-f8.xml.in.h:52 ../comps-f9.xml.in.h:53
+msgid "Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:53 ../comps-f9.xml.in.h:54
+msgid "Fonts packages for rendering text on the desktop."
+msgstr ""
+
+#: ../comps-f8.xml.in.h:79 ../comps-f9.xml.in.h:80
+#, fuzzy
+msgid "Integrated Development Environments based on Eclipse."
+msgstr "የኢክሊፕስ ውህድ እድገት አካባቢ"
+
+#: ../comps-f8.xml.in.h:95 ../comps-f9.xml.in.h:97
+msgid "Legacy Fonts"
+msgstr ""
+
+#: ../comps-f8.xml.in.h:100 ../comps-f9.xml.in.h:102
+#, fuzzy
+msgid "Low Saxon Support"
+msgstr "ታይኛ ድጋፍ"
+
+#: ../comps-f8.xml.in.h:106 ../comps-f9.xml.in.h:109
+#, fuzzy
+msgid "Mongolian Support"
+msgstr "የኢስቶኒያ ድጋፍ"
+
+#: ../comps-f8.xml.in.h:108 ../comps-f9.xml.in.h:111
+#, fuzzy
+msgid "Nepali Support"
+msgstr "የቤንጋሊ ድጋፍ"
+
+#: ../comps-f8.xml.in.h:114 ../comps-f9.xml.in.h:118
+msgid "Older bitmap and vector fonts packages"
+msgstr ""
+
+#: ../comps-f9.xml.in.h:44
+#, fuzzy
+msgid "Esperanto Support"
+msgstr "የጀርመን ድጋፍ"
+
+#: ../comps-f9.xml.in.h:91
+#, fuzzy
+msgid "Kashubian Support"
+msgstr "የኢስቶኒያ ድጋፍ"
+
+#: ../comps-f9.xml.in.h:103
+#, fuzzy
+msgid "Macedonian Support"
+msgstr "የኢስቶኒያ ድጋፍ"
+
+#: ../comps-f9.xml.in.h:114
+#, fuzzy
+msgid "Northern Sami Support"
+msgstr "ብሬቶንኛ ድጋፍ"
+
+#: ../comps-f9.xml.in.h:198
+#, fuzzy
+msgid "Walloon Support"
+msgstr "ታይኛ ድጋፍ"
+
+#: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:12 ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "የመረቡ ደጋፊ ጋር ደውል"
+
+#: ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:23
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr "የኖም ሀይለኛ ነው"
+
+#: ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"ኬዲኢ ኃይለኛ የሆነ የንድፋዊ ወሰን ተጠቃሚ ፓነል፣ ዴስክቶፕ፣ የሲስተም ምልክቶች እና የንድፋዊ ፋይል አስተዳደርን "
+"የሚያጠቃልል ነው።"
+
+#: ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+" እነዚህ ፋይሎችን ለመፍጠር እና ለማረም የሚያስችሉ ፕሮግራሞች ናቸው፣ አንዳንዴ የጽሑፍ አዘጋጆች ይባላሉ። ኢማክስን እና "
+"ቪአይን እነዚህ ያጠቃልላሉ።"
+
+#: ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The XEmacs text editor."
+msgstr "የXemacs ጽሑፍ አዘጋጅ።"
+
+#: ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"እነዚህ መሣሪያዎች መረጃዎችን በDocBook አሠራር ውስጥ ወደ HTML, PDF፣ ፖስትስክሪፕት እና ጽሑፍ ለመለወጥ "
+"ያስችላሉ።"
+
+#: ../comps-el4.xml.in.h:64 ../comps-el5.xml.in.h:62
+msgid "This group is a collection of network servers for specific purposes"
+msgstr ""
+
+#: ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:67 ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr ""
+
+#: ../comps-el4.xml.in.h:77 ../comps-el5.xml.in.h:77
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr ""
+
+#~ msgid "British Support"
+#~ msgstr "የብሪታንያ ድጋፍ"
+
+#, fuzzy
+#~ msgid "Cluster Storage"
+#~ msgstr "የራሺያዊ ድጋፍ"
+
+#, fuzzy
+#~ msgid "Clustering Support."
+#~ msgstr "የራሺያዊ ድጋፍ"
+
+#~ msgid "Miscellaneous Included Packages"
+#~ msgstr "ልዩ ልዩ የተጠቃለሉ ጥቅሎች"
+
+#, fuzzy
+#~ msgid "Packages which provide support for cluster storage."
+#~ msgstr "እነዚህ ጥቅሎች ለበፊቱ የሬድ ሀት ድርጅት ሊኑክስ ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
+
+#, fuzzy
+#~ msgid "Single Node GFS Support"
+#~ msgstr "የቻይናዊ ድጋፍ"
+
+#, fuzzy
+#~ msgid "These packages provide compatibility support with previous releases."
+#~ msgstr "እነዚህ ጥቅሎች በፊት ለተለቀቁት ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
+
+#, fuzzy
+#~ msgid "Misc packages"
+#~ msgstr "Multilib የድጋፍ ጥቅሎች"
+
+#, fuzzy
+#~ msgid "Multimedia"
+#~ msgstr "መጠቀሚያ ፕሮግራሞች"
+
+#, fuzzy
+#~ msgid "Multimedia applications"
+#~ msgstr "መጠቀሚያ ፕሮግራሞች"
+
+#, fuzzy
+#~ msgid ""
+#~ "Packages which provide additional functionality for Red Hat Enterprise "
+#~ "Linux"
+#~ msgstr "እነዚህ ጥቅሎች ለበፊቱ የሬድ ሀት ድርጅት ሊኑክስ ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
+
+#, fuzzy
+#~ msgid "Red Hat Enterprise Linux Supplementary"
+#~ msgstr "የሬድ ሀት ድርጅት ሊኑክስ 3 መረጃ"
+
+#, fuzzy
+#~ msgid "Virtualization Support."
+#~ msgstr "የጣሊያናዊ ድጋፍ"
+
+#, fuzzy
+#~ msgid "Somail Support"
+#~ msgstr "ታይኛ ድጋፍ"
 
 #~ msgid "Emacs"
 #~ msgstr "ኢማክስ"
@@ -1062,9 +1183,6 @@ msgstr "ዙሉኛ ድጋፍ"
 
 #~ msgid "Brazilian Support"
 #~ msgstr "የብራዚላዊያኖች ድጋፍ"
-
-#~ msgid "British Support"
-#~ msgstr "የብሪታንያ ድጋፍ"
 
 #~ msgid "Canadian Support"
 #~ msgstr "የካናዳዊያን ድጋፍ"
@@ -1110,9 +1228,6 @@ msgstr "ዙሉኛ ድጋፍ"
 
 #~ msgid "Kernel Development"
 #~ msgstr "የከርኔል እድገት"
-
-#~ msgid "Miscellaneous Included Packages"
-#~ msgstr "ልዩ ልዩ የተጠቃለሉ ጥቅሎች"
 
 #~ msgid "Mozilla packages for the x86 platform"
 #~ msgstr "ለx86 መድረክ የሞዚላ ጥቅሎች"
@@ -1173,9 +1288,6 @@ msgstr "ዙሉኛ ድጋፍ"
 
 #~ msgid "Italian"
 #~ msgstr "ጣሊያንኛ"
-
-#~ msgid "Red Hat Enterprise Linux 3 Documentation"
-#~ msgstr "የሬድ ሀት ድርጅት ሊኑክስ 3 መረጃ"
 
 #~ msgid "Spanish"
 #~ msgstr "ስፓኒሽ"
@@ -1289,46 +1401,12 @@ msgstr "ዙሉኛ ድጋፍ"
 #~ msgstr "ይህ ቡድን የRed Hatን ድርጅት ሊኑክስ መረጃ በታሚል ቋንቋ ይዟል።"
 
 #, fuzzy
-#~ msgid "Cluster Storage"
-#~ msgstr "የራሺያዊ ድጋፍ"
-
-#, fuzzy
-#~ msgid "Clustering Support."
-#~ msgstr "የራሺያዊ ድጋፍ"
-
-#, fuzzy
-#~ msgid "Single Node GFS Support"
-#~ msgstr "የቻይናዊ ድጋፍ"
-
-#, fuzzy
-#~ msgid "These packages provide compatibility support with previous releases."
-#~ msgstr "እነዚህ ጥቅሎች በፊት ለተለቀቁት ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
-
-#, fuzzy
-#~ msgid "Misc packages"
-#~ msgstr "Multilib የድጋፍ ጥቅሎች"
-
-#, fuzzy
-#~ msgid "Multimedia applications"
-#~ msgstr "መጠቀሚያ ፕሮግራሞች"
-
-#, fuzzy
-#~ msgid ""
-#~ "Packages which provide additional functionality for Red Hat Enterprise "
-#~ "Linux"
-#~ msgstr "እነዚህ ጥቅሎች ለበፊቱ የሬድ ሀት ድርጅት ሊኑክስ ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
-
-#, fuzzy
 #~ msgid "Red Hat Enterprise Linux Extras"
 #~ msgstr "የRed Hat ድርጅት ሊኑክስ 4 መረጃ"
 
 #, fuzzy
 #~ msgid "Workstation"
 #~ msgstr "የተለመደ የመስሪያ ጣቢያ"
-
-#, fuzzy
-#~ msgid "Virtualization Support."
-#~ msgstr "የጣሊያናዊ ድጋፍ"
 
 #, fuzzy
 #~ msgid "Compatibility Arch"
@@ -1341,11 +1419,6 @@ msgstr "ዙሉኛ ድጋፍ"
 #, fuzzy
 #~ msgid "Multilib library packages"
 #~ msgstr "Multilib የድጋፍ ጥቅሎች"
-
-#, fuzzy
-#~ msgid ""
-#~ "Packages which provide functionality for the compatibility architecture."
-#~ msgstr "እነዚህ ጥቅሎች ለበፊቱ የሬድ ሀት ድርጅት ሊኑክስ ተስማሚ የሆነ ድጋፍ ያቀርባሉ።"
 
 #, fuzzy
 #~ msgid ""

@@ -1,45 +1,24 @@
-# translation of bn_IN.po to Bengali India
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
-# translation of bn_IN.po to Bangla (INDIA)
+# translation of comps.HEAD.po to Bengali INDIA
 # Bangla INDIA Translation of Comps.po
 # Copyright (C) 2003, 2004, Red Hat, Inc.
 # This file is distributed under the same license as the COMPS package.
+#
 # Deepayan Sarkar <deepayan@bengalinux.org>, 2003, 2004.
 # Progga <progga@BengaLinux.Org>, 2004.
 # Runa Bhattacharjee <runab@redhat.com>, 2004, 2005, 2006, 2007.
-#
+# Runa Bhattacharjee <runab@fedoraproject.org>, 2008.
 msgid ""
 msgstr ""
-"Project-Id-Version: bn_IN\n"
+"Project-Id-Version: comps.HEAD\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-26 14:03-0400\n"
-"PO-Revision-Date: 2007-03-05 11:43+0530\n"
-"Last-Translator: Runa Bhattacharjee <runab@redhat.com>\n"
-"Language-Team: Bengali India\n"
+"POT-Creation-Date: 2008-04-17 07:36-0400\n"
+"PO-Revision-Date: 2008-03-13 09:51+0530\n"
+"Last-Translator: Runa Bhattacharjee <runab@fedoraproject.org>\n"
+"Language-Team: Bengali INDIA <fedora-trans-bn_IN@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: KBabel 1.9.1\n"
+"X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "\n"
 "\n"
@@ -49,107 +28,251 @@ msgstr ""
 "\n"
 "\n"
 
-#: ../comps-fe5.xml.in.h:1 ../comps-fe6.xml.in.h:1 ../comps-f7.xml.in.h:1
-#: ../comps-f8.xml.in.h:1
+#: ../comps-f7.xml.in.h:1 ../comps-f8.xml.in.h:1 ../comps-f9.xml.in.h:1
 msgid "A lightweight desktop environment that works well on low end machines."
 msgstr "নিম্ন ক্ষমতাসম্পন্ন মেশিনে সহজে সঞ্চালনযোগ্য স্বল্পমাপে ডেস্কটপ পরিবেশ।"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:2 ../comps-fe6.xml.in.h:2 ../comps-f7.xml.in.h:2
-#: ../comps-f8.xml.in.h:2 ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+#: ../comps-f7.xml.in.h:2 ../comps-f8.xml.in.h:2 ../comps-f9.xml.in.h:2
+#: ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
 msgid "Administration Tools"
 msgstr "প্রশাসনিক সরঞ্জাম"
 
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3 ../comps-f9.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "আফ্রিকান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4 ../comps-f9.xml.in.h:4
+msgid "Albanian Support"
+msgstr "আলবেনিয়ান ভাষা ব্যবহারের সহায়তা"
+
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:3 ../comps-fe6.xml.in.h:3 ../comps-f7.xml.in.h:5
-#: ../comps-f8.xml.in.h:5 ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+#: ../comps-f7.xml.in.h:5 ../comps-f8.xml.in.h:5 ../comps-f9.xml.in.h:5
+#: ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
 msgid "Applications"
 msgstr "অ্যাপ্লিকেশন"
 
-#: ../comps-fe5.xml.in.h:4 ../comps-fe6.xml.in.h:4 ../comps-el4.xml.in.h:3
-#: ../comps-el5.xml.in.h:3
-msgid "Applications for a variety of tasks"
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6 ../comps-f9.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
 msgstr "বিবিধ কর্মে ব্যবহৃত অ্যাপ্লিকেশন"
 
-#: ../comps-fe5.xml.in.h:5 ../comps-fe6.xml.in.h:5 ../comps-f7.xml.in.h:7
-#: ../comps-f8.xml.in.h:7 ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+#: ../comps-f7.xml.in.h:7 ../comps-f8.xml.in.h:7 ../comps-f9.xml.in.h:7
+#: ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
 msgid "Arabic Support"
 msgstr "আরবি ভাষা ব্যবহারের সহায়তা"
 
-#: ../comps-fe5.xml.in.h:6 ../comps-fe6.xml.in.h:6 ../comps-f7.xml.in.h:8
-#: ../comps-f8.xml.in.h:8 ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+#: ../comps-f7.xml.in.h:8 ../comps-f8.xml.in.h:8 ../comps-f9.xml.in.h:8
+#: ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
 msgid "Armenian Support"
 msgstr "আর্মেনিয়ান ভাষা ব্যবহারের সহায়তা"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:7 ../comps-fe6.xml.in.h:7 ../comps-f7.xml.in.h:10
-#: ../comps-f8.xml.in.h:10 ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9 ../comps-f9.xml.in.h:9
+msgid "Assamese Support"
+msgstr "অসমিয়া ভাষার ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:10 ../comps-f8.xml.in.h:10 ../comps-f9.xml.in.h:10
+#: ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
 msgid "Authoring and Publishing"
 msgstr "লেখা ও প্রকাশনা"
 
-#: ../comps-fe5.xml.in.h:8 ../comps-fe6.xml.in.h:8 ../comps-f7.xml.in.h:12
-#: ../comps-f8.xml.in.h:12 ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11 ../comps-f9.xml.in.h:11
+msgid "Base"
+msgstr "ভিত্তি (Base)"
+
+#: ../comps-f7.xml.in.h:12 ../comps-f8.xml.in.h:12 ../comps-f9.xml.in.h:12
+#: ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
 msgid "Base System"
 msgstr "মৌলিক সিস্টেম"
 
-#: ../comps-fe5.xml.in.h:9 ../comps-fe6.xml.in.h:10 ../comps-f7.xml.in.h:31
-#: ../comps-f8.xml.in.h:31 ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13 ../comps-f9.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "Ruby প্রোগ্রামিং ভাষা ব্যবহারের প্রাথমিক সমর্থন।"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14 ../comps-f9.xml.in.h:14
+msgid "Basque Support"
+msgstr "বাস্ক ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15 ../comps-f9.xml.in.h:15
+msgid "Belarusian Support"
+msgstr "বেলারুশিয়ান ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16 ../comps-f9.xml.in.h:16
+msgid "Bengali Support"
+msgstr "বাংলা ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17 ../comps-f9.xml.in.h:17
+msgid "Bhutanese Support"
+msgstr "ভুটানিস ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18 ../comps-f9.xml.in.h:18
+msgid "Bosnian Support"
+msgstr "বোসনিয়ান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19 ../comps-f9.xml.in.h:19
+msgid "Brazilian Portuguese Support"
+msgstr "ব্রাজিলিয়ান পর্তুগিজ ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20 ../comps-f9.xml.in.h:20
+msgid "Breton Support"
+msgstr "ব্রেটন ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:22 ../comps-f9.xml.in.h:22
+msgid "Bulgarian Support"
+msgstr "বুলগারিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:23 ../comps-f9.xml.in.h:23
+msgid "Catalan Support"
+msgstr "ক্যাটালান ভাষা ব্যবহারের সমর্থন"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:24 ../comps-f9.xml.in.h:24
+msgid "Chinese Support"
+msgstr "চীনা ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:25 ../comps-f9.xml.in.h:25
+msgid "Clustering"
+msgstr "ক্লাস্টার ব্যবস্থা"
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:26 ../comps-f9.xml.in.h:26
+msgid "Clustering Support"
+msgstr "ক্লাস্টার ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:27 ../comps-f9.xml.in.h:27
+msgid "Core"
+msgstr "কোর"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:28 ../comps-f9.xml.in.h:28
+msgid "Croatian Support"
+msgstr "ক্রোয়েশিয়ান ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:29 ../comps-f9.xml.in.h:29
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "চেক ভাষা ব্যবহারের সমর্থন"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:30 ../comps-f9.xml.in.h:30
+msgid "DNS Name Server"
+msgstr "DNS নেইম সার্ভার"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:31 ../comps-f9.xml.in.h:31
+msgid "Danish Support"
+msgstr "ড্যানিশ ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:31 ../comps-f8.xml.in.h:32 ../comps-f9.xml.in.h:32
+#: ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
 msgid "Desktop Environments"
 msgstr "ডেস্কটপ পরিবেশ"
 
-#: ../comps-fe5.xml.in.h:10 ../comps-fe6.xml.in.h:11 ../comps-f7.xml.in.h:32
-#: ../comps-f8.xml.in.h:32 ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+#: ../comps-f7.xml.in.h:32 ../comps-f8.xml.in.h:33 ../comps-f9.xml.in.h:33
+#: ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
 msgid "Desktop environments"
 msgstr "ডেস্কটপ পরিবেশ"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:11 ../comps-fe6.xml.in.h:12 ../comps-f7.xml.in.h:33
-#: ../comps-f8.xml.in.h:33 ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+#: ../comps-f7.xml.in.h:33 ../comps-f8.xml.in.h:34 ../comps-f9.xml.in.h:34
+#: ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
 msgid "Development"
 msgstr "সফ্টওয়্যার নির্মাণ"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:12 ../comps-fe6.xml.in.h:13 ../comps-f7.xml.in.h:35
-#: ../comps-f8.xml.in.h:35 ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:35 ../comps-f9.xml.in.h:35
+msgid "Development Libraries"
+msgstr "সফ্টওয়্যার নির্মাণের জন্য প্রয়োজনীয় লাইব্রেরি"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:35 ../comps-f8.xml.in.h:36 ../comps-f9.xml.in.h:36
+#: ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
 msgid "Development Tools"
 msgstr "সফ্টওয়্যার নির্মাণের জন্য প্রয়োজনীয় টুল"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:13 ../comps-fe6.xml.in.h:14 ../comps-el4.xml.in.h:12
-#: ../comps-el5.xml.in.h:13
-msgid "Dialup Networking Support"
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:37 ../comps-f9.xml.in.h:37
+msgid "Dial-up Networking Support"
 msgstr "ডায়াল-আপ নেটওয়ার্কিং ব্যবস্থা"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:14 ../comps-fe6.xml.in.h:15 ../comps-f7.xml.in.h:39
-#: ../comps-f8.xml.in.h:39 ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:38 ../comps-f9.xml.in.h:38
+msgid "Dutch Support"
+msgstr "ডাচ ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:38
+msgid "Eclipse"
+msgstr "Eclipse"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:39 ../comps-f8.xml.in.h:39 ../comps-f9.xml.in.h:39
+#: ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
 msgid "Editors"
 msgstr "টেক্সট এডিটর"
 
-#: ../comps-fe5.xml.in.h:15 ../comps-fe6.xml.in.h:16 ../comps-f7.xml.in.h:40
-#: ../comps-f8.xml.in.h:40 ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+#: ../comps-f7.xml.in.h:40 ../comps-f8.xml.in.h:40 ../comps-f9.xml.in.h:40
+#: ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
 msgid "Educational Software"
 msgstr "শিক্ষামূলক সফ্টওয়্যার"
 
-#: ../comps-fe5.xml.in.h:16 ../comps-fe6.xml.in.h:17 ../comps-f7.xml.in.h:41
-#: ../comps-f8.xml.in.h:41 ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+#: ../comps-f7.xml.in.h:41 ../comps-f8.xml.in.h:41 ../comps-f9.xml.in.h:41
+#: ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
 msgid "Educational software for learning"
 msgstr "শিক্ষামূলক সফ্টওয়্যার"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:17 ../comps-fe6.xml.in.h:18 ../comps-f7.xml.in.h:42
-#: ../comps-f8.xml.in.h:42 ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+#: ../comps-f7.xml.in.h:42 ../comps-f8.xml.in.h:42 ../comps-f9.xml.in.h:42
+#: ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
 msgid "Engineering and Scientific"
 msgstr "ইঞ্জিনিয়ারিং এবং বৈজ্ঞানিক সরঞ্জাম"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:18 ../comps-fe6.xml.in.h:19 ../comps-f7.xml.in.h:46
-#: ../comps-f8.xml.in.h:46 ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43 ../comps-f9.xml.in.h:43
+msgid "English (UK) Support"
+msgstr "ইংরাজি (যুক্তরাজ্য) ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44 ../comps-f9.xml.in.h:45
+msgid "Estonian Support"
+msgstr "এস্তোনিয়ান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45 ../comps-f9.xml.in.h:46
+msgid "Ethiopic Support"
+msgstr "ইথিওপিক ভাষা ব্যবহারের সমর্থন"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:46 ../comps-f8.xml.in.h:46 ../comps-f9.xml.in.h:47
+#: ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
 msgid "FTP Server"
 msgstr "FTP সার্ভার"
 
-#: ../comps-fe5.xml.in.h:19 ../comps-fe6.xml.in.h:20 ../comps-f7.xml.in.h:51
-#: ../comps-f8.xml.in.h:51 ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47 ../comps-f9.xml.in.h:48
+msgid "Faeroese Support"
+msgstr "ফেরোইস ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:49 ../comps-f9.xml.in.h:50
+#: ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+msgid "Fedora Packager"
+msgstr "Fedora প্যাকেজ ব্যবস্থা"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:50 ../comps-f9.xml.in.h:51
+msgid "Filipino Support"
+msgstr "ফিলিপিনো ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:51 ../comps-f9.xml.in.h:52
+msgid "Finnish Support"
+msgstr "ফিনিশ ভাষা ব্যবহারের সমর্থন"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:51 ../comps-f8.xml.in.h:54 ../comps-f9.xml.in.h:55
+msgid "French Support"
+msgstr "ফ্রেঞ্চ ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:52 ../comps-f8.xml.in.h:55 ../comps-f9.xml.in.h:56
+#: ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
 msgid ""
 "From CD recording to playing audio CDs and multimedia files, this package "
 "group allows you to work with sound and video on the system."
@@ -157,237 +280,526 @@ msgstr ""
 "এই সংকলনের প্যাকেজগুলির সাহায্যে আপনি অডিও এবং ভিডিও নিয়ে কাজ করতে পারবেন, যেমন "
 "CD রেকর্ড করা বা অডিও CD এবং মাল্টিমিডিয়া ফাইল চালানো"
 
-#: ../comps-fe5.xml.in.h:20 ../comps-fe6.xml.in.h:21 ../comps-f7.xml.in.h:52
-#: ../comps-f8.xml.in.h:52 ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+#: ../comps-f7.xml.in.h:53 ../comps-f8.xml.in.h:56 ../comps-f9.xml.in.h:57
+#: ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
 msgid "GNOME Desktop Environment"
 msgstr "GNOME ডেস্কটপ পরিবেশ"
 
-#: ../comps-fe5.xml.in.h:21 ../comps-fe6.xml.in.h:22 ../comps-f7.xml.in.h:53
-#: ../comps-f8.xml.in.h:53 ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:57 ../comps-f9.xml.in.h:58
+#: ../comps-el4.xml.in.h:21 ../comps-el5.xml.in.h:22
 msgid "GNOME Software Development"
 msgstr "GNOME ভিত্তিক সফ্টওয়্যার নির্মাণ"
 
-#: ../comps-fe5.xml.in.h:22 ../comps-fe6.xml.in.h:23 ../comps-el4.xml.in.h:21
-#: ../comps-el5.xml.in.h:22
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:58 ../comps-f9.xml.in.h:59
 msgid ""
-"GNOME is a powerful, graphical user interface which includes a panel, "
+"GNOME is a powerful graphical user interface which includes a panel, "
 "desktop, system icons, and a graphical file manager."
 msgstr ""
 "GNOME একটি সমৃদ্ধ গ্রাফিকাল ইন্টারফেস যার মধ্যে অন্তর্ভুক্ত রয়েছে একটি প্যানেল, "
 "ডেস্কটপ, বিভিন্ন সিস্টেম আইকন এবং একটি গ্রাফিকাল ফাইল পরিচালন ব্যবস্থা।"
 
-#: ../comps-fe5.xml.in.h:23 ../comps-fe6.xml.in.h:24 ../comps-f7.xml.in.h:57
-#: ../comps-f8.xml.in.h:57 ../comps-el5.xml.in.h:23
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:59 ../comps-f9.xml.in.h:60
+msgid "Gaelic Support"
+msgstr "গেলিক ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:57 ../comps-f8.xml.in.h:60 ../comps-f9.xml.in.h:61
+msgid "Galician Support"
+msgstr "গেলিশিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:61 ../comps-f9.xml.in.h:62
+#: ../comps-el5.xml.in.h:24
 msgid "Games and Entertainment"
 msgstr "খেলাধুলা এবং অন্যান্য বিনোদন"
 
-#: ../comps-fe5.xml.in.h:24 ../comps-fe6.xml.in.h:25 ../comps-f7.xml.in.h:60
-#: ../comps-f8.xml.in.h:60 ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:24
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:62 ../comps-f9.xml.in.h:63
+msgid "Georgian Support"
+msgstr "জর্জিয়ান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:60 ../comps-f8.xml.in.h:63 ../comps-f9.xml.in.h:64
+msgid "German Support"
+msgstr "জার্মান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:61 ../comps-f8.xml.in.h:64 ../comps-f9.xml.in.h:65
+#: ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
 msgid "Graphical Internet"
 msgstr "গ্রাফিকাল ইন্টারনেট"
 
-#: ../comps-fe5.xml.in.h:25 ../comps-fe6.xml.in.h:26 ../comps-f7.xml.in.h:61
-#: ../comps-f8.xml.in.h:61 ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:65 ../comps-f9.xml.in.h:66
+#: ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
 msgid "Graphics"
 msgstr "গ্রাফিক্স"
 
-#: ../comps-fe5.xml.in.h:26 ../comps-fe6.xml.in.h:27 ../comps-f7.xml.in.h:64
-#: ../comps-f8.xml.in.h:64 ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:66 ../comps-f9.xml.in.h:67
+msgid "Greek Support"
+msgstr "গ্রিক ভাষা ব্যবহারের সমর্থন"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:64 ../comps-f8.xml.in.h:67 ../comps-f9.xml.in.h:68
+msgid "Gujarati Support"
+msgstr "গুজরাতি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:65 ../comps-f8.xml.in.h:68 ../comps-f9.xml.in.h:69
+#: ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
 msgid "Hardware Support"
 msgstr "হার্ডওয়্যার সমর্থন"
 
-#: ../comps-fe5.xml.in.h:27 ../comps-fe6.xml.in.h:28 ../comps-f7.xml.in.h:65
-#: ../comps-f8.xml.in.h:65 ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:69 ../comps-f9.xml.in.h:70
+#: ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
 msgid "Hebrew Support"
 msgstr "হিব্রু ভাষা ব্যবহারের সমর্থন"
 
-#: ../comps-fe5.xml.in.h:28 ../comps-fe6.xml.in.h:29 ../comps-f7.xml.in.h:70
-#: ../comps-f8.xml.in.h:70 ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+# modified for RHEL
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:70 ../comps-f9.xml.in.h:71
+msgid "Hindi Support"
+msgstr "হিন্দি ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:71 ../comps-f9.xml.in.h:72
+msgid "Hungarian Support"
+msgstr "হাঙ্গেরিয়ান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:72 ../comps-f9.xml.in.h:73
+msgid "Icelandic Support"
+msgstr "আইসল্যান্ডিক ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:70 ../comps-f8.xml.in.h:73 ../comps-f9.xml.in.h:74
+msgid "Indonesian Support"
+msgstr "ইন্দোনেশিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:71 ../comps-f8.xml.in.h:74 ../comps-f9.xml.in.h:75
+#: ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
 msgid ""
 "Install these packages in order to develop GTK+ and GNOME graphical "
 "applications."
 msgstr ""
 "GTK+ ও GNOME ভিত্তিক অ্যাপ্লিকেশন নির্মাণের জন্য এই প্যাকেজগুলি ইনস্টল করা আবশ্যক।"
 
-#: ../comps-fe5.xml.in.h:29 ../comps-fe6.xml.in.h:30 ../comps-f7.xml.in.h:71
-#: ../comps-f8.xml.in.h:71
+#: ../comps-f7.xml.in.h:72 ../comps-f8.xml.in.h:75 ../comps-f9.xml.in.h:76
 msgid ""
 "Install these packages in order to develop GTK+ and XFCE graphical "
 "applications."
 msgstr ""
 "GTK+ ও XFCE ভিত্তিক অ্যাপ্লিকেশন নির্মাণের জন্য এই প্যাকেজগুলি ইনস্টল করা আবশ্যক।"
 
-#: ../comps-fe5.xml.in.h:30 ../comps-fe6.xml.in.h:31 ../comps-f7.xml.in.h:72
-#: ../comps-f8.xml.in.h:72 ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:76 ../comps-f9.xml.in.h:77
+#: ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
 msgid "Install these packages to develop QT and KDE graphical applications."
 msgstr ""
 "QT এবং KDE ভিত্তিক অ্যাপ্লিকেশন নির্মাণের জন্য এই প্যাকেজগুলি ইনস্টল করা আবশ্যক।"
 
+#: ../comps-f7.xml.in.h:74 ../comps-f8.xml.in.h:77 ../comps-f9.xml.in.h:78
+msgid ""
+"Install these tools to enable the system to print or act as a print server."
+msgstr ""
+"আপনার সিস্টেম থেকে প্রিন্ট করে অথবা সেটি প্রিন্ট সার্ভার হিসাবে ব্যবহার করার জন্য "
+"চিহ্নিত সরঞ্জামগুলি ইনস্টল করা আবশ্যক।"
+
 # Altered by Progga
-#: ../comps-fe5.xml.in.h:31 ../comps-fe6.xml.in.h:32 ../comps-f7.xml.in.h:74
-#: ../comps-f8.xml.in.h:74 ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:78 ../comps-f9.xml.in.h:79
+#: ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
 msgid ""
 "Install this group of packages to use the base graphical (X) user interface."
 msgstr ""
 "প্রধান গ্রাফিকাল (X) ইন্টারফেস ব্যবহারের জন্য চিহ্নিত প্যাকেজ সংকলন ইনস্টল করা আবশ্যক।"
 
-#: ../comps-fe5.xml.in.h:32 ../comps-fe6.xml.in.h:33 ../comps-f7.xml.in.h:78
-#: ../comps-f8.xml.in.h:78 ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+# modified for RHEL
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:80 ../comps-f9.xml.in.h:81
+msgid "Inuktitut Support"
+msgstr "ইনুকটিটুট ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:81 ../comps-f9.xml.in.h:82
+msgid "Irish Support"
+msgstr "আইরিশ ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:78 ../comps-f8.xml.in.h:82 ../comps-f9.xml.in.h:83
+msgid "Italian Support"
+msgstr "ইতালিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:83 ../comps-f9.xml.in.h:84
+#: ../comps-el4.xml.in.h:30 ../comps-el5.xml.in.h:32
 msgid "Japanese Support"
 msgstr "জাপানি ভাষা ব্যবহারের সহায়তা"
 
-#: ../comps-fe5.xml.in.h:33 ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:79
-#: ../comps-el4.xml.in.h:30
+#: ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:84 ../comps-f9.xml.in.h:85
+#: ../comps-el4.xml.in.h:31
 msgid "Java"
 msgstr "Java"
 
 # modified for RHEL
-#: ../comps-fe5.xml.in.h:34 ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:80
-#: ../comps-el4.xml.in.h:31
+#: ../comps-f7.xml.in.h:81 ../comps-f8.xml.in.h:85 ../comps-f9.xml.in.h:86
+#: ../comps-el4.xml.in.h:32
 msgid "Java Development"
 msgstr "Java ডিভেলপমেন্ট"
 
-#: ../comps-fe5.xml.in.h:35 ../comps-fe6.xml.in.h:34 ../comps-f7.xml.in.h:81
-#: ../comps-f8.xml.in.h:81 ../comps-el4.xml.in.h:32 ../comps-el5.xml.in.h:32
+#: ../comps-f7.xml.in.h:82 ../comps-f8.xml.in.h:86 ../comps-f9.xml.in.h:87
+#: ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
 msgid "KDE (K Desktop Environment)"
 msgstr "KDE (K ডেস্কটপ পরিবেশ)"
 
-#: ../comps-fe5.xml.in.h:36 ../comps-fe6.xml.in.h:35 ../comps-f7.xml.in.h:82
-#: ../comps-f8.xml.in.h:82 ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:87 ../comps-f9.xml.in.h:88
+#: ../comps-el4.xml.in.h:34 ../comps-el5.xml.in.h:34
 msgid "KDE Software Development"
 msgstr "KDE ভিত্তিক সফ্টওয়্যার নির্মাণ"
 
-#: ../comps-fe5.xml.in.h:37 ../comps-fe6.xml.in.h:36 ../comps-el4.xml.in.h:34
-#: ../comps-el5.xml.in.h:34
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:88 ../comps-f9.xml.in.h:89
 msgid ""
-"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"KDE is a powerful graphical user interface which includes a panel, desktop, "
 "system icons, and a graphical file manager."
 msgstr ""
 "KDE একটি সমৃদ্ধ গ্রাফিকাল ইন্টারফেস যার মধ্যে অন্তর্ভুক্ত রয়েছে একটি প্যানেল, ডেস্কটপ, "
 "বিভিন্ন সিস্টেম আইকন এবং একটি গ্রাফিকাল ফাইল পরিচালন ব্যবস্থা।"
 
-#: ../comps-fe5.xml.in.h:38 ../comps-fe6.xml.in.h:37 ../comps-f7.xml.in.h:94
-#: ../comps-f8.xml.in.h:94 ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:89 ../comps-f9.xml.in.h:90
+msgid "Kannada Support"
+msgstr "কন্নড় ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:90 ../comps-f9.xml.in.h:92
+msgid "Khmer Support"
+msgstr "খমের ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:91 ../comps-f9.xml.in.h:93
+msgid "Korean Support"
+msgstr "কোরিয়ান ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:92 ../comps-f9.xml.in.h:94
+msgid "Languages"
+msgstr "ভাষা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:93 ../comps-f9.xml.in.h:95
+msgid "Lao Support"
+msgstr "লাও ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:94 ../comps-f9.xml.in.h:96
+msgid "Latvian Support"
+msgstr "লাটভিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:96 ../comps-f9.xml.in.h:98
+msgid "Legacy Network Server"
+msgstr "লিগ্যাসি নেটওয়ার্ক সার্ভার"
+
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:97 ../comps-f9.xml.in.h:99
+msgid "Legacy Software Development"
+msgstr "লিগ্যাসি সফ্টওয়্যার নির্মাণ"
+
+# FIXME: [progga]
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:98 ../comps-f9.xml.in.h:100
+msgid "Legacy Software Support"
+msgstr "লিগ্যাসি সফ্টওয়্যার সহায়তা"
+
+#: ../comps-f7.xml.in.h:94 ../comps-f8.xml.in.h:99 ../comps-f9.xml.in.h:101
+msgid "Lithuanian Support"
+msgstr "লিথুয়েনিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:101 ../comps-f9.xml.in.h:104
+#: ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
 msgid "Mail Server"
 msgstr "মেইল সার্ভার"
 
-#: ../comps-fe5.xml.in.h:39 ../comps-fe6.xml.in.h:38 ../comps-f7.xml.in.h:100
-#: ../comps-f8.xml.in.h:100 ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:102 ../comps-f9.xml.in.h:105
+msgid "Malay Support"
+msgstr "মালায় ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:103 ../comps-f9.xml.in.h:106
+msgid "Malayalam Support"
+msgstr "মালায়ালম ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:104 ../comps-f9.xml.in.h:107
+msgid "Maori Support"
+msgstr "মাওরি ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:105 ../comps-f9.xml.in.h:108
+msgid "Marathi Support"
+msgstr "মারাঠি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:100 ../comps-f8.xml.in.h:107 ../comps-f9.xml.in.h:110
+msgid "MySQL Database"
+msgstr "MySQL ডাটাবেস"
+
+#: ../comps-f7.xml.in.h:101 ../comps-f8.xml.in.h:109 ../comps-f9.xml.in.h:112
+#: ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
 msgid "Network Servers"
 msgstr "নেটওয়ার্ক সার্ভার"
 
-#: ../comps-fe5.xml.in.h:40 ../comps-fe6.xml.in.h:39 ../comps-f7.xml.in.h:101
-#: ../comps-f8.xml.in.h:101 ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:110 ../comps-f9.xml.in.h:113
+#: ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
 msgid "News Server"
 msgstr "নিউজ সার্ভার"
 
-#: ../comps-fe5.xml.in.h:41 ../comps-fe6.xml.in.h:40 ../comps-f7.xml.in.h:104
-#: ../comps-f8.xml.in.h:104 ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:111 ../comps-f9.xml.in.h:115
+msgid "Northern Sotho Support"
+msgstr "উত্তর সোথো ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:104 ../comps-f8.xml.in.h:112 ../comps-f9.xml.in.h:116
+msgid "Norwegian Support"
+msgstr "নরওয়েজিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:113 ../comps-f9.xml.in.h:117
+#: ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
 msgid "Office/Productivity"
 msgstr "অফিস/কাজকর্ম"
 
-#: ../comps-fe5.xml.in.h:42 ../comps-fe6.xml.in.h:41 ../comps-f7.xml.in.h:106
-#: ../comps-f8.xml.in.h:106 ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+#: ../comps-f7.xml.in.h:106 ../comps-f8.xml.in.h:115 ../comps-f9.xml.in.h:119
+msgid "Oriya Support"
+msgstr "ওড়িয়া ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:116 ../comps-f9.xml.in.h:120
+#: ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
 msgid ""
 "Packages which provide functionality for developing and building "
 "applications."
 msgstr "অ্যাপ্লিকেশন ডিভেলপমেন্ট ও বিল্ড করতে সহায়ক প্যাকেজ।"
 
-#: ../comps-fe5.xml.in.h:43 ../comps-fe6.xml.in.h:42 ../comps-f7.xml.in.h:119
-#: ../comps-f8.xml.in.h:119 ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:117 ../comps-f9.xml.in.h:121
+msgid "Persian Support"
+msgstr "ফার্সি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:118 ../comps-f9.xml.in.h:122
+msgid "Polish Support"
+msgstr "পোলিশ ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:119 ../comps-f9.xml.in.h:123
+msgid "Portuguese Support"
+msgstr "পর্তুগিজ ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:120 ../comps-f9.xml.in.h:124
+msgid "PostgreSQL Database"
+msgstr "PostgreSQL ডাটাবেস"
+
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:121 ../comps-f9.xml.in.h:125
+msgid "Printing Support"
+msgstr "প্রিন্ট কর্মে সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:122 ../comps-f9.xml.in.h:126
+msgid "Punjabi Support"
+msgstr "পাঞ্জাবি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:123 ../comps-f9.xml.in.h:127
+msgid "Romanian Support"
+msgstr "রুমানিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:124 ../comps-f9.xml.in.h:128
+msgid "Ruby"
+msgstr "Ruby"
+
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:125 ../comps-f9.xml.in.h:129
+msgid "Russian Support"
+msgstr "রুশ ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:126 ../comps-f9.xml.in.h:130
+msgid "Samoan Support"
+msgstr "সামোয়ান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:127 ../comps-f9.xml.in.h:131
+msgid "Serbian Support"
+msgstr "সার্বিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:119 ../comps-f8.xml.in.h:128 ../comps-f9.xml.in.h:132
+msgid "Server Configuration Tools"
+msgstr "সার্ভার কনফিগার করার সরঞ্জাম"
+
+#: ../comps-f7.xml.in.h:120 ../comps-f8.xml.in.h:129 ../comps-f9.xml.in.h:133
+#: ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
 msgid "Servers"
 msgstr "সার্ভার"
 
-#: ../comps-fe5.xml.in.h:44 ../comps-fe6.xml.in.h:43 ../comps-f7.xml.in.h:120
-#: ../comps-f8.xml.in.h:120 ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:130 ../comps-f9.xml.in.h:134
+#: ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
 msgid ""
 "Simple window managers that aren't part of a larger desktop environment."
 msgstr "বৃহৎ ডেস্কটপ পরিবেশে অনুপস্থিত সাধারণ উইন্ডো পরিচালনব্যবস্থা।"
 
-#: ../comps-fe5.xml.in.h:45 ../comps-fe6.xml.in.h:44 ../comps-f7.xml.in.h:125
-#: ../comps-f8.xml.in.h:125 ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:131 ../comps-f9.xml.in.h:135
+msgid "Sinhala Support"
+msgstr "সিংহলি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:132 ../comps-f9.xml.in.h:136
+msgid "Slovak Support"
+msgstr "স্লোভাক ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:133 ../comps-f9.xml.in.h:137
+msgid "Slovenian Support"
+msgstr "স্লোভেনিয়ান ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:125 ../comps-f8.xml.in.h:134 ../comps-f9.xml.in.h:138
+msgid "Smallest possible installation"
+msgstr "ন্যূনতম ইনস্টলেশন"
+
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:135 ../comps-f9.xml.in.h:139
+#: ../comps-el4.xml.in.h:43 ../comps-el5.xml.in.h:43
 msgid "Software used for running network servers"
 msgstr "নেটওয়ার্ক সার্ভার সঞ্চালনের উদ্দেশ্যে সফ্টওয়্যার"
 
-#: ../comps-fe5.xml.in.h:46 ../comps-fe6.xml.in.h:45 ../comps-el4.xml.in.h:43
-#: ../comps-el5.xml.in.h:43
+# modified for RHEL
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:136 ../comps-f9.xml.in.h:140
+msgid "Somali Support"
+msgstr "সোমালি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:128 ../comps-f8.xml.in.h:137 ../comps-f9.xml.in.h:141
 msgid ""
 "Sometimes called text editors, these are programs that allow you to create "
-"and edit files. These include Emacs and Vi."
+"and edit text files. This includes Emacs and Vi."
 msgstr ""
 "এই প্রোগ্রামগুলির সাহায্যে আপনি সরাসরি ফাইল তৈরি এবং পরিবর্তন করতে পারবেন। "
 "সাধারণত এগুলি টেক্সট এডিটর নামে পরিচিত।  এর মধ্যে রয়েছে Emacs এবং Vi।"
 
-#: ../comps-fe5.xml.in.h:47 ../comps-fe6.xml.in.h:46 ../comps-f7.xml.in.h:128
-#: ../comps-f8.xml.in.h:128 ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:138 ../comps-f9.xml.in.h:142
+#: ../comps-el4.xml.in.h:45 ../comps-el5.xml.in.h:45
 msgid "Sound and Video"
 msgstr "শব্দ ও ভিডিও"
 
-#: ../comps-fe5.xml.in.h:48 ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:132
-#: ../comps-el4.xml.in.h:45
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:139 ../comps-f9.xml.in.h:143
+msgid "Southern Ndebele Support"
+msgstr "দক্ষিণ এনডেবিলি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:140 ../comps-f9.xml.in.h:144
+msgid "Southern Sotho Support"
+msgstr "দক্ষিণ সোথো ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:141 ../comps-f9.xml.in.h:145
+msgid "Spanish Support"
+msgstr "স্প্যানিশ ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:142 ../comps-f9.xml.in.h:146
+#: ../comps-el4.xml.in.h:46
 msgid "Support for developing programs in the Java programming language."
 msgstr "Java প্রোগ্রামিং ভাষা প্রয়োগ করে প্রোগ্রাম নির্মাণ ব্যবস্থার সমর্থন।"
 
-#: ../comps-fe5.xml.in.h:49 ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:133
-#: ../comps-el4.xml.in.h:46
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:143 ../comps-f9.xml.in.h:147
+#: ../comps-el4.xml.in.h:47
 msgid "Support for running programs written in the Java programming language."
 msgstr "Java প্রোগ্রামিং ভাষায় লেখা প্রোগ্রাম সঞ্চালনের সমর্থন।"
 
-#: ../comps-fe5.xml.in.h:50 ../comps-fe6.xml.in.h:47 ../comps-f7.xml.in.h:136
-#: ../comps-f8.xml.in.h:136 ../comps-el4.xml.in.h:47 ../comps-el5.xml.in.h:45
+# modified for RHEL
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:144 ../comps-f9.xml.in.h:148
+msgid "Swati Support"
+msgstr "সোয়াতি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:136 ../comps-f8.xml.in.h:145 ../comps-f9.xml.in.h:149
+msgid "Swedish Support"
+msgstr "সুইডিশ ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:146 ../comps-f9.xml.in.h:150
+#: ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
 msgid "System Tools"
 msgstr "সিস্টেমের সরঞ্জাম"
 
-#: ../comps-fe5.xml.in.h:51 ../comps-fe6.xml.in.h:48 ../comps-f7.xml.in.h:140
-#: ../comps-f8.xml.in.h:140 ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+# modified for RHEL
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:147 ../comps-f9.xml.in.h:151
+msgid "Tagalog Support"
+msgstr "তাগালগ ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:148 ../comps-f9.xml.in.h:152
+msgid "Tamil Support"
+msgstr "তামিল ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:140 ../comps-f8.xml.in.h:149 ../comps-f9.xml.in.h:153
+msgid "Telugu Support"
+msgstr "তেলুগু ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:150 ../comps-f9.xml.in.h:154
+#: ../comps-el4.xml.in.h:49 ../comps-el5.xml.in.h:47
 msgid "Text-based Internet"
 msgstr "টেক্সট-ভিত্তিক ইন্টারনেট ব্যবহার"
 
-#: ../comps-fe5.xml.in.h:52 ../comps-fe6.xml.in.h:49 ../comps-el4.xml.in.h:49
-#: ../comps-el5.xml.in.h:47
-msgid "The XEmacs text editor."
-msgstr "XEmacs টেক্সট এডিটর।"
+# modified for RHEL
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:151 ../comps-f9.xml.in.h:155
+msgid "Thai Support"
+msgstr "থাই ভাষা ব্যবহারের সহায়তা"
 
-#: ../comps-fe5.xml.in.h:53 ../comps-fe6.xml.in.h:50 ../comps-f7.xml.in.h:143
-#: ../comps-f8.xml.in.h:143 ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+#: ../comps-f7.xml.in.h:143
+msgid "The Eclipse Integrated Development Environment."
+msgstr "Eclipse ইন্টিগ্রেডেড ডিভেলপমেন্ট এনভায়রনমেন্ট (IDE)।"
+
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:152 ../comps-f9.xml.in.h:156
+#: ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
 msgid "The applications include office suites, PDF viewers, and more."
 msgstr ""
 "এই সংকলনে আছে অফিস (office) অ্যাপ্লিকেশন, PDF প্রদর্শনের প্রোগ্রাম এবং অন্যান্য অনেক "
 "কিছু।"
 
-#: ../comps-fe5.xml.in.h:54 ../comps-fe6.xml.in.h:51 ../comps-f7.xml.in.h:145
-#: ../comps-f8.xml.in.h:145 ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+# Altered by Progga
+#: ../comps-f7.xml.in.h:145 ../comps-f8.xml.in.h:153 ../comps-f9.xml.in.h:157
+msgid ""
+"The packages in this group are core libraries needed to develop applications."
+msgstr "এই সংকলনে উপস্থিত রয়েছে অ্যাপ্লিকেশন নির্মাণের জন্য আবশ্যক কোর লাইব্রেরি।"
+
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:154 ../comps-f9.xml.in.h:158
+#: ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
 msgid "These packages allow you to configure an IMAP or SMTP mail server."
 msgstr ""
 "এই প্যাকেজগুলির সাহায্যে আপনি IMAP এবং SMTP মেইল সার্ভার কনফিগার করতে পারবেন।"
 
-#: ../comps-fe5.xml.in.h:55 ../comps-fe6.xml.in.h:52 ../comps-f7.xml.in.h:147
-#: ../comps-f8.xml.in.h:147 ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+#: ../comps-f7.xml.in.h:147 ../comps-f8.xml.in.h:155 ../comps-f9.xml.in.h:159
+msgid ""
+"These packages allow you to develop applications for the X Window System."
+msgstr ""
+"এই প্যাকেজগুলির সাহায্যে আপনি X উইন্ডো সিস্টেমের জন্য অ্যাপ্লিকেশন নির্মাণ করতে "
+"পারবেন।"
+
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:156 ../comps-f9.xml.in.h:160
+#: ../comps-el4.xml.in.h:53 ../comps-el5.xml.in.h:51
 msgid ""
 "These packages are helpful when developing web applications or web pages."
 msgstr "ওয়েব অ্যাপ্লিকেশন অথবা ওয়েব পেজ নির্মাণে সহায়ক প্যাকেজ।"
 
-#: ../comps-fe5.xml.in.h:56 ../comps-fe6.xml.in.h:53 ../comps-el4.xml.in.h:53
-#: ../comps-el5.xml.in.h:51
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:157 ../comps-f9.xml.in.h:161
 msgid ""
-"These tools allow you to create documentation in the DocBook format and "
-"convert them to HTML, PDF, Postscript, and text."
+"These packages include network-based servers such as DHCP, Kerberos and NIS."
 msgstr ""
-"এই প্রোগ্রামগুলির সাহায্যে আপনি DocBook বিন্যাসে নথিপত্র নির্মাণ করে তা HTML, PDF, "
+"এই প্যাকেজগুলির মধ্যে DHCP, Kerberos এবং NIS প্রভৃতি নেটওয়ার্ক ভিত্তিক সার্ভার "
+"উপস্থিত রয়েছে।"
+
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:158 ../comps-f9.xml.in.h:162
+msgid ""
+"These packages include servers for old network protocols such as rsh and "
+"telnet."
+msgstr ""
+"এই প্যাকেজ সংকলনের মধ্যে পুরোনো নেটওয়ার্ক প্রোটোকল যেমন rsh ও telnet-র জন্য সার্ভার "
+"অন্তর্ভুক্ত করা হয়েছে।"
+
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:159 ../comps-f9.xml.in.h:163
+msgid "These packages provide a virtualization environment."
+msgstr "এই প্যাকেজগুলির দ্বারা ভার্চুয়ালাইজেশনের পরিবেশ উপলব্ধ করা হয়।"
+
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:160 ../comps-f9.xml.in.h:164
+msgid "These packages provide compatibility with previous releases."
+msgstr "এই প্যাকেজগুলি পূর্ববর্তী সংস্করণের সাথে সমন্বয় সাধন করতে সহায়ক।"
+
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:161 ../comps-f9.xml.in.h:165
+msgid ""
+"These packages provide support for various locales including fonts and input "
+"methods."
+msgstr ""
+"এই প্যাকেজ সংকলনগুলি, ফন্ট ও ইনপুট পদ্ধতিসহ বিভিন্ন লেকেইল ব্যবহারের জন্য সমর্থন "
+"উপলব্ধ করে।"
+
+#: ../comps-f7.xml.in.h:154 ../comps-f8.xml.in.h:162 ../comps-f9.xml.in.h:166
+msgid ""
+"These tools allow you to create documents in the DocBook format and convert "
+"them into HTML, PDF, Postscript, and text."
+msgstr ""
+"এই সামগ্রীগুলির সাহায্যে আপনি DocBook বিন্যাসে নথিপত্র নির্মাণ করে তা HTML, PDF, "
 "Postscript এবং টেক্সট রূপে পরিবর্তন করতে পারবেন।"
 
-#: ../comps-fe5.xml.in.h:57 ../comps-fe6.xml.in.h:54 ../comps-f7.xml.in.h:154
-#: ../comps-f8.xml.in.h:154 ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+#: ../comps-f7.xml.in.h:155 ../comps-f8.xml.in.h:163 ../comps-f9.xml.in.h:167
+#: ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
 msgid "These tools allow you to run a Web server on the system."
 msgstr "এই সরঞ্জামগুলির সাহায্যে আপনি সিস্টেমের মধ্যে ওয়েব-সার্ভার চালাতে পারবেন।"
 
-#: ../comps-fe5.xml.in.h:58 ../comps-fe6.xml.in.h:55 ../comps-f7.xml.in.h:155
-#: ../comps-f8.xml.in.h:155 ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+#: ../comps-f7.xml.in.h:156 ../comps-f8.xml.in.h:164 ../comps-f9.xml.in.h:168
+#: ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
 msgid "These tools allow you to run an FTP server on the system."
 msgstr "এই সরঞ্জামগুলির সাহায্যে আপনি সিস্টেমের মধ্যে FTP সার্ভার চালাতে পারবেন।"
 
-#: ../comps-fe5.xml.in.h:59 ../comps-fe6.xml.in.h:56 ../comps-f7.xml.in.h:156
-#: ../comps-f8.xml.in.h:156 ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+#: ../comps-f7.xml.in.h:157 ../comps-f8.xml.in.h:165 ../comps-f9.xml.in.h:169
+#: ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
 msgid ""
 "These tools include core development tools such as automake, gcc, perl, "
 "python, and debuggers."
@@ -395,18 +807,31 @@ msgstr ""
 "এই সরঞ্জামের মধ্যে উপস্থিত রয়েছে কিছু মৌলিক ডিভেলপমেন্টের সরঞ্জাম যেমন automake, "
 "gcc, perl, python ও debuggers।"
 
-#: ../comps-fe5.xml.in.h:60 ../comps-fe6.xml.in.h:57 ../comps-f7.xml.in.h:157
-#: ../comps-f8.xml.in.h:157 ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:166 ../comps-f9.xml.in.h:170
+#: ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
 msgid "This group allows you to configure the system as a news server."
 msgstr "এই সংকলনের সাহায্যে আপনার সিস্টেমটি নিউজ সার্ভার হিসাবে কনফিগার করা যাবে।"
 
-#: ../comps-fe5.xml.in.h:61 ../comps-fe6.xml.in.h:58 ../comps-f7.xml.in.h:160
-#: ../comps-f8.xml.in.h:160 ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:167 ../comps-f9.xml.in.h:171
+msgid "This group contains all of Red Hat's custom server configuration tools."
+msgstr ""
+"এই সংকলনের মধ্যে Red Hat'র সমস্ত কাস্টম সার্ভার কনফিগারেশন সরঞ্জাম উপস্থিত রয়েছে।"
+
+#: ../comps-f7.xml.in.h:160 ../comps-f8.xml.in.h:168 ../comps-f9.xml.in.h:172
+msgid ""
+"This group includes a minimal set of packages. Useful for creating small "
+"router/firewall boxes, for example."
+msgstr ""
+"এই সংকলনে সর্বনিম্ন সংখ্যক প্যাকেজ রয়েছে।  ক্ষুদ্র মাপের রাউটার/ফায়ারওয়াল প্রভৃতি "
+"নির্মাণের জন্য এই সংকলন আদর্শ।"
+
+#: ../comps-f7.xml.in.h:161 ../comps-f8.xml.in.h:169 ../comps-f9.xml.in.h:173
+#: ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
 msgid "This group includes graphical email, Web, and chat clients."
 msgstr "এই সংকলনের মধ্যে রয়েছে গ্রাফিকাল ই-মেইল, ওয়েব ও চ্যাট ক্লায়েন্ট।"
 
-#: ../comps-fe5.xml.in.h:62 ../comps-fe6.xml.in.h:59 ../comps-f7.xml.in.h:161
-#: ../comps-f8.xml.in.h:161 ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+#: ../comps-f7.xml.in.h:162 ../comps-f8.xml.in.h:170 ../comps-f9.xml.in.h:174
+#: ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
 msgid ""
 "This group includes packages for performing mathematical and scientific "
 "computations and plotting, as well as unit conversion."
@@ -414,14 +839,14 @@ msgstr ""
 "এই সংকলনে আছে গাণিতিক ও বৈজ্ঞানিক গণনা এবং প্লট অঙ্কন ও বিভিন্ন একক (Unit) "
 "রূপান্তরের সফ্টওয়্যার।"
 
-#: ../comps-fe5.xml.in.h:63 ../comps-fe6.xml.in.h:60 ../comps-f7.xml.in.h:162
-#: ../comps-f8.xml.in.h:162 ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+#: ../comps-f7.xml.in.h:163 ../comps-f8.xml.in.h:171 ../comps-f9.xml.in.h:175
+#: ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
 msgid "This group includes packages to help you manipulate and scan images."
 msgstr ""
 "এই সংকলনের প্যাকেজগুলির সাহায্যে আপনি ছবি স্ক্যান করতে বা পরিবর্তন করতে পারবেন।"
 
-#: ../comps-fe5.xml.in.h:64 ../comps-fe6.xml.in.h:61 ../comps-f7.xml.in.h:163
-#: ../comps-f8.xml.in.h:163 ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+#: ../comps-f7.xml.in.h:164 ../comps-f8.xml.in.h:172 ../comps-f9.xml.in.h:176
+#: ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
 msgid ""
 "This group includes text-based email, Web, and chat clients. These "
 "applications do not require the X Window System."
@@ -429,8 +854,8 @@ msgstr ""
 "এই সংকলনে রয়েছে টেক্সট-ভিত্তিক ই-মেইল আদান-প্রদান, ওয়েব ব্রাউজ ও চ্যাট ক্লায়েন্ট।  "
 "এই সফ্টওয়্যারগুলি ব্যবহারের জন্য X উইন্ডো সিস্টেম আবশ্যক নয়।"
 
-#: ../comps-fe5.xml.in.h:65 ../comps-fe6.xml.in.h:62 ../comps-f7.xml.in.h:164
-#: ../comps-f8.xml.in.h:164 ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+#: ../comps-f7.xml.in.h:165 ../comps-f8.xml.in.h:173 ../comps-f9.xml.in.h:177
+#: ../comps-el4.xml.in.h:63 ../comps-el5.xml.in.h:61
 msgid ""
 "This group is a collection of graphical administration tools for the system, "
 "such as for managing user accounts and configuring system hardware."
@@ -439,47 +864,20 @@ msgstr ""
 "যেগুলির সাহায্যে ব্যবহারকারীদের অ্যাকাউন্ট পরিচলনা ও সিস্টেম হার্ডওয়্যার কনফিগার করা "
 "যাবে।"
 
-#: ../comps-fe5.xml.in.h:66 ../comps-fe6.xml.in.h:63 ../comps-el4.xml.in.h:63
-#: ../comps-el5.xml.in.h:61
-#, fuzzy
-msgid "This group is a collection of network servers for specific purposes"
-msgstr "হার্ডওয়্যার পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী।"
-
-#: ../comps-fe5.xml.in.h:67 ../comps-fe6.xml.in.h:64 ../comps-el4.xml.in.h:64
-#: ../comps-el5.xml.in.h:62
-#, fuzzy
-msgid ""
-"This group is a collection of tools and resources of Arabic environments."
-msgstr "আর্মেনিয়ান ভাষা পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী।"
-
-#: ../comps-fe5.xml.in.h:68 ../comps-fe6.xml.in.h:65 ../comps-f7.xml.in.h:165
-#: ../comps-f8.xml.in.h:165 ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+#: ../comps-f7.xml.in.h:166 ../comps-f8.xml.in.h:174 ../comps-f9.xml.in.h:178
+#: ../comps-el4.xml.in.h:66 ../comps-el5.xml.in.h:64
 msgid ""
 "This group is a collection of tools and resources of Armenian environments."
 msgstr "আর্মেনিয়ান ভাষা পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী।"
 
-#: ../comps-fe5.xml.in.h:69 ../comps-fe6.xml.in.h:67 ../comps-el4.xml.in.h:66
-#: ../comps-el5.xml.in.h:65
-#, fuzzy
-msgid ""
-"This group is a collection of tools and resources of Hebrew environments."
-msgstr "আর্মেনিয়ান ভাষা পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী।"
-
-#: ../comps-fe5.xml.in.h:70 ../comps-fe6.xml.in.h:68 ../comps-el4.xml.in.h:67
-#: ../comps-el5.xml.in.h:66
-#, fuzzy
-msgid ""
-"This group is a collection of tools and resources of Japanese environments."
-msgstr "আর্মেনিয়ান ভাষা পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী।"
-
-#: ../comps-fe5.xml.in.h:71 ../comps-fe6.xml.in.h:69 ../comps-f7.xml.in.h:166
-#: ../comps-f8.xml.in.h:166 ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+#: ../comps-f7.xml.in.h:167 ../comps-f8.xml.in.h:175 ../comps-f9.xml.in.h:179
+#: ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
 msgid ""
 "This group is a collection of tools for various hardware specific utilities."
 msgstr "হার্ডওয়্যার পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী।"
 
-#: ../comps-fe5.xml.in.h:72 ../comps-fe6.xml.in.h:70 ../comps-f7.xml.in.h:167
-#: ../comps-f8.xml.in.h:167 ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:176 ../comps-f9.xml.in.h:180
+#: ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
 msgid ""
 "This group is a collection of various tools for the system, such as the "
 "client for connecting to SMB shares and tools to monitor network traffic."
@@ -487,574 +885,12 @@ msgstr ""
 "এই সংকলনের মধ্যে সিস্টেমের জন্য বিভিন্ন সরঞ্জাম যেমন SMB শেয়ারের সাথে সংযোগ করার "
 "উদ্দেশ্যে ক্লায়েন্ট ও নেটওয়ার্ক ট্রাফিক নিরীক্ষণ ব্যবস্থা উপস্থিত রয়েছে।"
 
-#: ../comps-fe5.xml.in.h:73 ../comps-fe6.xml.in.h:71 ../comps-f7.xml.in.h:179
-#: ../comps-f8.xml.in.h:179 ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
-msgid "Various core pieces of the system."
-msgstr "সিস্টেমের বিভিন্ন মৌলিক অংশ।"
-
-#: ../comps-fe5.xml.in.h:74 ../comps-fe6.xml.in.h:72 ../comps-f7.xml.in.h:180
-#: ../comps-f8.xml.in.h:180 ../comps-el5.xml.in.h:70
-msgid "Various ways to relax and spend your free time."
-msgstr "আরাম করার এবং সময় কাটাবার নানান উপায়।"
-
-# modified for RHEL
-#: ../comps-fe5.xml.in.h:75 ../comps-fe6.xml.in.h:73 ../comps-f7.xml.in.h:184
-#: ../comps-f8.xml.in.h:184 ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:71
-msgid "Web Development"
-msgstr "ওয়েব ডিভেলপমেন্ট"
-
-#: ../comps-fe5.xml.in.h:76 ../comps-fe6.xml.in.h:74 ../comps-f7.xml.in.h:185
-#: ../comps-f8.xml.in.h:185 ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:72
-msgid "Web Server"
-msgstr "ওয়েব সার্ভার"
-
-#: ../comps-fe5.xml.in.h:77 ../comps-fe6.xml.in.h:75 ../comps-f7.xml.in.h:187
-#: ../comps-f8.xml.in.h:187 ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
-msgid "Window Managers"
-msgstr "উইন্ডো পরিচালনব্যবস্থা"
-
-#: ../comps-fe5.xml.in.h:78 ../comps-fe6.xml.in.h:76 ../comps-f7.xml.in.h:190
-#: ../comps-f8.xml.in.h:190 ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
-msgid "X Window System"
-msgstr "X উইন্ডো সিস্টেম"
-
-#: ../comps-fe5.xml.in.h:79 ../comps-fe6.xml.in.h:77 ../comps-el4.xml.in.h:75
-#: ../comps-el5.xml.in.h:75
-msgid "XEmacs"
-msgstr "XEmacs"
-
-#: ../comps-fe5.xml.in.h:80 ../comps-fe6.xml.in.h:78 ../comps-f7.xml.in.h:191
-#: ../comps-f8.xml.in.h:191
-msgid "XFCE"
-msgstr "XFCE"
-
-#: ../comps-fe5.xml.in.h:81 ../comps-fe6.xml.in.h:79 ../comps-f7.xml.in.h:192
-#: ../comps-f8.xml.in.h:192
-msgid "XFCE Software Development"
-msgstr "XFCE সফ্টওয়্যার ডিভেলপমেন্ট"
-
-# modified for RHEL
-#: ../comps-fe6.xml.in.h:9 ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:28
-#: ../comps-el5.xml.in.h:8
-msgid "Czech Support"
-msgstr "চেক ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-fe6.xml.in.h:66 ../comps-el5.xml.in.h:64
-#, fuzzy
-msgid ""
-"This group is a collection of tools and resources of Czech environments."
-msgstr "আর্মেনিয়ান ভাষা পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী।"
-
-#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3
-msgid "Afrikaans Support"
-msgstr "আফ্রিকান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4
-#, fuzzy
-msgid "Albanian Support"
-msgstr "আর্মেনিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6
-msgid "Applications to perform a variety of tasks"
-msgstr "বিবিধ কর্মে ব্যবহৃত অ্যাপ্লিকেশন"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9
-msgid "Assamese Support"
-msgstr "অসমিয়া ভাষার ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11
-msgid "Base"
-msgstr "ভিত্তি (Base)"
-
-#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13
-msgid "Basic support for the Ruby programming language."
-msgstr "Ruby প্রোগ্রামিং ভাষা ব্যবহারের প্রাথমিক সমর্থন।"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14
-msgid "Basque Support"
-msgstr "বাস্ক ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15
-#, fuzzy
-msgid "Belarusian Support"
-msgstr "বুলগারিয়ান ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16
-msgid "Bengali Support"
-msgstr "বাংলা ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17
-#, fuzzy
-msgid "Bhutanese Support"
-msgstr "চীনা ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18
-#, fuzzy
-msgid "Bosnian Support"
-msgstr "এস্তোনিয়ান ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19
-msgid "Brazilian Portuguese Support"
-msgstr "ব্রাজিলিয়ান পর্তুগিজ ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20
-msgid "Breton Support"
-msgstr "ব্রেটন ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:21
-msgid "Bulgarian Support"
-msgstr "বুলগারিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:22
-msgid "Catalan Support"
-msgstr "ক্যাটালান ভাষা ব্যবহারের সমর্থন"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:23
-msgid "Chinese Support"
-msgstr "চীনা ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:24
-msgid "Clustering"
-msgstr "ক্লাস্টার ব্যবস্থা"
-
-#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:25
-msgid "Clustering Support"
-msgstr "ক্লাস্টার ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:26
-msgid "Core"
-msgstr "কোর"
-
-#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:27
-msgid "Croatian Support"
-msgstr "ক্রোয়েশিয়ান ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:29
-msgid "DNS Name Server"
-msgstr "DNS নেইম সার্ভার"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:30
-msgid "Danish Support"
-msgstr "ড্যানিশ ভাষা ব্যবহারের সমর্থন"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:34
-msgid "Development Libraries"
-msgstr "সফ্টওয়্যার নির্মাণের জন্য প্রয়োজনীয় লাইব্রেরি"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:36
-msgid "Dial-up Networking Support"
-msgstr "ডায়াল-আপ নেটওয়ার্কিং ব্যবস্থা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:37
-msgid "Dutch Support"
-msgstr "ডাচ ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:38 ../comps-f8.xml.in.h:38
-msgid "Eclipse"
-msgstr "Eclipse"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43
-msgid "English (UK) Support"
-msgstr "ইংরাজি (যুক্তরাজ্য) ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44
-msgid "Estonian Support"
-msgstr "এস্তোনিয়ান ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45
-msgid "Ethiopic Support"
-msgstr "ইথিওপিক ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47
-msgid "Faeroese Support"
-msgstr "ফেরোইস ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:48
-#, fuzzy
-msgid "Filipino Support"
-msgstr "গেলিশিয়ান ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:49
-msgid "Finnish Support"
-msgstr "ফিনিশ ভাষা ব্যবহারের সমর্থন"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:50
-msgid "French Support"
-msgstr "ফ্রেঞ্চ ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:54
-msgid ""
-"GNOME is a powerful graphical user interface which includes a panel, "
-"desktop, system icons, and a graphical file manager."
-msgstr ""
-"GNOME একটি সমৃদ্ধ গ্রাফিকাল ইন্টারফেস যার মধ্যে অন্তর্ভুক্ত রয়েছে একটি প্যানেল, "
-"ডেস্কটপ, বিভিন্ন সিস্টেম আইকন এবং একটি গ্রাফিকাল ফাইল পরিচালন ব্যবস্থা।"
-
-#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:55
-msgid "Gaelic Support"
-msgstr "গেলিক ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:56
-msgid "Galician Support"
-msgstr "গেলিশিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:58
-#, fuzzy
-msgid "Georgian Support"
-msgstr "জার্মান ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:59
-msgid "German Support"
-msgstr "জার্মান ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:62
-msgid "Greek Support"
-msgstr "গ্রিক ভাষা ব্যবহারের সমর্থন"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:63
-msgid "Gujarati Support"
-msgstr "গুজরাতি ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:66
-msgid "Hindi Support"
-msgstr "হিন্দি ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:67
-msgid "Hungarian Support"
-msgstr "হাঙ্গেরিয়ান ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:68
-msgid "Icelandic Support"
-msgstr "আইসল্যান্ডিক ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:69
-msgid "Indonesian Support"
-msgstr "ইন্দোনেশিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:73
-msgid ""
-"Install these tools to enable the system to print or act as a print server."
-msgstr ""
-"আপনার সিস্টেম থেকে প্রিন্ট করে অথবা সেটি প্রিন্ট সার্ভার হিসাবে ব্যবহার করার জন্য "
-"চিহ্নিত সরঞ্জামগুলি ইনস্টল করা আবশ্যক।"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:75
-#, fuzzy
-msgid "Inuktitut Support"
-msgstr "জুলু ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:76
-msgid "Irish Support"
-msgstr "আইরিশ ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:77
-msgid "Italian Support"
-msgstr "ইতালিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:83
-msgid ""
-"KDE is a powerful graphical user interface which includes a panel, desktop, "
-"system icons, and a graphical file manager."
-msgstr ""
-"KDE একটি সমৃদ্ধ গ্রাফিকাল ইন্টারফেস যার মধ্যে অন্তর্ভুক্ত রয়েছে একটি প্যানেল, ডেস্কটপ, "
-"বিভিন্ন সিস্টেম আইকন এবং একটি গ্রাফিকাল ফাইল পরিচালন ব্যবস্থা।"
-
-#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:84
-msgid "Kannada Support"
-msgstr "কন্নড় ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:85
-#, fuzzy
-msgid "Khmer Support"
-msgstr "হিব্রু ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:86
-msgid "Korean Support"
-msgstr "কোরিয়ান ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:87
-msgid "Languages"
-msgstr "ভাষা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:88
-#, fuzzy
-msgid "Lao Support"
-msgstr "থাই ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:89
-#, fuzzy
-msgid "Latvian Support"
-msgstr "ক্রোয়েশিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:90
-msgid "Legacy Network Server"
-msgstr "লিগ্যাসি নেটওয়ার্ক সার্ভার"
-
-#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:91
-msgid "Legacy Software Development"
-msgstr "লিগ্যাসি সফ্টওয়্যার নির্মাণ"
-
-# FIXME: [progga]
-#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:92
-msgid "Legacy Software Support"
-msgstr "লিগ্যাসি সফ্টওয়্যার সহায়তা"
-
-#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:93
-msgid "Lithuanian Support"
-msgstr "লিথুয়েনিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:95
-msgid "Malay Support"
-msgstr "মালায় ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:96
-msgid "Malayalam Support"
-msgstr "মালায়ালম ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:97
-#, fuzzy
-msgid "Maori Support"
-msgstr "মারাঠি ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:98
-msgid "Marathi Support"
-msgstr "মারাঠি ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:99
-msgid "MySQL Database"
-msgstr "MySQL ডাটাবেস"
-
-#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:102
-msgid "Northern Sotho Support"
-msgstr "উত্তর সোথো ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:103
-msgid "Norwegian Support"
-msgstr "নরওয়েজিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:105
-msgid "Oriya Support"
-msgstr "ওড়িয়া ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:107
-#, fuzzy
-msgid "Persian Support"
-msgstr "সার্বিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:108
-msgid "Polish Support"
-msgstr "পোলিশ ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:109
-msgid "Portuguese Support"
-msgstr "পর্তুগিজ ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:110
-msgid "PostgreSQL Database"
-msgstr "PostgreSQL ডাটাবেস"
-
-#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:111
-msgid "Printing Support"
-msgstr "প্রিন্ট কর্মে সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:112
-msgid "Punjabi Support"
-msgstr "পাঞ্জাবি ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:113
-msgid "Romanian Support"
-msgstr "রুমানিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:114
-msgid "Ruby"
-msgstr "Ruby"
-
-#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:115
-msgid "Russian Support"
-msgstr "রুশ ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:116
-#, fuzzy
-msgid "Samoan Support"
-msgstr "জার্মান ভাষা ব্যবহারের সমর্থন"
-
-#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:117
-msgid "Serbian Support"
-msgstr "সার্বিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:118
-msgid "Server Configuration Tools"
-msgstr "সার্ভার কনফিগার করার সরঞ্জাম"
-
-#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:121
-msgid "Sinhala Support"
-msgstr "সিংহলি ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:122
-msgid "Slovak Support"
-msgstr "স্লোভাক ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:123
-msgid "Slovenian Support"
-msgstr "স্লোভেনিয়ান ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:124
-msgid "Smallest possible installation"
-msgstr "ন্যূনতম ইনস্টলেশন"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:126
-#, fuzzy
-msgid "Somail Support"
-msgstr "সোয়াতি ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:127
-msgid ""
-"Sometimes called text editors, these are programs that allow you to create "
-"and edit text files. This includes Emacs and Vi."
-msgstr ""
-"এই প্রোগ্রামগুলির সাহায্যে আপনি সরাসরি ফাইল তৈরি এবং পরিবর্তন করতে পারবেন। "
-"সাধারণত এগুলি টেক্সট এডিটর নামে পরিচিত।  এর মধ্যে রয়েছে Emacs এবং Vi।"
-
-#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:129
-msgid "Southern Ndebele Support"
-msgstr "দক্ষিণ এনডেবিলি ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:130
-msgid "Southern Sotho Support"
-msgstr "দক্ষিণ সোথো ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:131
-msgid "Spanish Support"
-msgstr "স্প্যানিশ ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:134
-msgid "Swati Support"
-msgstr "সোয়াতি ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:135
-msgid "Swedish Support"
-msgstr "সুইডিশ ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:137
-#, fuzzy
-msgid "Tagalog Support"
-msgstr "তামিল ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:138
-msgid "Tamil Support"
-msgstr "তামিল ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:139
-msgid "Telugu Support"
-msgstr "তেলুগু ভাষা ব্যবহারের সহায়তা"
-
-# modified for RHEL
-#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:141
-msgid "Thai Support"
-msgstr "থাই ভাষা ব্যবহারের সহায়তা"
-
-#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:142
-msgid "The Eclipse Integrated Development Environment."
-msgstr "Eclipse ইন্টিগ্রেডেড ডিভেলপমেন্ট এনভায়রনমেন্ট (IDE)।"
-
-# Altered by Progga
-#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:144
-msgid ""
-"The packages in this group are core libraries needed to develop applications."
-msgstr "এই সংকলনে উপস্থিত রয়েছে অ্যাপ্লিকেশন নির্মাণের জন্য আবশ্যক কোর লাইব্রেরি।"
-
-#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:146
-msgid ""
-"These packages allow you to develop applications for the X Window System."
-msgstr ""
-"এই প্যাকেজগুলির সাহায্যে আপনি X উইন্ডো সিস্টেমের জন্য অ্যাপ্লিকেশন নির্মাণ করতে "
-"পারবেন।"
-
-#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:148
-msgid ""
-"These packages include network-based servers such as DHCP, Kerberos and NIS."
-msgstr ""
-"এই প্যাকেজগুলির মধ্যে DHCP, Kerberos এবং NIS প্রভৃতি নেটওয়ার্ক ভিত্তিক সার্ভার "
-"উপস্থিত রয়েছে।"
-
-#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:149
-msgid ""
-"These packages include servers for old network protocols such as rsh and "
-"telnet."
-msgstr ""
-"এই প্যাকেজ সংকলনের মধ্যে পুরোনো নেটওয়ার্ক প্রোটোকল যেমন rsh ও telnet-র জন্য সার্ভার "
-"অন্তর্ভুক্ত করা হয়েছে।"
-
-#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:150
-msgid "These packages provide a virtualization environment."
-msgstr "এই প্যাকেজগুলির দ্বারা ভার্চুয়ালাইজেশনের পরিবেশ উপলব্ধ করা হয়।"
-
-#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:151
-msgid "These packages provide compatibility with previous releases."
-msgstr "এই প্যাকেজগুলি পূর্ববর্তী সংস্করণের সাথে সমন্বয় সাধন করতে সহায়ক।"
-
-#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:152
-msgid ""
-"These packages provide support for various locales including fonts and input "
-"methods."
-msgstr ""
-"এই প্যাকেজ সংকলনগুলি, ফন্ট ও ইনপুট পদ্ধতিসহ বিভিন্ন লেকেইল ব্যবহারের জন্য সমর্থন "
-"উপলব্ধ করে।"
-
-#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:153
-msgid ""
-"These tools allow you to create documents in the DocBook format and convert "
-"them into HTML, PDF, Postscript, and text."
-msgstr ""
-"এই সামগ্রীগুলির সাহায্যে আপনি DocBook বিন্যাসে নথিপত্র নির্মাণ করে তা HTML, PDF, "
-"Postscript এবং টেক্সট রূপে পরিবর্তন করতে পারবেন।"
-
-#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:158
-msgid "This group contains all of Red Hat's custom server configuration tools."
-msgstr ""
-"এই সংকলনের মধ্যে Red Hat'র সমস্ত কাস্টম সার্ভার কনফিগারেশন সরঞ্জাম উপস্থিত রয়েছে।"
-
-#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:159
-msgid ""
-"This group includes a minimal set of packages. Useful for creating small "
-"router/firewall boxes, for example."
-msgstr ""
-"এই সংকলনে সর্বনিম্ন সংখ্যক প্যাকেজ রয়েছে।  ক্ষুদ্র মাপের রাউটার/ফায়ারওয়াল প্রভৃতি "
-"নির্মাণের জন্য এই সংকলন আদর্শ।"
-
-#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:168
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:177 ../comps-f9.xml.in.h:181
 msgid ""
 "This package group allows you to run a DNS name server (BIND) on the system."
 msgstr "এই প্যাকেজগুলির সাহায্যে সিস্টেমে একটি DNS নেম সার্ভার (BIND) চালানো যাবে।"
 
-#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:169
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:178 ../comps-f9.xml.in.h:182
 msgid ""
 "This package group allows you to share files between Linux and MS Windows"
 "(tm) systems."
@@ -1062,443 +898,311 @@ msgstr ""
 "এই প্যাকেজগুলির সাহায্যে Linux ও MS Windows (tm) ব্যবহারকারী কম্পিউটারের মধ্যে "
 "ফাইল শেয়ার করা যাবে।"
 
-#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:170
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:179 ../comps-f9.xml.in.h:183
 msgid "This package group contains packages useful for use with MySQL."
 msgstr "এই প্যাকেজ সংকলনে MySQL'র সাথে ব্যবহারযোগ্য বিভিন্ন প্যাকেজ রয়েছে।"
 
-#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:171
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:180 ../comps-f9.xml.in.h:184
 msgid "This package group includes packages useful for use with Postgresql."
 msgstr "এই প্যাকেজ সংকলনে Postgresql'র সাথে ব্যবহারযোগ্য বিভিন্ন প্যাকেজ রয়েছে।"
 
-#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:172
-#, fuzzy
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:181 ../comps-f9.xml.in.h:185
 msgid "Tibetan Support"
-msgstr "জার্মান ভাষা ব্যবহারের সমর্থন"
+msgstr "তিব্বতি ভাষা ব্যবহারের সমর্থন"
 
 # modified for RHEL
-#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:173
-#, fuzzy
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:182 ../comps-f9.xml.in.h:186
 msgid "Tonga Support"
-msgstr "সোঙ্গা ভাষা ব্যবহারের সহায়তা"
+msgstr "টোঙ্গা ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:183 ../comps-f9.xml.in.h:187
+#: ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:70
+msgid "Tools and Utilities needed by a Fedora Packager"
+msgstr "Fedora প্যাকেজ করতে ব্যবহৃত বিবিধ সামগ্রী"
 
 # modified for RHEL
-#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:174
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:184 ../comps-f9.xml.in.h:188
 msgid "Tsonga Support"
 msgstr "সোঙ্গা ভাষা ব্যবহারের সহায়তা"
 
 # modified for RHEL
-#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:175
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:185 ../comps-f9.xml.in.h:189
 msgid "Tswana Support"
 msgstr "সোয়ানা ভাষা ব্যবহারের সহায়তা"
 
-#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:176
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:186 ../comps-f9.xml.in.h:190
 msgid "Turkish Support"
 msgstr "তুর্কি ভাষা ব্যবহারের সমর্থন"
 
-#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:177
+#: ../comps-f7.xml.in.h:179 ../comps-f8.xml.in.h:187 ../comps-f9.xml.in.h:191
 msgid "Ukrainian Support"
 msgstr "ইউক্রেইনিয়ান ভাষা ব্যবহারের সমর্থন"
 
 # modified for RHEL
-#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:178
-#, fuzzy
+#: ../comps-f7.xml.in.h:180 ../comps-f8.xml.in.h:188 ../comps-f9.xml.in.h:192
 msgid "Urdu Support"
-msgstr "জুলু ভাষা ব্যবহারের সহায়তা"
+msgstr "ঊর্দু ভাষা ব্যবহারের সহায়তা"
 
-#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:181
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:189 ../comps-f9.xml.in.h:193
+#: ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:71
+msgid "Various core pieces of the system."
+msgstr "সিস্টেমের বিভিন্ন মৌলিক অংশ।"
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:190 ../comps-f9.xml.in.h:194
+#: ../comps-el5.xml.in.h:72
+msgid "Various ways to relax and spend your free time."
+msgstr "আরাম করার এবং সময় কাটাবার নানান উপায়।"
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:191 ../comps-f9.xml.in.h:195
 msgid "Venda Support"
 msgstr "ভেন্ডা ভাষা ব্যবহারের সহায়তা"
 
 # modified for RHEL
-#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:182
-#, fuzzy
+#: ../comps-f7.xml.in.h:184 ../comps-f8.xml.in.h:192 ../comps-f9.xml.in.h:196
 msgid "Vietnamese Support"
-msgstr "চীনা ভাষা ব্যবহারের সমর্থন"
+msgstr "ভিয়েৎনামিস ভাষা ব্যবহারের সমর্থন"
 
-#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:183
+#: ../comps-f7.xml.in.h:185 ../comps-f8.xml.in.h:193 ../comps-f9.xml.in.h:197
 msgid "Virtualization"
 msgstr "ভার্চুয়ালাইজেশন"
 
 # modified for RHEL
-#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:186
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:194 ../comps-f9.xml.in.h:199
+#: ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+msgid "Web Development"
+msgstr "ওয়েব ডিভেলপমেন্ট"
+
+#: ../comps-f7.xml.in.h:187 ../comps-f8.xml.in.h:195 ../comps-f9.xml.in.h:200
+#: ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "Web Server"
+msgstr "ওয়েব সার্ভার"
+
+# modified for RHEL
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:196 ../comps-f9.xml.in.h:201
 msgid "Welsh Support"
 msgstr "ওয়েলশ ভাষা ব্যবহারের সহায়তা"
 
-#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:188
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:197 ../comps-f9.xml.in.h:202
+#: ../comps-el4.xml.in.h:75 ../comps-el5.xml.in.h:75
+msgid "Window Managers"
+msgstr "উইন্ডো পরিচালনব্যবস্থা"
+
+#: ../comps-f7.xml.in.h:190 ../comps-f8.xml.in.h:198 ../comps-f9.xml.in.h:203
 msgid "Windows File Server"
 msgstr "Windows ফাইল সার্ভার"
 
-#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:189
+#: ../comps-f7.xml.in.h:191 ../comps-f8.xml.in.h:199 ../comps-f9.xml.in.h:204
 msgid "X Software Development"
 msgstr "X ভিত্তিক সফ্টওয়্যার ডিভেলপমেন্ট"
 
+#: ../comps-f7.xml.in.h:192 ../comps-f8.xml.in.h:200 ../comps-f9.xml.in.h:205
+#: ../comps-el4.xml.in.h:76 ../comps-el5.xml.in.h:76
+msgid "X Window System"
+msgstr "X উইন্ডো সিস্টেম"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:201 ../comps-f9.xml.in.h:206
+msgid "XFCE"
+msgstr "XFCE"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:202 ../comps-f9.xml.in.h:207
+msgid "XFCE Software Development"
+msgstr "XFCE সফ্টওয়্যার ডিভেলপমেন্ট"
+
 # modified for RHEL
-#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:193
+#: ../comps-f7.xml.in.h:195 ../comps-f8.xml.in.h:203 ../comps-f9.xml.in.h:208
 msgid "Xhosa Support"
 msgstr "জোসা ভাষা ব্যবহারের সহায়তা"
 
 # modified for RHEL
-#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:194
+#: ../comps-f7.xml.in.h:196 ../comps-f8.xml.in.h:204 ../comps-f9.xml.in.h:209
 msgid "Zulu Support"
 msgstr "জুলু ভাষা ব্যবহারের সহায়তা"
 
-# modified for RHEL
-#~ msgid "Emacs"
-#~ msgstr "Emacs"
+#: ../comps-f8.xml.in.h:21 ../comps-f9.xml.in.h:21
+msgid "Buildsystem building group"
+msgstr "Buildsystem নির্মাণের সংকলন"
 
-#~ msgid "The GNU Emacs text editor."
-#~ msgstr "GNU Emacs টেক্সট এডিটর।"
+#: ../comps-f8.xml.in.h:48 ../comps-f9.xml.in.h:49
+msgid "Fedora Eclipse"
+msgstr "Fedora Eclipse"
+
+#: ../comps-f8.xml.in.h:52 ../comps-f9.xml.in.h:53
+msgid "Fonts"
+msgstr "ফন্ট"
+
+#: ../comps-f8.xml.in.h:53 ../comps-f9.xml.in.h:54
+msgid "Fonts packages for rendering text on the desktop."
+msgstr "ডেস্কটপে টেক্সট রেন্ডার করতে ব্যবহৃত ফন্ট প্যাকেজ।"
+
+#: ../comps-f8.xml.in.h:79 ../comps-f9.xml.in.h:80
+msgid "Integrated Development Environments based on Eclipse."
+msgstr ""
+"Eclipse-র উপর ভিত্তি করে নির্মিত ইন্টিগ্রেডেড ডিভেলপমেন্ট এনভায়রনমেন্ট (IDE)।"
+
+#: ../comps-f8.xml.in.h:95 ../comps-f9.xml.in.h:97
+msgid "Legacy Fonts"
+msgstr "লিগ্যাসি ফন্ট"
 
 # modified for RHEL
-#~ msgid "Brazilian Support"
-#~ msgstr "ব্রাজিলিয়ান ভাষা ব্যবহারের সমর্থন"
+#: ../comps-f8.xml.in.h:100 ../comps-f9.xml.in.h:102
+msgid "Low Saxon Support"
+msgstr "লো স্যাক্সন ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f8.xml.in.h:106 ../comps-f9.xml.in.h:109
+msgid "Mongolian Support"
+msgstr "মঙ্গোলিয়ান ভাষা ব্যবহারের সমর্থন"
 
 # modified for RHEL
+#: ../comps-f8.xml.in.h:108 ../comps-f9.xml.in.h:111
+msgid "Nepali Support"
+msgstr "নেপালি ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-f8.xml.in.h:114 ../comps-f9.xml.in.h:118
+msgid "Older bitmap and vector fonts packages"
+msgstr "পুরোনো বিটম্যাপ ও ভেক্টর ফন্ট প্যাকেজ"
+
+#: ../comps-f9.xml.in.h:44
+#, fuzzy
+msgid "Esperanto Support"
+msgstr "জার্মান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f9.xml.in.h:91
+#, fuzzy
+msgid "Kashubian Support"
+msgstr "বোসনিয়ান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f9.xml.in.h:103
+#, fuzzy
+msgid "Macedonian Support"
+msgstr "মঙ্গোলিয়ান ভাষা ব্যবহারের সমর্থন"
+
+#: ../comps-f9.xml.in.h:114
+#, fuzzy
+msgid "Northern Sami Support"
+msgstr "উত্তর সোথো ভাষা ব্যবহারের সহায়তা"
+
+# modified for RHEL
+#: ../comps-f9.xml.in.h:198
+#, fuzzy
+msgid "Walloon Support"
+msgstr "লাও ভাষা ব্যবহারের সহায়তা"
+
+#: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr "বিবিধ কর্মে ব্যবহৃত অ্যাপ্লিকেশন"
+
+# modified for RHEL
+#: ../comps-el4.xml.in.h:12 ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "ডায়াল-আপ নেটওয়ার্কিং ব্যবস্থা"
+
+#: ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:23
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME একটি সমৃদ্ধ গ্রাফিকাল ইন্টারফেস যার মধ্যে অন্তর্ভুক্ত রয়েছে একটি প্যানেল, "
+"ডেস্কটপ, বিভিন্ন সিস্টেম আইকন এবং একটি গ্রাফিকাল ফাইল পরিচালন ব্যবস্থা।"
+
+#: ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE একটি সমৃদ্ধ গ্রাফিকাল ইন্টারফেস যার মধ্যে অন্তর্ভুক্ত রয়েছে একটি প্যানেল, ডেস্কটপ, "
+"বিভিন্ন সিস্টেম আইকন এবং একটি গ্রাফিকাল ফাইল পরিচালন ব্যবস্থা।"
+
+#: ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+"এই প্রোগ্রামগুলির সাহায্যে আপনি সরাসরি ফাইল তৈরি এবং পরিবর্তন করতে পারবেন। "
+"সাধারণত এগুলি টেক্সট এডিটর নামে পরিচিত।  এর মধ্যে রয়েছে Emacs এবং Vi।"
+
+#: ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The XEmacs text editor."
+msgstr "XEmacs টেক্সট এডিটর।"
+
+#: ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"এই প্রোগ্রামগুলির সাহায্যে আপনি DocBook বিন্যাসে নথিপত্র নির্মাণ করে তা HTML, PDF, "
+"Postscript এবং টেক্সট রূপে পরিবর্তন করতে পারবেন।"
+
+#: ../comps-el4.xml.in.h:64 ../comps-el5.xml.in.h:62
+msgid "This group is a collection of network servers for specific purposes"
+msgstr ""
+"সুনির্দিষ্ট কাজের জন্য ব্যবহারযোগ্য বিভিন্ন নেটওয়ার্ক সার্ভারের এই সংকলনের মধ্যে "
+"উপস্থিত রয়েছে"
+
+#: ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr ""
+"আরবি ভাষার পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী এই সংকলনের মধ্যে উপস্থিত "
+"রয়েছে।"
+
+#: ../comps-el4.xml.in.h:67 ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr ""
+"হিব্রু ভাষার পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী এই সংকলনের মধ্যে উপস্থিত "
+"রয়েছে।"
+
+#: ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr ""
+"জাপানি ভাষার পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী এই সংকলনের মধ্যে "
+"উপস্থিত রয়েছে।"
+
+#: ../comps-el4.xml.in.h:77 ../comps-el5.xml.in.h:77
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr ""
+"চেক ভাষার পরিবেশে ব্যবহারযোগ্য সরঞ্জাম ও রিসোর্স সামগ্রী এই সংকলনের মধ্যে উপস্থিত "
+"রয়েছে।"
+
+# modified for RHEL
+#, fuzzy
 #~ msgid "British Support"
-#~ msgstr "ব্রিটিশ ব্যবহারের সহায়তা"
+#~ msgstr "আইরিশ ব্যবহারের সহায়তা"
 
-#~ msgid "Canadian Support"
-#~ msgstr "কানাডিয়ান ব্যবহারের সহায়তা"
-
-# FIXME
-#~ msgid "Compatibility Arch Development Support"
-#~ msgstr "ভিন্ন আর্কিটেকচারের মধ্যে সুসংগতিকরণ"
-
-# FIXME
-#~ msgid "Compatibility Arch Mozilla Support"
-#~ msgstr "বিভিন্ন আর্কিটেকচারের মধ্যে Mozilla'র সামঞ্জস্য"
-
-# FIXME
-#~ msgid "Compatibility Arch Support"
-#~ msgstr "বিভিন্ন আর্কিটেকচারের মধ্যে সুসংগতি"
-
-# modified for RHEL
-#~ msgid "Cyrillic Support"
-#~ msgstr "সিরিলিক ভাষা ব্যবহারের সমর্থন"
-
-#~ msgid "Desktops"
-#~ msgstr "বিভিন্ন ডেস্কটপ"
-
-#~ msgid "GNOME"
-#~ msgstr "GNOME"
-
-#~ msgid "ISO8859-14 Support"
-#~ msgstr "ISO8859-14 ব্যবহারের সহায়তা"
-
-#~ msgid "ISO8859-15 Support"
-#~ msgstr "ISO8859-15 ব্যবহারের সহায়তা"
-
-#~ msgid "ISO8859-2 Support"
-#~ msgstr "ISO8859-2 ব্যবহারের সহায়ক"
-
-#~ msgid "ISO8859-9 Support"
-#~ msgstr "ISO8859-9 ব্যবহারের সহায়ক"
-
-#~ msgid "Install these packages to recompile the kernel."
-#~ msgstr "কার্নেল পুনরায় কম্পাইল করার উদ্দেশ্যে এই প্যাকেজগুলি ইনস্টল করা আবশ্যক।"
-
-#~ msgid "KDE"
-#~ msgstr "KDE"
-
-#~ msgid "KDE Desktop Environment"
-#~ msgstr "KDE ডেস্কটপ পরিবেশ"
-
-#~ msgid "Kernel Development"
-#~ msgstr "কার্নেল ডিভেলপমেন্ট"
-
-#~ msgid "Miscellaneous Included Packages"
-#~ msgstr "বিভিন্ন অন্তর্ভুক্ত প্যাকেজ"
-
-#~ msgid "Mozilla packages for the x86 platform"
-#~ msgstr "x86 প্ল্যাটফর্মে ব্যবহারযোগ্য Mozilla প্যাকেজ"
-
-#~ msgid "Multilib support packages"
-#~ msgstr "Multilib-র সহায়ক প্যাকেজ"
-
-#~ msgid "SQL Database"
-#~ msgstr "SQL ডাটাবেস"
-
-#~ msgid "Server"
-#~ msgstr "সার্ভার"
-
-# FIXME
-#~ msgid "Support for developing packages for the non-primary architecture"
-#~ msgstr "অপ্রাথমিক আর্কিটেকচারের জন্য প্যাকেজ নির্মাণ সহায়তা"
-
-#~ msgid "Syriac Support"
-#~ msgstr "সিরিয়াক ভাষা ব্যবহারের সহায়তা"
-
-#~ msgid "System"
-#~ msgstr "সিস্টেম"
-
-#~ msgid ""
-#~ "These packages allow you to configure an IMAP or Postfix mail server."
-#~ msgstr ""
-#~ "এই প্যাকেজগুলির সাহায্যে আপনি IMAP এবং Postfix মেইল সার্ভার কনফিগার করতে "
-#~ "পারবেন।"
-
-#~ msgid ""
-#~ "These packages provide compatibility support for previous releases of Red "
-#~ "Hat Enterprise Linux."
-#~ msgstr ""
-#~ "এই প্যাকেজ সংকলনটি Red Hat Enterprise Linux-র পূর্ববর্তী রিলিজের সাথে সমন্বয় "
-#~ "সাধন করে।"
-
-#~ msgid "Unsupported Development Libraries"
-#~ msgstr "সফ্টওয়্যার নির্মাণের অসমর্থিত লাইব্রেরি"
-
-#~ msgid "Workstation Common"
-#~ msgstr "ওয়ার্ক-স্টেশনে সচরাচর প্রাপ্ত"
-
-# FIXME
-#~ msgid "ppc64 Compatibility Arch Support"
-#~ msgstr "ppc64 আর্কিটেকচারের সাথে সামঞ্জস্য"
-
-# FIXME
-#~ msgid "x86 Compatibility Arch Development Support"
-#~ msgstr "x86 আর্কিটেকচার অনুসারে সফ্টওয়্যার নির্মাণের সুসংগতি"
-
-# FIXME
-#~ msgid "x86 Compatibility Arch Support"
-#~ msgstr "x86 আর্কিটেকচারের সামঞ্জস্য"
-
-#~ msgid "Brazilian Portuguese"
-#~ msgstr "ব্রাজিলিয়ান পর্তুগিজ"
-
-#~ msgid "English"
-#~ msgstr "ইংরেজি"
-
-#~ msgid "French"
-#~ msgstr "ফ্রেঞ্চ"
-
-#~ msgid "German"
-#~ msgstr "জার্মান"
-
-#~ msgid "Italian"
-#~ msgstr "ইতালিয়ান"
-
-#~ msgid "Red Hat Enterprise Linux 3 Documentation"
-#~ msgstr "Red Hat Enterprise Linux 3'র নথিপত্র"
-
-#~ msgid "Spanish"
-#~ msgstr "স্প্যানিশ"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Brazilian Portuguese language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে ব্রাজিলিয়ান পর্তুগিজ ভাষায় Red Hat Enterprise Linux'র নথিপত্র "
-#~ "উপস্থিত রয়েছে।"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "English language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে ইংরাজি ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "French language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে ফ্রেঞ্চ ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "German language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে জার্মান ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Italian language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে ইতালিয়ান ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Spanish language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে স্প্যানিশ ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-#~ msgid "Japanese"
-#~ msgstr "জাপানি"
-
-#~ msgid "Korean"
-#~ msgstr "কোরিয়ান"
-
-#~ msgid "Simplified Chinese"
-#~ msgstr "সরলীকৃত চীনা"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Japanese language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে জাপানি ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Korean language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে কোরিয়ান ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Simplified Chinese language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে সরলীকৃত চীনা ভাষায় Red Hat Enterprise Linux'র নথিপত্র "
-#~ "উপস্থিত রয়েছে।"
-
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Traditional Chinese language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে পারম্পরিক চীনা ভাষায় Red Hat Enterprise Linux'র নথিপত্র "
-#~ "উপস্থিত রয়েছে।"
-
-#~ msgid "Traditional Chinese"
-#~ msgstr "পারম্পরিক চীনা"
-
-# FIXME
-# modified for RHEL
-#~ msgid "ppc64 Compatibility Arch Development Support"
-#~ msgstr "ppc64 আর্কিটেকচারের সাথে সুসংগত সফ্টওয়্যার নির্মাণের সমর্থন"
-
-# modified for RHEL
-#~ msgid "Bengali"
-#~ msgstr "বাংলা"
-
-# modified for RHEL
-#~ msgid "Gujarati"
-#~ msgstr "গুজরাতি"
-
-# modified for RHEL
-#~ msgid "Hindi"
-#~ msgstr "হিন্দি"
-
-# modified for RHEL
-#~ msgid "Punjabi"
-#~ msgstr "পাঞ্জাবি"
-
-# modified for RHEL
-#~ msgid "Red Hat Enterprise Linux 4 Documentation"
-#~ msgstr "Red Hat Enterprise Linux 4'র নথিপত্র"
-
-# modified for RHEL
-#~ msgid "Tamil"
-#~ msgstr "তামিল"
-
-# modified for RHEL
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Bengali language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে বাংলা ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-# modified for RHEL
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Gujarati language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে গুজরাতি ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-# modified for RHEL
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Hindi language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে হিন্দি ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-# modified for RHEL
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Punjabi language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে পাঞ্জাবি ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
-# modified for RHEL
-#~ msgid ""
-#~ "This group contains the Red Hat Enterprise Linux documentation in the "
-#~ "Tamil language."
-#~ msgstr ""
-#~ "এই সংকলনের মধ্যে তামিল ভাষায় Red Hat Enterprise Linux'র নথিপত্র উপস্থিত "
-#~ "রয়েছে।"
-
+#, fuzzy
 #~ msgid "Cluster Storage"
-#~ msgstr "ক্লাস্টার সংগ্রহস্থল"
+#~ msgstr "ক্লাস্টার ব্যবহারের সহায়তা"
 
+#, fuzzy
 #~ msgid "Clustering Support."
-#~ msgstr "ক্লাস্টার ব্যবহারের সহায়তা।"
-
-#~ msgid "Packages which provide support for cluster storage."
-#~ msgstr "ক্লাস্টার সংগ্রহস্থল সমর্থন উপলব্ধকারী প্যাকেজ।"
-
-#~ msgid "Packages which provide support for single-node GFS."
-#~ msgstr "একক-নোড বিশিষ্ট GFS'র জন্য সমর্থন উপলব্ধকারী প্যাকেজ।"
+#~ msgstr "ক্লাস্টার ব্যবহারের সহায়তা"
 
 # modified for RHEL
+#, fuzzy
 #~ msgid "Single Node GFS Support"
-#~ msgstr "একক-নোড বিশিষ্ট GFS সমর্থন"
+#~ msgstr "চীনা ভাষা ব্যবহারের সমর্থন"
 
+#, fuzzy
 #~ msgid "These packages provide compatibility support with previous releases."
 #~ msgstr "এই প্যাকেজগুলি পূর্ববর্তী সংস্করণের সাথে সমন্বয় সাধন করতে সহায়ক।"
 
-#~ msgid "Java Runtime Environments and Development Kits"
-#~ msgstr "Java Runtime Environments ও Development Kits"
-
-#~ msgid "Misc"
-#~ msgstr "বিবিধ"
-
-#~ msgid "Misc packages"
-#~ msgstr "বিবিধ প্যাকেজ"
-
-#~ msgid "Multimedia"
-#~ msgstr "মাল্টি-মিডিয়া"
-
 # modified for RHEL
+#, fuzzy
 #~ msgid "Multimedia applications"
-#~ msgstr "মাল্টি-মিডিয়া অ্যাপ্লিকেশন"
+#~ msgstr "অ্যাপ্লিকেশন"
 
+#, fuzzy
 #~ msgid ""
 #~ "Packages which provide additional functionality for Red Hat Enterprise "
 #~ "Linux"
-#~ msgstr ""
-#~ "Red Hat Enterprise Linux-র ক্ষেত্রে অতিরিক্ত কার্যকারিতা উপলব্ধকারী প্যাকেজ"
+#~ msgstr "অ্যাপ্লিকেশন ডিভেলপমেন্ট ও বিল্ড করতে সহায়ক প্যাকেজ।"
 
-# modified for RHEL
-#~ msgid "Red Hat Enterprise Linux Extras"
-#~ msgstr "Red Hat Enterprise Linux Extras"
-
-#~ msgid "Workstation"
-#~ msgstr "ওয়ার্ক-স্টেশন"
-
-#~ msgid "Workstation applications and utilities."
-#~ msgstr "ওয়ার্ক-স্টেশনে ব্যবহারযোগ্য অ্যাপ্লিকেশন ও সামগ্রী।"
-
+#, fuzzy
 #~ msgid "Virtualization Support."
-#~ msgstr "ভার্চুয়ালাইজেশন সমর্থন।"
-
-# FIXME
-#~ msgid "Compatibility Arch"
-#~ msgstr "বিভিন্ন আর্কিটেকচারের মধ্যে সুসংগতি"
-
-# FIXME
-#~ msgid "Compatibility Arch Libraries"
-#~ msgstr "বিভিন্ন আর্কিটেকচারের মধ্যে সুসংগতির লাইব্রেরি"
-
-#~ msgid "Multilib library packages"
-#~ msgstr "Multilib লাইব্রেরি প্যাকেজ"
-
-#~ msgid ""
-#~ "Packages which provide functionality for the compatibility architecture."
-#~ msgstr "বিভিন্ন আর্কিটেকচারের মধ্যে সুসংগতিব্যবস্থা উপলব্ধকারী প্যাকেজ।"
+#~ msgstr "ভার্চুয়ালাইজেশন"

@@ -7,7 +7,9 @@
     <_description>This group is a collection of graphical administration tools for the system, such as for managing user accounts and configuring system hardware.</_description>
     <default>true</default>
     <uservisible>true</uservisible>
-    <packagelist/>
+    <packagelist>
+      <packagereq type="optional">dbench</packagereq>
+    </packagelist>
   </group>
   <group>
     <id>arabic-support</id>
@@ -177,6 +179,7 @@
     <default>true</default>
     <uservisible>true</uservisible>
     <packagelist>
+      <packagereq type="optional">checkgmail</packagereq>
       <packagereq type="optional">mail-notification</packagereq>
     </packagelist>
   </group>
