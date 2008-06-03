@@ -324,7 +324,7 @@ class MashTask(Thread):
                     self.koji.moveBuild(current_tag, self.tag, build.nvr, force=True)
                 self.actions.append((build.nvr, current_tag, self.tag))
 
-        results = kojisession.multiCall()
+        results = self.koji.multiCall()
         if buildsys.wait_for_tasks([task[0] for task in results]) == 0:
             self.success = True
         self.moving = False
