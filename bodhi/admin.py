@@ -12,12 +12,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import logging
+
 from bodhi.push import PushController
 from bodhi.masher import get_masher
+from bodhi.model import Release
 
 from turbogears import expose, identity, redirect
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
+
+log = logging.getLogger(__name__)
 
 class AdminController(Controller, SecureResource):
     require = identity.in_group("releng")
@@ -38,10 +43,17 @@ class AdminController(Controller, SecureResource):
             (logfile, data) = m.lastlog()
             return dict(title=logfile, text=data,
                         tg_template='bodhi.templates.text')
-        return dict(masher_str=str(m))
+
+        tags = []
+        for release in Release.select():
+            tags.append('%s-updates' % release.dist_tag)
+            tags.append('%s-updates-testing' % release.dist_tag)
+
+        return dict(masher_str=str(m), tags=tags)
 
     @expose()
     def mash(self, tag):
+        log.info("Mashing tags: %s" % tag)
         m = get_masher()
         m.mash_tags([tag])
         raise redirect('/admin/masher')
