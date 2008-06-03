@@ -17,11 +17,12 @@ import mail
 import urllib2
 import logging
 import cherrypy
+import xmlrpclib
 
 from koji import GenericError
 from datetime import datetime
 from sqlobject import SQLObjectNotFound
-from sqlobject.sqlbuilder import AND, OR
+from sqlobject.sqlbuilder import AND
 
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config, url)

@@ -17,7 +17,7 @@ from turbogears import validators, url, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
                                 HiddenField, RemoteForm, CheckBoxList, JSLink,
-                                Widget, DataGrid, CSSLink)
+                                DataGrid, CSSLink)
 
 from bodhi.util import make_update_link
 from bodhi.validators import *

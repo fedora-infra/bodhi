@@ -28,7 +28,7 @@ from os.path import exists, join, islink, isdir
 from time import sleep
 
 from bodhi import buildsys, mail
-from bodhi.util import synchronized
+from bodhi.util import synchronized, sanity_check_repodata
 from bodhi.model import PackageUpdate
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import MashTaskException

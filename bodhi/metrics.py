@@ -14,13 +14,12 @@
 from datetime import datetime
 
 from sqlobject import SQLObjectNotFound
-from sqlobject.sqlbuilder import AND
 from turboflot import TurboFlot
 from turbogears import expose, config, flash, redirect
 from turbogears.controllers import Controller
 
 from bodhi.util import Singleton
-from bodhi.model import PackageUpdate, Release, Package
+from bodhi.model import PackageUpdate, Release
 
 metrics = ('all', 'most_updates', 'best_karma', 'active_devs', 'top_testers')
 
