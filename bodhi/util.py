@@ -20,14 +20,21 @@ import os
 import rpm
 import sys
 import logging
-import simplejson
 import urllib2
+import tempfile
+import simplejson
+import subprocess
+import urlgrabber
 
 from kid import Element
+from yum import repoMDObject
+from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 from turbogears import config, url, flash
-from bodhi.exceptions import RPMNotFound
+
+from bodhi.exceptions import RPMNotFound, RepodataException
+
 
 log = logging.getLogger(__name__)
 
@@ -340,3 +347,49 @@ class ProgressBar(object):
         self.updateAmount(value)
         sys.stdout.write(str(self))
         sys.stdout.flush()
+
+
+def sanity_check_repodata(myurl):
+    """
+    Sanity check the repodata for a given repository.
+    Initial implementation by Seth Vidal.
+    """
+    tempdir = tempfile.mkdtemp()
+    errorstrings = []
+    if myurl[-1] != '/':
+        myurl += '/'
+    baseurl = myurl
+    if not myurl.endswith('repodata/'):
+        myurl += 'repodata/'
+    else:
+        baseurl = baseurl.replace('repodata/', '/')
+    
+    rf = myurl + 'repomd.xml'
+    try:
+        rm = urlgrabber.urlopen(rf)
+        repomd = repoMDObject.RepoMD('foo', rm)
+        for t in repomd.fileTypes():
+            data = repomd.getData(t)
+            base, href = data.location
+            if base:
+                loc = base + '/' + href
+            else:
+                loc = baseurl + href
+
+            destfn = tempdir + '/' + os.path.basename(href)
+            dest =  urlgrabber.urlgrab(loc, destfn)
+            ctype, known_csum = data.checksum
+            csum = checksum(ctype, dest)
+            if csum != known_csum:
+                errorstrings.append("checksum: %s" % t)
+
+            if href.find('xml') != -1:
+                retcode = subprocess.call(['/usr/bin/xmllint', '--noout', dest])
+                if retcode != 0:
+                    errorstrings.append("failed xml read: %s" % t)
+
+    except urlgrabber.grabber.URLGrabError, e:
+        errorstrings.append('Error accessing repository %s' % e)
+    
+    if errorstrings:
+        raise RepodataException(','.join(errorstrings))
