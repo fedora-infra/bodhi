@@ -15,6 +15,9 @@
 class BodhiException(Exception):
     pass
 
+class MashTaskException(Exception):
+    pass
+
 class RPMNotFound(BodhiException):
     pass
 

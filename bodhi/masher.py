@@ -21,16 +21,17 @@ import logging
 import commands
 import cPickle as pickle
 
-from bodhi import buildsys, mail
-from bodhi.util import synchronized
-from bodhi.model import PackageUpdate
-from bodhi.metadata import ExtendedMetadata
-
 from sqlobject import SQLObjectNotFound
 from threading import Thread, Lock
 from turbogears import config
 from os.path import exists, join, islink, isdir
 from time import sleep
+
+from bodhi import buildsys, mail
+from bodhi.util import synchronized
+from bodhi.model import PackageUpdate
+from bodhi.metadata import ExtendedMetadata
+from bodhi.exceptions import MashTaskException
 
 log = logging.getLogger(__name__)
 masher = None
@@ -131,9 +132,6 @@ class Masher:
         val += "\n" + output
 
         return val
-
-class MashTaskException(Exception):
-    pass
 
 class MashTask(Thread):
 
