@@ -301,9 +301,10 @@ class MashTask(Thread):
         current state.
         """
         t0 = time.time()
-        tasks = []
         self.success = False
         self.moving = True
+        log.debug("Setting up koji multicall for moving builds")
+        self.koji.multicall = True
         for update in self.updates:
             if update.request == 'stable':
                 self.tag = update.release.dist_tag + '-updates'
@@ -315,17 +316,16 @@ class MashTask(Thread):
             for build in update.builds:
                 if build.inherited:
                     log.debug("Adding tag %s to %s" % (self.tag, build.nvr))
-                    task_id = self.koji.tagBuild(self.tag, build.nvr,
-                                                 force=True)
+                    self.koji.tagBuild(self.tag, build.nvr, force=True)
                 else:
                     log.debug("Moving %s from %s to %s" % (build.nvr,
                                                            current_tag,
                                                            self.tag))
-                    task_id = self.koji.moveBuild(current_tag, self.tag,
-                                                  build.nvr, force=True)
+                    self.koji.moveBuild(current_tag, self.tag, build.nvr, force=True)
                 self.actions.append((build.nvr, current_tag, self.tag))
-                tasks.append(task_id)
-        if buildsys.wait_for_tasks(tasks) == 0:
+
+        results = kojisession.multiCall()
+        if buildsys.wait_for_tasks([task[0] for task in results]) == 0:
             self.success = True
         self.moving = False
         log.debug("Moved builds in %s seconds" % (time.time() - t0))
