@@ -44,9 +44,14 @@ def get_masher():
     return masher
 
 class Masher:
-    """
-    The Masher.  This is a TurboGears extension that runs alongside bodhi that
-    is in charge of queueing and dispatching mash composes.
+    """ The Masher.
+    
+    This is an extension that is in charge of queueing and dispatching update
+    pushes.  This process entails tagging all of the builds appropriately in
+    the buildsystem, mashing the repositories, generating the
+    updateinfo.xml.gz, closing/modifying bugzillas, sending notifications to
+    developers/testers, and generating/sending update notices to various
+    mailing lists.
     """
     def __init__(self):
         log.info("Starting the Masher")
