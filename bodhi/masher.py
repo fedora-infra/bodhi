@@ -170,7 +170,15 @@ class MashTask(Thread):
 
     def _lock(self):
         """ Write out what updates we are pushing to our MASHING lock """
-        mash_lock = join(config.get('mashed_dir'), 'MASHING')
+        mashed_dir = config.get('mashed_dir')
+        mash_stage = config.get('mashed_stage_dir')
+        mash_lock = join(mashed_dir, 'MASHING')
+        if not os.path.isdir(mashed_dir):
+            log.info("Creating mashed_dir %s" % mashed_dir)
+            os.makedirs(mashed_dir)
+        if not os.path.isdir(mash_stage):
+            log.info("Creating mashed_stage_dir %s" % mash_stage)
+            os.makedirs(mash_stage)
         if os.path.exists(mash_lock):
             if self.resume:
                 log.debug("Resuming previous push!")
