@@ -136,6 +136,14 @@ class Masher:
 class MashTask(Thread):
 
     def __init__(self, id, updates, repos=set(), resume=False):
+        """ Initialize a new MashTask thread.
+
+        @param updates: a list of PackageUpdate objects that we want to push
+        @param repos: a list of repositories to compose updates{,-testing)
+        @param resume: resume this set of updates based on the assumption that
+        we have already tagged them appropriately, and that all we need to do
+        is mash the repositories, close bugs, and send out update notices.
+        """
         Thread.__init__(self)
         log.debug("MashTask(%d, %s, %s, %s)" % (id, updates, repos, resume))
         self.id = id
