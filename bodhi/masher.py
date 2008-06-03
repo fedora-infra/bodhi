@@ -377,11 +377,11 @@ class MashTask(Thread):
         for repo, mashdir in self.mashed_repos.items():
             link = join(mashed_dir, repo)
             newrepo = join(mashdir, repo)
-            log.debug("Running some sanity checks on %s" % newrepo)
-            arches = os.listdir(newrepo)
+            log.debug("Running sanity checks on %s" % newrepo)
 
             # make sure the new repository has our arches
-            for arch in ('i386', 'x86_64', 'ppc'):
+            arches = os.listdir(newrepo)
+            for arch in config.get('arches').split():
                 if arch not in arches:
                     msg = "Cannot find arch %s in %s" % (arch, newrepo)
                     log.error(msg)
