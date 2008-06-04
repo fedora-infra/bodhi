@@ -34,16 +34,15 @@ from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
 from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
                          Package, PackageBuild)
 
+configfile = 'prod.cfg'
+if not isfile(configfile):
+    configfile = 'bodhi.cfg'
+update_config(configfile=configfile, modulename='bodhi.config')
+
 hub = __connection__ = PackageHub("bodhi")
 
-def load_config():
-    configfile = 'prod.cfg'
-    if not isfile(configfile):
-        configfile = 'bodhi.cfg'
-    update_config(configfile=configfile, modulename='bodhi.config')
 
 def save_db():
-    load_config()
     updates = []
     all_updates = PackageUpdate.select()
     progress = ProgressBar(maxValue=all_updates.count())
@@ -88,7 +87,6 @@ def save_db():
 
 def load_db():
     print "\nLoading pickled database %s" % sys.argv[2]
-    load_config()
     db = file(sys.argv[2], 'r')
     data = pickle.load(db)
     progress = ProgressBar(maxValue=len(data))
@@ -142,20 +140,18 @@ def load_db():
         ## Create all Bugzilla objects for this update
         for bug_num, bug_title, security, parent in u['bugs']:
             try:
+                bug = Bugzilla.byBz_id(bug_num)
+            except SQLObjectNotFound:
                 bug = Bugzilla(bz_id=bug_num, security=security, parent=parent)
                 bug.title = bug_title
-            except (DuplicateEntryError, SQLiteIntegrityError,
-                    PostgresIntegrityError):
-                bug = Bugzilla.byBz_id(bug_num)
             update.addBugzilla(bug)
 
         ## Create all CVE objects for this update
         for cve_id in u['cves']:
             try:
-                cve = CVE(cve_id=cve_id)
-            except (DuplicateEntryError, SQLiteIntegrityError,
-                    PostgresIntegrityError):
                 cve = CVE.byCve_id(cve_id)
+            except SQLObjectNotFound:
+                cve = CVE(cve_id=cve_id)
             update.addCVE(cve)
         for timestamp, author, text, karma in u['comments']:
             comment = Comment(timestamp=timestamp, author=author, text=text,
@@ -174,6 +170,10 @@ if __name__ == '__main__':
         print "Pickling database..."
         save_db()
     elif sys.argv[1] == 'load' and len(sys.argv) == 3:
-        load_db()
+        try:
+            hub.begin()
+            load_db()
+        finally:
+            hub.commit()
     else:
         usage()
