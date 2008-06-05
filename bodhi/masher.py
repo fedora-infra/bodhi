@@ -165,7 +165,7 @@ class MashTask(Thread):
         self.moving = False # are we currently moving build tags?
         self.log = None # filename that we wrote mash output to
         self.mashed_repos = {} # { repo: mashed_dir }
-        self.error_messages = []
+        self.errors = []
         self.safe = True
         self.genmd = False
         self.resume = resume
@@ -211,6 +211,12 @@ class MashTask(Thread):
         else:
             log.error("Cannot find MashTask lock at %s" % mash_lock)
 
+    def error_log(self, msg):
+        log.error(msg)
+        self.errors.append(msg)
+        self.safe = False
+        self.success = False
+
     def safe_to_move(self):
         """
         Check for bodhi/koji inconsistencies, and make sure it is safe to
@@ -233,11 +239,6 @@ class MashTask(Thread):
                 stable_nvrs[update.release.name] = [build['nvr'] for build in
                         self.koji.listTagged('%s-updates' %
                                              update.release.dist_tag)]
-
-        def error_log(msg):
-            log.error(msg)
-            self.error_messages.append(msg)
-            self.safe = False
 
         for update in self.updates:
             for build in update.builds:
@@ -383,27 +384,21 @@ class MashTask(Thread):
             arches = os.listdir(newrepo)
             for arch in config.get('arches').split():
                 if arch not in arches:
-                    msg = "Cannot find arch %s in %s" % (arch, newrepo)
-                    log.error(msg)
-                    self.error_messages.append(msg)
+                    self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
                     return
 
                 # sanity check our repodata 
                 try:
                     sanity_check_repodata(join(newrepo, arch, 'repodata'))
                 except Exception, e:
-                    msg = "Repodata sanity check failed!\n%s" % str(e)
-                    log.error(msg)
-                    self.error_messages.append(msg)
+                    self.error_log("Repodata sanity check failed!\n%s" % str(e))
                     return
 
             # make sure that mash didn't symlink our packages
             for pkg in os.listdir(join(newrepo, 'i386')):
                 if pkg.endswith('.rpm'):
                     if islink(join(newrepo, 'i386', pkg)):
-                        msg = "Mashed repository full of symlinks!"
-                        log.error(msg)
-                        self.error_messages.append(msg)
+                        self.error_log("Mashed repository full of symlinks!")
                         return
                     break
 
@@ -659,9 +654,9 @@ class MashTask(Thread):
         val += 'The following actions were %ssuccessful.' % (self.success and
                                                              [''] or 
                                                              ['*NOT* '])[0]
-        if len(self.error_messages):
+        if len(self.errors):
             val += '\n The following errors occured:\n'
-            for error in self.error_messages:
+            for error in self.errors:
                 val += error + '\n'
         if len(self.actions):
             val += '\n  Moved the following package tags:\n'
@@ -675,6 +670,10 @@ class MashTask(Thread):
             mashlog = file(self.log, 'r')
             val += '\nMash Output:\n\n%s' % mashlog.read()
             mashlog.close()
+        if len(self.errors):
+            log.error(val)
+        else:
+            log.info(val)
         return val
 
 def start_extension():
