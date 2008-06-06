@@ -484,13 +484,14 @@ class MashTask(Thread):
                 log.debug("Builds look OK to me")
 
             # Move koji build tags
-            if not self.resume:
+            if not self.resume and len(self.updates):
                 self.move_builds()
 
             # Mash our repositories
             self.mash()
 
-            # Change our updates states
+            # Change the state of the updates, and generate the updates-testing
+            # notification digest as well.
             log.debug("Running post-request actions on updates")
             for update in self.updates:
                 if self.resume:
