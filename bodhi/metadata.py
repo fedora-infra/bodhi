@@ -1,4 +1,3 @@
-# $Id: metadata.py,v 1.1 2006/12/31 09:10:14 lmacken Exp $
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; version 2 of the License.
@@ -11,6 +10,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# 
+# Authors: Luke Macken <lmacken@fedoraproject.org>
 
 __version__ = '1.4'
 
@@ -34,9 +35,8 @@ log = logging.getLogger(__name__)
 
 class ExtendedMetadata:
 
-    def __init__(self, repo, cacheduinfo=None):
+    def __init__(self, cacheduinfo=None)::
         self.tag = get_repo_tag(repo)
-        self.repo = repo
         self.doc = None
         self.updates = set()
         self.builds = {}
@@ -248,11 +248,11 @@ class ExtendedMetadata:
         pkglist.appendChild(collection)
         root.appendChild(pkglist)
 
-    def insert_updateinfo(self):
-        for arch in os.listdir(self.repo):
+    def insert_updateinfo(self, repo):
+        for arch in os.listdir(repo):
             try:
-                repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
-                log.debug("Inserting updateinfo.xml.gz into %s/%s" % (self.repo, arch))
+                repomd = RepoMetadata(join(repo, arch, 'repodata'))
+                log.debug("Inserting updateinfo.xml.gz into %s/%s" % (repo, arch))
                 repomd.add(self.doc)
             except RepositoryNotFound:
-                log.error("Cannot find repomd.xml in %s" % self.repo)
+                log.error("Cannot find repomd.xml in %s" % repo)

@@ -52,10 +52,10 @@ class TestExtendedMetadata(testutil.DBTest):
         assert exists(join(repodata, 'repomd.xml'))
 
         ## Generate the XML
-        md = ExtendedMetadata(temprepo)
+        md = ExtendedMetadata()
 
         ## Insert the updateinfo.xml into the repository
-        md.insert_updateinfo()
+        md.insert_updateinfo(temprepo)
         updateinfo = join(repodata, 'updateinfo.xml.gz')
         assert exists(updateinfo)
 
@@ -123,10 +123,10 @@ class TestExtendedMetadata(testutil.DBTest):
         assert exists(join(repodata, 'repomd.xml'))
 
         ## Generate the XML
-        md = ExtendedMetadata(temprepo)
+        md = ExtendedMetadata()
 
         ## Insert the updateinfo.xml into the repository
-        md.insert_updateinfo()
+        md.insert_updateinfo(temprepo)
         updateinfo = join(repodata, 'updateinfo.xml.gz')
         assert exists(updateinfo)
 

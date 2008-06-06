@@ -429,6 +429,7 @@ class MashTask(Thread):
             if isdir(rdcache):
                 log.debug("Removing old repodata cache")
                 shutil.rmtree(rdcache)
+            os.makedirs(rdcache)
             for arch in os.listdir(join(mashdir, repo)):
                 shutil.copytree(join(mashdir, repo, arch, 'repodata'),
                                 join(rdcache, arch))
@@ -483,13 +484,14 @@ class MashTask(Thread):
                 log.debug("Builds look OK to me")
 
             # Move koji build tags
-            if not self.resume:
+            if not self.resume and len(self.updates):
                 self.move_builds()
 
             # Mash our repositories
             self.mash()
 
-            # Change our updates states
+            # Change the state of the updates, and generate the updates-testing
+            # notification digest as well.
             log.debug("Running post-request actions on updates")
             for update in self.updates:
                 if self.resume:
@@ -623,12 +625,12 @@ class MashTask(Thread):
         t0 = time.time()
         for repo, mashdir in self.mashed_repos.items():
             olduinfo = join(config.get('mashed_dir'), '%s.repodata' % repo,
-                            'updateinfo.xml.gz')
+                            'i386', 'updateinfo.xml.gz')
             olduinfo = exists(olduinfo) and olduinfo or None
             repo = join(mashdir, repo)
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
-            uinfo = ExtendedMetadata(repo, olduinfo)
-            uinfo.insert_updateinfo()
+            uinfo = ExtendedMetadata(olduinfo)
+            uinfo.insert_updateinfo(repo)
 
         log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
         self.genmd = False
