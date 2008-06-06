@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 class ExtendedMetadata:
 
-    def __init__(self, cacheduinfo=None)::
+    def __init__(self, cacheduinfo=None):
         self.tag = get_repo_tag(repo)
         self.doc = None
         self.updates = set()
@@ -55,7 +55,7 @@ class ExtendedMetadata:
                 for build in update.builds:
                     if not umd.get_notice(build.nvr):
                         log.debug("Adding %s to updateinfo" % build.nvr)
-                        self.updates.add(update)
+                        self.add_update(update)
                         break
 
             # Add all relevant notices from the metadata to this document
