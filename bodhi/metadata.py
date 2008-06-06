@@ -35,8 +35,9 @@ log = logging.getLogger(__name__)
 
 class ExtendedMetadata:
 
-    def __init__(self, cacheduinfo=None):
+    def __init__(self, repo, cacheduinfo=None):
         self.tag = get_repo_tag(repo)
+        self.repo = repo
         self.doc = None
         self.updates = set()
         self.builds = {}
@@ -248,11 +249,11 @@ class ExtendedMetadata:
         pkglist.appendChild(collection)
         root.appendChild(pkglist)
 
-    def insert_updateinfo(self, repo):
-        for arch in os.listdir(repo):
+    def insert_updateinfo(self):
+        for arch in os.listdir(self.repo):
             try:
-                repomd = RepoMetadata(join(repo, arch, 'repodata'))
-                log.debug("Inserting updateinfo.xml.gz into %s/%s" % (repo, arch))
+                repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
+                log.debug("Inserting updateinfo.xml.gz into %s/%s" % (self.repo, arch))
                 repomd.add(self.doc)
             except RepositoryNotFound:
-                log.error("Cannot find repomd.xml in %s" % repo)
+                log.error("Cannot find repomd.xml in %s" % self.repo)
