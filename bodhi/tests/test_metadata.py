@@ -160,8 +160,8 @@ class TestExtendedMetadata(testutil.DBTest):
             assert cve['title'] == None
 
         ## Test out updateinfo.xml updating via our ExtendedMetadata
-        md = ExtendedMetadata(temprepo, updateinfo)
-        md.insert_updateinfo()
+        md = ExtendedMetadata(updateinfo)
+        md.insert_updateinfo(temprepo)
         updateinfo = join(repodata, 'updateinfo.xml.gz')
         assert exists(updateinfo)
 
