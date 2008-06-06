@@ -625,12 +625,12 @@ class MashTask(Thread):
         t0 = time.time()
         for repo, mashdir in self.mashed_repos.items():
             olduinfo = join(config.get('mashed_dir'), '%s.repodata' % repo,
-                            'updateinfo.xml.gz')
+                            'i386', 'updateinfo.xml.gz')
             olduinfo = exists(olduinfo) and olduinfo or None
             repo = join(mashdir, repo)
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
-            uinfo = ExtendedMetadata(repo, olduinfo)
-            uinfo.insert_updateinfo()
+            uinfo = ExtendedMetadata(olduinfo)
+            uinfo.insert_updateinfo(repo)
 
         log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
         self.genmd = False
