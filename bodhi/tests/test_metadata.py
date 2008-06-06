@@ -52,10 +52,10 @@ class TestExtendedMetadata(testutil.DBTest):
         assert exists(join(repodata, 'repomd.xml'))
 
         ## Generate the XML
-        md = ExtendedMetadata()
+        md = ExtendedMetadata(temprepo)
 
         ## Insert the updateinfo.xml into the repository
-        md.insert_updateinfo(temprepo)
+        md.insert_updateinfo()
         updateinfo = join(repodata, 'updateinfo.xml.gz')
         assert exists(updateinfo)
 
@@ -123,10 +123,10 @@ class TestExtendedMetadata(testutil.DBTest):
         assert exists(join(repodata, 'repomd.xml'))
 
         ## Generate the XML
-        md = ExtendedMetadata()
+        md = ExtendedMetadata(temprepo)
 
         ## Insert the updateinfo.xml into the repository
-        md.insert_updateinfo(temprepo)
+        md.insert_updateinfo()
         updateinfo = join(repodata, 'updateinfo.xml.gz')
         assert exists(updateinfo)
 
@@ -160,8 +160,8 @@ class TestExtendedMetadata(testutil.DBTest):
             assert cve['title'] == None
 
         ## Test out updateinfo.xml updating via our ExtendedMetadata
-        md = ExtendedMetadata(updateinfo)
-        md.insert_updateinfo(temprepo)
+        md = ExtendedMetadata(temprepo, updateinfo)
+        md.insert_updateinfo()
         updateinfo = join(repodata, 'updateinfo.xml.gz')
         assert exists(updateinfo)
 
