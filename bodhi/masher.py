@@ -211,6 +211,12 @@ class MashTask(Thread):
         else:
             log.error("Cannot find MashTask lock at %s" % mash_lock)
 
+    def error_log(self, msg):
+        log.error(msg)
+        self.errors.append(msg)
+        self.safe = False
+        self.success = False
+
     def safe_to_move(self):
         """
         Check for bodhi/koji inconsistencies, and make sure it is safe to
@@ -233,11 +239,6 @@ class MashTask(Thread):
                 stable_nvrs[update.release.name] = [build['nvr'] for build in
                         self.koji.listTagged('%s-updates' %
                                              update.release.dist_tag)]
-
-        def error_log(msg):
-            log.error(msg)
-            self.errors.append(msg)
-            self.safe = False
 
         for update in self.updates:
             for build in update.builds:
@@ -383,21 +384,21 @@ class MashTask(Thread):
             arches = os.listdir(newrepo)
             for arch in config.get('arches').split():
                 if arch not in arches:
-                    self.errors.append("Cannot find arch %s in %s" % (arch, newrepo))
+                    self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
                     return
 
                 # sanity check our repodata 
                 try:
                     sanity_check_repodata(join(newrepo, arch, 'repodata'))
                 except Exception, e:
-                    self.errors.append("Repodata sanity check failed!\n%s" % str(e))
+                    self.error_log("Repodata sanity check failed!\n%s" % str(e))
                     return
 
             # make sure that mash didn't symlink our packages
             for pkg in os.listdir(join(newrepo, 'i386')):
                 if pkg.endswith('.rpm'):
                     if islink(join(newrepo, 'i386', pkg)):
-                        self.errors.append("Mashed repository full of symlinks!")
+                        self.error_log("Mashed repository full of symlinks!")
                         return
                     break
 
