@@ -429,6 +429,7 @@ class MashTask(Thread):
             if isdir(rdcache):
                 log.debug("Removing old repodata cache")
                 shutil.rmtree(rdcache)
+            os.makedirs(rdcache)
             for arch in os.listdir(join(mashdir, repo)):
                 shutil.copytree(join(mashdir, repo, arch, 'repodata'),
                                 join(rdcache, arch))
