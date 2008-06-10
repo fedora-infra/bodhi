@@ -536,6 +536,7 @@ class MashTask(Thread):
 
         except Exception, e:
             log.error("Exception thrown in MashTask %d" % self.id)
+            self.error_log(str(e))
             log.exception(str(e))
         except MashTaskException:
             self.success = False
