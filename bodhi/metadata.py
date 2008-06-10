@@ -178,7 +178,7 @@ class ExtendedMetadata:
                 'type'      : update.type,
                 'status'    : update.status,
                 'version'   : __version__,
-                'from'      : config.get('release_team_address')
+                'from'      : config.get('bodhi_email')
         })
 
         self._insert(root, 'id', text=update.updateid)
