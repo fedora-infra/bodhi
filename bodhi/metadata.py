@@ -55,7 +55,6 @@ class ExtendedMetadata:
             for update in self.updates:
                 for build in update.builds:
                     if not umd.get_notice(build.nvr):
-                        log.debug("Adding %s to updateinfo" % build.nvr)
                         self.add_update(update)
                         break
 
@@ -133,7 +132,7 @@ class ExtendedMetadata:
 
         ## Build the references
         refs = self.doc.createElement('references')
-        for ref in notice['references']:
+        for ref in notice._md['references']:
             self._insert(refs, 'reference', attrs={
                     'type' : ref['type'],
                     'href' : ref['href'],
@@ -179,7 +178,7 @@ class ExtendedMetadata:
                 'type'      : update.type,
                 'status'    : update.status,
                 'version'   : __version__,
-                'from'      : config.get('release_team_address')
+                'from'      : config.get('bodhi_email')
         })
 
         self._insert(root, 'id', text=update.updateid)

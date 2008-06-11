@@ -28,6 +28,8 @@ from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config, url)
 from turbogears.widgets import DataGrid
 
+from fedora.tg.util import request_format
+
 from bodhi import buildsys, util
 from bodhi.rss import Feed
 from bodhi.new import NewUpdateController, update_form
@@ -65,10 +67,6 @@ class Root(controllers.RootController):
                 cherrypy.request.params['tg_format'] == 'json':
             return dict()
         raise redirect("/")
-
-    def jsonRequest(self):
-        return 'tg_format' in cherrypy.request.params and \
-                cherrypy.request.params['tg_format'] == 'json'
 
     @expose(template='bodhi.templates.welcome')
     def index(self):
@@ -149,7 +147,7 @@ class Root(controllers.RootController):
     def login(self, forward_url=None, previous_url=None, *args, **kw):
         if not identity.current.anonymous and identity.was_login_attempted() \
            and not identity.get_identity_errors():
-            if self.jsonRequest():
+            if request_format() == 'json':
                 return dict(user=identity.current.user)
             raise redirect(forward_url)
 
@@ -249,7 +247,7 @@ class Root(controllers.RootController):
                 updates = results
         except SQLObjectNotFound, e:
             flash_log(e)
-            if self.jsonRequest():
+            if request_format() == 'json':
                 return dict(updates=[])
 
         if isinstance(updates, list): num_items = len(updates)
@@ -266,9 +264,9 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(
                        PackageUpdate.q.submitter == identity.current.user_name,
                     orderBy=PackageUpdate.q.date_pushed).reversed()
-        return dict(updates=self.jsonRequest() and map(unicode, updates) or
-                    updates, title='%s\'s updates' % identity.current.user_name,
-                    num_items=updates.count())
+        return dict(updates=request_format() == 'json' and 
+                    map(unicode, updates) or updates, title='%s\'s updates' %
+                    identity.current.user_name, num_items=updates.count())
 
     @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
@@ -283,11 +281,11 @@ class Root(controllers.RootController):
             update.set_request(action)
         except SQLObjectNotFound:
             flash_log("Cannot find update %s for action: %s" % (update, action))
-            if self.jsonRequest(): return dict()
+            if request_format() == 'json': return dict()
             raise redirect('/')
         except InvalidRequest, e:
             flash_log(str(e))
-        if self.jsonRequest(): return dict(update=update)
+        if request_format() == 'json': return dict(update=update)
         raise redirect(update.get_url())
 
     @expose()
@@ -311,7 +309,7 @@ class Root(controllers.RootController):
             update = PackageUpdate.byTitle(update)
             if not util.authorized_user(update, identity):
                 flash_log("Cannot delete an update you did not submit")
-                if self.jsonRequest(): return dict()
+                if request_format() == 'json': return dict()
                 raise redirect(update.get_url())
             if not update.pushed:
                 mail.send_admin('deleted', update)
@@ -324,7 +322,7 @@ class Root(controllers.RootController):
                 flash_log("Cannot delete a pushed update")
         except SQLObjectNotFound:
             flash_log("Update %s does not exist" % update)
-        if self.jsonRequest(): return dict()
+        if request_format() == 'json': return dict()
         raise redirect("/")
 
     @identity.require(identity.not_anonymous())
@@ -398,7 +396,7 @@ class Root(controllers.RootController):
                     b = PackageBuild.byNvr(build)
                     flash_log("%s update already exists!" % 
                               link(build, b.get_url()))
-                    if self.jsonRequest(): return dict()
+                    if request_format() == 'json': return dict()
                     raise redirect('/new', **params)
                 except SQLObjectNotFound:
                     pass
@@ -422,7 +420,7 @@ class Root(controllers.RootController):
             except urllib2.URLError:
                 flash_log("Unable to access the package database.  Please "
                           "notify an administrator in #fedora-admin")
-                if self.jsonRequest(): return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/new', **params)
 
             # Verify that the user is either in the committers list, or is
@@ -433,7 +431,7 @@ class Root(controllers.RootController):
                not filter(lambda x: x in identity.current.groups, groups[0]):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, pkg))
-                if self.jsonRequest(): return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/new', **params)
 
         # If we're editing an update, unpush it first so we can assume all
@@ -444,13 +442,13 @@ class Root(controllers.RootController):
                 edited.unpush()
             except SQLObjectNotFound:
                 flash_log("Cannot find update '%s' to edit" % edited)
-                if self.jsonRequest(): return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/new', **params)
             if edited.status == 'stable':
                 flash_log("Cannot edit stable updates.  Contact release "
                           "engineering at %s about unpushing this update." %
                           config.get('release_team_address'))
-                if self.jsonRequest(): return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/new', **params)
 
         # Make sure all builds are tagged appropriately.  We also determine
@@ -461,7 +459,7 @@ class Root(controllers.RootController):
                 tags = [tag['name'] for tag in koji.listTags(build)]
             except GenericError:
                 flash_log("Invalid build: %s" % build)
-                if self.jsonRequest(): return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/new', **params)
 
             # Determine which release this build is a candidate for
@@ -501,7 +499,7 @@ class Root(controllers.RootController):
 
             if not valid:
                 flash_log("%s not tagged as an update candidate" % build)
-                if self.jsonRequest(): return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/new', **params)
 
             kojiBuild = koji.getBuild(build)
@@ -645,12 +643,12 @@ class Root(controllers.RootController):
                     update.set_request(request.lower(), pathcheck=False)
                 except InvalidRequest, e:
                     flash_log(str(e))
-                    if self.jsonRequest(): return dict()
+                    if request_format() == 'json': return dict()
                     raise redirect('/new', **params)
 
         flash_log('. '.join(note))
 
-        if self.jsonRequest():
+        if request_format() == 'json':
             return dict(updates=updates)
         elif len(updates) > 1:
             return dict(tg_template='bodhi.templates.list',
@@ -836,11 +834,12 @@ class Root(controllers.RootController):
                 update = PackageUpdate.byTitle(title)
                 if text == 'None': text = None
                 update.comment(text, karma)
-                if self.jsonRequest(): return dict(update=unicode(update))
+                if request_format() == 'json':
+                    return dict(update=unicode(update))
                 raise redirect(update.get_url())
             except SQLObjectNotFound:
                 flash_log("Update %s does not exist" % title)
-        if self.jsonRequest(): return dict()
+        if request_format() == 'json': return dict()
         raise redirect('/')
 
     @expose(template='bodhi.templates.comments')
@@ -899,19 +898,17 @@ class Root(controllers.RootController):
     @expose(allow_json=True)
     @identity.require(identity.in_group("security_respons"))
     def approve(self, update):
-        """
-        Security response team approval for pending security updates
-        """
+        """ Security response team approval for pending security updates """
         try:
             update = PackageUpdate.byTitle(update)
         except SQLObjectNotFound:
             flash_log("%s not found" % update)
-            if self.jsonRequest(): return dict()
+            if request_format() == 'json': return dict()
             raise redirect('/')
         update.approved = datetime.utcnow()
-        update.request = 'stable'
-        flash_log("%s has been approved and submitted for pushing to stable" %
-                  update.title)
+        mail.send_admin(update.request, update)
+        flash_log("%s has been approved and submitted for pushing to %s" %
+                  (update.title, update.request))
         raise redirect(update.get_url())
 
     @expose(template="bodhi.templates.security")
