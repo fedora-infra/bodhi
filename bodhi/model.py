@@ -299,6 +299,7 @@ class PackageUpdate(SQLObject):
         elif self.type == 'security' and not self.approved:
             flash_log("%s is awaiting approval of the Security Team" %
                       self.title)
+            self.request = action
             return
         elif action == 'stable' and pathcheck:
             # Make sure we don't break update paths by trying to push out

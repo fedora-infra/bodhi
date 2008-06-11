@@ -840,7 +840,7 @@ class TestControllers(testutil.DBTest):
                 'type'    : 'security',
                 'bugs'    : '',
                 'notes'   : 'foobar',
-                'request' : 'Stable'
+                'request' : 'testing'
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
@@ -851,7 +851,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request(url, headers=session, method='POST')
         update = PackageUpdate.byTitle(params['builds'])
         assert update.approved
-        assert update.request == 'stable'
+        assert update.request == 'testing'
 
     def test_cached_acls(self):
         """
