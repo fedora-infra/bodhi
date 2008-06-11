@@ -12,13 +12,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import logging
 import cherrypy
+import simplejson
 
 from turbogears import expose, redirect, identity, controllers
-from bodhi.model import PackageUpdate
 
-log = logging.getLogger(__name__)
+from bodhi.model import PackageUpdate
+from bodhi.masher import masher
+
 
 class PushController(controllers.Controller, identity.SecureResource):
     require = identity.in_group("releng")
@@ -37,10 +38,7 @@ class PushController(controllers.Controller, identity.SecureResource):
 
     @expose(allow_json=True)
     def mash(self, updates, **kw):
-        from bodhi.masher import masher
-        if 'tg_format' in cherrypy.request.params and \
-                cherrypy.request.params['tg_format'] == 'json':
-            import simplejson
+        if request_format() == 'json':
             updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
         if not isinstance(updates, list):
             updates = [updates]
