@@ -22,11 +22,14 @@ def create_release(num='7', dist='dist-fc'):
     return rel
 
 def login(username='guest', display_name='guest', group=None):
-    guest = User(user_name=username, display_name=display_name)
-    guest.password = 'guest'
-    if group:
-        group = Group(group_name=group, display_name=group)
-        guest.addGroup(group)
+    try:
+        guest = User(user_name=username, display_name=display_name)
+        guest.password = 'guest'
+        if group:
+            group = Group(group_name=group, display_name=group)
+            guest.addGroup(group)
+    except DuplicateEntryError:
+        guest = User.by_user_name(username)
     testutil.create_request('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
     assert cherrypy.response.status == '200 OK'
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
@@ -208,10 +211,10 @@ class TestControllers(testutil.DBTest):
         x = testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                    params['builds'], method='POST',
                                    headers=session)
-        assert len(update.comments) == 1
+        assert len(update.comments) == 2
         assert update.karma == 1
-        assert update.comments[0].author == 'guest'
-        assert update.comments[0].text == 'foobar'
+        assert update.comments[1].author == 'guest'
+        assert update.comments[1].text == 'foobar'
 
         # Allow users to negate their original comment
         x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=-1' %
@@ -239,9 +242,9 @@ class TestControllers(testutil.DBTest):
                                    params['builds'], method='POST',
                                    headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert len(update.get_comments()) == 5
+        assert len(update.get_comments()) == 6
         assert update.get_comments()[-1].text == 'woopdywoop', update.get_comments()
-        assert update.get_comments()[0].text == 'foobar'
+        assert update.get_comments()[1].text == 'foobar'
 
     def test_duplicate_titles(self):
         session = login()

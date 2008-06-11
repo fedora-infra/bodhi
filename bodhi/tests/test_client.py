@@ -125,8 +125,8 @@ class TestClient(testutil.DBTest):
         assert PackageUpdate.byTitle(build)
         bodhi.comment(opts, build)
         update = PackageUpdate.byTitle(build)
-        assert len(update.comments) == 1
-        assert update.comments[0].text == opts.comment
+        assert len(update.comments) == 2
+        assert update.comments[1].text == opts.comment
         assert update.karma == int(opts.karma)
 
     def test_request(self):
