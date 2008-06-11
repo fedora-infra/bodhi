@@ -290,6 +290,8 @@ class PackageUpdate(SQLObject):
 
         if action == 'unpush':
             self.unpush()
+            self.comment('This update has been unpushed',
+                         author=identity.current.user_name)
             flash_log("%s has been unpushed" % self.title)
             return
         elif action == 'obsolete':
@@ -324,6 +326,8 @@ class PackageUpdate(SQLObject):
         self.pushed = False
         self.date_pushed = None
         flash_log("%s has been submitted for %s" % (self.title, action))
+        self.comment('This update has been submitted for %s' % action,
+                     author=identity.current.user_name)
         mail.send_admin(action, self)
 
     def request_complete(self):

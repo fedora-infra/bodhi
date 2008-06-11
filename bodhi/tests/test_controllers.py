@@ -951,3 +951,37 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.type == 'newpackage'
+
+    def test_request_comments(self):
+        """ Make sure that setting requests also adds comments """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'newpackage',
+                'bugs'    : '',
+                'notes'   : 'Initial release of new package!',
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+        assert len(update.comments) == 1
+        assert update.comments[0].author == 'guest'
+        assert update.comments[0].karma == 0
+        assert update.comments[0].text == 'This update has been submitted for testing'
+        testutil.create_request('/updates/request/stable/%s' %
+                                params['builds'], method='POST',
+                                headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable'
+        assert len(update.comments) == 2
+        assert update.get_comments()[-1].text == 'This update has been submitted for stable'
+        testutil.create_request('/updates/request/obsolete/%s' %
+                                params['builds'], method='POST',
+                                headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        print update
+        assert len(update.comments) == 3
+        assert update.get_comments()[-1].text == 'This update has been obsoleted'
+        assert update.get_comments()[-1].author == 'bodhi'
