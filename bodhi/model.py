@@ -296,12 +296,9 @@ class PackageUpdate(SQLObject):
             self.obsolete()
             flash_log("%s has been obsoleted" % self.title)
             return
-        elif action == 'stable' and self.type == 'security' and \
-                not self.approved:
-            flash_log("%s will be pushed to testing while it awaits approval "
-                      "of the Security Team" % self.title)
-            self.request = 'testing'
-            mail.send(config.get('security_team'), 'security', self)
+        elif self.type == 'security' and not self.approved:
+            flash_log("%s is awaiting approval of the Security Team" %
+                      self.title)
             return
         elif action == 'stable' and pathcheck:
             # Make sure we don't break update paths by trying to push out

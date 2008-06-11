@@ -898,9 +898,7 @@ class Root(controllers.RootController):
     @expose(allow_json=True)
     @identity.require(identity.in_group("security_respons"))
     def approve(self, update):
-        """
-        Security response team approval for pending security updates
-        """
+        """ Security response team approval for pending security updates """
         try:
             update = PackageUpdate.byTitle(update)
         except SQLObjectNotFound:
@@ -908,9 +906,9 @@ class Root(controllers.RootController):
             if request_format() == 'json': return dict()
             raise redirect('/')
         update.approved = datetime.utcnow()
-        update.request = 'stable'
-        flash_log("%s has been approved and submitted for pushing to stable" %
-                  update.title)
+        mail.send_admin(update.request, update)
+        flash_log("%s has been approved and submitted for pushing to %s" %
+                  (update.title, update.request))
         raise redirect(update.get_url())
 
     @expose(template="bodhi.templates.security")

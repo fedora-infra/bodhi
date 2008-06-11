@@ -26,8 +26,13 @@ class PushController(controllers.Controller, identity.SecureResource):
     @expose(template='bodhi.templates.push', allow_json=True)
     def index(self):
         """ List updates tagged with a push/unpush/move request """
-        updates = filter(lambda update: not update.release.locked,
+        requests = filter(lambda update: not update.release.locked,
                          PackageUpdate.select(PackageUpdate.q.request != None))
+        updates = []
+        for update in requests:
+            if update.type == 'security' and not update.approved:
+                continue 
+            updates.append(update)
         return dict(updates=updates)
 
     @expose(allow_json=True)
