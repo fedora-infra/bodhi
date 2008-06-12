@@ -570,8 +570,12 @@ class Root(controllers.RootController):
                         # Have the newer update inherit the older updates bugs
                         for bug in update.bugs:
                             bugs.append(unicode(bug.bz_id))
+                        # Also inherit the older updates notes as well
+                        notes += '\n' + update.notes
+                        print "new notes =", notes
                         update.obsolete(newer=build)
-                    note.append('This update has obsoleted %s' % oldBuild.nvr)
+                    note.append('This update has obsoleted %s, and has '
+                                'inherited its bugs and notes.' % oldBuild.nvr)
 
         # Create or modify the necessary PackageUpdate objects
         for release, builds in releases.items():

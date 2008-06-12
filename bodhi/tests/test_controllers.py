@@ -682,10 +682,9 @@ class TestControllers(testutil.DBTest):
                 'type'    : 'enhancement',
                 'bugs'    : '4321',
                 'cves'    : 'CVE-2020-0001',
-                'notes'   : 'foobar'
+                'notes'   : 'bizbaz'
         }
         self.save_update(newparams, session)
-        print cherrypy.response.body[0]
         newupdate = PackageUpdate.byTitle(newparams['builds'])
         assert newupdate.status == 'pending'
         update = PackageUpdate.byTitle(params['builds'])
@@ -694,6 +693,9 @@ class TestControllers(testutil.DBTest):
         # The newer build should also inherit the obsolete updates bugs
         bugz = [bug.bz_id for bug in newupdate.bugs]
         assert 1234 in bugz and 4321 in bugz
+
+        # The newer update should also inherit the obsolete updates notes
+        assert newupdate.notes == "%s\n%s" % (newparams['notes'], params['notes'])
 
     def test_obsoleting_request(self):
         session = login()
