@@ -2,7 +2,7 @@ Metadata-Version: 1.0
 Name: bodhi
 Version: 0.4.10
 Summary: UNKNOWN
-Home-page: https://hosted.fedoraproject.org/projects/bodhi
+Home-page: https://fedorahosted.org/bodhi
 Author: Luke Macken
 Author-email: lmacken@fedoraproject.org
 License: GPLv2+

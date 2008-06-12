@@ -8,7 +8,7 @@ all:
 	@echo "Nothing to do"
 
 docs:
-	epydoc -n bodhi -o docs/epydoc -u https://hosted.fedoraproject.org/projects/bodhi \
+	epydoc -n bodhi -o docs/epydoc -u https://fedorahosted.org/bodhi \
 	`find bodhi -name '*.py'`
 
 test:

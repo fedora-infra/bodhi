@@ -183,7 +183,7 @@ setup(
     description="",
     author="Luke Macken",
     author_email="lmacken@fedoraproject.org",
-    url="https://hosted.fedoraproject.org/projects/bodhi",
+    url="https://fedorahosted.org/bodhi",
     license="GPLv2+",
     cmdclass={'build_scripts': BuildScripts,
               'build': Build,

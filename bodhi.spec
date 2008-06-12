@@ -3,11 +3,11 @@
 
 Name:           bodhi
 Version:        0.4.10
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
-URL:            https://hosted.fedoraproject.org/projects/bodhi
+URL:            https://fedorahosted.org/bodhi
 Source0:        bodhi-%{version}.tar.bz2
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -92,6 +92,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Jun 12 2008 Todd Zullinger <tmz@pobox.com> - 0.4.10-5
+- update URL to point to fedorahosted.org
+
 * Fri Apr 04 2008 Luke Macken <lmacken@redhat.com> - 0.4.10-4
 - Add python-tgcaptcha to our server requirements
 
