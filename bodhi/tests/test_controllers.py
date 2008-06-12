@@ -580,7 +580,7 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         koji.getBuild = oldGetBuild
         koji.listTagged = oldListTagged
-        assert 'Broken update path: TurboGears-1.0.2.2-2.fc7 is older than TurboGears-1.0.2.3-2.fc7 in dist-fc7' in testutil.get_log()
+        assert 'Broken update path: TurboGears-1.0.2.2-2.fc7 is older than TurboGears-1.0.2.3-2.fc7 in dist-rawhide' in testutil.get_log()
 
     def test_broken_update_path_on_request(self):
         """ Make sure we are unable to break upgrade paths upon request

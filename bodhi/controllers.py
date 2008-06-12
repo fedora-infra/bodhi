@@ -509,7 +509,8 @@ class Root(controllers.RootController):
 
             # Check for broken update paths against all releases
             for release in Release.select():
-                tags = [release.dist_tag, release.dist_tag + '-updates']
+                tags = ['dist-rawhide', release.dist_tag, release.dist_tag +
+                        '-updates']
                 for tag in tags:
                     log.info("Checking for broken update paths in " + tag)
                     pkg = buildinfo[build]['nvr'][0]

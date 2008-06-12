@@ -141,7 +141,7 @@ class DevBuildsys(Buildsystem):
                      'name': 'dist-f8', 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
-        if tag not in ('dist-fc7', 'dist-fc7-updates-candidate',
+        if tag not in ('dist-rawhide', 'dist-fc7', 'dist-fc7-updates-candidate',
                        'dist-fc7-updates-testing', 'dist-fc7-updates',
                        'dist-f8', 'dist-f8-updates', 'dist-f8-updates-testing',
                        'dist-fc8', 'dist-fc8-updates', 'dist-fc8-updates-testing',
