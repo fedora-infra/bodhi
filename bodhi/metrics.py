@@ -21,7 +21,8 @@ from turbogears.controllers import Controller
 from bodhi.util import Singleton
 from bodhi.model import PackageUpdate, Release
 
-metrics = ('all', 'most_updates', 'best_karma', 'active_devs', 'top_testers')
+metrics = ('all', 'most_updated', 'top_testers', 'active_devs', 'karma',
+           'most_tested')
 
 
 class MetricData(Singleton):
@@ -133,6 +134,19 @@ class MetricData(Singleton):
                     'xaxis': {'ticks': self.tester_data['people']}
                 },
                 label = 'Top testers'
+            )
+
+            self.widgets[release.name]['most_tested'] = TurboFlot([
+                {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+                {'data': [[0,0]]}, {'data': [[0,0]]},
+                {
+                    'data': self.most_tested_data['data'],
+                    'bars': {'show': True}
+                }],
+                {
+                    'xaxis': {'ticks': self.most_tested_data['pkgs']}
+                },
+                label = 'Most tested packages'
             )
 
     def all(self):
@@ -280,12 +294,35 @@ class MetricData(Singleton):
         except GeneratorExit:
             items = data.items()
             items.sort(key=lambda x: x[1], reverse=True)
-            items = items[:10]
+            items = items[:8]
             data = []
             for i, item in enumerate(items):
                 people[i + 0.5] = item[0]
                 data.append((i, item[1]))
             self.tester_data = dict(people=people.items(), data=data)
+
+    def most_tested(self):
+        data = {} # {pkg: # of +1/-1's}
+        try:
+            while True:
+                update = (yield)
+                for build in update.builds:
+                    if not data.has_key(build.package.name):
+                        data[build.package.name] = 0
+                    for comment in update.comments:
+                        if comment.karma in (1, -1):
+                            data[build.package.name] += 1
+        except GeneratorExit:
+            items = data.items()
+            items.sort(key=lambda x: x[1], reverse=True)
+            print "items = ", items
+            tested_data = []
+            tested_pkgs = {}
+            for i, item in enumerate(items[:8]):
+                tested_pkgs[i + 0.5] = item[0]
+                tested_data.append((i, item[1]))
+            self.most_tested_data = dict(data=tested_data,
+                                         pkgs=tested_pkgs.items())
 
 
 class Metrics(Controller):
