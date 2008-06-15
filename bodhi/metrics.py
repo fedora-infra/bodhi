@@ -37,9 +37,7 @@ class MetricData(Singleton):
         for release in Release.select():
 
             # Start all of our co-routines
-            coroutines = [self.all(), self.most_updated(),
-                          self.active_devs(), self.karma(),
-                          self.top_testers()]
+            coroutines = [getattr(self, metric)() for metric in metrics]
             for coroutine in coroutines:
                 coroutine.next()
 
