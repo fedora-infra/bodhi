@@ -12,6 +12,7 @@ from sqlobject import SQLObjectNotFound
 from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla, \
                         Group
 from bodhi.controllers import Root
+from bodhi.exceptions import DuplicateEntryError
 
 cherrypy.root = Root()
 
