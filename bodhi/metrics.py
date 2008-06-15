@@ -313,7 +313,6 @@ class MetricData(Singleton):
         except GeneratorExit:
             items = data.items()
             items.sort(key=lambda x: x[1], reverse=True)
-            print "items = ", items
             tested_data = []
             tested_pkgs = {}
             for i, item in enumerate(items[:8]):
