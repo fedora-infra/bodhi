@@ -86,7 +86,7 @@ class MetricData(Singleton):
                 label = '%s Updates' % release.long_name
             )
 
-            self.widgets[release.name]['most_updates'] = TurboFlot([
+            self.widgets[release.name]['most_updated'] = TurboFlot([
                 # Hack to get the color we want :)
                 {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
                 {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
@@ -112,7 +112,7 @@ class MetricData(Singleton):
                 label = 'Most updates per developer'
             )
 
-            self.widgets[release.name]['best_karma'] = TurboFlot([
+            self.widgets[release.name]['karma'] = TurboFlot([
                 {
                     'data': self.karma_data['best'],
                     'bars': {'show': True}
@@ -125,6 +125,7 @@ class MetricData(Singleton):
 
             self.widgets[release.name]['top_testers'] = TurboFlot([
                 {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+                {'data': [[0,0]]}, {'data': [[0,0]]},
                 {'data': [[0,0]]}, {'data': [[0,0]]},
                 {
                     'data': self.tester_data['data'],
@@ -262,20 +263,17 @@ class MetricData(Singleton):
         except GeneratorExit:
             items = data.items()
             items.sort(key=lambda x: x[1], reverse=True)
-            bestitems = items[:10]
-            worstitems = items[-10:]
-            del data, items
             bestpkgs = {}
             bestdata = []
             worstpkgs = {}
             worstdata = []
-            for i, item in enumerate(bestitems):
+            for i, item in enumerate(items[:8]):
                 bestpkgs[i + 0.5] = item[0]
                 bestdata.append((i, item[1]))
-            for i, item in enumerate(worstitems):
+            for i, item in enumerate(items[-8:]):
                 worstpkgs[i + 0.5] = item[0]
                 worstdata.append((i, item[1]))
-            del worstitems, bestitems
+            del items, data
             self.karma_data = dict(best=bestdata, bestpkgs=bestpkgs.items(),
                                    worst=worstdata, worstpkgs=worstpkgs.items())
 
