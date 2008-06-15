@@ -74,6 +74,9 @@ def nagmail():
     for name, query in queries:
         for update in query:
             if get_age_in_days(update.date_pushed) > 14:
+                if not update.nagged:
+                    update.nagged = {}
+                    continue
                 if update.nagged.has_key(name) and update.nagged[name]:
                     if (datetime.utcnow() - update.nagged[name]).days < 7:
                         continue # Only nag once a week at most
