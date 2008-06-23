@@ -200,9 +200,10 @@ class MashTask(Thread):
                 log.error("Previous mash not complete!  Either resume the last "
                           "push, or remove %s" % mash_lock)
                 raise MashTaskException
-        lock = file(mash_lock, 'w')
-        pickle.dump([update.title for update in self.updates], lock)
-        lock.close()
+        else:
+            lock = file(mash_lock, 'w')
+            pickle.dump([update.title for update in self.updates], lock)
+            lock.close()
 
     def _unlock(self):
         mash_lock = join(config.get('mashed_dir'), 'MASHING')
