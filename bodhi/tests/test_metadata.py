@@ -68,7 +68,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice
         assert notice['status'] == update.status
         assert notice['updated'] == update.date_modified
-        assert notice['from'] == str(config.get('release_team_address'))
+        assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
         assert notice['issued'] == 'None'
         assert notice['update_id'] == update.updateid
@@ -139,7 +139,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice
         assert notice['status'] == update.status
         assert notice['updated'] == update.date_modified
-        assert notice['from'] == str(config.get('release_team_address'))
+        assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
         assert notice['issued'] == 'None'
         assert notice['update_id'] == update.updateid
@@ -174,7 +174,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice
         assert notice['status'] == update.status
         assert notice['updated'] == update.date_modified
-        assert notice['from'] == str(config.get('release_team_address'))
+        assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
         assert notice['issued'] == 'None'
         assert notice['update_id'] == update.updateid
