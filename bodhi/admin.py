@@ -34,22 +34,23 @@ class AdminController(Controller, SecureResource):
         return dict()
 
     @expose(template='bodhi.templates.masher', allow_json=True)
-    def masher(self, lastlog=None):
+    def masher(self):
         """
         Display the current status of the Masher
         """
-        m = get_masher()
-        if lastlog:
-            (logfile, data) = m.lastlog()
-            return dict(title=logfile, text=data,
-                        tg_template='bodhi.templates.text')
-
         tags = []
+        masher = get_masher()
         for release in Release.select():
             tags.append('%s-updates' % release.dist_tag)
             tags.append('%s-updates-testing' % release.dist_tag)
 
-        return dict(masher_str=str(m), tags=tags)
+        return dict(masher_str=str(masher), tags=tags)
+
+    @expose(template='bodhi.templates.text')
+    def lastlog(self):
+        masher = get_masher()
+        (logfile, data) = masher.lastlog()
+        return dict(title=logfile, text=data)
 
     @expose()
     def mash(self, tag):
