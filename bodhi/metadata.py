@@ -41,7 +41,7 @@ class ExtendedMetadata:
         self.doc = None
         self.updates = set()
         self.builds = {}
-        self._from = config.get('release_team_address')
+        self._from = config.get('bodhi_email')
         self.koji = get_session()
         self._create_document()
         self._fetch_updates()
