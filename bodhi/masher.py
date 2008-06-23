@@ -199,7 +199,7 @@ class MashTask(Thread):
             else:
                 log.error("Previous mash not complete!  Either resume the last "
                           "push, or remove %s" % mash_lock)
-            raise MashTaskException
+                raise MashTaskException
         lock = file(mash_lock, 'w')
         pickle.dump([update.title for update in self.updates], lock)
         lock.close()
