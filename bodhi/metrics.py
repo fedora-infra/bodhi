@@ -21,308 +21,391 @@ from turbogears.controllers import Controller
 from bodhi.util import Singleton
 from bodhi.model import PackageUpdate, Release
 
-metrics = ('all', 'most_updated', 'top_testers', 'active_devs', 'karma',
-           'most_tested')
+
+class Metric(object):
+
+    def __init__(self, release):
+        """ Initialize this metric for a given release """
+        raise NotImplementedError
+
+    def update(self, update):
+        """ Process an update """
+        raise NotImplementedError
+
+    def done(self):
+        """ Finish processing """
+        raise NotImplementedError
+
+    def get_data(self):
+        """ Return a dictionary of metric specific data """
+        raise NotImplementedError
+
+    def get_widget(self):
+        """ Return a TurboFlot widget for this metric """
+        raise NotImplementedError
+
+
+class AllMetric(Metric):
+    """
+    A metric of all stable updates, comparing the various types
+    """
+    def __init__(self, release):
+        self.all = {}       # { month : num }
+        self.months = {}    # { month_num : month_name }
+        self.timeline = {}  # { type : { month : num } } 
+        self.earliest = datetime.now()
+        self.release = release
+        for update_type in config.get('update_types').split():
+            self.timeline[update_type] = {}
+
+    def update(self, update):
+        if update.status != 'stable':
+            return
+        if update.date_pushed < self.earliest:
+            self.earliest = update.date_pushed
+        if not self.timeline[update.type].has_key(update.date_pushed.month):
+            self.timeline[update.type][update.date_pushed.month] = 0
+            self.months[update.date_pushed.month] = \
+                    update.date_pushed.strftime("%b")
+        if not self.all.has_key(update.date_pushed.month):
+            self.all[update.date_pushed.month] = 0
+        for build in update.builds:
+            self.timeline[update.type][update.date_pushed.month] += 1
+            self.all[update.date_pushed.month] += 1
+
+    def done(self):
+        for update_type, data in self.timeline.items():
+            self.timeline[update_type] = data.items()
+
+        # Append earlier months for newer years to the end of the graph
+        self.months = self.months.items()
+        self.months.sort(key=lambda x: x[0])
+        m = []
+        for num, month in self.months:
+            if num < self.earliest.month:
+                m.append([num, month])
+        for num, month in m:
+            self.months.remove((num, month))
+        for i, n in enumerate(m):
+            newid = self.months[-1][0] + i + 1
+            for amonth, anum in self.all.items():
+                if amonth == m[i][0]:
+                    del self.all[amonth]
+                    self.all[newid] = anum
+                    break
+            for update_type in self.timeline:
+                for tlmonth, tlnum in self.timeline[update_type]:
+                    if tlmonth == m[i][0]:
+                        self.timeline[update_type].remove((tlmonth, tlnum))
+                        self.timeline[update_type].append((newid, tlnum))
+            m[i][0] = newid
+        self.months += m
+
+    def get_widget(self):
+        data = self.get_data()
+        return TurboFlot([
+            {
+                'data'  : data['all'],
+                'label' : 'All Updates',
+                'bars'  : {'show': 'true'}
+            },
+            {
+                'data'   : data['timeline']['enhancement'],
+                'label'  : 'Enhancement',
+                'lines'  : {'show': 'true'},
+                'points' : {'show': 'true'}
+            },
+            {
+                'data'   : data['timeline']['security'],
+                'label'  : 'Security',
+                'lines'  : {'show': 'true'},
+                'points' : {'show': 'true'}
+            },
+            {
+                'data'   : data['timeline']['bugfix'],
+                'label'  : 'Bugfix',
+                'lines'  : {'show': 'true'},
+                'points' : {'show': 'true'}
+            }],
+            {
+                'xaxis' : {'ticks': data['months']},
+            },
+            label = '%s Updates' % self.release
+        )
+
+    def get_data(self):
+        return dict(timeline=self.timeline, months=self.months,
+                    all=self.all.items())
+
+
+class MostUpdatedMetric(Metric):
+    """
+    A metric that calculates what packages have been updated the most.
+    """
+    def __init__(self, release):
+        self.release = release
+        self.data = {}
+        self.pkgs = []
+
+    def update(self, update):
+        for build in update.builds:
+            if not self.data.has_key(build.package.name):
+                self.data[build.package.name] = 0
+            self.data[build.package.name] += 1
+
+    def done(self):
+        items = self.data.items()
+        items.sort(key=lambda x: x[1], reverse=True)
+        items = items[:7]
+        del self.data
+        self.data = {}
+        for i, item in enumerate(items):
+            self.data[i] = item[1]
+            self.pkgs.append((i + 0.5, item[0]))
+
+    def get_data(self):
+        return dict(packages=self.data.items(), pkgs=self.pkgs)
+
+    def get_widget(self):
+        data = self.get_data()
+        return TurboFlot([
+            # Hack, to get the color we want :)
+            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {
+                'data': data['packages'],
+                'bars': {'show': 'true'}
+            }],
+            {
+                'xaxis': {'ticks': data['pkgs']}
+            },
+            label = 'Most Updated Packages in %s' % self.release
+        )
+
+
+class ActiveDevsMetric(Metric):
+    """
+    A metric that calculates which developers have pushed out the most updates
+    """
+    def __init__(self, release):
+        self.release = release
+        self.users = {} # { user : # updates }
+        self.data = {}
+
+    def update(self, update):
+        if not self.users.has_key(update.submitter):
+            self.users[update.submitter] = 0
+        self.users[update.submitter] += 1
+
+    def done(self):
+        items = self.users.items()
+        items.sort(key=lambda x: x[1], reverse=True)
+        items = items[:10]
+        del self.users
+        self.users = []
+        for i, item in enumerate(items):
+            self.data[i + 0.5] = item[0]
+            self.users.append((i, item[1]))
+
+    def get_data(self):
+        return dict(data=self.users, people=self.data.items())
+
+    def get_widget(self):
+        data = self.get_data()
+        return TurboFlot([
+            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {
+                'data': data['data'],
+                'bars': {'show': 'true'}
+            }],
+            {
+                'xaxis': {'ticks': data['people']}
+            },
+            label = 'Most updates per developer in %s' % self.release
+        )
+
+
+class KarmaMetric(Metric):
+    """
+    A metric that calculates packages that have received the best and worst
+    feedback.
+    """
+    def __init__(self, release):
+        self.data = {} # { pkg : karma }
+        self.release = release
+        self.bestpkgs = {}
+        self.bestdata = []
+        self.worstpkgs = {}
+        self.worstdata = []
+
+    def update(self, update):
+        for build in update.builds:
+            if not self.data.has_key(build.package.name):
+                self.data[build.package.name] = 0
+            self.data[build.package.name] += update.karma
+
+    def done(self):
+        items = self.data.items()
+        items.sort(key=lambda x: x[1], reverse=True)
+        for i, item in enumerate(items[:8]):
+            self.bestpkgs[i + 0.5] = item[0]
+            self.bestdata.append((i, item[1]))
+        for i, item in enumerate(items[-8:]):
+            self.worstpkgs[i + 0.5] = item[0]
+            self.worstdata.append((i, item[1]))
+        del items, self.data
+
+    def get_data(self):
+        return dict(best=self.bestdata, bestpkgs=self.bestpkgs.items(),
+                    worst=self.worstdata, worstpkgs=self.worstpkgs.items())
+
+    def get_widget(self):
+        data = self.get_data()
+        return TurboFlot([
+            {
+                'data': data['best'],
+                'bars': {'show': True}
+            }],
+            {
+                'xaxis': {'ticks': data['bestpkgs']}
+            },
+            label = 'Packages with best karma'
+        )
+
+
+class TopTestersMetric(Metric):
+    """
+    A metric that calculates the people that have provided the most 
+    testing feedback for updates
+    """
+    def __init__(self, release):
+        self.release = release
+        self.data = {}   # { person : # of comments }
+        self.people = {}
+
+    def update(self, update):
+        for comment in update.comments:
+            if comment.author == 'bodhi' or comment.karma == 0:
+                continue
+            if not self.data.has_key(comment.author):
+                self.data[comment.author] = 0
+            self.data[comment.author] += 1
+
+    def done(self):
+        items = self.data.items()
+        items.sort(key=lambda x: x[1], reverse=True)
+        items = items[:8]
+        self.data = []
+        for i, item in enumerate(items):
+            self.people[i + 0.5] = item[0]
+            self.data.append((i, item[1]))
+
+    def get_data(self):
+        return dict(people=self.people.items(), data=self.data)
+
+    def get_widget(self):
+        data = self.get_data()
+        return TurboFlot([
+            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0,0]]}, {'data': [[0,0]]},
+            {
+                'data': data['data'],
+                'bars': {'show': True}
+            }],
+            {
+                'xaxis': {'ticks': data['people']}
+            },
+            label = 'Top %s testers' % self.release
+        )
+
+
+class MostTestedMetric(Metric):
+    """
+    A metric that calculates the packages with the most +1/-1 comments
+    """
+    def __init__(self, release):
+        self.release = release
+        self.data = {} # {pkg: # of +1/-1's}
+        self.tested_data = []
+        self.tested_pkgs = {}
+
+    def update(self, update):
+        for build in update.builds:
+            if not self.data.has_key(build.package.name):
+                self.data[build.package.name] = 0
+            for comment in update.comments:
+                if comment.karma in (1, -1):
+                    self.data[build.package.name] += 1
+
+    def done(self):
+        items = self.data.items()
+        items.sort(key=lambda x: x[1], reverse=True)
+        for i, item in enumerate(items[:8]):
+            self.tested_pkgs[i + 0.5] = item[0]
+            self.tested_data.append((i, item[1]))
+
+    def get_data(self):
+        return dict(data=self.tested_data, pkgs=self.tested_pkgs.items())
+
+    def get_widget(self):
+        data = self.get_data()
+        return TurboFlot([
+            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0,0]]}, {'data': [[0,0]]},
+            {
+                'data': data['data'],
+                'bars': {'show': True}
+            }],
+            {
+                'xaxis': {'ticks': data['pkgs']}
+            },
+            label = 'Most tested %s packages' % self.release
+        )
+
+
+##
+## All of the metrics that we are going to generate
+##
+metrics = [AllMetric, MostUpdatedMetric, ActiveDevsMetric, KarmaMetric,
+           TopTestersMetric, MostTestedMetric]
 
 
 class MetricData(Singleton):
 
     widgets = {} # { release : { type : TurboFlot } }
+    metrics = []
 
     def get_data(self, release):
         """ Return the metrics for a specified release """
         return self.widgets[release]
 
     def refresh(self):
-
+        """ Refresh all of the metrics for all releases """
         for release in Release.select():
 
-            # Start all of our co-routines
-            coroutines = [getattr(self, metric)() for metric in metrics]
-            for coroutine in coroutines:
-                coroutine.next()
+            # Initialize our metrics
+            self.metrics = []
+            for metric in metrics:
+                self.metrics.append(metric(release.long_name))
 
-            # Feed our co-routines updates
+            # Feed our metrics all updates for this release
             for update in PackageUpdate.select(
                     PackageUpdate.q.releaseID == release.id):
-                for coroutine in coroutines:
-                    coroutine.send(update)
+                for metric in self.metrics:
+                    metric.update(update)
+            for metric in self.metrics:
+                metric.done()
 
-            # Close our co-routines
-            for coroutine in coroutines:
-                coroutine.close()
-
+            # Populate the flot widgets for this release
             if not self.widgets.has_key(release.name):
                 self.widgets[release.name] = {}
-
-            # Create our TurboFlot widgets with our new data
-            self.widgets[release.name]['all'] = TurboFlot([
-                {
-                    'data'  : self.all_data['all'],
-                    'label' : 'All Updates',
-                    'bars'  : {'show': 'true'}
-                },
-                {
-                    'data'   : self.all_data['timeline']['enhancement'],
-                    'label'  : 'Enhancement',
-                    'lines'  : {'show': 'true'},
-                    'points' : {'show': 'true'}
-                },
-                {
-                    'data'   : self.all_data['timeline']['security'],
-                    'label'  : 'Security',
-                    'lines'  : {'show': 'true'},
-                    'points' : {'show': 'true'}
-                },
-                {
-                    'data'   : self.all_data['timeline']['bugfix'],
-                    'label'  : 'Bugfix',
-                    'lines'  : {'show': 'true'},
-                    'points' : {'show': 'true'}
-                }],
-                {
-                    'xaxis' : {'ticks': self.all_data['months']},
-                },
-                label = '%s Updates' % release.long_name
-            )
-
-            self.widgets[release.name]['most_updated'] = TurboFlot([
-                # Hack to get the color we want :)
-                {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-                {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-                {
-                    'data': self.most_data['packages'],
-                    'bars': {'show': 'true'}
-                }],
-                {
-                    'xaxis': {'ticks': self.most_data['pkgs']}
-                },
-                label = 'Most Updated Packages'
-            )
-
-            self.widgets[release.name]['active_devs'] = TurboFlot([
-                {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-                {
-                    'data': self.active_devs_data['data'],
-                    'bars': {'show': 'true'}
-                }],
-                {
-                    'xaxis': {'ticks': self.active_devs_data['people']}
-                },
-                label = 'Most updates per developer'
-            )
-
-            self.widgets[release.name]['karma'] = TurboFlot([
-                {
-                    'data': self.karma_data['best'],
-                    'bars': {'show': True}
-                }],
-                {
-                    'xaxis': {'ticks': self.karma_data['bestpkgs']}
-                },
-                label = 'Packages with best karma'
-            )
-
-            self.widgets[release.name]['top_testers'] = TurboFlot([
-                {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-                {'data': [[0,0]]}, {'data': [[0,0]]},
-                {'data': [[0,0]]}, {'data': [[0,0]]},
-                {
-                    'data': self.tester_data['data'],
-                    'bars': {'show': True}
-                }],
-                {
-                    'xaxis': {'ticks': self.tester_data['people']}
-                },
-                label = 'Top testers'
-            )
-
-            self.widgets[release.name]['most_tested'] = TurboFlot([
-                {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-                {'data': [[0,0]]}, {'data': [[0,0]]},
-                {
-                    'data': self.most_tested_data['data'],
-                    'bars': {'show': True}
-                }],
-                {
-                    'xaxis': {'ticks': self.most_tested_data['pkgs']}
-                },
-                label = 'Most tested packages'
-            )
-
-    def all(self):
-        """ A co-routine to generate metrics for the supplied updates """
-        timeline = {} # { type : { month : num } } 
-        for update_type in config.get('update_types').split():
-            timeline[update_type] = {}
-
-        months = {} # { month_num : month_name }
-        all = {} # { month : num }
-        starting_month = 6
-        earliest = datetime.now()
-        try:
-            while True:
-                update = (yield)
-                if update.status != 'stable':
-                    continue
-                if update.date_pushed < earliest:
-                    earliest = update.date_pushed
-                if not timeline[update.type].has_key(update.date_pushed.month):
-                    timeline[update.type][update.date_pushed.month] = 0
-                    months[update.date_pushed.month] = \
-                            update.date_pushed.strftime("%b")
-                if not all.has_key(update.date_pushed.month):
-                    all[update.date_pushed.month] = 0
-                for build in update.builds:
-                    timeline[update.type][update.date_pushed.month] += 1
-                    all[update.date_pushed.month] += 1
-        except GeneratorExit:
-            for update_type, data in timeline.items():
-                timeline[update_type] = data.items()
-
-            # Append earlier months for newer years to the end of the graph
-            months = months.items()
-            months.sort(key=lambda x: x[0])
-            m = []
-            for num, month in months:
-                if num < earliest.month:
-                    m.append([num, month])
-            for num, month in m:
-                months.remove((num, month))
-            for i, n in enumerate(m):
-                newid = months[-1][0] + i + 1
-                for amonth, anum in all.items():
-                    if amonth == m[i][0]:
-                        del all[amonth]
-                        all[newid] = anum
-                        break
-                for update_type in timeline:
-                    for tlmonth, tlnum in timeline[update_type]:
-                        if tlmonth == m[i][0]:
-                            timeline[update_type].remove((tlmonth, tlnum))
-                            timeline[update_type].append((newid, tlnum))
-                m[i][0] = newid
-            months += m
-
-            self.all_data = dict(timeline=timeline, months=months,
-                                 all=all.items())
-
-    def most_updated(self):
-        """ Return update statistics by package for a given release """
-        data = {}
-        pkgs = []
-        try:
-            while True:
-                update = (yield)
-                for build in update.builds:
-                    if not data.has_key(build.package.name):
-                        data[build.package.name] = 0
-                    data[build.package.name] += 1
-        except GeneratorExit:
-            items = data.items()
-            items.sort(key=lambda x: x[1], reverse=True)
-            items = items[:7]
-            del data
-            data = {}
-            for i, item in enumerate(items):
-                data[i] = item[1]
-                pkgs.append((i + 0.5, item[0]))
-            self.most_data = dict(packages=data.items(), pkgs=pkgs)
-
-    def active_devs(self):
-        """ Return update statistics by developer per release """
-        users = {} # { user : # updates }
-        data = {}
-        try:
-            while True:
-                update = (yield)
-                if not users.has_key(update.submitter):
-                    users[update.submitter] = 0
-                users[update.submitter] += 1
-        except GeneratorExit:
-            items = users.items()
-            items.sort(key=lambda x: x[1], reverse=True)
-            items = items[:10]
-            del users
-            users = []
-            for i, item in enumerate(items):
-                data[i + 0.5] = item[0]
-                users.append((i, item[1]))
-            self.active_devs_data = dict(data=users, people=data.items())
-
-    def karma(self):
-        """ Return updates with the best and worst karma for a given release """
-        data = {} # { pkg : karma }
-        try:
-            while True:
-                update = (yield)
-                for build in update.builds:
-                    if not data.has_key(build.package.name):
-                        data[build.package.name] = 0
-                    data[build.package.name] += update.karma
-        except GeneratorExit:
-            items = data.items()
-            items.sort(key=lambda x: x[1], reverse=True)
-            bestpkgs = {}
-            bestdata = []
-            worstpkgs = {}
-            worstdata = []
-            for i, item in enumerate(items[:8]):
-                bestpkgs[i + 0.5] = item[0]
-                bestdata.append((i, item[1]))
-            for i, item in enumerate(items[-8:]):
-                worstpkgs[i + 0.5] = item[0]
-                worstdata.append((i, item[1]))
-            del items, data
-            self.karma_data = dict(best=bestdata, bestpkgs=bestpkgs.items(),
-                                   worst=worstdata, worstpkgs=worstpkgs.items())
-
-    def top_testers(self):
-        data = {}   # { person : # of comments }
-        people = {}
-        try:
-            while True:
-                update = (yield)
-                for comment in update.comments:
-                    if comment.author == 'bodhi' or comment.karma == 0:
-                        continue
-                    if not data.has_key(comment.author):
-                        data[comment.author] = 0
-                    data[comment.author] += 1
-        except GeneratorExit:
-            items = data.items()
-            items.sort(key=lambda x: x[1], reverse=True)
-            items = items[:8]
-            data = []
-            for i, item in enumerate(items):
-                people[i + 0.5] = item[0]
-                data.append((i, item[1]))
-            self.tester_data = dict(people=people.items(), data=data)
-
-    def most_tested(self):
-        data = {} # {pkg: # of +1/-1's}
-        try:
-            while True:
-                update = (yield)
-                for build in update.builds:
-                    if not data.has_key(build.package.name):
-                        data[build.package.name] = 0
-                    for comment in update.comments:
-                        if comment.karma in (1, -1):
-                            data[build.package.name] += 1
-        except GeneratorExit:
-            items = data.items()
-            items.sort(key=lambda x: x[1], reverse=True)
-            tested_data = []
-            tested_pkgs = {}
-            for i, item in enumerate(items[:8]):
-                tested_pkgs[i + 0.5] = item[0]
-                tested_data.append((i, item[1]))
-            self.most_tested_data = dict(data=tested_data,
-                                         pkgs=tested_pkgs.items())
+            for metric in self.metrics:
+                self.widgets[release.name][metric.__class__.__name__] = \
+                        metric.get_widget()
 
 
-class Metrics(Controller):
+class MetricsController(Controller):
 
     @expose(template='bodhi.templates.metrics')
     def index(self, release=None):
@@ -336,5 +419,5 @@ class Metrics(Controller):
             flash("Unknown Release: %s" % release)
             raise redirect('/metrics')
         data = MetricData().get_data(release)
-        return dict(metrics=[data[name] for name in metrics],
+        return dict(metrics=[data[name.__name__] for name in metrics],
                     title="%s Update Metrics" % rel.long_name)
