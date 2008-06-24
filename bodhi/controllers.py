@@ -36,7 +36,7 @@ from bodhi.new import NewUpdateController, update_form
 from bodhi.util import make_update_link, make_type_icon, make_karma_icon, link
 from bodhi.util import flash_log, get_pkg_pushers, make_request_icon
 from bodhi.admin import AdminController
-from bodhi.metrics import Metrics
+from bodhi.metrics import MetricsController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
@@ -53,7 +53,7 @@ class Root(controllers.RootController):
     admin = AdminController()
     search = SearchController()
     rss = Feed("rss2.0")
-    metrics = Metrics()
+    metrics = MetricsController()
 
     comment_form = CommentForm()
     comment_captcha_form = CommentCaptchaForm()
