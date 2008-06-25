@@ -133,8 +133,8 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 
 <table class="show">
     <tr py:for="field in (
-        ['Update ID',     update.updateid],
         ['Release',       XML(release)],
+        ['Update ID',     update.updateid],
         ['Builds',        XML(buildinfo)],
         ['Date Released', update.date_pushed],
         ['Status',        update.status],
