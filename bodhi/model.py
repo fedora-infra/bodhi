@@ -51,6 +51,7 @@ class Release(SQLObject):
     id_prefix   = UnicodeCol(notNone=True)
     dist_tag    = UnicodeCol(notNone=True) # ie dist-fc7
     locked      = BoolCol(default=False)
+    metrics     = PickleCol(default=None) # {metric: {data}}
 
     def get_version(self):
         regex = re.compile('\D+(\d+)$')

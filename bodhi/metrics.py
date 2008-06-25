@@ -10,7 +10,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#
+# Authors: Luke Macken <lmacken@redhat.com>
 
+import logging
 from datetime import datetime
 
 from sqlobject import SQLObjectNotFound
@@ -18,8 +21,10 @@ from turboflot import TurboFlot
 from turbogears import expose, config, flash, redirect
 from turbogears.controllers import Controller
 
-from bodhi.util import Singleton
+from bodhi.util import Singleton, get_age_in_days
 from bodhi.model import PackageUpdate, Release
+
+log = logging.getLogger(__name__)
 
 
 class Metric(object):
@@ -101,8 +106,8 @@ class AllMetric(Metric):
             m[i][0] = newid
         self.months += m
 
-    def get_widget(self):
-        data = self.get_data()
+    def get_widget(self, data):
+        log.debug("%s.get_widget(%s)" % (self.__class__.__name__, data))
         return TurboFlot([
             {
                 'data'  : data['all'],
@@ -166,8 +171,7 @@ class MostUpdatedMetric(Metric):
     def get_data(self):
         return dict(packages=self.data.items(), pkgs=self.pkgs)
 
-    def get_widget(self):
-        data = self.get_data()
+    def get_widget(self, data):
         return TurboFlot([
             # Hack, to get the color we want :)
             {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
@@ -210,8 +214,7 @@ class ActiveDevsMetric(Metric):
     def get_data(self):
         return dict(data=self.users, people=self.data.items())
 
-    def get_widget(self):
-        data = self.get_data()
+    def get_widget(self, data):
         return TurboFlot([
             {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
             {
@@ -259,8 +262,7 @@ class KarmaMetric(Metric):
         return dict(best=self.bestdata, bestpkgs=self.bestpkgs.items(),
                     worst=self.worstdata, worstpkgs=self.worstpkgs.items())
 
-    def get_widget(self):
-        data = self.get_data()
+    def get_widget(self, data):
         return TurboFlot([
             {
                 'data': data['best'],
@@ -303,8 +305,7 @@ class TopTestersMetric(Metric):
     def get_data(self):
         return dict(people=self.people.items(), data=self.data)
 
-    def get_widget(self):
-        data = self.get_data()
+    def get_widget(self, data):
         return TurboFlot([
             {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
             {'data': [[0,0]]}, {'data': [[0,0]]},
@@ -348,8 +349,7 @@ class MostTestedMetric(Metric):
     def get_data(self):
         return dict(data=self.tested_data, pkgs=self.tested_pkgs.items())
 
-    def get_widget(self):
-        data = self.get_data()
+    def get_widget(self, data):
         return TurboFlot([
             {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
             {'data': [[0,0]]}, {'data': [[0,0]]},
@@ -375,34 +375,59 @@ class MetricData(Singleton):
 
     widgets = {} # { release : { type : TurboFlot } }
     metrics = []
+    age = None
 
-    def get_data(self, release):
-        """ Return the metrics for a specified release """
+    def get_widgets(self, release):
+        """ Return the metrics for a specified release.
+        
+        If our metric widgets are more than a day old, recreate them with
+        fresh metrics from our database.
+        """
+        if self.age and get_age_in_days(self.age) < 1:
+            return self.widgets[release]
+
+        log.debug("Generating some fresh metric widgets...")
+        freshwidgets = {}
+        for rel in Release.select():
+            if not rel.metrics:
+                log.warning("No metrics found for %s" % rel.name)
+                return
+            self.init_metrics(rel)
+            if not freshwidgets.has_key(rel.name):
+                freshwidgets[rel.name] = {}
+            for metric in self.metrics:
+                freshwidgets[rel.name][metric.__class__.__name__] = \
+                    metric.get_widget(rel.metrics[metric.__class__.__name__])
+
+        self.widgets = freshwidgets 
+        self.age = datetime.utcnow()
         return self.widgets[release]
 
+    def init_metrics(self, release):
+        """ Initialize our Metric objects for a given release """
+        self.metrics = []
+        for metric in metrics:
+            self.metrics.append(metric(release.long_name))
+
     def refresh(self):
-        """ Refresh all of the metrics for all releases """
+        """ Refresh all of the metrics for all releases.
+        
+        For each release, initialize our metrics objects, and feed them every
+        update for that release.  Do the necessary calculations, and then save
+        our metrics to the database in the Release.metrics PickleCol.
+        """
+        log.info("Doing a hard refresh of our metrics data")
+        metrics = {}
         for release in Release.select():
-
-            # Initialize our metrics
-            self.metrics = []
-            for metric in metrics:
-                self.metrics.append(metric(release.long_name))
-
-            # Feed our metrics all updates for this release
+            self.init_metrics(release)
             for update in PackageUpdate.select(
                     PackageUpdate.q.releaseID == release.id):
                 for metric in self.metrics:
                     metric.update(update)
             for metric in self.metrics:
                 metric.done()
-
-            # Populate the flot widgets for this release
-            if not self.widgets.has_key(release.name):
-                self.widgets[release.name] = {}
-            for metric in self.metrics:
-                self.widgets[release.name][metric.__class__.__name__] = \
-                        metric.get_widget()
+                metrics[metric.__class__.__name__] = metric.get_data()
+            release.metrics = metrics
 
 
 class MetricsController(Controller):
@@ -418,6 +443,8 @@ class MetricsController(Controller):
         except SQLObjectNotFound:
             flash("Unknown Release: %s" % release)
             raise redirect('/metrics')
-        data = MetricData().get_data(release)
-        return dict(metrics=[data[name.__name__] for name in metrics],
+        widgets = MetricData().get_widgets(release)
+        if not widgets:
+            return dict(metrics=[], title="Metrics currently unavailable")
+        return dict(metrics=[widgets[name.__name__] for name in metrics],
                     title="%s Update Metrics" % rel.long_name)
