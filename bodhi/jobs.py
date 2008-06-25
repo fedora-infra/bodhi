@@ -65,25 +65,28 @@ def nagmail():
     queries = [
             ('old_testing', PackageUpdate.select(
                                     AND(PackageUpdate.q.status == 'testing',
-                                        PackageUpdate.q.request != 'stable'))),
+                                        PackageUpdate.q.request == None)),
+             lambda update: update.date_pushed),
             ('old_pending', PackageUpdate.select(
                                     AND(PackageUpdate.q.status == 'pending',
-                                        PackageUpdate.q.request == None))),
+                                        PackageUpdate.q.request == None)),
+             lambda update: update.date_submitted),
     ]
 
-    for name, query in queries:
+    for name, query, date in queries:
         for update in query:
-            if get_age_in_days(update.date_pushed) > 14:
-                if not update.nagged:
-                    update.nagged = {}
-                    continue
-                if update.nagged.has_key(name) and update.nagged[name]:
-                    if (datetime.utcnow() - update.nagged[name]).days < 7:
-                        continue # Only nag once a week at most
+            if get_age_in_days(date(update)) > 14:
+                if update.nagged:
+                    if update.nagged.has_key(name) and update.nagged[name]:
+                        x = (datetime.utcnow() - update.nagged[name]).days
+                        if (datetime.utcnow() - update.nagged[name]).days < 7:
+                            continue # Only nag once a week at most
+                    nagged = update.nagged
+                else:
+                    nagged = {}
                 log.info("[%s] Nagging %s about %s" % (name, update.submitter,
                                                        update.title))
                 mail.send(update.submitter, name, update)
-                nagged = update.nagged
                 nagged[name] = datetime.utcnow()
                 update.nagged = nagged
 

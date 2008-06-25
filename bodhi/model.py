@@ -213,7 +213,7 @@ class PackageUpdate(SQLObject):
     comments         = MultipleJoin('Comment', joinColumn='update_id')
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
-    nagged           = PickleCol(default={}) # { nagmail_name : datetime, ... }
+    nagged           = PickleCol(default=None) # { nagmail_name : datetime, ... }
     approved         = DateTimeCol(default=None)
 
     stable_karma     = property(lambda self: self.builds[0].package.stable_karma)

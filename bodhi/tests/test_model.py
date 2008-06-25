@@ -8,9 +8,11 @@ from turbogears import testutil, database, config
 turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
+from datetime import datetime, timedelta
 from sqlobject import SQLObjectNotFound
 from yum.update_md import UpdateMetadata
 
+from bodhi.jobs import nagmail
 from bodhi.util import rpm_fileheader, get_nvr
 from bodhi.mail import messages, get_template
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
@@ -28,12 +30,14 @@ def get_rel():
                       dist_tag='dist-fc7')
     return rel
 
+
 def get_pkg(name='TurboGears'):
     try:
         pkg = Package.byName(name)
     except SQLObjectNotFound:
         pkg = Package(name=name)
     return pkg
+
 
 def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
     package = get_pkg('-'.join(nvr.split('-')[:-2]))
@@ -382,6 +386,84 @@ class TestPackageUpdate(testutil.DBTest):
         update.comment('foo', karma=1, author='bob', anonymous=True)
         assert update.karma == 0
 
+    def test_old_testing_nagmail(self):
+        update = self.get_update()
+        update.status = 'testing'
+        assert not update.nagged
+        nagmail()
+        assert not update.nagged
+        update.date_pushed = datetime.utcnow() - timedelta(days=20)
+        testutil.capture_log('bodhi.jobs')
+        nagmail()
+        log = testutil.get_log()
+        assert "[old_testing] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+        assert update.nagged, update.nagged
+        assert update.nagged.has_key('old_testing')
+
+        # Make sure it doesn't happen again
+        testutil.capture_log('bodhi.jobs')
+        nagmail()
+        log = testutil.get_log()
+        assert not "[old_testing] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+
+        # Don't nag 6 days later
+        newnag = update.nagged
+        newnag['old_testing'] = update.nagged['old_testing'] - timedelta(days=6)
+        update.nagged = newnag
+        testutil.capture_log('bodhi.jobs')
+        nagmail()
+        log = testutil.get_log()
+        assert not "[old_testing] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+
+        # Nag again 1 week later
+        newnag = update.nagged
+        newnag['old_testing'] = update.nagged['old_testing'] - timedelta(days=7)
+        update.nagged = newnag
+        testutil.capture_log('bodhi.jobs')
+        nagmail()
+        log = testutil.get_log()
+        assert "[old_testing] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+
+
+    def test_old_pending_nagmail(self):
+        update = self.get_update()
+        update.status = 'pending'
+        assert not update.nagged
+        nagmail()
+        assert not update.nagged
+        update.date_submitted = datetime.utcnow() - timedelta(days=20)
+        testutil.capture_log('bodhi.jobs')
+        nagmail()
+        log = testutil.get_log()
+        assert "[old_pending] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+        assert update.nagged, update.nagged
+        assert update.nagged.has_key('old_pending')
+
+        # Make sure it doesn't happen again
+        testutil.capture_log('bodhi.jobs')
+        nagmail()
+        log = testutil.get_log()
+        assert not "[old_pending] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+
+        # Don't nag 6 days later
+        newnag = update.nagged
+        newnag['old_pending'] = update.nagged['old_pending'] - timedelta(days=6)
+        update.nagged = newnag
+        testutil.capture_log('bodhi.jobs')
+        nagmail()
+        log = testutil.get_log()
+        assert not "[old_pending] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+
+        # Nag again 1 week later
+        newnag = update.nagged
+        newnag['old_pending'] = update.nagged['old_pending'] - timedelta(days=7)
+        update.nagged = newnag
+        testutil.capture_log('bodhi.jobs')
+        nagmail()
+        log = testutil.get_log()
+        assert "[old_pending] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+
+
 class TestBugzilla(testutil.DBTest):
 
     def get_model(self):
@@ -450,6 +532,7 @@ class TestPackage(testutil.DBTest):
         update = self.get_update()
         pkg = update.builds[0].package
         assert len([up for up in pkg.updates()]) == 1
+
 
 class TestPackageBuild(testutil.DBTest):
 
