@@ -860,7 +860,7 @@ class Releases(Singleton):
         This is called automatically by the bodhi.jobs.cache_release_data
         method periodically.
         """
-        self.data = []
+        releases = []
         for release in Release.select():
             rel = {
                 'long_name': release.long_name,
@@ -880,4 +880,5 @@ class Releases(Singleton):
                         PackageUpdate.q.releaseID == release.id,
                         PackageUpdate.q.pushed == True)).count()
 
-            self.data.append(rel)
+            releases.append(rel)
+        self.data = releases
