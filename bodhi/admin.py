@@ -18,6 +18,7 @@ import logging
 import cherrypy
 import simplejson
 
+from Cookie import SimpleCookie
 from turbogears import expose, identity, redirect, flash, config
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
@@ -89,17 +90,19 @@ class AdminController(Controller, SecureResource):
 
         if config.get('masher'):
             # Send JSON request with these updates to the masher
-            client = ProxyClient(config.get('masher'))
+            client = ProxyClient(config.get('masher'), debug=True)
             try:
-                print dir(cherrypy.request)
-                cookies = cherrypy.request.cookies
-                print "Cookies =", cookies
-                data = client.send_request('/admin/push/mash',
+                cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
+                data = client.send_request('/admin/mash',
                                            req_params={'updates': updates},
-                                           auth_params={'cookie': cookies})
-                print "data =", data
-                flash("Push request sent to masher")
+                                           auth_params={'cookie': cookie})
+                if not data.get('success'):
+                    flash("Push request was unsuccessful")
+                else:
+                    flash("Push request sent to masher")
             except Exception, e:
+                import traceback
+                traceback.print_exc()
                 flash("Error while dispatching push: %s" % str(e))
             raise redirect('/admin/masher')
 
