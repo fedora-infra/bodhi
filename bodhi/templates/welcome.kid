@@ -5,7 +5,6 @@
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
     <title>Fedora Update System</title>
     <link media="all" href="${tg.url('/tg_widgets/turbogears.widgets/grid.css')}" type="text/css" rel="stylesheet"/>
-    <link rel="stylesheet" href="${tg.url('/static/css/jquery.tooltip.css')}" />
     <script src="${tg.url('/static/js/jquery.dimensions.js')}" type="text/javascript"></script>
     <script src="${tg.url('/static/js/jquery.tooltip.js')}" type="text/javascript"></script>
     <script src="${tg.url('/static/js/chili-1.7.pack.js')}" type="text/javascript"></script>
