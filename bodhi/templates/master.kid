@@ -48,11 +48,6 @@ $(document).ready(function() {
         $('div.flash').show("slow");
     });
 </script>
-<script type="text/javascript" py:if="'releng' in tg.identity.groups">
-$(document).ready(function() {
-    $('#administration').click( function() { $('#adminlist').toggle('slow'); });
-});
-</script>
 
     <!-- header BEGIN -->
     <div id="fedora-header">
@@ -81,7 +76,7 @@ $(document).ready(function() {
             <div py:if="not tg.identity.anonymous and 'releng' in tg.identity.groups">
                 <ul id="fedora-side-nav">
                     <li><a id="administration" href="#">Administration</a></li>
-                    <div id="adminlist" style="display: none">
+                    <div id="adminlist">
                         <ul>
                             <li><a href="${tg.url('/admin/push')}">Requests</a></li>
                             <li><a href="${tg.url('/admin/masher')}">Masher</a></li>
