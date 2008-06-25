@@ -881,4 +881,6 @@ class Releases(Singleton):
                         PackageUpdate.q.pushed == True)).count()
 
             releases.append(rel)
+            releases.sort(lambda x, y: cmp(x['name'], y['name']))
+
         self.data = releases
