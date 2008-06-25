@@ -15,14 +15,19 @@
 # Authors: Luke Macken <lmacken@redhat.com>
 
 import logging
+import cherrypy
+import simplejson
 
-from bodhi.push import PushController
-from bodhi.masher import get_masher
-from bodhi.model import Release
-
-from turbogears import expose, identity, redirect
+from turbogears import expose, identity, redirect, flash, config
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
+
+from fedora.tg.util import request_format
+from fedora.client.proxyclient import ProxyClient
+
+from bodhi.masher import get_masher
+from bodhi.model import Release, PackageUpdate
+
 
 log = logging.getLogger(__name__)
 
@@ -31,8 +36,6 @@ class AdminController(Controller, SecureResource):
     The bodhi administration controller
     """
     require = identity.in_group("releng")
-
-    push = PushController()
 
     @expose(template='bodhi.templates.admin')
     def index(self):
@@ -63,3 +66,43 @@ class AdminController(Controller, SecureResource):
         themasher = get_masher()
         themasher.mash_tags([tag])
         raise redirect('/admin/masher')
+
+    @expose(template='bodhi.templates.push', allow_json=True)
+    def push(self):
+        """ List updates tagged with a push/unpush/move request """
+        requests = filter(lambda update: not update.release.locked,
+                          PackageUpdate.select(PackageUpdate.q.request != None))
+        updates = []
+        for update in requests:
+            # Skip unapproved security updates
+            if update.type == 'security' and not update.approved:
+                continue 
+            updates.append(update)
+        return dict(updates=updates)
+
+    @expose(allow_json=True)
+    def mash(self, updates, **kw):
+        if request_format() == 'json':
+            updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
+        if not isinstance(updates, list):
+            updates = [updates]
+
+        if config.get('masher'):
+            # Send JSON request with these updates to the masher
+            client = ProxyClient(config.get('masher'))
+            try:
+                print dir(cherrypy.request)
+                cookies = cherrypy.request.cookies
+                print "Cookies =", cookies
+                data = client.send_request('/admin/push/mash',
+                                           req_params={'updates': updates},
+                                           auth_params={'cookie': cookies})
+                print "data =", data
+                flash("Push request sent to masher")
+            except Exception, e:
+                flash("Error while dispatching push: %s" % str(e))
+            raise redirect('/admin/masher')
+
+        get_masher().queue([PackageUpdate.byTitle(title) for title in updates])
+        return dict(success=True)
+        #raise redirect('/admin/masher')
