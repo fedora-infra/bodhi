@@ -61,8 +61,27 @@ class AdminController(Controller, SecureResource):
         return dict(title=logfile, text=data)
 
     @expose()
-    def mash(self, tag):
+    def mash_tags(self, tags):
         """ Kick off a mash for a given tag """
+        if isinstance(tag, basestring):
+            tags = [tags]
+        if config.get('masher'):
+            # Proxy this request to the masher
+            log.debug("Proxying mash_tag request to the masher")
+            client = ProxyClient(config.get('masher'), debug=True)
+            try:
+                cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
+                session, data = client.send_request('/admin/mash_tags',
+                                           req_params={'tags': tags},
+                                           auth_params={'cookie': cookie})
+                flash("Mash request %s" % data.get('success') and 
+                      "succeeded" or "failed")
+            except Exception, e:
+                import traceback
+                traceback.print_exc()
+                flash("Error while dispatching mash: %s" % str(e))
+            raise redirect('/admin/masher')
+
         log.info("Mashing tags: %s" % tag)
         themasher = get_masher()
         themasher.mash_tags([tag])
