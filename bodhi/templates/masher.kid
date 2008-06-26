@@ -11,7 +11,7 @@
     <blockquote>
         <h1>Masher</h1>
         <b>Mash by tag:</b>
-        <table><tr><td py:for="tag in tags"><a py:content="tag" href="${tg.url('/admin/mash/%s' % tag)}"/></td></tr></table>
+        <table><tr><td py:for="tag in tags"><a py:content="tag" href="${tg.url('/admin/mash_tags/%s' % tag)}"/></td></tr></table>
         <hr/>
         <a href="${tg.url('/admin/lastlog')}">View most recent mash log</a>
         <br/>
