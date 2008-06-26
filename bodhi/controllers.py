@@ -178,7 +178,7 @@ class Root(controllers.RootController):
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, allow_limit_override=True)
     def list(self, release=None, bugs=None, cves=None, status=None, type=None,
-             package=None, mine=False):
+             package=None, mine=False, stringify=False):
         """ Return a list of updates based on given parameters """
         log.debug("list(%s, %s, %s, %s, %s, %s, %s)" % (release, bugs, cves,
                   status, type, package, mine))
@@ -252,6 +252,7 @@ class Root(controllers.RootController):
 
         if isinstance(updates, list): num_items = len(updates)
         else: num_items = updates.count()
+        if stringify: map(unicode, updates)
 
         return dict(updates=updates, num_items=num_items,
                     title="%d updates found" % num_items)

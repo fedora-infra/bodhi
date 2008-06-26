@@ -71,7 +71,7 @@ class BodhiClient(BaseClient):
             log.info(data['update'])
 
     def list(self, opts, package=None, showcount=True):
-        args = { 'tg_paginate_limit' : opts.limit }
+        args = { 'tg_paginate_limit' : opts.limit, 'stringify': True }
         auth = False
         for arg in ('release', 'status', 'type', 'bugs', 'request', 'mine'):
             if getattr(opts, arg):
