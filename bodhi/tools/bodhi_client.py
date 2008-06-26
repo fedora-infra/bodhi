@@ -157,7 +157,7 @@ class BodhiClient(BaseClient):
 
     def request(self, opts, update):
         params = { 'action' : opts.request, 'update' : update }
-        data = self.send_request('request', input=params, auth=True)
+        data = self.send_request('request', req_params=params, auth=True)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
