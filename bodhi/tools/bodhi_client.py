@@ -22,6 +22,7 @@ import logging
 import urllib2
 
 from yum import YumBase
+from textwrap import wrap
 from os.path import join, expanduser, exists
 from getpass import getpass, getuser
 from optparse import OptionParser
@@ -71,7 +72,7 @@ class BodhiClient(BaseClient):
             log.info(data['update'])
 
     def list(self, opts, package=None, showcount=True):
-        args = { 'tg_paginate_limit' : opts.limit, 'stringify': True }
+        args = { 'tg_paginate_limit' : opts.limit }
         auth = False
         for arg in ('release', 'status', 'type', 'bugs', 'request', 'mine'):
             if getattr(opts, arg):
@@ -85,7 +86,7 @@ class BodhiClient(BaseClient):
             log.error(data['tg_flash'])
             sys.exit(-1)
         for update in data['updates']:
-            log.info(update)
+            log.info(self._update_str(update))
         if showcount:
             log.info("%d updates found (%d shown)" % (data['num_items'],
                                                       len(data['updates'])))
@@ -224,6 +225,62 @@ class BodhiClient(BaseClient):
         log.debug('Bugs:\n%s' % opts.bugs)
         log.debug('Notes:\n%s' % opts.notes)
         self.file_parsed = True
+
+    def _update_str(self, update):
+        """ Return a string representation of a given update """
+        val = "%s\n%s\n%s\n" % ('=' * 80, '\n'.join(
+            wrap(update['title'].replace(',', ', '), width=80,
+                 initial_indent=' '*5, subsequent_indent=' '*5)), '=' * 80)
+        if update['updateid']:
+            val += "  Update ID: %s\n" % update['updateid']
+        val += """    Release: %s
+     Status: %s
+       Type: %s
+      Karma: %d""" % (update['release']['long_name'], update['status'],
+                      update['type'], update['karma'])
+        if update['request'] != None:
+            val += "\n    Request: %s" % update['request']
+        if len(update['bugs']):
+            bugs = ''
+            i = 0
+            for bug in update['bugs']:
+                bugstr = '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
+                                          bug['bz_id'], bug['title'])
+                bugs += '\n'.join(wrap(bugstr, width=67,
+                                       subsequent_indent=' '*11+': ')) + '\n'
+                i += 1
+            bugs = bugs[:-1]
+            val += "\n       Bugs: %s" % bugs
+        if update['notes']:
+            notes = wrap(update['notes'], width=67,
+                         subsequent_indent=' ' * 11 + ': ')
+            val += "\n      Notes: %s" % '\n'.join(notes)
+        val += """
+  Submitter: %s
+  Submitted: %s\n""" % (update['submitter'], update['date_submitted'])
+        if len(update['comments']):
+            val += "   Comments: "
+            comments = []
+            for comment in update['comments']:
+                if comment['anonymous']:
+                    anonymous = " (unauthenticated)"
+                else:
+                    anonymous = ""
+                comments.append("%s%s%s - %s (karma %s)" % (' ' * 13,
+                                comment['author'], anonymous,
+                                comment['timestamp'], comment['karma']))
+                if comment['text']:
+                    text = wrap(comment['text'], initial_indent=' ' * 13,
+                                subsequent_indent=' ' * 13, width=67)
+                    comments.append('\n'.join(text))
+            val += '\n'.join(comments).lstrip() + '\n'
+        if update['updateid']:
+            val += "\n  %s\n" % ('%s%s/%s' % (BODHI_URL,
+                                              update['release']['name'],
+                                              update['updateid']))
+        else:
+            val += "\n  %s\n" % ('%s%s' % (BODHI_URL, update['title']))
+        return val
 
 def setup_logger():
     global log
