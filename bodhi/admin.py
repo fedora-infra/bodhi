@@ -61,12 +61,9 @@ class AdminController(Controller, SecureResource):
         return dict(title=logfile, text=data)
 
     @expose(allow_json=True)
-    def mash_tag(self, tag):
+    def mash_tag(self, tag, **kw):
         """ Kick off a mash for a given tag """
-        log.debug("mash_tags(%s)" % repr(tag))
-        if request_format() == 'json':
-            tag = simplejson.loads(tag)
-        log.debug("Tags = %s" % repr(tag))
+        log.debug("mash_tags(%s, %s)" % (repr(tag), repr(kw)))
         if config.get('masher'):
             # Proxy this request to the masher
             log.debug("Proxying mash_tag request to the masher")
@@ -74,7 +71,7 @@ class AdminController(Controller, SecureResource):
             try:
                 cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
                 session, data = client.send_request('/admin/mash_tag',
-                                           req_params={'tags': tag},
+                                           req_params={'tag': tag},
                                            auth_params={'cookie': cookie})
                 flash("Mash request %s" % data.get('success') and 
                       "succeeded" or "failed")
