@@ -61,31 +61,29 @@ class AdminController(Controller, SecureResource):
         return dict(title=logfile, text=data)
 
     @expose(allow_json=True)
-    def mash_tags(self, tags):
+    def mash_tag(self, tag):
         """ Kick off a mash for a given tag """
-        log.debug("mash_tags(%s)" % repr(tags))
+        log.debug("mash_tags(%s)" % repr(tag))
         if request_format() == 'json':
-            tags = simplejson.loads(tags)
-        if isinstance(tags, basestring):
-            tags = [tags]
-        log.debug("Tags = %s" % repr(tags))
+            tag = simplejson.loads(tag)
+        log.debug("Tags = %s" % repr(tag))
         if config.get('masher'):
             # Proxy this request to the masher
             log.debug("Proxying mash_tag request to the masher")
             client = ProxyClient(config.get('masher'), debug=True)
             try:
                 cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
-                session, data = client.send_request('/admin/mash_tags',
-                                           req_params={'tags': tags},
+                session, data = client.send_request('/admin/mash_tag',
+                                           req_params={'tags': tag},
                                            auth_params={'cookie': cookie})
                 flash("Mash request %s" % data.get('success') and 
                       "succeeded" or "failed")
             except Exception, e:
                 flash("Error while dispatching mash: %s" % str(e))
         else:
-            log.info("Mashing tags: %s" % tags)
+            log.info("Mashing tag: %s" % tag)
             themasher = get_masher()
-            themasher.mash_tags(tags)
+            themasher.mash_tags([tag])
         raise redirect('/admin/masher')
 
     @expose(template='bodhi.templates.push', allow_json=True)
