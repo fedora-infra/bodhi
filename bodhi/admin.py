@@ -60,11 +60,15 @@ class AdminController(Controller, SecureResource):
         (logfile, data) = masher.lastlog()
         return dict(title=logfile, text=data)
 
-    @expose()
+    @expose(allow_json=True)
     def mash_tags(self, tags):
         """ Kick off a mash for a given tag """
+        log.debug("mash_tags(%s)" % repr(tags))
+        if request_format() == 'json':
+            tags = simplejson.loads(tags)
         if isinstance(tags, basestring):
             tags = [tags]
+        log.debug("Tags = %s" % repr(tags))
         if config.get('masher'):
             # Proxy this request to the masher
             log.debug("Proxying mash_tag request to the masher")
@@ -77,14 +81,11 @@ class AdminController(Controller, SecureResource):
                 flash("Mash request %s" % data.get('success') and 
                       "succeeded" or "failed")
             except Exception, e:
-                import traceback
-                traceback.print_exc()
                 flash("Error while dispatching mash: %s" % str(e))
-            raise redirect('/admin/masher')
-
-        log.info("Mashing tags: %s" % tag)
-        themasher = get_masher()
-        themasher.mash_tags([tag])
+        else:
+            log.info("Mashing tags: %s" % tags)
+            themasher = get_masher()
+            themasher.mash_tags(tags)
         raise redirect('/admin/masher')
 
     @expose(template='bodhi.templates.push', allow_json=True)
