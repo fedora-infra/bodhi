@@ -93,7 +93,7 @@ class AdminController(Controller, SecureResource):
             client = ProxyClient(config.get('masher'), debug=True)
             try:
                 cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
-                data = client.send_request('/admin/mash',
+                data = client.send_request('/admin/mash', auth=True,
                                            req_params={'updates': updates},
                                            auth_params={'cookie': cookie})
                 if not data.get('success'):
