@@ -33,9 +33,9 @@ class BodhiTestClient(BodhiClient):
     def login(self, *args, **kw):
         pass
 
-    def send_request(self, method, auth=False, input=None):
+    def send_request(self, method, auth=False, req_params=None):
         """ overload the BaseClient.send_request """
-        pairs = urllib.urlencode(input)
+        pairs = urllib.urlencode(req_params)
         url = '/updates/' + method + '?%s&tg_format=json' % pairs
         testutil.create_request(url, headers=self.cookie, method='POST')
         return simplejson.loads(cherrypy.response.body[0])
@@ -96,7 +96,7 @@ class TestClient(testutil.DBTest):
         build = 'TurboGears-1.0.3.2-1.fc7'
         bodhi.new(build, opts)
         args = { 'release' : 'f7' }
-        data = bodhi.send_request('list', input=args)
+        data = bodhi.send_request('list', req_params=args)
         update = data['updates'][0]
         assert update['release']['long_name'] == u'Fedora 7'
         assert update['builds'][0]['nvr'] == build
@@ -110,7 +110,7 @@ class TestClient(testutil.DBTest):
         bodhi.new(build, opts)
         assert PackageUpdate.byTitle(build)
         params = { 'update' : build }
-        data = bodhi.send_request('delete', input=params, auth=True)
+        data = bodhi.send_request('delete', req_params=params, auth=True)
         try:
             PackageUpdate.byTitle(build)
             assert False, "Update not deleted properly"
@@ -149,7 +149,7 @@ class TestClient(testutil.DBTest):
         build = 'TurboGears-1.0.3.2-1.fc7'
         bodhi.new(build, opts)
         assert PackageUpdate.byTitle(build)
-        data = bodhi.send_request('mine', input={}, auth=True)
+        data = bodhi.send_request('mine', req_params={}, auth=True)
         print data
         assert data['title'] == u"guest's updates"
         assert len(data['updates']) == 1
