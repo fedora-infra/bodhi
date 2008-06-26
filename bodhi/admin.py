@@ -45,13 +45,21 @@ class AdminController(Controller, SecureResource):
     @expose(template='bodhi.templates.masher', allow_json=True)
     def masher(self):
         """ Display the current status of the Masher """
-        tags = []
-        masher = get_masher()
-        for release in Release.select():
-            tags.append('%s-updates' % release.dist_tag)
-            tags.append('%s-updates-testing' % release.dist_tag)
-
-        return dict(masher_str=str(masher), tags=tags)
+        if config.get('masher'):
+            # Proxy this request to the masher
+            log.debug("Proxying masher request to the masher")
+            client = ProxyClient(config.get('masher'), debug=True)
+            cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
+            session, data = client.send_request('/admin/masher',
+                                       auth_params={'cookie': cookie})
+            return dict(masher_str=data['masher_str'], tags=data['tags'])
+        else:
+            tags = []
+            masher = get_masher()
+            for release in Release.select():
+                tags.append('%s-updates' % release.dist_tag)
+                tags.append('%s-updates-testing' % release.dist_tag)
+            return dict(masher_str=str(masher), tags=tags)
 
     @expose(template='bodhi.templates.text')
     def lastlog(self):
