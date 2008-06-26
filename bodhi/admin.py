@@ -63,7 +63,7 @@ class AdminController(Controller, SecureResource):
     @expose()
     def mash_tags(self, tags):
         """ Kick off a mash for a given tag """
-        if isinstance(tag, basestring):
+        if isinstance(tags, basestring):
             tags = [tags]
         if config.get('masher'):
             # Proxy this request to the masher
