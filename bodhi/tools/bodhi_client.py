@@ -48,7 +48,7 @@ class BodhiClient(BaseClient):
         }
         if hasattr(opts, 'request') and getattr(opts, 'request'):
             params['request'] = opts.request
-        data = self.send_request('save', auth=True, input=params)
+        data = self.send_request('save', auth=True, req_params=params)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
@@ -65,7 +65,7 @@ class BodhiClient(BaseClient):
         }
         if hasattr(opts, 'request') and getattr(opts, 'request'):
             params['request'] = opts.request
-        data = self.send_request('save', auth=True, input=params)
+        data = self.send_request('save', auth=True, req_params=params)
         log.info(data['tg_flash'])
         if data.has_key('update'):
             log.info(data['update'])
@@ -80,7 +80,7 @@ class BodhiClient(BaseClient):
             args['package'] = package[0]
         if args.has_key('mine'):
             auth = True
-        data = self.send_request('list', input=args, auth=auth)
+        data = self.send_request('list', req_params=args, auth=auth)
         if data.has_key('tg_flash') and data['tg_flash']:
             log.error(data['tg_flash'])
             sys.exit(-1)
@@ -92,7 +92,7 @@ class BodhiClient(BaseClient):
 
     def delete(self, update):
         params = { 'update' : update }
-        data = self.send_request('delete', input=params, auth=True)
+        data = self.send_request('delete', req_params=params, auth=True)
         log.info(data['tg_flash'])
 
     def __koji_session(self):
@@ -149,7 +149,7 @@ class BodhiClient(BaseClient):
                 'karma' : opts.karma,
                 'title' : update
         }
-        data = self.send_request('comment', input=params, auth=True)
+        data = self.send_request('comment', req_params=params, auth=True)
         if data['tg_flash']:
             log.info(data['tg_flash'])
         if data.has_key('update'):
@@ -182,7 +182,7 @@ class BodhiClient(BaseClient):
         yes = sys.stdin.readline().strip()
         if yes.lower() in ('y', 'yes'):
             log.info("Pushing!")
-            self.send_request('admin/push/mash', auth=True, input={
+            self.send_request('admin/push/mash', auth=True, req_params={
                     'updates' : [u['title'] for u in data['updates']] })
 
     def parse_file(self,opts):
