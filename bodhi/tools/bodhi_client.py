@@ -182,7 +182,7 @@ class BodhiClient(BaseClient):
         yes = sys.stdin.readline().strip()
         if yes.lower() in ('y', 'yes'):
             log.info("Pushing!")
-            self.send_request('admin/push/mash', auth=True, req_params={
+            self.send_request('admin/mash', auth=True, req_params={
                     'updates' : [u['title'] for u in data['updates']] })
 
     def parse_file(self,opts):
