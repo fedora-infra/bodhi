@@ -203,6 +203,7 @@ class MashTask(Thread):
                           "push, or remove %s" % mash_lock)
                 raise MashTaskException
         else:
+            log.debug("Creating lock for updates push: %s" % mash_lock)
             lock = file(mash_lock, 'w')
             pickle.dump([update.title for update in self.updates], lock)
             lock.close()
@@ -544,7 +545,8 @@ class MashTask(Thread):
         except MashTaskException:
             self.success = False
 
-        self._unlock()
+        if self.success:
+            self._unlock()
         masher.done(self)
 
     def add_to_digest(self,update):
