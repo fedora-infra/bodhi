@@ -26,6 +26,7 @@ from turbogears.controllers import Controller
 from fedora.tg.util import request_format
 from fedora.client.proxyclient import ProxyClient
 
+from bodhi.util import flash_log
 from bodhi.masher import get_masher
 from bodhi.model import Release, PackageUpdate
 
@@ -106,29 +107,37 @@ class AdminController(Controller, SecureResource):
 
     @expose(allow_json=True)
     def mash(self, updates, **kw):
+        """ Mash a list of PackageUpdates.
+
+        If this instance is deployed with a remote masher, then it simply
+        proxies the request.  If we are the masher, then send these updates
+        to our Mash instance.  This entails handling all of the update requests,
+        composing fresh repositories, generating and sending update notices,
+        closing bugs, etc.
+        """
         if request_format() == 'json':
             updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
         if not isinstance(updates, list):
             updates = [updates]
 
+        # If we're not The Masher, then proxy this request to it
         if config.get('masher'):
-            # Send JSON request with these updates to the masher
             client = ProxyClient(config.get('masher'), debug=True)
             try:
                 cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
                 session, data = client.send_request('/admin/mash',
-                                           req_params={'updates': updates},
-                                           auth_params={'cookie': cookie})
+                       req_params={'updates': updates},
+                       auth_params={'cookie': cookie})
                 if not data.get('success'):
-                    flash("Push request was unsuccessful")
+                    flash_log("Push request was unsuccessful")
                 else:
-                    flash("Push request sent to masher")
+                    flash_log("Push request sent to masher")
             except Exception, e:
                 import traceback
+                flash_log("Error while dispatching push: %s" % str(e))
                 traceback.print_exc()
-                flash("Error while dispatching push: %s" % str(e))
             raise redirect('/admin/masher')
 
-        get_masher().queue([PackageUpdate.byTitle(title) for title in updates])
+        get_masher().queue([PackageUpdate.byTitle(title)
+                            for title inupdates])
         return dict(success=True)
-        #raise redirect('/admin/masher')
