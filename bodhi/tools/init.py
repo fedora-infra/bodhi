@@ -27,20 +27,18 @@ from bodhi.util import ProgressBar
 hub = PackageHub("bodhi")
 __connection__ = hub
 
-releases = (
-    {
-        'name'      : 'F7',
-        'long_name' : 'Fedora 7',
-        'dist_tag'  : 'dist-fc7',
-        'id_prefix' : 'FEDORA'
-    },
-    {
-        'name'      : 'F8',
-        'long_name' : 'Fedora 8',
-        'dist_tag'  : 'dist-f8',
-        'id_prefix' : 'FEDORA'
-    },
-)
+# Releases to initialize bodhi with.
+# When running `make init` or pickledb.py, this is unnecessary, as the db
+# snapshot stores this data and will populate it for us.
+releases = ()
+#    {
+#        'name'      : 'F8',
+#        'long_name' : 'Fedora 8',
+#        'dist_tag'  : 'dist-f8',
+#        'id_prefix' : 'FEDORA'
+#    },
+#)
+
 
 def import_releases():
     """ Import the releases """
@@ -87,6 +85,7 @@ if __name__ == '__main__':
     load_config()
     hub.begin()
     clean_tables()
-    import_releases()
+    if releases:
+        import_releases()
     import_rebootpkgs()
     hub.commit()
