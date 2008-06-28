@@ -608,7 +608,7 @@ class MashTask(Thread):
         while True:
             sleep(600)
             try:
-                masterrepomd = urllib2.urlopen('http://download.fedora.redhat.com/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml' % release.get_version())
+                masterrepomd = urllib2.urlopen(config.get('master_repomd') % release.get_version())
             except urllib2.URLError, e:
                 log.error("Error fetching repomd.xml: %s" % str(e))
                 continue
