@@ -43,6 +43,15 @@ hub = __connection__ = PackageHub("bodhi")
 
 
 def save_db():
+    ## Save each release and it's metrics
+    releases = []
+    for release in Release.select():
+        rel = {}
+        for attr in ('name', 'long_name', 'id_prefix', 'dist_tag',
+                     'locked', 'metrics'):
+            rel[attr] = getattr(release, attr)
+        releases.append(rel)
+
     updates = []
     all_updates = PackageUpdate.select()
     progress = ProgressBar(maxValue=all_updates.count())
@@ -82,13 +91,22 @@ def save_db():
         progress()
 
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
-    pickle.dump(updates, dump)
+    pickle.dump({'updates': updates, 'releases': releases}, dump)
     dump.close()
 
 def load_db():
     print "\nLoading pickled database %s" % sys.argv[2]
     db = file(sys.argv[2], 'r')
     data = pickle.load(db)
+
+    # Legacy format was just a list of update dictionaries
+    # Now we'll pull things out into an organized dictionary:
+    # {'updates': [], 'releases': []}
+    if isinstance(data, dict):
+        for release in data['releases']:
+            Release(**release)
+        data = data['updates']
+
     progress = ProgressBar(maxValue=len(data))
 
     for u in data:
