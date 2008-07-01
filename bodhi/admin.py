@@ -126,8 +126,6 @@ class AdminController(Controller, SecureResource):
         mash_data = None
         if config.get('masher'):
             data = self._masher_request('/admin/current_mash')
-            if data['tg_flash']:
-                flash_log(data['tg_flash'])
             mash_data = data.get('mash')
             if mash_data['mashing']:
                 flash_log('The masher is currently pushing updates')
@@ -156,6 +154,8 @@ class AdminController(Controller, SecureResource):
                                                 auth_params={'cookie': cookie},
                                                 **kwargs)
             log.debug("Remote method returned %s" % repr(data))
+            if data.get('tg_flash'):
+                flash_log(data['tg_flash'])
             return data
         except Exception, e:
             flash_log("Error: %s" % str(e))
