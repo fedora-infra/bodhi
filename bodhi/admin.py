@@ -17,7 +17,9 @@
 import logging
 import cherrypy
 import simplejson
+import cPickle as pickle
 
+from os.path import join, exists
 from Cookie import SimpleCookie
 from turbogears import expose, identity, redirect, flash, config
 from turbogears.identity import SecureResource
@@ -27,7 +29,7 @@ from fedora.tg.util import request_format
 from fedora.client.proxyclient import ProxyClient
 
 from bodhi.util import flash_log
-from bodhi.masher import get_masher
+from bodhi.masher import Masher
 from bodhi.model import Release, PackageUpdate
 
 
@@ -47,26 +49,19 @@ class AdminController(Controller, SecureResource):
     def masher(self):
         """ Display the current status of the Masher """
         if config.get('masher'):
-            # Proxy this request to the masher
-            log.debug("Proxying masher request to the masher")
-            client = ProxyClient(config.get('masher'), debug=True)
-            cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
-            session, data = client.send_request('/admin/masher',
-                                       auth_params={'cookie': cookie})
+            data = self._masher_request('/admin/masher')
             return dict(masher_str=data['masher_str'], tags=data['tags'])
         else:
             tags = []
-            masher = get_masher()
             for release in Release.select():
                 tags.append('%s-updates' % release.dist_tag)
                 tags.append('%s-updates-testing' % release.dist_tag)
-            return dict(masher_str=str(masher), tags=tags)
+            return dict(masher_str=str(Masher()), tags=tags)
 
     @expose(template='bodhi.templates.text')
     def lastlog(self):
         """ Return the last mash log """
-        masher = get_masher()
-        (logfile, data) = masher.lastlog()
+        (logfile, data) = Masher().lastlog()
         return dict(title=logfile, text=data)
 
     @expose(allow_json=True)
@@ -74,22 +69,12 @@ class AdminController(Controller, SecureResource):
         """ Kick off a mash for a given tag """
         log.debug("mash_tags(%s, %s)" % (repr(tag), repr(kw)))
         if config.get('masher'):
-            # Proxy this request to the masher
-            log.debug("Proxying mash_tag request to the masher")
-            client = ProxyClient(config.get('masher'), debug=True)
-            try:
-                cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
-                session, data = client.send_request('/admin/mash_tag',
-                                           req_params={'tag': tag},
-                                           auth_params={'cookie': cookie})
-                flash("Mash request %s" % data.get('success') and 
+            data = self._masher_request('/admin/mash_tag', tag=tag)
+            flash_log("Mash request %s" % data.get('success') and
                       "succeeded" or "failed")
-            except Exception, e:
-                flash("Error while dispatching mash: %s" % str(e))
         else:
-            log.info("Mashing tag: %s" % tag)
-            themasher = get_masher()
-            themasher.mash_tags([tag])
+            Masher().mash_tags([tag])
+            flash_log("Mashing tag: %s" % tag)
         raise redirect('/admin/masher')
 
     @expose(template='bodhi.templates.push', allow_json=True)
@@ -101,19 +86,24 @@ class AdminController(Controller, SecureResource):
         for update in requests:
             # Skip unapproved security updates
             if update.type == 'security' and not update.approved:
-                continue 
+                continue
             updates.append(update)
+
+        # Check to see if we have an existing push in process
+        mash = self.current_mash()
+        log.debug("mash = %s" % mash)
+
         return dict(updates=updates)
 
     @expose(allow_json=True)
     def mash(self, updates, **kw):
-        """ Mash a list of PackageUpdates.
+        """ Mash a list of PackageUpdate objects.
 
         If this instance is deployed with a remote masher, then it simply
-        proxies the request.  If we are the masher, then send these updates
-        to our Mash instance.  This entails handling all of the update requests,
-        composing fresh repositories, generating and sending update notices,
-        closing bugs, etc.
+        proxies the request.  If we are the masher, then send these updates to
+        our Mash instance.  This will then start a thread that takes care of
+        handling all of the update requests, composing fresh repositories,
+        generating and sending update notices, closing bugs, etc.
         """
         if request_format() == 'json':
             updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
@@ -122,22 +112,51 @@ class AdminController(Controller, SecureResource):
 
         # If we're not The Masher, then proxy this request to it
         if config.get('masher'):
-            client = ProxyClient(config.get('masher'), debug=True)
-            try:
-                cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
-                session, data = client.send_request('/admin/mash',
-                       req_params={'updates': updates},
-                       auth_params={'cookie': cookie})
-                if not data.get('success'):
-                    flash_log("Push request was unsuccessful")
-                else:
-                    flash_log("Push request sent to masher")
-            except Exception, e:
-                import traceback
-                flash_log("Error while dispatching push: %s" % str(e))
-                traceback.print_exc()
+            data = self._masher_request('/admin/mash', updates=updates)
+            flash_log('Push request %s' % data.get('success') and 'succeeded'
+                                                               or 'failed')
             raise redirect('/admin/masher')
 
-        get_masher().queue([PackageUpdate.byTitle(title)
-                            for title inupdates])
+        Masher().queue([PackageUpdate.byTitle(title) for title in updates])
         return dict(success=True)
+
+    @expose(allow_json=True)
+    def current_mash(self):
+        """ Get the update list for the current mash """
+        mash_data = None
+        if config.get('masher'):
+            data = self._masher_request('/admin/current_mash')
+            if data['tg_flash']:
+                flash_log(data['tg_flash'])
+            mash_data = data.get('mash')
+            if mash_data['mashing']:
+                flash_log('The masher is currently pushing updates')
+            else:
+                flash_log('There is an updates push ready to be resumed')
+        else:
+            mashed_dir = config.get('mashed_dir')
+            mash_lock = join(mashed_dir, 'MASHING')
+            if exists(mash_lock):
+                mash_lock = file(mash_lock)
+                mash_data = pickle.load(mash_lock)
+                mash_lock.close()
+                mash_data = {'mashing': Masher().mashing, 'updates': mash_data}
+        return dict(mash=mash_data)
+
+    def _masher_request(self, method, kwargs=None):
+        """
+        Call a remote method on the masher with any other arguments.
+        Returns whatever the remote method returned to us.
+        """
+        log.debug('Calling remote method "%s" with %s' % (method, kwargs))
+        try:
+            client = ProxyClient(config.get('masher'), debug=True)
+            cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
+            session, data = client.send_request(method,
+                                                auth_params={'cookie': cookie},
+                                                **kwargs)
+            log.debug("Remote method returned %s" % repr(data))
+            return data
+        except Exception, e:
+            flash_log("Error: %s" % str(e))
+            import traceback; traceback.print_exc()
