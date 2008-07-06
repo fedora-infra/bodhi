@@ -30,7 +30,7 @@ from os.path import exists, join, islink, isdir
 from time import sleep
 
 from bodhi import buildsys, mail
-from bodhi.util import synchronized, sanity_check_repodata
+from bodhi.util import synchronized, sanity_check_repodata, Singleton
 from bodhi.model import PackageUpdate
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import MashTaskException
@@ -45,9 +45,9 @@ def get_masher():
         log.error("Masher doesn't exist?")
     return masher
 
-class Masher:
+class Masher(Singleton):
     """ The Masher.
-    
+
     This is an extension that is in charge of queueing and dispatching update
     pushes.  This process entails tagging all of the builds appropriately in
     the buildsystem, mashing the repositories, generating the
