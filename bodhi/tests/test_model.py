@@ -82,7 +82,7 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_mail_notices(self):
         """ Make sure all of our mail notices can expand properly """
-        me = User(user_name='guest', display_name='Guest')
+        me = User(user_name='guest', display_name='Guest', password='guest')
         update = self.get_update()
         self.get_comment(update)
         for title, data in messages.items():
