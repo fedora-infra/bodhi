@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Comps file Relax-NG Schema
+
+    © 2006 Nicolas Mailhot <nim at fedoraproject dot org>
+
+    TODO: re-add namespace to this file
+          use that namespace to comps.xml files
+          create grammar for comps.xml.in
+          add more documentation for comps elements
+-->
+<grammar xmlns="http://relaxng.org/ns/structure/1.0" xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <start>
+    <ref name="comps"/>
+  </start>
+  <define name="comps">
+    <element name="comps">
+      <oneOrMore>
+        <ref name="group"/>
+      </oneOrMore>
+      <zeroOrMore>
+        <ref name="category"/>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="group">
+    <element name="group">
+      <!-- Example documentation. Please add more. -->
+      <a:documentation>This defines a package group.</a:documentation>
+      <ref name="id"/>
+      <element name="default" a:defaultValue="true">
+        <a:documentation>Should the group be enabled by default?</a:documentation>
+        <ref name="boolean"/>
+      </element>
+      <element name="uservisible" a:defaultValue="true">
+        <a:documentation>Should the group be visible to users?</a:documentation>
+        <ref name="boolean"/>
+      </element>
+      <optional>
+        <element name="langonly">
+          <ref name="locale"/>
+        </element>
+      </optional>
+      <optional>
+        <ref name="groupreqlist"/>
+      </optional>
+      <ref name="packagelist"/>
+    </element>
+  </define>
+  <define name="groupreqlist">
+    <element name="grouplist">
+      <oneOrMore>
+        <ref name="groupreq"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="groupreq">
+    <element name="groupreq">
+      <a:documentation>Other groups that this group requires.</a:documentation>
+      <ref name="groupname"/>
+    </element>
+  </define>
+  <define name="packagelist">
+    <element name="packagelist">
+      <oneOrMore>
+        <ref name="packagereq"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="packagereq">
+    <element name="packagereq">
+      <choice>
+        <attribute name="type" a:defaultValue="optional">
+          <choice>
+            <value>mandatory</value>
+            <value>default</value>
+            <value>optional</value>
+          </choice>
+        </attribute>
+        <group>
+          <attribute name="type" a:defaultValue="conditional">
+            <choice>
+              <value>conditional</value>
+            </choice>
+          </attribute>
+          <attribute name="requires">
+            <ref name="packagename"/>
+          </attribute>
+        </group>
+      </choice>
+      <optional>
+        <attribute name="basearchonly" a:defaultValue="false">
+          <ref name="boolean"/>
+        </attribute>
+      </optional>
+      <ref name="packagename"/>
+    </element>
+  </define>
+  <define name="category">
+    <element name="category">
+      <ref name="id"/>
+      <optional>
+        <element name="display_order">
+          <ref name="positiveInteger"/>
+        </element>
+      </optional>
+      <ref name="grouplist"/>
+    </element>
+  </define>
+  <define name="grouplist">
+    <element name="grouplist">
+      <oneOrMore>
+        <ref name="groupid"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="groupid">
+    <element name="groupid">
+      <ref name="string"/>
+    </element>
+  </define>
+  <define name="id">
+    <element name="id">
+      <ref name="ID"/>
+    </element>
+    <choice>
+      <!-- Either we have one _name and one _description (comps.xml.in) -->
+      <group>
+        <element name="_name">
+          <ref name="string"/>
+        </element>
+        <element name="_description">
+          <ref name="string"/>
+        </element>
+      </group>
+      <!-- Or we have one name, one description, and then zero-or-more
+           localized names and descriptions following that. -->
+      <group>
+        <element name="name">
+          <ref name="string"/>
+        </element>
+        <zeroOrMore>
+          <element name="name">
+            <attribute name="xml:lang">
+              <ref name="locale"/>
+            </attribute>
+            <ref name="string"/>
+          </element>
+        </zeroOrMore>
+        <element name="description">
+          <ref name="string"/>
+        </element>
+        <zeroOrMore>
+          <element name="description">
+            <attribute name="xml:lang">
+              <ref name="locale"/>
+            </attribute>
+            <ref name="string"/>
+          </element>
+        </zeroOrMore>
+      </group>
+    </choice>
+  </define>
+  <define name="boolean">
+    <choice>
+      <value>true</value>
+      <value>false</value>
+    </choice>
+  </define>
+  <define name="groupname">
+    <data type="string"/>
+  </define>
+  <define name="ID">
+    <data type="ID"/>
+  </define>
+<!-- Should be a regexp -->
+  <define name="locale">
+    <data type="string"/>
+  </define>
+  <define name="packagename">
+    <data type="string"/>
+  </define>
+  <define name="positiveInteger">
+    <data type="positiveInteger"/>
+  </define>
+  <define name="string">
+    <data type="string"/>
+  </define>
+</grammar>

@@ -1,0 +1,1118 @@
+# translation of ne.po to Nepali
+# Nabin Gautam <nabin@mpp.org.np>, 2007.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+msgid ""
+msgstr ""
+"Project-Id-Version: ne\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-04-17 07:36-0400\n"
+"PO-Revision-Date: 2007-09-18 13:31+0545\n"
+"Last-Translator: Nabin Gautam <nabin@mpp.org.np>\n"
+"Language-Team: Nepali <info@mpp.org.np>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1\n"
+"\n"
+"\n"
+"\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: ../comps-f7.xml.in.h:1 ../comps-f8.xml.in.h:1 ../comps-f9.xml.in.h:1
+msgid "A lightweight desktop environment that works well on low end machines."
+msgstr "चाँडो अन्त्य हुने मेसिनमा राम्रोसँग कार्य गर्ने हल्का डेस्कटप परिवेश ।"
+
+#: ../comps-f7.xml.in.h:2 ../comps-f8.xml.in.h:2 ../comps-f9.xml.in.h:2
+#: ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+msgid "Administration Tools"
+msgstr "प्रशासन उपकरण"
+
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3 ../comps-f9.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "अफ्रिकी समर्थन"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4 ../comps-f9.xml.in.h:4
+msgid "Albanian Support"
+msgstr "अल्बानियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:5 ../comps-f8.xml.in.h:5 ../comps-f9.xml.in.h:5
+#: ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+msgid "Applications"
+msgstr "अनुप्रयोग"
+
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6 ../comps-f9.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
+msgstr "कार्यको भिन्नता सम्पादन गर्ने अनुप्रयोग"
+
+#: ../comps-f7.xml.in.h:7 ../comps-f8.xml.in.h:7 ../comps-f9.xml.in.h:7
+#: ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+msgid "Arabic Support"
+msgstr "अरबी समर्थन"
+
+#: ../comps-f7.xml.in.h:8 ../comps-f8.xml.in.h:8 ../comps-f9.xml.in.h:8
+#: ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+msgid "Armenian Support"
+msgstr "आर्मेनियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9 ../comps-f9.xml.in.h:9
+msgid "Assamese Support"
+msgstr "आसामी समर्थन"
+
+#: ../comps-f7.xml.in.h:10 ../comps-f8.xml.in.h:10 ../comps-f9.xml.in.h:10
+#: ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+msgid "Authoring and Publishing"
+msgstr "लेखन तथा प्रकाशन"
+
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11 ../comps-f9.xml.in.h:11
+msgid "Base"
+msgstr "आधार"
+
+#: ../comps-f7.xml.in.h:12 ../comps-f8.xml.in.h:12 ../comps-f9.xml.in.h:12
+#: ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+msgid "Base System"
+msgstr "आधार प्रणाली"
+
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13 ../comps-f9.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "रूबी प्रोग्रामिङ भाषाका लागि आधारभूत समर्थन ।"
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14 ../comps-f9.xml.in.h:14
+msgid "Basque Support"
+msgstr "बास्क समर्थन"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15 ../comps-f9.xml.in.h:15
+msgid "Belarusian Support"
+msgstr "बेलारुसी समर्थन"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16 ../comps-f9.xml.in.h:16
+msgid "Bengali Support"
+msgstr "बङ्गाली समर्थन"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17 ../comps-f9.xml.in.h:17
+msgid "Bhutanese Support"
+msgstr "भुटानी समर्थन"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18 ../comps-f9.xml.in.h:18
+msgid "Bosnian Support"
+msgstr "बोस्नियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19 ../comps-f9.xml.in.h:19
+msgid "Brazilian Portuguese Support"
+msgstr "ब्राजिलीयन पोर्चुगाली समर्थन"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20 ../comps-f9.xml.in.h:20
+msgid "Breton Support"
+msgstr "ब्रेटन समर्थन"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:22 ../comps-f9.xml.in.h:22
+msgid "Bulgarian Support"
+msgstr "बुल्गेरियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:23 ../comps-f9.xml.in.h:23
+msgid "Catalan Support"
+msgstr "कातालान समर्थन"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:24 ../comps-f9.xml.in.h:24
+msgid "Chinese Support"
+msgstr "चिनियाँ समर्थन"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:25 ../comps-f9.xml.in.h:25
+msgid "Clustering"
+msgstr "एकिकृय गर्दै"
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:26 ../comps-f9.xml.in.h:26
+msgid "Clustering Support"
+msgstr "समर्थन एकिकृत गर्दै"
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:27 ../comps-f9.xml.in.h:27
+msgid "Core"
+msgstr "कोर"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:28 ../comps-f9.xml.in.h:28
+msgid "Croatian Support"
+msgstr "क्रोयसियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:29 ../comps-f9.xml.in.h:29
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "चेक समर्थन"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:30 ../comps-f9.xml.in.h:30
+msgid "DNS Name Server"
+msgstr "DNS नाम सर्भर"
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:31 ../comps-f9.xml.in.h:31
+msgid "Danish Support"
+msgstr "डेनिस समर्थन"
+
+#: ../comps-f7.xml.in.h:31 ../comps-f8.xml.in.h:32 ../comps-f9.xml.in.h:32
+#: ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+msgid "Desktop Environments"
+msgstr "डेस्कटप परिवेश"
+
+#: ../comps-f7.xml.in.h:32 ../comps-f8.xml.in.h:33 ../comps-f9.xml.in.h:33
+#: ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+msgid "Desktop environments"
+msgstr "डेस्कटप परिवेश"
+
+#: ../comps-f7.xml.in.h:33 ../comps-f8.xml.in.h:34 ../comps-f9.xml.in.h:34
+#: ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+msgid "Development"
+msgstr "विकास"
+
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:35 ../comps-f9.xml.in.h:35
+msgid "Development Libraries"
+msgstr "विकास लाइब्रेरी"
+
+#: ../comps-f7.xml.in.h:35 ../comps-f8.xml.in.h:36 ../comps-f9.xml.in.h:36
+#: ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+msgid "Development Tools"
+msgstr "विकास उपकरण"
+
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:37 ../comps-f9.xml.in.h:37
+msgid "Dial-up Networking Support"
+msgstr "डायल-अप नेटवर्किङ समर्थन"
+
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:38 ../comps-f9.xml.in.h:38
+msgid "Dutch Support"
+msgstr "डच समर्थन"
+
+#: ../comps-f7.xml.in.h:38
+msgid "Eclipse"
+msgstr "इक्लिप्स"
+
+#: ../comps-f7.xml.in.h:39 ../comps-f8.xml.in.h:39 ../comps-f9.xml.in.h:39
+#: ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+msgid "Editors"
+msgstr "सम्पादक"
+
+#: ../comps-f7.xml.in.h:40 ../comps-f8.xml.in.h:40 ../comps-f9.xml.in.h:40
+#: ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+msgid "Educational Software"
+msgstr "शैक्षिक सफ्टवेयर"
+
+#: ../comps-f7.xml.in.h:41 ../comps-f8.xml.in.h:41 ../comps-f9.xml.in.h:41
+#: ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+msgid "Educational software for learning"
+msgstr "अभ्यासका लागि शैक्षिक सफ्टवेयर"
+
+#: ../comps-f7.xml.in.h:42 ../comps-f8.xml.in.h:42 ../comps-f9.xml.in.h:42
+#: ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+msgid "Engineering and Scientific"
+msgstr "इन्जिनियरिङ र वैज्ञानिक"
+
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43 ../comps-f9.xml.in.h:43
+msgid "English (UK) Support"
+msgstr "अङ्ग्रेजी (बेलायती) समर्थन"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44 ../comps-f9.xml.in.h:45
+msgid "Estonian Support"
+msgstr "एस्टोनियन समर्थन"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45 ../comps-f9.xml.in.h:46
+msgid "Ethiopic Support"
+msgstr "इथोपियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:46 ../comps-f8.xml.in.h:46 ../comps-f9.xml.in.h:47
+#: ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+msgid "FTP Server"
+msgstr "FTP सर्भर"
+
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47 ../comps-f9.xml.in.h:48
+msgid "Faeroese Support"
+msgstr "फारसी समर्थन"
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:49 ../comps-f9.xml.in.h:50
+#: ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+#, fuzzy
+msgid "Fedora Packager"
+msgstr "फेडोरा इक्लिप्स"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:50 ../comps-f9.xml.in.h:51
+msgid "Filipino Support"
+msgstr "फिलिपिनी समर्थन"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:51 ../comps-f9.xml.in.h:52
+msgid "Finnish Support"
+msgstr "फिनिस समर्थन"
+
+#: ../comps-f7.xml.in.h:51 ../comps-f8.xml.in.h:54 ../comps-f9.xml.in.h:55
+msgid "French Support"
+msgstr "फ्रान्सेली समर्थन"
+
+#: ../comps-f7.xml.in.h:52 ../comps-f8.xml.in.h:55 ../comps-f9.xml.in.h:56
+#: ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+msgid ""
+"From CD recording to playing audio CDs and multimedia files, this package "
+"group allows you to work with sound and video on the system."
+msgstr ""
+"सीडी रेकर्डिङ गरेर अडियो सीडी र मल्टिमिडिया फाइल प्ले गर्न, यो प्याकेज समूहले प्रणालीमा "
+"तपाईँलाई ध्वनि र भिडियोसँग कार्य गर्न अनुमति दिन्छ ।"
+
+#: ../comps-f7.xml.in.h:53 ../comps-f8.xml.in.h:56 ../comps-f9.xml.in.h:57
+#: ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+msgid "GNOME Desktop Environment"
+msgstr "जिनोम डेस्कटप परिवेश"
+
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:57 ../comps-f9.xml.in.h:58
+#: ../comps-el4.xml.in.h:21 ../comps-el5.xml.in.h:22
+msgid "GNOME Software Development"
+msgstr "जिनोम सफ्टवेयर विकास"
+
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:58 ../comps-f9.xml.in.h:59
+msgid ""
+"GNOME is a powerful graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"जिनोम प्यानल, डेस्कटप, प्रणाली प्रतिमा, र ग्राफिकल फाइल प्रबन्धक सम्मिलित गर्ने "
+"शक्तिशाली ग्राफिकल प्रयोगकर्ता इन्टरफेस हो ।"
+
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:59 ../comps-f9.xml.in.h:60
+msgid "Gaelic Support"
+msgstr "ग्यालिक समर्थन"
+
+#: ../comps-f7.xml.in.h:57 ../comps-f8.xml.in.h:60 ../comps-f9.xml.in.h:61
+msgid "Galician Support"
+msgstr "ग्यालिसियन समर्थन"
+
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:61 ../comps-f9.xml.in.h:62
+#: ../comps-el5.xml.in.h:24
+msgid "Games and Entertainment"
+msgstr "खेल र मनोरञ्जन"
+
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:62 ../comps-f9.xml.in.h:63
+msgid "Georgian Support"
+msgstr "जर्जियन समर्थन"
+
+#: ../comps-f7.xml.in.h:60 ../comps-f8.xml.in.h:63 ../comps-f9.xml.in.h:64
+msgid "German Support"
+msgstr "जर्मनी समर्थन"
+
+#: ../comps-f7.xml.in.h:61 ../comps-f8.xml.in.h:64 ../comps-f9.xml.in.h:65
+#: ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+msgid "Graphical Internet"
+msgstr "ग्राफिकल इन्टरनेट"
+
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:65 ../comps-f9.xml.in.h:66
+#: ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+msgid "Graphics"
+msgstr "ग्राफिक्स"
+
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:66 ../comps-f9.xml.in.h:67
+msgid "Greek Support"
+msgstr "ग्रीक समर्थन"
+
+#: ../comps-f7.xml.in.h:64 ../comps-f8.xml.in.h:67 ../comps-f9.xml.in.h:68
+msgid "Gujarati Support"
+msgstr "गुजराती समर्थन"
+
+#: ../comps-f7.xml.in.h:65 ../comps-f8.xml.in.h:68 ../comps-f9.xml.in.h:69
+#: ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+msgid "Hardware Support"
+msgstr "हार्डवेयर समर्थन"
+
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:69 ../comps-f9.xml.in.h:70
+#: ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+msgid "Hebrew Support"
+msgstr "हिब्रु समर्थन"
+
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:70 ../comps-f9.xml.in.h:71
+msgid "Hindi Support"
+msgstr "हिन्दी समर्थन"
+
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:71 ../comps-f9.xml.in.h:72
+msgid "Hungarian Support"
+msgstr "हङ्गेरियन समर्थन"
+
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:72 ../comps-f9.xml.in.h:73
+msgid "Icelandic Support"
+msgstr "आइसल्यान्डी समर्थन"
+
+#: ../comps-f7.xml.in.h:70 ../comps-f8.xml.in.h:73 ../comps-f9.xml.in.h:74
+msgid "Indonesian Support"
+msgstr "इन्डोनेसियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:71 ../comps-f8.xml.in.h:74 ../comps-f9.xml.in.h:75
+#: ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+msgid ""
+"Install these packages in order to develop GTK+ and GNOME graphical "
+"applications."
+msgstr "GTK+ र जिनोम ग्राफिकल अनुप्रयोग विकास गर्नका लागि यी प्याकेज स्थापना गर्नुहोस् ।"
+
+#: ../comps-f7.xml.in.h:72 ../comps-f8.xml.in.h:75 ../comps-f9.xml.in.h:76
+msgid ""
+"Install these packages in order to develop GTK+ and XFCE graphical "
+"applications."
+msgstr "GTK+ र XFCE ग्राफिकल अनुप्रयोग विकास गर्नका लागि यी प्याकेज स्थापना गर्नुहोस् ।"
+
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:76 ../comps-f9.xml.in.h:77
+#: ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+msgid "Install these packages to develop QT and KDE graphical applications."
+msgstr "क्यूटी र केडीई ग्राफिकल अनुप्रयोग विकास गर्नका लागि यी प्याकेज स्थापना गर्नुहोस् ।"
+
+#: ../comps-f7.xml.in.h:74 ../comps-f8.xml.in.h:77 ../comps-f9.xml.in.h:78
+msgid ""
+"Install these tools to enable the system to print or act as a print server."
+msgstr ""
+"मुद्रण सर्भरका रूपमा सर्भरलाई मुद्रण वा कार्य गर्न सक्षम पार्न यी उपकरण स्थापना गर्नुहोस् ।"
+
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:78 ../comps-f9.xml.in.h:79
+#: ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+msgid ""
+"Install this group of packages to use the base graphical (X) user interface."
+msgstr ""
+"आधार ग्राफिकल (X) प्रयोगकर्ता इन्टरफेस प्रयोग गर्न यो प्याकेजको समूह स्थापना गर्नुहोस् ।"
+
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:80 ../comps-f9.xml.in.h:81
+msgid "Inuktitut Support"
+msgstr "इनुक्टिटुट समर्थन"
+
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:81 ../comps-f9.xml.in.h:82
+msgid "Irish Support"
+msgstr "आइरिस समर्थन"
+
+#: ../comps-f7.xml.in.h:78 ../comps-f8.xml.in.h:82 ../comps-f9.xml.in.h:83
+msgid "Italian Support"
+msgstr "इटालियन समर्थन"
+
+#: ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:83 ../comps-f9.xml.in.h:84
+#: ../comps-el4.xml.in.h:30 ../comps-el5.xml.in.h:32
+msgid "Japanese Support"
+msgstr "जापानी समर्थन"
+
+#: ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:84 ../comps-f9.xml.in.h:85
+#: ../comps-el4.xml.in.h:31
+msgid "Java"
+msgstr "जाभा"
+
+#: ../comps-f7.xml.in.h:81 ../comps-f8.xml.in.h:85 ../comps-f9.xml.in.h:86
+#: ../comps-el4.xml.in.h:32
+msgid "Java Development"
+msgstr "जाभा विकास"
+
+#: ../comps-f7.xml.in.h:82 ../comps-f8.xml.in.h:86 ../comps-f9.xml.in.h:87
+#: ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+msgid "KDE (K Desktop Environment)"
+msgstr "केडीई (केडीई डेस्कटप परिवेश)"
+
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:87 ../comps-f9.xml.in.h:88
+#: ../comps-el4.xml.in.h:34 ../comps-el5.xml.in.h:34
+msgid "KDE Software Development"
+msgstr "केडीई सफ्टवेयर विकास"
+
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:88 ../comps-f9.xml.in.h:89
+msgid ""
+"KDE is a powerful graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"केडीई प्यानल, डेस्कटप, प्रणाली प्रतिमा, र ग्राफिकल फाइल प्रबन्धक सम्मिलित गर्ने शक्तिशाली "
+"ग्राफिकल प्रयोगकर्ता इन्टरफेस हो ।"
+
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:89 ../comps-f9.xml.in.h:90
+msgid "Kannada Support"
+msgstr "कान्नडा समर्थन"
+
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:90 ../comps-f9.xml.in.h:92
+msgid "Khmer Support"
+msgstr "खमेर समर्थन"
+
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:91 ../comps-f9.xml.in.h:93
+msgid "Korean Support"
+msgstr "कोरियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:92 ../comps-f9.xml.in.h:94
+msgid "Languages"
+msgstr "भाषा"
+
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:93 ../comps-f9.xml.in.h:95
+msgid "Lao Support"
+msgstr "लाओ समर्थन"
+
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:94 ../comps-f9.xml.in.h:96
+msgid "Latvian Support"
+msgstr "लाट्भिएन समर्थन"
+
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:96 ../comps-f9.xml.in.h:98
+msgid "Legacy Network Server"
+msgstr "लेगेसी सञ्जाल सर्भर"
+
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:97 ../comps-f9.xml.in.h:99
+msgid "Legacy Software Development"
+msgstr "लेगेसी सफ्टवेयर विकास"
+
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:98 ../comps-f9.xml.in.h:100
+msgid "Legacy Software Support"
+msgstr "लेगेसी सफ्टवेयर समर्थन"
+
+#: ../comps-f7.xml.in.h:94 ../comps-f8.xml.in.h:99 ../comps-f9.xml.in.h:101
+msgid "Lithuanian Support"
+msgstr "लिथुवानियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:101 ../comps-f9.xml.in.h:104
+#: ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+msgid "Mail Server"
+msgstr "पत्र सर्भर"
+
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:102 ../comps-f9.xml.in.h:105
+msgid "Malay Support"
+msgstr "मले समर्थन"
+
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:103 ../comps-f9.xml.in.h:106
+msgid "Malayalam Support"
+msgstr "मलयाली समर्थन"
+
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:104 ../comps-f9.xml.in.h:107
+msgid "Maori Support"
+msgstr "माओरी समर्थन"
+
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:105 ../comps-f9.xml.in.h:108
+msgid "Marathi Support"
+msgstr "मराठी समर्थन"
+
+#: ../comps-f7.xml.in.h:100 ../comps-f8.xml.in.h:107 ../comps-f9.xml.in.h:110
+msgid "MySQL Database"
+msgstr "MySQL डाटाबेस"
+
+#: ../comps-f7.xml.in.h:101 ../comps-f8.xml.in.h:109 ../comps-f9.xml.in.h:112
+#: ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+msgid "Network Servers"
+msgstr "सञ्जाल सर्भर"
+
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:110 ../comps-f9.xml.in.h:113
+#: ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+msgid "News Server"
+msgstr "समाचार सर्भर"
+
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:111 ../comps-f9.xml.in.h:115
+msgid "Northern Sotho Support"
+msgstr "उत्तरी सोथो समर्थन"
+
+#: ../comps-f7.xml.in.h:104 ../comps-f8.xml.in.h:112 ../comps-f9.xml.in.h:116
+msgid "Norwegian Support"
+msgstr "नर्वेली समर्थन"
+
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:113 ../comps-f9.xml.in.h:117
+#: ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+msgid "Office/Productivity"
+msgstr "कार्यालय/उत्पादकत्व"
+
+#: ../comps-f7.xml.in.h:106 ../comps-f8.xml.in.h:115 ../comps-f9.xml.in.h:119
+msgid "Oriya Support"
+msgstr "ओरियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:116 ../comps-f9.xml.in.h:120
+#: ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+msgid ""
+"Packages which provide functionality for developing and building "
+"applications."
+msgstr "अनुप्रयोग विकास गर्न र निर्माण गर्न कार्यात्मकता उपलब्ध गर्ने प्याकेज ।"
+
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:117 ../comps-f9.xml.in.h:121
+msgid "Persian Support"
+msgstr "पर्सियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:118 ../comps-f9.xml.in.h:122
+msgid "Polish Support"
+msgstr "पोलिस समर्थन"
+
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:119 ../comps-f9.xml.in.h:123
+msgid "Portuguese Support"
+msgstr "पोर्चुगाली समर्थन"
+
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:120 ../comps-f9.xml.in.h:124
+msgid "PostgreSQL Database"
+msgstr "पोस्टग्रे SQL डाटाबेस"
+
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:121 ../comps-f9.xml.in.h:125
+msgid "Printing Support"
+msgstr "मुद्रण समर्थन"
+
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:122 ../comps-f9.xml.in.h:126
+msgid "Punjabi Support"
+msgstr "पञ्जावी समर्थन"
+
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:123 ../comps-f9.xml.in.h:127
+msgid "Romanian Support"
+msgstr "रोमानियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:124 ../comps-f9.xml.in.h:128
+msgid "Ruby"
+msgstr "रूबी"
+
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:125 ../comps-f9.xml.in.h:129
+msgid "Russian Support"
+msgstr "रसियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:126 ../comps-f9.xml.in.h:130
+msgid "Samoan Support"
+msgstr "सामोआन समर्थन"
+
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:127 ../comps-f9.xml.in.h:131
+msgid "Serbian Support"
+msgstr "सर्बियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:119 ../comps-f8.xml.in.h:128 ../comps-f9.xml.in.h:132
+msgid "Server Configuration Tools"
+msgstr "सर्भर कन्फिगरेसन उपकरण"
+
+#: ../comps-f7.xml.in.h:120 ../comps-f8.xml.in.h:129 ../comps-f9.xml.in.h:133
+#: ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+msgid "Servers"
+msgstr "सर्भर"
+
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:130 ../comps-f9.xml.in.h:134
+#: ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+msgid ""
+"Simple window managers that aren't part of a larger desktop environment."
+msgstr "ठूलो डेस्कटप परिवेशका भाग नहुने सामान्य सञ्झ्याल प्रबन्धक ।"
+
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:131 ../comps-f9.xml.in.h:135
+msgid "Sinhala Support"
+msgstr "सिन्हाली समर्थन"
+
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:132 ../comps-f9.xml.in.h:136
+msgid "Slovak Support"
+msgstr "स्लोभाकियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:133 ../comps-f9.xml.in.h:137
+msgid "Slovenian Support"
+msgstr "स्लोभेनियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:125 ../comps-f8.xml.in.h:134 ../comps-f9.xml.in.h:138
+msgid "Smallest possible installation"
+msgstr "सम्भावित सबैभन्दा सानो स्थापना"
+
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:135 ../comps-f9.xml.in.h:139
+#: ../comps-el4.xml.in.h:43 ../comps-el5.xml.in.h:43
+msgid "Software used for running network servers"
+msgstr "सञ्जाल सर्भर चलाउनका लागि प्रयोग गरिने सफ्टवेयर"
+
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:136 ../comps-f9.xml.in.h:140
+msgid "Somali Support"
+msgstr "सोमाली समर्थन"
+
+#: ../comps-f7.xml.in.h:128 ../comps-f8.xml.in.h:137 ../comps-f9.xml.in.h:141
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit text files. This includes Emacs and Vi."
+msgstr ""
+"यी कार्यक्रम तपाईँलाई पाठ फाइल सिर्जना गर्न र सम्पादन गर्न अनुमति दिने, कहिलेकाहँ कल "
+"गरिने पाठ सम्पादक हुन् । यसले इमाक्स र Vi सम्मिलित गर्दछ ।"
+
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:138 ../comps-f9.xml.in.h:142
+#: ../comps-el4.xml.in.h:45 ../comps-el5.xml.in.h:45
+msgid "Sound and Video"
+msgstr "ध्वनि र भिडियो"
+
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:139 ../comps-f9.xml.in.h:143
+msgid "Southern Ndebele Support"
+msgstr "दक्षिणी डेबिलि समर्थन"
+
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:140 ../comps-f9.xml.in.h:144
+msgid "Southern Sotho Support"
+msgstr "दक्षिणी सोथो समर्थन"
+
+#: ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:141 ../comps-f9.xml.in.h:145
+msgid "Spanish Support"
+msgstr "स्पेनी समर्थन"
+
+#: ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:142 ../comps-f9.xml.in.h:146
+#: ../comps-el4.xml.in.h:46
+msgid "Support for developing programs in the Java programming language."
+msgstr "जाभा प्रोग्रामिङ भाषामा कार्यक्रम विकास गर्नका लागि समर्थन गर्नुहोस् ।"
+
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:143 ../comps-f9.xml.in.h:147
+#: ../comps-el4.xml.in.h:47
+msgid "Support for running programs written in the Java programming language."
+msgstr "जाभा प्रोग्रामिङ भाषामा लेखिएका कार्यक्रम चलाउनका लागि समर्थन गर्नुहोस् ।"
+
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:144 ../comps-f9.xml.in.h:148
+msgid "Swati Support"
+msgstr "स्वाति समर्थन"
+
+#: ../comps-f7.xml.in.h:136 ../comps-f8.xml.in.h:145 ../comps-f9.xml.in.h:149
+msgid "Swedish Support"
+msgstr "स्विडेनी समर्थन"
+
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:146 ../comps-f9.xml.in.h:150
+#: ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+msgid "System Tools"
+msgstr "प्रणाली उपकरण"
+
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:147 ../comps-f9.xml.in.h:151
+msgid "Tagalog Support"
+msgstr "टागालग समर्थन"
+
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:148 ../comps-f9.xml.in.h:152
+msgid "Tamil Support"
+msgstr "तामिल समर्थन"
+
+#: ../comps-f7.xml.in.h:140 ../comps-f8.xml.in.h:149 ../comps-f9.xml.in.h:153
+msgid "Telugu Support"
+msgstr "तेलगु समर्थन"
+
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:150 ../comps-f9.xml.in.h:154
+#: ../comps-el4.xml.in.h:49 ../comps-el5.xml.in.h:47
+msgid "Text-based Internet"
+msgstr "पाठ-आधारित इन्टरनेट"
+
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:151 ../comps-f9.xml.in.h:155
+msgid "Thai Support"
+msgstr "थाइ समर्थन"
+
+#: ../comps-f7.xml.in.h:143
+msgid "The Eclipse Integrated Development Environment."
+msgstr "इक्लिप्स एकिकृत विकास परिवेश"
+
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:152 ../comps-f9.xml.in.h:156
+#: ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+msgid "The applications include office suites, PDF viewers, and more."
+msgstr "यस अनुप्रयोगले अफिस सुट, PDF दर्शक र अरू समावेश गर्दछ ।"
+
+#: ../comps-f7.xml.in.h:145 ../comps-f8.xml.in.h:153 ../comps-f9.xml.in.h:157
+msgid ""
+"The packages in this group are core libraries needed to develop applications."
+msgstr "यो समूहका प्याकेज अनुप्रयोग विकास गर्न आवश्यक कोर लाइब्रेरी हुन् ।"
+
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:154 ../comps-f9.xml.in.h:158
+#: ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+msgid "These packages allow you to configure an IMAP or SMTP mail server."
+msgstr "यी प्याकेजले तपाईँलाई IMAP वा SMTP मेल सर्भर कन्फिगर गर्न अनुमति दिन्छन् ।"
+
+#: ../comps-f7.xml.in.h:147 ../comps-f8.xml.in.h:155 ../comps-f9.xml.in.h:159
+msgid ""
+"These packages allow you to develop applications for the X Window System."
+msgstr ""
+"यी प्याकेजहरूले तपाईँलाई X सञ्झ्याल प्रणालीका लागि अनुप्रयोग विकास गर्न अनुमति दिन्छन् ।"
+
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:156 ../comps-f9.xml.in.h:160
+#: ../comps-el4.xml.in.h:53 ../comps-el5.xml.in.h:51
+msgid ""
+"These packages are helpful when developing web applications or web pages."
+msgstr "यी प्याकेज वेब अनुप्रयोग वा वेब पृष्ठ विकास गर्ने बेलामा उपयोगि हुन्छन् ।"
+
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:157 ../comps-f9.xml.in.h:161
+msgid ""
+"These packages include network-based servers such as DHCP, Kerberos and NIS."
+msgstr "यी प्याकेजहरूले सञ्जाल आधारित DHCP, केर्बेरोस र NIS जस्ता सर्भर समाविष्ट गर्दछन् ।"
+
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:158 ../comps-f9.xml.in.h:162
+msgid ""
+"These packages include servers for old network protocols such as rsh and "
+"telnet."
+msgstr ""
+"यी प्याकेजहरूले rsh र टेलनेट जस्तै पूराना सञ्जाल प्रोटोकलका लागि सर्भर समावेश गर्दछन् ।"
+
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:159 ../comps-f9.xml.in.h:163
+msgid "These packages provide a virtualization environment."
+msgstr "यी प्याकेजले अवास्तविक परिवेश उपलब्ध गर्दछन् ।"
+
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:160 ../comps-f9.xml.in.h:164
+msgid "These packages provide compatibility with previous releases."
+msgstr "यी प्याकेजले अघिल्ला प्रकासनसँग मिल्दोपना उपलब्ध गर्दछन् ।"
+
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:161 ../comps-f9.xml.in.h:165
+msgid ""
+"These packages provide support for various locales including fonts and input "
+"methods."
+msgstr ""
+"यी प्याकेजले बिभिन्न फन्ट र आगत विधि समाविष्ट लोकेलका लागि समर्थन उपलब्ध गर्दछन् ।"
+
+#: ../comps-f7.xml.in.h:154 ../comps-f8.xml.in.h:162 ../comps-f9.xml.in.h:166
+msgid ""
+"These tools allow you to create documents in the DocBook format and convert "
+"them into HTML, PDF, Postscript, and text."
+msgstr ""
+"यी उपकरणले तपाईँलाई DocBook ढाँचामा कागजात सिर्जना गर्न अनुमति दिन्छन् र तिनीहरूलाई "
+"एचटीएमएल, पीडीएफ, पोस्टस्क्रिप्ट, र पाठमा रुपान्तरण गर्दछन् ।"
+
+#: ../comps-f7.xml.in.h:155 ../comps-f8.xml.in.h:163 ../comps-f9.xml.in.h:167
+#: ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+msgid "These tools allow you to run a Web server on the system."
+msgstr "यी उपकरणले तपाईँलाई प्रणालीमा वेब सर्भर चलाउन अनुमति दिन्छन् ।"
+
+#: ../comps-f7.xml.in.h:156 ../comps-f8.xml.in.h:164 ../comps-f9.xml.in.h:168
+#: ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+msgid "These tools allow you to run an FTP server on the system."
+msgstr "यी उपकरणले तपाईँलाई प्रणालीमा FTP सर्भर चलाउन अनुमति दिन्छन् ।"
+
+#: ../comps-f7.xml.in.h:157 ../comps-f8.xml.in.h:165 ../comps-f9.xml.in.h:169
+#: ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+msgid ""
+"These tools include core development tools such as automake, gcc, perl, "
+"python, and debuggers."
+msgstr ""
+"यी उपकरणले अटोमेक, gcc, पर्ल, पाइथोन, र त्रुटिमोचक जस्ता मूख्य विकास उपकरण समावेश "
+"गर्दछन् ।"
+
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:166 ../comps-f9.xml.in.h:170
+#: ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+msgid "This group allows you to configure the system as a news server."
+msgstr "यो समूहले तपाईँलाई प्रणाली नयाँ सर्भरका रूपमा कन्फिगर गर्न अनुमति दिन्छ ।"
+
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:167 ../comps-f9.xml.in.h:171
+msgid "This group contains all of Red Hat's custom server configuration tools."
+msgstr "यो समूहले सबै रेड ह्याटका अनुकूल सर्भर कन्फिगरेसन उपकरण समावेश गर्दछ ।"
+
+#: ../comps-f7.xml.in.h:160 ../comps-f8.xml.in.h:168 ../comps-f9.xml.in.h:172
+msgid ""
+"This group includes a minimal set of packages. Useful for creating small "
+"router/firewall boxes, for example."
+msgstr ""
+"यो समूहले प्याकेजको न्यूनतम सेट सम्मिलित गर्दछ । उदाहरणका लागि, सानो राउटर/फायरवाल "
+"बाकस सिर्जना गर्दा उपयोगि हुन्छ ।"
+
+#: ../comps-f7.xml.in.h:161 ../comps-f8.xml.in.h:169 ../comps-f9.xml.in.h:173
+#: ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+msgid "This group includes graphical email, Web, and chat clients."
+msgstr "यो समूहले ग्राफिकल इमेल, वेब, र च्याट क्लाइन्ट समावेश गर्दछ ।"
+
+#: ../comps-f7.xml.in.h:162 ../comps-f8.xml.in.h:170 ../comps-f9.xml.in.h:174
+#: ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+msgid ""
+"This group includes packages for performing mathematical and scientific "
+"computations and plotting, as well as unit conversion."
+msgstr ""
+"यो समूहले गणितिय र बैज्ञानिक गणना र प्लटिङ, त्यस्तै एकाइ रुपान्तरणका लागि प्याकेज समावेश "
+"गर्दछ ।"
+
+#: ../comps-f7.xml.in.h:163 ../comps-f8.xml.in.h:171 ../comps-f9.xml.in.h:175
+#: ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+msgid "This group includes packages to help you manipulate and scan images."
+msgstr "यो समूहले तपाईँलाई छवि म्यानुपुलेट र स्क्यान गर्न मद्दत गर्ने प्याकेज समावेश गर्दछ ।"
+
+#: ../comps-f7.xml.in.h:164 ../comps-f8.xml.in.h:172 ../comps-f9.xml.in.h:176
+#: ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+msgid ""
+"This group includes text-based email, Web, and chat clients. These "
+"applications do not require the X Window System."
+msgstr ""
+"यो समूहले पाठमा आधारित इमेल, वेब र च्याट क्लाइन्ट समावेश गर्दछ । यी अनुप्रयोगलाई X "
+"सञ्झ्याल प्रणाली आवश्यक पर्दैन ।"
+
+#: ../comps-f7.xml.in.h:165 ../comps-f8.xml.in.h:173 ../comps-f9.xml.in.h:177
+#: ../comps-el4.xml.in.h:63 ../comps-el5.xml.in.h:61
+msgid ""
+"This group is a collection of graphical administration tools for the system, "
+"such as for managing user accounts and configuring system hardware."
+msgstr ""
+"यो समूह, प्रयोगकर्ता खाता प्रबन्ध गर्ने र प्रणाली हार्डवेयर कन्फिगर गर्ने जस्ता प्रणालीका "
+"लागि ग्राफिकल प्रशासन उपकरणको सङ्कलन हो ।"
+
+#: ../comps-f7.xml.in.h:166 ../comps-f8.xml.in.h:174 ../comps-f9.xml.in.h:178
+#: ../comps-el4.xml.in.h:66 ../comps-el5.xml.in.h:64
+msgid ""
+"This group is a collection of tools and resources of Armenian environments."
+msgstr "यो समूह आर्मेनियाली परिवेशका उपकरण र संसाधनको सङ्कलन हो ।"
+
+#: ../comps-f7.xml.in.h:167 ../comps-f8.xml.in.h:175 ../comps-f9.xml.in.h:179
+#: ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+msgid ""
+"This group is a collection of tools for various hardware specific utilities."
+msgstr "यो समूह विभिन्न हार्डवेयर निर्दिष्ट उपयोगिताका लागि उपकरणको सङ्कलन हो ।"
+
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:176 ../comps-f9.xml.in.h:180
+#: ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
+msgid ""
+"This group is a collection of various tools for the system, such as the "
+"client for connecting to SMB shares and tools to monitor network traffic."
+msgstr ""
+"यो समूह, क्लाइन्टलाई SMB बाँटफाँटमा जडान गर्ने र सञ्जाल ट्राफिक अनुगमन गर्ने उपकरण जस्ता "
+"प्रणालीका लागि विभिन्न उपकरणको सङ्कलन हो ।"
+
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:177 ../comps-f9.xml.in.h:181
+msgid ""
+"This package group allows you to run a DNS name server (BIND) on the system."
+msgstr "यो प्याकेज समूहले तपाईँलाई प्रणालीमा DNS नाम सर्भर (BIND) चलाउन अनुमति दिन्छ ।"
+
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:178 ../comps-f9.xml.in.h:182
+msgid ""
+"This package group allows you to share files between Linux and MS Windows"
+"(tm) systems."
+msgstr ""
+"यो प्याकेज समूहले तपाईँलाई लिनक्स र माइक्रोसफ्ट विन्डोज(tm) प्रणाली बीचमा फाइल बाँटफाँट "
+"गर्न अनुमति दिन्छ ।"
+
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:179 ../comps-f9.xml.in.h:183
+msgid "This package group contains packages useful for use with MySQL."
+msgstr "यो प्याकेज समूहले MySQL सँग प्रयोग गर्नका लागि उपयोगि प्याकेज समाविष्ट गर्दछ ।"
+
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:180 ../comps-f9.xml.in.h:184
+msgid "This package group includes packages useful for use with Postgresql."
+msgstr ""
+"यो प्याकेज समूहले Postgresql सँग प्रयोग गर्नका लागि उपयोगि प्याकेज समाविष्ट गर्दछ ।"
+
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:181 ../comps-f9.xml.in.h:185
+msgid "Tibetan Support"
+msgstr "तिब्बती समर्थन"
+
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:182 ../comps-f9.xml.in.h:186
+msgid "Tonga Support"
+msgstr "टोङ्गा समर्थन"
+
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:183 ../comps-f9.xml.in.h:187
+#: ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:70
+msgid "Tools and Utilities needed by a Fedora Packager"
+msgstr ""
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:184 ../comps-f9.xml.in.h:188
+msgid "Tsonga Support"
+msgstr "सोङ्गा समर्थन"
+
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:185 ../comps-f9.xml.in.h:189
+msgid "Tswana Support"
+msgstr "स्वाना समर्थन"
+
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:186 ../comps-f9.xml.in.h:190
+msgid "Turkish Support"
+msgstr "टर्कीस समर्थन"
+
+#: ../comps-f7.xml.in.h:179 ../comps-f8.xml.in.h:187 ../comps-f9.xml.in.h:191
+msgid "Ukrainian Support"
+msgstr "युक्रेनियाली समर्थन"
+
+#: ../comps-f7.xml.in.h:180 ../comps-f8.xml.in.h:188 ../comps-f9.xml.in.h:192
+msgid "Urdu Support"
+msgstr "उर्दु समर्थन"
+
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:189 ../comps-f9.xml.in.h:193
+#: ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:71
+msgid "Various core pieces of the system."
+msgstr "प्रणालीका विभिन्न कोर टुक्रा ।"
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:190 ../comps-f9.xml.in.h:194
+#: ../comps-el5.xml.in.h:72
+msgid "Various ways to relax and spend your free time."
+msgstr "आनन्द गर्ने र तपाईँको फुर्सद समय विताउने बिभिन्न तरिकाहरू ।"
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:191 ../comps-f9.xml.in.h:195
+msgid "Venda Support"
+msgstr "भेन्डा समर्थन"
+
+#: ../comps-f7.xml.in.h:184 ../comps-f8.xml.in.h:192 ../comps-f9.xml.in.h:196
+msgid "Vietnamese Support"
+msgstr "भियतनामी समर्थन"
+
+#: ../comps-f7.xml.in.h:185 ../comps-f8.xml.in.h:193 ../comps-f9.xml.in.h:197
+msgid "Virtualization"
+msgstr "भर्चुअलाइजेसन"
+
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:194 ../comps-f9.xml.in.h:199
+#: ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+msgid "Web Development"
+msgstr "वेब विकास"
+
+#: ../comps-f7.xml.in.h:187 ../comps-f8.xml.in.h:195 ../comps-f9.xml.in.h:200
+#: ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "Web Server"
+msgstr "वेब सर्भर"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:196 ../comps-f9.xml.in.h:201
+msgid "Welsh Support"
+msgstr "वेल्स समर्थन"
+
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:197 ../comps-f9.xml.in.h:202
+#: ../comps-el4.xml.in.h:75 ../comps-el5.xml.in.h:75
+msgid "Window Managers"
+msgstr "सञ्झ्याल प्रबन्धक"
+
+#: ../comps-f7.xml.in.h:190 ../comps-f8.xml.in.h:198 ../comps-f9.xml.in.h:203
+msgid "Windows File Server"
+msgstr "विन्डोज फाइल सर्भर"
+
+#: ../comps-f7.xml.in.h:191 ../comps-f8.xml.in.h:199 ../comps-f9.xml.in.h:204
+msgid "X Software Development"
+msgstr "X सफ्टवेयर विकास"
+
+#: ../comps-f7.xml.in.h:192 ../comps-f8.xml.in.h:200 ../comps-f9.xml.in.h:205
+#: ../comps-el4.xml.in.h:76 ../comps-el5.xml.in.h:76
+msgid "X Window System"
+msgstr "X सञ्झ्याल प्रणाली"
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:201 ../comps-f9.xml.in.h:206
+msgid "XFCE"
+msgstr "XFCE"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:202 ../comps-f9.xml.in.h:207
+msgid "XFCE Software Development"
+msgstr "XFCE सफ्टवेयर विकास"
+
+#: ../comps-f7.xml.in.h:195 ../comps-f8.xml.in.h:203 ../comps-f9.xml.in.h:208
+msgid "Xhosa Support"
+msgstr "झोसा समर्थन"
+
+#: ../comps-f7.xml.in.h:196 ../comps-f8.xml.in.h:204 ../comps-f9.xml.in.h:209
+msgid "Zulu Support"
+msgstr "जुलु समर्थन"
+
+#: ../comps-f8.xml.in.h:21 ../comps-f9.xml.in.h:21
+msgid "Buildsystem building group"
+msgstr "निर्माण प्रणाली निर्माण समूह"
+
+#: ../comps-f8.xml.in.h:48 ../comps-f9.xml.in.h:49
+msgid "Fedora Eclipse"
+msgstr "फेडोरा इक्लिप्स"
+
+#: ../comps-f8.xml.in.h:52 ../comps-f9.xml.in.h:53
+msgid "Fonts"
+msgstr "फन्ट"
+
+#: ../comps-f8.xml.in.h:53 ../comps-f9.xml.in.h:54
+msgid "Fonts packages for rendering text on the desktop."
+msgstr "डेस्कटपमा पाठ रेन्डरिङका लागि फन्ट प्याकेज ।"
+
+#: ../comps-f8.xml.in.h:79 ../comps-f9.xml.in.h:80
+msgid "Integrated Development Environments based on Eclipse."
+msgstr "इक्लिप्समा आधारित एकिकृत विकास परिवेश ।"
+
+#: ../comps-f8.xml.in.h:95 ../comps-f9.xml.in.h:97
+msgid "Legacy Fonts"
+msgstr "लेगेसी फन्ट"
+
+#: ../comps-f8.xml.in.h:100 ../comps-f9.xml.in.h:102
+msgid "Low Saxon Support"
+msgstr "लो साक्सोन समर्थन"
+
+#: ../comps-f8.xml.in.h:106 ../comps-f9.xml.in.h:109
+msgid "Mongolian Support"
+msgstr "मङ्गोलिएन समर्थन"
+
+#: ../comps-f8.xml.in.h:108 ../comps-f9.xml.in.h:111
+msgid "Nepali Support"
+msgstr "नेपाली समर्थन"
+
+#: ../comps-f8.xml.in.h:114 ../comps-f9.xml.in.h:118
+msgid "Older bitmap and vector fonts packages"
+msgstr "पुरानो बिटम्याप र भेक्टर फन्ट प्याकेज"
+
+#: ../comps-f9.xml.in.h:44
+#, fuzzy
+msgid "Esperanto Support"
+msgstr "जर्मनी समर्थन"
+
+#: ../comps-f9.xml.in.h:91
+#, fuzzy
+msgid "Kashubian Support"
+msgstr "बोस्नियाली समर्थन"
+
+#: ../comps-f9.xml.in.h:103
+#, fuzzy
+msgid "Macedonian Support"
+msgstr "मङ्गोलिएन समर्थन"
+
+#: ../comps-f9.xml.in.h:114
+#, fuzzy
+msgid "Northern Sami Support"
+msgstr "उत्तरी सोथो समर्थन"
+
+#: ../comps-f9.xml.in.h:198
+#, fuzzy
+msgid "Walloon Support"
+msgstr "लाओ समर्थन"
+
+#: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr "कार्यको विविधताका लागि अनुप्रयोग"
+
+#: ../comps-el4.xml.in.h:12 ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "डायलअप सञ्जाल समर्थन"
+
+#: ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:23
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"जिनोम प्यानल, डेस्कटप, प्रणाली प्रतिमा, र ग्राफिकल फाइल प्रबन्धक समाविष्ट शक्तिशाली "
+"ग्राफिकल प्रयोगकर्ता इन्टरफेस हो ।"
+
+#: ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"केडीई प्यानल, डेस्कटप, प्रणाली प्रतिमा, र ग्राफिकल फाइल प्रबन्धक समाविष्ट शक्तिशाली "
+"ग्राफिकल प्रयोगकर्ता इन्टरफेस हो ।"
+
+#: ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+"कहिलेकाँही कल गरिएका पाठ सम्पादक, तपाईँलाई फाइल सिर्जना गर्न र सम्पादन गर्न अनुमति "
+"दिने कार्यक्रम हुन् । यिनीहरूले इमाक्स र Vi समावेश गर्दछन् ।"
+
+#: ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The XEmacs text editor."
+msgstr "एक्स इमाक्स पाठ सम्पादक ।"
+
+#: ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"यी उपकरणले तपाईँलाई DocBook ढाँचामा मिसिलिकरण सिर्जना गर्न अनुमति दिन्छन् र "
+"तिनीहरूलाई एचटीएमएल, पीडीएफ, पोस्टस्क्रिप्ट, र पाठमा रूपान्तरण गर्दछन् ।"
+
+#: ../comps-el4.xml.in.h:64 ../comps-el5.xml.in.h:62
+msgid "This group is a collection of network servers for specific purposes"
+msgstr "यो समूह निश्चित उद्धेश्यका सञ्जाल सर्भरको सङ्कलन हो"
+
+#: ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr "यो समूह अरवी परिवेशका उपकरण र संसाधनको सङ्कलन हो ।"
+
+#: ../comps-el4.xml.in.h:67 ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr "यो समूह हिब्रु परिवेशका उपकरण र संसाधनको सङ्कलन हो ।"
+
+#: ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr "यो समूह जापानी परिवेशका उपकरण र संसाधनको सङ्कलन हो ।"
+
+#: ../comps-el4.xml.in.h:77 ../comps-el5.xml.in.h:77
+msgid "XEmacs"
+msgstr "X इमाक्स"
+
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr "यो समूह चेक परिवेशका उपकरण र संसाधनको सङ्कलन हो ।"
+
+#, fuzzy
+#~ msgid "British Support"
+#~ msgstr "आइरिस समर्थन"
+
+#, fuzzy
+#~ msgid "Cluster Storage"
+#~ msgstr "समर्थन एकिकृत गर्दै"
+
+#, fuzzy
+#~ msgid "Clustering Support."
+#~ msgstr "समर्थन एकिकृत गर्दै"
+
+#, fuzzy
+#~ msgid "Single Node GFS Support"
+#~ msgstr "चिनियाँ समर्थन"
+
+#, fuzzy
+#~ msgid "These packages provide compatibility support with previous releases."
+#~ msgstr "यी प्याकेजले अघिल्ला प्रकासनसँग मिल्दोपना उपलब्ध गर्दछन् ।"
+
+#, fuzzy
+#~ msgid "Multimedia applications"
+#~ msgstr "अनुप्रयोग"
+
+#, fuzzy
+#~ msgid ""
+#~ "Packages which provide additional functionality for Red Hat Enterprise "
+#~ "Linux"
+#~ msgstr "अनुप्रयोग विकास गर्न र निर्माण गर्न कार्यात्मकता उपलब्ध गर्ने प्याकेज ।"
+
+#, fuzzy
+#~ msgid "Virtualization Support."
+#~ msgstr "भर्चुअलाइजेसन"

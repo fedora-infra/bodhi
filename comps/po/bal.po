@@ -1,0 +1,1113 @@
+# translation of comps.balochi.po to Balochi
+# translation of comps.balochi.po to
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Mostafa Daneshvar <mostafa@daneshvar.org.uk>, 2008.
+msgid ""
+msgstr ""
+"Project-Id-Version: comps.balochi\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-04-17 07:36-0400\n"
+"PO-Revision-Date: 2008-03-18 18:56+0330\n"
+"Last-Translator: Mostafa Daneshvar <mostafa@daneshvar.org.uk>\n"
+"Language-Team: Balochi <fedora-trans-bal@redhat.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: ../comps-f7.xml.in.h:1 ../comps-f8.xml.in.h:1 ../comps-f9.xml.in.h:1
+msgid "A lightweight desktop environment that works well on low end machines."
+msgstr "یک سبکین محیط دسکتاپ که په خوبی ته ماشینان کنٹین کار کنت."
+
+#: ../comps-f7.xml.in.h:2 ../comps-f8.xml.in.h:2 ../comps-f9.xml.in.h:2
+#: ../comps-el4.xml.in.h:1 ../comps-el5.xml.in.h:1
+msgid "Administration Tools"
+msgstr "وسایل مدیریت"
+
+#: ../comps-f7.xml.in.h:3 ../comps-f8.xml.in.h:3 ../comps-f9.xml.in.h:3
+msgid "Afrikaans Support"
+msgstr "آپریکایی حمایت"
+
+#: ../comps-f7.xml.in.h:4 ../comps-f8.xml.in.h:4 ../comps-f9.xml.in.h:4
+msgid "Albanian Support"
+msgstr "آلبانیایی حمایت"
+
+#: ../comps-f7.xml.in.h:5 ../comps-f8.xml.in.h:5 ../comps-f9.xml.in.h:5
+#: ../comps-el4.xml.in.h:2 ../comps-el5.xml.in.h:2
+msgid "Applications"
+msgstr "کارمرزیان"
+
+#: ../comps-f7.xml.in.h:6 ../comps-f8.xml.in.h:6 ../comps-f9.xml.in.h:6
+msgid "Applications to perform a variety of tasks"
+msgstr "کارمرزیان په اجرای چندین وظیفه"
+
+#: ../comps-f7.xml.in.h:7 ../comps-f8.xml.in.h:7 ../comps-f9.xml.in.h:7
+#: ../comps-el4.xml.in.h:4 ../comps-el5.xml.in.h:4
+msgid "Arabic Support"
+msgstr "عربی حمایت"
+
+#: ../comps-f7.xml.in.h:8 ../comps-f8.xml.in.h:8 ../comps-f9.xml.in.h:8
+#: ../comps-el4.xml.in.h:5 ../comps-el5.xml.in.h:5
+msgid "Armenian Support"
+msgstr "ارمنی حمایت"
+
+#: ../comps-f7.xml.in.h:9 ../comps-f8.xml.in.h:9 ../comps-f9.xml.in.h:9
+msgid "Assamese Support"
+msgstr "اسامس حمایت"
+
+#: ../comps-f7.xml.in.h:10 ../comps-f8.xml.in.h:10 ../comps-f9.xml.in.h:10
+#: ../comps-el4.xml.in.h:6 ../comps-el5.xml.in.h:6
+msgid "Authoring and Publishing"
+msgstr "نویسگ و نشر کنگ"
+
+#: ../comps-f7.xml.in.h:11 ../comps-f8.xml.in.h:11 ../comps-f9.xml.in.h:11
+msgid "Base"
+msgstr "اساس"
+
+#: ../comps-f7.xml.in.h:12 ../comps-f8.xml.in.h:12 ../comps-f9.xml.in.h:12
+#: ../comps-el4.xml.in.h:7 ../comps-el5.xml.in.h:7
+msgid "Base System"
+msgstr "سیستم پایه"
+
+#: ../comps-f7.xml.in.h:13 ../comps-f8.xml.in.h:13 ../comps-f9.xml.in.h:13
+msgid "Basic support for the Ruby programming language."
+msgstr "اساسی حمایت په برنامه یان په زبان Ruby"
+
+#: ../comps-f7.xml.in.h:14 ../comps-f8.xml.in.h:14 ../comps-f9.xml.in.h:14
+msgid "Basque Support"
+msgstr "حمایت باسکی"
+
+#: ../comps-f7.xml.in.h:15 ../comps-f8.xml.in.h:15 ../comps-f9.xml.in.h:15
+msgid "Belarusian Support"
+msgstr "حمایت بلاروسی"
+
+#: ../comps-f7.xml.in.h:16 ../comps-f8.xml.in.h:16 ../comps-f9.xml.in.h:16
+msgid "Bengali Support"
+msgstr "بنگالی حمایت"
+
+#: ../comps-f7.xml.in.h:17 ../comps-f8.xml.in.h:17 ../comps-f9.xml.in.h:17
+msgid "Bhutanese Support"
+msgstr "بوتانیس حمایت"
+
+#: ../comps-f7.xml.in.h:18 ../comps-f8.xml.in.h:18 ../comps-f9.xml.in.h:18
+msgid "Bosnian Support"
+msgstr "بوسنیایی حمایت"
+
+#: ../comps-f7.xml.in.h:19 ../comps-f8.xml.in.h:19 ../comps-f9.xml.in.h:19
+msgid "Brazilian Portuguese Support"
+msgstr "پرتگیزی برزیلی حمایت"
+
+#: ../comps-f7.xml.in.h:20 ../comps-f8.xml.in.h:20 ../comps-f9.xml.in.h:20
+msgid "Breton Support"
+msgstr "برتون حمایت"
+
+#: ../comps-f7.xml.in.h:21 ../comps-f8.xml.in.h:22 ../comps-f9.xml.in.h:22
+msgid "Bulgarian Support"
+msgstr "بلغاری حمایت"
+
+#: ../comps-f7.xml.in.h:22 ../comps-f8.xml.in.h:23 ../comps-f9.xml.in.h:23
+msgid "Catalan Support"
+msgstr " کاتالان حمایت"
+
+#: ../comps-f7.xml.in.h:23 ../comps-f8.xml.in.h:24 ../comps-f9.xml.in.h:24
+msgid "Chinese Support"
+msgstr "چینی حمایت"
+
+#: ../comps-f7.xml.in.h:24 ../comps-f8.xml.in.h:25 ../comps-f9.xml.in.h:25
+msgid "Clustering"
+msgstr "کلاستر بندی کنگ"
+
+#: ../comps-f7.xml.in.h:25 ../comps-f8.xml.in.h:26 ../comps-f9.xml.in.h:26
+msgid "Clustering Support"
+msgstr "حمایت کلاستری"
+
+#: ../comps-f7.xml.in.h:26 ../comps-f8.xml.in.h:27 ../comps-f9.xml.in.h:27
+msgid "Core"
+msgstr "هستگ"
+
+#: ../comps-f7.xml.in.h:27 ../comps-f8.xml.in.h:28 ../comps-f9.xml.in.h:28
+msgid "Croatian Support"
+msgstr "کرواتی حمایت"
+
+#: ../comps-f7.xml.in.h:28 ../comps-f8.xml.in.h:29 ../comps-f9.xml.in.h:29
+#: ../comps-el5.xml.in.h:8
+msgid "Czech Support"
+msgstr "چکی چمایت"
+
+#: ../comps-f7.xml.in.h:29 ../comps-f8.xml.in.h:30 ../comps-f9.xml.in.h:30
+msgid "DNS Name Server"
+msgstr "نام سرور DNS "
+
+#: ../comps-f7.xml.in.h:30 ../comps-f8.xml.in.h:31 ../comps-f9.xml.in.h:31
+msgid "Danish Support"
+msgstr "دانیش حمایت"
+
+#: ../comps-f7.xml.in.h:31 ../comps-f8.xml.in.h:32 ../comps-f9.xml.in.h:32
+#: ../comps-el4.xml.in.h:8 ../comps-el5.xml.in.h:9
+msgid "Desktop Environments"
+msgstr "محیطان دسکتاپ"
+
+#: ../comps-f7.xml.in.h:32 ../comps-f8.xml.in.h:33 ../comps-f9.xml.in.h:33
+#: ../comps-el4.xml.in.h:9 ../comps-el5.xml.in.h:10
+msgid "Desktop environments"
+msgstr "محیطان دسکتاپ"
+
+#: ../comps-f7.xml.in.h:33 ../comps-f8.xml.in.h:34 ../comps-f9.xml.in.h:34
+#: ../comps-el4.xml.in.h:10 ../comps-el5.xml.in.h:11
+msgid "Development"
+msgstr "پیش روگ"
+
+#: ../comps-f7.xml.in.h:34 ../comps-f8.xml.in.h:35 ../comps-f9.xml.in.h:35
+msgid "Development Libraries"
+msgstr "کتابخانه پیشروگ"
+
+#: ../comps-f7.xml.in.h:35 ../comps-f8.xml.in.h:36 ../comps-f9.xml.in.h:36
+#: ../comps-el4.xml.in.h:11 ../comps-el5.xml.in.h:12
+msgid "Development Tools"
+msgstr "وسایل پیشروگ"
+
+#: ../comps-f7.xml.in.h:36 ../comps-f8.xml.in.h:37 ../comps-f9.xml.in.h:37
+msgid "Dial-up Networking Support"
+msgstr "حمایت شبکه ای دیال آپ"
+
+#: ../comps-f7.xml.in.h:37 ../comps-f8.xml.in.h:38 ../comps-f9.xml.in.h:38
+msgid "Dutch Support"
+msgstr "داچ حمایت"
+
+#: ../comps-f7.xml.in.h:38
+msgid "Eclipse"
+msgstr "اکلیپس"
+
+#: ../comps-f7.xml.in.h:39 ../comps-f8.xml.in.h:39 ../comps-f9.xml.in.h:39
+#: ../comps-el4.xml.in.h:13 ../comps-el5.xml.in.h:14
+msgid "Editors"
+msgstr "اصلاح گر"
+
+#: ../comps-f7.xml.in.h:40 ../comps-f8.xml.in.h:40 ../comps-f9.xml.in.h:40
+#: ../comps-el4.xml.in.h:14 ../comps-el5.xml.in.h:15
+msgid "Educational Software"
+msgstr "برنامه آموزشی"
+
+#: ../comps-f7.xml.in.h:41 ../comps-f8.xml.in.h:41 ../comps-f9.xml.in.h:41
+#: ../comps-el4.xml.in.h:15 ../comps-el5.xml.in.h:16
+msgid "Educational software for learning"
+msgstr "برنامه آموزشی په یادگرگ"
+
+#: ../comps-f7.xml.in.h:42 ../comps-f8.xml.in.h:42 ../comps-f9.xml.in.h:42
+#: ../comps-el4.xml.in.h:16 ../comps-el5.xml.in.h:17
+msgid "Engineering and Scientific"
+msgstr "مهندسی و علمی"
+
+#: ../comps-f7.xml.in.h:43 ../comps-f8.xml.in.h:43 ../comps-f9.xml.in.h:43
+msgid "English (UK) Support"
+msgstr "انگریزی(یو کی) حمایت"
+
+#: ../comps-f7.xml.in.h:44 ../comps-f8.xml.in.h:44 ../comps-f9.xml.in.h:45
+msgid "Estonian Support"
+msgstr "استونیایی حمایت"
+
+#: ../comps-f7.xml.in.h:45 ../comps-f8.xml.in.h:45 ../comps-f9.xml.in.h:46
+msgid "Ethiopic Support"
+msgstr "اتیوپیایی حمایت"
+
+#: ../comps-f7.xml.in.h:46 ../comps-f8.xml.in.h:46 ../comps-f9.xml.in.h:47
+#: ../comps-el4.xml.in.h:17 ../comps-el5.xml.in.h:18
+msgid "FTP Server"
+msgstr "سرور FTP "
+
+#: ../comps-f7.xml.in.h:47 ../comps-f8.xml.in.h:47 ../comps-f9.xml.in.h:48
+msgid "Faeroese Support"
+msgstr "حمایت Faeroese "
+
+#: ../comps-f7.xml.in.h:48 ../comps-f8.xml.in.h:49 ../comps-f9.xml.in.h:50
+#: ../comps-el4.xml.in.h:18 ../comps-el5.xml.in.h:19
+msgid "Fedora Packager"
+msgstr "فدورا بسته بندی کنوک"
+
+#: ../comps-f7.xml.in.h:49 ../comps-f8.xml.in.h:50 ../comps-f9.xml.in.h:51
+msgid "Filipino Support"
+msgstr "فلپینی حمایت"
+
+#: ../comps-f7.xml.in.h:50 ../comps-f8.xml.in.h:51 ../comps-f9.xml.in.h:52
+msgid "Finnish Support"
+msgstr "فلاندی حمایت"
+
+#: ../comps-f7.xml.in.h:51 ../comps-f8.xml.in.h:54 ../comps-f9.xml.in.h:55
+msgid "French Support"
+msgstr " فرانسه ای حمایت"
+
+#: ../comps-f7.xml.in.h:52 ../comps-f8.xml.in.h:55 ../comps-f9.xml.in.h:56
+#: ../comps-el4.xml.in.h:19 ../comps-el5.xml.in.h:20
+msgid ""
+"From CD recording to playing audio CDs and multimedia files, this package "
+"group allows you to work with sound and video on the system."
+msgstr ""
+"چه ضبط سی دی دان پخش سی دی صوتی و فایلان ملتی مدیا، ای گروه بسته په شما "
+"اجازت دنت گون توار و ویدیو سیستم کار کنیت."
+
+#: ../comps-f7.xml.in.h:53 ../comps-f8.xml.in.h:56 ../comps-f9.xml.in.h:57
+#: ../comps-el4.xml.in.h:20 ../comps-el5.xml.in.h:21
+msgid "GNOME Desktop Environment"
+msgstr "محیط دسکتاپ GNOME "
+
+#: ../comps-f7.xml.in.h:54 ../comps-f8.xml.in.h:57 ../comps-f9.xml.in.h:58
+#: ../comps-el4.xml.in.h:21 ../comps-el5.xml.in.h:22
+msgid "GNOME Software Development"
+msgstr "پیشرپتی برنامه GNOME "
+
+#: ../comps-f7.xml.in.h:55 ../comps-f8.xml.in.h:58 ../comps-f9.xml.in.h:59
+msgid ""
+"GNOME is a powerful graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME  یک زرنگین گرافیکی کامرزی دست بروکی که شامل پنل دسکتاپ، آیکون سیستم ، "
+"و گرافیکی مدیریت فایلنت."
+
+#: ../comps-f7.xml.in.h:56 ../comps-f8.xml.in.h:59 ../comps-f9.xml.in.h:60
+msgid "Gaelic Support"
+msgstr "گیلیگ حمایت"
+
+#: ../comps-f7.xml.in.h:57 ../comps-f8.xml.in.h:60 ../comps-f9.xml.in.h:61
+msgid "Galician Support"
+msgstr "گالیکی حمایت"
+
+#: ../comps-f7.xml.in.h:58 ../comps-f8.xml.in.h:61 ../comps-f9.xml.in.h:62
+#: ../comps-el5.xml.in.h:24
+msgid "Games and Entertainment"
+msgstr "لیب و سرگرمی"
+
+#: ../comps-f7.xml.in.h:59 ../comps-f8.xml.in.h:62 ../comps-f9.xml.in.h:63
+msgid "Georgian Support"
+msgstr "گرجی حمایت"
+
+#: ../comps-f7.xml.in.h:60 ../comps-f8.xml.in.h:63 ../comps-f9.xml.in.h:64
+msgid "German Support"
+msgstr "جرمنی حمایت"
+
+#: ../comps-f7.xml.in.h:61 ../comps-f8.xml.in.h:64 ../comps-f9.xml.in.h:65
+#: ../comps-el4.xml.in.h:23 ../comps-el5.xml.in.h:25
+msgid "Graphical Internet"
+msgstr "اینترنت گرافیکی"
+
+#: ../comps-f7.xml.in.h:62 ../comps-f8.xml.in.h:65 ../comps-f9.xml.in.h:66
+#: ../comps-el4.xml.in.h:24 ../comps-el5.xml.in.h:26
+msgid "Graphics"
+msgstr "گرافیکان"
+
+#: ../comps-f7.xml.in.h:63 ../comps-f8.xml.in.h:66 ../comps-f9.xml.in.h:67
+msgid "Greek Support"
+msgstr "یونانی حمایت"
+
+#: ../comps-f7.xml.in.h:64 ../comps-f8.xml.in.h:67 ../comps-f9.xml.in.h:68
+msgid "Gujarati Support"
+msgstr "گجراتی حمایت"
+
+#: ../comps-f7.xml.in.h:65 ../comps-f8.xml.in.h:68 ../comps-f9.xml.in.h:69
+#: ../comps-el4.xml.in.h:25 ../comps-el5.xml.in.h:27
+msgid "Hardware Support"
+msgstr "حمایت سخت افزاری"
+
+#: ../comps-f7.xml.in.h:66 ../comps-f8.xml.in.h:69 ../comps-f9.xml.in.h:70
+#: ../comps-el4.xml.in.h:26 ../comps-el5.xml.in.h:28
+msgid "Hebrew Support"
+msgstr "عبری حمایت"
+
+#: ../comps-f7.xml.in.h:67 ../comps-f8.xml.in.h:70 ../comps-f9.xml.in.h:71
+msgid "Hindi Support"
+msgstr "هندی حمایت"
+
+#: ../comps-f7.xml.in.h:68 ../comps-f8.xml.in.h:71 ../comps-f9.xml.in.h:72
+msgid "Hungarian Support"
+msgstr "مجاری حمایت"
+
+#: ../comps-f7.xml.in.h:69 ../comps-f8.xml.in.h:72 ../comps-f9.xml.in.h:73
+msgid "Icelandic Support"
+msgstr "ایس آیلندیک حمایت"
+
+#: ../comps-f7.xml.in.h:70 ../comps-f8.xml.in.h:73 ../comps-f9.xml.in.h:74
+msgid "Indonesian Support"
+msgstr "اندونیزیایی حمایت"
+
+#: ../comps-f7.xml.in.h:71 ../comps-f8.xml.in.h:74 ../comps-f9.xml.in.h:75
+#: ../comps-el4.xml.in.h:27 ../comps-el5.xml.in.h:29
+msgid ""
+"Install these packages in order to develop GTK+ and GNOME graphical "
+"applications."
+msgstr "ای بستگان په خاطر بهتر کتن گرافیکی GTK+ و GNOME  کارمرزی نصب کینت"
+
+#: ../comps-f7.xml.in.h:72 ../comps-f8.xml.in.h:75 ../comps-f9.xml.in.h:76
+msgid ""
+"Install these packages in order to develop GTK+ and XFCE graphical "
+"applications."
+msgstr "ای بستگان په خاطر بهتر کتن گرافیکی GTK+ و XFCE   کارمرزی نصب کینت"
+
+#: ../comps-f7.xml.in.h:73 ../comps-f8.xml.in.h:76 ../comps-f9.xml.in.h:77
+#: ../comps-el4.xml.in.h:28 ../comps-el5.xml.in.h:30
+msgid "Install these packages to develop QT and KDE graphical applications."
+msgstr "ای بستگان په خاطر بهتر کتن گرافیکی QT  و KDE    کارمرزی نصب کینت"
+
+#: ../comps-f7.xml.in.h:74 ../comps-f8.xml.in.h:77 ../comps-f9.xml.in.h:78
+msgid ""
+"Install these tools to enable the system to print or act as a print server."
+msgstr ""
+"ای ابزاران په فعال کتن سیستم په چهاپ کنگ  یا په عنوان یک سرور پرینتر نصب "
+"کنیت."
+
+#: ../comps-f7.xml.in.h:75 ../comps-f8.xml.in.h:78 ../comps-f9.xml.in.h:79
+#: ../comps-el4.xml.in.h:29 ../comps-el5.xml.in.h:31
+msgid ""
+"Install this group of packages to use the base graphical (X) user interface."
+msgstr "ای گروه بستگانا په استفاده اساس گرافیکی(x) کامرزی دست بروک نصب کنیت."
+
+#: ../comps-f7.xml.in.h:76 ../comps-f8.xml.in.h:80 ../comps-f9.xml.in.h:81
+msgid "Inuktitut Support"
+msgstr "حمایت Inuktitut "
+
+#: ../comps-f7.xml.in.h:77 ../comps-f8.xml.in.h:81 ../comps-f9.xml.in.h:82
+msgid "Irish Support"
+msgstr "ایرلندی حمایت"
+
+#: ../comps-f7.xml.in.h:78 ../comps-f8.xml.in.h:82 ../comps-f9.xml.in.h:83
+msgid "Italian Support"
+msgstr "ایتالیایی حمایت"
+
+#: ../comps-f7.xml.in.h:79 ../comps-f8.xml.in.h:83 ../comps-f9.xml.in.h:84
+#: ../comps-el4.xml.in.h:30 ../comps-el5.xml.in.h:32
+msgid "Japanese Support"
+msgstr "ژاپنی حمایت"
+
+#: ../comps-f7.xml.in.h:80 ../comps-f8.xml.in.h:84 ../comps-f9.xml.in.h:85
+#: ../comps-el4.xml.in.h:31
+msgid "Java"
+msgstr "جاوا"
+
+#: ../comps-f7.xml.in.h:81 ../comps-f8.xml.in.h:85 ../comps-f9.xml.in.h:86
+#: ../comps-el4.xml.in.h:32
+msgid "Java Development"
+msgstr "پیش رپت جاوا"
+
+#: ../comps-f7.xml.in.h:82 ../comps-f8.xml.in.h:86 ../comps-f9.xml.in.h:87
+#: ../comps-el4.xml.in.h:33 ../comps-el5.xml.in.h:33
+msgid "KDE (K Desktop Environment)"
+msgstr "KDE ( محیط دسکتاپ K)"
+
+#: ../comps-f7.xml.in.h:83 ../comps-f8.xml.in.h:87 ../comps-f9.xml.in.h:88
+#: ../comps-el4.xml.in.h:34 ../comps-el5.xml.in.h:34
+msgid "KDE Software Development"
+msgstr "برنامه پیشرپت KDE "
+
+#: ../comps-f7.xml.in.h:84 ../comps-f8.xml.in.h:88 ../comps-f9.xml.in.h:89
+msgid ""
+"KDE is a powerful graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE  یک زرنگین گرافیکی کامرزی دست بروکی که شامل پنل دسکتاپ، آیکون سیستم ، و "
+"گرافیکی مدیریت فایلنت."
+
+#: ../comps-f7.xml.in.h:85 ../comps-f8.xml.in.h:89 ../comps-f9.xml.in.h:90
+msgid "Kannada Support"
+msgstr " کانادا حمایت"
+
+#: ../comps-f7.xml.in.h:86 ../comps-f8.xml.in.h:90 ../comps-f9.xml.in.h:92
+msgid "Khmer Support"
+msgstr "خمری حمایت"
+
+#: ../comps-f7.xml.in.h:87 ../comps-f8.xml.in.h:91 ../comps-f9.xml.in.h:93
+msgid "Korean Support"
+msgstr "کوریایی حمایت"
+
+#: ../comps-f7.xml.in.h:88 ../comps-f8.xml.in.h:92 ../comps-f9.xml.in.h:94
+msgid "Languages"
+msgstr "زبانان"
+
+#: ../comps-f7.xml.in.h:89 ../comps-f8.xml.in.h:93 ../comps-f9.xml.in.h:95
+msgid "Lao Support"
+msgstr "لاءو حمایت"
+
+#: ../comps-f7.xml.in.h:90 ../comps-f8.xml.in.h:94 ../comps-f9.xml.in.h:96
+msgid "Latvian Support"
+msgstr "لاتوینی حمایت"
+
+#: ../comps-f7.xml.in.h:91 ../comps-f8.xml.in.h:96 ../comps-f9.xml.in.h:98
+msgid "Legacy Network Server"
+msgstr "سرور شبکه ای قانونی"
+
+#: ../comps-f7.xml.in.h:92 ../comps-f8.xml.in.h:97 ../comps-f9.xml.in.h:99
+msgid "Legacy Software Development"
+msgstr "پیشرپت برنامه قانونی"
+
+#: ../comps-f7.xml.in.h:93 ../comps-f8.xml.in.h:98 ../comps-f9.xml.in.h:100
+msgid "Legacy Software Support"
+msgstr "برنامه ی حمایتی قانونی"
+
+#: ../comps-f7.xml.in.h:94 ../comps-f8.xml.in.h:99 ../comps-f9.xml.in.h:101
+msgid "Lithuanian Support"
+msgstr "لیتوانیای حمایت"
+
+#: ../comps-f7.xml.in.h:95 ../comps-f8.xml.in.h:101 ../comps-f9.xml.in.h:104
+#: ../comps-el4.xml.in.h:36 ../comps-el5.xml.in.h:36
+msgid "Mail Server"
+msgstr "سرور میل"
+
+#: ../comps-f7.xml.in.h:96 ../comps-f8.xml.in.h:102 ../comps-f9.xml.in.h:105
+msgid "Malay Support"
+msgstr "مالایی حمایت"
+
+#: ../comps-f7.xml.in.h:97 ../comps-f8.xml.in.h:103 ../comps-f9.xml.in.h:106
+msgid "Malayalam Support"
+msgstr "مالایامی حمایت"
+
+#: ../comps-f7.xml.in.h:98 ../comps-f8.xml.in.h:104 ../comps-f9.xml.in.h:107
+msgid "Maori Support"
+msgstr "ماءوری حمایت"
+
+#: ../comps-f7.xml.in.h:99 ../comps-f8.xml.in.h:105 ../comps-f9.xml.in.h:108
+msgid "Marathi Support"
+msgstr "ماراتی حمایت"
+
+#: ../comps-f7.xml.in.h:100 ../comps-f8.xml.in.h:107 ../comps-f9.xml.in.h:110
+msgid "MySQL Database"
+msgstr "پایگاه داده MySQL "
+
+#: ../comps-f7.xml.in.h:101 ../comps-f8.xml.in.h:109 ../comps-f9.xml.in.h:112
+#: ../comps-el4.xml.in.h:37 ../comps-el5.xml.in.h:37
+msgid "Network Servers"
+msgstr "سروران شبکه "
+
+#: ../comps-f7.xml.in.h:102 ../comps-f8.xml.in.h:110 ../comps-f9.xml.in.h:113
+#: ../comps-el4.xml.in.h:38 ../comps-el5.xml.in.h:38
+msgid "News Server"
+msgstr "سرور خبر"
+
+#: ../comps-f7.xml.in.h:103 ../comps-f8.xml.in.h:111 ../comps-f9.xml.in.h:115
+msgid "Northern Sotho Support"
+msgstr "سوتو شمالی حمایت"
+
+#: ../comps-f7.xml.in.h:104 ../comps-f8.xml.in.h:112 ../comps-f9.xml.in.h:116
+msgid "Norwegian Support"
+msgstr "نوروژی حمایت"
+
+#: ../comps-f7.xml.in.h:105 ../comps-f8.xml.in.h:113 ../comps-f9.xml.in.h:117
+#: ../comps-el4.xml.in.h:39 ../comps-el5.xml.in.h:39
+msgid "Office/Productivity"
+msgstr "دفتر/تولیدی"
+
+#: ../comps-f7.xml.in.h:106 ../comps-f8.xml.in.h:115 ../comps-f9.xml.in.h:119
+msgid "Oriya Support"
+msgstr "اوریا حمایت"
+
+#: ../comps-f7.xml.in.h:107 ../comps-f8.xml.in.h:116 ../comps-f9.xml.in.h:120
+#: ../comps-el4.xml.in.h:40 ../comps-el5.xml.in.h:40
+msgid ""
+"Packages which provide functionality for developing and building "
+"applications."
+msgstr "بستگانی که په پیشروگ و شرکنگ کارمرزی عمل آرنت."
+
+#: ../comps-f7.xml.in.h:108 ../comps-f8.xml.in.h:117 ../comps-f9.xml.in.h:121
+msgid "Persian Support"
+msgstr "پارسی حمایت"
+
+#: ../comps-f7.xml.in.h:109 ../comps-f8.xml.in.h:118 ../comps-f9.xml.in.h:122
+msgid "Polish Support"
+msgstr "لهستانی حمایت"
+
+#: ../comps-f7.xml.in.h:110 ../comps-f8.xml.in.h:119 ../comps-f9.xml.in.h:123
+msgid "Portuguese Support"
+msgstr "پرتگیزی حمایت"
+
+#: ../comps-f7.xml.in.h:111 ../comps-f8.xml.in.h:120 ../comps-f9.xml.in.h:124
+msgid "PostgreSQL Database"
+msgstr "پایگاه داده PostgreSQL "
+
+#: ../comps-f7.xml.in.h:112 ../comps-f8.xml.in.h:121 ../comps-f9.xml.in.h:125
+msgid "Printing Support"
+msgstr "چهاپ حمایت"
+
+#: ../comps-f7.xml.in.h:113 ../comps-f8.xml.in.h:122 ../comps-f9.xml.in.h:126
+msgid "Punjabi Support"
+msgstr "پنجاپی حمایت"
+
+#: ../comps-f7.xml.in.h:114 ../comps-f8.xml.in.h:123 ../comps-f9.xml.in.h:127
+msgid "Romanian Support"
+msgstr "رومانیایی حمایت"
+
+#: ../comps-f7.xml.in.h:115 ../comps-f8.xml.in.h:124 ../comps-f9.xml.in.h:128
+msgid "Ruby"
+msgstr "Ruby"
+
+#: ../comps-f7.xml.in.h:116 ../comps-f8.xml.in.h:125 ../comps-f9.xml.in.h:129
+msgid "Russian Support"
+msgstr "روسی حمایت"
+
+#: ../comps-f7.xml.in.h:117 ../comps-f8.xml.in.h:126 ../comps-f9.xml.in.h:130
+msgid "Samoan Support"
+msgstr "سوموان حمایت"
+
+#: ../comps-f7.xml.in.h:118 ../comps-f8.xml.in.h:127 ../comps-f9.xml.in.h:131
+msgid "Serbian Support"
+msgstr "صربی حمایت"
+
+#: ../comps-f7.xml.in.h:119 ../comps-f8.xml.in.h:128 ../comps-f9.xml.in.h:132
+msgid "Server Configuration Tools"
+msgstr "وسایل تنظیم سرور"
+
+#: ../comps-f7.xml.in.h:120 ../comps-f8.xml.in.h:129 ../comps-f9.xml.in.h:133
+#: ../comps-el4.xml.in.h:41 ../comps-el5.xml.in.h:41
+msgid "Servers"
+msgstr "سروران"
+
+#: ../comps-f7.xml.in.h:121 ../comps-f8.xml.in.h:130 ../comps-f9.xml.in.h:134
+#: ../comps-el4.xml.in.h:42 ../comps-el5.xml.in.h:42
+msgid ""
+"Simple window managers that aren't part of a larger desktop environment."
+msgstr "سادگین پنجره مدیری که بهری چه یک مزنین محیط دسکتاپ نهنت."
+
+#: ../comps-f7.xml.in.h:122 ../comps-f8.xml.in.h:131 ../comps-f9.xml.in.h:135
+msgid "Sinhala Support"
+msgstr "سینهالا حمایت"
+
+#: ../comps-f7.xml.in.h:123 ../comps-f8.xml.in.h:132 ../comps-f9.xml.in.h:136
+msgid "Slovak Support"
+msgstr "اوسلواکی حمایت"
+
+#: ../comps-f7.xml.in.h:124 ../comps-f8.xml.in.h:133 ../comps-f9.xml.in.h:137
+msgid "Slovenian Support"
+msgstr "اسوانیایی حمایت"
+
+#: ../comps-f7.xml.in.h:125 ../comps-f8.xml.in.h:134 ../comps-f9.xml.in.h:138
+msgid "Smallest possible installation"
+msgstr "هوردترین نصب ممکن"
+
+#: ../comps-f7.xml.in.h:126 ../comps-f8.xml.in.h:135 ../comps-f9.xml.in.h:139
+#: ../comps-el4.xml.in.h:43 ../comps-el5.xml.in.h:43
+msgid "Software used for running network servers"
+msgstr "برنامه ای که په اجرای سروران شبکه ای استفاده بیت."
+
+#: ../comps-f7.xml.in.h:127 ../comps-f8.xml.in.h:136 ../comps-f9.xml.in.h:140
+msgid "Somali Support"
+msgstr "سومالی حمایت"
+
+#: ../comps-f7.xml.in.h:128 ../comps-f8.xml.in.h:137 ../comps-f9.xml.in.h:141
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit text files. This includes Emacs and Vi."
+msgstr ""
+"لهتی وهد اصلاح گر متنی نامی نگ بیت، شاں برنامه یانیینت که شما را اجازت دن که "
+"فایلان متن شر کنیت و آیانا اصلاح کنیت. شی شامل Emacs و Vi بیت"
+
+#: ../comps-f7.xml.in.h:129 ../comps-f8.xml.in.h:138 ../comps-f9.xml.in.h:142
+#: ../comps-el4.xml.in.h:45 ../comps-el5.xml.in.h:45
+msgid "Sound and Video"
+msgstr "تورا و ویدیو"
+
+#: ../comps-f7.xml.in.h:130 ../comps-f8.xml.in.h:139 ../comps-f9.xml.in.h:143
+msgid "Southern Ndebele Support"
+msgstr "جنوبی ندبل حمایت"
+
+#: ../comps-f7.xml.in.h:131 ../comps-f8.xml.in.h:140 ../comps-f9.xml.in.h:144
+msgid "Southern Sotho Support"
+msgstr "جنوبی سوتو حمایت"
+
+#: ../comps-f7.xml.in.h:132 ../comps-f8.xml.in.h:141 ../comps-f9.xml.in.h:145
+msgid "Spanish Support"
+msgstr "اسپانیایی حمایت"
+
+#: ../comps-f7.xml.in.h:133 ../comps-f8.xml.in.h:142 ../comps-f9.xml.in.h:146
+#: ../comps-el4.xml.in.h:46
+msgid "Support for developing programs in the Java programming language."
+msgstr "حمایت په پیشرپت برنامیان ته زبان برنامه نویسی جاوا."
+
+#: ../comps-f7.xml.in.h:134 ../comps-f8.xml.in.h:143 ../comps-f9.xml.in.h:147
+#: ../comps-el4.xml.in.h:47
+msgid "Support for running programs written in the Java programming language."
+msgstr "حمایت په اجرای برنامیان که گون زبان جاوا نوشته بیتگنت."
+
+#: ../comps-f7.xml.in.h:135 ../comps-f8.xml.in.h:144 ../comps-f9.xml.in.h:148
+msgid "Swati Support"
+msgstr "سواتی حمایت"
+
+#: ../comps-f7.xml.in.h:136 ../comps-f8.xml.in.h:145 ../comps-f9.xml.in.h:149
+msgid "Swedish Support"
+msgstr "سوپدی حمایت"
+
+#: ../comps-f7.xml.in.h:137 ../comps-f8.xml.in.h:146 ../comps-f9.xml.in.h:150
+#: ../comps-el4.xml.in.h:48 ../comps-el5.xml.in.h:46
+msgid "System Tools"
+msgstr "وسایل سیستم"
+
+#: ../comps-f7.xml.in.h:138 ../comps-f8.xml.in.h:147 ../comps-f9.xml.in.h:151
+msgid "Tagalog Support"
+msgstr "تاگالوگی حمایت"
+
+#: ../comps-f7.xml.in.h:139 ../comps-f8.xml.in.h:148 ../comps-f9.xml.in.h:152
+msgid "Tamil Support"
+msgstr "تامیلی حمایت"
+
+#: ../comps-f7.xml.in.h:140 ../comps-f8.xml.in.h:149 ../comps-f9.xml.in.h:153
+msgid "Telugu Support"
+msgstr "تلوگو حمایت"
+
+#: ../comps-f7.xml.in.h:141 ../comps-f8.xml.in.h:150 ../comps-f9.xml.in.h:154
+#: ../comps-el4.xml.in.h:49 ../comps-el5.xml.in.h:47
+msgid "Text-based Internet"
+msgstr "اینترنت متنی"
+
+#: ../comps-f7.xml.in.h:142 ../comps-f8.xml.in.h:151 ../comps-f9.xml.in.h:155
+msgid "Thai Support"
+msgstr "تایی حمایت"
+
+#: ../comps-f7.xml.in.h:143
+msgid "The Eclipse Integrated Development Environment."
+msgstr "محیط پیشرپتی تعاملی اکلیپس"
+
+#: ../comps-f7.xml.in.h:144 ../comps-f8.xml.in.h:152 ../comps-f9.xml.in.h:156
+#: ../comps-el4.xml.in.h:51 ../comps-el5.xml.in.h:49
+msgid "The applications include office suites, PDF viewers, and more."
+msgstr "کارمرزی شامل آفیس پی دی اف دیدوک و گیشتر"
+
+#: ../comps-f7.xml.in.h:145 ../comps-f8.xml.in.h:153 ../comps-f9.xml.in.h:157
+msgid ""
+"The packages in this group are core libraries needed to develop applications."
+msgstr ""
+"برنامه یان ته ای گروه کتابخانه یان هسته ی که په پیشرپت کارمرزیان لازمنت"
+
+#: ../comps-f7.xml.in.h:146 ../comps-f8.xml.in.h:154 ../comps-f9.xml.in.h:158
+#: ../comps-el4.xml.in.h:52 ../comps-el5.xml.in.h:50
+msgid "These packages allow you to configure an IMAP or SMTP mail server."
+msgstr "ای بستگان شما را اجازت دن که یک میل سرور IMAP یا SMTP تنظیم کنیت"
+
+#: ../comps-f7.xml.in.h:147 ../comps-f8.xml.in.h:155 ../comps-f9.xml.in.h:159
+msgid ""
+"These packages allow you to develop applications for the X Window System."
+msgstr "ای بستگان شمارا اجازت دن که کارمرزانا په سیستم ویندو X پیشرپت دیت."
+
+#: ../comps-f7.xml.in.h:148 ../comps-f8.xml.in.h:156 ../comps-f9.xml.in.h:160
+#: ../comps-el4.xml.in.h:53 ../comps-el5.xml.in.h:51
+msgid ""
+"These packages are helpful when developing web applications or web pages."
+msgstr "ای بستگان مفیدنت وهدی پیشرپت دهگ کامرزیان وبی یا صفحات وب."
+
+#: ../comps-f7.xml.in.h:149 ../comps-f8.xml.in.h:157 ../comps-f9.xml.in.h:161
+msgid ""
+"These packages include network-based servers such as DHCP, Kerberos and NIS."
+msgstr " شی برستگانی شامل سروران مبتنی په شبکه په دابKerberosو NISو DHCP."
+
+#: ../comps-f7.xml.in.h:150 ../comps-f8.xml.in.h:158 ../comps-f9.xml.in.h:162
+msgid ""
+"These packages include servers for old network protocols such as rsh and "
+"telnet."
+msgstr "ای بستگان شامل سرورانیت په کهنگین پروتوکلان شبکه په داب rsh و telnet"
+
+#: ../comps-f7.xml.in.h:151 ../comps-f8.xml.in.h:159 ../comps-f9.xml.in.h:163
+msgid "These packages provide a virtualization environment."
+msgstr "ای بستگان یک محیط مجازی پیش آرنت."
+
+#: ../comps-f7.xml.in.h:152 ../comps-f8.xml.in.h:160 ../comps-f9.xml.in.h:164
+msgid "These packages provide compatibility with previous releases."
+msgstr "ای بستگان سازگاری گون پیشگین نشران پیش آریت"
+
+#: ../comps-f7.xml.in.h:153 ../comps-f8.xml.in.h:161 ../comps-f9.xml.in.h:165
+msgid ""
+"These packages provide support for various locales including fonts and input "
+"methods."
+msgstr "ای بستگان حمایت آریت په هر دابن محلیان په داب فونت و گه دابان ورودی"
+
+#: ../comps-f7.xml.in.h:154 ../comps-f8.xml.in.h:162 ../comps-f9.xml.in.h:166
+msgid ""
+"These tools allow you to create documents in the DocBook format and convert "
+"them into HTML, PDF, Postscript, and text."
+msgstr ""
+"ای ابزاران شما را اجازت دن که اسنادی ته فرمت DocBook شر کنیت و آیانا پهHTML, "
+"PDF, Postscript, و متن بدل کنیت."
+
+#: ../comps-f7.xml.in.h:155 ../comps-f8.xml.in.h:163 ../comps-f9.xml.in.h:167
+#: ../comps-el4.xml.in.h:55 ../comps-el5.xml.in.h:53
+msgid "These tools allow you to run a Web server on the system."
+msgstr "ای ابزاران شما را اجازت دین که یک سرور وبی ته سیستم اجرای کنیت."
+
+#: ../comps-f7.xml.in.h:156 ../comps-f8.xml.in.h:164 ../comps-f9.xml.in.h:168
+#: ../comps-el4.xml.in.h:56 ../comps-el5.xml.in.h:54
+msgid "These tools allow you to run an FTP server on the system."
+msgstr "ای ابزاران شما را اجازت دین که یک سرور FTP ته سیستم اجرای کنیت."
+
+#: ../comps-f7.xml.in.h:157 ../comps-f8.xml.in.h:165 ../comps-f9.xml.in.h:169
+#: ../comps-el4.xml.in.h:57 ../comps-el5.xml.in.h:55
+msgid ""
+"These tools include core development tools such as automake, gcc, perl, "
+"python, and debuggers."
+msgstr ""
+"ای ابزاران شامل هسته پیشرپت اند په دابه automake, gcc, perl, python, و "
+"دیباگران"
+
+#: ../comps-f7.xml.in.h:158 ../comps-f8.xml.in.h:166 ../comps-f9.xml.in.h:170
+#: ../comps-el4.xml.in.h:58 ../comps-el5.xml.in.h:56
+msgid "This group allows you to configure the system as a news server."
+msgstr "ای گروه شما را اجازت دین تا سیستما په داب یک سرور خبری تنظیم کنیت."
+
+#: ../comps-f7.xml.in.h:159 ../comps-f8.xml.in.h:167 ../comps-f9.xml.in.h:171
+msgid "This group contains all of Red Hat's custom server configuration tools."
+msgstr "ای گروه شامل کل ابزاران تنظیم سروری رد هت انت."
+
+#: ../comps-f7.xml.in.h:160 ../comps-f8.xml.in.h:168 ../comps-f9.xml.in.h:172
+msgid ""
+"This group includes a minimal set of packages. Useful for creating small "
+"router/firewall boxes, for example."
+msgstr ""
+"ای گروه شامل یک جمعی چه کمترین بستگان انت که په شرکتن جعبیان هردین روتر/"
+"دیوال آچش مثلا مفیدنت."
+
+#: ../comps-f7.xml.in.h:161 ../comps-f8.xml.in.h:169 ../comps-f9.xml.in.h:173
+#: ../comps-el4.xml.in.h:59 ../comps-el5.xml.in.h:57
+msgid "This group includes graphical email, Web, and chat clients."
+msgstr "ای گروه شامل ایمیل گرافیکی، وب و کلاینتان گپی انت."
+
+#: ../comps-f7.xml.in.h:162 ../comps-f8.xml.in.h:170 ../comps-f9.xml.in.h:174
+#: ../comps-el4.xml.in.h:60 ../comps-el5.xml.in.h:58
+msgid ""
+"This group includes packages for performing mathematical and scientific "
+"computations and plotting, as well as unit conversion."
+msgstr ""
+"ای گروه شامب بستگانینت په اجرا کتن محاسبات ریاضیاتی و علمی و رسم کتن و تبدیل "
+"واحد."
+
+#: ../comps-f7.xml.in.h:163 ../comps-f8.xml.in.h:171 ../comps-f9.xml.in.h:175
+#: ../comps-el4.xml.in.h:61 ../comps-el5.xml.in.h:59
+msgid "This group includes packages to help you manipulate and scan images."
+msgstr "ای گروه شامب بستگاننت په کمک کتن شما ته استفاده و اسکن عکساں."
+
+#: ../comps-f7.xml.in.h:164 ../comps-f8.xml.in.h:172 ../comps-f9.xml.in.h:176
+#: ../comps-el4.xml.in.h:62 ../comps-el5.xml.in.h:60
+msgid ""
+"This group includes text-based email, Web, and chat clients. These "
+"applications do not require the X Window System."
+msgstr ""
+"ای گروه شامل متنی ایمیل, وب و کلاینتان گپی انت. ای کارمرزیان نیاز په سیستم "
+"ویندو X نهنت."
+
+#: ../comps-f7.xml.in.h:165 ../comps-f8.xml.in.h:173 ../comps-f9.xml.in.h:177
+#: ../comps-el4.xml.in.h:63 ../comps-el5.xml.in.h:61
+msgid ""
+"This group is a collection of graphical administration tools for the system, "
+"such as for managing user accounts and configuring system hardware."
+msgstr ""
+"ای گروه یک جمعی چه ابزار مدیرتی گرافیکینت په سیستم مثلا په مدیریت حسابان "
+"کامرز کنوک و تنظیم سخت افزاری سیستم."
+
+#: ../comps-f7.xml.in.h:166 ../comps-f8.xml.in.h:174 ../comps-f9.xml.in.h:178
+#: ../comps-el4.xml.in.h:66 ../comps-el5.xml.in.h:64
+msgid ""
+"This group is a collection of tools and resources of Armenian environments."
+msgstr "ای گروه یک جمعین چه ابزاران و منابعان محیطان ارمنی."
+
+#: ../comps-f7.xml.in.h:167 ../comps-f8.xml.in.h:175 ../comps-f9.xml.in.h:179
+#: ../comps-el4.xml.in.h:69 ../comps-el5.xml.in.h:68
+msgid ""
+"This group is a collection of tools for various hardware specific utilities."
+msgstr "ای گروه شامل جمعین چه ابزاران په ابزاران خاص سخت افزار."
+
+#: ../comps-f7.xml.in.h:168 ../comps-f8.xml.in.h:176 ../comps-f9.xml.in.h:180
+#: ../comps-el4.xml.in.h:70 ../comps-el5.xml.in.h:69
+msgid ""
+"This group is a collection of various tools for the system, such as the "
+"client for connecting to SMB shares and tools to monitor network traffic."
+msgstr ""
+"ای گروه یک جمعینت چه ابزاراتی په سیستم په داب کلاینت په وصل بیگ په SMB "
+"اشتراکی و ابزاراتی په پیش دارگ ترافیک شبکه"
+
+#: ../comps-f7.xml.in.h:169 ../comps-f8.xml.in.h:177 ../comps-f9.xml.in.h:181
+msgid ""
+"This package group allows you to run a DNS name server (BIND) on the system."
+msgstr ""
+"ای گروه بستگ په شما اجازت دن تا یک نام DNS  سروری(BIND) اور سیستم اجرا کنیت. "
+
+#: ../comps-f7.xml.in.h:170 ../comps-f8.xml.in.h:178 ../comps-f9.xml.in.h:182
+msgid ""
+"This package group allows you to share files between Linux and MS Windows"
+"(tm) systems."
+msgstr ""
+"ای گروه بستگ شما را اجازت دن تا فایلانا بین لینوکس و م.س ویندوز(م.ت) سیستمان "
+"شریک کنت."
+
+#: ../comps-f7.xml.in.h:171 ../comps-f8.xml.in.h:179 ../comps-f9.xml.in.h:183
+msgid "This package group contains packages useful for use with MySQL."
+msgstr "ای گروه بستگ شامل  مفیدین بستگانینت په کارمرز کتن گون MySQL."
+
+#: ../comps-f7.xml.in.h:172 ../comps-f8.xml.in.h:180 ../comps-f9.xml.in.h:184
+msgid "This package group includes packages useful for use with Postgresql."
+msgstr "ای گروه بستگ شامل  مفیدین بستگانینت په کارمرز کتن گون Postgresql."
+
+#: ../comps-f7.xml.in.h:173 ../comps-f8.xml.in.h:181 ../comps-f9.xml.in.h:185
+msgid "Tibetan Support"
+msgstr "تیبیتانی حمایت"
+
+#: ../comps-f7.xml.in.h:174 ../comps-f8.xml.in.h:182 ../comps-f9.xml.in.h:186
+msgid "Tonga Support"
+msgstr "تونگای حمایت"
+
+#: ../comps-f7.xml.in.h:175 ../comps-f8.xml.in.h:183 ../comps-f9.xml.in.h:187
+#: ../comps-el4.xml.in.h:71 ../comps-el5.xml.in.h:70
+msgid "Tools and Utilities needed by a Fedora Packager"
+msgstr "وسایل و ابزاران که په فدورا بسته کنوک لازمنت"
+
+#: ../comps-f7.xml.in.h:176 ../comps-f8.xml.in.h:184 ../comps-f9.xml.in.h:188
+msgid "Tsonga Support"
+msgstr "سونگایی حمایت"
+
+#: ../comps-f7.xml.in.h:177 ../comps-f8.xml.in.h:185 ../comps-f9.xml.in.h:189
+msgid "Tswana Support"
+msgstr "سوانایی حمایت"
+
+#: ../comps-f7.xml.in.h:178 ../comps-f8.xml.in.h:186 ../comps-f9.xml.in.h:190
+msgid "Turkish Support"
+msgstr "ترکی حمایت"
+
+#: ../comps-f7.xml.in.h:179 ../comps-f8.xml.in.h:187 ../comps-f9.xml.in.h:191
+msgid "Ukrainian Support"
+msgstr "اوکراینی حمایت"
+
+#: ../comps-f7.xml.in.h:180 ../comps-f8.xml.in.h:188 ../comps-f9.xml.in.h:192
+msgid "Urdu Support"
+msgstr "اوردوی حمایت"
+
+#: ../comps-f7.xml.in.h:181 ../comps-f8.xml.in.h:189 ../comps-f9.xml.in.h:193
+#: ../comps-el4.xml.in.h:72 ../comps-el5.xml.in.h:71
+msgid "Various core pieces of the system."
+msgstr "چندین هستگ بهر سیستم"
+
+#: ../comps-f7.xml.in.h:182 ../comps-f8.xml.in.h:190 ../comps-f9.xml.in.h:194
+#: ../comps-el5.xml.in.h:72
+msgid "Various ways to relax and spend your free time."
+msgstr "چندین راه په استراحت کتن و گوازینگ آزاتین وهد"
+
+#: ../comps-f7.xml.in.h:183 ../comps-f8.xml.in.h:191 ../comps-f9.xml.in.h:195
+msgid "Venda Support"
+msgstr "وندایی حمایت"
+
+#: ../comps-f7.xml.in.h:184 ../comps-f8.xml.in.h:192 ../comps-f9.xml.in.h:196
+msgid "Vietnamese Support"
+msgstr "ویتنامی حمایت"
+
+#: ../comps-f7.xml.in.h:185 ../comps-f8.xml.in.h:193 ../comps-f9.xml.in.h:197
+msgid "Virtualization"
+msgstr "مجازی کتن"
+
+#: ../comps-f7.xml.in.h:186 ../comps-f8.xml.in.h:194 ../comps-f9.xml.in.h:199
+#: ../comps-el4.xml.in.h:73 ../comps-el5.xml.in.h:73
+msgid "Web Development"
+msgstr "پیشرپت وب"
+
+#: ../comps-f7.xml.in.h:187 ../comps-f8.xml.in.h:195 ../comps-f9.xml.in.h:200
+#: ../comps-el4.xml.in.h:74 ../comps-el5.xml.in.h:74
+msgid "Web Server"
+msgstr "سرور وب"
+
+#: ../comps-f7.xml.in.h:188 ../comps-f8.xml.in.h:196 ../comps-f9.xml.in.h:201
+msgid "Welsh Support"
+msgstr "ولزی حمایت"
+
+#: ../comps-f7.xml.in.h:189 ../comps-f8.xml.in.h:197 ../comps-f9.xml.in.h:202
+#: ../comps-el4.xml.in.h:75 ../comps-el5.xml.in.h:75
+msgid "Window Managers"
+msgstr "مدیران پنجره"
+
+#: ../comps-f7.xml.in.h:190 ../comps-f8.xml.in.h:198 ../comps-f9.xml.in.h:203
+msgid "Windows File Server"
+msgstr "سرور فایل ویندوز"
+
+#: ../comps-f7.xml.in.h:191 ../comps-f8.xml.in.h:199 ../comps-f9.xml.in.h:204
+msgid "X Software Development"
+msgstr "پیشرپت برنامه X "
+
+#: ../comps-f7.xml.in.h:192 ../comps-f8.xml.in.h:200 ../comps-f9.xml.in.h:205
+#: ../comps-el4.xml.in.h:76 ../comps-el5.xml.in.h:76
+msgid "X Window System"
+msgstr "سیستم ویندو X "
+
+#: ../comps-f7.xml.in.h:193 ../comps-f8.xml.in.h:201 ../comps-f9.xml.in.h:206
+msgid "XFCE"
+msgstr "XFCE"
+
+#: ../comps-f7.xml.in.h:194 ../comps-f8.xml.in.h:202 ../comps-f9.xml.in.h:207
+msgid "XFCE Software Development"
+msgstr "پیشرپت برنامه XFCE"
+
+#: ../comps-f7.xml.in.h:195 ../comps-f8.xml.in.h:203 ../comps-f9.xml.in.h:208
+msgid "Xhosa Support"
+msgstr "زواهی حمایت"
+
+#: ../comps-f7.xml.in.h:196 ../comps-f8.xml.in.h:204 ../comps-f9.xml.in.h:209
+msgid "Zulu Support"
+msgstr "زولو حمایت"
+
+#: ../comps-f8.xml.in.h:21 ../comps-f9.xml.in.h:21
+msgid "Buildsystem building group"
+msgstr "گروه شرکنوکی Buildsystem "
+
+#: ../comps-f8.xml.in.h:48 ../comps-f9.xml.in.h:49
+msgid "Fedora Eclipse"
+msgstr "فدورا اکلیپس"
+
+#: ../comps-f8.xml.in.h:52 ../comps-f9.xml.in.h:53
+msgid "Fonts"
+msgstr "فونت آن"
+
+#: ../comps-f8.xml.in.h:53 ../comps-f9.xml.in.h:54
+msgid "Fonts packages for rendering text on the desktop."
+msgstr "بستگان فوت په رندینگ متن ته دسکتاپ"
+
+#: ../comps-f8.xml.in.h:79 ../comps-f9.xml.in.h:80
+msgid "Integrated Development Environments based on Eclipse."
+msgstr "محیطان پیشرپتی تعاملی په اساس اکلیپس"
+
+#: ../comps-f8.xml.in.h:95 ../comps-f9.xml.in.h:97
+msgid "Legacy Fonts"
+msgstr "فونت آن قانونی"
+
+#: ../comps-f8.xml.in.h:100 ../comps-f9.xml.in.h:102
+msgid "Low Saxon Support"
+msgstr "کمین حمایت Saxon "
+
+#: ../comps-f8.xml.in.h:106 ../comps-f9.xml.in.h:109
+msgid "Mongolian Support"
+msgstr "مغولی حمایت"
+
+#: ../comps-f8.xml.in.h:108 ../comps-f9.xml.in.h:111
+msgid "Nepali Support"
+msgstr "نپالی حمایت"
+
+#: ../comps-f8.xml.in.h:114 ../comps-f9.xml.in.h:118
+msgid "Older bitmap and vector fonts packages"
+msgstr "کدیمین bitmap  و vector بستگ فوت "
+
+#: ../comps-f9.xml.in.h:44
+#, fuzzy
+msgid "Esperanto Support"
+msgstr "جرمنی حمایت"
+
+#: ../comps-f9.xml.in.h:91
+#, fuzzy
+msgid "Kashubian Support"
+msgstr "بوسنیایی حمایت"
+
+#: ../comps-f9.xml.in.h:103
+#, fuzzy
+msgid "Macedonian Support"
+msgstr "مغولی حمایت"
+
+#: ../comps-f9.xml.in.h:114
+#, fuzzy
+msgid "Northern Sami Support"
+msgstr "سوتو شمالی حمایت"
+
+#: ../comps-f9.xml.in.h:198
+#, fuzzy
+msgid "Walloon Support"
+msgstr "لاءو حمایت"
+
+#: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
+msgid "Applications for a variety of tasks"
+msgstr "کارمرزی په چندین کار"
+
+#: ../comps-el4.xml.in.h:12 ../comps-el5.xml.in.h:13
+msgid "Dialup Networking Support"
+msgstr "حمایت شبکه ای دیال آپ"
+
+#: ../comps-el4.xml.in.h:22 ../comps-el5.xml.in.h:23
+msgid ""
+"GNOME is a powerful, graphical user interface which includes a panel, "
+"desktop, system icons, and a graphical file manager."
+msgstr ""
+"GNOME  یک زرنگین گرافیکی کامرزی دست بروکی که شامل پنل دسکتاپ، آیکون سیستم ، "
+"و گرافیکی مدیریت فایلنت."
+
+#: ../comps-el4.xml.in.h:35 ../comps-el5.xml.in.h:35
+msgid ""
+"KDE is a powerful, graphical user interface which includes a panel, desktop, "
+"system icons, and a graphical file manager."
+msgstr ""
+"KDE  یک زرنگین گرافیکی کامرزی دست بروکی که شامل پنل دسکتاپ، آیکون سیستم ، و "
+"گرافیکی مدیریت فایلنت."
+
+#: ../comps-el4.xml.in.h:44 ../comps-el5.xml.in.h:44
+msgid ""
+"Sometimes called text editors, these are programs that allow you to create "
+"and edit files. These include Emacs and Vi."
+msgstr ""
+"لهتی وهد اصلاح گر متنی نامی نگ بیت، شاں برنامه یانیینت که شما را اجازت دن که "
+"فایلان متن شر کنیت و آیانا اصلاح کنیت. شی شامل Emacs و Vi بیت"
+
+#: ../comps-el4.xml.in.h:50 ../comps-el5.xml.in.h:48
+msgid "The XEmacs text editor."
+msgstr "متنی اصلاح گر XEmacs "
+
+#: ../comps-el4.xml.in.h:54 ../comps-el5.xml.in.h:52
+msgid ""
+"These tools allow you to create documentation in the DocBook format and "
+"convert them to HTML, PDF, Postscript, and text."
+msgstr ""
+"ای ابزاران شما را اجازت دن که اسنادی ته فرمت DocBook شر کنیت و آیانا پهHTML, "
+"PDF, Postscript, و متن بدل کنیت."
+
+#: ../comps-el4.xml.in.h:64 ../comps-el5.xml.in.h:62
+msgid "This group is a collection of network servers for specific purposes"
+msgstr "شی یک گروهی چه سروران شبکه  په خاصین مقصدنت."
+
+#: ../comps-el4.xml.in.h:65 ../comps-el5.xml.in.h:63
+msgid ""
+"This group is a collection of tools and resources of Arabic environments."
+msgstr "شی یک گروهی چه ابزاران و منابع محیطان عربی انت."
+
+#: ../comps-el4.xml.in.h:67 ../comps-el5.xml.in.h:66
+msgid ""
+"This group is a collection of tools and resources of Hebrew environments."
+msgstr "شی یک گروهی چه ابزاران و منابع محیطان عبری انت."
+
+#: ../comps-el4.xml.in.h:68 ../comps-el5.xml.in.h:67
+msgid ""
+"This group is a collection of tools and resources of Japanese environments."
+msgstr "شی یک گروهی چه ابزاران و منابع محیطان ژاپنی انت"
+
+#: ../comps-el4.xml.in.h:77 ../comps-el5.xml.in.h:77
+msgid "XEmacs"
+msgstr "XEmacs"
+
+#: ../comps-el5.xml.in.h:65
+msgid ""
+"This group is a collection of tools and resources of Czech environments."
+msgstr "شی یک گروهی چه ابزاران و منابع محیطان چکی انت."
+
+#, fuzzy
+#~ msgid "British Support"
+#~ msgstr "ایرلندی حمایت"
+
+#, fuzzy
+#~ msgid "Cluster Storage"
+#~ msgstr "حمایت کلاستری"
+
+#, fuzzy
+#~ msgid "Clustering Support."
+#~ msgstr "حمایت کلاستری"
+
+#, fuzzy
+#~ msgid "Single Node GFS Support"
+#~ msgstr "چینی حمایت"
+
+#, fuzzy
+#~ msgid "These packages provide compatibility support with previous releases."
+#~ msgstr "ای بستگان سازگاری گون پیشگین نشران پیش آریت"
+
+#, fuzzy
+#~ msgid "Multimedia applications"
+#~ msgstr "کارمرزیان"
+
+#, fuzzy
+#~ msgid ""
+#~ "Packages which provide additional functionality for Red Hat Enterprise "
+#~ "Linux"
+#~ msgstr "بستگانی که په پیشروگ و شرکنگ کارمرزی عمل آرنت."
+
+#, fuzzy
+#~ msgid "Virtualization Support."
+#~ msgstr "مجازی کتن"
