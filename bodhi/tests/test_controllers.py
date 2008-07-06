@@ -24,8 +24,8 @@ def create_release(num='7', dist='dist-fc'):
 
 def login(username='guest', display_name='guest', group=None):
     try:
-        guest = User(user_name=username, display_name=display_name)
-        guest.password = 'guest'
+        guest = User(user_name=username, display_name=display_name,
+                     password='guest')
         if group:
             group = Group(group_name=group, display_name=group)
             guest.addGroup(group)
@@ -65,7 +65,7 @@ class TestControllers(testutil.DBTest):
         #assert cherrypy.response.status == '403 Forbidden'
 
     def test_good_password(self):
-        guest = User(user_name='guest')
+        guest = User(user_name='guest', password='guest')
         guest.password = 'guest'
         x = testutil.create_request('/updates/login?tg_format=json&login=Login&user_name=guest&password=guest', method='POST')
         assert cherrypy.response.status == '200 OK'
@@ -212,7 +212,7 @@ class TestControllers(testutil.DBTest):
         x = testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                    params['builds'], method='POST',
                                    headers=session)
-        assert len(update.comments) == 2
+        assert len(update.comments) == 2, cherrypy.response.body[0]
         assert update.karma == 1
         assert update.comments[1].author == 'guest'
         assert update.comments[1].text == 'foobar'
