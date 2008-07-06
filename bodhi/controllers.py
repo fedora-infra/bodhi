@@ -255,7 +255,8 @@ class Root(controllers.RootController):
         if stringify: updates = map(unicode, updates)
 
         return dict(updates=updates, num_items=num_items,
-                    title="%d updates found" % num_items)
+                    title="%d %s found" % (num_items, num_items == 1 and
+                                           'update' or 'updates'))
 
     @expose(template="bodhi.templates.mine", allow_json=True)
     @identity.require(identity.not_anonymous())

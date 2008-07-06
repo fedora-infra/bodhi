@@ -751,14 +751,14 @@ class TestControllers(testutil.DBTest):
 
         url = '/updates/list?' + urllib.urlencode({ 'release' : 'F7' })
         testutil.create_request(url, method='GET')
-        assert "1 updates found" in cherrypy.response.body[0], cherrypy.response.body[0]
+        assert "1 update found" in cherrypy.response.body[0], cherrypy.response.body[0]
 
         url = '/updates/list?' + urllib.urlencode({
                 'release' : 'F7',
                 'bugs'    : '1234'
         })
         testutil.create_request(url, method='GET')
-        assert "1 updates found" in cherrypy.response.body[0]
+        assert "1 update found" in cherrypy.response.body[0]
 
         url = '/updates/list?' + urllib.urlencode({
                 'release' : 'F7',
@@ -766,7 +766,7 @@ class TestControllers(testutil.DBTest):
                 'type'    : 'enhancement'
         })
         testutil.create_request(url, method='GET')
-        assert "1 updates found" in cherrypy.response.body[0]
+        assert "1 update found" in cherrypy.response.body[0]
 
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
