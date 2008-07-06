@@ -1,18 +1,15 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#"
     py:extends="'master.kid'">
-
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
-        <title>Fedora Update Requests</title>
-        <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.checkboxes.js')}"></script>
+    <title>Fedora Update Requests</title>
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.checkboxes.js')}"></script>
 </head>
 
 <body>
 
 <?python
-## Build a few lists of updates that that outstanding requests
 stable = filter(lambda x: x.request == 'stable', updates)
 testing = filter(lambda x: x.request == 'testing', updates)
 obsolete = filter(lambda x: x.request == 'obsolete', updates)
