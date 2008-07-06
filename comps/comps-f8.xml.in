@@ -1294,6 +1294,7 @@
       <packagereq type="conditional" requires="koffice-core">koffice-langpack-fi</packagereq>
       <packagereq type="conditional" requires="moodle">moodle-fi</packagereq>
       <packagereq type="conditional" requires="openoffice.org-core">openoffice.org-langpack-fi_FI</packagereq>
+      <packagereq type="optional">tmispell-voikko</packagereq>
     </packagelist>
   </group>
   <group>
@@ -1489,6 +1490,7 @@
       <packagereq type="optional">crystal-stacker</packagereq>
       <packagereq type="optional">crystal-stacker-themes</packagereq>
       <packagereq type="optional">csmash</packagereq>
+      <packagereq type="optional">cylindrix</packagereq>
       <packagereq type="optional">cyphesis</packagereq>
       <packagereq type="optional">dd2</packagereq>
       <packagereq type="optional">dgae</packagereq>
@@ -3082,6 +3084,7 @@
       <packagereq type="optional">vym</packagereq>
       <packagereq type="optional">wyrd</packagereq>
       <packagereq type="optional">xchm</packagereq>
+      <packagereq type="optional">xfbib</packagereq>
       <packagereq type="optional">Zim</packagereq>
     </packagelist>
   </group>
@@ -3406,6 +3409,7 @@
       <packagereq type="optional">amarok</packagereq>
       <packagereq type="optional">ardour</packagereq>
       <packagereq type="optional">argyllcms</packagereq>
+      <packagereq type="optional">asunder</packagereq>
       <packagereq type="optional">audacious</packagereq>
       <packagereq type="optional">audacity</packagereq>
       <packagereq type="optional">aumix</packagereq>
@@ -4191,6 +4195,7 @@
       <packagereq type="mandatory">xfdesktop</packagereq>
       <packagereq type="mandatory">xfwm4</packagereq>
       <packagereq type="default">mousepad</packagereq>
+      <packagereq type="default">thunar-archive-plugin</packagereq>
       <packagereq type="default">thunar-volman</packagereq>
       <packagereq type="default">xarchiver</packagereq>
       <packagereq type="default">xfce-mcs-manager</packagereq>
@@ -4201,14 +4206,16 @@
       <packagereq type="default">xfce4-mixer</packagereq>
       <packagereq type="default">xfwm4-theme-nokoda</packagereq>
       <packagereq type="optional">orage</packagereq>
+      <packagereq type="optional">ristretto</packagereq>
       <packagereq type="optional">Terminal</packagereq>
-      <packagereq type="optional">thunar-archive-plugin</packagereq>
       <packagereq type="optional">thunar-media-tags-plugin</packagereq>
       <packagereq type="optional">thunar-shares</packagereq>
+      <packagereq type="optional">xfbib</packagereq>
       <packagereq type="optional">xfce4-battery-plugin</packagereq>
       <packagereq type="optional">xfce4-clipman-plugin</packagereq>
       <packagereq type="optional">xfce4-cpugraph-plugin</packagereq>
       <packagereq type="optional">xfce4-datetime-plugin</packagereq>
+      <packagereq type="optional">xfce4-dict</packagereq>
       <packagereq type="optional">xfce4-dict-plugin</packagereq>
       <packagereq type="optional">xfce4-diskperf-plugin</packagereq>
       <packagereq type="optional">xfce4-eyes-plugin</packagereq>

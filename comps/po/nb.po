@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: comps-po\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-04-17 07:36-0400\n"
-"PO-Revision-Date: 2008-03-13 13:21+0100\n"
+"PO-Revision-Date: 2008-07-04 15:51+0200\n"
 "Last-Translator: Kjartan Maraas <kmaraas@broadpark.no>\n"
 "Language-Team: Norwegian/Bokmaal <i18n-nb@lister.ping.uio.no>\n"
 "MIME-Version: 1.0\n"
@@ -996,29 +996,24 @@ msgid "Older bitmap and vector fonts packages"
 msgstr "Eldre pakker med bitkart og vektorskrifter"
 
 #: ../comps-f9.xml.in.h:44
-#, fuzzy
 msgid "Esperanto Support"
-msgstr "Støtte for tysk"
+msgstr "Støtte for esperanto"
 
 #: ../comps-f9.xml.in.h:91
-#, fuzzy
 msgid "Kashubian Support"
-msgstr "Støtte for bosnisk"
+msgstr "Støtte for kashubisk"
 
 #: ../comps-f9.xml.in.h:103
-#, fuzzy
 msgid "Macedonian Support"
-msgstr "Støtte for mongolsk"
+msgstr "Støtte for makedonsk"
 
 #: ../comps-f9.xml.in.h:114
-#, fuzzy
 msgid "Northern Sami Support"
-msgstr "Støtte for nord sotho"
+msgstr "Støtte for nord-samisk"
 
 #: ../comps-f9.xml.in.h:198
-#, fuzzy
 msgid "Walloon Support"
-msgstr "Støtte for laotisk"
+msgstr "Støtte for walloon"
 
 #: ../comps-el4.xml.in.h:3 ../comps-el5.xml.in.h:3
 msgid "Applications for a variety of tasks"

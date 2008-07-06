@@ -89,7 +89,7 @@
   <group>
     <id>dial-up</id>
     <_name>Dialup Networking Support</_name>
-    <description/>
+    <_description/>
     <default>true</default>
     <uservisible>false</uservisible>
     <packagelist/>
