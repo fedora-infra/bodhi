@@ -60,7 +60,7 @@ class Masher(Singleton):
         self._queue = []
         self._threads = []
         self.thread_id = 0
-        self.mashing = 0
+        self.mashing = False
         self.last_log = None
 
     @synchronized(lock)
@@ -78,7 +78,7 @@ class Masher(Singleton):
         queue, then dispatch them.
         """
         log.info("MashTask %d done!" % thread.id)
-        self.mashing = 0
+        self.mashing = False
         self.last_log = thread.log
         mail.send_releng('Bodhi Masher Report %s' % 
                          time.strftime("%y%m%d.%H%M"), thread.report())
@@ -93,7 +93,7 @@ class Masher(Singleton):
         thread = MashTask(task[0], task[1], task[2], task[3])
         self._threads.append(thread)
         thread.start()
-        self.mashing = 1
+        self.mashing = True
 
     def lastlog(self):
         """
@@ -117,7 +117,7 @@ class Masher(Singleton):
         Return a string representation of the Masher, including the current
         queue and updates that are getting moved/mashed
         """
-        val = 'Currently Mashing: %s\n\n' % (self.mashing and 'Yes' or 'No')
+        val = 'Currently Mashing: %s\n\n' % self.mashing
         if self.mashing:
             for thread in self._threads:
                 val += str(thread)
