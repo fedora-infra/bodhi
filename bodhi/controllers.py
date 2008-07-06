@@ -306,7 +306,12 @@ class Root(controllers.RootController):
     @expose(allow_json=True)
     @identity.require(identity.not_anonymous())
     def delete(self, update):
-        """ Delete a pending update """
+        """ Delete an update.
+
+        Arguments
+        :update: The title of the update to delete
+
+        """
         try:
             update = PackageUpdate.byTitle(update)
             if not util.authorized_user(update, identity):
@@ -360,8 +365,32 @@ class Root(controllers.RootController):
     def save(self, builds, type, notes, bugs, close_bugs=False, edited=False,
              request='testing', suggest_reboot=False, inheritance=False, 
              autokarma=True, stable_karma=3, unstable_karma=-3, **kw):
-        """
-        Save an update.  This includes new updates and edited.
+        """ Save an update.
+
+        This entails either creating a new update, or editing an existing one.
+        To edit an existing update, you must specify the update title in
+        the ``edited`` keyword argument.
+
+        Arguments:
+        :builds: A list of koji builds for this update.
+        :release: The release that this update is for.
+        :type: The type of this update: ``security``, ``bugfix``,
+            ``enhancement``, and ``newpackage``.
+        :bugs: A list of Red Hat Bugzilla ID's associated with this update.
+        :notes: Details as to why this update exists.
+        :request: Request for this update to change state, either to
+            ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
+        :suggest_reboot: Suggest that the user reboot after update.
+        :inheritance: Follow koji build inheritance, which may result in this
+            update being pushed out to additional releases.
+        :autokarma: Allow bodhi to automatically change the state of this
+            update based on the ``karma`` from user feedback.  It will
+            push your update to ``stable`` once it reaches the ``stable_karma``
+            and unpush your update when reaching ``unstable_karma``.
+        :stable_karma: The upper threshold for marking an update as ``stable``.
+        :unstable_karma: The lower threshold for unpushing an update.
+        :edited: The update title of the existing update that we are editing.
+
         """
         log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (
                   builds, type, notes, bugs, close_bugs, edited, request,
@@ -818,7 +847,7 @@ class Root(controllers.RootController):
                         values={'title':update.title, 'karma' : karma},
                         comment_form=self.comment_captcha_form)
         elif karma not in (0, 1, -1):
-            flash_log("Karma must be one of (1, 0, -1)")
+            flash_log("Karma must be one of (1, 0, -1), not %s" % repr(karma))
             return dict(update=update, updates=[],
                         values={'title' : update.title},
                         comment_form=self.comment_captcha_form)
@@ -828,14 +857,22 @@ class Root(controllers.RootController):
 
     @expose(allow_json=True)
     @error_handler()
+    @validate(validators={'karma': validators.Int()})
     @validate(form=comment_form)
-    @validate(validators={ 'karma' : validators.Int() })
     @identity.require(identity.not_anonymous())
     def comment(self, text, title, karma=0, tg_errors=None):
+        """ Add a comment to an update.
+
+        Arguments:
+        :text: The text of the comment.
+        :title: The title of the update comment on.
+        :karma: The karma of this comment (-1, 0, 1)
+
+        """
         if tg_errors:
             flash_log(tg_errors)
         elif karma not in (0, 1, -1):
-            flash_log("Karma must be one of (1, 0, -1)")
+            flash_log("Karma must be one of (1, 0, -1), not %s" % repr(karma))
         else:
             try:
                 update = PackageUpdate.byTitle(title)
