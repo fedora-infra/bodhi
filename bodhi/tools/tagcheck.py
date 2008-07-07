@@ -23,10 +23,10 @@ for tag in ('dist-fc7-updates-testing', 'dist-fc7-updates',
         try:
             build = PackageBuild.byNvr(nvr)
         except SQLObjectNotFound:
-            print "%s not found!" % nvr
+            print "PackageUpdate(%s) not found!" % nvr
             continue
         if not build.update:
-            print "%s has no update" % (build.nvr)
+            print "PackageBuild(%s) has no update" % (build.nvr)
         status = 'testing' in tag and 'testing' or 'stable'
         if build.update.status != status:
-            print "%s not %s" % (build.nvr, status)
+            print "%s is not tagged as %s in koji" % (build.nvr, status)
