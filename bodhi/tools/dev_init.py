@@ -22,8 +22,8 @@ def main():
 
     try:
         print "\nCreating guest user and giving it administrator priviliges"
-        guest = User(user_name='guest', display_name='Bodhi Hacker')
-        guest.password = 'guest'
+        guest = User(user_name='guest', display_name='Bodhi Hacker',
+                     password='guest')
         admin = Group(group_name='releng', display_name='Bodhi administrators')
         guest.addGroup(admin)
         hub.commit()

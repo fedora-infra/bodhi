@@ -32,7 +32,7 @@ BODHI_URL = 'http://publictest10.fedoraproject.org/updates/'
 log = logging.getLogger(__name__)
 
 
-def parse_args():
+def get_parser():
     usage = "usage: %prog [options] [build|package]"
     parser = OptionParser(usage, description=__description__,
                           version=__version__)
@@ -92,23 +92,22 @@ def parse_args():
                       default=10, help="Maximum number of updates to return "
                       "(default: 10)")
 
-    return parser.parse_args()
+    return parser
 
-
-def setup_logger():
+def setup_logger(verbose):
     global log
     sh = logging.StreamHandler()
-    level = opts.verbose and logging.DEBUG or logging.INFO
+    level = verbose and logging.DEBUG or logging.INFO
     log.setLevel(level)
     sh.setLevel(level)
     format = logging.Formatter("%(message)s")
     sh.setFormatter(format)
     log.addHandler(sh)
 
-
 def main():
-    setup_logger()
-    opts, args = parse_args()
+    parser = get_parser()
+    opts, args = parser.parse_args()
+    setup_logger(opts.verbose)
 
     bodhi = BodhiClient(BODHI_URL, username=opts.username, password=None,
                         debug=opts.verbose)
@@ -222,8 +221,8 @@ def main():
                             log.info(bodhi.update_str(update))
                         log.info("%d updates found (%d shown)" % (
                             data['num_items'], len(data['updates'])))
-                else:
-                    parser.print_help()
+            else:
+                parser.print_help()
             break
         except AuthError:
             bodhi.password = getpass('Password for %s: ' % opts.username)
