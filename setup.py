@@ -123,6 +123,7 @@ data_files = [
     ('bodhi/static/css', filter(os.path.isfile, glob.glob('bodhi/static/css/*'))),
     ('bodhi/static/images', filter(os.path.isfile, glob.glob('bodhi/static/images/*'))),
     ('bodhi/static/js', filter(os.path.isfile, glob.glob('bodhi/static/js/*'))),
+    ('man/man1', ['docs/bodhi.1']),
 ]
 for langfile in filter(os.path.isfile, glob.glob('locale/*/*/*')):
     data_files.append((os.path.dirname(langfile), [langfile]))
@@ -149,7 +150,7 @@ setup(
         "python_fedora",
     ],
     scripts = [],
-    data_files = [('man/man1', ['docs/bodhi.1'])],
+    data_files = data_files,
     zip_safe=False,
     packages=find_packages(),
     package_data = package_data,
