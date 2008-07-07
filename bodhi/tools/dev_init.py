@@ -9,7 +9,7 @@ comments, etc.
 """
 
 from turbogears.database import PackageHub
-from bodhi.tools.init import load_config
+from bodhi.util import load_config
 from bodhi.exceptions import DuplicateEntryError
 from bodhi.model import User, Group
 

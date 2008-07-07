@@ -22,7 +22,7 @@ from os.path import isfile
 from turbogears import config, update_config
 from turbogears.database import PackageHub
 
-from bodhi.util import ProgressBar
+from bodhi.util import ProgressBar, load_config
 
 hub = PackageHub("bodhi")
 __connection__ = hub
@@ -70,17 +70,8 @@ def clean_tables():
     Release.createTable(ifNotExists=True)
     Package.createTable(ifNotExists=True)
 
-def load_config():
-    """ Load the appropriate configuration so we can get at the values """
-    configfile = 'prod.cfg'
-    if not isfile(configfile):
-        configfile = 'bodhi.cfg'
-    update_config(configfile=configfile, modulename='bodhi.config')
-
-##
-## Initialize the package/release/multilib tables
-##
-if __name__ == '__main__':
+def main():
+    """ Initialize the package/release/multilib tables """
     print "Initializing Bodhi\n"
     load_config()
     hub.begin()
@@ -89,3 +80,6 @@ if __name__ == '__main__':
         import_releases()
     import_rebootpkgs()
     hub.commit()
+
+if __name__ == '__main__':
+    main()

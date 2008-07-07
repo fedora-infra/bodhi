@@ -72,7 +72,6 @@ class LocalCSSLink(CSSLink):
         super(LocalCSSLink, self).update_params(d)
         d["link"] = url(self.name)
 
-
 class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Save Update"

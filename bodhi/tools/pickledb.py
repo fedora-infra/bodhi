@@ -26,21 +26,14 @@ import cPickle as pickle
 from os.path import isfile
 from sqlobject import SQLObjectNotFound
 from turbogears.database import PackageHub
-from turbogears import update_config
 
-from bodhi.util import ProgressBar
+from bodhi.util import ProgressBar, load_config
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
                               PostgresIntegrityError)
 from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
                          Package, PackageBuild)
 
-configfile = 'prod.cfg'
-if not isfile(configfile):
-    configfile = 'bodhi.cfg'
-update_config(configfile=configfile, modulename='bodhi.config')
-
 hub = __connection__ = PackageHub("bodhi")
-
 
 def save_db():
     ## Save each release and it's metrics
@@ -181,7 +174,8 @@ def usage():
     print "Usage: ./pickledb.py [ save | load <file> ]"
     sys.exit(-1)
 
-if __name__ == '__main__':
+def main():
+    load_config()
     if len(sys.argv) < 2:
         usage()
     elif sys.argv[1] == 'save':
@@ -195,3 +189,6 @@ if __name__ == '__main__':
             hub.commit()
     else:
         usage()
+
+if __name__ == '__main__':
+    main()

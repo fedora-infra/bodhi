@@ -25,6 +25,7 @@ import tempfile
 import simplejson
 import subprocess
 import urlgrabber
+import turbogears
 
 from kid import Element
 from yum import repoMDObject
@@ -283,6 +284,23 @@ def build_evr(build):
 def link(text, href):
     return '<a href="%s">%s</a>' % (url(href), text)
 
+def load_config(configfile=None):
+    """ Load bodhi's configuration """
+    setupdir = os.path.dirname(os.path.dirname(__file__))
+    curdir = os.getcwd()
+    if configfile and os.path.exists(configfile):
+        pass
+    elif os.path.exists(os.path.join(setupdir, 'setup.py')) \
+            and os.path.exists(os.path.join(setupdir, 'dev.cfg')):
+        configfile = os.path.join(setupdir, 'dev.cfg')
+    elif os.path.exists(os.path.join(curdir, 'bodhi.cfg')):
+        configfile = os.path.join(curdir, 'bodhi.cfg')
+    elif os.path.exists(os.path.join('/etc/bodhi.cfg')):
+        configfile = os.path.join('/etc/bodhi.cfg')
+    else:
+        log.error("Unable to find configuration to load!")
+        return
+    turbogears.update_config(configfile=configfile, modulename="bodhi.config")
 
 class Singleton(object):
 
