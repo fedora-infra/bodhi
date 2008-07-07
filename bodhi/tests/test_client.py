@@ -14,7 +14,7 @@ import simplejson
 from sqlobject import SQLObjectNotFound
 from bodhi.model import PackageUpdate, Bugzilla
 from bodhi.controllers import Root
-from bodhi.tools.bodhi_client import BodhiClient
+from bodhi.tools.client import BodhiClient
 from bodhi.tests.test_controllers import login, create_release
 
 cherrypy.root = Root()
