@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: bodhi
-Version: 0.4.10
+Version: 0.5.0
 Summary: UNKNOWN
 Home-page: https://fedorahosted.org/bodhi
 Author: Luke Macken
@@ -9,8 +9,6 @@ License: GPLv2+
 Description: UNKNOWN
 Keywords: turbogears.app
 Platform: UNKNOWN
-Classifier: Development Status :: 3 - Alpha
-Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Framework :: TurboGears

@@ -1,5 +1,5 @@
-include start-bodhi.in
 exclude start-bodhi
+include bodhi.wsgi
 include AUTHORS README COPYING ChangeLog
 include *.cfg
 include bodhi/templates/*.kid

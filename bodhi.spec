@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.4.10
-Release:        5%{?dist}
+Version:        0.5.0
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -15,8 +15,6 @@ BuildArch:      noarch
 
 BuildRequires: python-setuptools-devel
 BuildRequires: TurboGears
-BuildRequires: python-genshi 
-BuildRequires: python-elixir
 
 %description
 Bodhi is a web application that facilitates the process of publishing
@@ -33,24 +31,24 @@ Summary: Bodhi Client
 Group: Applications/Internet
 Requires: python-simplejson python-fedora koji yum
 
-%description client 
+%description client
 Client tools for interacting with bodhi
 
 
 %package server
 Summary: A modular framework that facilitates publishing software updates
 Group: Applications/Internet
-Requires: TurboGears 
+Requires: TurboGears
 Requires: python-TurboMail
-Requires: intltool 
+Requires: intltool
 Requires: mash
 Requires: cvs
 Requires: koji
 Requires: python-fedora
-Requires: python-bugzilla 
+Requires: python-bugzilla
 Requires: python-imaging
 Requires: python-crypto
-Requires: python-turboflot 
+Requires: python-turboflot
 Requires: python-tgcaptcha
 
 
@@ -63,27 +61,31 @@ updates for a software distribution.
 rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 %build
-%{__python} setup.py build --install-conf=%{_sysconfdir} \
-        --install-data=%{_datadir}
+%{__python} setup.py build --install-data=%{_datadir}
 
 %install
-rm -rf $RPM_BUILD_ROOT
-%{__python} setup.py install --skip-build --install-conf=%{_sysconfdir} \
+%{__rm} -rf %{buildroot}
+%{__python} setup.py install -O1 --skip-build \
     --install-data=%{_datadir} --root %{buildroot}
-%{__install} -D bodhi/tools/bodhi_client.py $RPM_BUILD_ROOT/usr/bin/bodhi
-chmod +x $RPM_BUILD_ROOT/%{_datadir}/%{name}/bodhi/tools/{bodhi_client,init,dev_init,pickledb}.py
+%{__mkdir_p} %{buildroot}%{_sysconfdir}
+%{__mkdir_p} %{buildroot}%{_datadir}/%{name}
+%{__install} -m 640 %{name}.cfg %{buildroot}%{_sysconfdir}
+%{__cp} %{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
 
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+%{__rm} -rf %{buildroot}
 
 
 %files server
 %defattr(-,root,root,-)
 %doc README COPYING
+%{python_sitelib}/%{name}/
 %{_datadir}/%{name}
-%{_bindir}/start-bodhi
-%config(noreplace) %{_sysconfdir}/%{name}.cfg
+%{_bindir}/start-%{name}
+%{_bindir}/%{name}-*
+%{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
+%config(noreplace) %{_sysconfdir}/bodhi.cfg
 
 %files client
 %doc COPYING README
@@ -92,6 +94,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Sun Jul 06 2008 Luke Macken <lmacken@redhat.com> - 0.5.0-1
+- Latest upstream release
+
 * Thu Jun 12 2008 Todd Zullinger <tmz@pobox.com> - 0.4.10-5
 - update URL to point to fedorahosted.org
 

@@ -9,7 +9,7 @@ all:
 
 docs:
 	epydoc -n bodhi -o docs/epydoc -u https://fedorahosted.org/bodhi \
-	`find bodhi -name '*.py'`
+		`find bodhi -name '*.py'`
 
 test:
 	nosetests
@@ -44,8 +44,6 @@ init:
 	tg-admin --config=bodhi.cfg sql create && bodhi/tools/init.py && bodhi/tools/dev_init.py && bodhi/tools/pickledb.py load bodhi-pickledb*
 
 run:
-	rm start-bodhi || :
-	python setup.py build --install-conf=`pwd` --install-data='..'
 	python start-bodhi
 
 profile:

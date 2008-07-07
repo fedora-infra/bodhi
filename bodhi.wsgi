@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/usr/local/turbogears/mysite')
+#sys.path.append('/usr/share/bodhi')
 sys.stdout = sys.stderr
 
 # We only need this if we are using any eggs

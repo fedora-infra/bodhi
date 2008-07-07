@@ -5,51 +5,62 @@ from setuptools import setup, find_packages
 from turbogears.finddata import find_package_data
 import os
 import re
+import glob
+import shutil
 from distutils.dep_util import newer
 from distutils import log
 
 from distutils.command.build_scripts import build_scripts as _build_scripts
 from distutils.command.build import build as _build
+from distutils.command.install_data import install_data as _install_data
+from distutils.dep_util import newer
 from setuptools.command.install import install as _install
 from setuptools.command.install_lib import install_lib as _install_lib
 
-#execfile(os.path.join("bodhi", "release.py"))
+from turbogears.finddata import find_package_data, standard_exclude, \
+        standard_exclude_directories
 
-class BuildScripts(_build_scripts, object):
-    '''Build the package, changing the directories in start-bodhi.'''
-    substitutions = {'@CONFDIR@': '/usr/local/etc',
-            '@DATADIR@': '/usr/local/share'}
-    subRE = re.compile('('+'|'.join(substitutions.keys())+')+')
-    # Set the correct directories in start-bodhi
-    user_options = _build_scripts.user_options
-    user_options.extend([
-    ('install-conf=', None, 'Installation directory for configuration files'),
-    ('install-data=', None, 'Installation directory for data files')])
+
+excludeFiles = ['*.cfg.in']
+excludeFiles.extend(standard_exclude)
+excludeDataDirs = ['bodhi/static', 'comps']
+excludeDataDirs.extend(standard_exclude_directories)
+
+poFiles = filter(os.path.isfile, glob.glob('po/*.po'))
+
+SUBSTFILES = ('bodhi/config/app.cfg',)
+
+class Build(_build, object):
+    '''
+    Build the package, changing the directories that data files are installed.
+    '''
+    user_options = _build.user_options
+    user_options.extend([('install-data=', None,
+        'Installation directory for data files')])
+    # These are set in finalize_options()
+    substitutions = {'@DATADIR@': None, '@LOCALEDIR@': None}
+    subRE = re.compile('(' + '|'.join(substitutions.keys()) + ')+')
 
     def initialize_options(self):
-        self.install_conf = None
         self.install_data = None
-        super(BuildScripts, self).initialize_options()
+        super(Build, self).initialize_options()
 
     def finalize_options(self):
-        self.set_undefined_options('build',
-                ('install_conf', 'install_conf'),
-                ('install_data', 'install_data'))
-        self.substitutions['@CONFDIR@'] = self.install_conf or \
-                '/usr/local/etc'
-        self.substitutions['@DATADIR@'] = self.install_data or \
-                '/usr/local/share'
-        super(BuildScripts, self).finalize_options()
+        if self.install_data:
+            self.substitutions['@DATADIR@'] = self.install_data + '/bodhi'
+            self.substitutions['@LOCALEDIR@'] = self.install_data + '/locale'
+        else:
+            self.substitutions['@DATADIR@'] = '%(top_level_dir)s'
+            self.substitutions['@LOCALEDIR@'] = '%(top_level_dir)s/../locale'
+        super(Build, self).finalize_options()
 
     def run(self):
-        '''Substitute special variables with our install lcoations.'''
-        for script in self.scripts:
-            # If there's a script name with .in attached, make substitutions
-            infile = script + '.in'
+        '''Substitute special variables for our installation locations.'''
+        for filename in SUBSTFILES:
+            # Change files to reference the data directory in the proper
+            # location
+            infile = filename + '.in'
             if not os.path.exists(infile):
-                continue
-            if not self.force and not newer (infile, script):
-                log.debug("not substituting in %s (up-to-date)", script)
                 continue
             try:
                 f = file(infile, 'r')
@@ -57,165 +68,109 @@ class BuildScripts(_build_scripts, object):
                 if not self.dry_run:
                     raise
                 f = None
-            outf = open(script, 'w')
+            outf = file(filename, 'w')
             for line in f.readlines():
                 matches = self.subRE.search(line)
                 if matches:
                     for pattern in self.substitutions:
-                        line = line.replace(pattern,
-                                self.substitutions[pattern])
+                        line = line.replace(pattern, self.substitutions[pattern])
                 outf.writelines(line)
             outf.close()
             f.close()
-        super(BuildScripts, self).run()
 
-class Build(_build, object):
-    '''Override setuptools and install the package in the correct place for
-    an application.'''
+        # Make empty en.po
+        dirname = 'locale/'
+        if not os.path.isdir(dirname):
+            os.makedirs(dirname)
+        #shutil.copy('po/LINGUAS', 'locale/')
 
-    user_options = _build.user_options
-    user_options.extend([
-    ('install-conf=', None, 'Installation directory for configuration files'),
-    ('install-data=', None, 'Installation directory for data files')])
-
-    def initialize_options(self):
-        self.install_conf = None
-        self.install_data = None
-        super(Build, self).initialize_options()
-   
-    def finalize_options(self):
-        self.install_conf = self.install_conf or '/usr/local/etc'
-        self.install_data = self.install_data or '/usr/local/share'
-        super(Build, self).finalize_options()
-
-    def run(self):
+        for pofile in poFiles:
+            # Compile PO files
+            lang = os.path.basename(pofile).rsplit('.', 1)[0]
+            dirname = 'locale/%s/LC_MESSAGES/' % lang
+            if not os.path.isdir(dirname):
+                os.makedirs(dirname)
+            # Hardcoded gettext domain: 'bodhi'
+            mofile = dirname + 'bodhi' + '.mo'
+            subprocess.call(['/usr/bin/msgfmt', pofile, '-o', mofile])
         super(Build, self).run()
 
-class Install(_install, object):
-    '''Override setuptools and install the package in the correct place for
-    an application.'''
-    user_options = _install.user_options
-    user_options.append( ('install-conf=', None,
-            'Installation directory for configuration files'))
-    user_options.append( ('install-data=', None,
-            'Installation directory'))
-    user_options.append( ('root=', None,
-            'Install root'))
-
-    def initialize_options(self):
-        self.install_conf = None
-        self.install_data = None
-        self.root = None
-        super(Install, self).initialize_options()
-   
+class InstallData(_install_data, object):
     def finalize_options(self):
-        self.install_conf = self.install_conf or '/usr/local/etc'
-        self.install_data = self.install_data or '/usr/local/share'
-        super(Install, self).finalize_options()
-
-class InstallApp(_install_lib, object):
-    user_options = _install_lib.user_options
-    user_options.append( ('install-conf=', None,
-            'Installation directory for configuration files'))
-    user_options.append( ('install-data=', None,
-            'Installation directory'))
-    user_options.append( ('root=', None,
-            'Install root'))
-
-    def initialize_options(self):
-        self.install_conf = None
-        self.install_data = None
-        self.root = None
-        super(InstallApp, self).initialize_options()
-   
-    def finalize_options(self):
+        '''Override to emulate setuptools in the default case.
+        install_data => install_dir
+        '''
+        self.temp_lib = None
+        self.temp_data = None
+        self.temp_prefix = None
+        haveInstallDir = self.install_dir
         self.set_undefined_options('install',
+                ('install_data', 'temp_data'),
+                ('install_lib', 'temp_lib'),
+                ('prefix', 'temp_prefix'),
                 ('root', 'root'),
-                ('install_conf', 'install_conf'),
-                ('install_data', 'install_data'))
-        print dir(self.distribution.get_name())
-        self.install_dir=os.path.join(self.install_data, self.distribution.get_name())
-        super(InstallApp, self).finalize_options()
+                ('force', 'force'),
+                )
+        if not self.install_dir:
+            if self.temp_data == self.root + self.temp_prefix:
+                self.install_dir = os.path.join(self.temp_lib, 'bodhi')
+            else:
+                self.install_dir = self.temp_data
 
-    def run(self):
-        super(InstallApp, self).run()
-        # Install the configuration file to the confdir
-        confdir = self.root + os.path.sep + self.install_conf
-        confdir.replace('//','/')
-        self.mkpath(confdir)
-        self.copy_file('bodhi.cfg', confdir)
+# bodhi/static => /usr/share/bodhi/static
+data_files = [
+    ('bodhi/static', filter(os.path.isfile, glob.glob('bodhi/static/*'))),
+    ('bodhi/static/css', filter(os.path.isfile, glob.glob('bodhi/static/css/*'))),
+    ('bodhi/static/images', filter(os.path.isfile, glob.glob('bodhi/static/images/*'))),
+    ('bodhi/static/js', filter(os.path.isfile, glob.glob('bodhi/static/js/*'))),
+]
+for langfile in filter(os.path.isfile, glob.glob('locale/*/*/*')):
+    data_files.append((os.path.dirname(langfile), [langfile]))
 
-class InstallApp(_install_lib, object):
-    user_options = _install_lib.user_options
-    user_options.append( ('install-conf=', None,
-            'Installation directory for configuration files'))
-    user_options.append( ('install-data=', None,
-            'Installation directory'))
-    user_options.append( ('root=', None,
-            'Install root'))
+package_data = find_package_data(where='bodhi', package='bodhi', exclude=excludeFiles, exclude_directories=excludeDataDirs,)
+package_data['bodhi.config'].append('app.cfg')
 
-    def initialize_options(self):
-        self.install_conf = None
-        self.install_data = None
-        self.root = None
-        super(InstallApp, self).initialize_options()
-   
-    def finalize_options(self):
-        self.set_undefined_options('install',
-                ('root', 'root'),
-                ('install_conf', 'install_conf'),
-                ('install_data', 'install_data'))
-        print dir(self.distribution.get_name())
-        self.install_dir=os.path.join(self.install_data, self.distribution.get_name())
-        super(InstallApp, self).finalize_options()
-
-    def run(self):
-        super(InstallApp, self).run()
-        # Install the configuration file to the confdir
-        confdir = self.root + os.path.sep + self.install_conf
-        confdir.replace('//','/')
-        self.mkpath(confdir)
-        self.copy_file('bodhi.cfg', confdir)
 
 setup(
     name="bodhi",
-    version="0.4.10",
+    version="0.5.0",
     description="",
     author="Luke Macken",
     author_email="lmacken@fedoraproject.org",
     url="https://fedorahosted.org/bodhi",
     license="GPLv2+",
-    cmdclass={'build_scripts': BuildScripts,
-              'build': Build,
-              'install': Install,
-              'install_lib': InstallApp},
+    cmdclass={
+        'build': Build,
+        'install_data': InstallData,
+    },
     install_requires = [
         "TurboGears[future] >= 1.0",
         "TurboMail",
         "python_fedora",
     ],
-    scripts = ["start-bodhi"],
+    scripts = [],
     data_files = [('man/man1', ['docs/bodhi.1'])],
     zip_safe=False,
     packages=find_packages(),
-    package_data = find_package_data(where='bodhi',
-                                     package='bodhi'),
+    package_data = package_data,
     keywords = [
         'turbogears.app',
     ],
     classifiers = [
-        'Development Status :: 3 - Alpha',
-        'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Framework :: TurboGears',
-        # if this is an application that you'll distribute through
-        # the Cheeseshop, uncomment the next line
         'Framework :: TurboGears :: Applications',
-
-        # if this is a package that includes widgets that you'll distribute
-        # through the Cheeseshop, uncomment the next line
-        # 'Framework :: TurboGears :: Widgets',
     ],
     test_suite = 'nose.collector',
+    entry_points = {
+            'console_scripts': (
+                'start-bodhi = bodhi.commands:start',
+                'bodhi = bodhi.tools.client:main',
+                'bodhi-pickledb = bodhi.tools.pickledb:main',
+                'bodhi-tagcheck = bodhi.tools.tagcheck:main',
+                'bodhi-init = bodhi.tools.tagcheck:main',
+                'bodhi-devinit = bodhi.tools.dev_init:main',
+            ),
+    }
 )

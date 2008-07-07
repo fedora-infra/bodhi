@@ -1,5 +1,8 @@
-[turbogears.extensions]
-masher = bodhi.masher
+[console_scripts]
+start-bodhi = bodhi.commands:start
+bodhi = bodhi.tools.client:main
+bodhi-devinit = bodhi.tools.dev_init:main
+bodhi-tagcheck = bodhi.tools.tagcheck:main
+bodhi-init = bodhi.tools.tagcheck:main
+bodhi-pickledb = bodhi.tools.pickledb:main
 
-[turbogears.identity.provider]
-bugzilla  = bodhi.identity.sobzprovider:SoBugzillaIdentityProvider
