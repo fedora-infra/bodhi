@@ -188,7 +188,6 @@ def main():
                     log.info(bodhi.update_str(update))
             elif opts.candidates:
                 for build in bodhi.candidates():
-                    # @@ TODO: fix the formatting on this
                     log.info("%-40s %-20s" % (build['nvr'], build['tag_name']))
             elif opts.comment or opts.karma:
                 if not len(args) or not args[0]:
@@ -211,11 +210,8 @@ def main():
                         log.error(data['tg_flash'])
                         sys.exit(-1)
                     if data['num_items'] > 1:
-                        from pprint import pprint
                         for update in data['updates']:
-                            pprint(update)
-                            log.info(' %s\t%s\t%s' % (update['title'], update['type'],
-                                                      update['status']))
+                            log.info(bodhi.update_str(update, minimal=True))
                     else:
                         for update in data['updates']:
                             log.info(bodhi.update_str(update))
