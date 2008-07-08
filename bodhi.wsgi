@@ -5,20 +5,25 @@ sys.stdout = sys.stderr
 # We only need this if we are using any eggs
 #import os
 #os.environ['PYTHON_EGG_CACHE'] = '/usr/local/turbogears/python-eggs'
+import pkg_resources
+pkg_resources.require("CherryPy<3.0")
 
 import atexit
 import cherrypy
 import cherrypy._cpwsgi
 import turbogears
 
-turbogears.update_config(configfile="bodhi.cfg", modulename="bodhi.config")
+from bodhi.util import load_config
+load_config()
 turbogears.config.update({'global': {'server.environment': 'production'}})
 turbogears.config.update({'global': {'autoreload.on': False}})
 turbogears.config.update({'global': {'server.log_to_screen': False}})
 turbogears.config.update({'global': {'server.webpath': '/updates'}})
 
-import bodhi.controllers
+from bodhi import jobs
+turbogears.startup.call_on_startup.append(jobs.schedule)
 
+import bodhi.controllers
 cherrypy.root = bodhi.controllers.Root()
 
 if cherrypy.server.state == 0:
