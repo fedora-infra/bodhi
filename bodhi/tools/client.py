@@ -199,6 +199,11 @@ def main():
                     log.info(data['tg_flash'])
                 if data.has_key('update'):
                     log.info(data['update'])
+            elif opts.mine and not args:
+                data = bodhi.query(mine=opts.mine)
+                for update in data['updates']:
+                    log.info(bodhi.update_str(update, minimal=True))
+                log.info(data['title'])
             elif opts.status or opts.bugs or opts.release or opts.type or \
                  opts.mine or args:
                 for arg in args:
