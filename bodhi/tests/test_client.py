@@ -82,10 +82,7 @@ class TestClient(testutil.DBTest):
     def test_new_update(self):
         bodhi = self.__get_bodhi_client()
         opts = self.__get_opts()
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
         self.__save_update(self.build, opts, bodhi)
-        testutil.print_log()
-        print PackageUpdate.select().count()
         update = PackageUpdate.byTitle(self.build)
         assert update and update.title == self.build
         assert update.release.name == opts.release.upper()
@@ -128,13 +125,10 @@ class TestClient(testutil.DBTest):
         opts = self.__get_opts()
         self.__save_update(self.build, opts, bodhi)
         assert PackageUpdate.byTitle(self.build)
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
         bodhi.comment(update=self.build, comment=opts.comment, karma=opts.karma)
-        testutil.print_log()
         update = PackageUpdate.byTitle(self.build)
         assert len(update.comments) == 2, update.comments
         assert update.comments[1].text == opts.comment
-        print "update.karma =", update.karma
         assert update.karma == int(opts.karma)
         bodhi.comment(update=self.build, comment=opts.comment, karma=1)
         update = PackageUpdate.byTitle(self.build)
@@ -173,7 +167,6 @@ class TestClient(testutil.DBTest):
 
         update = bodhi.parse_file(input_file=opts.input_file)
         for key, value in update.items():
-            print "Overwriting %s on opts to %s" % (key, value)
             setattr(opts, key, value)
         self.__save_update(self.build, opts, bodhi)
 
