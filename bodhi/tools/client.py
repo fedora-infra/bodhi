@@ -203,10 +203,10 @@ def main():
             elif opts.status or opts.bugs or opts.release or opts.type or \
                  opts.mine or args:
                 for arg in args:
-                    data = bodhi.list(package=arg, release=opts.release,
-                                      status=opts.status, type=opts.type,
-                                      bugs=opts.bugs, request=opts.request,
-                                      mine=opts.mine, limit=opts.limit)
+                    data = bodhi.query(package=arg, release=opts.release,
+                                       status=opts.status, type=opts.type,
+                                       bugs=opts.bugs, request=opts.request,
+                                       mine=opts.mine, limit=opts.limit)
                     if data.has_key('tg_flash') and data['tg_flash']:
                         log.error(data['tg_flash'])
                         sys.exit(-1)

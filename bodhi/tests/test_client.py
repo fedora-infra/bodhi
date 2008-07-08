@@ -96,12 +96,12 @@ class TestClient(testutil.DBTest):
         bodhi.save(builds=build, release=opts.release, type=opts.type,
                    bugs=opts.bugs, notes=opts.notes, request=opts.request)
 
-    def test_list(self):
+    def test_query(self):
         bodhi = self.__get_bodhi_client()
         opts = self.__get_opts()
         self.__save_update(self.build, opts, bodhi)
         args = {'release': 'f7'}
-        data = bodhi.list(**args)
+        data = bodhi.query(**args)
         update = data['updates'][0]
         assert update['release']['long_name'] == u'Fedora 7'
         assert update['builds'][0]['nvr'] == self.build
@@ -153,7 +153,7 @@ class TestClient(testutil.DBTest):
         opts = self.__get_opts()
         self.__save_update(self.build, opts, bodhi)
         assert PackageUpdate.byTitle(self.build)
-        data = bodhi.list(mine=True)
+        data = bodhi.query(mine=True)
         assert data['title'] == u"1 update found", repr(data)
         assert len(data['updates']) == 1
 
@@ -193,7 +193,7 @@ class TestClient(testutil.DBTest):
         bodhi = self.__get_bodhi_client()
         opts = self.__get_opts()
         self.__save_update(self.build, opts, bodhi)
-        update = bodhi.list()['updates'][0]
+        update = bodhi.query()['updates'][0]
         assert update and isinstance(update, dict)
         assert bodhi.update_str(update).startswith(u'================================================================================\n     TurboGears-1.0.3.2-1.fc7\n================================================================================\n    Release: Fedora 7\n     Status: pending\n       Type: bugfix\n      Karma: 0\n    Request: stable\n       Bugs: 12345 - None\n           : 6789 - None\n      Notes: foo\n  Submitter: guest\n')
         assert bodhi.update_str(update).endswith(u' (karma 0)\n             This update has been submitted for stable\n\n  http://localhost:8084/updates/TurboGears-1.0.3.2-1.fc7\n')
