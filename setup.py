@@ -172,6 +172,7 @@ setup(
                 'bodhi-tagcheck = bodhi.tools.tagcheck:main',
                 'bodhi-init = bodhi.tools.init:main',
                 'bodhi-devinit = bodhi.tools.dev_init:main',
+                'bodhi-rmrelease = bodhi.tools.rmrelease:main',
             ),
     }
 )
