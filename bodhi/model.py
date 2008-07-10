@@ -72,9 +72,14 @@ class Package(SQLObject):
     unstable_karma  = IntCol(default=-3)
 
     def updates(self):
+        updates = set()
         for build in self.builds:
             for update in build.updates:
-                yield update
+                updates.add(update)
+        updates = list(updates)
+        updates.sort(cmp=lambda x, y: cmp(x.date_submitted, y.date_submitted),
+                     reverse=True)
+        return updates
 
     def __str__(self):
         x = header(self.name)
