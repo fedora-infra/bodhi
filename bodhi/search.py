@@ -41,14 +41,15 @@ class SearchController(Controller):
     @expose(template="bodhi.templates.list")
     @validate(validators={ "search" : validators.UnicodeString() })
     @error_handler(index)
-    @paginate('updates', default_order='updateid', limit=20,
-              allow_limit_override=True)
+    @paginate('updates', default_order='date_submitted', default_reversed=True,
+              limit=25, allow_limit_override=True)
     def default(self, search, *args, **kw):
         results = set()
 
         # Search name-version-release
-        map(results.add, PackageUpdate.select(LIKE(PackageUpdate.q.title,
-                                                   '%%%s%%' % search)))
+        map(results.add, PackageUpdate.select(
+            LIKE(PackageUpdate.q.title, '%%%s%%' % search),
+                 orderBy=PackageUpdate.q.date_submitted))
 
         # Search bug numbers
         try:
