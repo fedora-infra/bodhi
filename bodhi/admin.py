@@ -80,23 +80,30 @@ class AdminController(Controller, SecureResource):
     @expose(template='bodhi.templates.push', allow_json=True)
     def push(self):
         """ List updates tagged with a push/unpush/move request """
-        requests = filter(lambda update: not update.release.locked,
-                          PackageUpdate.select(PackageUpdate.q.request != None))
         updates = []
-        for update in requests:
-            # Skip unapproved security updates
-            if update.type == 'security' and not update.approved:
-                continue
-            updates.append(update)
-
-        # Check to see if we have an existing push in process
-        mash = self.current_mash()
-        log.debug("mash = %s" % mash)
-
-        return dict(updates=updates)
+        resume = False
+        mash = self._current_mash()
+        if mash['mashing']:
+            flash_log('The masher is currently pushing updates')
+        else:
+            updates = map(PackageUpdate.byTitle, mash.get('updates', []))
+            if updates:
+                flash_log('There is an updates push ready to be resumed')
+                resume = True
+            else:
+                # Get a list of all updates with a request that aren't
+                # unapproved security updates, or for a locked release
+                requests = filter(lambda update: not update.release.locked,
+                                  PackageUpdate.select(
+                                      PackageUpdate.q.request != None))
+                for update in requests:
+                    if update.type == 'security' and not update.approved:
+                        continue
+                    updates.append(update)
+        return dict(updates=updates, resume=resume)
 
     @expose(allow_json=True)
-    def mash(self, updates, **kw):
+    def mash(self, updates, resume=False, **kw):
         """ Mash a list of PackageUpdate objects.
 
         If this instance is deployed with a remote masher, then it simply
@@ -117,8 +124,12 @@ class AdminController(Controller, SecureResource):
                                                                or 'failed')
             raise redirect('/admin/masher')
 
-        Masher().queue([PackageUpdate.byTitle(title) for title in updates])
-        return dict(success=True)
+        Masher().queue([PackageUpdate.byTitle(title) for title in updates],
+                       resume=resume)
+        if request_format() == 'json':
+            return dict(success=True)
+        flash("Updates queued for mashing")
+        raise redirect('/admin/masher')
 
     @expose(allow_json=True)
     def current_mash(self):
