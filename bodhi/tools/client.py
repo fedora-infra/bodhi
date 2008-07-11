@@ -109,8 +109,7 @@ def main():
     opts, args = parser.parse_args()
     setup_logger(opts.verbose)
 
-    bodhi = BodhiClient(BODHI_URL, username=opts.username, password=None,
-                        debug=opts.verbose)
+    bodhi = BodhiClient(BODHI_URL, username=opts.username, debug=opts.verbose)
 
     def verify_args(args):
         if not args and len(args) != 1:
