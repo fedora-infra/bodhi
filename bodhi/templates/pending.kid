@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    &nbsp;&nbsp;${num_items} Pending Updates
+    &nbsp;&nbsp;<b>${num_items} Pending Updates</b>
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
