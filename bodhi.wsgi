@@ -30,6 +30,10 @@ if cherrypy.server.state == 0:
     atexit.register(cherrypy.server.stop)
     cherrypy.server.start(init_only=True, server_class=None)
 
-def application(environ, start_response):
-    environ['SCRIPT_NAME'] = ''
-    return cherrypy._cpwsgi.wsgiApp(environ, start_response)
+application = cherrypy._cpwsgi.wsgiApp
+
+## Apparently this is needed if we are using a server.webpath, 
+# but I seem to get lots of 404's when using it compared to without...
+#def application(environ, start_response):
+#    environ['SCRIPT_NAME'] = ''
+#    return cherrypy._cpwsgi.wsgiApp(environ, start_response)
