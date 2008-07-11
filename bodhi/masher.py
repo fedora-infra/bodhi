@@ -249,31 +249,37 @@ class MashTask(Thread):
             for build in update.builds:
                 if update.request == 'testing':
                     if build.nvr not in pending_nvrs[update.release.name]:
-                        error_log("%s not tagged as candidate" % build.nvr)
+                        self.error_log("%s not tagged as candidate" % build.nvr)
                 elif update.request == 'stable':
                     if update.status == 'testing':
                         if build.nvr not in testing_nvrs[update.release.name]:
-                            error_log("%s not tagged as testing" % build.nvr)
+                            self.error_log("%s not tagged as testing" %
+                                           build.nvr)
                     elif update.status == 'pending':
                         if build.nvr not in pending_nvrs[update.release.name]:
-                            error_log("%s not tagged as candidate" % build.nvr)
+                            self.error_log("%s not tagged as candidate" %
+                                           build.nvr)
                 elif update.request == 'unpush':
                     if update.status == 'testing':
                         if build.nvr not in testing_nvrs[update.release.name]:
-                            error_log("%s not tagged as testing" % build.nvr)
+                            self.error_log("%s not tagged as testing" %
+                                           build.nvr)
                     elif update.status == 'stable':
                         if build.nvr not in stable_nvrs[update.release.name]:
-                            error_log("%s not tagged as stable" % build.nvr)
+                            self.error_log("%s not tagged as stable" %
+                                           build.nvr)
                 elif update.request == 'obsolete':
                     if update.status == 'testing':
                         if build.nvr not in testing_nvrs[update.release.name]:
-                            error_log("%s not tagged as testing" % build.nvr)
+                            self.error_log("%s not tagged as testing" %
+                                           build.nvr)
                     elif update.status == 'stable':
                         if build.nvr not in stable_nvrs[update.release.name]:
-                            error_log("%s not tagged as stable" % build.nvr)
+                            self.error_log("%s not tagged as stable" %
+                                           build.nvr)
                 else:
-                    error_log("Unknown request '%s' for %s" % (update.request,
-                                                               update.title))
+                    self.error_log("Unknown request '%s' for %s" % (
+                                   update.request, update.title))
 
         del pending_nvrs, testing_nvrs, stable_nvrs
         return self.safe
@@ -457,14 +463,14 @@ class MashTask(Thread):
             mashcmd = self.cmd % (mashdir, comps) + repo
             log.info("Running `%s`" % mashcmd)
             p = subprocess.Popen(mashcmd, stdout=subprocess.PIPE, shell=True)
-            out, err = p.communicate()
+            stdout, stderr = p.communicate()
             log.info("mash returncode = %s" % p.returncode)
             if p.returncode:
                 self.success = False
                 failed_output = join(config.get('mashed_dir'), 'mash-failed-%s'
                                      % time.strftime("%y%m%d.%H%M"))
                 out = file(failed_output, 'w')
-                out.write(out)
+                out.write(stdout)
                 out.close()
                 log.info("Wrote failed mash output to %s" % failed_output)
                 self.log = failed_output
@@ -473,7 +479,7 @@ class MashTask(Thread):
                 self.success = True
                 mash_output = '%s/mash.out' % mashdir
                 out = file(mash_output, 'w')
-                out.write(out)
+                out.write(stdout)
                 out.close()
                 log.info("Wrote mash output to %s" % mash_output)
                 self.log = mash_output
