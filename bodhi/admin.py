@@ -138,21 +138,24 @@ class AdminController(Controller, SecureResource):
         if config.get('masher'):
             data = self._masher_request('/admin/current_mash')
             mash_data = data.get('mash')
-            if mash_data['mashing']:
-                flash_log('The masher is currently pushing updates')
-            else:
-                flash_log('There is an updates push ready to be resumed')
         else:
-            mashed_dir = config.get('mashed_dir')
-            mash_lock = join(mashed_dir, 'MASHING')
-            if exists(mash_lock):
-                mash_lock = file(mash_lock)
-                mash_data = pickle.load(mash_lock)
-                mash_lock.close()
-                mash_data = {'mashing': Masher().mashing, 'updates': mash_data}
+            mash_data = self._current_mash()
         return dict(mash=mash_data)
 
-    def _masher_request(self, method, kwargs=None):
+    def _current_mash(self):
+        """ Return details about the mash in process """
+        mash_data = {'mashing': False, 'updates': []}
+        mashed_dir = config.get('mashed_dir')
+        mash_lock = join(mashed_dir, 'MASHING')
+        if exists(mash_lock):
+            mash_lock = file(mash_lock)
+            mashing_updates = pickle.load(mash_lock)
+            mash_lock.close()
+            mash_data['mashing'] = Masher().mashing
+            mash_data['updates'] = mashing_updates
+        return mash_data
+
+    def _masher_request(self, method, **kwargs):
         """
         Call a remote method on the masher with any other arguments.
         Returns whatever the remote method returned to us.
