@@ -155,6 +155,7 @@ bodhi/tools/client.py
 bodhi/tools/dev_init.py
 bodhi/tools/init.py
 bodhi/tools/pickledb.py
+bodhi/tools/rmrelease.py
 bodhi/tools/tagcheck.py
 comps/.cvsignore
 docs/bodhi.1
