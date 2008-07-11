@@ -19,7 +19,6 @@
 #
 """ This module contains functions called from console script entry points. """
 
-import os
 import sys
 #import pkg_resources
 #__requires__='TurboGears[future]'
