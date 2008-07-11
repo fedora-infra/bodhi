@@ -973,5 +973,6 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(PackageUpdate.q.submitter == username,
                                        orderBy=PackageUpdate.q.date_submitted)
         num_items = updates.count()
-        return dict(updates=updates.reversed(), title="%s's %d updates" % (username,
-                    num_items), num_items=num_items)
+        return dict(updates=updates.reversed(),
+                    title="%s's %d updates" % (username, num_items),
+                    num_items=num_items)
