@@ -149,7 +149,7 @@ obsolete = filter(lambda x: x.request == 'obsolete', updates)
         </span>
 
 
-        <!-- <input type="hidden" name="callback" value="${callback}" /> -->
+        <input type="hidden" name="resume" value="${resume}" />
         <input type="submit" name="push" value="Mash Repository" />
         <input type="button" name="checkall" value="Toggle checkboxes"
                 onClick="$('#push_form').toggleCheckboxes();" />
