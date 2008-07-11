@@ -20,7 +20,7 @@ import time
 import shutil
 import urllib2
 import logging
-import commands
+import subprocess
 import cPickle as pickle
 
 from sqlobject import SQLObjectNotFound
@@ -134,9 +134,10 @@ class Masher(Singleton):
                         for repo in item[2]:
                             val += "  - %s" % repo
 
-        (status, output) = commands.getstatusoutput("ps -U %d --forest v" %
-                                                    os.getuid())
-        val += "\n" + output
+        p = subprocess.Popen("ps -U %d --forest v" % os.getuid(), shell=True,
+                             stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        val += "\n" + out
 
         return val
 
@@ -361,10 +362,8 @@ class MashTask(Thread):
         log.debug("Updating comps...")
         olddir = os.getcwd()
         os.chdir(config.get('comps_dir'))
-        (status, output) = commands.getstatusoutput("cvs update")
-        log.debug("(%d, %s) from cvs update" % (status, output))
-        (status, output) = commands.getstatusoutput("make")
-        log.debug("(%d, %s) from make" % (status, output))
+        subprocess.call('cvs update', shell=True)
+        subprocess.call('make', shell=True)
         os.chdir(olddir)
 
     def update_symlinks(self):
@@ -450,26 +449,27 @@ class MashTask(Thread):
                          repo.split('-')[0])
             mashcmd = self.cmd % (mashdir, comps) + repo
             log.info("Running `%s`" % mashcmd)
-            (status, output) = commands.getstatusoutput(mashcmd)
-            log.info("status = %s" % status)
-            if status == 0:
-                self.success = True
-                mash_output = '%s/mash.out' % mashdir
-                out = file(mash_output, 'w')
-                out.write(output)
-                out.close()
-                log.info("Wrote mash output to %s" % mash_output)
-                self.log = mash_output
-            else:
+            p = subprocess.Popen(mashcmd, stdout=subprocess.PIPE, shell=True)
+            out, err = p.communicate()
+            log.info("mash returncode = %s" % p.returncode)
+            if p.returncode:
                 self.success = False
                 failed_output = join(config.get('mashed_dir'), 'mash-failed-%s'
                                      % time.strftime("%y%m%d.%H%M"))
                 out = file(failed_output, 'w')
-                out.write(output)
+                out.write(out)
                 out.close()
                 log.info("Wrote failed mash output to %s" % failed_output)
                 self.log = failed_output
                 raise MashTaskException("Mash failed")
+            else:
+                self.success = True
+                mash_output = '%s/mash.out' % mashdir
+                out = file(mash_output, 'w')
+                out.write(out)
+                out.close()
+                log.info("Wrote mash output to %s" % mash_output)
+                self.log = mash_output
         self.mashing = False
         log.debug("Mashed for %s seconds" % (time.time() - t0))
 
