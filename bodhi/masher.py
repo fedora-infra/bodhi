@@ -26,7 +26,7 @@ import cPickle as pickle
 from sqlobject import SQLObjectNotFound
 from threading import Thread, Lock
 from turbogears import config
-from os.path import exists, join, islink, isdir
+from os.path import exists, join, islink, isdir, dirname
 from time import sleep
 
 from bodhi import buildsys, mail
@@ -361,7 +361,14 @@ class MashTask(Thread):
         """
         log.debug("Updating comps...")
         olddir = os.getcwd()
-        os.chdir(config.get('comps_dir'))
+        comps_dir = config.get('comps_dir')
+        if not exists(comps_dir):
+            os.chdir(dirname(comps_dir))
+            cmd = 'cvs -d %s co comps' % config.get('comps_cvs')
+            log.debug("running command: %s" % cmd)
+            subprocess.call('cvs -d %s co comps' % config.get('comps_cvs'),
+                            shell=True)
+        os.chdir(comps_dir)
         subprocess.call('cvs update', shell=True)
         subprocess.call('make', shell=True)
         os.chdir(olddir)
