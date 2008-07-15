@@ -28,7 +28,7 @@ from fedora.client.bodhi import BodhiClient
 __version__ = '0.5.0'
 __description__ = 'Command line tool for interacting with Bodhi'
 
-BODHI_URL = 'http://publictest10.fedoraproject.org/updates/'
+BODHI_URL = 'https://admin.fedoraproject.org/updates/'
 log = logging.getLogger(__name__)
 
 
@@ -120,26 +120,28 @@ def main():
         try:
             if opts.new:
                 verify_args(args)
-                extra_args = {}
-                if opts.input_file and not hasattr(bodhi, 'file_parsed'):
-                    extra_args = bodhi.parse_file(input_file=opts.input_file,
-                                                  notes=opts.notes,
-                                                  bugs=opts.bugs,
-                                                  type=opts.type)
-                if not opts.release:
+                extra_args = {
+                    'builds': args[0], 'release': opts.release,
+                    'type': opts.type, 'bugs': opts.bugs, 'notes': opts.notes,
+                    'request': opts.request or 'testing',
+                }
+                if opts.input_file:
+                    extra_args.update(
+                            bodhi.parse_file(input_file=opts.input_file))
+                if not extra_args['release']:
                     log.error("Error: No release specified (ie: -r F8)")
                     sys.exit(-1)
-                if not opts.type:
+                if not extra_args['type']:
                     log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
                 log.info("Creating a new update for %s" % args[0])
-                data = bodhi.save(builds=args[0], release=opts.release, 
-                                  type=opts.type, bugs=opts.bugs,
-                                  notes=opts.notes, request=opts.request,
-                                  **extra_args)
-                log.info(data['tg_flash'])
-                if data.has_key('update'):
+                data = bodhi.save(**extra_args)
+                if 'tg_flash' in data:
+                    log.info(data['tg_flash'])
+                if 'update' in data:
                     log.info(data['update'])
+                if 'message' in data:
+                    log.info(data['message'])
             elif opts.edit:
                 verify_args(args)
                 log.info("Editing update for %s" % args[0])
