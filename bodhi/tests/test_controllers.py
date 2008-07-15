@@ -1,7 +1,10 @@
 # $Id: test_controllers.py,v 1.3 2006/12/31 09:10:25 lmacken Exp $
 
+import os
 import turbogears
-from turbogears import testutil, database
+import cPickle as pickle
+
+from turbogears import testutil, database, config
 turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
@@ -957,6 +960,57 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.type == 'newpackage'
+
+    def test_admin_push(self):
+        session = login(username='admin', group='releng')
+        create_release()
+        testutil.create_request('/updates/admin/push', headers=session)
+        assert '0 pending requests' in cherrypy.response.body[0]
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'Initial release of new package!',
+                'request' : 'stable'
+        }
+        self.save_update(params, session)
+        assert PackageUpdate.select().count() == 1
+        assert PackageUpdate.select()[0].request == 'stable'
+        testutil.create_request('/updates/admin/push', headers=session)
+
+        # Make sure security updates do not slip in unapproved
+        assert '0 pending requests' in cherrypy.response.body[0]
+
+        # approve the update
+        me = User.by_user_name('admin')
+        secteam = Group(group_name='security_respons', display_name='h4x0rs')
+        me.addGroup(secteam)
+        testutil.create_request('/updates/approve/%s' % params['builds'],
+                                headers=session)
+
+        # It should now appear in the queue
+        testutil.create_request('/updates/admin/push', headers=session)
+        assert '1 pending request' in cherrypy.response.body[0]
+
+        # Revoke the stable request from the update
+        testutil.create_request('/updates/revoke/%s' % params['builds'],
+                                headers=session)
+
+        # It should be removed from the queue
+        testutil.create_request('/updates/admin/push', headers=session)
+        assert '0 pending requests' in cherrypy.response.body[0]
+
+        # Create a MASHING lock with this update in it
+        config.update({'global': {'mashed_dir': os.getcwd()}})
+        mash_lock = file(os.path.join(config.get('mashed_dir'), 'MASHING'), 'w')
+        mash_lock.write(pickle.dumps([params['builds'],]))
+        mash_lock.close()
+
+        # Make sure it attempts to resume the current push
+        # It should now appear in the queue
+        testutil.create_request('/updates/admin/push', headers=session)
+        assert '1 pending request' in cherrypy.response.body[0], cherrypy.response.body[0]
 
     def test_request_comments(self):
         """ Make sure that setting requests also adds comments """
