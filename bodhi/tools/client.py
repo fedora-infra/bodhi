@@ -116,6 +116,11 @@ def main():
             log.error("Please specifiy a comma-separated list of builds")
             sys.exit(-1)
 
+    def validate_auth(data):
+        """ Hack, until we properly handle exceptions in our base client """
+        if 'message' in data and data['message'] == u'You must provide your credentials before accessing this resource.':
+            raise AuthError(data['message'])
+
     while True:
         try:
             if opts.new:
@@ -136,12 +141,12 @@ def main():
                     sys.exit(-1)
                 log.info("Creating a new update for %s" % args[0])
                 data = bodhi.save(**extra_args)
-                if 'tg_flash' in data:
+                if data.get('tg_flash'):
                     log.info(data['tg_flash'])
                 if 'update' in data:
                     log.info(data['update'])
-                if 'message' in data:
-                    log.info(data['message'])
+                else:
+                    validate_auth(data)
             elif opts.edit:
                 verify_args(args)
                 log.info("Editing update for %s" % args[0])
@@ -149,17 +154,20 @@ def main():
                                   type=opts.type, bugs=opts.bugs,
                                   notes=opts.notes, request=opts.request)
                 log.info(data['tg_flash'])
+                validate_auth(data)
                 if data.has_key('update'):
                     log.info(data['update'])
             elif opts.request:
                 verify_args(args)
                 data = bodhi.request(update=args[0], request=opts.request)
+                validate_auth(data)
                 log.info(data['tg_flash'])
                 if data.has_key('update'):
                     log.info(data['update'])
             elif opts.delete:
                 verify_args(args)
                 data = bodhi.delete(update=args[0])
+                validate_auth(data)
                 log.info(data['tg_flash'])
             elif opts.push:
                 data = bodhi.push()
@@ -198,6 +206,7 @@ def main():
                                      karma=opts.karma)
                 if data['tg_flash']:
                     log.info(data['tg_flash'])
+                validate_auth(data)
                 if data.has_key('update'):
                     log.info(data['update'])
             elif opts.mine and not args:
