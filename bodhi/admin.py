@@ -21,6 +21,7 @@ import cPickle as pickle
 
 from os.path import join, exists
 from Cookie import SimpleCookie
+from sqlobject import SQLObjectNotFound
 from turbogears import expose, identity, redirect, flash, config
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
@@ -86,7 +87,11 @@ class AdminController(Controller, SecureResource):
         if mash['mashing']:
             flash_log('The masher is currently pushing updates')
         else:
-            updates = map(PackageUpdate.byTitle, mash.get('updates', []))
+            for update in mash.get('updates', []):
+                try:
+                    updates.append(PackageUpdate.byTitle(update))
+                except SQLObjectNotFound:
+                    log.warning("Cannot find update %s in push queue" % update)
             if updates:
                 flash_log('There is an updates push ready to be resumed')
                 resume = True
