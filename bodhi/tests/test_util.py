@@ -3,13 +3,14 @@ import yum
 import tempfile
 
 from os.path import exists, join
-from turbogears import config, update_config
+from turbogears import config, update_config, database
 from bodhi.util import Singleton, sanity_check_repodata, mkmetadatadir
 
 import logging
 log = logging.getLogger(__name__)
 
 update_config(configfile='bodhi.cfg', modulename='bodhi.config')
+database.set_db_uri("sqlite:///:memory:")
 
 class TestUtil:
 
