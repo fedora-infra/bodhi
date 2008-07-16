@@ -4,9 +4,10 @@ MANIFEST.in
 README
 bodhi.cfg
 bodhi.spec
-bodhi.wsgi
 masher.cfg
 setup.py
+apache/bodhi.conf
+apache/bodhi.wsgi
 bodhi/__init__.py
 bodhi/admin.py
 bodhi/buildsys.py

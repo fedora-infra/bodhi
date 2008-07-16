@@ -1,5 +1,6 @@
 exclude start-bodhi
-include bodhi.wsgi
+include apache/bodhi.wsgi
+include apache/bodhi.conf
 include AUTHORS README COPYING ChangeLog
 include *.cfg
 include bodhi/templates/*.kid
