@@ -70,7 +70,7 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{__mkdir_p} %{buildroot}%{_sysconfdir}
 %{__mkdir_p} %{buildroot}%{_datadir}/%{name}
 %{__install} -m 640 %{name}.cfg %{buildroot}%{_sysconfdir}
-%{__cp} %{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
+%{__cp} apache/%{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
 
 
 %clean
