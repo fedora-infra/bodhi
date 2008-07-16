@@ -89,7 +89,7 @@ def get_parser():
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Show debugging messages")
     parser.add_option("-l", "--limit", action="store", type="int", dest="limit",
-                      default=10, help="Maximum number of updates to return "
+                      default=60, help="Maximum number of updates to return "
                       "(default: 10)")
 
     return parser
@@ -216,11 +216,7 @@ def main():
                 log.info(data['title'])
             elif opts.status or opts.bugs or opts.release or opts.type or \
                  opts.mine or args:
-                for arg in args:
-                    data = bodhi.query(package=arg, release=opts.release,
-                                       status=opts.status, type=opts.type,
-                                       bugs=opts.bugs, request=opts.request,
-                                       mine=opts.mine, limit=opts.limit)
+                def print_query(data):
                     if data.has_key('tg_flash') and data['tg_flash']:
                         log.error(data['tg_flash'])
                         sys.exit(-1)
@@ -232,6 +228,19 @@ def main():
                             log.info(bodhi.update_str(update))
                         log.info("%d updates found (%d shown)" % (
                             data['num_items'], len(data['updates'])))
+                if args:
+                    for arg in args:
+                        data = bodhi.query(package=arg, release=opts.release,
+                                           status=opts.status, type=opts.type,
+                                           bugs=opts.bugs, request=opts.request,
+                                           mine=opts.mine, limit=opts.limit)
+                        print_query(data)
+                else:
+                    data = bodhi.query(release=opts.release, status=opts.status,
+                                       type=opts.type, bugs=opts.bugs,
+                                       request=opts.request, mine=opts.mine,
+                                       limit=opts.limit)
+                    print_query(data)
             else:
                 parser.print_help()
             break
