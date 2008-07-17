@@ -11,11 +11,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import logging
+
 from turbogears.feed import FeedController
 from turbogears import config, url
+from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
 
 from bodhi.model import Release, PackageUpdate, Comment
+
+log = logging.getLogger(__name__)
 
 class Feed(FeedController):
 
@@ -30,7 +35,11 @@ class Feed(FeedController):
         if comments:
             return self.get_latest_comments()
         if release:
-            rel = Release.byName(release.upper())
+            try:
+                rel = Release.byName(release.upper())
+            except SQLObjectNotFound:
+                log.warning("Cannot find Release '%s' for RSS data" % release)
+                return dict(title = '%s not found' % release, entries=[])
             query.append(PackageUpdate.q.releaseID == rel.id)
             title.append(rel.long_name)
         if type:
