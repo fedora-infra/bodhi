@@ -1,20 +1,15 @@
 import sys
-#sys.path.append('/usr/share/bodhi')
 sys.stdout = sys.stderr
-
-# We only need this if we are using any eggs
-#import os
-#os.environ['PYTHON_EGG_CACHE'] = '/usr/local/turbogears/python-eggs'
 import pkg_resources
 pkg_resources.require("CherryPy<3.0")
 
-import atexit
 import cherrypy
 import cherrypy._cpwsgi
 import turbogears
 
 from bodhi.util import load_config
 load_config()
+
 turbogears.config.update({'global': {'server.environment': 'production'}})
 turbogears.config.update({'global': {'autoreload.on': False}})
 turbogears.config.update({'global': {'server.log_to_screen': False}})
