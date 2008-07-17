@@ -10,7 +10,7 @@ import sys
 from sqlobject import SQLObjectNotFound
 from turbogears.database import PackageHub
 
-from bodhi.util import load_config
+from bodhi.util import load_config, ProgressBar
 from bodhi.model import Release, PackageUpdate, PackageBuild
 from bodhi.buildsys import get_session
 
@@ -26,8 +26,11 @@ def main():
         print "Cannot find Release '%s'" % sys.argv[1]
         sys.exit(1)
 
-    for update in PackageUpdate.select(PackageUpdate.q.releaseID == release.id):
-        print "Destroying %s" % update.title
+    updates = PackageUpdate.select(PackageUpdate.q.releaseID == release.id)
+    progress = ProgressBar(maxValue=updates.count())
+    print "Destroying all updates, comments, and bugs associated with %s" % release.name
+
+    for update in updates:
         for comment in update.comments:
             comment.destroySelf()
         for build in update.builds:
@@ -36,9 +39,11 @@ def main():
             if len(bug.updates) == 1:
                 bug.destroySelf()
         update.destroySelf()
+        progress()
 
     release.destroySelf()
     hub.commit()
+    print
 
 if __name__ == '__main__':
     main()
