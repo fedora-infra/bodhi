@@ -3,6 +3,7 @@ sys.stdout = sys.stderr
 import pkg_resources
 pkg_resources.require("CherryPy<3.0")
 
+import atexit
 import cherrypy
 import cherrypy._cpwsgi
 import turbogears
