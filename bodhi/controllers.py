@@ -978,7 +978,7 @@ class Root(controllers.RootController):
                     num_items=num_items)
 
     @expose(allow_json=True)
-    def latest(self, package):
+    def latest_builds(self, package):
         """ Get a list of the latest builds for this package.
 
         Returns a dictionary of the release dist tag to the latest build.
