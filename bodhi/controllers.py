@@ -177,11 +177,11 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, allow_limit_override=True)
-    def list(self, release=None, bugs=None, cves=None, status=None, type=None,
+    def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
              package=None, mine=False, stringify=False):
         """ Return a list of updates based on given parameters """
         log.debug("list(%s, %s, %s, %s, %s, %s, %s, %s)" % (release, bugs, cves,
-                  status, type, package, mine, stringify))
+                  status, type_, package, mine, stringify))
         query = []
         updates = []
 
@@ -191,8 +191,8 @@ class Root(controllers.RootController):
                 query.append(PackageUpdate.q.releaseID == rel.id)
             if status:
                 query.append(PackageUpdate.q.status == status)
-            if type:
-                query.append(PackageUpdate.q.type == type)
+            if type_:
+                query.append(PackageUpdate.q.type == type_)
             if mine:
                 query.append(
                     PackageUpdate.q.submitter == identity.current.user_name)
@@ -203,7 +203,7 @@ class Root(controllers.RootController):
             if package:
                 try:
                     update = PackageUpdate.byTitle(package)
-                    if not release and not status and not type:
+                    if not release and not status and not type_:
                         updates = [update]
                     else:
                         if update in updates:
@@ -213,7 +213,7 @@ class Root(controllers.RootController):
                 except SQLObjectNotFound:
                     try:
                         pkg = Package.byName(package)
-                        if not release and not status and not type:
+                        if not release and not status and not type_:
                             updates = [pkg for pkg in pkg.updates()]
                         else:
                             updates = filter(lambda up: up in updates,
@@ -221,7 +221,7 @@ class Root(controllers.RootController):
                     except SQLObjectNotFound:
                         try:
                             build = PackageBuild.byNvr(package)
-                            if not release and not status and not type:
+                            if not release and not status and not type_:
                                 updates = build.updates
                             else:
                                 results = []
@@ -362,7 +362,7 @@ class Root(controllers.RootController):
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
-    def save(self, builds, type, notes, bugs, close_bugs=False, edited=False,
+    def save(self, builds, type_, notes, bugs, close_bugs=False, edited=False,
              request='testing', suggest_reboot=False, inheritance=False, 
              autokarma=True, stable_karma=3, unstable_karma=-3, **kw):
         """ Save an update.
@@ -374,7 +374,7 @@ class Root(controllers.RootController):
         Arguments:
         :builds: A list of koji builds for this update.
         :release: The release that this update is for.
-        :type: The type of this update: ``security``, ``bugfix``,
+        :type_: The type of this update: ``security``, ``bugfix``,
             ``enhancement``, and ``newpackage``.
         :bugs: A list of Red Hat Bugzilla ID's associated with this update.
         :notes: Details as to why this update exists.
@@ -393,7 +393,7 @@ class Root(controllers.RootController):
 
         """
         log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (
-                  builds, type, notes, bugs, close_bugs, edited, request,
+                  builds, type_, notes, bugs, close_bugs, edited, request,
                   suggest_reboot, inheritance, stable_karma, unstable_karma,
                   kw))
 
@@ -410,7 +410,7 @@ class Root(controllers.RootController):
         # Parameters used to re-populate the update form if something fails
         params = {
                 'builds.text' : ' '.join(builds),
-                'type'        : type,
+                'type'        : type_,
                 'bugs'        : ' '.join(map(str, bugs)),
                 'notes'       : notes,
                 'edited'      : edited,
@@ -615,7 +615,7 @@ class Root(controllers.RootController):
                 update = edited
                 log.debug("Editing update %s" % edited.title)
                 update.set(release=release, date_modified=datetime.utcnow(),
-                           notes=notes, type=type, title=','.join(builds),
+                           notes=notes, type=type_, title=','.join(builds),
                            close_bugs=close_bugs)
 
                 # Remove any unnecessary builds
@@ -630,7 +630,7 @@ class Root(controllers.RootController):
                 update = PackageUpdate(title=','.join(builds),
                                        release=release,
                                        submitter=identity.current.user_name,
-                                       notes=notes, type=type,
+                                       notes=notes, type=type_,
                                        close_bugs=close_bugs)
                 log.info("Created PackageUpdate %s" % update.title)
             updates.append(update)

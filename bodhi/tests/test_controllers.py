@@ -23,6 +23,7 @@ def create_release(num='7', dist='dist-fc'):
     rel = Release(name='F'+num, long_name='Fedora '+num, id_prefix='FEDORA',
                   dist_tag=dist+num)
     assert rel
+    assert Release.byName('F'+num)
     return rel
 
 def login(username='guest', display_name='guest', group=None):
@@ -77,7 +78,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '1234 5678',
                 'cves'    : 'CVE-2020-0001',
                 'notes'   : 'foobar'
@@ -91,7 +92,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '1234',
                 'cves'    : 'CVE-2020-0001',
                 'notes'   : 'foobar'
@@ -114,7 +115,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'enhancement',
+            'type_'    : 'enhancement',
             'bugs'    : '1234 5678',
             'cves'    : '',
             'notes'   : 'foobar'
@@ -126,7 +127,7 @@ class TestControllers(testutil.DBTest):
         for build in params['builds'].split():
             assert build in builds
         assert update.release.long_name == params['release']
-        assert update.type == params['type']
+        assert update.type == params['type_']
         assert update.notes == params['notes']
         for bug in params['bugs'].split():
             assert int(bug) in map(lambda x: x.bz_id, update.bugs)
@@ -136,7 +137,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'foobar',
             'release' : 'Fedora 7',
-            'type'    : 'enhancement',
+            'type_'    : 'enhancement',
             'bugs'    : '1234 5678',
             'cves'    : '',
             'notes'   : 'foobar'
@@ -146,17 +147,17 @@ class TestControllers(testutil.DBTest):
 
     def test_bad_type(self):
         session = login()
+        create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'REGRESSION!',
+            'type_'    : 'REGRESSION!',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
         }
         self.save_update(params, session)
-        print cherrypy.response.body[0]
-        assert "Value must be one of: bugfix; enhancement; security; newpackage (not u'REGRESSION!')" in cherrypy.response.body[0]
+        assert "Invalid: expected a member of ['security', 'bugfix', 'enhancement', 'newpackage'] in the EnumCol 'type', got u'REGRESSION!' instead" in cherrypy.response.body[0]
 
     def test_user_notes_encoding(self):
         session = login(username='guest', display_name='foo\xc3\xa9bar')
@@ -164,7 +165,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : 'Foo\u2019bar'
@@ -182,7 +183,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '#1234, #567 89',
                 'cves'    : '',
                 'notes'   : 'foobar'
@@ -197,7 +198,7 @@ class TestControllers(testutil.DBTest):
             assert int(bug) in map(lambda x: x.bz_id, update.bugs)
         assert len(update.cves) == 0
         assert update.notes == params['notes']
-        assert update.type == params['type']
+        assert update.type == params['type_']
 
     def test_comment(self):
         session = login()
@@ -205,7 +206,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -255,7 +256,7 @@ class TestControllers(testutil.DBTest):
         f8 = create_release('8', dist='dist-f')
         params = {
             'builds'  : 'TurboGears-1.0.4.4-1.fc8',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -273,7 +274,7 @@ class TestControllers(testutil.DBTest):
         f7 = create_release('7')
         params = {
             'builds'  : 'TurboGears-1.0.4.4-1.fc7 nethack-3.4.3-17.fc7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -296,7 +297,7 @@ class TestControllers(testutil.DBTest):
         f8 = create_release('8', dist='dist-f')
         params = {
             'builds'  : 'TurboGears-1.0.4.4-1.fc7 nethack-3.4.3-17.fc8',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '', 'cves'    : '', 'notes'   : ''
         }
         self.save_update(params, session)
@@ -330,7 +331,7 @@ class TestControllers(testutil.DBTest):
         print f8
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 TurboGears-1.0.4.4-1.fc8',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -360,7 +361,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -372,7 +373,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '1',
             'cves'    : '',
             'notes'   : '',
@@ -401,7 +402,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'python-sqlobject-0.8.2-1.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : 'foobar',
@@ -424,7 +425,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'python-sqlobject-0.8.2-1.fc7 kernel-2.6.20-1',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : 'foobar',
@@ -451,7 +452,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-1.6.3-13.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -490,7 +491,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -521,7 +522,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : '',
@@ -540,7 +541,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : '',
@@ -558,7 +559,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -597,7 +598,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type'    : 'bugfix',
+            'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
@@ -653,7 +654,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '',
                 'cves'    : '',
                 'notes'   : ''
@@ -667,7 +668,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '1234',
                 'cves'    : 'CVE-2020-0001',
                 'notes'   : 'foobar',
@@ -683,7 +684,7 @@ class TestControllers(testutil.DBTest):
         newparams = {
                 'builds'  : 'TurboGears-1.0.2.2-3.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '4321',
                 'cves'    : 'CVE-2020-0001',
                 'notes'   : 'bizbaz'
@@ -707,7 +708,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '1234',
                 'cves'    : 'CVE-2020-0001',
                 'notes'   : 'foobar'
@@ -723,7 +724,7 @@ class TestControllers(testutil.DBTest):
         newparams = {
                 'builds'  : 'TurboGears-1.0.2.2-3.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '4321',
                 'cves'    : 'CVE-2020-0001',
                 'notes'   : 'foobar'
@@ -745,7 +746,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '1234',
                 'cves'    : '',
                 'notes'   : 'foobar'
@@ -766,7 +767,7 @@ class TestControllers(testutil.DBTest):
         url = '/updates/list?' + urllib.urlencode({
                 'release' : 'F7',
                 'bugs'    : '1234',
-                'type'    : 'enhancement'
+                'type_'    : 'enhancement'
         })
         testutil.create_request(url, method='GET')
         assert "1 update found" in cherrypy.response.body[0]
@@ -774,7 +775,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type_'    : 'security',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar'
@@ -791,7 +792,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -802,7 +803,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'python-sqlobject-1.6.3-13.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -814,7 +815,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'nethack-2.10-3.20070831cvs.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -826,7 +827,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'xprobe2-1.4.6-1.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'enhancement',
+                'type_'    : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -846,7 +847,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type_'    : 'security',
                 'bugs'    : '',
                 'notes'   : 'foobar',
                 'request' : 'testing'
@@ -872,7 +873,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type_'    : 'security',
                 'bugs'    : '',
                 'notes'   : 'foobar',
                 'request' : 'Stable'
@@ -887,7 +888,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type_'    : 'security',
                 'bugs'    : '',
                 'notes'   : 'foobar',
                 'request' : 'Stable',
@@ -903,7 +904,7 @@ class TestControllers(testutil.DBTest):
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7 python-sqlobject-1.2-3.fc7',
                 'edited'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type_'    : 'security',
                 'bugs'    : '',
                 'notes'   : 'foobar',
                 'request' : 'Stable',
@@ -926,7 +927,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type_'    : 'security',
                 'bugs'    : '',
                 'notes'   : 'foobar',
                 'request' : 'Stable',
@@ -953,7 +954,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'newpackage',
+                'type_'    : 'newpackage',
                 'bugs'    : '',
                 'notes'   : 'Initial release of new package!',
         }
@@ -969,7 +970,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'security',
+                'type_'    : 'security',
                 'bugs'    : '',
                 'notes'   : 'Initial release of new package!',
                 'request' : 'stable'
@@ -1019,7 +1020,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type'    : 'newpackage',
+                'type_'    : 'newpackage',
                 'bugs'    : '',
                 'notes'   : 'Initial release of new package!',
         }

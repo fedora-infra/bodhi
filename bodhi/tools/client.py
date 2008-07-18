@@ -80,7 +80,7 @@ def get_parser():
                       dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
                       help="Update type [bugfix|security|enhancement]",
-                      dest="type")
+                      dest="type_")
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
                       help="Login username for bodhi")
@@ -127,7 +127,7 @@ def main():
                 verify_args(args)
                 extra_args = {
                     'builds': args[0], 'release': opts.release,
-                    'type': opts.type, 'bugs': opts.bugs, 'notes': opts.notes,
+                    'type_': opts.type_, 'bugs': opts.bugs, 'notes': opts.notes,
                     'request': opts.request or 'testing',
                 }
                 if opts.input_file:
@@ -136,7 +136,7 @@ def main():
                 if not extra_args['release']:
                     log.error("Error: No release specified (ie: -r F8)")
                     sys.exit(-1)
-                if not extra_args['type']:
+                if not extra_args['type_']:
                     log.error("Error: No update type specified (ie: -t bugfix)")
                     sys.exit(-1)
                 log.info("Creating a new update for %s" % args[0])
@@ -151,7 +151,7 @@ def main():
                 verify_args(args)
                 log.info("Editing update for %s" % args[0])
                 data = bodhi.save(builds=args[0], release=opts.release, 
-                                  type=opts.type, bugs=opts.bugs,
+                                  type_=opts.type_, bugs=opts.bugs,
                                   notes=opts.notes, request=opts.request)
                 log.info(data['tg_flash'])
                 validate_auth(data)
@@ -194,7 +194,7 @@ def main():
                 log.info(data['masher_str'])
             elif opts.testable:
                 for update in bodhi.testable():
-                    log.info(bodhi.update_str(update))
+                    log.info(bodhi.update_str(update, minimal=opts.verbose))
             elif opts.candidates:
                 for build in bodhi.candidates():
                     log.info("%-40s %-20s" % (build['nvr'], build['tag_name']))
@@ -214,7 +214,7 @@ def main():
                 for update in data['updates']:
                     log.info(bodhi.update_str(update, minimal=True))
                 log.info(data['title'])
-            elif opts.status or opts.bugs or opts.release or opts.type or \
+            elif opts.status or opts.bugs or opts.release or opts.type_ or \
                  opts.mine or args:
                 def print_query(data):
                     if data.has_key('tg_flash') and data['tg_flash']:
@@ -231,13 +231,13 @@ def main():
                 if args:
                     for arg in args:
                         data = bodhi.query(package=arg, release=opts.release,
-                                           status=opts.status, type=opts.type,
+                                           status=opts.status, type_=opts.type_,
                                            bugs=opts.bugs, request=opts.request,
                                            mine=opts.mine, limit=opts.limit)
                         print_query(data)
                 else:
                     data = bodhi.query(release=opts.release, status=opts.status,
-                                       type=opts.type, bugs=opts.bugs,
+                                       type_=opts.type_, bugs=opts.bugs,
                                        request=opts.request, mine=opts.mine,
                                        limit=opts.limit)
                     print_query(data)

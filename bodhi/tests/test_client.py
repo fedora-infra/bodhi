@@ -35,10 +35,12 @@ class BodhiTestClient(BodhiClient):
 
     def send_request(self, method, auth=False, req_params=None):
         """ overload the BaseClient.send_request """
+        print "req_params =", req_params
         pairs = urllib.urlencode(req_params)
         url = '/updates/' + method + '?%s&tg_format=json' % pairs
         print "url =", url
         testutil.create_request(url, headers=self.cookie, method='POST')
+        print cherrypy.response.body[0]
         return simplejson.loads(cherrypy.response.body[0])
 
 class Opts(object):
@@ -93,7 +95,7 @@ class TestClient(testutil.DBTest):
             assert bz in update.bugs
 
     def __save_update(self, build, opts, bodhi):
-        bodhi.save(builds=build, release=opts.release, type=opts.type,
+        bodhi.save(builds=build, release=opts.release, type_=opts.type,
                    bugs=opts.bugs, notes=opts.notes, request=opts.request)
 
     def test_query(self):
@@ -192,7 +194,9 @@ class TestClient(testutil.DBTest):
     def test_update_str(self):
         bodhi = self.__get_bodhi_client()
         opts = self.__get_opts()
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
         self.__save_update(self.build, opts, bodhi)
+        testutil.print_log()
         update = bodhi.query()['updates'][0]
         assert update and isinstance(update, dict)
         assert bodhi.update_str(update).startswith(u'================================================================================\n     TurboGears-1.0.3.2-1.fc7\n================================================================================\n    Release: Fedora 7\n     Status: pending\n       Type: bugfix\n      Karma: 0\n    Request: stable\n       Bugs: 12345 - None\n           : 6789 - None\n      Notes: foo\n  Submitter: guest\n')
