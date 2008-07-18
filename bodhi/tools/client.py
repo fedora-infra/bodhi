@@ -84,7 +84,9 @@ def get_parser():
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
                       help="Login username for bodhi")
-
+    parser.add_option("-L", "--latest", action="store", type="string",
+                      dest="latest", help="List the latest builds of a "
+                      "specific package across all releases")
     ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Show debugging messages")
@@ -209,6 +211,17 @@ def main():
                 validate_auth(data)
                 if data.has_key('update'):
                     log.info(data['update'])
+            elif opts.latest:
+                data = bodhi.latest(package=opts.latest)
+                if 'tg_flash' in data:
+                    if data['tg_flash']:
+                        log.info(data['tg_flash'])
+                    del(data['tg_flash'])
+                data = data.items()
+                data.sort(cmp=lambda x, y: cmp(x[0].split('-')[1],
+                                               y[0].split('-')[1]))
+                for dist, build in data:
+                    log.info('%26s  %s' % (dist, build))
             elif opts.mine and not args:
                 data = bodhi.query(mine=opts.mine)
                 for update in data['updates']:

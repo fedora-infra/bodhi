@@ -976,3 +976,18 @@ class Root(controllers.RootController):
         return dict(updates=updates.reversed(),
                     title="%s's %d updates" % (username, num_items),
                     num_items=num_items)
+
+    @expose(allow_json=True)
+    def latest(self, package):
+        """ Get a list of the latest builds for this package.
+
+        Returns a dictionary of the release dist tag to the latest build.
+        """
+        builds = {}
+        koji = buildsys.get_session()
+        for release in Release.select():
+            for tag in ('updates-candidate', 'updates-testing', 'updates'):
+                tag = '%s-%s' % (release.dist_tag, tag)
+                for build in koji.getLatestBuilds(tag, package=package):
+                    builds[tag] = build['nvr']
+        return builds
