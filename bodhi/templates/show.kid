@@ -22,9 +22,13 @@ for build in update.builds:
 
 ## Make the package name linkable in the n-v-r
 title = ''
-for build in update.builds:
-    nvr = util.get_nvr(build.nvr)
-    title += "<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]) + ", "
+if len(update.builds) > 2:
+    for build in update.builds:
+        title += util.link(build.package.name, '/%s' % build.package.name)+', '
+else:
+    for build in update.builds:
+        nvr = util.get_nvr(build.nvr)
+        title += "<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]) + ", "
 title = title[:-2]
 
 release = util.link(update.release.long_name, '/' + update.release.name)
