@@ -46,7 +46,7 @@ class BodhiTestClient(BodhiClient):
 class Opts(object):
     """ To represent our OptionParser """
     release = 'f7'
-    type = 'bugfix'
+    type_ = 'bugfix'
     notes = 'foo'
     bugs = '12345,6789'
     limit = 10
@@ -88,14 +88,14 @@ class TestClient(testutil.DBTest):
         update = PackageUpdate.byTitle(self.build)
         assert update and update.title == self.build
         assert update.release.name == opts.release.upper()
-        assert update.type == opts.type
+        assert update.type == opts.type_
         assert update.notes == opts.notes
         for bug in opts.bugs.split(','):
             bz = Bugzilla.byBz_id(int(bug))
             assert bz in update.bugs
 
     def __save_update(self, build, opts, bodhi):
-        bodhi.save(builds=build, release=opts.release, type_=opts.type,
+        bodhi.save(builds=build, release=opts.release, type_=opts.type_,
                    bugs=opts.bugs, notes=opts.notes, request=opts.request)
 
     def test_query(self):
@@ -107,7 +107,7 @@ class TestClient(testutil.DBTest):
         update = data['updates'][0]
         assert update['release']['long_name'] == u'Fedora 7'
         assert update['builds'][0]['nvr'] == self.build
-        assert update['type'] == opts.type
+        assert update['type'] == opts.type_
         assert update['notes'] == opts.notes
 
     def test_delete(self):
