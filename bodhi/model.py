@@ -216,7 +216,7 @@ class PackageUpdate(SQLObject):
     notes            = UnicodeCol()
     request          = EnumCol(enumValues=['testing', 'stable', 'obsolete',
                                            None], default=None)
-    comments         = MultipleJoin('Comment', joinColumn='update_id')
+    comments         = MultipleJoin('Comment', joinColumn='update_id', orderBy='timestamp')
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
     nagged           = PickleCol(default=None) # { nagmail_name : datetime, ... }
