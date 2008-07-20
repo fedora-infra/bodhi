@@ -135,6 +135,10 @@ def main():
                 if opts.input_file:
                     extra_args.update(
                             bodhi.parse_file(input_file=opts.input_file))
+                    # hack.  remove this with the next version of python-fedora
+                    if 'type' in extra_args:
+                        extra_args['type_'] = extra_args['type']
+                        del(extra_args['type'])
                 if not extra_args['release']:
                     log.error("Error: No release specified (ie: -r F8)")
                     sys.exit(-1)
