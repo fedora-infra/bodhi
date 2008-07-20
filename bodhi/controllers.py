@@ -131,7 +131,7 @@ class Root(controllers.RootController):
                 grids[key].append(None)
                 continue
             if value[RESULTS].count() > 5:
-                value[RESULTS] = value[RESULTS][:5]
+                value[RESULTS] = value[RESULTS][:10]
             value[RESULTS] = list(value[RESULTS])
             grids[key].append(DataGrid(name=key, fields=value[FIELDS],
                                        default=value[RESULTS]))
