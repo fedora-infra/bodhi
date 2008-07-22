@@ -3,6 +3,9 @@ sys.stdout = sys.stderr
 import pkg_resources
 pkg_resources.require("CherryPy<3.0")
 
+import os
+os.environ['PYTHON_EGG_CACHE'] = '/var/www/.python-eggs'
+
 import atexit
 import cherrypy
 import cherrypy._cpwsgi
