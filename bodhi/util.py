@@ -298,7 +298,7 @@ def load_config(configfile=None):
     elif os.path.exists('/etc/bodhi.cfg'):
         configfile = '/etc/bodhi.cfg'
     elif os.path.exists('/etc/bodhi/bodhi.cfg'):
-        configfile = '/etc/bodhi.cfg'
+        configfile = '/etc/bodhi/bodhi.cfg'
     else:
         log.error("Unable to find configuration to load!")
         return
