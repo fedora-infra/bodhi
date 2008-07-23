@@ -45,6 +45,16 @@ def get_masher():
         log.error("Masher doesn't exist?")
     return masher
 
+def get_mash_conf():
+    conf = config.get('mash_conf')
+    if exists(conf):
+        return conf
+    elif exists('/etc/bodhi/mash.conf'):
+        return '/etc/bodhi/mash.conf'
+    else:
+        log.error("No mash configuration found!")
+        return None
+
 class Masher(Singleton):
     """ The Masher.
 

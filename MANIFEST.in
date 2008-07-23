@@ -5,6 +5,8 @@ include AUTHORS README COPYING ChangeLog
 include *.cfg
 include bodhi/templates/*.kid
 include bodhi/config/*.cfg
+include bodhi/config/*.conf
+include bodhi/config/*.mash
 include bodhi/static/js/*
 include bodhi/static/css/*
 include bodhi/static/images/*
