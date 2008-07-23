@@ -295,8 +295,10 @@ def load_config(configfile=None):
         configfile = os.path.join(setupdir, 'dev.cfg')
     elif os.path.exists(os.path.join(curdir, 'bodhi.cfg')):
         configfile = os.path.join(curdir, 'bodhi.cfg')
-    elif os.path.exists(os.path.join('/etc/bodhi.cfg')):
-        configfile = os.path.join('/etc/bodhi.cfg')
+    elif os.path.exists('/etc/bodhi.cfg'):
+        configfile = '/etc/bodhi.cfg'
+    elif os.path.exists('/etc/bodhi/bodhi.cfg'):
+        configfile = '/etc/bodhi.cfg'
     else:
         log.error("Unable to find configuration to load!")
         return
