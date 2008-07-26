@@ -11,10 +11,9 @@ from turbogears.database import PackageHub
 
 from bodhi.util import load_config
 from bodhi.model import Release
+from bodhi.buildsys import get_session
 
 def clean_testing_builds(untag=False):
-    load_config()
-    from bodhi.buildsys import get_session
     koji = get_session()
     for release in Release.select():
         stable_builds = koji.listTagged('%s-updates' % release.dist_tag, latest=True)
@@ -43,4 +42,5 @@ def clean_testing_builds(untag=False):
         print
 
 if __name__ == '__main__':
+    load_config()
     clean_testing_builds('--untag' in sys.argv)
