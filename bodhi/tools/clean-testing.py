@@ -7,11 +7,10 @@ A tool that untags testing builds that have a newer build tagged as stable.
 import sys
 import rpm
 
-from sqlobject import SQLObjectNotFound
 from turbogears.database import PackageHub
 
 from bodhi.util import load_config
-from bodhi.model import Release, PackageBuild
+from bodhi.model import Release
 
 def clean_testing_builds(untag=False):
     load_config()
@@ -36,10 +35,10 @@ def clean_testing_builds(untag=False):
                                          stable_build['release'])) < 0:
                         print "%s is older than %s" % (testing_build['nvr'],
                                                        stable_build['nvr'])
-                            if untag:
-                                print "Untagging koji build %s" % testing_build['nvr']
-                                koji.untagBuild('%s-updates-testing',
-                                                testing_build['nvr'])
+                        if untag:
+                            print "Untagging koji build %s" % testing_build['nvr']
+                            koji.untagBuild('%s-updates-testing',
+                                            testing_build['nvr'])
 
         print
 
