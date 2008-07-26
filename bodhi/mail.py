@@ -359,7 +359,7 @@ def get_template(update, use_template=errata_template):
             # We can't trust the strings we get from RPM
             log.debug("UnicodeDecodeError! Will try again after decoding")
             for (key, value) in info.items():
-                if value: info[key] = value.decode('utf8', errors='replace')
+                if value: info[key] = value.decode('utf8', 'replace')
             templates.append((info['subject'], use_template % info))
 
     return templates
