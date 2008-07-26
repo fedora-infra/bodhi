@@ -7,8 +7,6 @@ A tool that untags testing builds that have a newer build tagged as stable.
 import sys
 import rpm
 
-from turbogears.database import PackageHub
-
 from bodhi.util import load_config
 from bodhi.model import Release
 from bodhi.buildsys import get_session
