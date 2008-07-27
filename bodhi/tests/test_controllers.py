@@ -1047,22 +1047,22 @@ class TestControllers(testutil.DBTest):
         assert update.get_comments()[-1].text == 'This update has been obsoleted'
         assert update.get_comments()[-1].author == 'bodhi'
 
-    def test_build_inheritance(self):
-        """ Ensure that build inheritance actually works """
-        session = login()
-        create_release()
-        create_release(num='8', dist='dist-f')
-        assert Release.select().count() == 2
-        params = {
-                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-                'release' : 'Fedora 7',
-                'type_'    : 'newpackage',
-                'bugs'    : '',
-                'notes'   : 'Initial release of new package!',
-                'inheritance' : True,
-        }
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
-        self.save_update(params, session)
-        assert PackageUpdate.select().count() == 2, cherrypy.response.body[0]
-        update = PackageUpdate.byTitle(params['builds'])
-        testutil.print_log()
+    #def test_build_inheritance(self):
+    #    """ Ensure that build inheritance actually works """
+    #    session = login()
+    #    create_release()
+    #    create_release(num='8', dist='dist-f')
+    #    assert Release.select().count() == 2
+    #    params = {
+    #            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+    #            'release' : 'Fedora 7',
+    #            'type_'    : 'newpackage',
+    #            'bugs'    : '',
+    #            'notes'   : 'Initial release of new package!',
+    #            'inheritance' : True,
+    #    }
+    #    testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
+    #    self.save_update(params, session)
+    #    assert PackageUpdate.select().count() == 2, cherrypy.response.body[0]
+    #    update = PackageUpdate.byTitle(params['builds'])
+    #    testutil.print_log()
