@@ -133,31 +133,42 @@ def refresh_metrics():
 def schedule():
     """ Schedule our periodic tasks """
 
+    jobs = config.get('jobs')
+
     # Weekly repository cleanup
-    scheduler.add_interval_task(action=clean_repo,
-                                taskname="Clean update repositories",
-                                initialdelay=604800,
-                                interval=604800)
+    if 'clean_repo' in jobs:
+        log.debug("Scheduling clean_repo job")
+        scheduler.add_interval_task(action=clean_repo,
+                                    taskname="Clean update repositories",
+                                    initialdelay=604800,
+                                    interval=604800)
 
     # Daily nagmail
-    scheduler.add_weekday_task(action=nagmail,
-                               weekdays=range(1,8),
-                               timeonday=(0,0))
+    if 'nagmail' in jobs:
+        log.debug("Scheduling nagmail job")
+        scheduler.add_weekday_task(action=nagmail,
+                                   weekdays=range(1,8),
+                                   timeonday=(0,0))
 
     # Fix invalid bug titles
-    scheduler.add_interval_task(action=fix_bug_titles,
-                                taskname='Fix bug titles',
-                                initialdelay=1200,
-                                interval=604800)
+    if 'fix_bug_titles' in jobs:
+        log.debug("Scheduling fix_bug_titles job")
+        scheduler.add_interval_task(action=fix_bug_titles,
+                                    taskname='Fix bug titles',
+                                    initialdelay=1200,
+                                    interval=604800)
 
     # Warm up some data caches
-    scheduler.add_interval_task(action=cache_release_data,
-                                taskname='Cache release data',
-                                initialdelay=0,
-                                interval=3600)
+    if 'cache_release_data' in jobs:
+        log.debug("Scheduling cache_release_data job")
+        scheduler.add_interval_task(action=cache_release_data,
+                                    taskname='Cache release data',
+                                    initialdelay=0,
+                                    interval=3600)
 
     # If we're the masher, then handle the costly metric regenration
     if not config.get('masher'):
+        log.debug("Scheduling refresh_metrics job")
         scheduler.add_interval_task(action=refresh_metrics,
                                     taskname='Refresh our metrics',
                                     initialdelay=0,
