@@ -83,9 +83,9 @@ class NewUpdateForm(Form):
                               search_param='name', result_name='pkgs',
                               template='bodhi.templates.packagefield',
                               validator=AutoCompleteValidator()),
-            CheckBox('inheritance', label='Follow Build inheritance',
-                     default=False, attrs={'title' : 'Build Inheritance - '
-                                                     'TODO'}),
+            #CheckBox('inheritance', label='Follow Build inheritance',
+            #         default=False, attrs={'title' : 'Build Inheritance - '
+            #                                         'TODO'}),
             SingleSelectField('type', options=update_types,
                               validator=validators.OneOf(update_types)),
             SingleSelectField('request', options=request_types,
