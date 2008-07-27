@@ -463,6 +463,40 @@ class TestPackageUpdate(testutil.DBTest):
         log = testutil.get_log()
         assert "[old_pending] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
 
+    def test_utf8_email(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
+        bug = self.get_bug()
+        cve = self.get_cve()
+        update.addBugzilla(bug)
+        update.addCVE(cve)
+        update.assign_id()
+
+        def rpm_header():
+            import rpm
+            return {
+                    rpm.RPMTAG_URL           : 'turbogears.org',
+                    rpm.RPMTAG_NAME          : 'TurboGears',
+                    rpm.RPMTAG_SUMMARY       : 'summary',
+                    rpm.RPMTAG_VERSION       : '1.0.2.2',
+                    rpm.RPMTAG_RELEASE       : '2.fc7',
+                    rpm.RPMTAG_DESCRIPTION   : 'Z\xe2\x80\x99s',
+                    rpm.RPMTAG_CHANGELOGTIME : 0,
+                    rpm.RPMTAG_CHANGELOGTEXT : "foo",
+            }
+
+        def latest():
+            return None
+
+        # Monkey-patch some methods so we don't have to touch RPMs
+        for build in update.builds:
+            build.get_rpm_header = rpm_header
+            build.get_latest = latest
+
+        templates = get_template(update)
+        assert templates
+        assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: TurboGears-1.0.2.2-2.fc7'
+        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2008-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : turbogears.org\nSummary     : summary\nDescription :\nZ\u2019s\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum --enablerepo=updates-testing update TurboGears\' at the command line.\nFor more information, refer to "Managing Software with yum",\navailable at http://docs.fedoraproject.org/yum/.\n\nAll packages are signed with the Fedora Project GPG key.  More details on the\nGPG keys used by the Fedora Project can be found at\nhttp://fedoraproject.org/keys\n--------------------------------------------------------------------------------\n'
+
 
 class TestBugzilla(testutil.DBTest):
 
