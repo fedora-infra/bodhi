@@ -68,7 +68,7 @@
     <table border="0" cellspacing="0" cellpadding="0">
     <tr py:for="i, field in enumerate(fields)">
         <td class="title">
-            <span py:if="i == 6">
+            <span py:if="i == 5">
                 <?python continue ?>
             </span>
             <label class="fieldlabel"
@@ -82,7 +82,7 @@
                       py:content="error_for(field)" />
             </font>
             <span py:replace="field.display(value_for(field), **params_for(field))"/>
-            <span py:if="i == 4">
+            <span py:if="i == 3">
               <label for="form_close_bugs">${display_field_for('close_bugs')} Close bugs when update is stable</label>
             </span>
             <span py:if="field.help_text"
