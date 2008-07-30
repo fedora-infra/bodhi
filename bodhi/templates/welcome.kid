@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#"
     py:extends="'master.kid'">
+<?python from bodhi import version, hostname ?>
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
     <title>Fedora Update System</title>
@@ -25,7 +26,7 @@
 <body>
     <table width="90%" align="center" valign="top">
             <tr>
-                <td align="left" valign="bottom"><b><font size="4">Welcome to bodhi<span py:if="not tg.identity.anonymous">, ${tg.identity.user.display_name.split()[0]}</span>.</font></b></td>
+                <td align="left" valign="bottom"><b><font size="4">Welcome to bodhi v${version}<span py:if="not tg.identity.anonymous">, ${tg.identity.user.display_name.split()[0]}</span></font></b></td>
                 <td align="right">
                     <table>
                         <tr>

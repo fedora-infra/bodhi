@@ -12,14 +12,7 @@
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.corner.js')}"></script>
 
     <meta py:replace="item[:]"/>
-    <style type="text/css">
-        #pageLogin
-        {
-            font-size: 10px;
-            font-family: verdana;
-            text-align: right;
-        }
-    </style>
+
     <style type="text/css" media="screen">
         @import "${tg.url('/static/css/layout.css')}";
     </style>
@@ -28,6 +21,7 @@
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
 
 <?python
+from bodhi import version, hostname
 from bodhi.model import Release, PackageUpdate, Releases
 from bodhi.search import search_form
 from sqlobject.sqlbuilder import AND
@@ -138,7 +132,12 @@ $(document).ready(function() {
     <!-- content END -->
 
     <!-- footer BEGIN -->
-    <div id="fedora-footer">Copyright © 2008  Red Hat, Inc.</div>
+    <div id="fedora-footer">
+        Bodhi Version: ${version} -- Server: ${hostname}<br/>
+        Copyright &copy; 2007-2008 Red Hat, Inc. and others.  All Rights Reserved.<br/>
+        The Fedora Project is maintained and driven by the community and sponsored by Red Hat.<br/>This is a community maintained site.  Red Hat is not responsible for content.<br/>
+    [ <a href="http://fedoraproject.org/wiki/Legal">Legal</a>, <a href="http://fedoraproject.org/wiki/Legal/TrademarkGuidelines">Trademark Guidelines</a> ]
+    </div>
     <!-- footer END -->
 
 </body>
