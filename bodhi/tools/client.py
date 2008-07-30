@@ -80,7 +80,7 @@ def get_parser():
                       dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
                       help="Update type [bugfix|security|enhancement]",
-                      dest="type_")
+                      dest="type_", metavar="TYPE")
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
                       help="Login username for bodhi")
