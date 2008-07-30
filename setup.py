@@ -131,21 +131,22 @@ for langfile in filter(os.path.isfile, glob.glob('locale/*/*/*')):
 package_data = find_package_data(where='bodhi', package='bodhi', exclude=excludeFiles, exclude_directories=excludeDataDirs,)
 package_data['bodhi.config'].append('app.cfg')
 
+from bodhi.release import NAME, VERSION, DESCRIPTION, AUTHOR, EMAIL, URL, LICENSE
 
 setup(
-    name="bodhi",
-    version="0.5.0",
-    description="",
-    author="Luke Macken",
-    author_email="lmacken@fedoraproject.org",
-    url="https://fedorahosted.org/bodhi",
-    license="GPLv2+",
+    name=NAME,
+    version=VERSION,
+    description=DESCRIPTION,
+    author=AUTHOR,
+    author_email=EMAIL,
+    url=URL,
+    license=LICENSE,
     cmdclass={
         'build': Build,
         'install_data': InstallData,
     },
     install_requires = [
-        "TurboGears[future] >= 1.0",
+        "TurboGears >= 1.0",
         "TurboMail",
         "python_fedora",
     ],
