@@ -50,7 +50,6 @@ bodhi/config/mash.conf
 bodhi/identity/__init__.py
 bodhi/identity/sobzprovider.py
 bodhi/identity/tables.py
-bodhi/static/css/.layout.css.swp
 bodhi/static/css/flora.css
 bodhi/static/css/flora.dialog.css
 bodhi/static/css/flora.resizable.css

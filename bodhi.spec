@@ -67,14 +67,17 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{__rm} -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build \
     --install-data=%{_datadir} --root %{buildroot}
+
 %{__mkdir_p} %{buildroot}/var/lib/bodhi
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/httpd/conf.d
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/bodhi
 %{__mkdir_p} %{buildroot}%{_datadir}/%{name}
+%{__mkdir_p} -m 0755 %{buildroot}/%{_localstatedir}/log/bodhi
+
 %{__install} -m 640 apache/%{name}.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/%{name}.conf
 %{__install} -m 640 %{name}.cfg %{buildroot}%{_sysconfdir}/%{name}/
 %{__install} -m 640 %{name}/config/*mash* %{buildroot}%{_sysconfdir}/%{name}/
-%{__cp} apache/%{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
+%{__install} apache/%{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
 
 
 %clean
@@ -85,12 +88,14 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %defattr(-,root,root,-)
 %doc README COPYING
 %{python_sitelib}/%{name}/
-%{_datadir}/%{name}
 %{_bindir}/start-%{name}
 %{_bindir}/%{name}-*
 %{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
 %{_sysconfdir}/httpd/conf.d/bodhi.conf
-%config(noreplace) %{_sysconfdir}/bodhi/*
+%attr(-,apache,root) %{_datadir}/%{name}
+%attr(-,apache,root) %config(noreplace) %{_sysconfdir}/bodhi/*
+%attr(-,apache,root) %{_localstatedir}/log/bodhi
+
 
 %files client
 %doc COPYING README
