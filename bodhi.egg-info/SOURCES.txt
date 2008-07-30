@@ -4,7 +4,6 @@ MANIFEST.in
 README
 bodhi.cfg
 bodhi.spec
-masher.cfg
 setup.py
 apache/bodhi.conf
 apache/bodhi.wsgi
@@ -24,6 +23,7 @@ bodhi/metrics.py
 bodhi/model.py
 bodhi/modifyrepo.py
 bodhi/new.py
+bodhi/release.py
 bodhi/rss.py
 bodhi/search.py
 bodhi/util.py
@@ -55,7 +55,6 @@ bodhi/static/css/flora.css
 bodhi/static/css/flora.dialog.css
 bodhi/static/css/flora.resizable.css
 bodhi/static/css/flora.tablesorter.css
-bodhi/static/css/jquery.ui.autocomplete.css
 bodhi/static/css/layout.css
 bodhi/static/images/-1.png
 bodhi/static/images/0.png
@@ -118,7 +117,6 @@ bodhi/static/js/jquery.flot.js
 bodhi/static/js/jquery.js
 bodhi/static/js/jquery.tablesorter.js
 bodhi/static/js/jquery.tooltip.js
-bodhi/static/js/jquery.ui.autocomplete.js
 bodhi/static/js/ui.dialog.js
 bodhi/static/js/ui.draggable.js
 bodhi/static/js/ui.mouse.js
@@ -159,9 +157,11 @@ bodhi/tests/test_metadata.py
 bodhi/tests/test_model.py
 bodhi/tests/test_util.py
 bodhi/tools/__init__.py
+bodhi/tools/clean-testing.py
 bodhi/tools/client.py
 bodhi/tools/dev_init.py
 bodhi/tools/init.py
+bodhi/tools/metrics.py
 bodhi/tools/pickledb.py
 bodhi/tools/rmrelease.py
 bodhi/tools/tagcheck.py
