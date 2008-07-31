@@ -50,6 +50,7 @@ Requires: python-imaging
 Requires: python-crypto
 Requires: python-turboflot
 Requires: python-tgcaptcha
+Requires: mod_wsgi
 
 
 %description server
