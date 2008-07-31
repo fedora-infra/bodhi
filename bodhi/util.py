@@ -302,6 +302,7 @@ def load_config(configfile=None):
     else:
         log.error("Unable to find configuration to load!")
         return
+    log.debug("Loading configuration: %s" % configfile)
     turbogears.update_config(configfile=configfile, modulename="bodhi.config")
 
 class Singleton(object):
