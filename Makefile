@@ -50,4 +50,8 @@ profile:
 	nosetests --with-profile --profile-stats-file=nose.prof
 	python -c "import hotshot.stats ; stats = hotshot.stats.load('nose.prof') ; stats.sort_stats('time', 'calls') ; stats.print_stats(20)"
 
+rpm: srpm
+	@rpm -i bodhi*src.rpm
+	@rpmbuild -ba ~/rpmbuild/SPECS/bodhi.spec
+
 .PHONY: docs test todo clean dist build install srpm pyflakes profile shell init run
