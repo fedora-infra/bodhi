@@ -98,7 +98,7 @@ $(document).ready(function() {
                         <a href="${tg.url('/%s/%s' % (release['name'], status != 'stable' and status or ''))}" class="link">${status.title()} (${release['num_' + status]})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s' % (release['name'], status))}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
                       </li>
                       <li class="release">
-                        <a href="${tg.url('/%s/%s' % (release['name'], status))}" class="link">Security (${release['num_security']})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;type=security' % release['name'])}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
+                        <a href="${tg.url('/%s/security' % release['name'])}" class="link">Security (${release['num_security']})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;type=security' % release['name'])}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
                       </li>
                     </ul>
                   </div>
