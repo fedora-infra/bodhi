@@ -178,15 +178,20 @@ class Root(controllers.RootController):
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, allow_limit_override=True)
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
-             package=None, mine=False, stringify=False):
+             package=None, mine=False, stringify=False, get_auth=False):
         """ Return a list of updates based on given parameters """
-        log.debug("list(%s, %s, %s, %s, %s, %s, %s, %s)" % (release, bugs, cves,
-                  status, type_, package, mine, stringify))
+        log.debug("list(%s, %s, %s, %s, %s, %s, %s, %s, %s)" % (release, bugs,
+                  cves, status, type_, package, mine, stringify, get_auth))
         query = []
         updates = []
 
         try:
             if release:
+                # TODO: if a specific release is requested along with get_auth,
+                #       and it is not found in PackageUpdate we should add.
+                #       another value to the output which indicates if the.
+                #       logged in user is allowed to create a new update for.
+                #       this package
                 rel = Release.byName(release.upper())
                 query.append(PackageUpdate.q.releaseID == rel.id)
             if status:
@@ -249,6 +254,23 @@ class Root(controllers.RootController):
             flash_log(e)
             if request_format() == 'json':
                 return dict(updates=[])
+
+        # if get_auth is True add can_modify flag and check if the current user
+        # is allowed to modify the request
+        if get_auth:
+            results = []
+            for up in updates:
+                can_modify = False
+                if not identity.current.anonymous:
+                    people, groups = get_pkg_pushers(up.builds[0].package.name,
+                            up.release.id_prefix.capitalize(),
+                            up.release.get_version())
+                    if (identity.current.user_name in people[0]):
+                        can_modify = True
+                dict_up = dict(up._reprItems())
+                dict_up['can_modify'] = can_modify
+                results.append(dict_up)
+            updates = results
 
         if isinstance(updates, list): num_items = len(updates)
         else: num_items = updates.count()
