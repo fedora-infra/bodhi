@@ -385,7 +385,7 @@ class Root(controllers.RootController):
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
     def save(self, builds, type_, notes, bugs, close_bugs=False, edited=False,
-             request='testing', suggest_reboot=False, inheritance=False, 
+             request='testing', suggest_reboot=False, inheritance=False,
              autokarma=True, stable_karma=3, unstable_karma=-3, **kw):
         """ Save an update.
 
@@ -429,6 +429,16 @@ class Root(controllers.RootController):
         if not bugs: bugs = []
         koji = buildsys.get_session()
 
+        # Basic sanity checks
+        if type_ not in config.get('update_types'):
+            flash_log('Unknown update type: %s.  Valid types are: %s' % (
+                      type_, config.get('update_types')))
+            return dict()
+        if request not in ('testing', 'stable', 'None', None):
+            flash_log('Unknown request: %s.  Valid requests are: testing, ' 
+                      'stable, None' % request)
+            return dict()
+
         # Parameters used to re-populate the update form if something fails
         params = {
                 'builds.text' : ' '.join(builds),
@@ -447,9 +457,12 @@ class Root(controllers.RootController):
             for build in builds:
                 try:
                     b = PackageBuild.byNvr(build)
-                    flash_log("%s update already exists!" % 
-                              link(build, b.get_url()))
-                    if request_format() == 'json': return dict()
+                    if request_format() == 'json':
+                        flash_log("%s update already exists!" % build)
+                        return dict()
+                    else:
+                        flash_log("%s update already exists!" % 
+                                  link(build, b.get_url()))
                     raise redirect('/new', **params)
                 except SQLObjectNotFound:
                     pass
