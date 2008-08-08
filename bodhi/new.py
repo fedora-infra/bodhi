@@ -13,11 +13,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import os
+import logging
 
 from os.path import join
 from bodhi.widgets import NewUpdateForm
 from turbogears import expose, controllers, identity, config, url, flash
 
+log = logging.getLogger(__name__)
 update_form = NewUpdateForm()
 
 class NewUpdateController(controllers.Controller):
@@ -30,7 +32,7 @@ class NewUpdateController(controllers.Controller):
         try:
             self.packages = os.listdir(self.build_dir)
         except (OSError, TypeError):
-            flash("Warning: build_dir either invalid or not set in app.cfg")
+            log.warning("Warning: build_dir either invalid or not set in app.cfg")
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
