@@ -367,13 +367,16 @@ class Root(controllers.RootController):
                 'release'   : update.release.long_name,
                 'testing'   : update.status == 'testing',
                 'request'   : str(update.request).title(),
-                'type'      : update.type,
+                'type_'     : update.type,
                 'notes'     : update.notes,
                 'bugs'      : update.get_bugstring(),
                 'edited'    : update.title,
                 'close_bugs': update.close_bugs,
                 'stable_karma' : update.builds[0].package.stable_karma,
                 'unstable_karma' : update.builds[0].package.unstable_karma,
+                'suggest_reboot' : update.builds[0].package.suggest_reboot,
+                'autokarma' : update.builds[0].package.stable_karma != 0 and
+                              update.builds[0].package.unstable_karma != 0,
         }
         if update.status == 'testing':
             flash("Editing this update will move it back to a pending state.")
