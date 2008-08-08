@@ -83,10 +83,10 @@ class NewUpdateForm(Form):
                               search_param='name', result_name='pkgs',
                               template='bodhi.templates.packagefield',
                               validator=AutoCompleteValidator()),
-            #CheckBox('inheritance', label='Follow Build inheritance',
-            #         default=False, attrs={'title' : 'Build Inheritance - '
-            #                                         'TODO'}),
-            SingleSelectField('type', options=update_types,
+            CheckBox('inheritance', label='Follow Build inheritance',
+                     default=False, attrs={'title' : 'Build Inheritance - '
+                                                     'TODO'}),
+            SingleSelectField('type_', label='Type', options=update_types,
                               validator=validators.OneOf(update_types)),
             SingleSelectField('request', options=request_types,
                               validator=validators.OneOf(request_types +
@@ -114,7 +114,8 @@ class NewUpdateForm(Form):
                                                     'after installing this '
                                                     'update'}),
             CheckBox(name='autokarma', label='Enable karma automatism',
-                     default=True, attrs={'onclick': 
+                     default=True, validator=validators.Bool(),
+                     attrs={'onclick':
                          '$("#form_stable_karma").attr("disabled", !$("#form_stable_karma").attr("disabled"));'
                          '$("#form_unstable_karma").attr("disabled", !$("#form_unstable_karma").attr("disabled"));',
                     'title': 'Karma Automatism - Enable update request '
