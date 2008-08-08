@@ -76,7 +76,7 @@ class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Save Update"
     update_types = config.get('update_types').split()
-    request_types = ['Testing', 'Stable', 'None']
+    request_types = ['Testing', 'Stable', None]
     fields = [
             AutoCompleteField('builds', label='Package',
                               search_controller=url('/new/search'),
@@ -90,7 +90,7 @@ class NewUpdateForm(Form):
                               validator=validators.OneOf(update_types)),
             SingleSelectField('request', options=request_types,
                               validator=validators.OneOf(request_types +
-                                  [r.lower() for r in request_types])),
+                                  [r.lower() for r in request_types if r])),
             TextField('bugs', validator=BugValidator(),
                       attrs={'title' : 'Bug Numbers - A space or comma '
                                        'delimited list of bug numbers or '
