@@ -101,7 +101,6 @@ class DevBuildsys(Buildsystem):
                     'task_id': 127621,
                     'version': '1.0.2.2'}
 
-
     def listBuildRPMs(self, *args, **kw):
         return [{'arch': 'src',
                  'build_id': 6475,
@@ -146,7 +145,8 @@ class DevBuildsys(Buildsystem):
                        'dist-f8', 'dist-f8-updates', 'dist-f8-updates-testing',
                        'dist-fc8', 'dist-fc8-updates',
                        'dist-fc8-updates-testing', 'dist-f8-updates-candidate',
-                       'dist-f9', 'dist-f9-updates', 'dist-f9-updates-testing'):
+                       'dist-f9', 'dist-f9-updates', 'dist-f9-updates-testing',
+                       'dist-f9-updates-candidate'):
             raise koji.GenericError
         return [self.getBuild(),]
 
