@@ -14,6 +14,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
 BuildRequires: python-setuptools-devel
+BuildRequires: python-devel
 BuildRequires: TurboGears
 
 %description
@@ -50,6 +51,7 @@ Requires: python-imaging
 Requires: python-crypto
 Requires: python-turboflot
 Requires: python-tgcaptcha
+Requires: python-decorator
 Requires: mod_wsgi
 
 
