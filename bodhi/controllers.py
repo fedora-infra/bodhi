@@ -427,6 +427,7 @@ class Root(controllers.RootController):
                        #           'build' : PackageBuild } }
 
         if not bugs: bugs = []
+        if request == 'None': request = None
         if request: request = request.lower()
         koji = buildsys.get_session()
 

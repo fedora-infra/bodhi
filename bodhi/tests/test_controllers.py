@@ -549,7 +549,7 @@ class TestControllers(testutil.DBTest):
             'request' : 'foobar!',
         }
         self.save_update(params, session)
-        assert "Value must be one of: Testing; Stable; None; testing; stable; none (not u'foobar!')" in cherrypy.response.body[0], cherrypy.response.body[0]
+        assert "Value must be one of: Testing; Stable; None; None; testing; stable; none (not u'foobar!')" in cherrypy.response.body[0], cherrypy.response.body[0]
 
     def test_broken_update_path_on_submission(self):
         """ Make sure we are unable to break upgrade paths upon submission """
@@ -669,7 +669,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type_'    : 'enhancement',
+                'type_'   : 'enhancement',
                 'bugs'    : '1234',
                 'cves'    : 'CVE-2020-0001',
                 'notes'   : 'foobar',

@@ -76,7 +76,7 @@ class NewUpdateForm(Form):
     template = "bodhi.templates.new"
     submit_text = "Save Update"
     update_types = config.get('update_types').split()
-    request_types = ['Testing', 'Stable', None]
+    request_types = ['Testing', 'Stable', 'None', None]
     fields = [
             AutoCompleteField('builds', label='Package',
                               search_controller=url('/new/search'),
