@@ -151,13 +151,14 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
             'release' : 'Fedora 7',
-            'type_'    : 'REGRESSION!',
+            'type_'   : 'REGRESSION!',
             'bugs'    : '',
             'cves'    : '',
             'notes'   : ''
         }
+        cherrypy.config.update({'build_dir': '/tmp'})
         self.save_update(params, session)
-        assert "Invalid: expected a member of ['security', 'bugfix', 'enhancement', 'newpackage'] in the EnumCol 'type', got u'REGRESSION!' instead" in cherrypy.response.body[0]
+        assert "Value must be one of: bugfix; enhancement; security; newpackage (not u'REGRESSION!')" in cherrypy.response.body[0]
 
     def test_user_notes_encoding(self):
         session = login(username='guest', display_name='foo\xc3\xa9bar')
@@ -792,7 +793,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
-                'type_'    : 'enhancement',
+                'type_'   : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -803,7 +804,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'python-sqlobject-1.6.3-13.fc7',
                 'release' : 'Fedora 7',
-                'type_'    : 'enhancement',
+                'type_'   : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -815,7 +816,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'nethack-2.10-3.20070831cvs.fc7',
                 'release' : 'Fedora 7',
-                'type_'    : 'enhancement',
+                'type_'   : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
@@ -827,7 +828,7 @@ class TestControllers(testutil.DBTest):
         params = {
                 'builds'  : 'xprobe2-1.4.6-1.fc7',
                 'release' : 'Fedora 7',
-                'type_'    : 'enhancement',
+                'type_'   : 'enhancement',
                 'bugs'    : '321',
                 'cves'    : '',
                 'notes'   : 'foobar',
