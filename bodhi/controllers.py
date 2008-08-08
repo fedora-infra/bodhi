@@ -299,7 +299,7 @@ class Root(controllers.RootController):
         Request that a specified action be performed on a given update.
         Action must be one of: 'testing', 'stable', 'unpush' or 'obsolete'.
         """
-        log.debug("request(%s, %s)" % (action, update))
+        log.debug('request(%s)' % locals())
         try:
             update = PackageUpdate.byTitle(update)
             update.set_request(action)
@@ -393,8 +393,8 @@ class Root(controllers.RootController):
         """ Save an update.
 
         This entails either creating a new update, or editing an existing one.
-        To edit an existing update, you must specify the update title in
-        the ``edited`` keyword argument.
+        To edit an existing update, you must specify the update's original
+        title in the ``edited`` keyword argument.
 
         Arguments:
         :builds: A list of koji builds for this update.
@@ -417,10 +417,7 @@ class Root(controllers.RootController):
         :edited: The update title of the existing update that we are editing.
 
         """
-        log.debug("save(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % (
-                  builds, type_, notes, bugs, close_bugs, edited, request,
-                  suggest_reboot, inheritance, stable_karma, unstable_karma,
-                  kw))
+        log.debug('save(%s)' % locals())
 
         note = []      # Messages to flash to the user
         updates = []   # PackageUpdate objects 
