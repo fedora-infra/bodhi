@@ -427,6 +427,7 @@ class Root(controllers.RootController):
                        #           'build' : PackageBuild } }
 
         if not bugs: bugs = []
+        if request: request = request.lower()
         koji = buildsys.get_session()
 
         # Basic sanity checks
@@ -434,7 +435,7 @@ class Root(controllers.RootController):
             flash_log('Unknown update type: %s.  Valid types are: %s' % (
                       type_, config.get('update_types')))
             return dict()
-        if request not in ('testing', 'stable', 'None', None):
+        if request not in ('testing', 'stable', None):
             flash_log('Unknown request: %s.  Valid requests are: testing, ' 
                       'stable, None' % request)
             return dict()
@@ -463,7 +464,7 @@ class Root(controllers.RootController):
                     else:
                         flash_log("%s update already exists!" % 
                                   link(build, b.get_url()))
-                    raise redirect('/new', **params)
+                        raise redirect('/new', **params)
                 except SQLObjectNotFound:
                     pass
 
@@ -574,11 +575,11 @@ class Root(controllers.RootController):
                                              kojiBuild['release'])
 
             # Check for broken update paths against all releases
+            log.info("Checking for broken update paths")
             for release in Release.select():
-                tags = ['dist-rawhide', release.dist_tag, release.dist_tag +
-                        '-updates']
+                tags = ['dist-rawhide', release.dist_tag,
+                        release.dist_tag + '-updates']
                 for tag in tags:
-                    log.info("Checking for broken update paths in " + tag)
                     pkg = buildinfo[build]['nvr'][0]
                     for oldBuild in koji.listTagged(tag, package=pkg,
                                                     latest=True):
@@ -612,10 +613,9 @@ class Root(controllers.RootController):
 
             # Create or fetch the PackageBuild object for this build
             try:
-                pkgBuild = PackageBuild(nvr=build, package=package)
-            except (PostgresIntegrityError, SQLiteIntegrityError,
-                    DuplicateEntryError):
                 pkgBuild = PackageBuild.byNvr(build)
+            except SQLObjectNotFound:
+                pkgBuild = PackageBuild(nvr=build, package=package)
             buildinfo[build]['build'] = pkgBuild
 
             # Obsolete any older pending/testing updates.
@@ -709,9 +709,9 @@ class Root(controllers.RootController):
 
             # If a request is specified, make it.  By default we're submitting
             # new updates directly into testing
-            if request and request != "None" and request != update.request:
+            if request and request != update.request:
                 try:
-                    update.set_request(request.lower(), pathcheck=False)
+                    update.set_request(request, pathcheck=False)
                 except InvalidRequest, e:
                     flash_log(str(e))
                     if request_format() == 'json': return dict()
