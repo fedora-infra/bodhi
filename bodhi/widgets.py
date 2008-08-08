@@ -84,6 +84,7 @@ class NewUpdateForm(Form):
                               template='bodhi.templates.packagefield',
                               validator=AutoCompleteValidator()),
             CheckBox('inheritance', label='Follow Build inheritance',
+                     validator=validators.StringBool(),
                      default=False, attrs={'title' : 'Build Inheritance - '
                                                      'TODO'}),
             SingleSelectField('type_', label='Type', options=update_types,
@@ -102,19 +103,21 @@ class NewUpdateForm(Form):
                                       'about this update that will appear in '
                                       'the notice'}),
             CheckBox(name='close_bugs', help_text='Automatically close bugs',
+                     validator=validators.StringBool(),
                      default=True, attrs={'title' : 'Close Bugs - '
                                                     'Automatically close bugs '
                                                     'when this update is '
                                                     'pushed as stable'}),
             HiddenField('edited', default=None),
             CheckBox(name='suggest_reboot', label='Suggest Reboot',
+                     validator=validators.StringBool(),
                      default=False, attrs={'title': 'Suggest Reboot - '
                                                     'Recommend that the user '
                                                     'restarts their machine '
                                                     'after installing this '
                                                     'update'}),
             CheckBox(name='autokarma', label='Enable karma automatism',
-                     default=True, validator=validators.Bool(),
+                     default=True, validator=validators.StringBool(),
                      attrs={'onclick':
                          '$("#form_stable_karma").attr("disabled", !$("#form_stable_karma").attr("disabled"));'
                          '$("#form_unstable_karma").attr("disabled", !$("#form_unstable_karma").attr("disabled"));',
