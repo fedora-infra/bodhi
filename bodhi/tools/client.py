@@ -126,39 +126,52 @@ def main():
     while True:
         try:
             if opts.new:
-                verify_args(args)
-                extra_args = {
-                    'builds': args[0], 'release': opts.release,
-                    'type_': opts.type_, 'bugs': opts.bugs, 'notes': opts.notes,
-                    'request': opts.request or 'testing',
-                }
+                # Note: All options are ignored if you're passing input from a file.
                 if opts.input_file:
-                    extra_args.update(
-                            bodhi.parse_file(input_file=opts.input_file))
-                    # hack.  remove this with the next version of python-fedora
-                    if 'type' in extra_args:
-                        extra_args['type_'] = extra_args['type']
-                        del(extra_args['type'])
-                if not extra_args['release']:
-                    log.error("Error: No release specified (ie: -r F8)")
-                    sys.exit(-1)
-                if not extra_args['type_']:
-                    log.error("Error: No update type specified (ie: -t bugfix)")
-                    sys.exit(-1)
-                log.info("Creating a new update for %s" % args[0])
-                data = bodhi.save(**extra_args)
-                if data.get('tg_flash'):
-                    log.info(data['tg_flash'])
-                if 'update' in data:
-                    log.info(data['update'])
+                    updates = bodhi.parse_file(input_file=opts.input_file)
+                    for update_args in updates:
+                        if not update_args['type_']:
+                            log.error("Error: No update type specified (ie: "
+                                      "type=bugfix), skipping.")
+                            continue
+                        log.info("Creating a new update for %s" %
+                                 update_args['builds'])
+                        data = bodhi.save(**update_args)
+                        if data.get('tg_flash'):
+                            log.info(data['tg_flash'])
+                        if 'updates' in data:
+                            for update in data['updates']:
+                                log.info(bodhi.update_str(update))
+                        else:
+                            validate_auth(data)
                 else:
-                    validate_auth(data)
+                    verify_args(args)
+                    extra_args = {
+                        'builds': args[0],
+                        'type_': opts.type_,
+                        'bugs': opts.bugs,
+                        'notes': opts.notes,
+                        'request': opts.request or 'testing',
+                    }
+                    if not extra_args['type_']:
+                        log.error("Error: No update type specified (ie: -t bugfix)")
+                        sys.exit(-1)
+                    log.info("Creating a new update for %s" % args[0])
+                    data = bodhi.save(**extra_args)
+                    print "data =", data
+                    if data.get('tg_flash'):
+                        log.info(data['tg_flash'])
+                    if 'updates' in data:
+                        for update in data['updates']:
+                            log.info(bodhi.update_str(update))
+                    else:
+                        validate_auth(data)
             elif opts.edit:
                 verify_args(args)
                 log.info("Editing update for %s" % args[0])
-                data = bodhi.save(builds=args[0], release=opts.release, 
-                                  type_=opts.type_, bugs=opts.bugs,
-                                  notes=opts.notes, request=opts.request)
+                data = bodhi.save(builds=args[0], type_=opts.type_,
+                                  bugs=opts.bugs, notes=opts.notes,
+                                  request=opts.request)
                 log.info(data['tg_flash'])
                 validate_auth(data)
                 if data.has_key('update'):

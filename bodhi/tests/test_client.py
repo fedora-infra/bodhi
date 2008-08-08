@@ -95,8 +95,8 @@ class TestClient(testutil.DBTest):
             assert bz in update.bugs
 
     def __save_update(self, build, opts, bodhi):
-        bodhi.save(builds=build, release=opts.release, type_=opts.type_,
-                   bugs=opts.bugs, notes=opts.notes, request=opts.request)
+        bodhi.save(builds=build, type_=opts.type_, bugs=opts.bugs,
+                   notes=opts.notes, request=opts.request)
 
     def test_query(self):
         bodhi = self.__get_bodhi_client()
@@ -164,13 +164,21 @@ class TestClient(testutil.DBTest):
         opts = self.__get_opts()
 
         out = file(opts.input_file, 'w')
-        out.write('type=E\nrequest=T\nbug=123,456\nbar')
+        out.write('''[%s]
+type=enhancement
+request=testing
+bugs=123,456
+notes=bar
+autokarma=True
+stable_karma=10
+unstable_karma=-10
+close_bugs=True
+''' % self.build)
         out.close()
 
-        update = bodhi.parse_file(input_file=opts.input_file)
-        for key, value in update.items():
-            setattr(opts, key, value)
-        self.__save_update(self.build, opts, bodhi)
+        updates = bodhi.parse_file(input_file=opts.input_file)
+        for update_args in updates:
+            bodhi.save(**update_args)
 
         update = PackageUpdate.byTitle(self.build)
         assert update.type == 'enhancement'
