@@ -92,7 +92,7 @@ def get_parser():
                       help="Show debugging messages")
     parser.add_option("-l", "--limit", action="store", type="int", dest="limit",
                       default=60, help="Maximum number of updates to return "
-                      "(default: 10)")
+                      "(default: 60)")
 
     return parser
 
