@@ -147,7 +147,7 @@ class MostUpdatedMetric(Metric):
     A metric that calculates what packages have been updated the most.
     """
     def __init__(self, release):
-        self.release = release.long_name
+        self.release = release
         self.data = {}
         self.pkgs = []
 
@@ -191,7 +191,7 @@ class ActiveDevsMetric(Metric):
     A metric that calculates which developers have pushed out the most updates
     """
     def __init__(self, release):
-        self.release = release.long_name
+        self.release = release
         self.users = {} # { user : # updates }
         self.data = {}
 
@@ -234,7 +234,7 @@ class KarmaMetric(Metric):
     """
     def __init__(self, release):
         self.data = {} # { pkg : karma }
-        self.release = release.long_name
+        self.release = release
         self.bestpkgs = {}
         self.bestdata = []
         self.worstpkgs = {}
@@ -280,7 +280,7 @@ class TopTestersMetric(Metric):
     testing feedback for updates
     """
     def __init__(self, release):
-        self.release = release.long_name
+        self.release = release
         self.data = {}   # { person : # of comments }
         self.people = {}
 
@@ -325,7 +325,7 @@ class MostTestedMetric(Metric):
     A metric that calculates the packages with the most +1/-1 comments
     """
     def __init__(self, release):
-        self.release = release.long_name
+        self.release = release
         self.data = {} # {pkg: # of +1/-1's}
         self.tested_data = []
         self.tested_pkgs = {}
@@ -359,7 +359,7 @@ class MostTestedMetric(Metric):
             {
                 'xaxis': {'ticks': data['pkgs']}
             },
-            label = 'Most tested %s packages' % self.release
+            label = 'Most tested %s packages' % self.release.long_name
         )
 
 
@@ -428,7 +428,6 @@ class MetricData(Singleton):
             if not rel.metrics:
                 log.warning("No metrics found for %s" % rel.name)
                 return
-            #self.init_metrics(rel) # Really?
             if not freshwidgets.has_key(rel.name):
                 freshwidgets[rel.name] = {}
             for metric in self.metrics:
