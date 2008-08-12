@@ -873,20 +873,10 @@ class Releases(Singleton):
                 'name': release.name,
                 'id': release.id,
             }
-
-            # Count the number of different types of updates for this release
-            for status in ('pending', 'testing', 'stable'):
-                rel['num_%s' % status] = PackageUpdate.select(
-                        AND(PackageUpdate.q.releaseID == release.id,
-                            PackageUpdate.q.status == status)).count()
-
-            # Count the number of pushed security updates for this release
-            rel['num_security'] = PackageUpdate.select(
-                    AND(PackageUpdate.q.type == 'security',
-                        PackageUpdate.q.releaseID == release.id,
-                        PackageUpdate.q.pushed == True)).count()
-
+            if not release.metrics or 'UpdateTypeMetric' not in release.metrics:
+                log.warning("Release metrics have not been generated!")
+                return
+            rel.update(release.metrics['UpdateTypeMetric'])
             releases.append(rel)
             releases.sort(lambda x, y: cmp(x['name'], y['name']))
-
         self.data = releases

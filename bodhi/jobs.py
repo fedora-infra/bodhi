@@ -118,16 +118,23 @@ def cache_release_data():
     for each visit (as much as possible).
 
     """
+    log.info("Caching release metrics")
     from bodhi.model import Releases
-    Releases().update()
+    try:
+        Releases().update()
+    except Exception, e:
+        log.exception(e)
+    log.info("Release cache complete")
+
 
 
 def refresh_metrics():
     """ Refresh all of our graphs and metrics """
-    log.info("Regenerating update metrics...")
     from bodhi.metrics import MetricData
-    MetricData().refresh()
-    log.info("Regeneration of metrics complete")
+    try:
+        MetricData().refresh()
+    except Exception, e:
+        log.exception(e)
 
 
 def schedule():
@@ -163,8 +170,8 @@ def schedule():
         log.debug("Scheduling cache_release_data job")
         scheduler.add_interval_task(action=cache_release_data,
                                     taskname='Cache release data',
-                                    initialdelay=0,
-                                    interval=3600)
+                                    initialdelay=300,
+                                    interval=60)
 
     # If we're the masher, then handle the costly metric regenration
     if not config.get('masher'):
