@@ -154,12 +154,20 @@ class DevBuildsys(Buildsystem):
         return [self.getBuild(),]
 
 
-def koji_login(client=join(expanduser('~'), '.fedora.cert'),
-               clientca=join(expanduser('~'), '.fedora-upload-ca.cert'),
-               serverca=join(expanduser('~'), '.fedora-server-ca.cert')):
+def koji_login(client=None, clientca=None, serverca=None):
     """
     Login to Koji and return the session
     """
+    if not client:
+        client = config.get('client_cert',
+                join(expanduser('~'), '.fedora.cert'))
+    if not clientca:
+        clientca = config.get('clientca_cert',
+                join(expanduser('~'), '.fedora-upload-ca.cert'))
+    if not serverca:
+        serverca = config.get('serverca_cert',
+                join(expanduser('~'), '.fedora-server-ca.cert'))
+
     koji_session = koji.ClientSession(config.get('koji_hub'), {})
     koji_session.ssl_login(client, clientca, serverca)
     return koji_session
