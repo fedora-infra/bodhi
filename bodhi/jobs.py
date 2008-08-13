@@ -170,7 +170,7 @@ def schedule():
         log.debug("Scheduling cache_release_data job")
         scheduler.add_interval_task(action=cache_release_data,
                                     taskname='Cache release data',
-                                    initialdelay=300,
+                                    initialdelay=0,
                                     interval=172800)
 
     # If we're the masher, then handle the costly metric regenration
