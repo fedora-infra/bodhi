@@ -998,7 +998,7 @@ class Root(controllers.RootController):
                     AND(PackageUpdate.q.type == 'security',
                         PackageUpdate.q.status == 'pending',
                         PackageUpdate.q.approved == None),
-                    sortBy=PackageUpdate.q.date_submitted)
+                    orderBy=PackageUpdate.q.date_submitted)
         return dict(updates=updates)
 
     @expose(template="bodhi.templates.user")
