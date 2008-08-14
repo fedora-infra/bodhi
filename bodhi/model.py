@@ -617,7 +617,7 @@ class PackageUpdate(SQLObject):
         for person in self.get_maintainers():
             people.add(person)
         for comment in self.comments:
-            if comment.author == 'bodhi':
+            if comment.anonymous or comment.author == 'bodhi':
                 continue
             people.add(comment.author)
         mail.send(people, 'comment', self)
