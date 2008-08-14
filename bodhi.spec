@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.5.0
-Release:        1%{?dist}
+Release:        6%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
