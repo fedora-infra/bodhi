@@ -140,7 +140,7 @@ class Root(controllers.RootController):
                     comments=grids['comments'][GRID])
 
     @expose(template='bodhi.templates.pkgs')
-    def pkgs(self):
+    def pkgs(self, **kwargs):
         return dict()
 
     @expose(template="bodhi.templates.login", allow_json=True)
