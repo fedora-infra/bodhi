@@ -205,7 +205,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
     <div py:if="not update.comments">
       There are no comments on this update.
     </div>
-    <h3 id="addcomment"><a href="#" onclick="$('#addcomment').hide(); $('#commentform').show('slow')">Add a comment >></a></h3>
+    <h3 id="addcomment"><a href="#" onclick="$('#addcomment').hide(); $('#commentform').show('slow'); return false;">Add a comment >></a></h3>
     <div id="commentform" style="display: none">
       <h3>Add a comment</h3>
       ${comment_form.display(value=values)}
