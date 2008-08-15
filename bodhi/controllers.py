@@ -85,7 +85,8 @@ class Root(controllers.RootController):
                 [
                     ('Update', make_update_link),
                     ('Comment', lambda row: row.text),
-                    ('From', lambda row: row.author),
+                    ('From', lambda row: row.anonymous and 'Anonymous Tester' or
+                                         row.author),
                     ('Karma', make_karma_icon)
                 ]
             ],
