@@ -184,7 +184,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
     <blockquote>
       <div py:for="bug in update.bugs">
         <?python
-        title = escape(unicode(bug.title))
+        title = escape(bug.title.encode('utf8', 'replace'))
         cve = title.split()[0].replace(':', '')
         if cve.startswith('CVE-'):
           title = util.link(cve, 'http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cve) + ': ' + escape(' '.join(title.split()[1:]))
