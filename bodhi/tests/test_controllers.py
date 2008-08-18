@@ -324,7 +324,6 @@ class TestControllers(testutil.DBTest):
         log = testutil.get_log()
         assert '<a href="/updates/TurboGears-1.0.4.4-1.fc7">TurboGears-1.0.4.4-1.fc7</a> update already exists!' in log
 
-
     def test_multi_release(self):
         session = login()
         f7 = create_release()
@@ -1018,8 +1017,7 @@ class TestControllers(testutil.DBTest):
         """ Make sure that setting requests also adds comments """
         session = login()
         create_release()
-        params = {
-                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+        params = { 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
                 'type_'    : 'newpackage',
                 'bugs'    : '',
@@ -1067,3 +1065,31 @@ class TestControllers(testutil.DBTest):
     #    assert PackageUpdate.select().count() == 2, cherrypy.response.body[0]
     #    update = PackageUpdate.byTitle(params['builds'])
     #    testutil.print_log()
+
+    def test_edit_obsoletion(self):
+        """ Make sure that an update cannot obsolete itself during edit """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7,python-sqlalchemy-0.5.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'newpackage',
+                'bugs'    : '',
+                'notes'   : '',
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        params = {
+                'builds'  : 'TurboGears-2.6.24.1-21.fc7,python-sqlalchemy-0.5.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'newpackage',
+                'bugs'    : '',
+                'notes'   : '',
+                'edited'  : 'TurboGears-2.6.23.1-21.fc7,python-sqlalchemy-0.5.0-1.fc7',
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert PackageUpdate.count() == 1
+        assert PackageBuild.count() == 2
