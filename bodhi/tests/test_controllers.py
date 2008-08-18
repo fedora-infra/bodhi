@@ -1091,5 +1091,5 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
-        assert PackageUpdate.count() == 1
-        assert PackageBuild.count() == 2
+        assert PackageUpdate.select().count() == 1
+        assert PackageBuild.select().count() == 2
