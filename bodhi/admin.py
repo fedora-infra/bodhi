@@ -70,7 +70,7 @@ class AdminController(Controller, SecureResource):
     @expose(allow_json=True)
     def mash_tag(self, tag, **kw):
         """ Kick off a mash for a given tag """
-        log.debug("mash_tags(%s, %s)" % (repr(tag), repr(kw)))
+        log.debug("mash_tag(%s)" % locals())
         if config.get('masher'):
             data = self._masher_request('/admin/mash_tag', tag=tag)
             flash_log("Mash request %s" % data.get('success') and
@@ -173,11 +173,11 @@ class AdminController(Controller, SecureResource):
             cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
             session, data = client.send_request(method,
                                                 auth_params={'cookie': cookie},
-                                                **kwargs)
+                                                req_params=kwargs)
             log.debug("Remote method returned %s" % repr(data))
             if data.get('tg_flash'):
                 flash_log(data['tg_flash'])
             return data
         except Exception, e:
             flash_log("Error: %s" % str(e))
-            import traceback; traceback.print_exc()
+            log.exception(e)
