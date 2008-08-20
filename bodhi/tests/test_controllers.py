@@ -1069,27 +1069,32 @@ class TestControllers(testutil.DBTest):
     def test_edit_obsoletion(self):
         """ Make sure that an update cannot obsolete itself during edit """
         session = login()
-        create_release()
+        create_release(num='9', dist='dist-f')
+        create_release(num='8', dist='dist-f')
         params = {
-                'builds'  : 'TurboGears-2.6.23.1-21.fc7,python-sqlalchemy-0.5.0-1.fc7',
-                'release' : 'Fedora 7',
-                'type_'   : 'newpackage',
-                'bugs'    : '',
-                'notes'   : '',
+                'builds'  : u'kdelibs-4.1.0-5.fc9,kdegames-4.1.0-2.fc9,konq-plugins-4.1.0-2.fc9,qt-4.4.1-2.fc9,quarticurve-kwin-theme-0.0-0.5.beta4.fc9,kdepimlibs-4.1.0-2.fc9,kdebase-workspace-4.1.0-8.fc9,akonadi-1.0.0-2.fc9,kde-l10n-4.1.0-2.fc9,kdegraphics-4.1.0-3.fc9,kdeutils-4.1.0-1.fc9.1,kdebindings-4.1.0-5.fc9,kde-i18n-3.5.9-8.fc9,kdeartwork-4.1.0-1.fc9,kdemultimedia-4.1.0-1.fc9,kdetoys-4.1.0-1.fc9,kdebase-runtime-4.1.0-1.fc9,kdeadmin-4.1.0-2.fc9,kdenetwork-4.1.0-2.fc9,kdeaccessibility-4.1.0-1.fc9,kdeplasma-addons-4.1.0-1.fc9,kdeedu-4.1.0-1.fc9,kdebase-4.1.0-1.fc9.1,kdesdk-4.1.0-1.fc9,kde-filesystem-4-17.fc9,qscintilla-2.2-3.fc9,qgtkstyle-0.0-0.2.20080719svn693.fc9,compiz-0.7.6-3.fc9.1,soprano-2.1-1.fc9,PyQt4-4.4.2-2.fc9,sip-4.7.6-1.fc9,automoc-1.0-0.8.rc1.fc9,phonon-4.2.0-2.fc9',
+                'type_'   : 'enhancement',
+                'bugs'    : u'457526 456820 454930 454458 456827 456797 456850 440226 455623 440031 453321 457479 457739',
+                'notes'   : u'This is an update to kde-4.1.0.  \r\n\r\nSee also:\r\nhttp://www.kde.org/announcements/4.1/\r\n\r\nNOTE: This update does not include kdepim-4.1.0',
         }
         self.save_update(params, session)
+        assert PackageUpdate.select().count() == 1
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
+        assert PackageBuild.select().count() == len(params['builds'].split(','))
+        update.status = 'testing'
         params = {
-                'builds'  : 'TurboGears-2.6.24.1-21.fc7,python-sqlalchemy-0.5.0-1.fc7',
+                'builds'  : u'kdelibs-4.1.0-5.fc9,kdegames-4.1.0-2.fc9,konq-plugins-4.1.0-2.fc9,qt-4.4.1-2.fc9,quarticurve-kwin-theme-0.0-0.5.beta4.fc9,kdepimlibs-4.1.0-2.fc9,kdebase-workspace-4.1.0-8.fc9,akonadi-1.0.0-2.fc9,kde-l10n-4.1.0-2.fc9,kdegraphics-4.1.0-4.fc9,kdeutils-4.1.0-1.fc9.1,kdebindings-4.1.0-5.fc9,kde-i18n-3.5.9-8.fc9,kdeartwork-4.1.0-1.fc9,kdemultimedia-4.1.0-1.fc9,kdetoys-4.1.0-1.fc9,kdebase-runtime-4.1.0-3.fc9,kdeadmin-4.1.0-2.fc9,kdenetwork-4.1.0-2.fc9,kdeaccessibility-4.1.0-1.fc9,kdeplasma-addons-4.1.0-1.fc9,kdeedu-4.1.0-1.fc9,kdebase-4.1.0-1.fc9.1,kdesdk-4.1.0-1.fc9,kde-filesystem-4-17.fc9,qscintilla-2.2-3.fc9,qgtkstyle-0.0-0.2.20080719svn693.fc9,compiz-0.7.6-3.fc9.1,soprano-2.1-1.fc9,PyQt4-4.4.2-2.fc9,sip-4.7.6-1.fc9,automoc-1.0-0.8.rc1.fc9,phonon-4.2.0-4.fc9',
                 'release' : 'Fedora 7',
-                'type_'   : 'newpackage',
+                'type_'   : 'enhancement',
                 'bugs'    : '',
                 'notes'   : '',
-                'edited'  : 'TurboGears-2.6.23.1-21.fc7,python-sqlalchemy-0.5.0-1.fc7',
+                'edited'  : u'kdelibs-4.1.0-5.fc9,kdegames-4.1.0-2.fc9,konq-plugins-4.1.0-2.fc9,qt-4.4.1-2.fc9,quarticurve-kwin-theme-0.0-0.5.beta4.fc9,kdepimlibs-4.1.0-2.fc9,kdebase-workspace-4.1.0-8.fc9,akonadi-1.0.0-2.fc9,kde-l10n-4.1.0-2.fc9,kdegraphics-4.1.0-3.fc9,kdeutils-4.1.0-1.fc9.1,kdebindings-4.1.0-5.fc9,kde-i18n-3.5.9-8.fc9,kdeartwork-4.1.0-1.fc9,kdemultimedia-4.1.0-1.fc9,kdetoys-4.1.0-1.fc9,kdebase-runtime-4.1.0-1.fc9,kdeadmin-4.1.0-2.fc9,kdenetwork-4.1.0-2.fc9,kdeaccessibility-4.1.0-1.fc9,kdeplasma-addons-4.1.0-1.fc9,kdeedu-4.1.0-1.fc9,kdebase-4.1.0-1.fc9.1,kdesdk-4.1.0-1.fc9,kde-filesystem-4-17.fc9,qscintilla-2.2-3.fc9,qgtkstyle-0.0-0.2.20080719svn693.fc9,compiz-0.7.6-3.fc9.1,soprano-2.1-1.fc9,PyQt4-4.4.2-2.fc9,sip-4.7.6-1.fc9,automoc-1.0-0.8.rc1.fc9,phonon-4.2.0-2.fc9',
         }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
         assert PackageUpdate.select().count() == 1
-        assert PackageBuild.select().count() == 2
+        assert PackageBuild.select().count() == len(params['builds'].split(','))
+        testutil.print_log()
