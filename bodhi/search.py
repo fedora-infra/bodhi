@@ -38,7 +38,7 @@ class SearchController(Controller):
         return dict(form=search_form, values={}, action=url('/search/'),
                     title='Search Updates')
 
-    @expose(template="bodhi.templates.list")
+    @expose(template="bodhi.templates.search")
     @validate(validators={ "search" : validators.UnicodeString() })
     @error_handler(index)
     @paginate('updates', default_order='date_submitted', default_reversed=True,
