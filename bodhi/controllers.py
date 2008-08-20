@@ -693,13 +693,15 @@ class Root(controllers.RootController):
 
             # Send out mail notifications
             if edited:
-                mail.send(update.get_maintainers(), 'edited', update)
+                #mail.send(update.get_maintainers(), 'edited', update)
+                mail.send(update.submitter, 'edited', update)
                 note.insert(0, "Update successfully edited")
             else:
                 # Notify security team of newly submitted security updates
                 if update.type == 'security':
                     mail.send(config.get('security_team'), 'security', update)
-                mail.send(update.get_maintainers(), 'new', update)
+                #mail.send(update.get_maintainers(), 'new', update)
+                mail.send(update.submitter, 'new', update)
                 note.insert(0, "Update successfully created")
 
                 # Comment on all bugs
