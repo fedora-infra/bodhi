@@ -629,7 +629,8 @@ class Root(controllers.RootController):
                     if update.status not in ('pending', 'testing') or \
                        update.request or \
                        update.release not in buildinfo[build]['releases'] or \
-                       update in pkgBuild.updates:
+                       update in pkgBuild.updates or \
+                       (edited and oldBuild in edited.builds):
                         obsoletable = False
                         break
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
