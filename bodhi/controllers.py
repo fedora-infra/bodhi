@@ -566,7 +566,11 @@ class Root(controllers.RootController):
                         buildinfo[build]['releases'].add(rel)
                         valid = True
 
-            if not valid:
+            # If all of the builds are not properly tagged, then complain.
+            # If we're editing an update, we can already assume that we've
+            # moved the builds back to the candidates tag above, and can
+            # skip this verification.
+            if not valid and not edited:
                 flash_log("%s not tagged as an update candidate" % build)
                 if request_format() == 'json': return dict()
                 raise redirect('/new', **params)
