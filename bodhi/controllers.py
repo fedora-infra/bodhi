@@ -643,7 +643,6 @@ class Root(controllers.RootController):
                             bugs.append(unicode(bug.bz_id))
                         # Also inherit the older updates notes as well
                         notes += '\n' + update.notes
-                        print "new notes =", notes
                         update.obsolete(newer=build)
                     note.append('This update has obsoleted %s, and has '
                                 'inherited its bugs and notes.' % oldBuild.nvr)
@@ -663,7 +662,6 @@ class Root(controllers.RootController):
                         log.debug("Removing unnecessary build: %s" % build.nvr)
                         update.removePackageBuild(build)
                         if len(build.updates) == 0:
-                            log.debug("Destroying %s" % build.nvr)
                             build.destroySelf()
             else:
                 update = PackageUpdate(title=','.join(builds),

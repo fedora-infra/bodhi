@@ -633,7 +633,8 @@ class PackageUpdate(SQLObject):
             return
         for build in self.builds:
             if build.inherited:
-                log.debug("Removing %s tag from %s" % (curtag, build.nvr))
+                log.debug("Removing %s tag from inherited build %s" % (
+                    curtag, build.nvr))
                 koji.untagBuild(curtag, build.nvr, force=True)
             else:
                 log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
