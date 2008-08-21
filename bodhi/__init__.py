@@ -1,5 +1,5 @@
 import socket
-hostname = socket.gethostname()
+hostname = socket.gethostname().split('.')[0]
 
 from bodhi.release import VERSION as version
 
