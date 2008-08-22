@@ -22,7 +22,7 @@ import xmlrpclib
 from koji import GenericError
 from datetime import datetime
 from sqlobject import SQLObjectNotFound
-from sqlobject.sqlbuilder import AND
+from sqlobject.sqlbuilder import AND, OR
 
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config, url)
