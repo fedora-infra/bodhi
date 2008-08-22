@@ -947,35 +947,35 @@ class Root(controllers.RootController):
             raise redirect(update.get_url())
         return dict(form=self.ok_cancel_form, nvr=nvr)
 
-    @expose(template='bodhi.templates.obsolete')
-    def obsolete_dialog(self, update):
-        from bodhi.widgets import ObsoleteForm
-        package = Package.byName('-'.join(update.split('-')[:-2]))
-        builds = filter(lambda x: x.updates[0].status in ('testing', 'pending'),
-                        package.builds)
-        if not len(builds):
-            return dict(dialog=None)
-        return dict(dialog=ObsoleteForm(builds))
+    #@expose(template='bodhi.templates.obsolete')
+    #def obsolete_dialog(self, update):
+    #    from bodhi.widgets import ObsoleteForm
+    #    package = Package.byName('-'.join(update.split('-')[:-2]))
+    #    builds = filter(lambda x: x.updates[0].status in ('testing', 'pending'),
+    #                    package.builds)
+    #    if not len(builds):
+    #        return dict(dialog=None)
+    #    return dict(dialog=ObsoleteForm(builds))
 
-    @expose("json")
-    def obsolete(self, updates, *args, **kw):
-        """
-        Called by our ObsoleteForm widget.  This method will
-        request that any specified updates be marked as obsolete
-        """
-        log.debug("obsolete(%s, %s, %s)" % (updates, args, kw))
-        errors = []
-        if type(updates) != list:
-            updates = [updates]
-        for update in updates:
-            up = PackageBuild.byNvr(update).update[0]
-            if not util.authorized_user(up, identity):
-                msg = "Unauthorized to obsolete %s" % up.title
-                errors.append(msg)
-                flash_log(msg)
-            else:
-                up.obsolete()
-        return len(errors) and errors[0] or "Done!"
+    #@expose("json")
+    #def obsolete(self, updates, *args, **kw):
+    #    """
+    #    Called by our ObsoleteForm widget.  This method will
+    #    request that any specified updates be marked as obsolete
+    #    """
+    #    log.debug("obsolete(%s, %s, %s)" % (updates, args, kw))
+    #    errors = []
+    #    if type(updates) != list:
+    #        updates = [updates]
+    #    for update in updates:
+    #        up = PackageBuild.byNvr(update).update[0]
+    #        if not util.authorized_user(up, identity):
+    #            msg = "Unauthorized to obsolete %s" % up.title
+    #            errors.append(msg)
+    #            flash_log(msg)
+    #        else:
+    #            up.obsolete()
+    #    return len(errors) and errors[0] or "Done!"
 
     @expose(allow_json=True)
     def dist_tags(self):
