@@ -815,7 +815,8 @@ class Root(controllers.RootController):
                     template = 'bodhi.templates.pending'
                     order = PackageUpdate.q.date_submitted
                 status = args[0]
-                query.append(PackageUpdate.q.status == status)
+                query.append(OR(PackageUpdate.q.status == status,
+                                PackageUpdate.q.request != None))
             elif args[0] == 'security':
                 query.append(PackageUpdate.q.type == 'security')
                 query.append(PackageUpdate.q.pushed == True)
