@@ -428,6 +428,7 @@ class MetricData(Singleton):
             if not rel.metrics:
                 log.warning("No metrics found for %s" % rel.name)
                 return
+            self.init_metrics(rel)
             if not freshwidgets.has_key(rel.name):
                 freshwidgets[rel.name] = {}
             for metric in self.metrics:
@@ -435,7 +436,7 @@ class MetricData(Singleton):
                 if widget:
                     freshwidgets[rel.name][metric.__class__.__name__] = widget
 
-        self.widgets = freshwidgets 
+        self.widgets = freshwidgets
         self.age = datetime.utcnow()
         return self.widgets[release]
 
