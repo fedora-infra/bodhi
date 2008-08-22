@@ -140,6 +140,7 @@ bodhi/templates/pending.kid
 bodhi/templates/pkg.kid
 bodhi/templates/pkgs.kid
 bodhi/templates/push.kid
+bodhi/templates/search.kid
 bodhi/templates/searchform.kid
 bodhi/templates/security.kid
 bodhi/templates/show.kid
