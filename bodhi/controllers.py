@@ -581,9 +581,9 @@ class Root(controllers.RootController):
                                              kojiBuild['version'],
                                              kojiBuild['release'])
 
-            # Check for broken update paths against all releases
+            # Check for broken update paths
             log.info("Checking for broken update paths")
-            for release in Release.select():
+            for release in buildinfo[build]['releases']:
                 tags = ['dist-rawhide', release.dist_tag,
                         release.dist_tag + '-updates']
                 for tag in tags:
