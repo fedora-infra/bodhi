@@ -833,6 +833,9 @@ class Bugzilla(SQLObject):
         log.debug("Setting Bug #%d to ON_QA" % self.bz_id)
         try:
             bug = bz.getbug(self.bz_id)
+            if bug.product == 'Security Response':
+                log.warning("Skipping Security Response bug")
+                return
             bug.setstatus('ON_QA', comment=comment)
         except Exception, e:
             log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))
@@ -842,6 +845,9 @@ class Bugzilla(SQLObject):
         try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             bug = bz.getbug(self.bz_id)
+            if bug.product == 'Security Response':
+                log.warning("Not closing Security Response bug")
+                return
             bug.close('NEXTRELEASE', fixedin=ver)
         except xmlrpclib.Fault, f:
             log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f)))
