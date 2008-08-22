@@ -379,6 +379,7 @@ class Root(controllers.RootController):
                 'autokarma' : update.builds[0].package.stable_karma != 0 and
                               update.builds[0].package.unstable_karma != 0,
         }
+        log.debug("values = %s" % values)
         if update.status == 'testing':
             flash("Editing this update will move it back to a pending state.")
         return dict(form=update_form, values=values, action=url("/save"),
@@ -684,7 +685,8 @@ class Root(controllers.RootController):
             # Add/remove the necessary Bugzillas
             try:
                 update.update_bugs(bugs)
-            except xmlrpclib.Fault:
+            except xmlrpclib.Fault, f:
+                log.exception(f)
                 note.insert(0, "Unable to access one or more bugs")
 
             # If there are any security bugs, make sure this update is
@@ -713,7 +715,7 @@ class Root(controllers.RootController):
                     bug.add_comment(update,
                         "%s has been submitted as an update for %s.\n%s" %
                             (update.title, release.long_name,
-                             url(update.get_url())))
+                             config.get('base_address') + url(update.get_url())))
 
             # If a request is specified, make it.  By default we're submitting
             # new updates directly into testing
