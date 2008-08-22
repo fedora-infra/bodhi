@@ -602,20 +602,22 @@ class PackageUpdate(SQLObject):
                 self.request = 'stable'
                 self.pushed = False
                 self.date_pushed = None
-                mail.send(self.get_maintainers(), 'stablekarma', self)
+                mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
             if self.status == 'testing' and self.unstable_karma != 0 and \
                self.karma == self.unstable_karma:
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
-                mail.send(self.get_maintainers(), 'unstable', self)
+                mail.send(self.submitter, 'unstable', self)
         Comment(text=text, karma=karma, update=self, author=author,
                 anonymous=anonymous)
 
         # Send a notification to everyone that has commented on this update
         people = set()
-        for person in self.get_maintainers():
-            people.add(person)
+        people.add(self.submitter)
+        # Until we can differentiate between maintainers and committers
+        #for person in self.get_maintainers():
+        #    people.add(person)
         for comment in self.comments:
             if comment.anonymous or comment.author == 'bodhi':
                 continue
