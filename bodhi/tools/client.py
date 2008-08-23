@@ -229,7 +229,7 @@ def main():
                 if data.has_key('update'):
                     log.info(data['update'])
             elif opts.latest:
-                data = bodhi.latest(package=opts.latest)
+                data = bodhi.latest_builds(package=opts.latest)
                 if 'tg_flash' in data:
                     if data['tg_flash']:
                         log.info(data['tg_flash'])
