@@ -661,7 +661,8 @@ class PackageUpdate(SQLObject):
         mash takes place.
         """
         log.debug("Obsoleting %s" % self.title)
-        self.untag()
+        if self.status != 'pending':
+            self.untag()
         self.status = 'obsolete'
         self.request = None
         if newer:
