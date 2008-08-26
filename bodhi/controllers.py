@@ -376,8 +376,7 @@ class Root(controllers.RootController):
                 'stable_karma' : update.builds[0].package.stable_karma,
                 'unstable_karma' : update.builds[0].package.unstable_karma,
                 'suggest_reboot' : update.builds[0].package.suggest_reboot,
-                'autokarma' : update.builds[0].package.stable_karma != 0 and
-                              update.builds[0].package.unstable_karma != 0,
+                'autokarma' : update.stable_karma != 0 and update.unstable_karma != 0,
         }
         log.debug("values = %s" % values)
         if update.status == 'testing':
