@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.5.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -93,20 +93,28 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{python_sitelib}/%{name}/
 %{_bindir}/start-%{name}
 %{_bindir}/%{name}-*
-%{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
 %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %attr(-,apache,root) %{_datadir}/%{name}
 %attr(-,apache,root) %config(noreplace) %{_sysconfdir}/bodhi/*
 %attr(-,apache,root) %{_localstatedir}/log/bodhi
+%{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
+%{python_sitelib}/%{name}/__init__.py*
 
 
 %files client
 %doc COPYING README
 %{_bindir}/bodhi
 %{_mandir}/man1/bodhi.1.gz
+%{python_sitelib}/%{name}/tools
+%{python_sitelib}/%{name}/__init__.py*
+%{python_sitelib}/%{name}/release.py*
+%{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
 
 
 %changelog
+* Mon Aug 25 2008 Luke Macken <lmacken@redhat.com> - 0.5.1-2
+- Include the egg-info in the client subpackage.
+
 * Fri Aug 22 2008 Luke Macken <lmacken@redhat.com> - 0.5.1-1
 - Latest upstream release
 
