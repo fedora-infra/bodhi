@@ -25,7 +25,7 @@ from optparse import OptionParser
 from fedora.client import AuthError, ServerError
 from fedora.client.bodhi import BodhiClient
 
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 __description__ = 'Command line tool for interacting with Bodhi'
 
 BODHI_URL = 'https://admin.fedoraproject.org/updates/'
