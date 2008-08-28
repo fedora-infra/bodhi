@@ -18,6 +18,7 @@
 import sys
 import logging
 import urllib2
+import subprocess
 
 from getpass import getpass, getuser
 from optparse import OptionParser
@@ -66,6 +67,8 @@ def get_parser():
     parser.add_option("-R", "--request", action="store", dest="request",
                       metavar="STATE", help="Request that an action be "
                       "performed on an update [testing|stable|unpush|obsolete]")
+    parser.add_option("-D", "--download", action="store", dest="download",
+                      metavar="UPDATE", help="Download an update")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -271,6 +274,28 @@ def main():
                                        request=opts.request, mine=opts.mine,
                                        limit=opts.limit)
                     print_query(data)
+            elif opts.download:
+                data = bodhi.query(release=opts.release, status=opts.status,
+                                   type_=opts.type_, bugs=opts.bugs,
+                                   request=opts.request, mine=opts.mine,
+                                   limit=opts.limit, package=opts.download)
+                if len(data['updates']) > 1:
+                    log.info("%d possible updates were found" %
+                             len(data['updates']))
+                    for update in data['updates']:
+                        log.info(bodhi.update_str(update, minimal=True))
+                else:
+                    update = data['updates'][0]
+                    log.info("Downloading %s..." % update['title'])
+                    p = subprocess.Popen('uname -m', shell=True,
+                                         stdout=subprocess.PIPE)
+                    arch = p.communicate()[0].strip()
+                    for build in update['builds']:
+                        subprocess.call('koji download-build --arch=%s '
+                                        '--arch=noarch%s %s' % (arch,
+                                            arch == 'i686' and ' --arch=i386'
+                                            or '', build['nvr']),
+                                        shell=True)
             else:
                 parser.print_help()
             break
