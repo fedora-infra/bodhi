@@ -256,11 +256,11 @@ def main():
                     if data['num_items'] > 1:
                         for update in data['updates']:
                             log.info(bodhi.update_str(update, minimal=True))
+                        log.info("%d updates found (%d shown)" % (
+                            data['num_items'], len(data['updates'])))
                     else:
                         for update in data['updates']:
                             log.info(bodhi.update_str(update))
-                        log.info("%d updates found (%d shown)" % (
-                            data['num_items'], len(data['updates'])))
                 if args:
                     for arg in args:
                         data = bodhi.query(package=arg, release=opts.release,
