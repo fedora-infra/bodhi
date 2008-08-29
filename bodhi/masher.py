@@ -404,10 +404,17 @@ class MashTask(Thread):
         for repo, mashdir in self.mashed_repos.items():
             link = join(mashed_dir, repo)
             newrepo = join(mashdir, repo)
+            arches = os.listdir(newrepo)
+
+            # HACK.
+            log.debug("Moving each arch to arch.newkey")
+            for arch in arches:
+                shutil.move(arch, '%s.newkey')
+            arches = os.listdir(newrepo)
+
             log.debug("Running sanity checks on %s" % newrepo)
 
             # make sure the new repository has our arches
-            arches = os.listdir(newrepo)
             for arch in config.get('arches').split():
                 if arch not in arches:
                     self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
@@ -421,9 +428,9 @@ class MashTask(Thread):
                     return
 
             # make sure that mash didn't symlink our packages
-            for pkg in os.listdir(join(newrepo, 'i386')):
+            for pkg in os.listdir(join(newrepo, arches[0])):
                 if pkg.endswith('.rpm'):
-                    if islink(join(newrepo, 'i386', pkg)):
+                    if islink(join(newrepo, arches[0], pkg)):
                         self.error_log("Mashed repository full of symlinks!")
                         return
                     break
