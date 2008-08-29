@@ -82,6 +82,8 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{__install} -m 640 %{name}/config/*mash* %{buildroot}%{_sysconfdir}/%{name}/
 %{__install} apache/%{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
 
+%{__install} %{name}/tools/client.py %{buildroot}%{_bindir}/%{name}
+
 
 %clean
 %{__rm} -rf %{buildroot}
@@ -98,17 +100,11 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %attr(-,apache,root) %config(noreplace) %{_sysconfdir}/bodhi/*
 %attr(-,apache,root) %{_localstatedir}/log/bodhi
 %{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
-%{python_sitelib}/%{name}/__init__.py*
 
 
 %files client
-%doc COPYING README
 %{_bindir}/bodhi
 %{_mandir}/man1/bodhi.1.gz
-%{python_sitelib}/%{name}/tools
-%{python_sitelib}/%{name}/__init__.py*
-%{python_sitelib}/%{name}/release.py*
-%{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
 
 
 %changelog

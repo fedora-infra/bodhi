@@ -168,7 +168,6 @@ setup(
     entry_points = {
             'console_scripts': (
                 'start-bodhi = bodhi.commands:start',
-                'bodhi = bodhi.tools.client:main',
                 'bodhi-pickledb = bodhi.tools.pickledb:main',
                 'bodhi-tagcheck = bodhi.tools.tagcheck:main',
                 'bodhi-init = bodhi.tools.init:main',
