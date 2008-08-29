@@ -1,7 +1,6 @@
 [console_scripts]
 bodhi-rmrelease = bodhi.tools.rmrelease:main
 start-bodhi = bodhi.commands:start
-bodhi = bodhi.tools.client:main
 bodhi-devinit = bodhi.tools.dev_init:main
 bodhi-tagcheck = bodhi.tools.tagcheck:main
 bodhi-init = bodhi.tools.init:main

@@ -30,7 +30,7 @@ A modular piece of the Fedora Infrastructure stack
 %package client
 Summary: Bodhi Client
 Group: Applications/Internet
-Requires: python-simplejson python-fedora koji yum python-setuptools
+Requires: python-simplejson python-fedora koji yum
 
 %description client
 Client tools for interacting with bodhi
@@ -109,7 +109,7 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 %changelog
 * Fri Aug 29 2008 Luke Macken <lmacken@redhat.com> - 0.5.1-3
-- Require python-setuptools in our client
+- Fix some setuptools issues with our client subpackage
 
 * Mon Aug 25 2008 Luke Macken <lmacken@redhat.com> - 0.5.1-2
 - Include the egg-info in the client subpackage.
