@@ -73,8 +73,12 @@ class AdminController(Controller, SecureResource):
         log.debug("mash_tag(%s)" % locals())
         if config.get('masher'):
             data = self._masher_request('/admin/mash_tag', tag=tag)
-            flash_log("Mash request %s" % data.get('success') and
-                      "succeeded" or "failed")
+            if not data:
+                flash_log("Mash request failed.  There may be an "
+                          "existing mash that needs to be resumed first.")
+            else:
+                flash_log("Mash request %s" %
+                          data.get('success', 'failed'))
         else:
             Masher().mash_tags([tag])
             flash_log("Mashing tag: %s" % tag)
