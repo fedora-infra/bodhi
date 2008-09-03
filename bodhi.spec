@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.5.1
-Release:        3%{?dist}
+Version:        0.5.2
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -108,6 +108,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Wed Sep 03 2008 Luke Macken <lmacken@redhat.com> - 0.5.2-1
+- Latest upstream bugfix release
+
 * Fri Aug 29 2008 Luke Macken <lmacken@redhat.com> - 0.5.1-3
 - Fix some setuptools issues with our client subpackage
 
