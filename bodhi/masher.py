@@ -409,7 +409,7 @@ class MashTask(Thread):
             # HACK.
             log.debug("Moving each arch to arch.newkey")
             for arch in arches:
-                shutil.move(arch, '%s.newkey')
+                shutil.move(join(newrepo, arch), join(newrepo, '%s.newkey' % arch))
             arches = os.listdir(newrepo)
 
             log.debug("Running sanity checks on %s" % newrepo)
