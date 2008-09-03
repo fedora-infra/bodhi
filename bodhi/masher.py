@@ -30,7 +30,7 @@ from os.path import exists, join, islink, isdir, dirname
 from time import sleep
 
 from bodhi import buildsys, mail
-from bodhi.util import synchronized, sanity_check_repodata, Singleton
+from bodhi.util import synchronized, sanity_check_repodata
 from bodhi.model import PackageUpdate
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import MashTaskException
@@ -55,7 +55,7 @@ def get_mash_conf():
         log.error("No mash configuration found!")
         return None
 
-class Masher(Singleton):
+class Masher(object):
     """ The Masher.
 
     This is an extension that is in charge of queueing and dispatching update
