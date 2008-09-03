@@ -416,7 +416,7 @@ class MashTask(Thread):
 
             # make sure the new repository has our arches
             for arch in config.get('arches').split():
-                if arch not in arches + ['%s.newkey' % arch]:
+                if arch not in arches and arch not in [arch.split('.')[0] for arch in arches]:
                     self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
                     return
 
@@ -572,11 +572,15 @@ class MashTask(Thread):
             log.error("Exception thrown in MashTask %d" % self.id)
             self.error_log(str(e))
             log.exception(str(e))
-        except MashTaskException:
+        except MashTaskException, e:
+            log.error("MashTaskException thrown! %s" % str(e))
             self.success = False
 
         if self.success:
+            log.debug("Success! Unlocking repo")
             self._unlock()
+
+        log.debug("MashTask done")
         masher.done(self)
 
     def add_to_digest(self,update):
@@ -599,6 +603,7 @@ class MashTask(Thread):
         Send digest mail to mailing lists
         '''
         for prefix, content in self.testing_digest.items():
+            log.debug("Sending digest for updates-testing %s" % prefix)
             maildata = u'The following builds have been pushed to %s updates-testing\n\n' % prefix
             # get a list af all nvr's
             updlist = content.keys()
