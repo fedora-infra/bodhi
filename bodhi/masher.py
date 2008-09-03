@@ -416,7 +416,7 @@ class MashTask(Thread):
 
             # make sure the new repository has our arches
             for arch in config.get('arches').split():
-                if arch not in arches:
+                if arch not in arches + '%s.newkey' % arch:
                     self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
                     return
 
