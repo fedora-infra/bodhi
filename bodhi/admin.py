@@ -148,8 +148,7 @@ class AdminController(Controller, SecureResource):
 
     def _current_mash(self):
         """ Get the update list for the current mash """
-        data = self._masher_request('/admin/current_mash')
-        return data.get('mash')
+        return self._masher_request('/admin/current_mash')
 
     @expose(allow_json=True)
     def current_mash(self):
