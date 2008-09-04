@@ -30,7 +30,6 @@ from fedora.tg.util import request_format
 from fedora.client.proxyclient import ProxyClient
 
 from bodhi.util import flash_log
-from bodhi.masher import Masher
 from bodhi.model import Release, PackageUpdate
 
 
@@ -55,16 +54,18 @@ class AdminController(Controller, SecureResource):
                 data = {'masher_str': 'Unable to contact the masher','tags': []}
             return dict(masher_str=data['masher_str'], tags=data['tags'])
         else:
+            from bodhi.masher import masher
             tags = []
             for release in Release.select():
                 tags.append('%s-updates' % release.dist_tag.split('-')[1])
                 tags.append('%s-updates-testing' % release.dist_tag.split('-')[1])
-            return dict(masher_str=str(Masher()), tags=tags)
+            return dict(masher_str=str(masher), tags=tags)
 
     @expose(template='bodhi.templates.text')
     def lastlog(self):
         """ Return the last mash log """
-        (logfile, data) = Masher().lastlog()
+        from bodhi.masher import masher
+        (logfile, data) = masher.lastlog()
         return dict(title=logfile, text=data)
 
     @expose(allow_json=True)
@@ -80,7 +81,8 @@ class AdminController(Controller, SecureResource):
                 flash_log("Mash request %s" %
                           data.get('success', 'failed'))
         else:
-            Masher().mash_tags([tag])
+            from bodhi.masher import masher
+            masher.mash_tags([tag])
             flash_log("Mashing tag: %s" % tag)
         raise redirect('/admin/masher')
 
@@ -135,8 +137,9 @@ class AdminController(Controller, SecureResource):
                                                                or 'failed')
             raise redirect('/admin/masher')
 
-        Masher().queue([PackageUpdate.byTitle(title) for title in updates],
-                       resume=resume)
+        from bodhi.masher import masher
+        masher.queue([PackageUpdate.byTitle(title) for title in updates],
+                     resume=resume)
         if request_format() == 'json':
             return dict(success=True)
         flash("Updates queued for mashing")
@@ -155,6 +158,7 @@ class AdminController(Controller, SecureResource):
 
     def _current_mash(self):
         """ Return details about the mash in process """
+        from bodhi.masher import masher
         mash_data = {'mashing': False, 'updates': []}
         mashed_dir = config.get('mashed_dir')
         mash_lock = join(mashed_dir, 'MASHING')
@@ -162,7 +166,7 @@ class AdminController(Controller, SecureResource):
             mash_lock = file(mash_lock)
             mashing_updates = pickle.load(mash_lock)
             mash_lock.close()
-            mash_data['mashing'] = Masher().mashing
+            mash_data['mashing'] = masher.mashing
             mash_data['updates'] = mashing_updates
         return mash_data
 
