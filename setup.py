@@ -174,5 +174,8 @@ setup(
                 'bodhi-devinit = bodhi.tools.dev_init:main',
                 'bodhi-rmrelease = bodhi.tools.rmrelease:main',
             ),
+            'turbogears.extensions': (
+                'masher = bodhi.masher'
+            ),
     }
 )

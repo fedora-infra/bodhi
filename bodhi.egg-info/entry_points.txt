@@ -1,3 +1,6 @@
+[turbogears.extensions]
+masher = bodhi.masher
+
 [console_scripts]
 bodhi-rmrelease = bodhi.tools.rmrelease:main
 start-bodhi = bodhi.commands:start
