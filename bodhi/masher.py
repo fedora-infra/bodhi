@@ -725,6 +725,7 @@ class MashTask(Thread):
 
 def start_extension():
     global masher
+    log.info("Starting masher extension")
     masher = Masher()
 
 def shutdown_extension():

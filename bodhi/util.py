@@ -309,6 +309,7 @@ class Singleton(object):
 
     def __new__(cls, *args, **kw):
         if not '_instance' in cls.__dict__:
+            log.debug("Creating new singleton instance!")
             cls._instance = object.__new__(cls)
         return cls._instance
 
