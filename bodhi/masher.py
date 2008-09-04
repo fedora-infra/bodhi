@@ -418,21 +418,21 @@ class MashTask(Thread):
             for arch in config.get('arches').split():
                 if arch not in arches and arch not in [arch.split('.')[0] for arch in arches]:
                     self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
-                    return
+                    raise MashTaskException
 
                 # sanity check our repodata 
                 try:
                     sanity_check_repodata(join(newrepo, arch, 'repodata'))
                 except Exception, e:
                     self.error_log("Repodata sanity check failed!\n%s" % str(e))
-                    return
+                    raise MashTaskException
 
             # make sure that mash didn't symlink our packages
             for pkg in os.listdir(join(newrepo, arches[0])):
                 if pkg.endswith('.rpm'):
                     if islink(join(newrepo, arches[0], pkg)):
                         self.error_log("Mashed repository full of symlinks!")
-                        return
+                        raise MashTaskException
                     break
 
             # move the new repo to our mash stage
