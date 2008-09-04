@@ -178,5 +178,5 @@ def schedule():
         log.debug("Scheduling refresh_metrics job")
         scheduler.add_interval_task(action=refresh_metrics,
                                     taskname='Refresh our metrics',
-                                    initialdelay=0,
+                                    initialdelay=1200,
                                     interval=172800)
