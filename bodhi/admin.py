@@ -125,10 +125,11 @@ class AdminController(Controller, SecureResource):
         handling all of the update requests, composing fresh repositories,
         generating and sending update notices, closing bugs, etc.
         """
-        if request_format() == 'json':
-            updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
         if not isinstance(updates, list):
-            updates = [updates]
+            if isinstance(updates, basestring):
+                updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
+            else:
+                updates = [updates]
 
         # If we're not The Masher, then proxy this request to it
         if config.get('masher'):
