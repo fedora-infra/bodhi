@@ -133,7 +133,7 @@ class AdminController(Controller, SecureResource):
 
         # If we're not The Masher, then proxy this request to it
         if config.get('masher'):
-            data = self._masher_request('/admin/mash', updates=updates) or {}
+            data = self._masher_request('/admin/mash', updates=updates, resume=resume) or {}
             flash_log('Push request %s' % data.get('success') and 'succeeded'
                                                                or 'failed')
             raise redirect('/admin/masher')
