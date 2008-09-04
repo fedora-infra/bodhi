@@ -155,7 +155,7 @@ class AdminController(Controller, SecureResource):
     def current_mash(self):
         """ Return details about the mash in process """
         from bodhi.masher import masher
-        mash_data = {'mashing': , 'updates': []}
+        mash_data = {'mashing': False, 'updates': []}
         mashed_dir = config.get('mashed_dir')
         mash_lock = join(mashed_dir, 'MASHING')
         if exists(mash_lock):
