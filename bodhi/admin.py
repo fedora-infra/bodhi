@@ -133,7 +133,7 @@ class AdminController(Controller, SecureResource):
 
         # If we're not The Masher, then proxy this request to it
         if config.get('masher'):
-            data = self._masher_request('/admin/mash', updates=updates)
+            data = self._masher_request('/admin/mash', updates=updates) or {}
             flash_log('Push request %s' % data.get('success') and 'succeeded'
                                                                or 'failed')
             raise redirect('/admin/masher')
@@ -146,21 +146,16 @@ class AdminController(Controller, SecureResource):
         flash("Updates queued for mashing")
         raise redirect('/admin/masher')
 
+    def _current_mash(self):
+        """ Get the update list for the current mash """
+        data = self._masher_request('/admin/current_mash')
+        return dict(mash=data.get('mash'))
+
     @expose(allow_json=True)
     def current_mash(self):
-        """ Get the update list for the current mash """
-        mash_data = None
-        if config.get('masher'):
-            data = self._masher_request('/admin/current_mash')
-            mash_data = data.get('mash')
-        else:
-            mash_data = self._current_mash()
-        return dict(mash=mash_data)
-
-    def _current_mash(self):
         """ Return details about the mash in process """
         from bodhi.masher import masher
-        mash_data = {'mashing': False, 'updates': []}
+        mash_data = {'mashing': , 'updates': []}
         mashed_dir = config.get('mashed_dir')
         mash_lock = join(mashed_dir, 'MASHING')
         if exists(mash_lock):
