@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.5.2
-Release:        1%{?dist}
+Release:        10%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -13,7 +13,9 @@ Source0:        bodhi-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
+BuildRequires: python-setuptools 
 BuildRequires: python-setuptools-devel
+BuildRequires: python-fedora python-TurboMail TurboGears yum
 BuildRequires: python-devel
 BuildRequires: TurboGears
 
@@ -108,6 +110,11 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Wed Sep 03 2008 Luke Macken <lmacken@redhat.com> - 0.5.2-2
+- Add the masher deps to BuildRequires, since it now resides
+  on the turbogears.extensions entry point and will be
+  imported by pkg_resources at build time.
+
 * Wed Sep 03 2008 Luke Macken <lmacken@redhat.com> - 0.5.2-1
 - Latest upstream bugfix release
 
