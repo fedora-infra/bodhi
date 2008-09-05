@@ -20,7 +20,7 @@ from textwrap import wrap
 from turbomail import MailNotEnabledException
 from turbogears import config, identity
 
-from bodhi.util import rpm_fileheader
+from bodhi.util import rpm_fileheader, to_unicode
 from bodhi.exceptions import RPMNotFound
 
 log = logging.getLogger(__name__)
@@ -345,7 +345,7 @@ def get_template(update, use_template=errata_template):
             elif len(text) != 1:
                 oldtime = oldtime[0]
             info['changelog'] = u"ChangeLog:\n\n%s%s" % \
-                    (unicode(build.get_changelog(oldtime)), line)
+                    (to_unicode(build.get_changelog(oldtime)), line)
         except RPMNotFound:
             log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
                       lastpkg)
@@ -359,7 +359,7 @@ def get_template(update, use_template=errata_template):
             # We can't trust the strings we get from RPM
             log.debug("UnicodeDecodeError! Will try again after decoding")
             for (key, value) in info.items():
-                if value: info[key] = value.decode('utf8', 'replace')
+                if value: info[key] = to_unicode(value)
             templates.append((info['subject'], use_template % info))
 
     return templates
