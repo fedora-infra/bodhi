@@ -534,6 +534,7 @@ class MashTask(Thread):
                 out.close()
                 log.info("Wrote mash output to %s" % mash_output)
                 self.log = mash_output
+                self.composed_repos.append(mashdir)
         self.mashing = False
         log.debug("Mashed for %s seconds" % (time.time() - t0))
 
