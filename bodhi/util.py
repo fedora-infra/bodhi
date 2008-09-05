@@ -309,7 +309,6 @@ class Singleton(object):
 
     def __new__(cls, *args, **kw):
         if not '_instance' in cls.__dict__:
-            log.debug("Creating new singleton instance!")
             cls._instance = object.__new__(cls)
         return cls._instance
 
@@ -415,3 +414,11 @@ def sanity_check_repodata(myurl):
     
     if errorstrings:
         raise RepodataException(','.join(errorstrings))
+
+
+def to_unicode(obj, encoding='utf-8'):
+    if isinstance(obj, basestring):
+        if not isinstance(obj, unicode):
+            obj = unicode(obj, encoding, 'replace')
+    return obj
+
