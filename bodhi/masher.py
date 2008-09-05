@@ -240,7 +240,7 @@ class MashTask(Thread):
             lock = file(mash_lock, 'w')
             pickle.dump({
                 'updates': [update.title for update in self.updates],
-                'completed_repos': self.composed_repos,
+                'composed_repos': self.composed_repos,
                 }, lock)
             lock.close()
 
@@ -498,7 +498,7 @@ class MashTask(Thread):
         self.update_comps()
         # {'f9-updates': '/mnt/koji/mash/updates/f9-updates-080905.0057',}
         finished_repos = dict([('-'.join(basename(repo).split('-')[:-1]), repo)
-                               for repo in self.completed_repos])
+                               for repo in self.composed_repos])
         for repo in self.repos:
             # Skip mashing this repo if we successfully mashed it previously
             if repo in finished_repos:
