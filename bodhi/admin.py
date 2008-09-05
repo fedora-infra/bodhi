@@ -159,10 +159,10 @@ class AdminController(Controller, SecureResource):
         mash_lock = join(mashed_dir, 'MASHING')
         if exists(mash_lock):
             mash_lock = file(mash_lock)
-            mashing_updates = pickle.load(mash_lock)
+            mash_state = pickle.load(mash_lock)
             mash_lock.close()
             mash_data['mashing'] = masher.mashing
-            mash_data['updates'] = mashing_updates
+            mash_data['updates'] = mash_state['updates']
         return mash_data
 
     def _masher_request(self, method, **kwargs):
