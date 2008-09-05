@@ -614,6 +614,18 @@ class MashTask(Thread):
         if self.success:
             log.debug("Success! Unlocking repo")
             self._unlock()
+        else:
+            # Update our masher state lockfile with any completed
+            # repos that we were able to compose during this push
+            log.debug("Mash unsuccessful, updating state lock")
+            mash_lock = join(config.get('mashed_dir'), 'MASHING')
+            lock = file(mash_lock, 'r')
+            masher_state = pickle.load(lock)
+            lock.close()
+            masher_state['composed_repos'] = self.composed_repos
+            lock = file(mash_lock, 'w')
+            pickle.dump(masher_state)
+            lock.close()
 
         log.debug("MashTask done")
         masher.done(self)
