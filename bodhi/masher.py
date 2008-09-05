@@ -682,15 +682,23 @@ class MashTask(Thread):
         self.updates.add(update)
         mashdir = config.get('mashed_dir')
         repo = "%s-updates" % release.name.lower()
+        master_repomd = config.get('master_repomd')
         repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
         if not exists(repomd):
             log.error("Cannot find local repomd: %s" % repomd)
-            return
+            # Hack, for new gpg key
+            repomd = join(mashdir, repo, 'i386.newkey', 'repodata', 'repomd.xml')
+            if not exists(repomd):
+                log.error("Cannot find local repomd: %s" % repomd)
+                return
+            else:
+                log.info("Found repomd at %s" % repomd)
+                master_repomd = config.get('master_newkey_repomd')
         checksum = sha.new(file(repomd).read()).hexdigest()
         while True:
             sleep(600)
             try:
-                masterrepomd = urllib2.urlopen(config.get('master_repomd') % release.get_version())
+                masterrepomd = urllib2.urlopen(master_repomd % release.get_version())
             except urllib2.URLError, e:
                 log.error("Error fetching repomd.xml: %s" % str(e))
                 continue
