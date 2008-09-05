@@ -227,7 +227,7 @@ class MashTask(Thread):
                         except SQLObjectNotFound:
                             log.warning("Cannot find %s" % up)
                     for repo in masher_state['composed_repos']:
-                        self.composed_repos.add(repo)
+                        self.composed_repos.append(repo)
                 else:
                     log.error('Unknown masher lock format: %s' % masher_state)
                     raise MashTaskException
