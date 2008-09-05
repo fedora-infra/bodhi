@@ -26,7 +26,7 @@ import cPickle as pickle
 from sqlobject import SQLObjectNotFound
 from threading import Thread, Lock
 from turbogears import config
-from os.path import exists, join, islink, isdir, dirname
+from os.path import exists, join, islink, isdir, dirname, basename
 from time import sleep
 
 from bodhi import buildsys, mail
@@ -183,11 +183,13 @@ class MashTask(Thread):
         self.genmd = False
         self.resume = resume
         self.testing_digest = {}
+        self.composed_repos = [] # previously mashed repos from our MASHING lock
         self._lock()
         self._find_repos()
 
     def _lock(self):
-        """ Write out what updates we are pushing to our MASHING lock """
+        """ Write out what updates we are pushing and any successfully mashed 
+        repositories to our MASHING lock """
         mashed_dir = config.get('mashed_dir')
         mash_stage = config.get('mashed_stage_dir')
         mash_lock = join(mashed_dir, 'MASHING')
@@ -201,14 +203,34 @@ class MashTask(Thread):
             if self.resume:
                 log.debug("Resuming previous push!")
                 lock = file(mash_lock, 'r')
-                ups = pickle.load(lock)
+                masher_state = pickle.load(lock)
                 lock.close()
-                for up in ups:
-                    try:
-                        up = PackageUpdate.byTitle(up)
-                        self.updates.add(up)
-                    except SQLObjectNotFound:
-                        log.warning("Cannot find %s" % up)
+
+                # For backwards compatability, we need to make sure we handle
+                # masher state that is just a list of updates, as well as a
+                # dictionary of updates and successfully mashed repos
+                if isinstance(masher_state, list):
+                    for up in masher_state:
+                        try:
+                            up = PackageUpdate.byTitle(up)
+                            self.updates.add(up)
+                        except SQLObjectNotFound:
+                            log.warning("Cannot find %s" % up)
+
+                # { 'updates' : [PackageUpdate.title,],
+                #   'repos'   : ['/path_to_completed_repo',] }
+                elif isinstance(masher_state, dict):
+                    for up in masher_state['updates']:
+                        try:
+                            up = PackageUpdate.byTitle(up)
+                            self.updates.add(up)
+                        except SQLObjectNotFound:
+                            log.warning("Cannot find %s" % up)
+                    for repo in masher_state['composed_repos']:
+                        self.composed_repos.add(repo)
+                else:
+                    log.error('Unknown masher lock format: %s' % masher_state)
+                    raise MashTaskException
             else:
                 log.error("Previous mash not complete!  Either resume the last "
                           "push, or remove %s" % mash_lock)
@@ -216,7 +238,10 @@ class MashTask(Thread):
         else:
             log.debug("Creating lock for updates push: %s" % mash_lock)
             lock = file(mash_lock, 'w')
-            pickle.dump([update.title for update in self.updates], lock)
+            pickle.dump({
+                'updates': [update.title for update in self.updates],
+                'completed_repos': self.composed_repos,
+                }, lock)
             lock.close()
 
     def _unlock(self):
@@ -471,7 +496,16 @@ class MashTask(Thread):
         t0 = time.time()
         self.mashing = True
         self.update_comps()
+        # {'f9-updates': '/mnt/koji/mash/updates/f9-updates-080905.0057',}
+        finished_repos = dict([('-'.join(basename(repo).split('-')[:-1]), repo)
+                               for repo in self.completed_repos])
         for repo in self.repos:
+            # Skip mashing this repo if we successfully mashed it previously
+            if repo in finished_repos:
+                log.info('Skipping previously mashed repo %s' % repo)
+                self.mashed_repos[repo] = finished_repos[repo]
+                continue
+
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
             self.mashed_repos[repo] = mashdir
