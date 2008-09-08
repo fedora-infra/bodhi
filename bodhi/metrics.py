@@ -81,10 +81,12 @@ class AllMetric(Metric):
     def done(self):
         for update_type, data in self.timeline.items():
             self.timeline[update_type] = data.items()
+            self.timeline[update_type].sort(key=lambda x: x[0])
 
         # Append earlier months for newer years to the end of the graph
         self.months = self.months.items()
         self.months.sort(key=lambda x: x[0])
+
         m = []
         for num, month in self.months:
             if num < self.earliest.month:
