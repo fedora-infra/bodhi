@@ -263,7 +263,7 @@ class MashTask(Thread):
         lock.close()
         masher_state['composed_repos'] = self.composed_repos
         lock = file(mash_lock, 'w')
-        pickle.dump(masher_state)
+        pickle.dump(masher_state, lock)
         lock.close()
 
     def error_log(self, msg):
