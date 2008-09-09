@@ -17,7 +17,6 @@ import logging
 import turbomail
 
 from textwrap import wrap
-from turbomail import MailNotEnabledException
 from turbogears import config, identity
 
 from bodhi.util import rpm_fileheader, to_unicode
@@ -365,6 +364,7 @@ def get_template(update, use_template=errata_template):
     return templates
 
 def send_mail(sender, to, subject, body):
+    from turbomail import MailNotEnabledException
     message = turbomail.Message(sender, to, subject)
     message.plain = body
     try:
