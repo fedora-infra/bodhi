@@ -251,6 +251,21 @@ class MashTask(Thread):
         else:
             log.error("Cannot find MashTask lock at %s" % mash_lock)
 
+    def _update_lock(self):
+        """
+        Update our masher state lockfile with any completed repos that we were
+        able to compose during this push
+        """
+        log.debug("Updating MASHING lock")
+        mash_lock = join(config.get('mashed_dir'), 'MASHING')
+        lock = file(mash_lock, 'r')
+        masher_state = pickle.load(lock)
+        lock.close()
+        masher_state['composed_repos'] = self.composed_repos
+        lock = file(mash_lock, 'w')
+        pickle.dump(masher_state)
+        lock.close()
+
     def error_log(self, msg):
         log.error(msg)
         self.errors.append(msg)
@@ -535,6 +550,7 @@ class MashTask(Thread):
                 log.info("Wrote mash output to %s" % mash_output)
                 self.log = mash_output
                 self.composed_repos.append(mashdir)
+                self._update_lock()
         self.mashing = False
         log.debug("Mashed for %s seconds" % (time.time() - t0))
 
@@ -618,14 +634,7 @@ class MashTask(Thread):
             # Update our masher state lockfile with any completed
             # repos that we were able to compose during this push
             log.debug("Mash unsuccessful, updating state lock")
-            mash_lock = join(config.get('mashed_dir'), 'MASHING')
-            lock = file(mash_lock, 'r')
-            masher_state = pickle.load(lock)
-            lock.close()
-            masher_state['composed_repos'] = self.composed_repos
-            lock = file(mash_lock, 'w')
-            pickle.dump(masher_state)
-            lock.close()
+            self._update_lock()
 
         log.debug("MashTask done")
         masher.done(self)
