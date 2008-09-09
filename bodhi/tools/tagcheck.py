@@ -16,7 +16,7 @@ def main():
     load_config()
     __connection__ = hub = PackageHub("bodhi")
     koji = get_session()
-    for tag in ('dist-fc7-updates-testing', 'dist-fc7-updates',
+    for tag in ('dist-f9-updates-testing', 'dist-f9-updates',
                 'dist-f8-updates-testing', 'dist-f8-updates'):
         tagged = [build['nvr'] for build in koji.listTagged(tag)]
         for nvr in tagged:
