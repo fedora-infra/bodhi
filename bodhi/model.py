@@ -525,6 +525,11 @@ class PackageUpdate(SQLObject):
                     bug.destroySelf()
         for bug in bugs:
             try:
+                bug = int(bug)
+            except ValueError: # bug alias
+                bugzilla = Bugzilla.get_bz()
+                bug = bugzilla.getbug(bug).bug_id
+            try:
                 bz = Bugzilla.byBz_id(bug)
             except SQLObjectNotFound:
                 if fetchdetails:
