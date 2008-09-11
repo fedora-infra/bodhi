@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.5.2
-Release:        11%{?dist}
+Release:        27%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -15,9 +15,10 @@ BuildArch:      noarch
 
 BuildRequires: python-setuptools 
 BuildRequires: python-setuptools-devel
-BuildRequires: python-fedora python-TurboMail TurboGears yum
 BuildRequires: python-devel
-BuildRequires: TurboGears
+
+BuildRequires: TurboGears python-bugzilla
+BuildRequires: python-fedora python-TurboMail TurboGears yum koji
 
 %description
 Bodhi is a web application that facilitates the process of publishing
