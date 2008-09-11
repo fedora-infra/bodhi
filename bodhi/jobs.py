@@ -48,6 +48,8 @@ def clean_repo():
         for repo in [release + '-updates', release + '-updates-testing']:
             liverepos.append(dirname(realpath(join(repos, repo))))
     for repo in [join(repos, repo) for repo in os.listdir(repos)]:
+        if 'repodata' in repo: # skip our repodata caches
+            continue
         if not islink(repo) and isdir(repo):
             fullpath = realpath(repo)
             if fullpath not in liverepos:
