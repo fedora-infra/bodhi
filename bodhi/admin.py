@@ -22,7 +22,8 @@ import cPickle as pickle
 from os.path import join, exists
 from Cookie import SimpleCookie
 from sqlobject import SQLObjectNotFound
-from turbogears import expose, identity, redirect, flash, config
+from formencode import validators
+from turbogears import expose, identity, redirect, flash, config, validate
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
 
@@ -116,6 +117,7 @@ class AdminController(Controller, SecureResource):
         return dict(updates=updates, resume=resume)
 
     @expose(allow_json=True)
+    @validate(validators={'resume' : validators.StringBool()})
     def mash(self, updates, resume=False, **kw):
         """ Mash a list of PackageUpdate objects.
 
