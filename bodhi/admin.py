@@ -152,12 +152,10 @@ class AdminController(Controller, SecureResource):
         raise redirect('/admin/masher')
 
     def _current_mash(self):
-        """ Get the update list for the current mash """
-        return self._masher_request('/admin/current_mash')
-
-    @expose(allow_json=True)
-    def current_mash(self):
         """ Return details about the mash in process """
+        if config.get('masher', None):
+            return self._masher_request('/admin/current_mash')
+
         from bodhi.masher import masher
         mash_data = {'mashing': False, 'updates': []}
         mashed_dir = config.get('mashed_dir')
@@ -167,8 +165,17 @@ class AdminController(Controller, SecureResource):
             mash_state = pickle.load(mash_lock)
             mash_lock.close()
             mash_data['mashing'] = masher.mashing
+            log.debug('mash_state = %s' % repr(mash_state))
             mash_data['updates'] = mash_state['updates']
         return mash_data
+
+    @expose(allow_json=True)
+    def current_mash(self):
+        """ Return details about the mash in process """
+        return self._current_mash()
+
+    def _get_mash_status(self):
+        """ Return details about the mash in process """
 
     def _masher_request(self, method, **kwargs):
         """
