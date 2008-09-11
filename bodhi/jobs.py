@@ -129,7 +129,6 @@ def cache_release_data():
     log.info("Release cache complete")
 
 
-
 def refresh_metrics():
     """ Refresh all of our graphs and metrics """
     from bodhi.metrics import MetricData
@@ -180,5 +179,5 @@ def schedule():
         log.debug("Scheduling refresh_metrics job")
         scheduler.add_interval_task(action=refresh_metrics,
                                     taskname='Refresh our metrics',
-                                    initialdelay=1200,
+                                    initialdelay=7200,
                                     interval=172800)
