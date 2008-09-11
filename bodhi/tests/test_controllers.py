@@ -36,7 +36,7 @@ def login(username='guest', display_name='guest', group=None):
     except DuplicateEntryError:
         guest = User.by_user_name(username)
     testutil.create_request('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
-    assert cherrypy.response.status == '200 OK'
+    assert cherrypy.response.status == '200 OK', cherrypy.response.body[0]
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
                      cherrypy.response.header_list)
     cookiehdr = cookies[0][1].strip()
@@ -991,8 +991,11 @@ class TestControllers(testutil.DBTest):
                                 headers=session)
 
         # It should now appear in the queue
+        config.update({'global': {'masher': None}})
+        testutil.capture_log(['bodhi.controllers', 'bodhi.admin', 'bodhi.masher', 'bodhi.util'])
         testutil.create_request('/updates/admin/push', headers=session)
-        assert '1 pending request' in cherrypy.response.body[0]
+        testutil.print_log()
+        assert '1 pending request' in cherrypy.response.body[0], cherrypy.response.body[0]
 
         # Revoke the stable request from the update
         testutil.create_request('/updates/revoke/%s' % params['builds'],
@@ -1005,7 +1008,7 @@ class TestControllers(testutil.DBTest):
         # Create a MASHING lock with this update in it
         config.update({'global': {'mashed_dir': os.getcwd()}})
         mash_lock = file(os.path.join(config.get('mashed_dir'), 'MASHING'), 'w')
-        mash_lock.write(pickle.dumps([params['builds'],]))
+        mash_lock.write(pickle.dumps({'updates': [params['builds'],], 'repos': []}))
         mash_lock.close()
 
         # Make sure it attempts to resume the current push
