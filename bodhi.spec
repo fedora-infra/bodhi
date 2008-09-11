@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.5.2
-Release:        27%{?dist}
+Version:        0.5.3
+Release:        3%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -111,6 +111,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Wed Sep 10 2008 Luke Macken <lmacken@redhat.com> - 0.5.3-1
+- Latest upstream release
+
 * Wed Sep 03 2008 Luke Macken <lmacken@redhat.com> - 0.5.2-2
 - Add the masher deps to BuildRequires, since it now resides
   on the turbogears.extensions entry point and will be
