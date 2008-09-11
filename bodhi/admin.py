@@ -93,6 +93,9 @@ class AdminController(Controller, SecureResource):
         updates = []
         resume = False
         mash = self._current_mash()
+        if not mash:
+            flash_log("A masher exception has occured.")
+            return dict(updates=[], resume=False)
         if mash['mashing']:
             flash_log('The masher is currently pushing updates')
         else:
