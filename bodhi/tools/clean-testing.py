@@ -13,6 +13,7 @@ import turbogears
 from sqlobject import SQLObjectNotFound
 from turbogears.database import PackageHub
 
+from bodhi.util import load_config
 from bodhi.model import Release, PackageBuild
 from bodhi.buildsys import get_session
 
@@ -40,15 +41,16 @@ def clean_testing_builds(untag=False):
                                                        stable_build['nvr'])
                         try:
                             build = PackageBuild.byNvr(testing_build['nvr'])
-                            if build.update.status != 'testing':
-                                print "%s not testing in bodhi!" % build.update
-                                raise SQLObjectNotFound
-                            else:
-                                if untag:
-                                    print "Obsoleting via bodhi"
-                                    build.update.obsolete(newer=stable_build['nvr'])
+                            for update in build.updates:
+                                if update.status != 'testing':
+                                    print "%s not testing in bodhi!" % update.title
+                                    raise SQLObjectNotFound
                                 else:
-                                     print "Need to obsolete via bodhi"
+                                    if untag:
+                                        print "Obsoleting via bodhi"
+                                        update.obsolete(newer=stable_build['nvr'])
+                                    else:
+                                         print "Need to obsolete via bodhi"
                         except SQLObjectNotFound:
                             if untag:
                                 print "Untagging via koji"

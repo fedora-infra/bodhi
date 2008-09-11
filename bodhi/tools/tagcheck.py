@@ -25,11 +25,14 @@ def main():
             except SQLObjectNotFound:
                 print "PackageUpdate(%s) not found!" % nvr
                 continue
-            if not build.update:
-                print "PackageBuild(%s) has no update" % (build.nvr)
+            if not len(build.updates):
+                print "PackageBuild(%s) has no updates" % (build.nvr)
             status = 'testing' in tag and 'testing' or 'stable'
-            if build.update.status != status:
-                print "%s is not tagged as %s in koji" % (build.nvr, status)
+            for update in build.updates:
+                if update.status != status:
+                    print "%s is %s in bodhi but tagged as %s in koji" % (update.title,
+                                                                          update.status,
+                                                                          tag)
 
 if __name__ == '__main__':
     main()

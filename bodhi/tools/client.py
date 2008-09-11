@@ -193,6 +193,8 @@ def main():
                 log.info(data['tg_flash'])
             elif opts.push:
                 data = bodhi.push()
+                if not data:
+                    log.error("The masher did not return anything :(")
                 log.info("[ %d Pending Requests ]" % len(data['updates']))
                 for status in ('testing', 'stable', 'obsolete'):
                     updates = filter(lambda x: x['request'] == status,
