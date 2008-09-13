@@ -121,7 +121,7 @@ class AdminController(Controller, SecureResource):
 
     @expose(allow_json=True)
     @validate(validators={'resume' : validators.StringBool()})
-    def mash(self, updates, resume=False, **kw):
+    def mash(self, updates=None, resume=False, **kw):
         """ Mash a list of PackageUpdate objects.
 
         If this instance is deployed with a remote masher, then it simply
@@ -130,6 +130,8 @@ class AdminController(Controller, SecureResource):
         handling all of the update requests, composing fresh repositories,
         generating and sending update notices, closing bugs, etc.
         """
+        if not updates:
+            updates = []
         if not isinstance(updates, list):
             if isinstance(updates, basestring):
                 updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
