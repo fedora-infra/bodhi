@@ -33,7 +33,8 @@ A modular piece of the Fedora Infrastructure stack
 %package client
 Summary: Bodhi Client
 Group: Applications/Internet
-Requires: python-simplejson python-fedora koji yum
+Requires: python-simplejson koji yum
+Requires: python-fedora >= 0.3.5
 
 %description client
 Client tools for interacting with bodhi
@@ -111,6 +112,10 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Tue Sep 16 2008 Luke Macken <lmacken@redhat.com> - 0.5.4-1
+- Latest upstream release, containing various bugfixes
+- Make our python-fedora requirement explicit (#461518)
+
 * Wed Sep 10 2008 Luke Macken <lmacken@redhat.com> - 0.5.3-1
 - Latest upstream release
 
