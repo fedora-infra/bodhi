@@ -674,6 +674,9 @@ class MashTask(Thread):
             # Add the detail of each build
             for nvr in updlist:
                 maildata += u"\n" + self.testing_digest[prefix][nvr]
+            log.debug("mail.send_mail(%r, %r, %r, %r)" % (config.get('bodhi_email'),
+                config.get('test_announce_list'), '%s updates-testing report' % prefix.title(),
+                maildata))
             mail.send_mail(config.get('bodhi_email'),
                       config.get('test_announce_list'),
                       '%s updates-testing report' % prefix.title(),
