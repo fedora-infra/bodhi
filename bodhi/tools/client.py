@@ -195,6 +195,11 @@ def main():
                 data = bodhi.push()
                 if not data:
                     log.error("The masher did not return anything :(")
+                    raise AuthError
+                if not data.get('updates', None):
+                    log.info(data.get('message', 'Unknown masher reply'))
+                    raise AuthError
+                log.debug(data)
                 log.info("[ %d Pending Requests ]" % len(data['updates']))
                 for status in ('testing', 'stable', 'obsolete'):
                     updates = filter(lambda x: x['request'] == status,
