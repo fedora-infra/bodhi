@@ -17,7 +17,7 @@ load_config()
 turbogears.config.update({'global': {'server.environment': 'production'}})
 turbogears.config.update({'global': {'autoreload.on': False}})
 turbogears.config.update({'global': {'server.log_to_screen': False}})
-turbogears.config.update({'global': {'server.webpath': '/updates'}})
+#turbogears.config.update({'global': {'server.webpath': '/updates'}})
 
 from bodhi import jobs
 turbogears.startup.call_on_startup.append(jobs.schedule)
