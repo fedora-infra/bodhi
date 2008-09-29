@@ -491,7 +491,7 @@ class MetricsController(Controller):
             else:
                 rel = Release.byName(release)
         except SQLObjectNotFound:
-            flash("Unknown Release: %s" % release)
+            flash("Unknown Release")
             raise redirect('/metrics')
         widgets = MetricData().get_widgets(release)
         if not widgets:

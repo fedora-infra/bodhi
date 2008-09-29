@@ -874,7 +874,7 @@ class Root(controllers.RootController):
         try:
             update = PackageUpdate.byTitle(title)
         except SQLObjectNotFound:
-            flash_log("Update %s does not exist" % title)
+            flash_log("The specified update does not exist")
         if tg_errors:
             if tg_errors.has_key('text'):
                 flash_log("Please fill in all comment fields")
@@ -891,7 +891,7 @@ class Root(controllers.RootController):
                         values={'title':update.title, 'karma' : karma},
                         comment_form=self.comment_captcha_form)
         elif karma not in (0, 1, -1):
-            flash_log("Karma must be one of (1, 0, -1), not %s" % repr(karma))
+            flash_log("Karma must be one of (1, 0, -1)")
             return dict(update=update, updates=[],
                         values={'title' : update.title},
                         comment_form=self.comment_captcha_form)
