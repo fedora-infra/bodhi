@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.5.3
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -112,6 +112,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Sat Oct 04 2008 Luke Macken <lmacken@redhat.com> - 0.5.4-2
+- Make our masher extension point less obtrusive.
+
 * Tue Sep 16 2008 Luke Macken <lmacken@redhat.com> - 0.5.4-1
 - Latest upstream release, containing various bugfixes
 - Make our python-fedora requirement explicit (#461518)
