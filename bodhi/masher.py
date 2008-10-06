@@ -36,7 +36,6 @@ from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import MashTaskException
 
 log = logging.getLogger(__name__)
-masher = None
 lock = Lock()
 
 def get_masher():
@@ -791,12 +790,4 @@ class MashTask(Thread):
             log.info(val)
         return val
 
-def start_extension():
-    global masher
-    if not config.get('masher', True):
-        log.info("Starting masher extension")
-        masher = Masher()
-
-def shutdown_extension():
-    if not config.get('masher', True):
-        log.info("Stopping Masher")
+masher = Masher()
