@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.5.3
-Release:        4%{?dist}
+Version:        0.5.5
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -112,6 +112,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Mon Oct 06 2008 Luke Macken <lmacken@redhat.com> - 0.5.5-1
+- Latest upstream release.
+
 * Sat Oct 04 2008 Luke Macken <lmacken@redhat.com> - 0.5.4-2
 - Make our masher extension point less obtrusive.
 
