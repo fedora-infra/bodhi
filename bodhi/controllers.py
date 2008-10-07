@@ -19,6 +19,7 @@ import logging
 import cherrypy
 import xmlrpclib
 
+from cgi import escape
 from koji import GenericError
 from datetime import datetime
 from sqlobject import SQLObjectNotFound
@@ -863,7 +864,7 @@ class Root(controllers.RootController):
             return dict(tg_template=template, updates=[], num_items=0,
                         title='No updates found')
 
-        flash_log("The path %s cannot be found" % cherrypy.request.path)
+        flash_log("The path %s cannot be found" % escape(cherrypy.request.path))
         raise redirect("/")
 
     @expose(template='bodhi.templates.show')
