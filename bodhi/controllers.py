@@ -456,6 +456,12 @@ class Root(controllers.RootController):
             flash_log('Unknown request: %s.  Valid requests are: testing, ' 
                       'stable, None' % request)
             return dict()
+        if stable_karma < 1:
+            flash_log("Stable karama must be at least 1.")
+            return dict()
+        if stable_karma <= unstable_karma:
+            flash_log("Stable karama must be higher than unstable karma.")
+            return dict()
 
         # Parameters used to re-populate the update form if something fails
         params = {
