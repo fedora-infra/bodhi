@@ -187,6 +187,17 @@ class Root(controllers.RootController):
         query = []
         updates = []
 
+        # If no arguments are specified, return the most recent updates
+        if not release and not bugs and not cves and not status and not type_ \
+           and not package and not mine and not username:
+            log.debug("No arguments, returning latest")
+            updates = PackageUpdate.select(
+                    orderBy=PackageUpdate.q.date_submitted).reversed()
+            num_items = updates.count()
+            return dict(updates=updates, num_items=num_items,
+                        title="%d %s found" % (num_items, num_items == 1 and
+                                               'update' or 'updates'))
+
         try:
             if release:
                 # TODO: if a specific release is requested along with get_auth,
