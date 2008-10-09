@@ -186,13 +186,13 @@ class Root(controllers.RootController):
         log.debug('list(%s)' % locals())
         query = []
         updates = []
+        orderBy = PackageUpdate.q.date_submitted
 
         # If no arguments are specified, return the most recent updates
         if not release and not bugs and not cves and not status and not type_ \
            and not package and not mine and not username:
             log.debug("No arguments, returning latest")
-            updates = PackageUpdate.select(
-                    orderBy=PackageUpdate.q.date_submitted).reversed()
+            updates = PackageUpdate.select(orderBy=orderBy).reversed()
             num_items = updates.count()
             return dict(updates=updates, num_items=num_items,
                         title="%d %s found" % (num_items, num_items == 1 and
@@ -217,7 +217,8 @@ class Root(controllers.RootController):
             if username:
                 query.append(PackageUpdate.q.submitter == username)
 
-            updates = PackageUpdate.select(AND(*query))
+            updates = PackageUpdate.select(AND(*query),
+                                           orderBy=orderBy).reversed()
 
             # The package argument may be an update, build or package.
             if package:
