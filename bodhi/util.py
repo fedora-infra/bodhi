@@ -32,6 +32,7 @@ from yum import repoMDObject
 from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
+from decorator import decorator
 from turbogears import config, url, flash
 
 from bodhi.exceptions import RPMNotFound, RepodataException
@@ -422,3 +423,12 @@ def to_unicode(obj, encoding='utf-8'):
             obj = unicode(obj, encoding, 'replace')
     return obj
 
+@decorator
+def json_redirect(f, *args, **kw):
+    try:
+        return f(*args, **kw)
+    except InvalidUpdateException, e:
+        if request_format() == 'json':
+            return dict()
+        else:
+            raise redirect('/new', **e.args[0])

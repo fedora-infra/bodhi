@@ -33,6 +33,9 @@ class RepositoryNotFound(BodhiException):
 class InvalidRequest(BodhiException):
     pass
 
+class InvalidUpdateException(BodhiException):
+    pass
+
 try:
     from sqlobject.dberrors import DuplicateEntryError
 except ImportError:

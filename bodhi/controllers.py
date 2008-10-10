@@ -36,6 +36,7 @@ from bodhi.rss import Feed
 from bodhi.new import NewUpdateController, update_form
 from bodhi.util import make_update_link, make_type_icon, make_karma_icon, link
 from bodhi.util import flash_log, get_pkg_pushers, make_request_icon
+from bodhi.util import json_redirect
 from bodhi.admin import AdminController
 from bodhi.metrics import MetricsController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
@@ -46,7 +47,6 @@ from bodhi.exceptions import (DuplicateEntryError, InvalidRequest,
                               PostgresIntegrityError, SQLiteIntegrityError)
 
 log = logging.getLogger(__name__)
-
 
 class Root(controllers.RootController):
 
@@ -400,6 +400,7 @@ class Root(controllers.RootController):
                     title='Edit Update')
 
     @expose(allow_json=True)
+    @json_redirect
     @error_handler(new.index)
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
@@ -447,22 +448,6 @@ class Root(controllers.RootController):
         if request: request = request.lower()
         koji = buildsys.get_session()
 
-        # Basic sanity checks
-        if type_ not in config.get('update_types'):
-            flash_log('Unknown update type: %s.  Valid types are: %s' % (
-                      type_, config.get('update_types')))
-            return dict()
-        if request not in ('testing', 'stable', None):
-            flash_log('Unknown request: %s.  Valid requests are: testing, ' 
-                      'stable, None' % request)
-            return dict()
-        if stable_karma < 1:
-            flash_log("Stable karama must be at least 1.")
-            return dict()
-        if stable_karma <= unstable_karma:
-            flash_log("Stable karama must be higher than unstable karma.")
-            return dict()
-
         # Parameters used to re-populate the update form if something fails
         params = {
                 'builds.text' : ' '.join(builds),
@@ -475,6 +460,21 @@ class Root(controllers.RootController):
                 'stable_karma': stable_karma,
                 'unstable_karma': unstable_karma,
         }
+
+        # Basic sanity checks
+        if type_ not in config.get('update_types'):
+            flash_log('Unknown update type: %s.  Valid types are: %s' % (
+                      type_, config.get('update_types')))
+            raise InvalidUpdateException(params)
+        if request not in ('testing', 'stable', None):
+            flash_log('Unknown request: %s.  Valid requests are: testing, ' 
+                      'stable, None' % request)
+        if stable_karma < 1:
+            flash_log("Stable karma must be at least 1.")
+            raise InvalidUpdateException(params)
+        if stable_karma <= unstable_karma:
+            flash_log("Stable karma must be higher than unstable karma.")
+            raise InvalidUpdateException(params)
 
         # Make sure this update doesn't already exist
         if not edited:
@@ -510,8 +510,7 @@ class Root(controllers.RootController):
             except urllib2.URLError:
                 flash_log("Unable to access the package database.  Please "
                           "notify an administrator in #fedora-admin")
-                if request_format() == 'json': return dict()
-                raise redirect('/new', **params)
+                raise InvalidUpdateException(params)
 
             # Verify that the user is either in the committers list, or is
             # a member of a groups that has privileges to commit to this package
@@ -521,8 +520,7 @@ class Root(controllers.RootController):
                not filter(lambda x: x in identity.current.groups, groups[0]):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, pkg))
-                if request_format() == 'json': return dict()
-                raise redirect('/new', **params)
+                raise InvalidUpdateException(params)
 
         # If we're editing an update, unpush it first so we can assume all
         # of the builds are tagged as update candidates
@@ -532,14 +530,12 @@ class Root(controllers.RootController):
                 edited.unpush()
             except SQLObjectNotFound:
                 flash_log("Cannot find update '%s' to edit" % edited)
-                if request_format() == 'json': return dict()
-                raise redirect('/new', **params)
+                raise InvalidUpdateException(params)
             if edited.status == 'stable':
                 flash_log("Cannot edit stable updates.  Contact release "
                           "engineering at %s about unpushing this update." %
                           config.get('release_team_address'))
-                if request_format() == 'json': return dict()
-                raise redirect('/new', **params)
+                raise InvalidUpdateException(params)
 
         # Make sure all builds are tagged appropriately.  We also determine
         # which builds get pushed for which releases, based on the tag.
@@ -549,8 +545,7 @@ class Root(controllers.RootController):
                 tags = [tag['name'] for tag in koji.listTags(build)]
             except GenericError:
                 flash_log("Invalid build: %s" % build)
-                if request_format() == 'json': return dict()
-                raise redirect('/new', **params)
+                raise InvalidUpdateException(params)
 
             # Determine which release this build is a candidate for
             for tag in tags:
@@ -593,8 +588,7 @@ class Root(controllers.RootController):
             # skip this verification.
             if not valid and not edited:
                 flash_log("%s not tagged as an update candidate" % build)
-                if request_format() == 'json': return dict()
-                raise redirect('/new', **params)
+                raise InvalidUpdateException(params)
 
             kojiBuild = koji.getBuild(build)
             kojiBuild['nvr'] = "%s-%s-%s" % (kojiBuild['name'],
@@ -744,8 +738,7 @@ class Root(controllers.RootController):
                     update.set_request(request, pathcheck=False)
                 except InvalidRequest, e:
                     flash_log(str(e))
-                    if request_format() == 'json': return dict()
-                    raise redirect('/new', **params)
+                    raise InvalidUpdateException(params)
 
         flash_log('. '.join(note))
 
