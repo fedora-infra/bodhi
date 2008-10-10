@@ -920,6 +920,28 @@ class TestControllers(testutil.DBTest):
         assert update.builds[1].package.stable_karma == params['stable_karma']
         assert update.builds[1].package.unstable_karma == params['unstable_karma']
 
+    def test_bad_karma_thresholds(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : '',
+                'request' : 'Stable',
+                'stable_karma' : 1,
+                'unstable_karma' : 2,
+        }
+        testutil.capture_log('bodhi.util')
+        self.save_update(params, session)
+        assert "Stable karma must be higher than unstable karma." in testutil.get_log()
+
+        params['stable_karma'] = 0
+        testutil.capture_log('bodhi.util')
+        self.save_update(params, session)
+        assert "Stable karma must be at least 1." in testutil.get_log()
+
     def test_anonymous_captcha(self):
         """ Make sure our captcha does its job """
         session = login()
