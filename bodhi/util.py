@@ -35,7 +35,8 @@ from datetime import datetime
 from decorator import decorator
 from turbogears import config, url, flash
 
-from bodhi.exceptions import RPMNotFound, RepodataException
+from bodhi.exceptions import (RPMNotFound, RepodataException,
+                              InvalidUpdateException)
 
 
 log = logging.getLogger(__name__)
