@@ -1,0 +1,7 @@
+# Files to be ignored by all git checkouts
+*.pyc
+*.pyo
+*.swp
+.bodhi.tmp
+dist
+MANIFEST
