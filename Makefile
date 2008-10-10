@@ -19,7 +19,8 @@ todo:
 	grep -r --color=auto FIXME bodhi/ || :
 
 clean:
-	find . -name '*.pyc' | xargs rm
+	find . -name '*.pyc' | xargs rm -f
+	rm -rf virtenv
 
 dist:
 	python setup.py sdist --formats=bztar
@@ -30,6 +31,10 @@ build:
 install:
 	python setup.py install -O1 --skip-build --root $(DESTDIR)
 	install -D bodhi/tools/bodhi_client.py $(DESTDIR)/usr/bin/bodhi
+
+virt-install:
+	virtualenv virtenv
+	/bin/sh -c ". virtenv/bin/activate; python setup.py install -O1 --skip-build; install -D bodhi/tools/bodhi_client.py virtenv/bin/bodhi"
 
 shell:
 	tg-admin --config=bodhi.cfg shell
@@ -50,8 +55,12 @@ profile:
 	nosetests --with-profile --profile-stats-file=nose.prof
 	python -c "import hotshot.stats ; stats = hotshot.stats.load('nose.prof') ; stats.sort_stats('time', 'calls') ; stats.print_stats(20)"
 
+install-deps:
+	su -c "yum install TurboGears python-TurboMail python-fedora python-sqlalchemy koji mash yum-utils git intltool python-bugzilla python-genshi \
+python-crypto python-imaging python-turboflot python-tgcaptcha python-nose.noarch"
+
 rpm: srpm
 	@rpm -i bodhi*src.rpm
 	@rpmbuild -ba ~/rpmbuild/SPECS/bodhi.spec
 
-.PHONY: docs test todo clean dist build install srpm pyflakes profile shell init run
+.PHONY: docs test todo clean dist build install virt-install srpm pyflakes profile shell init run install-deps

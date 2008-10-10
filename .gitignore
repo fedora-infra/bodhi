@@ -5,3 +5,5 @@
 .bodhi.tmp
 dist
 MANIFEST
+virtenv
+build
