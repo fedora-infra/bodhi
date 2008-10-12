@@ -656,7 +656,11 @@ class PackageUpdate(SQLObject):
         koji = buildsys.get_session()
         tag = self.get_build_tag()
         for build in self.builds:
-            koji.untagBuild(tag, build.nvr, force=True)
+            try:
+                koji.untagBuild(tag, build.nvr, force=True)
+            except Exception, e:
+                log.error('There was a problem untagging %s' % build.nvr)
+                log.exception(e)
         self.pushed = False
 
     def obsolete(self, newer=None):
