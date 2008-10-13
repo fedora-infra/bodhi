@@ -30,11 +30,11 @@ build:
 
 install:
 	python setup.py install -O1 --skip-build --root $(DESTDIR)
-	install -D bodhi/tools/bodhi_client.py $(DESTDIR)/usr/bin/bodhi
+	install -D bodhi/tools/client.py $(DESTDIR)/usr/bin/bodhi
 
 virt-install:
 	virtualenv virtenv
-	/bin/sh -c ". virtenv/bin/activate; python setup.py install -O1 --skip-build; install -D bodhi/tools/bodhi_client.py virtenv/bin/bodhi"
+	/bin/sh -c ". virtenv/bin/activate; python setup.py install -O1 --skip-build; install -D bodhi/tools/client.py virtenv/bin/bodhi"
 
 shell:
 	tg-admin --config=bodhi.cfg shell
