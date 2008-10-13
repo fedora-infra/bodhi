@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.5.8
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -107,11 +107,15 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %files client
+%defattr(-,root,root,-)
 %{_bindir}/bodhi
 %{_mandir}/man1/bodhi.1.gz
 
 
 %changelog
+* Thu Oct 13 2008 Steve 'Ashcrow' Milner <smilner@redhat.com> - 0.5.8-2
+- Added default attributes to client files.
+
 * Sun Oct 12 2008 Luke Macken <lmacken@redhat.com> - 0.5.8-1
 - Minor release to fix some new update creation bugs
 
