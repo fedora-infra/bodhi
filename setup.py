@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # $Id: $
 __requires__='TurboGears[future]'
 
@@ -28,7 +30,8 @@ excludeDataDirs.extend(standard_exclude_directories)
 
 poFiles = filter(os.path.isfile, glob.glob('po/*.po'))
 
-SUBSTFILES = ('bodhi/config/app.cfg',)
+SUBSTFILES = ('bodhi/config/app.cfg')
+
 
 class Build(_build, object):
     '''
@@ -73,7 +76,8 @@ class Build(_build, object):
                 matches = self.subRE.search(line)
                 if matches:
                     for pattern in self.substitutions:
-                        line = line.replace(pattern, self.substitutions[pattern])
+                        line = line.replace(pattern,
+                                            self.substitutions[pattern])
                 outf.writelines(line)
             outf.close()
             f.close()
@@ -95,7 +99,9 @@ class Build(_build, object):
             subprocess.call(['/usr/bin/msgfmt', pofile, '-o', mofile])
         super(Build, self).run()
 
+
 class InstallData(_install_data, object):
+
     def finalize_options(self):
         '''Override to emulate setuptools in the default case.
         install_data => install_dir
@@ -117,31 +123,41 @@ class InstallData(_install_data, object):
             else:
                 self.install_dir = self.temp_data
 
+
 # bodhi/static => /usr/share/bodhi/static
 data_files = [
     ('bodhi/static', filter(os.path.isfile, glob.glob('bodhi/static/*'))),
-    ('bodhi/static/css', filter(os.path.isfile, glob.glob('bodhi/static/css/*'))),
-    ('bodhi/static/images', filter(os.path.isfile, glob.glob('bodhi/static/images/*'))),
-    ('bodhi/static/js', filter(os.path.isfile, glob.glob('bodhi/static/js/*'))),
+    ('bodhi/static/css', filter(os.path.isfile,
+                                glob.glob('bodhi/static/css/*'))),
+    ('bodhi/static/images', filter(os.path.isfile,
+                                   glob.glob('bodhi/static/images/*'))),
+    ('bodhi/static/js', filter(os.path.isfile,
+                               glob.glob('bodhi/static/js/*'))),
     ('man/man1', ['docs/bodhi.1']),
 ]
 for langfile in filter(os.path.isfile, glob.glob('locale/*/*/*')):
     data_files.append((os.path.dirname(langfile), [langfile]))
 
-package_data = find_package_data(where='bodhi', package='bodhi', exclude=excludeFiles, exclude_directories=excludeDataDirs,)
+package_data = find_package_data(where='bodhi',
+                                 package='bodhi',
+                                 exclude=excludeFiles,
+                                 exclude_directories=excludeDataDirs)
 package_data['bodhi.config'].append('app.cfg')
 
-from bodhi.release import NAME, VERSION, DESCRIPTION, AUTHOR, EMAIL, URL, LICENSE
+
+from bodhi.release import NAME, VERSION, DESCRIPTION
+from bodhi.release import AUTHOR, EMAIL, URL, LICENSE
+
 
 setup(
-    name=NAME,
-    version=VERSION,
-    description=DESCRIPTION,
-    author=AUTHOR,
-    author_email=EMAIL,
-    url=URL,
-    license=LICENSE,
-    cmdclass={
+    name = NAME,
+    version = VERSION,
+    description = DESCRIPTION,
+    author = AUTHOR,
+    author_email = EMAIL,
+    url = URL,
+    license = LICENSE,
+    cmdclass = {
         'build': Build,
         'install_data': InstallData,
     },
@@ -152,8 +168,8 @@ setup(
     ],
     scripts = [],
     data_files = data_files,
-    zip_safe=False,
-    packages=find_packages(),
+    zip_safe = False,
+    packages = find_packages(),
     package_data = package_data,
     keywords = [
         'turbogears.app',
@@ -163,6 +179,9 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Framework :: TurboGears',
         'Framework :: TurboGears :: Applications',
+        'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
     ],
     test_suite = 'nose.collector',
     entry_points = {
