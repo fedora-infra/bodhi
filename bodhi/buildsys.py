@@ -24,7 +24,8 @@ log = logging.getLogger(__name__)
 ## of our Buildsystem class.
 session = None
 
-class Buildsystem:
+
+class Buildsystem(object):
     """
     The parent for our buildsystem.  Not only does this help us keep track of
     the functionality that we expect from our buildsystem, but it also alows
