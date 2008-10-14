@@ -13,3 +13,6 @@ Classifier: Programming Language :: Python
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Framework :: TurboGears
 Classifier: Framework :: TurboGears :: Applications
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI :: Application
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
