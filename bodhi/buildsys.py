@@ -188,7 +188,7 @@ def get_session():
     return session
 
 
-def wait_for_tasks(tasks):
+def wait_for_tasks(tasks, sleep=300):
     """
     Wait for a list of koji tasks to complete.  Return the first task number
     to fail, otherwise zero.
@@ -196,7 +196,7 @@ def wait_for_tasks(tasks):
     log.debug("Waiting for %d tasks to complete: %s" % (len(tasks), tasks))
     for task in tasks:
         while not session.taskFinished(task):
-            sleep(300)
+            sleep(sleep)
         task_info = session.getTaskInfo(task)
         if task_info['state'] != koji.TASK_STATES['CLOSED']:
             log.error("Koji task %d failed" % task)
