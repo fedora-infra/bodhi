@@ -293,6 +293,9 @@ class PackageUpdate(SQLObject):
         if action == self.request:
             raise InvalidRequest("%s has already been submitted to %s" % (
                                  self.title, self.request))
+        if action == 'None':
+            log.warning('%r was passed to set_request' % action)
+            return
 
         if action == 'unpush':
             self.unpush()
