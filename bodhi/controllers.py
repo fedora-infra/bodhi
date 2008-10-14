@@ -527,7 +527,6 @@ class Root(controllers.RootController):
         if edited:
             try:
                 edited = PackageUpdate.byTitle(edited)
-                edited.unpush()
             except SQLObjectNotFound:
                 flash_log("Cannot find update '%s' to edit" % edited)
                 raise InvalidUpdateException(params)
@@ -536,6 +535,7 @@ class Root(controllers.RootController):
                           "engineering at %s about unpushing this update." %
                           config.get('release_team_address'))
                 raise InvalidUpdateException(params)
+            edited.unpush()
 
         # Make sure all builds are tagged appropriately.  We also determine
         # which builds get pushed for which releases, based on the tag.
