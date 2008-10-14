@@ -636,6 +636,7 @@ class PackageUpdate(SQLObject):
         """ Move this update back to its dist-fX-updates-candidate tag """
         log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
+        tasks = []
         newtag = '%s-updates-candidate' % self.release.dist_tag
         curtag = self.get_build_tag()
         if curtag.endswith('-updates-candidate'):
@@ -648,7 +649,14 @@ class PackageUpdate(SQLObject):
                 koji.untagBuild(curtag, build.nvr, force=True)
             else:
                 log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
-                koji.moveBuild(curtag, newtag, build.nvr, force=True)
+                task = koji.moveBuild(curtag, newtag, build.nvr, force=True)
+                tasks.append(task)
+        if tasks:
+            log.debug('Waiting for %s tasks to complete...' % tasks)
+            if buildsys.wait_for_tasks(tasks, sleep=1):
+                log.error('One or more tasks failed!')
+            else:
+                log.debug('Tasks complete!')
         self.pushed = False
         self.status = 'pending'
         mail.send_admin('unpushed', self)
