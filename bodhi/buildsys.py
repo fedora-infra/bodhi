@@ -11,10 +11,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import time
 import koji
 import logging
 
-from time import sleep
 from os.path import join, expanduser
 from turbogears import config
 
@@ -196,7 +196,7 @@ def wait_for_tasks(tasks, sleep=300):
     log.debug("Waiting for %d tasks to complete: %s" % (len(tasks), tasks))
     for task in tasks:
         while not session.taskFinished(task):
-            sleep(sleep)
+            time.sleep(sleep)
         task_info = session.getTaskInfo(task)
         if task_info['state'] != koji.TASK_STATES['CLOSED']:
             log.error("Koji task %d failed" % task)
