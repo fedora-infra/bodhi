@@ -44,7 +44,8 @@ from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
 from bodhi.search import SearchController
 from bodhi.widgets import CommentForm, OkCancelForm, CommentCaptchaForm
 from bodhi.exceptions import (DuplicateEntryError, InvalidRequest,
-                              PostgresIntegrityError, SQLiteIntegrityError)
+                              PostgresIntegrityError, SQLiteIntegrityError,
+                              InvalidUpdateException)
 
 log = logging.getLogger(__name__)
 
