@@ -34,6 +34,7 @@ from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 from decorator import decorator
 from turbogears import config, url, flash
+from fedora.tg.util import request_format
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
