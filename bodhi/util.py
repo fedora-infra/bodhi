@@ -387,7 +387,7 @@ def sanity_check_repodata(myurl):
         myurl += 'repodata/'
     else:
         baseurl = baseurl.replace('repodata/', '/')
-    
+
     rf = myurl + 'repomd.xml'
     try:
         rm = urlgrabber.urlopen(rf)
@@ -414,7 +414,7 @@ def sanity_check_repodata(myurl):
 
     except urlgrabber.grabber.URLGrabError, e:
         errorstrings.append('Error accessing repository %s' % e)
-    
+
     if errorstrings:
         raise RepodataException(','.join(errorstrings))
 
