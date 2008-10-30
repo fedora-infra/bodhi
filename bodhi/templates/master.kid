@@ -113,8 +113,9 @@ $(document).ready(function() {
 
         <!-- content BEGIN -->
         <div id="fedora-middle-two">
-            <div class="fedora-corner-tr">&nbsp;</div> 
-            <div class="fedora-corner-tl">&nbsp;</div> 
+            <div class="fedora-corner-tr"></div> 
+            <div class="fedora-corner-tl"></div> 
+
             <div id="fedora-content">
 
             <div id="page-main">
@@ -126,8 +127,8 @@ $(document).ready(function() {
 
             </div>
         </div>
-        <div class="fedora-corner-br">&nbsp;</div>
-        <div class="fedora-corner-bl">&nbsp;</div>
+        <div class="fedora-corner-br"></div>
+        <div class="fedora-corner-bl"></div>
     </div>
     <!-- content END -->
 
