@@ -1123,3 +1123,21 @@ class TestControllers(testutil.DBTest):
         assert PackageUpdate.select().count() == 1
         assert PackageBuild.select().count() == len(params['builds'].split(','))
         testutil.print_log()
+
+    def test_revoke_request(self):
+        session = login()
+        create_release(num='8', dist='dist-f')
+        params = {
+                'builds'  : u'TurboGears-1.0.7-1.fc8',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : '',
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+        testutil.create_request('/updates/request/revoke/%s' % params['builds'],
+				headers=session, method='POST')
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == None

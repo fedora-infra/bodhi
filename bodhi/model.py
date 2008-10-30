@@ -286,7 +286,7 @@ class PackageUpdate(SQLObject):
         if not authorized_user(self, identity):
             raise InvalidRequest("Unauthorized to perform action on %s" %
                                  self.title)
-        if action not in ('testing', 'stable', 'obsolete', 'unpush'):
+        if action not in ('testing', 'stable', 'obsolete', 'unpush', 'revoke'):
             raise InvalidRequest("Unknown request: %s" % action)
         if action == self.status:
             raise InvalidRequest("%s already %s" % (self.title, action))
@@ -331,6 +331,17 @@ class PackageUpdate(SQLObject):
                                              "already released, and is newer "
                                              "than %s" % (oldBuild['nvr'],
                                                           mybuild['nvr']))
+        elif action == 'revoke':
+            if self.request:
+                flash_log('%s %s request revoked' % (self.title, self.request))
+                self.request = None
+                self.comment('%s request revoked' % action,
+                             author=identity.current.user_name)
+                mail.send_admin('revoke', self)
+            else:
+                flash_log('%s does not have a request to revoke' % self.title)
+            return
+
         self.request = action
         self.pushed = False
         self.date_pushed = None
