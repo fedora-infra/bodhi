@@ -834,7 +834,7 @@ class Bugzilla(SQLObject):
                                    (update.release.long_name, update.status))
         if update.status == "testing":
             message += ("\n If you want to test the update, you can install " +
-                       "it with \n su -c 'yum --enablerepo=updates-testing " +
+                       "it with \n su -c 'yum --enablerepo=updates-testing-newkey " +
                        "update %s'.  You can provide feedback for this " +
                        "update here: %s") % (' '.join([build.package.name for 
                            build in update.builds]),
