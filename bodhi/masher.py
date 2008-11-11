@@ -31,7 +31,7 @@ from time import sleep
 
 from bodhi import buildsys, mail
 from bodhi.util import synchronized, sanity_check_repodata
-from bodhi.model import PackageUpdate
+from bodhi.model import PackageUpdate, Release
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import MashTaskException
 
@@ -673,11 +673,10 @@ class MashTask(Thread):
             # Add the detail of each build
             for nvr in updlist:
                 maildata += u"\n" + self.testing_digest[prefix][nvr]
-            log.debug("mail.send_mail(%r, %r, %r, %r)" % (config.get('bodhi_email'),
-                config.get('test_announce_list'), '%s updates-testing report' % prefix.title(),
-                maildata))
+            release = Release.select(Release.q.long_name==prefix)[0]
             mail.send_mail(config.get('bodhi_email'),
-                      config.get('test_announce_list'),
+                      config.get('%s_test_announce_list' %
+                                 release.id_prefix.lower()),
                       '%s updates-testing report' % prefix.title(),
                       maildata)
 
