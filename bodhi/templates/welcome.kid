@@ -75,7 +75,7 @@
             <tr>
                 <td>
                     <span py:if="updates">
-                        <h3><span py:replace="tg.identity.anonymous and 'Latest' or '%s\'' % (hasattr(tg.identity, 'user_name') and tg.identity.user_name or tg.identity.user.user_name)"></span> Updates</h3>
+                        <h3><span py:replace="tg.identity.anonymous and 'Latest' or '%s\'s' % (hasattr(tg.identity, 'user_name') and tg.identity.user_name or tg.identity.user.user_name)"></span> Updates</h3>
                         ${updates.display()}
                     </span>
                 </td>
