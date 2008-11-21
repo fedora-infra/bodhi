@@ -39,6 +39,8 @@ bodhi.egg-info/sqlobject.txt
 bodhi.egg-info/top_level.txt
 bodhi/config/__init__.py
 bodhi/config/app.cfg
+bodhi/config/f10-updates-testing.mash
+bodhi/config/f10-updates.mash
 bodhi/config/f7-updates-testing.mash
 bodhi/config/f7-updates.mash
 bodhi/config/f8-updates-testing.mash
