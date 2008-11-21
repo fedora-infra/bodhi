@@ -200,6 +200,7 @@ def main():
                     if len(updates):
                         log.info("\n" + status.title() + "\n========")
                         for release in releases:
+                            log.info(release)
                             for update in releases[release]:
                                 log.info("%s" % update['title'])
                             log.info('')
