@@ -192,10 +192,18 @@ def main():
                 for status in ('testing', 'stable', 'obsolete'):
                     updates = filter(lambda x: x['request'] == status,
                                      data['updates'])
+                    releases = {}
+                    for update in updates:
+                        if not update['release']['name'] in releases:
+                            releases[update['release']['name']] = []
+                        releases[update['release']['name']].append(update)
+
                     if len(updates):
                         log.info("\n" + status.title() + "\n========")
-                        for update in updates:
-                            log.info("%s" % update['title'])
+                        for release in releases:
+                            for update in releases[release]:
+                                log.info("%s" % update['title'])
+                            log.info('')
 
                 ## Confirm that we actually want to push these updates
                 sys.stdout.write("\nPush these updates? [n]")
