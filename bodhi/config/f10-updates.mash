@@ -1,0 +1,15 @@
+# mash config file
+
+[f10-updates]
+rpm_path = %(arch)s/
+source_path = SRPMS/
+debuginfo = True
+multilib = True
+multilib_method = devel
+tag = dist-f10-updates
+inherit = False
+strict_keys = True
+keys = 4EBFC273
+repoviewurl = http://download.fedoraproject.org/pub/fedora/linux/updates/10/%(arch)s/
+repoviewtitle = "Fedora 10 Updates - %(arch)s"
+arches = i386 x86_64 ppc ppc64
