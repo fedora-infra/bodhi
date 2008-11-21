@@ -833,11 +833,16 @@ class Bugzilla(SQLObject):
         message = self.default_msg % (update.get_title(delim=', '), "%s %s" % 
                                    (update.release.long_name, update.status))
         if update.status == "testing":
+            if update.release.name in ('F9', 'F8'):
+                repo = 'updates-testing-newkey'
+            else:
+                repo = 'updates-testing'
             message += ("\n If you want to test the update, you can install " +
-                       "it with \n su -c 'yum --enablerepo=updates-testing-newkey " +
+                       "it with \n su -c 'yum --enablerepo=%s " +
                        "update %s'.  You can provide feedback for this " +
-                       "update here: %s") % (' '.join([build.package.name for 
-                           build in update.builds]),
+                       "update here: %s") % (repo,
+                           ' '.join([build.package.name for build in 
+                                     update.builds]),
                            config.get('base_address') + url(update.get_url()))
 
         return message

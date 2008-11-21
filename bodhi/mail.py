@@ -286,7 +286,10 @@ def get_template(update, use_template=errata_template):
         info['url']     = h[rpm.RPMTAG_URL]
         if update.status == 'testing':
             info['testing'] = ' Test'
-            info['yum_repository'] = ' --enablerepo=updates-testing-newkey'
+            if update.release.name in ('F9', 'F8'):
+                info['yum_repository'] = ' --enablerepo=updates-testing-newkey'
+            else:
+                info['yum_repository'] = ' --enablerepo=updates-testing'
         else:
             info['testing'] = ''
             info['yum_repository'] = ''
