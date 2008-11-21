@@ -194,9 +194,8 @@ def main():
                                      data['updates'])
                     releases = {}
                     for update in updates:
-                        if not update['release']['name'] in releases:
-                            releases[update['release']['name']] = []
-                        releases[update['release']['name']].append(update)
+                        releases.setdefault(update['release']['name'], []) \
+                                .append(update)
 
                     if len(updates):
                         log.info("\n" + status.title() + "\n========")
