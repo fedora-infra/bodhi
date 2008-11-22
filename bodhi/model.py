@@ -258,19 +258,37 @@ class PackageUpdate(SQLObject):
         if self.updateid != None and self.updateid != u'None':
             log.debug("Keeping current update id %s" % self.updateid)
             return
-        update = PackageUpdate.select(PackageUpdate.q.updateid != 'None',
-                                      orderBy=PackageUpdate.q.updateid)
+
+        updates = PackageUpdate.select(
+                    AND(PackageUpdate.q.date_pushed != None,
+                        PackageUpdate.q.updateid != None),
+                    orderBy=PackageUpdate.q.date_pushed, limit=1).reversed()
+
         try:
-            prefix, year, id = update[-1].updateid.split('-')
+            update = updates[0]
+
+            # We need to check if there are any other updates that were pushed
+            # at the same time, since SQLObject ignores milliseconds
+            others = PackageUpdate.select(
+                        PackageUpdate.q.date_pushed == update.date_pushed)
+            if others.count() > 1:
+                # find the update with the highest id
+                for other in others:
+                    if other.updateid_int > update.updateid_int:
+                        update = other
+
+            prefix, year, id = update.updateid.split('-')
             if int(year) != time.localtime()[0]: # new year
                 id = 0
             id = int(id) + 1
-        except (AttributeError, IndexError):
-            id = 1
+        except IndexError:
+            id = 1 # First update
+
         self.updateid = u'%s-%s-%0.4d' % (self.release.id_prefix,
                                           time.localtime()[0],id)
         log.debug("Setting updateid for %s to %s" % (self.title,
                                                      self.updateid))
+        self.date_pushed = datetime.utcnow()
         hub.commit()
 
     def set_request(self, action, pathcheck=True):
@@ -356,7 +374,6 @@ class PackageUpdate(SQLObject):
         """
         if self.request == 'testing':
             self.pushed = True
-            self.date_pushed = datetime.utcnow()
             self.status = 'testing'
             self.assign_id()
         elif self.request == 'obsolete':
@@ -364,7 +381,6 @@ class PackageUpdate(SQLObject):
             self.status = 'obsolete'
         elif self.request == 'stable':
             self.pushed = True
-            self.date_pushed = datetime.utcnow()
             self.status = 'stable'
             self.assign_id()
         self.request = None
@@ -741,6 +757,14 @@ class PackageUpdate(SQLObject):
         sorted.extend(self.comments)
         sorted.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
         return sorted
+
+    @property
+    def updateid_int(self):
+        """ Return the integer $ID from the 'FEDORA-2008-$ID' updateid """
+        if not self.updateid:
+            return None
+        prefix, year, id = self.updateid.split('-')
+        return int(id)
 
 
 class Comment(SQLObject):

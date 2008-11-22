@@ -109,10 +109,31 @@ class TestPackageUpdate(testutil.DBTest):
         update.assign_id()
         assert update.updateid == '%s-%s-0001' % (update.release.id_prefix,
                                                   time.localtime()[0])
+        assert update.date_pushed
         update = self.get_update(name='TurboGears-0.4.4-8.fc7')
         update.assign_id()
         assert update.updateid == '%s-%s-0002' % (update.release.id_prefix,
                                                   time.localtime()[0])
+
+        # 10k bug
+        update.updateid = 'FEDORA-2008-9999'
+        newupdate = self.get_update(name='nethack-2.5.6-1.fc10')
+        newupdate.assign_id()
+        assert newupdate.updateid == 'FEDORA-2008-10000'
+
+        newerupdate = self.get_update(name='nethack-2.5.7-1.fc10')
+        newerupdate.assign_id()
+        assert newerupdate.updateid == 'FEDORA-2008-10001'
+
+        # test updates that were pushed at the same time.  assign_id should
+        # be able to figure out which one has the highest id.
+        now = datetime.utcnow()
+        newupdate.date_pushed = now
+        newerupdate.date_pushed = now
+
+        newest = self.get_update(name='nethack-2.5.8-1.fc10')
+        newest.assign_id()
+        assert newest.updateid == 'FEDORA-2008-10002'
 
     def test_url(self):
         update = self.get_update()
