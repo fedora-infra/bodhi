@@ -70,7 +70,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['updated'] == update.date_modified
         assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
-        assert notice['issued'] == 'None'
+        assert notice['issued'] != None
         assert notice['update_id'] == update.updateid
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
@@ -141,7 +141,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['updated'] == update.date_modified
         assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
-        assert notice['issued'] == 'None'
+        assert notice['issued'] != None
         assert notice['update_id'] == update.updateid
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
@@ -176,7 +176,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['updated'] == update.date_modified
         assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
-        assert notice['issued'] == 'None'
+        assert notice['issued'] != None
         assert notice['update_id'] == update.updateid
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
