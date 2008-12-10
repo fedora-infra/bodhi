@@ -172,7 +172,7 @@ def schedule():
         scheduler.add_interval_task(action=cache_release_data,
                                     taskname='Cache release data',
                                     initialdelay=0,
-                                    interval=172800)
+                                    interval=43200)
 
     # If we're the masher, then handle the costly metric regenration
     if not config.get('masher'):
@@ -180,4 +180,4 @@ def schedule():
         scheduler.add_interval_task(action=refresh_metrics,
                                     taskname='Refresh our metrics',
                                     initialdelay=7200,
-                                    interval=172800)
+                                    interval=86400)
