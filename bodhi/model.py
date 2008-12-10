@@ -948,5 +948,6 @@ class Releases(Singleton):
                 return
             rel.update(release.metrics['UpdateTypeMetric'])
             releases.append(rel)
-            releases.sort(lambda x, y: cmp(x['name'], y['name']))
+            releases.sort(lambda x, y: cmp(int(x['long_name'].split()[-1]),
+                                           int(y['long_name'].split()[-1])))
         self.data = releases
