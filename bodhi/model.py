@@ -362,7 +362,7 @@ class PackageUpdate(SQLObject):
 
         self.request = action
         self.pushed = False
-        self.date_pushed = None
+        #self.date_pushed = None
         flash_log("%s has been submitted for %s" % (self.title, action))
         self.comment('This update has been submitted for %s' % action,
                      author=identity.current.user_name)
@@ -636,7 +636,7 @@ class PackageUpdate(SQLObject):
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = 'stable'
                 self.pushed = False
-                self.date_pushed = None
+                #self.date_pushed = None
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
             if self.status == 'testing' and self.unstable_karma != 0 and \
