@@ -18,8 +18,8 @@
 """
 
 import os
-import shutil
 import logging
+import subprocess
 
 from os.path import isdir, realpath, dirname, join, islink, exists
 from datetime import datetime
@@ -54,7 +54,7 @@ def clean_repo():
             fullpath = realpath(repo)
             if fullpath not in liverepos:
                 log.info("Removing %s" % fullpath)
-                shutil.rmtree(fullpath)
+                subprocess.call(['rm', '-fr', fullpath])
     log.info("clean_repo complete!")
 
 
