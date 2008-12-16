@@ -1,5 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<?python import sitetemplate ?>
+<?python import sitetemplate 
+from bodhi.model import Release, PackageUpdate, Releases
+?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#" py:extends="sitetemplate">
 
 <head py:match="item.tag=='{http://www.w3.org/1999/xhtml}head'" py:attrs="item.items()">
@@ -7,6 +9,9 @@
     <meta name="robots" content="noindex,nofollow" />
     <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="${tg.url('/static/images/favicon.ico')}" /> 
     <link rel="shortcut icon" type="image/x-icon" href="${tg.url('/static/images/favicon.ico')}" /> 
+    <link py:for="release_name in [release['name'] for release in Releases().data]" py:strip="True">
+    <link py:for="status in ('pending', 'testing', 'stable')" href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s' % (release_name, status))}" rel="alternate" type="application/rss+xml" title="${'%s %s updates' % (release_name, status)}" />
+    </link>
     <title py:replace="''">Your title goes here</title>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.js')}"></script>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.corner.js')}"></script>
@@ -22,7 +27,6 @@
 
 <?python
 from bodhi import version, hostname
-from bodhi.model import Release, PackageUpdate, Releases
 from bodhi.search import search_form
 from sqlobject.sqlbuilder import AND
 ?>

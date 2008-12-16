@@ -2,13 +2,22 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#"
     py:extends="'master.kid'">
 
+<?python
+from bodhi.model import Release, PackageUpdate, Releases
+?>
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
+    <!-- copy&pasted from master.kid with username added -->
+    <link py:for="release_name in [release['name'] for release in Releases().data]" py:strip="True">
+    <link py:for="status in ('pending', 'testing', 'stable')" href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s&amp;submitter=%s' % (release_name, status, username))}" rel="alternate" type="application/rss+xml" title="${'%s %s updates submitted by %s' % (release_name, status, username)}" />
+    </link>
+    <!-- Feed for all updates by one user -->
+    <link href="${tg.url('/rss/rss2.0?submitter=%s' % (username))}" rel="alternate" type="application/rss+xml" title="${'All updates submitted by %s' % (username)}" />
     <title>Fedora Updates</title>
 </head>
 
 <body>
-    &nbsp;&nbsp;<b>${title}</b>
+    &nbsp;&nbsp;<b>${"%s's %d updates" % (username, num_items)}</b>
     <div py:if="num_items" class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"

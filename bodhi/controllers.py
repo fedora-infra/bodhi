@@ -1221,7 +1221,7 @@ class Root(controllers.RootController):
                                        orderBy=PackageUpdate.q.date_submitted)
         num_items = updates.count()
         return dict(updates=updates.reversed(),
-                    title="%s's %d updates" % (username, num_items),
+                    username=username,
                     num_items=num_items)
 
     @expose(allow_json=True)
