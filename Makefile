@@ -13,7 +13,7 @@ docs:
 		`find bodhi -name '*.py'`
 
 test:
-	nosetests
+	LANG=C nosetests
 
 todo:
 	grep -r --color=auto TODO bodhi/ || :
