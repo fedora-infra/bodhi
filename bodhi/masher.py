@@ -519,7 +519,8 @@ class MashTask(Thread):
             self.mashed_repos[repo] = mashdir
             comps = join(config.get('comps_dir'), 'comps-%s.xml' %
                          repo.split('-')[0])
-            mashcmd = self.cmd % (mashdir, comps) + repo
+            updatepath = join(config.get('mashed_dir'), repo)
+            mashcmd = self.cmd % (mashdir, comps) + '-p %s ' % updatepath + repo
             log.info("Running `%s`" % mashcmd)
             p = subprocess.Popen(mashcmd, stdout=subprocess.PIPE, shell=True)
             stdout, stderr = p.communicate()
