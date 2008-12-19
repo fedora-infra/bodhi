@@ -445,14 +445,6 @@ class MashTask(Thread):
             newrepo = join(mashdir, repo)
             arches = os.listdir(newrepo)
 
-            # HACK.
-            if 'f9' in repo or 'f8' in repo:
-                log.debug("Moving each arch to arch.newkey")
-                for arch in arches:
-                    if not arch.endswith('.newkey'):
-                        shutil.move(join(newrepo, arch), join(newrepo, '%s.newkey' % arch))
-                arches = os.listdir(newrepo)
-
             log.debug("Running sanity checks on %s" % newrepo)
 
             # make sure the new repository has our arches
