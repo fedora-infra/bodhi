@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: bodhi
-Version: 0.5.13
+Version: 0.5.14
 Summary: Bodhi is a modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution
 Home-page: https://fedorahosted.org/bodhi
 Author: Luke Macken
