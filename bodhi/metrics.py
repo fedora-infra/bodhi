@@ -64,9 +64,9 @@ class AllMetric(Metric):
             self.timeline[update_type] = {}
 
     def update(self, update):
-        if update.status != 'stable':
+        if update.status != 'stable' or not update.date_pushed:
             return
-        if update.date_pushed and update.date_pushed < self.earliest:
+        if update.date_pushed < self.earliest:
             self.earliest = update.date_pushed
         if not self.timeline[update.type].has_key(update.date_pushed.month):
             self.timeline[update.type][update.date_pushed.month] = 0
