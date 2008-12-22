@@ -1138,6 +1138,15 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
         testutil.create_request('/updates/request/revoke/%s' % params['builds'],
-				headers=session, method='POST')
+                                headers=session, method='POST')
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == None
+
+    def test_unicode_fail(self):
+        session = login()
+        create_release(num='8', dist='dist-f')
+        params = {'stable_karma': 3, 'builds': 'pidgin-libnotify-0.14-1.fc8', 'autokarma': True, 'inheritance': False, 'suggest_reboot': False, 'notes': u"Version 0.14 (2008-12-14):\r\n\r\n    * really add option: don't show notifications when absent\r\n    * Updated polish translation (Piotr Dr\u0105g)\r\n    * Added russian translation (Dmitry Egorkin)\r\n    * Added bulgarian translation (Dilyan Palauzov)\r\n    * Added german translation (Marc Mikolits)\r\n    * Added swedish translation (Jonas Granqvist)\r\n".encode('utf8'), 'request': u'Testing', 'bugs': '477267', 'unstable_karma': -3, 'type_': u'bugfix', 'close_bugs': True}
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update

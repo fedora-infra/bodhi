@@ -684,11 +684,15 @@ class Root(controllers.RootController):
                         if len(build.updates) == 0:
                             build.destroySelf()
             else:
-                update = PackageUpdate(title=','.join(builds),
-                                       release=release,
-                                       submitter=identity.current.user_name,
-                                       notes=notes, type=type_,
-                                       close_bugs=close_bugs)
+                try:
+                    update = PackageUpdate(title=','.join(builds),
+                                           release=release,
+                                           submitter=identity.current.user_name,
+                                           notes=notes, type=type_,
+                                           close_bugs=close_bugs)
+                except Exception, e:
+                    log.exception(e)
+                    raise
                 log.info("Created PackageUpdate %s" % update.title)
             updates.append(update)
 
