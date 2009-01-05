@@ -685,6 +685,7 @@ class Root(controllers.RootController):
                             build.destroySelf()
             else:
                 try:
+                    type_ = type_.encode('utf8') # hack, for ticket #288
                     update = PackageUpdate(title=','.join(builds),
                                            release=release,
                                            submitter=identity.current.user_name,
