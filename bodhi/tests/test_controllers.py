@@ -1,4 +1,5 @@
 # $Id: test_controllers.py,v 1.3 2006/12/31 09:10:25 lmacken Exp $
+# -*- coding: utf-8 -*-
 
 import os
 import turbogears
@@ -169,14 +170,14 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : 'Foo\u2019bar'
+            'notes'   : u'Foo\u2019bar'.encode('utf-8')
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.title == params['builds']
         assert update.builds[0].nvr == params['builds']
         assert update.release.long_name == params['release']
-        assert update.notes == params['notes']
+        assert update.notes == unicode(params['notes'], 'utf8')
 
     def test_bugs_update(self):
         session = login()
@@ -1145,7 +1146,17 @@ class TestControllers(testutil.DBTest):
     def test_unicode_fail(self):
         session = login()
         create_release(num='8', dist='dist-f')
-        params = {'stable_karma': 3, 'builds': 'pidgin-libnotify-0.14-1.fc8', 'autokarma': True, 'inheritance': False, 'suggest_reboot': False, 'notes': u"Version 0.14 (2008-12-14):\r\n\r\n    * really add option: don't show notifications when absent\r\n    * Updated polish translation (Piotr Dr\u0105g)\r\n    * Added russian translation (Dmitry Egorkin)\r\n    * Added bulgarian translation (Dilyan Palauzov)\r\n    * Added german translation (Marc Mikolits)\r\n    * Added swedish translation (Jonas Granqvist)\r\n".encode('utf8'), 'request': u'Testing', 'bugs': '477267', 'unstable_karma': -3, 'type_': u'bugfix', 'close_bugs': True}
+        params = {'stable_karma': 3,
+                'builds': 'pidgin-libnotify-0.14-1.fc8',
+                'autokarma': True,
+                'inheritance': False,
+                'suggest_reboot': False,
+                'notes': u"Version 0.14 (2008-12-14):\r\n\r\n    * really add option: don't show notifications when absent\r\n    * Updated polish translation (Piotr Dr\u0105g)\r\n    * Added russian translation (Dmitry Egorkin)\r\n    * Added bulgarian translation (Dilyan Palauzov)\r\n    * Added german translation (Marc Mikolits)\r\n    * Added swedish translation (Jonas Granqvist)\r\n".encode('utf8'),
+                'request': u'Testing',
+                'bugs': '477267',
+                'unstable_karma': -3,
+                'type_': u'bugfix',
+                'close_bugs': True}
         testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
