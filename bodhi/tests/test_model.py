@@ -116,14 +116,14 @@ class TestPackageUpdate(testutil.DBTest):
                                                   time.localtime()[0])
 
         # 10k bug
-        update.updateid = 'FEDORA-2008-9999'
+        update.updateid = 'FEDORA-2009-9999'
         newupdate = self.get_update(name='nethack-2.5.6-1.fc10')
         newupdate.assign_id()
-        assert newupdate.updateid == 'FEDORA-2008-10000'
+        assert newupdate.updateid == 'FEDORA-2009-10000'
 
         newerupdate = self.get_update(name='nethack-2.5.7-1.fc10')
         newerupdate.assign_id()
-        assert newerupdate.updateid == 'FEDORA-2008-10001'
+        assert newerupdate.updateid == 'FEDORA-2009-10001'
 
         # test updates that were pushed at the same time.  assign_id should
         # be able to figure out which one has the highest id.
@@ -133,7 +133,7 @@ class TestPackageUpdate(testutil.DBTest):
 
         newest = self.get_update(name='nethack-2.5.8-1.fc10')
         newest.assign_id()
-        assert newest.updateid == 'FEDORA-2008-10002'
+        assert newest.updateid == 'FEDORA-2009-10002'
 
     def test_url(self):
         update = self.get_update()
@@ -257,7 +257,7 @@ class TestPackageUpdate(testutil.DBTest):
         templates = get_template(update)
         assert templates
         assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: TurboGears-1.0.2.2-2.fc7'
-        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2008-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : turbogears.org\nSummary     : summary\nDescription :\ndescription\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum --enablerepo=updates-testing update TurboGears\' at the command line.\nFor more information, refer to "Managing Software with yum",\navailable at http://docs.fedoraproject.org/yum/.\n\nAll packages are signed with the Fedora Project GPG key.  More details on the\nGPG keys used by the Fedora Project can be found at\nhttp://fedoraproject.org/keys\n--------------------------------------------------------------------------------\n', templates[0][1]
+        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2009-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : turbogears.org\nSummary     : summary\nDescription :\ndescription\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum --enablerepo=updates-testing update TurboGears\' at the command line.\nFor more information, refer to "Managing Software with yum",\navailable at http://docs.fedoraproject.org/yum/.\n\nAll packages are signed with the Fedora Project GPG key.  More details on the\nGPG keys used by the Fedora Project can be found at\nhttp://fedoraproject.org/keys\n--------------------------------------------------------------------------------\n', templates[0][1]
 
     def test_latest(self):
         update = self.get_update(name='yum-3.2.1-1.fc7')
@@ -517,7 +517,7 @@ class TestPackageUpdate(testutil.DBTest):
         templates = get_template(update)
         assert templates
         assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: TurboGears-1.0.2.2-2.fc7'
-        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2008-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : turbogears.org\nSummary     : summary\nDescription :\nZ\u2019s\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum --enablerepo=updates-testing update TurboGears\' at the command line.\nFor more information, refer to "Managing Software with yum",\navailable at http://docs.fedoraproject.org/yum/.\n\nAll packages are signed with the Fedora Project GPG key.  More details on the\nGPG keys used by the Fedora Project can be found at\nhttp://fedoraproject.org/keys\n--------------------------------------------------------------------------------\n'
+        assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-2009-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : turbogears.org\nSummary     : summary\nDescription :\nZ\u2019s\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\n\nThis update can be installed with the "yum" update program.  Use \nsu -c \'yum --enablerepo=updates-testing update TurboGears\' at the command line.\nFor more information, refer to "Managing Software with yum",\navailable at http://docs.fedoraproject.org/yum/.\n\nAll packages are signed with the Fedora Project GPG key.  More details on the\nGPG keys used by the Fedora Project can be found at\nhttp://fedoraproject.org/keys\n--------------------------------------------------------------------------------\n'
 
 
 class TestBugzilla(testutil.DBTest):
