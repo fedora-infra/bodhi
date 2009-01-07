@@ -304,7 +304,7 @@ class Root(controllers.RootController):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
                        PackageUpdate.q.submitter == identity.current.user_name,
-                    orderBy=PackageUpdate.q.date_pushed).reversed()
+                    orderBy=PackageUpdate.q.date_submitted).reversed()
         return dict(updates=request_format() == 'json' and 
                     map(unicode, updates) or updates, title='%s\'s updates' %
                     identity.current.user_name, num_items=updates.count())
