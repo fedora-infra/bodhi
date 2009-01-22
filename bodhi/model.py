@@ -891,25 +891,28 @@ class Bugzilla(SQLObject):
         Change the status of this bug to ON_QA, and comment on the bug with
         some details on how to test and provide feedback for this update.
         """
-        bz = Bugzilla.get_bz()
-        comment = self._default_message(update)
-        log.debug("Setting Bug #%d to ON_QA" % self.bz_id)
-        try:
-            bug = bz.getbug(self.bz_id)
-            if bug.product == 'Security Response':
-                log.warning("Skipping Security Response bug")
-                return
-            bug.setstatus('ON_QA', comment=comment)
-        except Exception, e:
-            log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))
+        if update.close_bugs:
+            bz = Bugzilla.get_bz()
+            comment = self._default_message(update)
+            log.debug("Setting Bug #%d to ON_QA" % self.bz_id)
+            try:
+                bug = bz.getbug(self.bz_id)
+                if bug.product != 'Fedora':
+                    log.warning("Skipping %r bug" % bug.product)
+                    return
+                bug.setstatus('ON_QA', comment=comment)
+            except Exception, e:
+                log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))
+        else:
+            log.debug('Skipping bug modification, close_bugs == False')
 
     def close_bug(self, update):
         bz = Bugzilla.get_bz()
         try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             bug = bz.getbug(self.bz_id)
-            if bug.product == 'Security Response':
-                log.warning("Not closing Security Response bug")
+            if bug.product != 'Fedora':
+                log.warning("Not closing %r bug" % bug.product)
                 return
             bug.close('NEXTRELEASE', fixedin=ver)
         except xmlrpclib.Fault, f:
