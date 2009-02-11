@@ -434,3 +434,60 @@ def json_redirect(f, *args, **kw):
             return dict()
         else:
             raise redirect('/new', **e.args[0])
+
+
+"""
+Misc iPython hacks that I've had to write at one point or another
+"""
+
+def reset_date_pushed():
+    """
+    Reset the date_pushed on all testing updates with the most recent bodhi
+    comment that relates to it's current status.
+
+    This needed to happen when a few batches of updates were pushed without
+    a date_pushed field, so we had to recreate it based on bodhi's comments.
+    """
+    for update in PackageUpdate.select(AND(PackageUpdate.q.date_pushed==None,
+                                           PackageUpdate.q.status=='testing')):
+        date = None
+        for comment in update.comments:
+            if comment.author == 'bodhi':
+                if comment.text == 'This update has been pushed to %s' % update.status:
+                    if date and comment.timestamp < date:
+                        print "Skipping older push %s for %s" % (comment.timestamp, update.title)
+                    else:
+                        date = comment.timestamp
+                        print "Setting %s to %s" % (update.title, comment.timestamp)
+                        update.date_pushed = date
+
+
+def testing_statistics():
+    """ Calculate and display various testing statistics """
+    from datetime import timedelta
+
+    deltas = []
+    occurrences = {}
+    accumulative = timedelta()
+
+    for update in PackageUpdate.select():
+        for comment in update.comments:
+            if comment.text == 'This update has been pushed to testing':
+                for othercomment in update.comments:
+                    if othercomment.text == 'This update has been pushed to stable':
+                        delta = othercomment.timestamp - comment.timestamp
+                        deltas.append(delta)
+                        occurrences[delta.days] = occurrences.setdefault(delta.days, 0) + 1
+                        accumulative += deltas[-1]
+                        break
+                break
+
+    deltas.sort()
+    all = PackageUpdate.select().count()
+    percentage = int(float(len(deltas)) / float(all) * 100)
+    mode = sorted(occurrences.items(), cmp=lambda x, y: cmp(x[1], y[1]))[-1][0]
+
+    print "%d out of %d updates went through testing (%d%%)" % (len(deltas), all, percentage)
+    print "mean = %d days" % (accumulative.days / len(deltas))
+    print "median = %d days" % deltas[len(deltas) / 2].days
+    print "mode = %d days" % mode
