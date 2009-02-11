@@ -440,7 +440,7 @@ def json_redirect(f, *args, **kw):
 Misc iPython hacks that I've had to write at one point or another
 """
 
-def reset_date_pushed():
+def reset_date_pushed(status='testing'):
     """
     Reset the date_pushed on all testing updates with the most recent bodhi
     comment that relates to it's current status.
@@ -451,7 +451,7 @@ def reset_date_pushed():
     from bodhi.model import PackageUpdate
     from sqlobject import AND
     for update in PackageUpdate.select(AND(PackageUpdate.q.date_pushed==None,
-                                           PackageUpdate.q.status=='testing')):
+                                           PackageUpdate.q.status==testing)):
         date = None
         for comment in update.comments:
             if comment.author == 'bodhi':
