@@ -200,10 +200,16 @@ def main():
                     if len(updates):
                         log.info("\n" + status.title() + "\n========")
                         for release in releases:
+                            f = open(status.title() + '-' + release, 'w')
                             log.info(release)
                             for update in releases[release]:
                                 log.info("%s" % update['title'])
+                                s = "%s" % update['title']
+                                s = s.replace(',','\n')
+                                f.write(s + "\n")
                             log.info('')
+                            f.write('')
+                            f.close()
 
                 ## Confirm that we actually want to push these updates
                 sys.stdout.write("\nPush these updates? [n]")
