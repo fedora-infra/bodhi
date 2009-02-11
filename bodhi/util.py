@@ -451,7 +451,7 @@ def reset_date_pushed(status='testing'):
     from bodhi.model import PackageUpdate
     from sqlobject import AND
     for update in PackageUpdate.select(AND(PackageUpdate.q.date_pushed==None,
-                                           PackageUpdate.q.status==testing)):
+                                           PackageUpdate.q.status==status)):
         date = None
         for comment in update.comments:
             if comment.author == 'bodhi':
