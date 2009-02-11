@@ -449,6 +449,7 @@ def reset_date_pushed():
     a date_pushed field, so we had to recreate it based on bodhi's comments.
     """
     from bodhi.model import PackageUpdate
+    from sqlobject import AND
     for update in PackageUpdate.select(AND(PackageUpdate.q.date_pushed==None,
                                            PackageUpdate.q.status=='testing')):
         date = None
