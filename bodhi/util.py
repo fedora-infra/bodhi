@@ -448,6 +448,7 @@ def reset_date_pushed():
     This needed to happen when a few batches of updates were pushed without
     a date_pushed field, so we had to recreate it based on bodhi's comments.
     """
+    from bodhi.model import PackageUpdate
     for update in PackageUpdate.select(AND(PackageUpdate.q.date_pushed==None,
                                            PackageUpdate.q.status=='testing')):
         date = None
@@ -465,6 +466,7 @@ def reset_date_pushed():
 def testing_statistics():
     """ Calculate and display various testing statistics """
     from datetime import timedelta
+    from bodhi.model import PackageUpdate
 
     deltas = []
     occurrences = {}
