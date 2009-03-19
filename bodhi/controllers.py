@@ -252,7 +252,7 @@ class Root(controllers.RootController):
     @paginate('updates', limit=20, allow_limit_override=True)
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
              package=None, mine=False, stringify=False, get_auth=False,
-             username=None):
+             username=None, group_updates=False, **kw):
         """ Return a list of updates based on given parameters """
         log.debug('list(%s)' % locals())
         query = []
@@ -358,6 +358,32 @@ class Root(controllers.RootController):
                 dict_up['can_modify'] = can_modify
                 results.append(dict_up)
             updates = results
+
+        if group_updates:
+            packages = {}
+            for update in updates:
+                for build in update.builds:
+                    if build.package.name not in packages:
+                        packages[build.package.name] = {
+                                'package_name' : build.package.name,
+                                'dist_updates': []
+                                }
+                    else:
+                        skip = False
+                        for up in packages[build.package.name]['dist_updates']:
+                            if up['release'] == update.release.long_name:
+                                skip = True
+                                break
+                        if skip:
+                            break
+                    packages[build.package.name]['dist_updates'].append({
+                            'release': update.release.long_name,
+                            'version': '-'.join(build.nvr.split('-')[-2:])
+                            })
+                    packages[build.package.name]['dist_updates'][-1].update(
+                            dict(update._reprItems()))
+                    del(packages[build.package.name]['dist_updates'][-1]['releaseID'])
+            updates = [packages[pkg] for pkg in packages]
 
         if isinstance(updates, list): num_items = len(updates)
         else: num_items = updates.count()
