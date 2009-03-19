@@ -178,6 +178,76 @@ class Root(controllers.RootController):
         identity.current.logout()
         raise redirect('/')
 
+    @expose(allow_json=True)
+    @paginate('updates', limit=5, max_limit=20)
+    @validate(validators={
+            #'num_rows': validators.Int(),
+            'status': validators.UnicodeString(),
+            'type_': validators.UnicodeString(),
+            'username': validators.UnicodeString()
+            })
+    def query_updates(self, status=None, type_=None, username=None,
+                      release=None,
+                      #num_rows=5,
+                      order_by='date_submitted'):
+        log.debug('query_updates(%s)' % locals())
+        query = []
+        packages = {}
+        #done = False
+        orderBy = PackageUpdate.q.date_submitted
+
+        if order_by == 'date_pushed':
+            orderBy = PackageUpdate.q.date_pushed
+        if status:
+            query.append(PackageUpdate.q.status == status)
+        if type_:
+            query.append(PackageUpdate.q.type == type_)
+        if username:
+            query.append(PackageUpdate.q.submitter == username)
+        if release:
+            rel = Release.byName(release.upper())
+            query.append(PackageUpdate.q.releaseID == rel.id)
+
+        updates = PackageUpdate.select(AND(*query), orderBy=orderBy,
+                                       #limit=num_rows*2
+                                      ).reversed()
+
+        for update in updates:
+            for build in update.builds:
+                if build.package.name not in packages:
+                    #if len(packages) >= num_rows:
+                    #    done = True
+                    #    break
+                    packages[build.package.name] = {
+                            'package_name' : build.package.name,
+                            'dist_updates': []
+                            }
+                else:
+                    skip = False
+                    for up in packages[build.package.name]['dist_updates']:
+                        if up['release'] == update.release.long_name:
+                            skip = True
+                            break
+                    if skip:
+                        break
+                #if done:
+                #    break
+                packages[build.package.name]['dist_updates'].append({
+                        'release': update.release.long_name,
+                        'version': '-'.join(build.nvr.split('-')[-2:])
+                        })
+                packages[build.package.name]['dist_updates'][-1].update(
+                        dict(update._reprItems()))
+                del(packages[build.package.name]['dist_updates'][-1]['releaseID'])
+            #if done:
+            #    break
+
+        results = {'updates': []}
+        for package in packages:
+            results['updates'].append(packages[package])
+
+        return results
+
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, allow_limit_override=True)
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
