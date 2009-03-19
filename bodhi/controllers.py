@@ -250,6 +250,19 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, allow_limit_override=True)
+    @validate(validators={
+            'release': validators.UnicodeString(),
+            'bugs': validators.UnicodeString(),
+            'cves': validators.UnicodeString(),
+            'status': validators.UnicodeString(),
+            'type_': validators.UnicodeString(),
+            'package': validators.UnicodeString(),
+            'mine': validators.StringBool(),
+            'stringify': validators.StringBool(),
+            'get_auth': validators.StringBool(),
+            'username': validators.UnicodeString(),
+            'group_updates': validators.StringBool(),
+            })
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
              package=None, mine=False, stringify=False, get_auth=False,
              username=None, group_updates=False, **kw):
