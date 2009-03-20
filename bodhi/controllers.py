@@ -249,7 +249,7 @@ class Root(controllers.RootController):
         return results
 
     @expose(template="bodhi.templates.list", allow_json=True)
-    @paginate('updates', limit=20, allow_limit_override=True)
+    @paginate('updates', limit=20, max_limit=50, allow_limit_override=True)
     @validate(validators={
             'release': validators.UnicodeString(),
             'bugs': validators.UnicodeString(),
@@ -408,7 +408,7 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.mine", allow_json=True)
     @identity.require(identity.not_anonymous())
-    @paginate('updates', limit=20, allow_limit_override=True)
+    @paginate('updates', limit=20, max_limit=20, allow_limit_override=True)
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
@@ -864,7 +864,7 @@ class Root(controllers.RootController):
             raise redirect(updates[0].get_url())
 
     @expose(template='bodhi.templates.list')
-    @paginate('updates', limit=20, allow_limit_override=True)
+    @paginate('updates', limit=20, max_limit=20, allow_limit_override=True)
     def default(self, *args, **kw):
         """
         This method allows for the following requests
@@ -1057,7 +1057,7 @@ class Root(controllers.RootController):
         raise redirect('/')
 
     @expose(template='bodhi.templates.comments')
-    @paginate('comments', limit=20, allow_limit_override=True)
+    @paginate('comments', limit=20, max_limit=20, allow_limit_override=True)
     def comments(self):
         data = Comment.select(Comment.q.author != 'bodhi',
                               orderBy=Comment.q.timestamp).reversed()
@@ -1137,7 +1137,7 @@ class Root(controllers.RootController):
         return dict(updates=updates)
 
     @expose(template="bodhi.templates.user")
-    @paginate('updates', limit=25, allow_limit_override=True)
+    @paginate('updates', limit=25, max_limit=20, allow_limit_override=True)
     def user(self, username):
         """ Return a list of updates submitted by a given person """
         updates = PackageUpdate.select(PackageUpdate.q.submitter == username,
