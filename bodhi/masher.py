@@ -606,10 +606,23 @@ class MashTask(Thread):
             # Send out our notices/digest, update all bugs, and add comments
             log.debug("Sending stable update notices and closing bugs")
             for update in self.updates:
-                update.modify_bugs()
-                update.status_comment()
+                try:
+                    update.modify_bugs()
+                except Exception, e:
+                    log.error("There was a problem modifying the bugs for %s" % update.title)
+                    log.exception(e)
+                try:
+                    update.status_comment()
+                except Exception, e:
+                    log.error("There was a problem updating the comment for %s" % update.title)
+                    log.exception(e)
                 if update.status == 'stable':
-                    update.send_update_notice()
+                    try:
+                        update.send_update_notice()
+                    except Exception, e:
+                        log.error("There was a problem sending the notice for %s" % update.title)
+                        log.exception(e)
+
             log.debug("Sending updates-testing digests")
             self.send_digest_mail()
 
