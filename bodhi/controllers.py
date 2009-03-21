@@ -367,7 +367,7 @@ class Root(controllers.RootController):
                             up.release.get_version())
                     if (identity.current.user_name in people[0]):
                         can_modify = True
-                dict_up = dict(up._reprItems())
+                dict_up = up.__json__()
                 dict_up['can_modify'] = can_modify
                 results.append(dict_up)
             updates = results
@@ -394,7 +394,7 @@ class Root(controllers.RootController):
                             'version': '-'.join(build.nvr.split('-')[-2:])
                             })
                     packages[build.package.name]['dist_updates'][-1].update(
-                            dict(update._reprItems()))
+                            dict(update.__json__()))
                     del(packages[build.package.name]['dist_updates'][-1]['releaseID'])
             updates = [packages[pkg] for pkg in packages]
 
