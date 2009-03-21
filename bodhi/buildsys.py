@@ -159,14 +159,17 @@ def koji_login(client=None, clientca=None, serverca=None):
     Login to Koji and return the session
     """
     if not client:
-        client = config.get('client_cert',
-                join(expanduser('~'), '.fedora.cert'))
+        client = config.get('client_cert')
+        if not client:
+            client = join(expanduser('~'), '.fedora.cert')
     if not clientca:
-        clientca = config.get('clientca_cert',
-                join(expanduser('~'), '.fedora-upload-ca.cert'))
+        clientca = config.get('clientca_cert')
+        if not clientca:
+            clientca = join(expanduser('~'), '.fedora-upload-ca.cert')
     if not serverca:
-        serverca = config.get('serverca_cert',
-                join(expanduser('~'), '.fedora-server-ca.cert'))
+        serverca = config.get('serverca_cert')
+        if not serverca:
+            serverca = join(expanduser('~'), '.fedora-server-ca.cert')
 
     koji_session = koji.ClientSession(config.get('koji_hub'), {})
     koji_session.ssl_login(client, clientca, serverca)
@@ -194,12 +197,13 @@ def wait_for_tasks(tasks, sleep=300):
     to fail, otherwise zero.
     """
     log.debug("Waiting for %d tasks to complete: %s" % (len(tasks), tasks))
+    failed_tasks = []
     for task in tasks:
         while not session.taskFinished(task):
             time.sleep(sleep)
         task_info = session.getTaskInfo(task)
         if task_info['state'] != koji.TASK_STATES['CLOSED']:
             log.error("Koji task %d failed" % task)
-            return task
+            failed_tasks.append(task)
     log.debug("Tasks completed successfully!")
-    return 0
+    return failed_tasks

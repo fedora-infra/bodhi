@@ -172,8 +172,6 @@ class ExtendedMetadata:
             log.debug("Update %s already in updateinfo" % update.title)
             return
 
-        log.debug("Generating extended metadata for %s" % update.title)
-
         root = self._insert(self.doc.firstChild, 'update', attrs={
                 'type'      : update.type,
                 'status'    : update.status,
