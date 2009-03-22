@@ -220,6 +220,8 @@ class Root(controllers.RootController):
                 query.append(PackageUpdate.q.releaseID == rel.id)
             if status:
                 query.append(PackageUpdate.q.status == status)
+                if status == 'stable':
+                    orderBy = PackageUpdate.q.date_pushed
             if type_:
                 query.append(PackageUpdate.q.type == type_)
             if mine:
