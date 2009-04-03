@@ -190,9 +190,11 @@ class Root(controllers.RootController):
             'mine': validators.StringBool(),
             'get_auth': validators.StringBool(),
             'username': validators.UnicodeString(),
+            'count_only': validators.StringBool(),
             })
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
-             package=None, mine=False, get_auth=False, username=None, **kw):
+             package=None, mine=False, get_auth=False, username=None,
+             start_date=None, end_date=None, count_only=False, **kw):
         """ Return a list of updates based on given parameters """
         log.debug('list(%s)' % locals())
         query = []
@@ -229,9 +231,18 @@ class Root(controllers.RootController):
                     PackageUpdate.q.submitter == identity.current.user_name)
             if username:
                 query.append(PackageUpdate.q.submitter == username)
+            if start_date:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+                query.append(PackageUpdate.q.date_pushed >= start_date)
+            if end_date:
+                end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+                query.append(PackageUpdate.q.date_pushed <= end_date)
 
             updates = PackageUpdate.select(AND(*query),
                                            orderBy=orderBy).reversed()
+
+            if count_only:
+                return dict(num_items=updates.count(), updates=[])
 
             # The package argument may be an update, build or package.
             if package:
