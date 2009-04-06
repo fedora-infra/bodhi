@@ -15,6 +15,7 @@
 import rpm
 import mail
 import urllib2
+import time
 import logging
 import cherrypy
 import xmlrpclib
@@ -232,10 +233,10 @@ class Root(controllers.RootController):
             if username:
                 query.append(PackageUpdate.q.submitter == username)
             if start_date:
-                start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+                start_date = datetime(*time.strptime(start_date, '%Y-%m-%d %H:%M:%S')[:-2])
                 query.append(PackageUpdate.q.date_pushed >= start_date)
             if end_date:
-                end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+                end_date = datetime(*time.strptime(end_date, '%Y-%m-%d %H:%M:%S')[:-2])
                 query.append(PackageUpdate.q.date_pushed <= end_date)
 
             updates = PackageUpdate.select(AND(*query),
