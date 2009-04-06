@@ -189,7 +189,7 @@ class AdminController(Controller, SecureResource):
             client = ProxyClient(config.get('masher'), debug=True)
             cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
             session, data = client.send_request(method,
-                                                auth_params={'session_id': cookie.get('tg-visit')},
+                                                auth_params={'session_id': cookie.get('tg-visit').value},
                                                 req_params=kwargs)
             log.debug("Remote method returned %s" % repr(data))
             if data.get('tg_flash'):
