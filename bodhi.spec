@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.5.18
+Version:        0.5.19
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -113,6 +113,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Sat Mar 21 2009 Luke Macken <lmacken@redhat.com> - 0.5.19-1
+- 0.5.19
+
 * Tue Feb 10 2009 Luke Macken <lmacken@redhat.com> - 0.5.18-1
 - Bugfix release, and to stop using deprecated python-fedora APIs.
 

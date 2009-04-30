@@ -145,7 +145,10 @@ def load_db():
                 package = Package.byName(pkg)
             except SQLObjectNotFound:
                 package = Package(name=pkg)
-            build = PackageBuild(nvr=nvr, package=package)
+            try:
+                build = PackageBuild.byNvr(nvr)
+            except SQLObjectNotFound:
+                build = PackageBuild(nvr=nvr, package=package)
             update.addPackageBuild(build)
 
         ## Create all Bugzilla objects for this update

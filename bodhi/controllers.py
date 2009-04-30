@@ -178,76 +178,6 @@ class Root(controllers.RootController):
         identity.current.logout()
         raise redirect('/')
 
-    @expose(allow_json=True)
-    @paginate('updates', limit=5, max_limit=20)
-    @validate(validators={
-            #'num_rows': validators.Int(),
-            'status': validators.UnicodeString(),
-            'type_': validators.UnicodeString(),
-            'username': validators.UnicodeString()
-            })
-    def query_updates(self, status=None, type_=None, username=None,
-                      release=None,
-                      #num_rows=5,
-                      order_by='date_submitted'):
-        log.debug('query_updates(%s)' % locals())
-        query = []
-        packages = {}
-        #done = False
-        orderBy = PackageUpdate.q.date_submitted
-
-        if order_by == 'date_pushed':
-            orderBy = PackageUpdate.q.date_pushed
-        if status:
-            query.append(PackageUpdate.q.status == status)
-        if type_:
-            query.append(PackageUpdate.q.type == type_)
-        if username:
-            query.append(PackageUpdate.q.submitter == username)
-        if release:
-            rel = Release.byName(release.upper())
-            query.append(PackageUpdate.q.releaseID == rel.id)
-
-        updates = PackageUpdate.select(AND(*query), orderBy=orderBy,
-                                       #limit=num_rows*2
-                                      ).reversed()
-
-        for update in updates:
-            for build in update.builds:
-                if build.package.name not in packages:
-                    #if len(packages) >= num_rows:
-                    #    done = True
-                    #    break
-                    packages[build.package.name] = {
-                            'package_name' : build.package.name,
-                            'dist_updates': []
-                            }
-                else:
-                    skip = False
-                    for up in packages[build.package.name]['dist_updates']:
-                        if up['release'] == update.release.long_name:
-                            skip = True
-                            break
-                    if skip:
-                        break
-                #if done:
-                #    break
-                packages[build.package.name]['dist_updates'].append({
-                        'release': update.release.long_name,
-                        'version': '-'.join(build.nvr.split('-')[-2:])
-                        })
-                packages[build.package.name]['dist_updates'][-1].update(
-                        dict(update._reprItems()))
-                del(packages[build.package.name]['dist_updates'][-1]['releaseID'])
-            #if done:
-            #    break
-
-        results = {'updates': []}
-        for package in packages:
-            results['updates'].append(packages[package])
-
-        return results
-
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, max_limit=50, allow_limit_override=True)
     @validate(validators={
@@ -258,14 +188,13 @@ class Root(controllers.RootController):
             'type_': validators.UnicodeString(),
             'package': validators.UnicodeString(),
             'mine': validators.StringBool(),
-            'stringify': validators.StringBool(),
             'get_auth': validators.StringBool(),
             'username': validators.UnicodeString(),
-            'group_updates': validators.StringBool(),
+            'count_only': validators.StringBool(),
             })
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
-             package=None, mine=False, stringify=False, get_auth=False,
-             username=None, group_updates=False, **kw):
+             package=None, mine=False, get_auth=False, username=None,
+             start_date=None, end_date=None, count_only=False, **kw):
         """ Return a list of updates based on given parameters """
         log.debug('list(%s)' % locals())
         query = []
@@ -293,6 +222,8 @@ class Root(controllers.RootController):
                 query.append(PackageUpdate.q.releaseID == rel.id)
             if status:
                 query.append(PackageUpdate.q.status == status)
+                if status == 'stable':
+                    orderBy = PackageUpdate.q.date_pushed
             if type_:
                 query.append(PackageUpdate.q.type == type_)
             if mine:
@@ -300,9 +231,18 @@ class Root(controllers.RootController):
                     PackageUpdate.q.submitter == identity.current.user_name)
             if username:
                 query.append(PackageUpdate.q.submitter == username)
+            if start_date:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+                query.append(PackageUpdate.q.date_pushed >= start_date)
+            if end_date:
+                end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+                query.append(PackageUpdate.q.date_pushed <= end_date)
 
             updates = PackageUpdate.select(AND(*query),
                                            orderBy=orderBy).reversed()
+
+            if count_only:
+                return dict(num_items=updates.count(), updates=[])
 
             # The package argument may be an update, build or package.
             if package:
@@ -337,6 +277,10 @@ class Root(controllers.RootController):
                         except SQLObjectNotFound:
                             updates = []
 
+            # TODO: This filtering is extremely inefficient
+            # we should/could make these filters mutually exclusive, and
+            # simply make them queries
+
             # Filter results by Bugs and/or CVEs
             if bugs:
                 results = []
@@ -367,40 +311,13 @@ class Root(controllers.RootController):
                             up.release.get_version())
                     if (identity.current.user_name in people[0]):
                         can_modify = True
-                dict_up = dict(up._reprItems())
+                dict_up = up.__json__()
                 dict_up['can_modify'] = can_modify
                 results.append(dict_up)
             updates = results
 
-        if group_updates:
-            packages = {}
-            for update in updates:
-                for build in update.builds:
-                    if build.package.name not in packages:
-                        packages[build.package.name] = {
-                                'package_name' : build.package.name,
-                                'dist_updates': []
-                                }
-                    else:
-                        skip = False
-                        for up in packages[build.package.name]['dist_updates']:
-                            if up['release'] == update.release.long_name:
-                                skip = True
-                                break
-                        if skip:
-                            break
-                    packages[build.package.name]['dist_updates'].append({
-                            'release': update.release.long_name,
-                            'version': '-'.join(build.nvr.split('-')[-2:])
-                            })
-                    packages[build.package.name]['dist_updates'][-1].update(
-                            dict(update._reprItems()))
-                    del(packages[build.package.name]['dist_updates'][-1]['releaseID'])
-            updates = [packages[pkg] for pkg in packages]
-
         if isinstance(updates, list): num_items = len(updates)
         else: num_items = updates.count()
-        if stringify: updates = map(unicode, updates)
 
         return dict(updates=updates, num_items=num_items,
                     title="%d %s found" % (num_items, num_items == 1 and
