@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.5.19
+Version:        0.5.22
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -100,6 +100,7 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{_bindir}/start-%{name}
 %{_bindir}/%{name}-*
 %{_sysconfdir}/httpd/conf.d/bodhi.conf
+%dir %{_sysconfdir}/bodhi/
 %attr(-,apache,root) %{_datadir}/%{name}
 %attr(-,apache,root) %config(noreplace) %{_sysconfdir}/bodhi/*
 %attr(-,apache,root) %{_localstatedir}/log/bodhi
@@ -113,8 +114,25 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Thu Apr 30 2009 Luke Macken <lmacken@redhat.com> - 0.5.22-1
+- Remove pagination patch, as Fedora Infrastructure is now TG 1.0.8
+
+* Thu Apr 30 2009 Luke Macken <lmacken@redhat.com> - 0.5.21-1
+- Update to TG 1.0.8 API (fixes a @paginate issue)
+
+* Mon Apr 06 2009 Luke Macken <lmacken@redhat.com> - 0.5.20-1
+- Fix a bug when sending mash requests through the ProxyClient
+- More Python2.4 workarounds
+
+* Mon Apr 06 2009 Luke Macken <lmacken@redhat.com> - 0.5.19-3
+- Update to work with Python2.4
+
+* Mon Apr 06 2009 Luke Macken <lmacken@redhat.com> - 0.5.19-2
+- Revision bump to bring it up to speed with the fedora infra package
+
 * Sat Mar 21 2009 Luke Macken <lmacken@redhat.com> - 0.5.19-1
 - 0.5.19
+- Add a patch to get pagination working in TG 1.0.4.4
 
 * Tue Feb 10 2009 Luke Macken <lmacken@redhat.com> - 0.5.18-1
 - Bugfix release, and to stop using deprecated python-fedora APIs.
