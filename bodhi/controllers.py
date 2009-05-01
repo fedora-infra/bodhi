@@ -539,6 +539,10 @@ class Root(controllers.RootController):
                 flash_log("Unable to access the package database.  Please "
                           "notify an administrator in #fedora-admin")
                 raise InvalidUpdateException(params)
+            except Exception, e:
+                log.exception(e)
+                flash_log(str(e))
+                raise InvalidUpdateException(params)
 
             # Verify that the user is either in the committers list, or is
             # a member of a groups that has privileges to commit to this package
