@@ -1160,3 +1160,32 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update
+
+    def test_get_updates_from_builds(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar'
+        }
+        self.save_update(params, session)
+        params = {
+                'builds'  : 'kernel-2.6.29.1-111.fc7.x86_64',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '1234',
+                'notes'   : 'New kernel.'
+        }
+        self.save_update(params, session)
+        testutil.create_request('/updates/get_updates_from_builds?builds=' +
+                'kernel-2.6.29.1-111.fc7.x86_64%20TurboGears-1.0.2.2-2.fc7',
+                method='POST')
+        import simplejson
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert 'kernel-2.6.29.1-111.fc7.x86_64' in json
+        assert 'TurboGears-1.0.2.2-2.fc7' in json
+        assert json['TurboGears-1.0.2.2-2.fc7']['notes'] == 'foobar'

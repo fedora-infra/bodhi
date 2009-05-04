@@ -179,6 +179,26 @@ class Root(controllers.RootController):
         identity.current.logout()
         raise redirect('/')
 
+    @expose('json')
+    @validate(validators={'builds': validators.UnicodeString()})
+    def get_updates_from_builds(self, builds=''):
+        """Given a list of build nvrs, return the corresponding updates.
+
+        :builds: A space-delimited list of builds in the format of
+                 name-version-release
+
+        :returns: A dictionary in the format of {build: update_data}
+        """
+        updates = {}
+        for build in builds.split():
+            try:
+                b = PackageBuild.byNvr(build)
+                for update in b.updates:
+                    updates[build] = update.__json__()
+            except SQLObjectNotFound:
+                pass
+        return updates
+
     @expose(template="bodhi.templates.list", allow_json=True)
     @paginate('updates', limit=20, max_limit=50, allow_limit_override=True)
     @validate(validators={
