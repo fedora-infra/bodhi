@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.5.22
+Version:        0.5.23
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -114,6 +114,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Thu May 07 2009 Luke Macken <lmacken@redhat.com> - 0.5.23-1
+- Add mash configs for F11, with deltarpm support.
+
 * Thu Apr 30 2009 Luke Macken <lmacken@redhat.com> - 0.5.22-1
 - Remove pagination patch, as Fedora Infrastructure is now TG 1.0.8
 
