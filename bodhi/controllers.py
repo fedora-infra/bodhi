@@ -935,10 +935,12 @@ class Root(controllers.RootController):
         raise redirect("/")
 
     @expose(template='bodhi.templates.show')
-    @validate(form=comment_captcha_form)
     @validate(validators={ 'karma' : validators.Int() })
-    def captcha_comment(self, text, title, author, karma, captcha={},
+    @validate(form=comment_captcha_form)
+    def captcha_comment(self, text, title, author, karma, captcha=None,
                         tg_errors=None):
+        if not captcha:
+            captcha = {}
         try:
             update = PackageUpdate.byTitle(title)
         except SQLObjectNotFound:
@@ -949,10 +951,19 @@ class Root(controllers.RootController):
             elif tg_errors.has_key('author'):
                 flash_log(tg_errors['author'])
             elif tg_errors.has_key('captcha'):
-                if tg_errors['captcha'].has_key('captchainput'):
-                    flash_log("Problem with captcha: %s" % tg_errors['captcha']['captchainput'])
+                if 'captcha' in tg_errors:
+                    if 'author' in tg_errors:
+                        flash_log('%s %s' % (tg_errors['captcha'],
+                                             tg_errors['author']))
+                    elif isinstance(tg_errors['captcha'], dict) and \
+                            tg_errors['captcha'].has_key('captchainput'):
+                        flash_log("Problem with captcha: %s" %
+                                  tg_errors['captcha']['captchainput'])
+                    else:
+                        flash_log("Problem with captcha: %s" %
+                                  tg_errors['captcha'])
                 else:
-                    flash_log("Problem with captcha: %s" % tg_errors['captcha'])
+                    flash_log("Problem with captcha: %s" % tg_errors)
             else:
                 flash_log(tg_errors)
             return dict(update=update, updates=[], 
