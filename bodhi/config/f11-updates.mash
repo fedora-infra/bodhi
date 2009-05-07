@@ -14,3 +14,4 @@ repoviewurl = http://download.fedoraproject.org/pub/fedora/linux/updates/11/%(ar
 repoviewtitle = "Fedora 11 Updates - %(arch)s"
 arches = i386 x86_64 ppc ppc64
 delta = True
+delta_dirs = /mnt/koji/mash/rawhide
