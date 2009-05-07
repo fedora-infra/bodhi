@@ -14,3 +14,4 @@ keys = 6DF2196F
 repoviewurl = http://download.fedoraproject.org/pub/fedora/linux/updates/9/%(arch)s.newkey/
 repoviewtitle = "Fedora 9 Updates - %(arch)s"
 arches = i386 x86_64 ppc ppc64
+hash = sha
