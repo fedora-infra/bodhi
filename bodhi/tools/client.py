@@ -47,6 +47,9 @@ def get_parser():
                       help="Display the status of the Masher (releng only)")
     parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates (releng only)")
+    parser.add_option("--push-type", action="append", type="string",
+                       dest="push_type",
+                       help="Types of updates to push (releng only)")
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",
@@ -187,11 +190,19 @@ def main():
                 if not data.get('updates', None):
                     log.info(data.get('message', 'Unknown masher reply'))
                     raise AuthError
+                if opts.push_type:
+                    fupdates = []
+                    for ptype in opts.push_type:
+                        fdata = filter(lambda x: x['type'] == ptype,
+                                      data['updates'])
+                        fupdates += fdata
+                    data['updates'] = fupdates
                 log.debug(data)
                 log.info("[ %d Pending Requests ]" % len(data['updates']))
                 for status in ('testing', 'stable', 'obsolete'):
                     updates = filter(lambda x: x['request'] == status,
                                      data['updates'])
+
                     releases = {}
                     for update in updates:
                         releases.setdefault(update['release']['name'], []) \
