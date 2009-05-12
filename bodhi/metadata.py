@@ -115,7 +115,6 @@ class ExtendedMetadata:
 
     def _add_notice(self, notice):
         """ Add a yum.update_md.UpdateNotice to the metadata """
-        log.debug("Adding UpdateNotice for %s" % notice['title'])
 
         root = self._insert(self.doc.firstChild, 'update', attrs={
                 'type'      : notice['type'],
