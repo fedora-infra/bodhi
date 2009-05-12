@@ -985,7 +985,7 @@ class Root(controllers.RootController):
 
     @expose(allow_json=True)
     @error_handler()
-    @validate(validators={'karma': validators.Int()})
+    #@validate(validators={'karma': validators.Int()})
     @validate(form=comment_form)
     @identity.require(identity.not_anonymous())
     def comment(self, text, title, karma=0, tg_errors=None):
@@ -997,6 +997,10 @@ class Root(controllers.RootController):
         :karma: The karma of this comment (-1, 0, 1)
 
         """
+        try:
+            karma = int(karma)
+        except:
+            pass
         if tg_errors:
             flash_log(tg_errors)
         elif karma not in (0, 1, -1):
