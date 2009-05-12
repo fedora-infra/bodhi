@@ -35,6 +35,7 @@ bodhi.egg-info/dependency_links.txt
 bodhi.egg-info/entry_points.txt
 bodhi.egg-info/not-zip-safe
 bodhi.egg-info/requires.txt
+bodhi.egg-info/sqlobject.txt
 bodhi.egg-info/top_level.txt
 bodhi/config/__init__.py
 bodhi/config/app.cfg
