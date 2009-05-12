@@ -557,6 +557,7 @@ class MashTask(Thread):
         try:
             if not self.resume and not self.safe_to_move():
                 log.error("safe_to_move failed! -- aborting")
+                self._unlock()
                 masher.done(self)
                 return
             else:
