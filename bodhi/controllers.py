@@ -935,12 +935,17 @@ class Root(controllers.RootController):
         raise redirect("/")
 
     @expose(template='bodhi.templates.show')
-    @validate(validators={ 'karma' : validators.Int() })
+    # Stacked validators seem to be broken in TG 1.0.8
+    #@validate(validators={'karma': validators.Int()})
     @validate(form=comment_captcha_form)
     def captcha_comment(self, text, title, author, karma, captcha=None,
                         tg_errors=None):
         if not captcha:
             captcha = {}
+        try:
+            karma = int(karma)
+        except:
+            pass
         try:
             update = PackageUpdate.byTitle(title)
         except SQLObjectNotFound:
