@@ -907,6 +907,12 @@ class Bugzilla(SQLObject):
             log.debug('Skipping bug modification, close_bugs == False')
 
     def close_bug(self, update):
+        """Close this bugzilla with details from an update.
+
+        This method will only close Fedora bugs, and it will close them with
+        the status of `ERRATA`.   For details on why this is so, see this
+        ticket: https://fedorahosted.org/bodhi/ticket/320
+        """
         bz = Bugzilla.get_bz()
         try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
