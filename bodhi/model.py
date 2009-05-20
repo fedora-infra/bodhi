@@ -914,7 +914,7 @@ class Bugzilla(SQLObject):
             if bug.product != 'Fedora':
                 log.warning("Not closing %r bug" % bug.product)
                 return
-            bug.close('NEXTRELEASE', fixedin=ver)
+            bug.close('ERRATA', fixedin=ver)
         except xmlrpclib.Fault, f:
             log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f)))
 
