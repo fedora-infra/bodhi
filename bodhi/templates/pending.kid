@@ -15,7 +15,6 @@
                 href="${tg.paginate.get_href(page)}">${page}</a>
             <b py:if="page == tg.paginate.current_page">${page}</b>
         </span>
-        <a href="?tg_paginate_limit=${num_items}">all</a>
     </div>
 
     <table class="list">
