@@ -59,7 +59,7 @@ class ExtendedMetadata:
                         break
 
             # Add all relevant notices from the metadata to this document
-            ids = [update.updateid for update in self.updates]
+            ids = [update.updateid for update in self.updates if update.updateid]
             for notice in umd.get_notices():
                 if notice['update_id'] in ids:
                     self._add_notice(notice)
@@ -216,7 +216,6 @@ class ExtendedMetadata:
             try:
                 kojiBuild = self.builds[build.nvr]
             except:
-                log.error("Can't find cached kojiBuild for %s" % build.nvr)
                 kojiBuild = self.koji.getBuild(build.nvr)
             rpms = self.koji.listBuildRPMs(kojiBuild['id'])
             for rpm in rpms:
