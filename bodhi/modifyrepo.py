@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+# $Id: modifyrepo.py,v 1.1 2006/12/07 07:19:41 lmacken Exp $
+#
 # This tools is used to insert arbitrary metadata into an RPM repository.
 # Example:
 #           ./modifyrepo.py updateinfo.xml myrepo/repodata
@@ -17,18 +18,19 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# (C) Copyright 2006  Red Hat, Inc.
 # Luke Macken <lmacken@redhat.com>
-# modified by Seth Vidal 2008
+
+"""
+    This tool is in CVS HEAD of createrepo 
+"""
 
 import os
 import sys
-
-from createrepo.utils import checksum_and_rename, GzipFile, MDError
-from yum.misc import checksum
+import sha
+import gzip
 
 from xml.dom import minidom
-
+from bodhi.exceptions import RepositoryNotFound
 
 class RepoMetadata:
 
@@ -36,15 +38,12 @@ class RepoMetadata:
         """ Parses the repomd.xml file existing in the given repo directory. """
         self.repodir = os.path.abspath(repo)
         self.repomdxml = os.path.join(self.repodir, 'repomd.xml')
-        self.checksum_type = 'sha256'
         if not os.path.exists(self.repomdxml):
-            raise MDError, '%s not found' % self.repomdxml
+            raise RepositoryNotFound, self.repomdxml
         self.doc = minidom.parse(self.repomdxml)
 
-    def _insert_element(self, parent, name, attrs=None, text=None):
+    def _insert_element(self, parent, name, attrs={}, text=None):
         child = self.doc.createElement(name)
-        if not attrs:
-            attrs = {}
         for item in attrs.items():
             child.setAttribute(item[0], item[1])
         if text:
@@ -60,79 +59,60 @@ class RepoMetadata:
         """
         md = None
         if not metadata:
-            raise MDError, 'metadata cannot be None'
+            raise Exception('metadata cannot be None')
         if isinstance(metadata, minidom.Document):
             md = metadata.toxml()
             mdname = 'updateinfo.xml'
         elif isinstance(metadata, str):
             if os.path.exists(metadata):
-                if metadata.endswith('.gz'):
-                    oldmd = GzipFile(filename=metadata, mode='rb')
-                else:
-                    oldmd = file(metadata, 'r')
+                oldmd = file(metadata, 'r')
                 md = oldmd.read()
                 oldmd.close()
                 mdname = os.path.basename(metadata)
             else:
-                raise MDError, '%s not found' % metadata
+                raise Exception('%s not found' % metadata)
         else:
-            raise MDError, 'invalid metadata type'
+            raise Exception('invalid metadata type')
 
         ## Compress the metadata and move it into the repodata
-        if not mdname.endswith('.gz'):
-            mdname += '.gz'
+        mdname += '.gz'
         mdtype = mdname.split('.')[0]
         destmd = os.path.join(self.repodir, mdname)
-        newmd = GzipFile(filename=destmd, mode='wb')
-        newmd.write(md)
+        newmd = gzip.GzipFile(destmd, 'wb')
+        newmd.write(md.encode('utf-8'))
         newmd.close()
         print "Wrote:", destmd
 
-        open_csum = checksum(self.checksum_type, metadata)
-
-
-        csum, destmd = checksum_and_rename(destmd, self.checksum_type)
-        base_destmd = os.path.basename(destmd)
-        
+        ## Read the gzipped metadata
+        f = file(destmd, 'r')
+        newmd = f.read()
+        f.close()
 
         ## Remove any stale metadata
         for elem in self.doc.getElementsByTagName('data'):
             if elem.attributes['type'].value == mdtype:
-                self.doc.firstChild.removeChild(elem)
-
+                self.doc.firstChild.removeChild(elem) 
         ## Build the metadata
         root = self.doc.firstChild
-        root.appendChild(self.doc.createTextNode("  "))
         data = self._insert_element(root, 'data', attrs={ 'type' : mdtype })
-        data.appendChild(self.doc.createTextNode("\n    "))
-
         self._insert_element(data, 'location',
-                             attrs={ 'href' : 'repodata/' + base_destmd })
-        data.appendChild(self.doc.createTextNode("\n    "))
-        self._insert_element(data, 'checksum', 
-                             attrs={ 'type' : self.checksum_type }, 
-                             text=csum)
-        data.appendChild(self.doc.createTextNode("\n    "))
+                             attrs={ 'href' : 'repodata/' + mdname })
+        self._insert_element(data, 'checksum', attrs={ 'type' : 'sha' },
+                             text=sha.new(newmd).hexdigest())
         self._insert_element(data, 'timestamp',
                              text=str(os.stat(destmd).st_mtime))
-        data.appendChild(self.doc.createTextNode("\n    "))
-        self._insert_element(data, 'open-checksum', 
-                             attrs={ 'type' : self.checksum_type },
-                             text=open_csum)
+        self._insert_element(data, 'open-checksum', attrs={ 'type' : 'sha' },
+                             text=sha.new(md.encode('utf-8')).hexdigest())
 
-        data.appendChild(self.doc.createTextNode("\n  "))
-        root.appendChild(self.doc.createTextNode("\n"))
-
-        print "           type =", mdtype 
-        print "       location =", 'repodata/' + mdname
-        print "       checksum =", csum
-        print "      timestamp =", str(os.stat(destmd).st_mtime)
-        print "  open-checksum =", open_csum
+        #print "           type =", mdtype 
+        #print "       location =", 'repodata/' + mdname
+        #print "       checksum =", sha.new(newmd).hexdigest()
+        #print "      timestamp =", str(os.stat(destmd).st_mtime)
+        #print "  open-checksum =", sha.new(md).hexdigest()
 
         ## Write the updated repomd.xml
         outmd = file(self.repomdxml, 'w')
         self.doc.writexml(outmd)
-        outmd.write("\n")
         outmd.close()
         print "Wrote:", self.repomdxml
 
@@ -141,14 +121,6 @@ if __name__ == '__main__':
     if len(sys.argv) != 3 or '-h' in sys.argv:
         print "Usage: %s <input metadata> <output repodata>" % sys.argv[0]
         sys.exit()
-    try:
-        repomd = RepoMetadata(sys.argv[2])
-    except MDError, e:
-        print "Could not access repository: %s" % str(e)
-        sys.exit(1)
-    try:
-        repomd.add(sys.argv[1])
-    except MDError, e:
-        print "Could not add metadata from file %s: %s" % (sys.argv[1], str(e))
-        sys.exit(1)
 
+    repomd = RepoMetadata(sys.argv[2])
+    repomd.add(sys.argv[1])
