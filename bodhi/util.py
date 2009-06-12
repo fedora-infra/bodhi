@@ -35,6 +35,7 @@ from datetime import datetime
 from decorator import decorator
 from turbogears import config, url, flash, redirect
 from fedora.tg.util import request_format
+from fedora.client import PackageDB
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
@@ -237,34 +238,32 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
     * ['status']['translations'] may one day contain more than the 'C'
       translation.  The pkgdb will have to figure out how to deal with that
       if so.
+
+    This may raise: fedora.client.AppError if there's an error talking to the
+    PackageDB (for instance, no such package)
     """
     if config.get('acl_system') == 'dummy':
         return (['guest'], ['guest']), (['guest'], ['guest'])
 
-    pkgPage = None
-    pkgPage = urllib2.urlopen(config.get('pkgdb_url') +
-                              '/packages/name/%s/%s/%s?tg_format=json' % (
-                              pkgName, collectionName, collectionVersion))
-
-    pkg = simplejson.load(pkgPage)
-    if pkg.has_key('status') and not pkg['status']:
-        raise Exception, 'Package %s not found in PackageDB.  Error: %s' % (
-                pkgName, pkg['message'])
+    pkgdb = PackageDB(config.get('pkgdb_url'))
+    # Note if AppError is raised (for no pkgNamme or other server errors) we
+    # do not catch the exception here.
+    pkg = pkgdb.get_owners(pkgName, collectionName, collectionVersion)
 
     # Owner is allowed to commit and gets notified of pushes
     # This will always be the 0th element as we'll retrieve at most one
     # value for any given Package-Collection-Version
-    pNotify = [pkg['packageListings'][0]['owneruser']]
+    pNotify = [pkg.packageListings[0]['owner']]
     pAllowed = [pNotify[0]]
 
     # Find other people in the acl
     for person in pkg['packageListings'][0]['people']:
         if person['aclOrder']['watchcommits'] and \
            pkg['statusMap'][str(person['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-            pNotify.append(person['user'])
+            pNotify.append(person['username'])
         if person['aclOrder']['commit'] and \
            pkg['statusMap'][str(person['aclOrder']['commit']['statuscode'])] == 'Approved':
-            pAllowed.append(person['user'])
+            pAllowed.append(person['username'])
 
     # Find groups that can push
     gNotify = []
@@ -272,10 +271,10 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
     for group in pkg['packageListings'][0]['groups']:
         if group['aclOrder']['watchcommits'] and \
            pkg['statusMap'][str(group['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-            gNotify.append(group['name'])
+            gNotify.append(group['groupname'])
         if group['aclOrder']['commit'] and \
            pkg['statusMap'][str(group['aclOrder']['commit']['statuscode'])] == 'Approved':
-            gAllowed.append(group['name'])
+            gAllowed.append(group['groupname'])
 
     return ((pAllowed, pNotify), (gAllowed, gNotify))
 
