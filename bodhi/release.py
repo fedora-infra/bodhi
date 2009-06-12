@@ -1,4 +1,4 @@
-VERSION = '0.5.25'
+VERSION = '0.5.26'
 NAME = 'bodhi'
 DESCRIPTION = 'Bodhi is a modular web-system that facilitates the process of publishing updates for a Fedora-based software distribution'
 AUTHOR = 'Luke Macken'

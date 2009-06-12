@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.5.25
+Version:        0.5.26
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -114,6 +114,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Fri Jun 12 2009 Luke Macken <lmacken@redhat.com> - 0.5.26-1
+- Latest upstream release with a variety of fixes and pkgdb-0.4 support.
+
 * Tue May 12 2009 Luke Macken <lmacken@redhat.com> - 0.5.25-1
 - Latest upstream bugfix release to work around some TG 1.0.8
   brokenness, and make our masher a bit more robust.
