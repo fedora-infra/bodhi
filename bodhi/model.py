@@ -459,8 +459,9 @@ class PackageUpdate(SQLObject):
         elif self.status == 'testing':
             mailinglist = config.get('%s_test_announce_list' %
                               self.release.id_prefix.lower())
+        templatetype = config.get('%s-template' % self.release.id_prefix.lower())
         if mailinglist:
-            for subject, body in mail.get_template(self):
+            for subject, body in mail.get_template(self, templatetype):
                 message = turbomail.Message(sender, mailinglist, subject)
                 message.plain = body
                 try:
