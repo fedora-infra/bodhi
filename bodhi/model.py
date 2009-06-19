@@ -897,7 +897,7 @@ class Bugzilla(SQLObject):
             log.debug("Setting Bug #%d to ON_QA" % self.bz_id)
             try:
                 bug = bz.getbug(self.bz_id)
-                if bug.product != 'Fedora':
+                if bug.product != 'Fedora' and bug.product != 'Fedora EPEL':
                     log.warning("Skipping %r bug" % bug.product)
                     return
                 bug.setstatus('ON_QA', comment=comment)
@@ -909,15 +909,15 @@ class Bugzilla(SQLObject):
     def close_bug(self, update):
         """Close this bugzilla with details from an update.
 
-        This method will only close Fedora bugs, and it will close them with
-        the status of `ERRATA`.   For details on why this is so, see this
-        ticket: https://fedorahosted.org/bodhi/ticket/320
+        This method will only close Fedora or Fedora EPEL bugs, and it will
+        close them with the status of `ERRATA`.   For details on why this
+        is so, see this ticket: https://fedorahosted.org/bodhi/ticket/320
         """
         bz = Bugzilla.get_bz()
         try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             bug = bz.getbug(self.bz_id)
-            if bug.product != 'Fedora':
+            if bug.product != 'Fedora' and bug.product != 'Fedora EPEL':
                 log.warning("Not closing %r bug" % bug.product)
                 return
             bug.close('ERRATA', fixedin=ver)
