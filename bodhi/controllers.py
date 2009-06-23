@@ -601,20 +601,21 @@ class Root(controllers.RootController):
 
             # Determine which release this build is a candidate for
             for tag in tags:
-                dist = tag.split('-updates-candidate')
-                if len(dist) == 2: # candidate tag
-                    rel = Release.selectBy(dist_tag=dist[0])
-                    if rel.count():
-                        rel = rel[0]
-                        log.debug("Adding %s for %s" % (rel.name, build))
-                        if not releases.has_key(rel):
-                            releases[rel] = []
-                        if build not in releases[rel]:
-                            releases[rel].append(build)
-                        buildinfo[build]['releases'].add(rel)
-                        valid = True
-                    else:
-                        log.error("Cannot find release for %s" % dist[0])
+                rel = None
+                for r in Release.select():
+                    if tag == r.candidate_tag:
+                        rel = r
+                        break
+                if rel:
+                    log.debug("Adding %s for %s" % (rel.name, build))
+                    if not releases.has_key(rel):
+                        releases[rel] = []
+                    if build not in releases[rel]:
+                        releases[rel].append(build)
+                    buildinfo[build]['releases'].add(rel)
+                    valid = True
+                else:
+                    log.debug("%s not a candidate tag" % tag)
 
             # if we're using build inheritance, iterate over each release
             # looking to see if the latest build in its candidate tag 
@@ -622,7 +623,7 @@ class Root(controllers.RootController):
             if inheritance:
                 log.info("Following build inheritance")
                 for rel in Release.select():
-                    b = koji.listTagged(rel.dist_tag + '-updates-candidate',
+                    b = koji.listTagged(rel.candidate_tag,
                                         inherit=True, latest=True,
                                         package=buildinfo[build]['nvr'][0])[0]
                     if b['nvr'] == build:
@@ -647,8 +648,7 @@ class Root(controllers.RootController):
             # Check for broken update paths
             log.info("Checking for broken update paths")
             for release in buildinfo[build]['releases']:
-                tags = ['dist-rawhide', release.dist_tag,
-                        release.dist_tag + '-updates']
+                tags = ['dist-rawhide', release.dist_tag, release.stable_tag]
                 for tag in tags:
                     pkg = buildinfo[build]['nvr'][0]
                     for oldBuild in koji.listTagged(tag, package=pkg,
@@ -1118,8 +1118,7 @@ class Root(controllers.RootController):
         builds = {}
         koji = buildsys.get_session()
         for release in Release.select():
-            for tag in ('updates-candidate', 'updates-testing', 'updates'):
-                tag = '%s-%s' % (release.dist_tag, tag)
+            for tag in (release.candidate_tag, release.testing_tag, release.stable_tag):
                 for build in koji.getLatestBuilds(tag, package=package):
                     builds[tag] = build['nvr']
         return builds

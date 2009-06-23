@@ -57,6 +57,26 @@ class Release(SQLObject):
         regex = re.compile('\D+(\d+)$')
         return int(regex.match(self.name).groups()[0])
 
+    @property
+    def candidate_tag(self):
+        if self.name.startswith('EL'):
+            return '%s-testing-candidate' % self.dist_tag
+        else:
+            return '%s-updates-candidate' % self.dist_tag
+
+    @property
+
+    @property
+    def testing_tag(self):
+        return '%s-testing' % self.dist_tag
+
+    @property
+    def stable_tag(self):
+        if self.name.startswith('EL'):
+            return self.dist_tag
+        else:
+            return '%s-updates' % self.dist_tag
+
     def __json__(self):
         return dict(name=self.name, long_name=self.long_name,
                     id_prefix=self.id_prefix, dist_tag=self.dist_tag,
@@ -163,8 +183,8 @@ class PackageBuild(SQLObject):
         # there could potentially be packages that never make their way over
         # -updates, so we don't want to generate ChangeLogs against those.
         nvr = get_nvr(self.nvr)
-        for tag in ['%s-updates', '%s']:
-            tag %= self.updates[0].release.dist_tag
+        release = self.updates[0].release
+        for tag in [release.stable_tag, release.dist_tag]:
             builds = koji_session.getLatestBuilds(tag, None, self.package.name)
             latest = None
 

@@ -285,14 +285,11 @@ class MashTask(Thread):
         for update in self.updates:
             if not pending_nvrs.has_key(update.release.name):
                 pending_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged('%s-updates-candidate' %
-                                             update.release.dist_tag)]
+                        self.koji.listTagged(update.release.candidate_tag)]
                 testing_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged('%s-updates-testing' %
-                                             update.release.dist_tag)]
+                        self.koji.listTagged(update.release.testing_tag)]
                 stable_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged('%s-updates' %
-                                             update.release.dist_tag)]
+                        self.koji.listTagged(update.release.stable_tag)]
 
         for update in self.updates:
             for build in update.builds:
@@ -339,21 +336,21 @@ class MashTask(Thread):
         mash during this push
         """
         for update in self.updates:
-            release = update.release.name.lower()
+            release = update.release
             if self.resume:
-                self.repos.add('%s-updates' % release)
-                self.repos.add('%s-updates-testing' % release)
+                self.repos.add(release.stable_tag)
+                self.repos.add(release.testing_tag)
             elif update.request == 'stable':
-                self.repos.add('%s-updates' % release)
+                self.repos.add(release.stable_tag)
                 if update.status == 'testing':
-                    self.repos.add('%s-updates-testing' % release)
+                    self.repos.add(release.testing_tag)
             elif update.request == 'testing':
-                self.repos.add('%s-updates-testing' % release)
+                self.repos.add(release.testing_tag)
             elif update.request == 'obsolete':
                 if update.status == 'testing':
-                    self.repos.add('%s-updates-testing' % release)
+                    self.repos.add(release.testing_tag)
                 elif update.status == 'stable':
-                    self.repos.add('%s-updates' % release)
+                    self.repos.add(release.stable_tag)
 
     def move_builds(self):
         """
@@ -368,11 +365,11 @@ class MashTask(Thread):
         self.koji.multicall = True
         for update in self.updates:
             if update.request == 'stable':
-                self.tag = update.release.dist_tag + '-updates'
+                self.tag = update.release.stable_tag
             elif update.request == 'testing':
-                self.tag = update.release.dist_tag + '-updates-testing'
+                self.tag = update.release.testing_tag
             elif update.request == 'obsolete':
-                self.tag = update.release.dist_tag + '-updates-candidate'
+                self.tag = update.release.candidate_tag
             current_tag = update.get_build_tag()
             for build in update.builds:
                 if build.inherited:
@@ -659,7 +656,7 @@ class MashTask(Thread):
         prefix = update.release.long_name
         if not self.testing_digest.has_key(prefix):
             self.testing_digest[prefix] = {}
-        for i, subbody in enumerate(mail.get_template(update,use_template=mail.maillist_template)):
+        for i, subbody in enumerate(mail.get_template(update,use_template='maillist_template')):
             self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
     def send_digest_mail(self):
@@ -700,7 +697,7 @@ class MashTask(Thread):
         release = update.release
         self.updates.add(update)
         mashdir = config.get('mashed_dir')
-        repo = "%s-updates" % release.name.lower()
+        repo = release.stable_tag
         master_repomd = config.get('master_repomd')
         repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
         if not exists(repomd):

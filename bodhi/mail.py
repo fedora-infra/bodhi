@@ -258,7 +258,7 @@ http://fedoraproject.org/keys
 --------------------------------------------------------------------------------
 """
 
-fedora-epel_errata_template = u"""\
+fedora_epel_errata_template = u"""\
 --------------------------------------------------------------------------------
 Fedora EPEL%(testing)s Update Notification
 %(updateid)s
@@ -296,11 +296,12 @@ maillist_template = u"""\
 """
 
 
-def get_template(update, use_template=fedora_errata_template):
+def get_template(update, use_template='fedora_errata_template'):
     """
     Build the update notice for a given update.
     @param use_template: the template to generate this notice with
     """
+    use_template = globals()[use_template]
     line = unicode('-' * 80) + '\n'
     templates = []
 
