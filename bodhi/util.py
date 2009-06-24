@@ -419,8 +419,8 @@ def sanity_check_repodata(myurl):
 
     updateinfo = os.path.join(myurl, 'updateinfo.xml.gz')
     if os.path.exists(updateinfo):
-        ret = subprocess.call(['zgrep', '<id/>', 'updateinfo.xml.gz'])
-        if not retcode:
+        ret = subprocess.call(['zgrep', '<id/>', updateinfo])
+        if not ret:
             raise RepodataException('updateinfo.xml.gz contains empty ID tags')
 
 
