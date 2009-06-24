@@ -661,7 +661,6 @@ class PackageUpdate(SQLObject):
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """
-        log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
         tasks = []
         newtag = '%s-updates-candidate' % self.release.dist_tag
@@ -669,6 +668,7 @@ class PackageUpdate(SQLObject):
         if curtag.endswith('-updates-candidate'):
             log.debug("%s already unpushed" % self.title)
             return
+        log.debug("Unpushing %s" % self.title)
         for build in self.builds:
             if build.inherited:
                 log.debug("Removing %s tag from inherited build %s" % (
