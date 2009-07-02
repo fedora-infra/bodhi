@@ -65,8 +65,6 @@ class Release(SQLObject):
             return '%s-updates-candidate' % self.dist_tag
 
     @property
-
-    @property
     def testing_tag(self):
         return '%s-testing' % self.dist_tag
 
