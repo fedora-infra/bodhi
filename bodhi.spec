@@ -117,6 +117,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 * Thu Jul 02 2009 Luke Macken <lmacken@redhat.com> - 0.6.0-0.1.beta
 - 0.6.0 beta
 
+* Mon Jun 22 2009 Luke Macken <lmacken@redhat.com> - 0.5.27-01
+- Latest upstream release to bring in fixed mash config files.
+
 * Fri Jun 12 2009 Luke Macken <lmacken@redhat.com> - 0.5.26-1
 - Latest upstream release with a variety of fixes and pkgdb-0.4 support.
 
