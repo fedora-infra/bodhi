@@ -850,11 +850,12 @@ class Bugzilla(SQLObject):
     def get_bz():
         me = config.get('bodhi_email')
         password = config.get('bodhi_password', None)
+        cookie = config.get('bz_cookie')
         if me and password:
             bz = bugzilla.Bugzilla(url=config.get("bz_server"), user=me,
-                                   password=password)
+                                   password=password, cookie=cookie)
         else:
-            bz = bugzilla.Bugzilla(url=config.get("bz_server"))
+            bz = bugzilla.Bugzilla(url=config.get("bz_server"), cookie=cookie)
         return bz
 
     def fetch_details(self, bug=None):
