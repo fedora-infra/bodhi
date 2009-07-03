@@ -88,18 +88,18 @@ class DevBuildsys(Buildsystem):
                     'creation_time': '2007-08-24 19:38:29.422344',
                     'epoch': None,
                     'id': 16058,
-                    'name': 'TurboGears',
-                    'nvr': 'TurboGears-1.0.2.2-2.fc8',
+                    'name': 'python-stomper',
+                    'nvr': 'python-stomper-0.2.2-8.el5',
                     'owner_id': 388,
                     'owner_name': 'lmacken',
                     'package_id': 8,
-                    'package_name': 'TurboGears',
-                    'release': '2.fc8',
+                    'package_name': 'python-stomper',
+                    'release': '8.el5',
                     'state': 1,
                     'tag_id': 19,
-                    'tag_name': 'dist-f8-updates-testing',
+                    'tag_name': 'dist-5E-epel-testing-candidate',
                     'task_id': 127621,
-                    'version': '1.0.2.2'}
+                    'version': '0.2.2'}
 
     def listBuildRPMs(self, *args, **kw):
         return [{'arch': 'src',
