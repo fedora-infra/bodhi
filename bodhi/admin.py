@@ -134,6 +134,7 @@ class AdminController(Controller, SecureResource):
             updates = []
         if not isinstance(updates, list):
             if isinstance(updates, basestring):
+                log.debug("Doing simplejson hack")
                 updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
             else:
                 updates = [updates]
