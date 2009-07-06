@@ -66,7 +66,7 @@ class Release(SQLObject):
 
     @property
     def testing_tag(self):
-        return '%s-testing' % self.dist_tag
+        return '%s-testing' % self.stable_tag
 
     @property
     def stable_tag(self):
