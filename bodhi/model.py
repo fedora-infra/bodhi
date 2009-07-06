@@ -550,11 +550,11 @@ class PackageUpdate(SQLObject):
         Get the tag that this build is currently tagged with.
         TODO: we should probably get this stuff from koji instead of guessing
         """
-        tag = '%s-updates' % self.release.dist_tag
+        tag = self.release.stable_tag
         if self.status in ('pending', 'obsolete'):
-            tag += '-candidate'
+            tag = self.release.candidate_tag
         elif self.status == 'testing':
-            tag += '-testing'
+            tag = self.release.testing_tag
         return tag
 
     def update_bugs(self, bugs):
