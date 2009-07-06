@@ -135,6 +135,26 @@ class TestPackageUpdate(testutil.DBTest):
         newest.assign_id()
         assert newest.updateid == 'FEDORA-2009-10002'
 
+    def test_epel_id(self):
+        """ Make sure we can handle id_prefixes that contain dashes. eg: FEDORA-EPEL """
+        # Create a normal Fedora update first
+        update = self.get_update()
+        update.assign_id()
+        assert update.updateid == 'FEDORA-%s-0001' % time.localtime()[0]
+
+        update = self.get_update(name='TurboGears-2.1-1.el5')
+        release = Release(name='EL-5', long_name='Fedora EPEL 5',
+                          dist_tag='dist-5E-epel', id_prefix='FEDORA-EPEL')
+        update.release = release
+        update.assign_id()
+        assert update.updateid == 'FEDORA-EPEL-%s-0001' % time.localtime()[0]
+
+        update = self.get_update(name='TurboGears-2.2-1.el5')
+        update.release = release
+        update.assign_id()
+        assert update.updateid == '%s-%s-0002' % (release.id_prefix,
+                                                  time.localtime()[0]), update.updateid
+
     def test_url(self):
         update = self.get_update()
         print "URL = ", update.get_url()

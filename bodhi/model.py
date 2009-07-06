@@ -295,7 +295,8 @@ class PackageUpdate(SQLObject):
 
         updates = PackageUpdate.select(
                     AND(PackageUpdate.q.date_pushed != None,
-                        PackageUpdate.q.updateid != None),
+                        PackageUpdate.q.updateid != None,
+                        PackageUpdate.q.releaseID == self.release.id),
                     orderBy=PackageUpdate.q.date_pushed, limit=1).reversed()
 
         try:
@@ -311,7 +312,9 @@ class PackageUpdate(SQLObject):
                     if other.updateid_int > update.updateid_int:
                         update = other
 
-            prefix, year, id = update.updateid.split('-')
+            split = update.updateid.split('-')
+            year, id = split[-2:]
+            prefix = '-'.join(split[:-2])
             if int(year) != time.localtime()[0]: # new year
                 id = 0
             id = int(id) + 1
@@ -798,8 +801,7 @@ class PackageUpdate(SQLObject):
         """ Return the integer $ID from the 'FEDORA-2008-$ID' updateid """
         if not self.updateid:
             return None
-        prefix, year, id = self.updateid.split('-')
-        return int(id)
+        return int(self.updateid.split('-')[-1])
 
 
 class Comment(SQLObject):
