@@ -419,8 +419,7 @@ class MashTask(Thread):
             os.chdir(dirname(comps_dir))
             cmd = 'cvs -d %s co comps' % config.get('comps_cvs')
             log.debug("running command: %s" % cmd)
-            subprocess.call('cvs -d %s co comps' % config.get('comps_cvs'),
-                            shell=True)
+            subprocess.call(cmd, shell=True)
         os.chdir(comps_dir)
         subprocess.call('cvs update', shell=True)
         subprocess.call('make', shell=True)
