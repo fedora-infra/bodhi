@@ -1,6 +1,6 @@
 # mash config file
 
-[5E-updates]
+[5E-epel]
 rpm_path = %(arch)s/
 source_path = SRPMS/
 debuginfo_path = %(arch)s/debug
