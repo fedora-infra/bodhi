@@ -338,19 +338,19 @@ class MashTask(Thread):
         for update in self.updates:
             release = update.release
             if self.resume:
-                self.repos.add(release.stable_tag)
-                self.repos.add(release.testing_tag)
+                self.repos.add(release.stable_tag.replace('dist-', ''))
+                self.repos.add(release.testing_tag.replace('dist-', ''))
             elif update.request == 'stable':
-                self.repos.add(release.stable_tag)
+                self.repos.add(release.stable_tag.replace('dist-', ''))
                 if update.status == 'testing':
-                    self.repos.add(release.testing_tag)
+                    self.repos.add(release.testing_tag.replace('dist-', ''))
             elif update.request == 'testing':
-                self.repos.add(release.testing_tag)
+                self.repos.add(release.testing_tag.replace('dist-', ''))
             elif update.request == 'obsolete':
                 if update.status == 'testing':
-                    self.repos.add(release.testing_tag)
+                    self.repos.add(release.testing_tag.replace('dist-', ''))
                 elif update.status == 'stable':
-                    self.repos.add(release.stable_tag)
+                    self.repos.add(release.stable_tag.replace('dist-', ''))
 
     def move_builds(self):
         """
