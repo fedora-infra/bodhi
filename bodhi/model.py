@@ -75,6 +75,22 @@ class Release(SQLObject):
         else:
             return '%s-updates' % self.dist_tag
 
+    @property
+    def stable_repo(self):
+        id = self.name.replace('-', '').lower()
+        if self.name.startswith('EL'):
+            return '%s-epel' % id
+        else:
+            return '%s-updates' % id
+
+    @property
+    def testing_repo(self):
+        id = self.name.replace('-', '').lower()
+        if self.name.startswith('EL'):
+            return '%s-epel-testing' % id
+        else:
+            return '%s-updates-testing' % id
+
     def __json__(self):
         return dict(name=self.name, long_name=self.long_name,
                     id_prefix=self.id_prefix, dist_tag=self.dist_tag,
