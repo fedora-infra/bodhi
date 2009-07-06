@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.6.0
-Release:        0.6.beta%{?dist}
+Release:        0.7.beta%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -114,6 +114,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Mon Jul 06 2009 Luke Macken <lmacken@redhat.com> - 0.6.0-0.7.beta
+- beta7
+
 * Mon Jul 06 2009 Luke Macken <lmacken@redhat.com> - 0.6.0-0.6.beta
 - beta6
 
