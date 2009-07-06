@@ -50,6 +50,9 @@ def get_parser():
     parser.add_option("--push-type", action="append", type="string",
                        dest="push_type",
                        help="Types of updates to push (releng only)")
+    parser.add_option("--push-release", action="append", type="string",
+                       dest="push_release",
+                       help="Types of updates to push (releng only)")
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",
@@ -197,6 +200,14 @@ def main():
                                       data['updates'])
                         fupdates += fdata
                     data['updates'] = fupdates
+                if opts.push_release:
+                    fupdates = []
+                    for prel in opts.push_release:
+                        fdata = filter(lambda x: x['release']['name'] == prel,
+                                       data['updates'])
+                        fupdates += fdata
+                    data['updates'] = fupdates
+
                 log.debug(data)
                 log.info("[ %d Pending Requests ]" % len(data['updates']))
                 for status in ('testing', 'stable', 'obsolete'):
