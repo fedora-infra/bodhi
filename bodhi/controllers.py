@@ -159,13 +159,11 @@ class Root(controllers.RootController):
         previous_url= cherrypy.request.path
 
         if identity.was_login_attempted():
-            msg=_("The credentials you supplied were not correct or "
-                  "did not grant access to this resource.")
+            msg="The credentials you supplied were not correct or did not grant access to this resource."
         elif identity.get_identity_errors():
-            msg=_("You must provide your credentials before accessing "
-                  "this resource.")
+            msg="You must provide your credentials before accessing this resource."
         else:
-            msg=_("Please log in.")
+            msg="Please log in."
             forward_url= cherrypy.request.headers.get("Referer", "/")
 
         # This seems to be the cause of some bodhi-client errors
