@@ -135,7 +135,11 @@ class AdminController(Controller, SecureResource):
         if not isinstance(updates, list):
             if isinstance(updates, basestring):
                 log.debug("Doing simplejson hack")
-                updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
+                try:
+                    updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
+                except:
+                    log.debug("Didn't work, assuming it's a single update...")
+                    updates = [updates]
             else:
                 updates = [updates]
 
