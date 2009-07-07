@@ -342,7 +342,8 @@ def main():
         except AuthError:
             bodhi.password = getpass('Password for %s: ' % opts.username)
         except ServerError, e:
-            log.error(e.message)
+            log.exception(e)
+            #log.error(e.message)
             sys.exit(-1)
         except urllib2.URLError, e:
             log.error(e)
