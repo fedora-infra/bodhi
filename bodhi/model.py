@@ -59,7 +59,7 @@ class Release(SQLObject):
 
     @property
     def candidate_tag(self):
-        if self.name.startswith('EL'):
+        if self.name.startswith('EL'): # EPEL Hack.
             return '%s-testing-candidate' % self.dist_tag
         else:
             return '%s-updates-candidate' % self.dist_tag
@@ -70,7 +70,7 @@ class Release(SQLObject):
 
     @property
     def stable_tag(self):
-        if self.name.startswith('EL'):
+        if self.name.startswith('EL'): # EPEL Hack.
             return self.dist_tag
         else:
             return '%s-updates' % self.dist_tag
@@ -78,7 +78,7 @@ class Release(SQLObject):
     @property
     def stable_repo(self):
         id = self.name.replace('-', '').lower()
-        if self.name.startswith('EL'):
+        if self.name.startswith('EL'): # EPEL Hack.
             return '%s-epel' % id
         else:
             return '%s-updates' % id

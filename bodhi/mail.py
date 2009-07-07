@@ -363,7 +363,7 @@ def get_template(update, use_template='fedora_errata_template'):
 
         # Find the most recent update for this package, other than this one
         lastpkg = build.get_latest()
-        log.debug("lastpkg = %s" % lastpkg)
+        #log.debug("lastpkg = %s" % lastpkg)
 
         # Grab the RPM header of the previous update, and generate a ChangeLog
         info['changelog'] = u""
@@ -397,15 +397,17 @@ def get_template(update, use_template='fedora_errata_template'):
     return templates
 
 def send_mail(sender, to, subject, body):
+    log.debug("send_mail(%s)" % locals())
     from turbomail import MailNotEnabledException
     message = turbomail.Message(sender, to, subject)
     message.plain = body
     try:
-        #log.debug("Sending mail: %s" % message.plain)
+        log.debug("Sending mail: %r" % message.plain)
         turbomail.enqueue(message)
     except MailNotEnabledException:
         log.warning("TurboMail is not enabled!")
     except Exception, e:
+        log.exception(e)
         log.error("Exception thrown when trying to send mail: %s" % str(e))
 
 def send(to, msg_type, update, sender=None):
