@@ -53,6 +53,10 @@ def get_parser():
     parser.add_option("--push-release", action="append", type="string",
                        dest="push_release",
                        help="Types of updates to push (releng only)")
+    parser.add_option("--push-build", action="append", type="string",
+                      dest="push_build", help="Push a specific builds (releng only)")
+    parser.add_option("--resume-push", action="store_true", dest="resume_push",
+                       help="Resume an unfinished push (releng only)")
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",
@@ -242,8 +246,10 @@ def main():
                 yes = sys.stdin.readline().strip()
                 if yes.lower() in ('y', 'yes'):
                     log.info("Pushing!")
-                    data = bodhi.push_updates([update['title'] for update in
-                                               data['updates']])
+                    params = {'updates': [update['title'] for update in data['updates']]}
+                    if opts.resume_push:
+                        params['resume'] = True
+                    data = bodhi.send_request('admin/mash', auth=True, req_params=params)
                     log.info(data['tg_flash'])
             elif opts.masher:
                 data = bodhi.masher()
