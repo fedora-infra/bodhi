@@ -167,6 +167,8 @@ class MashTask(Thread):
         self.tag = None
         self.updates = set()
         map(self.updates.add, updates)
+        # eg: MASHING-FEDORA, MASHING-FEDORA-EPEL
+        self.mash_lock_id = self.updates[0].release.id_prefix
         self.koji = buildsys.get_session()
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = repos
@@ -191,7 +193,7 @@ class MashTask(Thread):
         repositories to our MASHING lock """
         mashed_dir = config.get('mashed_dir')
         mash_stage = config.get('mashed_stage_dir')
-        mash_lock = join(mashed_dir, 'MASHING')
+        mash_lock = join(mashed_dir, 'MASHING-%s' % self.mash_lock_id)
         if not os.path.isdir(mashed_dir):
             log.info("Creating mashed_dir %s" % mashed_dir)
             os.makedirs(mashed_dir)
@@ -244,7 +246,8 @@ class MashTask(Thread):
             lock.close()
 
     def _unlock(self):
-        mash_lock = join(config.get('mashed_dir'), 'MASHING')
+        mash_lock = join(config.get('mashed_dir'), 'MASHING-%s' %
+                         self.mash_lock_id)
         if os.path.exists(mash_lock):
             os.unlink(mash_lock)
         else:
@@ -255,8 +258,9 @@ class MashTask(Thread):
         Update our masher state lockfile with any completed repos that we were
         able to compose during this push
         """
-        log.debug("Updating MASHING lock")
-        mash_lock = join(config.get('mashed_dir'), 'MASHING')
+        log.debug("Updating MASHING-%s lock" % self.mash_lock_id)
+        mash_lock = join(config.get('mashed_dir'), 'MASHING-%s' %
+                         self.mash_lock_id)
         lock = file(mash_lock, 'r')
         masher_state = pickle.load(lock)
         lock.close()
