@@ -486,24 +486,25 @@ class PackageUpdate(SQLObject):
         log.debug("Sending update notice for %s" % self.title)
         mailinglist = None
         sender = config.get('bodhi_email')
+        # eg: fedora_epel
+        release_name = self.release.id_prefix.lower().replace('-', '_')
         if not sender:
             log.error("bodhi_email not defined in configuration!  Unable " +
                       "to send update notice")
             return
         if self.status == 'stable':
-            mailinglist = config.get('%s_announce_list' %
-                              self.release.id_prefix.lower())
+            mailinglist = config.get('%s_announce_list' % release_name)
         elif self.status == 'testing':
-            mailinglist = config.get('%s_test_announce_list' %
-                              self.release.id_prefix.lower())
-        templatetype = config.get('%s-template' % self.release.id_prefix.lower())
+            mailinglist = config.get('%s_test_announce_list' % release_name)
+        templatetype = '%s_errata_template' % release_name
         if mailinglist:
             for subject, body in mail.get_template(self, templatetype):
                 message = turbomail.Message(sender, mailinglist, subject)
                 message.plain = body
                 try:
-                    turbomail.enqueue(message)
+                    log.debug(message)
                     log.debug("Sending mail: %s" % message.plain)
+                    turbomail.enqueue(message)
                 except turbomail.MailNotEnabledException:
                     log.warning("mail.on is not True!")
         else:
