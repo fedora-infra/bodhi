@@ -697,7 +697,7 @@ class MashTask(Thread):
         release = update.release
         self.updates.add(update)
         mashdir = config.get('mashed_dir')
-        repo = release.stable_tag
+        repo = release.stable_repo
         master_repomd = config.get('master_repomd')
         repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
         if not exists(repomd):
