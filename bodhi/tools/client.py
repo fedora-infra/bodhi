@@ -207,6 +207,9 @@ def main():
                                        data['updates'])
                         fupdates += fdata
                     data['updates'] = fupdates
+                if opts.push_build:
+                    data['updates'] = filter(lambda x: x['title'] in opts.push_build,
+                                             data['updates'])
 
                 log.debug(data)
                 log.info("[ %d Pending Requests ]" % len(data['updates']))
