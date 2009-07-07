@@ -220,6 +220,11 @@ class Root(controllers.RootController):
         updates = []
         orderBy = PackageUpdate.q.date_submitted
 
+        # Check the identity first of all
+        if mine and identity.current.anonymous:
+            cherrypy.response.status=401
+            return dict(updates=[], num_items=0, title='0 updates found')
+
         # If no arguments are specified, return the most recent updates
         if not release and not bugs and not cves and not status and not type_ \
            and not package and not mine and not username:
@@ -350,8 +355,7 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(
                        PackageUpdate.q.submitter == identity.current.user_name,
                     orderBy=PackageUpdate.q.date_submitted).reversed()
-        return dict(updates=request_format() == 'json' and 
-                    map(unicode, updates) or updates, title='%s\'s updates' %
+        return dict(updates=updates, title='%s\'s updates' %
                     identity.current.user_name, num_items=updates.count())
 
     @expose(allow_json=True)
