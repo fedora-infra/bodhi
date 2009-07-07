@@ -59,6 +59,13 @@ def clean_repo():
             if fullpath not in liverepos:
                 log.info("Removing %s" % fullpath)
                 subprocess.call(['rm', '-fr', fullpath])
+
+        # Bail out if a push started in the middle of this job
+        for lock in mash_locks:
+            if exists(lock):
+                log.warning('Mash lock detected!  Stopping clean_repo job.')
+                return
+
     log.info("clean_repo complete!")
 
 
