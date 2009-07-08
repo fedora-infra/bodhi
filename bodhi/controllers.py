@@ -450,8 +450,8 @@ class Root(controllers.RootController):
                     title='Edit Update')
 
     @expose(allow_json=True)
-    @json_redirect
     @error_handler(new.index)
+    @json_redirect
     @validate(form=update_form)
     @identity.require(identity.not_anonymous())
     def save(self, builds, type_, notes, bugs, close_bugs=False, edited=False,
