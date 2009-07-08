@@ -186,7 +186,7 @@ def schedule():
                                     interval=43200)
 
     # If we're the masher, then handle the costly metric regenration
-    if not config.get('masher'):
+    if not config.get('masher') and 'refresh_metrics' in jobs:
         log.debug("Scheduling refresh_metrics job")
         scheduler.add_interval_task(action=refresh_metrics,
                                     taskname='Refresh our metrics',
