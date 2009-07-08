@@ -707,7 +707,7 @@ class PackageUpdate(SQLObject):
         """ Move this update back to its dist-fX-updates-candidate tag """
         koji = buildsys.get_session()
         tasks = []
-        newtag = '%s-updates-candidate' % self.release.dist_tag
+        newtag = self.release.candidate_tag
         curtag = self.get_build_tag()
         if curtag.endswith('-updates-candidate'):
             log.debug("%s already unpushed" % self.title)
