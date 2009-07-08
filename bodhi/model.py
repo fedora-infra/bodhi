@@ -381,7 +381,7 @@ class PackageUpdate(SQLObject):
                 mybuild['nvr'] = "%s-%s-%s" % (mybuild['name'],
                                                mybuild['version'],
                                                mybuild['release'])
-                kojiBuilds = koji.listTagged(self.release.dist_tag + '-updates',
+                kojiBuilds = koji.listTagged(self.release.stable_tag,
                                              package=build.package.name,
                                              latest=True)
                 for oldBuild in kojiBuilds:
@@ -709,7 +709,7 @@ class PackageUpdate(SQLObject):
         tasks = []
         newtag = self.release.candidate_tag
         curtag = self.get_build_tag()
-        if curtag.endswith('-updates-candidate'):
+        if curtag == self.release.candidate_tag:
             log.debug("%s already unpushed" % self.title)
             return
         log.debug("Unpushing %s" % self.title)
