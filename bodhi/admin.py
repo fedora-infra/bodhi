@@ -166,7 +166,8 @@ class AdminController(Controller, SecureResource):
         from bodhi.masher import masher
         mash_data = {'mashing': False, 'updates': []}
         mashed_dir = config.get('mashed_dir')
-        mash_lock = join(mashed_dir, 'MASHING')
+        masher_lock_id = config.get('masher_lock_id', 'FEDORA')
+        mash_lock = join(mashed_dir, 'MASHING-%s' % masher_lock_id)
         if exists(mash_lock):
             mash_lock = file(mash_lock)
             mash_state = pickle.load(mash_lock)
