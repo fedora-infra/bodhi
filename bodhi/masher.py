@@ -167,6 +167,8 @@ class MashTask(Thread):
         self.tag = None
         self.updates = set()
         map(self.updates.add, updates)
+        # eg: MASHING-FEDORA, MASHING-FEDORA-EPEL
+        self.mash_lock_id = self.updates[0].release.id_prefix
         self.koji = buildsys.get_session()
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = repos
@@ -191,7 +193,7 @@ class MashTask(Thread):
         repositories to our MASHING lock """
         mashed_dir = config.get('mashed_dir')
         mash_stage = config.get('mashed_stage_dir')
-        mash_lock = join(mashed_dir, 'MASHING')
+        mash_lock = join(mashed_dir, 'MASHING-%s' % self.mash_lock_id)
         if not os.path.isdir(mashed_dir):
             log.info("Creating mashed_dir %s" % mashed_dir)
             os.makedirs(mashed_dir)
@@ -244,7 +246,8 @@ class MashTask(Thread):
             lock.close()
 
     def _unlock(self):
-        mash_lock = join(config.get('mashed_dir'), 'MASHING')
+        mash_lock = join(config.get('mashed_dir'), 'MASHING-%s' %
+                         self.mash_lock_id)
         if os.path.exists(mash_lock):
             os.unlink(mash_lock)
         else:
@@ -255,8 +258,9 @@ class MashTask(Thread):
         Update our masher state lockfile with any completed repos that we were
         able to compose during this push
         """
-        log.debug("Updating MASHING lock")
-        mash_lock = join(config.get('mashed_dir'), 'MASHING')
+        log.debug("Updating MASHING-%s lock" % self.mash_lock_id)
+        mash_lock = join(config.get('mashed_dir'), 'MASHING-%s' %
+                         self.mash_lock_id)
         lock = file(mash_lock, 'r')
         masher_state = pickle.load(lock)
         lock.close()
@@ -285,14 +289,11 @@ class MashTask(Thread):
         for update in self.updates:
             if not pending_nvrs.has_key(update.release.name):
                 pending_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged('%s-updates-candidate' %
-                                             update.release.dist_tag)]
+                        self.koji.listTagged(update.release.candidate_tag)]
                 testing_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged('%s-updates-testing' %
-                                             update.release.dist_tag)]
+                        self.koji.listTagged(update.release.testing_tag)]
                 stable_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged('%s-updates' %
-                                             update.release.dist_tag)]
+                        self.koji.listTagged(update.release.stable_tag)]
 
         for update in self.updates:
             for build in update.builds:
@@ -339,21 +340,21 @@ class MashTask(Thread):
         mash during this push
         """
         for update in self.updates:
-            release = update.release.name.lower()
+            release = update.release
             if self.resume:
-                self.repos.add('%s-updates' % release)
-                self.repos.add('%s-updates-testing' % release)
+                self.repos.add(release.stable_repo)
+                self.repos.add(release.testing_repo)
             elif update.request == 'stable':
-                self.repos.add('%s-updates' % release)
+                self.repos.add(release.stable_repo)
                 if update.status == 'testing':
-                    self.repos.add('%s-updates-testing' % release)
+                    self.repos.add(release.testing_repo)
             elif update.request == 'testing':
-                self.repos.add('%s-updates-testing' % release)
+                self.repos.add(release.testing_repo)
             elif update.request == 'obsolete':
                 if update.status == 'testing':
-                    self.repos.add('%s-updates-testing' % release)
+                    self.repos.add(release.testing_repo)
                 elif update.status == 'stable':
-                    self.repos.add('%s-updates' % release)
+                    self.repos.add(release.stable_repo)
 
     def move_builds(self):
         """
@@ -368,11 +369,11 @@ class MashTask(Thread):
         self.koji.multicall = True
         for update in self.updates:
             if update.request == 'stable':
-                self.tag = update.release.dist_tag + '-updates'
+                self.tag = update.release.stable_tag
             elif update.request == 'testing':
-                self.tag = update.release.dist_tag + '-updates-testing'
+                self.tag = update.release.testing_tag
             elif update.request == 'obsolete':
-                self.tag = update.release.dist_tag + '-updates-candidate'
+                self.tag = update.release.candidate_tag
             current_tag = update.get_build_tag()
             for build in update.builds:
                 if build.inherited:
@@ -386,6 +387,7 @@ class MashTask(Thread):
                 self.actions.append((build.nvr, current_tag, self.tag))
 
         results = self.koji.multiCall()
+        log.debug("results = %r" % results)
         if not buildsys.wait_for_tasks([task[0] for task in results]):
             self.success = True
         self.moving = False
@@ -421,8 +423,7 @@ class MashTask(Thread):
             os.chdir(dirname(comps_dir))
             cmd = 'cvs -d %s co comps' % config.get('comps_cvs')
             log.debug("running command: %s" % cmd)
-            subprocess.call('cvs -d %s co comps' % config.get('comps_cvs'),
-                            shell=True)
+            subprocess.call(cmd, shell=True)
         os.chdir(comps_dir)
         subprocess.call('cvs update', shell=True)
         subprocess.call('make', shell=True)
@@ -659,7 +660,7 @@ class MashTask(Thread):
         prefix = update.release.long_name
         if not self.testing_digest.has_key(prefix):
             self.testing_digest[prefix] = {}
-        for i, subbody in enumerate(mail.get_template(update,use_template=mail.maillist_template)):
+        for i, subbody in enumerate(mail.get_template(update,use_template='maillist_template')):
             self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
     def send_digest_mail(self):
@@ -700,7 +701,7 @@ class MashTask(Thread):
         release = update.release
         self.updates.add(update)
         mashdir = config.get('mashed_dir')
-        repo = "%s-updates" % release.name.lower()
+        repo = release.stable_repo
         master_repomd = config.get('master_repomd')
         repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
         if not exists(repomd):

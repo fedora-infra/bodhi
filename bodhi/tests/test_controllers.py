@@ -1030,7 +1030,7 @@ class TestControllers(testutil.DBTest):
 
         # Create a MASHING lock with this update in it
         config.update({'global': {'mashed_dir': os.getcwd()}})
-        mash_lock = file(os.path.join(config.get('mashed_dir'), 'MASHING'), 'w')
+        mash_lock = file(os.path.join(config.get('mashed_dir'), 'MASHING-FEDORA'), 'w')
         mash_lock.write(pickle.dumps({'updates': [params['builds'],], 'repos': []}))
         mash_lock.close()
 

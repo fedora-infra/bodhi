@@ -79,6 +79,7 @@ class ExtendedMetadata:
         """
         log.debug("Fetching builds tagged with '%s'" % self.tag)
         kojiBuilds = self.koji.listTagged(self.tag, latest=True)
+        nonexistent = []
         log.debug("%d builds found" % len(kojiBuilds))
         for build in kojiBuilds:
             self.builds[build['nvr']] = build
@@ -88,7 +89,9 @@ class ExtendedMetadata:
                     if update.status in ('testing', 'stable'):
                         self.updates.add(update)
             except SQLObjectNotFound, e:
-                log.warning(e)
+                nonexistent.append(build['nvr'])
+        log.warning("Couldn't find the following koji builds tagged as "
+                    "%s in bodhi: %s" % (self.tag, nonexistent))
 
     def _create_document(self):
         log.debug("Creating new updateinfo Document for %s" % self.tag)

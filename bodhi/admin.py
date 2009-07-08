@@ -134,7 +134,12 @@ class AdminController(Controller, SecureResource):
             updates = []
         if not isinstance(updates, list):
             if isinstance(updates, basestring):
-                updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
+                log.debug("Doing simplejson hack")
+                try:
+                    updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
+                except:
+                    log.debug("Didn't work, assuming it's a single update...")
+                    updates = [updates]
             else:
                 updates = [updates]
 
@@ -161,7 +166,8 @@ class AdminController(Controller, SecureResource):
         from bodhi.masher import masher
         mash_data = {'mashing': False, 'updates': []}
         mashed_dir = config.get('mashed_dir')
-        mash_lock = join(mashed_dir, 'MASHING')
+        masher_lock_id = config.get('masher_lock_id', 'FEDORA')
+        mash_lock = join(mashed_dir, 'MASHING-%s' % masher_lock_id)
         if exists(mash_lock):
             mash_lock = file(mash_lock)
             mash_state = pickle.load(mash_lock)

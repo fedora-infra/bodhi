@@ -40,9 +40,13 @@ def clean_repo():
     log.info("Starting clean_repo job")
     liverepos = []
     repos = config.get('mashed_dir')
-    if exists(join(repos, 'MASHING')):
-        log.info("Mash in progress.  Aborting clean_repo job")
-        return
+    mash_locks = set()
+    for release in Release.select():
+        lock = join(repos, 'MASHING-%s' % release.id_prefix)
+        mash_locks.add(lock)
+        if exists(lock):
+            log.info("Mash in progress.  Aborting clean_repo job")
+            return
     for release in [rel.name.lower() for rel in Release.select()]:
         # TODO: keep the 2 most recent repos!
         for repo in [release + '-updates', release + '-updates-testing']:
@@ -55,6 +59,13 @@ def clean_repo():
             if fullpath not in liverepos:
                 log.info("Removing %s" % fullpath)
                 subprocess.call(['rm', '-fr', fullpath])
+
+        # Bail out if a push started in the middle of this job
+        for lock in mash_locks:
+            if exists(lock):
+                log.warning('Mash lock detected!  Stopping clean_repo job.')
+                return
+
     log.info("clean_repo complete!")
 
 

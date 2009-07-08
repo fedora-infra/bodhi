@@ -50,6 +50,13 @@ def get_parser():
     parser.add_option("--push-type", action="append", type="string",
                        dest="push_type",
                        help="Types of updates to push (releng only)")
+    parser.add_option("--push-release", action="append", type="string",
+                       dest="push_release",
+                       help="Types of updates to push (releng only)")
+    parser.add_option("--push-build", action="append", type="string",
+                      dest="push_build", help="Push a specific builds (releng only)")
+    parser.add_option("--resume-push", action="store_true", dest="resume_push",
+                       help="Resume an unfinished push (releng only)")
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",
@@ -197,6 +204,17 @@ def main():
                                       data['updates'])
                         fupdates += fdata
                     data['updates'] = fupdates
+                if opts.push_release:
+                    fupdates = []
+                    for prel in opts.push_release:
+                        fdata = filter(lambda x: x['release']['name'] == prel,
+                                       data['updates'])
+                        fupdates += fdata
+                    data['updates'] = fupdates
+                if opts.push_build:
+                    data['updates'] = filter(lambda x: x['title'] in opts.push_build,
+                                             data['updates'])
+
                 log.debug(data)
                 log.info("[ %d Pending Requests ]" % len(data['updates']))
                 for status in ('testing', 'stable', 'obsolete'):
@@ -228,8 +246,10 @@ def main():
                 yes = sys.stdin.readline().strip()
                 if yes.lower() in ('y', 'yes'):
                     log.info("Pushing!")
-                    data = bodhi.push_updates([update['title'] for update in
-                                               data['updates']])
+                    params = {'updates': [update['title'] for update in data['updates']]}
+                    if opts.resume_push:
+                        params['resume'] = True
+                    data = bodhi.send_request('admin/mash', auth=True, req_params=params)
                     log.info(data['tg_flash'])
             elif opts.masher:
                 data = bodhi.masher()
@@ -322,7 +342,8 @@ def main():
         except AuthError:
             bodhi.password = getpass('Password for %s: ' % opts.username)
         except ServerError, e:
-            log.error(e.message)
+            log.exception(e)
+            #log.error(e.message)
             sys.exit(-1)
         except urllib2.URLError, e:
             log.error(e)

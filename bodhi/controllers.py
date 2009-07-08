@@ -159,13 +159,11 @@ class Root(controllers.RootController):
         previous_url= cherrypy.request.path
 
         if identity.was_login_attempted():
-            msg=_("The credentials you supplied were not correct or "
-                  "did not grant access to this resource.")
+            msg="The credentials you supplied were not correct or did not grant access to this resource."
         elif identity.get_identity_errors():
-            msg=_("You must provide your credentials before accessing "
-                  "this resource.")
+            msg="You must provide your credentials before accessing this resource."
         else:
-            msg=_("Please log in.")
+            msg="Please log in."
             forward_url= cherrypy.request.headers.get("Referer", "/")
 
         # This seems to be the cause of some bodhi-client errors
@@ -221,6 +219,11 @@ class Root(controllers.RootController):
         query = []
         updates = []
         orderBy = PackageUpdate.q.date_submitted
+
+        # Check the identity first of all
+        if mine and identity.current.anonymous:
+            cherrypy.response.status=401
+            return dict(updates=[], num_items=0, title='0 updates found')
 
         # If no arguments are specified, return the most recent updates
         if not release and not bugs and not cves and not status and not type_ \
@@ -352,8 +355,7 @@ class Root(controllers.RootController):
         updates = PackageUpdate.select(
                        PackageUpdate.q.submitter == identity.current.user_name,
                     orderBy=PackageUpdate.q.date_submitted).reversed()
-        return dict(updates=request_format() == 'json' and 
-                    map(unicode, updates) or updates, title='%s\'s updates' %
+        return dict(updates=updates, title='%s\'s updates' %
                     identity.current.user_name, num_items=updates.count())
 
     @expose(allow_json=True)
@@ -601,20 +603,21 @@ class Root(controllers.RootController):
 
             # Determine which release this build is a candidate for
             for tag in tags:
-                dist = tag.split('-updates-candidate')
-                if len(dist) == 2: # candidate tag
-                    rel = Release.selectBy(dist_tag=dist[0])
-                    if rel.count():
-                        rel = rel[0]
-                        log.debug("Adding %s for %s" % (rel.name, build))
-                        if not releases.has_key(rel):
-                            releases[rel] = []
-                        if build not in releases[rel]:
-                            releases[rel].append(build)
-                        buildinfo[build]['releases'].add(rel)
-                        valid = True
-                    else:
-                        log.error("Cannot find release for %s" % dist[0])
+                rel = None
+                for r in Release.select():
+                    if tag == r.candidate_tag:
+                        rel = r
+                        break
+                if rel:
+                    log.debug("Adding %s for %s" % (rel.name, build))
+                    if not releases.has_key(rel):
+                        releases[rel] = []
+                    if build not in releases[rel]:
+                        releases[rel].append(build)
+                    buildinfo[build]['releases'].add(rel)
+                    valid = True
+                else:
+                    log.debug("%s not a candidate tag" % tag)
 
             # if we're using build inheritance, iterate over each release
             # looking to see if the latest build in its candidate tag 
@@ -622,7 +625,7 @@ class Root(controllers.RootController):
             if inheritance:
                 log.info("Following build inheritance")
                 for rel in Release.select():
-                    b = koji.listTagged(rel.dist_tag + '-updates-candidate',
+                    b = koji.listTagged(rel.candidate_tag,
                                         inherit=True, latest=True,
                                         package=buildinfo[build]['nvr'][0])[0]
                     if b['nvr'] == build:
@@ -647,8 +650,7 @@ class Root(controllers.RootController):
             # Check for broken update paths
             log.info("Checking for broken update paths")
             for release in buildinfo[build]['releases']:
-                tags = ['dist-rawhide', release.dist_tag,
-                        release.dist_tag + '-updates']
+                tags = ['dist-rawhide', release.dist_tag, release.stable_tag]
                 for tag in tags:
                     pkg = buildinfo[build]['nvr'][0]
                     for oldBuild in koji.listTagged(tag, package=pkg,
@@ -1118,8 +1120,7 @@ class Root(controllers.RootController):
         builds = {}
         koji = buildsys.get_session()
         for release in Release.select():
-            for tag in ('updates-candidate', 'updates-testing', 'updates'):
-                tag = '%s-%s' % (release.dist_tag, tag)
+            for tag in (release.candidate_tag, release.testing_tag, release.stable_tag):
                 for build in koji.getLatestBuilds(tag, package=package):
                     builds[tag] = build['nvr']
         return builds

@@ -57,6 +57,40 @@ class Release(SQLObject):
         regex = re.compile('\D+(\d+)$')
         return int(regex.match(self.name).groups()[0])
 
+    @property
+    def candidate_tag(self):
+        if self.name.startswith('EL'): # EPEL Hack.
+            return '%s-testing-candidate' % self.dist_tag
+        else:
+            return '%s-updates-candidate' % self.dist_tag
+
+    @property
+    def testing_tag(self):
+        return '%s-testing' % self.stable_tag
+
+    @property
+    def stable_tag(self):
+        if self.name.startswith('EL'): # EPEL Hack.
+            return self.dist_tag
+        else:
+            return '%s-updates' % self.dist_tag
+
+    @property
+    def stable_repo(self):
+        id = self.name.replace('-', '').lower()
+        if self.name.startswith('EL'): # EPEL Hack.
+            return '%s-epel' % id
+        else:
+            return '%s-updates' % id
+
+    @property
+    def testing_repo(self):
+        id = self.name.replace('-', '').lower()
+        if self.name.startswith('EL'):
+            return '%s-epel-testing' % id
+        else:
+            return '%s-updates-testing' % id
+
     def __json__(self):
         return dict(name=self.name, long_name=self.long_name,
                     id_prefix=self.id_prefix, dist_tag=self.dist_tag,
@@ -163,8 +197,8 @@ class PackageBuild(SQLObject):
         # there could potentially be packages that never make their way over
         # -updates, so we don't want to generate ChangeLogs against those.
         nvr = get_nvr(self.nvr)
-        for tag in ['%s-updates', '%s']:
-            tag %= self.updates[0].release.dist_tag
+        release = self.updates[0].release
+        for tag in [release.stable_tag, release.dist_tag]:
             builds = koji_session.getLatestBuilds(tag, None, self.package.name)
             latest = None
 
@@ -261,7 +295,8 @@ class PackageUpdate(SQLObject):
 
         updates = PackageUpdate.select(
                     AND(PackageUpdate.q.date_pushed != None,
-                        PackageUpdate.q.updateid != None),
+                        PackageUpdate.q.updateid != None,
+                        PackageUpdate.q.releaseID == self.release.id),
                     orderBy=PackageUpdate.q.date_pushed, limit=1).reversed()
 
         try:
@@ -277,7 +312,9 @@ class PackageUpdate(SQLObject):
                     if other.updateid_int > update.updateid_int:
                         update = other
 
-            prefix, year, id = update.updateid.split('-')
+            split = update.updateid.split('-')
+            year, id = split[-2:]
+            prefix = '-'.join(split[:-2])
             if int(year) != time.localtime()[0]: # new year
                 id = 0
             id = int(id) + 1
@@ -449,23 +486,25 @@ class PackageUpdate(SQLObject):
         log.debug("Sending update notice for %s" % self.title)
         mailinglist = None
         sender = config.get('bodhi_email')
+        # eg: fedora_epel
+        release_name = self.release.id_prefix.lower().replace('-', '_')
         if not sender:
             log.error("bodhi_email not defined in configuration!  Unable " +
                       "to send update notice")
             return
         if self.status == 'stable':
-            mailinglist = config.get('%s_announce_list' %
-                              self.release.id_prefix.lower())
+            mailinglist = config.get('%s_announce_list' % release_name)
         elif self.status == 'testing':
-            mailinglist = config.get('%s_test_announce_list' %
-                              self.release.id_prefix.lower())
+            mailinglist = config.get('%s_test_announce_list' % release_name)
+        templatetype = '%s_errata_template' % release_name
         if mailinglist:
-            for subject, body in mail.get_template(self):
+            for subject, body in mail.get_template(self, templatetype):
                 message = turbomail.Message(sender, mailinglist, subject)
                 message.plain = body
                 try:
-                    turbomail.enqueue(message)
+                    log.debug(message)
                     log.debug("Sending mail: %s" % message.plain)
+                    turbomail.enqueue(message)
                 except turbomail.MailNotEnabledException:
                     log.warning("mail.on is not True!")
         else:
@@ -531,11 +570,11 @@ class PackageUpdate(SQLObject):
         Get the tag that this build is currently tagged with.
         TODO: we should probably get this stuff from koji instead of guessing
         """
-        tag = '%s-updates' % self.release.dist_tag
+        tag = self.release.stable_tag
         if self.status in ('pending', 'obsolete'):
-            tag += '-candidate'
+            tag = self.release.candidate_tag
         elif self.status == 'testing':
-            tag += '-testing'
+            tag = self.release.testing_tag
         return tag
 
     def update_bugs(self, bugs):
@@ -763,8 +802,7 @@ class PackageUpdate(SQLObject):
         """ Return the integer $ID from the 'FEDORA-2008-$ID' updateid """
         if not self.updateid:
             return None
-        prefix, year, id = self.updateid.split('-')
-        return int(id)
+        return int(self.updateid.split('-')[-1])
 
 
 class Comment(SQLObject):
@@ -831,11 +869,12 @@ class Bugzilla(SQLObject):
     def get_bz():
         me = config.get('bodhi_email')
         password = config.get('bodhi_password', None)
+        cookie = config.get('bz_cookie')
         if me and password:
             bz = bugzilla.Bugzilla(url=config.get("bz_server"), user=me,
-                                   password=password)
+                                   password=password, cookiefile=cookie)
         else:
-            bz = bugzilla.Bugzilla(url=config.get("bz_server"))
+            bz = bugzilla.Bugzilla(url=config.get("bz_server"), cookiefile=cookie)
         return bz
 
     def fetch_details(self, bug=None):
@@ -897,7 +936,7 @@ class Bugzilla(SQLObject):
             log.debug("Setting Bug #%d to ON_QA" % self.bz_id)
             try:
                 bug = bz.getbug(self.bz_id)
-                if bug.product != 'Fedora':
+                if bug.product != 'Fedora' and bug.product != 'Fedora EPEL':
                     log.warning("Skipping %r bug" % bug.product)
                     return
                 bug.setstatus('ON_QA', comment=comment)
@@ -909,15 +948,15 @@ class Bugzilla(SQLObject):
     def close_bug(self, update):
         """Close this bugzilla with details from an update.
 
-        This method will only close Fedora bugs, and it will close them with
-        the status of `ERRATA`.   For details on why this is so, see this
-        ticket: https://fedorahosted.org/bodhi/ticket/320
+        This method will only close Fedora or Fedora EPEL bugs, and it will
+        close them with the status of `ERRATA`.   For details on why this
+        is so, see this ticket: https://fedorahosted.org/bodhi/ticket/320
         """
         bz = Bugzilla.get_bz()
         try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             bug = bz.getbug(self.bz_id)
-            if bug.product != 'Fedora':
+            if bug.product != 'Fedora' and bug.product != 'Fedora EPEL':
                 log.warning("Not closing %r bug" % bug.product)
                 return
             bug.close('ERRATA', fixedin=ver)

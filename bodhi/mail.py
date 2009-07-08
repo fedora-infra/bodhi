@@ -229,7 +229,7 @@ the link below:
 
 }
 
-errata_template = u"""\
+fedora_errata_template = u"""\
 --------------------------------------------------------------------------------
 Fedora%(testing)s Update Notification
 %(updateid)s
@@ -258,6 +258,35 @@ http://fedoraproject.org/keys
 --------------------------------------------------------------------------------
 """
 
+fedora_epel_errata_template = u"""\
+--------------------------------------------------------------------------------
+Fedora EPEL%(testing)s Update Notification
+%(updateid)s
+%(date)s
+--------------------------------------------------------------------------------
+
+Name        : %(name)s
+Product     : %(product)s
+Version     : %(version)s
+Release     : %(release)s
+URL         : %(url)s
+Summary     : %(summary)s
+Description :
+%(description)s
+
+--------------------------------------------------------------------------------
+%(notes)s%(changelog)s%(references)s
+This update can be installed with the "yum" update programs.  Use
+su -c 'yum%(yum_repository)s update %(name)s' at the command line.
+For more information, refer to "Managing Software with yum",
+available at http://docs.fedoraproject.org/yum/.
+
+All packages are signed with the Fedora EPEL GPG key.  More details on the
+GPG keys used by the Fedora Project can be found at
+https://fedoraproject.org/keys
+--------------------------------------------------------------------------------
+"""
+
 maillist_template = u"""\
 ================================================================================
  %(name)s-%(version)s-%(release)s (%(updateid)s)
@@ -267,11 +296,12 @@ maillist_template = u"""\
 """
 
 
-def get_template(update, use_template=errata_template):
+def get_template(update, use_template='fedora_errata_template'):
     """
     Build the update notice for a given update.
     @param use_template: the template to generate this notice with
     """
+    use_template = globals()[use_template]
     line = unicode('-' * 80) + '\n'
     templates = []
 
@@ -333,7 +363,7 @@ def get_template(update, use_template=errata_template):
 
         # Find the most recent update for this package, other than this one
         lastpkg = build.get_latest()
-        log.debug("lastpkg = %s" % lastpkg)
+        #log.debug("lastpkg = %s" % lastpkg)
 
         # Grab the RPM header of the previous update, and generate a ChangeLog
         info['changelog'] = u""
@@ -367,15 +397,17 @@ def get_template(update, use_template=errata_template):
     return templates
 
 def send_mail(sender, to, subject, body):
+    log.debug("send_mail(%s)" % locals())
     from turbomail import MailNotEnabledException
     message = turbomail.Message(sender, to, subject)
     message.plain = body
     try:
-        #log.debug("Sending mail: %s" % message.plain)
+        log.debug("Sending mail: %r" % message.plain)
         turbomail.enqueue(message)
     except MailNotEnabledException:
         log.warning("TurboMail is not enabled!")
     except Exception, e:
+        log.exception(e)
         log.error("Exception thrown when trying to send mail: %s" % str(e))
 
 def send(to, msg_type, update, sender=None):
