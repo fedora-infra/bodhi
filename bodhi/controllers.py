@@ -551,10 +551,22 @@ class Root(controllers.RootController):
             }
             pkg = buildinfo[build]['nvr'][0]
             try:
-                # Grab a list of committers.  Note that this currently only
-                # gets people who can commit to the devel branch of the
-                # Fedora collection.
-                people, groups = get_pkg_pushers(pkg)
+                # Grab a list of committers.
+                pkgdb_args = {
+                        'collectionName': 'Fedora',
+                        'collectionVersion': 'devel',
+                }
+                dist = buildinfo[build]['nvr'][2].split('.')[1]
+                if dist.startswith('el'):
+                    pkgdb_args['collectionName'] = 'Fedora EPEL'
+                    pkgdb_args['collectionVersion'] = dist.split('el')[1]
+                elif dist.startswith('fc'):
+                    pkgdb_args['collectionVersion'] = dist.split('fc')[1]
+                else:
+                    log.error("Cannot detect dist from release tag: %s" % dist)
+                    log.info("Defaulting to Fedora rawhide...")
+
+                people, groups = get_pkg_pushers(pkg, **pkgdb_args)
                 people = people[0] # we only care about committers, not watchers
                 buildinfo[build]['people'] = people
             except urllib2.URLError:
