@@ -569,7 +569,7 @@ class Root(controllers.RootController):
                     if release.candidate_tag in tags or \
                        release.testing_tag in tags:
                         pkgdb_args['collectionName'] = release.collection_name
-                        pkgdb_args['collectionVersion'] = release.get_version()
+                        pkgdb_args['collectionVersion'] = str(release.get_version())
 
                 people, groups = get_pkg_pushers(pkg, **pkgdb_args)
                 people = people[0] # we only care about committers, not watchers
