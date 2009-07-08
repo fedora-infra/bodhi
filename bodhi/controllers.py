@@ -546,25 +546,30 @@ class Root(controllers.RootController):
             people = None
             groups = None
             buildinfo[build] = {
-                    'nvr'       : util.get_nvr(build),
-                    'releases'  : set()
+                    'nvr'      : util.get_nvr(build),
+                    'tags'     : [],
+                    'people'   : [],
+                    'releases' : set(),
             }
             pkg = buildinfo[build]['nvr'][0]
+            try:
+                buildinfo[build]['tags'] = [tag['name'] for tag in
+                                            koji.listTags(build)]
+            except GenericError:
+                flash_log("Invalid build: %s" % build)
+                raise InvalidUpdateException(params)
             try:
                 # Grab a list of committers.
                 pkgdb_args = {
                         'collectionName': 'Fedora',
                         'collectionVersion': 'devel',
                 }
-                dist = buildinfo[build]['nvr'][2].split('.')[1]
-                if dist.startswith('el'):
-                    pkgdb_args['collectionName'] = 'Fedora EPEL'
-                    pkgdb_args['collectionVersion'] = dist.split('el')[1]
-                elif dist.startswith('fc'):
-                    pkgdb_args['collectionVersion'] = dist.split('fc')[1]
-                else:
-                    log.error("Cannot detect dist from release tag: %s" % dist)
-                    log.info("Defaulting to Fedora rawhide...")
+                tags = buildinfo[build]['tags']
+                for release in Release.select():
+                    if release.candidate_tag in tags or \
+                       release.testing_tag in tags:
+                        pkgdb_args['collectionName'] = release.collection_name
+                        pkgdb_args['collectionVersion'] = release.get_version()
 
                 people, groups = get_pkg_pushers(pkg, **pkgdb_args)
                 people = people[0] # we only care about committers, not watchers
@@ -607,11 +612,7 @@ class Root(controllers.RootController):
         # which builds get pushed for which releases, based on the tag.
         for build in builds:
             valid = False
-            try:
-                tags = [tag['name'] for tag in koji.listTags(build)]
-            except GenericError:
-                flash_log("Invalid build: %s" % build)
-                raise InvalidUpdateException(params)
+            tags = buildinfo[build]['tags']
 
             # Determine which release this build is a candidate for
             for tag in tags:

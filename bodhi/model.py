@@ -58,6 +58,11 @@ class Release(SQLObject):
         return int(regex.match(self.name).groups()[0])
 
     @property
+    def collection_name(self):
+        """ Return the collection name of this release.  (eg: Fedora EPEL) """
+        return ' '.join(self.long_name.split()[:-1])
+
+    @property
     def candidate_tag(self):
         if self.name.startswith('EL'): # EPEL Hack.
             return '%s-testing-candidate' % self.dist_tag
