@@ -11,6 +11,7 @@ tag = dist-4E-epel-testing
 inherit = False
 strict_keys = True
 keys = 217521f6
+use_repoview = True
 repoviewurl = http://download.fedoraproject.org/pub/epel/testing/4/%(arch)s/
 repoviewtitle = "Fedora EPEL 4 Testing - %(arch)s"
 arches = i386 x86_64 ppc 
