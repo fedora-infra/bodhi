@@ -880,7 +880,6 @@ class Bugzilla(SQLObject):
                                    password=password, cookiefile=cookie)
         else:
             bz = bugzilla.Bugzilla(url=config.get("bz_server"), cookiefile=cookie)
-        bz.multicall = False
         return bz
 
     def fetch_details(self, bug=None):
