@@ -189,7 +189,7 @@ def flash_log(msg):
 
 def get_release_names():
     from bodhi.tools.init import releases
-    return map(lambda release: release['long_name'], releases)
+    return [release['long_name'] for release in releases]
 
 def get_release_tuples():
     from bodhi.tools.init import releases
