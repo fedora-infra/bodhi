@@ -771,6 +771,10 @@ class Root(controllers.RootController):
             except xmlrpclib.Fault, f:
                 log.exception(f)
                 note.insert(0, "Unable to access one or more bugs")
+            except Exception, e:
+                log.error("Unknown exception thrown from python-bugzilla!")
+                note.insert(0, "Unable to access one or more bugs.  Exception: %s" % e)
+
 
             # If there are any security bugs, make sure this update is
             # properly marked as a security update
