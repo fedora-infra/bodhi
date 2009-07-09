@@ -687,8 +687,8 @@ class MashTask(Thread):
             release = Release.select(Release.q.long_name==prefix)[0]
             mail.send_mail(config.get('bodhi_email'),
                       config.get('%s_test_announce_list' %
-                                 release.id_prefix.lower().replace('-', '_')),
-                      '%s updates-testing report' % prefix.title(),
+                          release.id_prefix.lower().replace('-', '_')),
+                      '%s updates-testing report' % prefix,
                       maildata)
 
     def wait_for_sync(self):
