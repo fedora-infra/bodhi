@@ -57,6 +57,7 @@ Requires: python-turboflot
 Requires: python-tgcaptcha
 Requires: python-decorator
 Requires: mod_wsgi
+Requires: httpd
 
 
 %description server
@@ -178,8 +179,17 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 - 0.5.19
 - Add a patch to get pagination working in TG 1.0.4.4
 
+* Sat Mar 14 2009 Luke Macken <lmacken@redhat.com> - 0.5.17-4
+- Require httpd
+
+* Mon Feb 23 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.5.17-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+
 * Tue Feb 10 2009 Luke Macken <lmacken@redhat.com> - 0.5.18-1
 - Bugfix release, and to stop using deprecated python-fedora APIs.
+
+* Mon Feb 2 2009 Toshio Kuratomi <toshio@fedoraproject.org> - 0.5.17-2
+- Own the %%{_sysconfdir}/bodhi directory.
 
 * Thu Jan 22 2009 Luke Macken <lmacken@redhat.com> - 0.5.17-1
 - Latest upstream bugfix release.
