@@ -1049,10 +1049,10 @@ class Root(controllers.RootController):
     def confirm_delete(self, nvr=None, ok=None, cancel=None):
         update = PackageUpdate.byTitle(nvr)
         if ok:
-            flash(_(u"Delete completed"))
+            flash(u"Delete completed")
             raise redirect('/delete/%s' % update.title)
         if cancel:
-            flash(_(u"Delete canceled" ))
+            flash(u"Delete canceled")
             raise redirect(update.get_url())
         return dict(form=self.ok_cancel_form, nvr=nvr)
 
