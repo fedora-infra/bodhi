@@ -95,6 +95,7 @@ bodhi/static/images/karma1.png
 bodhi/static/images/metrics-small.png
 bodhi/static/images/metrics.png
 bodhi/static/images/mugshot.png
+bodhi/static/images/newpackage.png
 bodhi/static/images/null.png
 bodhi/static/images/plus.png
 bodhi/static/images/revoke.png

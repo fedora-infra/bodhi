@@ -1087,6 +1087,10 @@ class Root(controllers.RootController):
         return dict(tags=[r.dist_tag for r in Release.select()])
 
     @expose(allow_json=True)
+    def candidate_tags(self):
+        return dict(tags=[r.candidate_tag for r in Release.select()])
+
+    @expose(allow_json=True)
     @identity.require(identity.in_group("security_respons"))
     def approve(self, update):
         """ Security response team approval for pending security updates """
