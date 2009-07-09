@@ -15,6 +15,9 @@
 # Copyright 2007  Red Hat, Inc
 # Authors: Luke Macken <lmacken@redhat.com>
 
+__version__ = '0.6.0'
+__description__ = 'Command line tool for interacting with Bodhi'
+
 import sys
 import logging
 import urllib2
@@ -26,12 +29,15 @@ from optparse import OptionParser
 from fedora.client import AuthError, ServerError
 from fedora.client.bodhi import BodhiClient
 
-__version__ = '0.5.1'
-__description__ = 'Command line tool for interacting with Bodhi'
+try:
+    from turbogears import config
+    from bodhi.util import load_config
+    load_config()
+    BODHI_URL = config.get('bodhi_url', 'https://admin.fedoraproject.org/updates/')
+except:
+    BODHI_URL = 'https://admin.fedoraproject.org/updates/'
 
-BODHI_URL = 'https://admin.fedoraproject.org/updates/'
 log = logging.getLogger(__name__)
-
 
 def get_parser():
     usage = "usage: %prog [options] [build|package]"
