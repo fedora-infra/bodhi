@@ -45,6 +45,7 @@ class ExtendedMetadata:
         self.koji = get_session()
         self._create_document()
         self._fetch_updates()
+        missing_ids = []
 
         if cacheduinfo and exists(cacheduinfo):
             log.debug("Loading cached updateinfo.xml.gz")
@@ -55,8 +56,11 @@ class ExtendedMetadata:
             for update in self.updates:
                 for build in update.builds:
                     if not umd.get_notice(build.nvr):
-                        self.add_update(update)
-                        break
+                        if update.updateid:
+                            self.add_update(update)
+                            break
+                        else:
+                            missing_ids.append(update.title)
 
             # Add all relevant notices from the metadata to this document
             ids = [update.updateid for update in self.updates if update.updateid]
@@ -71,7 +75,11 @@ class ExtendedMetadata:
                 if update.updateid:
                     self.add_update(update)
                 else:
-                    log.error("%s missing ID!" % update.title)
+                    missing_ids.append(update.title)
+
+        if missing_ids:
+            log.error("%d updates with missing ID!" % len(missing_ids))
+            log.debug(missing_ids)
 
     def _fetch_updates(self):
         """
@@ -90,8 +98,9 @@ class ExtendedMetadata:
                         self.updates.add(update)
             except SQLObjectNotFound, e:
                 nonexistent.append(build['nvr'])
-        log.warning("Couldn't find the following koji builds tagged as "
-                    "%s in bodhi: %s" % (self.tag, nonexistent))
+        if nonexistent:
+            log.warning("Couldn't find the following koji builds tagged as "
+                        "%s in bodhi: %s" % (self.tag, nonexistent))
 
     def _create_document(self):
         log.debug("Creating new updateinfo Document for %s" % self.tag)
