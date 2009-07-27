@@ -397,7 +397,6 @@ def get_template(update, use_template='fedora_errata_template'):
     return templates
 
 def send_mail(sender, to, subject, body):
-    log.debug("send_mail(%s)" % locals())
     from turbomail import MailNotEnabledException
     message = turbomail.Message(sender, to, subject)
     message.plain = body
