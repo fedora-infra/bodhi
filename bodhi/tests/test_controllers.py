@@ -4,6 +4,7 @@
 import os
 import turbogears
 import cPickle as pickle
+from datetime import datetime
 
 from turbogears import testutil, database, config
 turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
@@ -1189,3 +1190,46 @@ class TestControllers(testutil.DBTest):
         assert 'kernel-2.6.29.1-111.fc7.x86_64' in json
         assert 'TurboGears-1.0.2.2-2.fc7' in json
         assert json['TurboGears-1.0.2.2-2.fc7']['notes'] == 'foobar'
+
+
+    def test_updating_build_during_edit(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : None,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        update.status = 'testing'
+        update.date_pushed = datetime.now()
+        update.pushed = True
+
+        params = {
+                'builds'  : 'TurboGears-2.6.24-1.fc7',
+                'edited'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+        assert update.title == 'TurboGears-2.6.24-1.fc7'
+        assert len(update.builds) == 1
+        assert update.builds[0].nvr == 'TurboGears-2.6.24-1.fc7'
+        try:
+            b = PackageBuild.byNvr('TurboGears-2.6.23.1-21.fc7')
+            assert False, "Old obsolete build still exists!!"
+        except SQLObjectNotFound:
+            pass
