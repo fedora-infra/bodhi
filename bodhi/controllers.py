@@ -19,6 +19,7 @@ import time
 import logging
 import cherrypy
 import xmlrpclib
+import textwrap
 
 from cgi import escape
 from koji import GenericError
@@ -998,7 +999,11 @@ class Root(controllers.RootController):
             return dict(update=update, updates=[],
                         values={'title' : update.title},
                         comment_form=self.comment_captcha_form)
-        if text == 'None': text = None
+        if text == 'None':
+            text = None
+        else:
+            text = textwrap.TextWrapper(width=80,
+                break_long_words=False).fill(text)
         update.comment(text, karma, author=author, anonymous=True)
         raise redirect(update.get_url())
 
@@ -1027,7 +1032,11 @@ class Root(controllers.RootController):
         else:
             try:
                 update = PackageUpdate.byTitle(title)
-                if text == 'None': text = None
+                if text == 'None':
+                    text = None
+                else:
+                    text = textwrap.TextWrapper(width=80,
+                        break_long_words=False).fill(text)
                 update.comment(text, karma)
                 if request_format() == 'json':
                     return dict(update=unicode(update))
