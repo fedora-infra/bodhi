@@ -170,7 +170,6 @@ def main():
                         sys.exit(-1)
                     log.info("Creating a new update for %s" % args[0])
                     data = bodhi.save(**extra_args)
-                    print "data =", data
                     if data.get('tg_flash'):
                         log.info(data['tg_flash'])
                     if 'updates' in data:
