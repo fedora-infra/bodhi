@@ -565,8 +565,8 @@ class PackageUpdate(SQLObject):
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,
                                 subsequent_indent=' ' * 13, width=67)
-                    comments.append(u'\n'.join(text))
-            val += u'\n'.join(comments).lstrip() + u'\n'
+                    comments.append(u'\n'.join(text) + '\n')
+            val += u'\n'.join(comments).lstrip()
         val += u"\n  %s\n" % (config.get('base_address') + url(self.get_url()))
         return val
 
