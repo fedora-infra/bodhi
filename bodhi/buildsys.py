@@ -175,10 +175,22 @@ def koji_login(client=None, clientca=None, serverca=None):
     koji_session.ssl_login(client, clientca, serverca)
     return koji_session
 
-
 def get_session():
+    """ Get a new buildsystem instance """
+    session = None
+    buildsys = config.get('buildsystem')
+    if buildsys == 'koji':
+        session = koji_login()
+    elif buildsys == 'dev':
+        session = DevBuildsys()
+    return session
+
+def _get_session():
     """
     Get our buildsystem instance.
+
+    :deprecated: This returns a "singleton" instance, but seems to
+    cause some issues in production.
     """
     global session
     if not session:
