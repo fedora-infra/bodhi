@@ -298,10 +298,12 @@ class PackageUpdate(SQLObject):
             log.debug("Keeping current update id %s" % self.updateid)
             return
 
+        releases = Release.select(Release.q.id_prefix == self.release.id_prefix)
         updates = PackageUpdate.select(
                     AND(PackageUpdate.q.date_pushed != None,
                         PackageUpdate.q.updateid != None,
-                        PackageUpdate.q.releaseID == self.release.id),
+                        OR(*[PackageUpdate.q.releaseID == rel.id
+                             for rel in releases])),
                     orderBy=PackageUpdate.q.date_pushed, limit=1).reversed()
 
         try:
