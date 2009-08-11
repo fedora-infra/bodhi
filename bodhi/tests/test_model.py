@@ -118,7 +118,7 @@ class TestPackageUpdate(testutil.DBTest):
         # Create another update for another release that has the same
         # Release.id_prefix.  This used to trigger a bug that would cause
         # duplicate IDs across Fedora 10/11 updates.
-        update = self.get_update(name='nethack-3.4.5-1.fc7')
+        update = self.get_update(name='nethack-3.4.5-1.fc11')
         otherrel = Release(name='fc11', long_name='Fedora 11',
                            id_prefix='FEDORA', dist_tag='dist-fc11')
         update.release = otherrel
