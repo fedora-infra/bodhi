@@ -56,11 +56,6 @@
                                     <a href="http://koji.fedoraproject.org/koji/" class="list"><font size="6">麹</font></a>
                                 </span>
                             </td>
-                            <td>
-                                <span id="mugtip" title="Fedora Infrastructure Mugshot Group">
-                                    <a href="http://mugshot.org/group?who=yWstkV2xGz93rQ"><img src="${tg.url('/static/images/mugshot.png')}" border="0" /></a>
-                                </span>
-                            </td>
                         </tr>
                     </table>
                 </td>
