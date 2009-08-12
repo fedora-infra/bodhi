@@ -608,27 +608,31 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
 
         # Monkey-patch our DevBuildsys 
-        oldGetBuild = koji.getBuild
-        koji.getBuild = lambda x: {'epoch': None, 'name': 'TurboGears',
-                                   'nvr': 'TurboGears-1.0.2.2-2.fc7',
-                                   'release': '2.fc7',
-                                   'tag_name': 'dist-fc7-updates-testing',
-                                   'version': '1.0.2.2'}
+        from bodhi.buildsys import DevBuildsys
+        oldGetBuild = DevBuildsys.getBuild
+        DevBuildsys.getBuild = lambda *x, **y: {
+                'epoch': None, 'name': 'TurboGears',
+                'nvr': 'TurboGears-1.0.2.2-2.fc7',
+                'release': '2.fc7',
+                'tag_name': 'dist-fc7-updates-testing',
+                'version': '1.0.2.2'
+                }
 
         # Make a newer build already exist
         oldListTagged = koji.listTagged
-        koji.listTagged = lambda *x, **y: [
+        DevBuildsys.listTagged = lambda *x, **y: [
                 {'epoch': None, 'name': 'TurboGears',
                  'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
                  'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
         ]
 
-        testutil.capture_log('bodhi.util')
+        testutil.capture_log(['bodhi.util', 'bodhi.controllers', 'bodhi.model'])
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
-        koji.getBuild = oldGetBuild
-        koji.listTagged = oldListTagged
-        assert 'Broken update path: TurboGears-1.0.2.3-2.fc7 is already released, and is newer than TurboGears-1.0.2.2-2.fc7' in testutil.get_log()
+        DevBuildsys.getBuild = oldGetBuild
+        DevBuildsys.listTagged = oldListTagged
+        output = testutil.get_log()
+        assert 'Broken update path: TurboGears-1.0.2.3-2.fc7 is already released, and is newer than TurboGears-1.0.2.2-2.fc7' in output, output
 
     # Disabled for now, since we want to try and avoid as much bugzilla
     # contact during our test cases as possible :)
