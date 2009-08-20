@@ -239,6 +239,11 @@ class MashTask(Thread):
                           "push, or remove %s" % mash_lock)
                 raise MashTaskException
         else:
+            if self.resume:
+                msg = "Trying to resume a push, yet %s doesn't exist!" % mash_lock
+                log.error(msg)
+                raise MashTaskException(msg)
+
             log.debug("Creating lock for updates push: %s" % mash_lock)
             lock = file(mash_lock, 'w')
             pickle.dump({
