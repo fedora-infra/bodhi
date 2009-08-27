@@ -72,6 +72,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['description'] == update.notes
         assert notice['issued'] != None
         assert notice['update_id'] == update.updateid
+        assert notice['epoch'] == None
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
         assert cve['href'] == update.cves[0].get_url()

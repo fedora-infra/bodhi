@@ -245,6 +245,7 @@ class ExtendedMetadata:
                             'name'      : rpm['name'],
                             'version'   : rpm['version'],
                             'release'   : rpm['release'],
+                            'epoch'     : rpm['epoch'],
                             'arch'      : rpm['arch'],
                             'src'       : urlpath
                 })
