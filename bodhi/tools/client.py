@@ -338,7 +338,7 @@ def main():
                     for build in update['builds']:
                         subprocess.call('koji download-build --arch=%s '
                                         '--arch=noarch%s %s' % (arch,
-                                            arch == 'i686' and ' --arch=i386'
+                                            arch == 'i686' and ' --arch=i386 --arch=i586'
                                             or '', build['nvr']),
                                         shell=True)
             else:
