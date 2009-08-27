@@ -408,12 +408,15 @@ class Root(controllers.RootController):
                 if request_format() == 'json': return dict()
                 raise redirect(update.get_url())
             if not update.pushed:
-                mail.send_admin('deleted', update)
                 msg = "Deleted %s" % update.title
                 map(lambda x: x.destroySelf(), update.comments)
-                map(lambda x: x.destroySelf(), update.builds)
+                for build in update.builds:
+                    if len(build.updates) == 1:
+                        build.destroySelf()
+                update.untag()
                 update.destroySelf()
                 flash_log(msg)
+                mail.send_admin('deleted', update)
             else:
                 flash_log("Cannot delete a pushed update")
         except SQLObjectNotFound:
