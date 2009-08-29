@@ -576,6 +576,17 @@ td.value {
 	height: 100px;
 }
 
+#tooltip.pretty-big {
+	width: 270px;
+}
+
+#tooltip.pretty-big div { width: 270px; text-align: left; }
+
+#tooltip.fancy-big {
+	background: url('/updates/static/images/shadow2-big.png');
+	height: 210px;
+}
+
 #main { padding: 1em; }
 #banner { padding: 15px; background-color: #06b; color: white; font-size: large; border-bottom: 1px solid #ccc;
     background: url(bg.gif) repeat-x; text-align: center }

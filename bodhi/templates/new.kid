@@ -24,7 +24,7 @@
             fixPNG: true, opacity: 1
         });
         $("#form_notes").Tooltip({
-            extraClass: "pretty fancy", showBody:   " - ", left: 5, top: -15,
+            extraClass: "pretty fancy pretty-big fancy-big", showBody:   " - ", left: 5, top: -15,
             fixPNG: true, opacity: 1
         });
         $("#form_bugs").Tooltip({

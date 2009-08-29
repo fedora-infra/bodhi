@@ -99,9 +99,15 @@ class NewUpdateForm(Form):
                                        'CVE-2008-0001'}),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=13, cols=65,
-                     attrs={'title' : 'Advisory Notes - Some optional details '
+                     attrs={'title' : 'Advisory Notes - <p>Some optional details '
                                       'about this update that will appear in '
-                                      'the notice'}),
+                                      'the notice.</p>'
+                                      '<p><strong>Exemple:</strong><br />'
+                                      'This is an update that fixes problems with '
+                                      '**<strong>connecting to a share</strong>**.</p>'
+                                      '<p>The following things *<em>break</em>*:</p>'
+                                      '<p>* Browsing with `<code>gnome-app-install</code>`<br />'
+                                      '* Emailing</p>'}),
             CheckBox(name='close_bugs', help_text='Automatically close bugs',
                      validator=validators.StringBool(),
                      default=True, attrs={'title' : 'Close Bugs - '
