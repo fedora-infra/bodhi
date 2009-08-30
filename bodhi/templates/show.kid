@@ -13,6 +13,8 @@
 from cgi import escape
 from bodhi import util
 from turbogears import identity
+from markdown2 import markdown
+import re
 
 ## Link to build info and logs
 buildinfo = ''
@@ -33,7 +35,9 @@ title = title[:-2]
 
 release = util.link(update.release.long_name, '/' + update.release.name)
 submitter = util.link(update.submitter, '/user/' + update.submitter)
-notes = escape(update.notes).replace('\r\n', '<br/>')
+
+reg = re.compile(r'(^[-*] .*(?:\n[-*] .*)*)', re.MULTILINE)
+notes = markdown(reg.sub(r'\n\1\n', escape(update.notes)))
 
 if update.karma < 0: karma = -1
 elif update.karma > 0: karma = 1
