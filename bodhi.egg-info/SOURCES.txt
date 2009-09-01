@@ -164,6 +164,7 @@ bodhi/tests/test_controllers.py
 bodhi/tests/test_metadata.py
 bodhi/tests/test_model.py
 bodhi/tests/test_util.py
+bodhi/tools/0day.py
 bodhi/tools/__init__.py
 bodhi/tools/clean-testing.py
 bodhi/tools/client.py
