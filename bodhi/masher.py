@@ -167,10 +167,13 @@ class MashTask(Thread):
         self.tag = None
         self.updates = set()
         map(self.updates.add, updates)
-        up = self.updates.pop()
-        self.updates.add(up)
-        # eg: MASHING-FEDORA, MASHING-FEDORA-EPEL
-        self.mash_lock_id = up.release.id_prefix
+        if self.updates:
+            up = self.updates.pop()
+            self.updates.add(up)
+            # eg: MASHING-FEDORA, MASHING-FEDORA-EPEL
+            self.mash_lock_id = up.release.id_prefix
+        else:
+            self.mash_lock_id = 'UNKNOWN'
         self.koji = buildsys.get_session()
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = repos
