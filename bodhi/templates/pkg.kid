@@ -14,8 +14,8 @@
 <blockquote>
     <h1>${pkg.name}</h1>
     <ul>
-        <li><a href="http://bugz.fedoraproject.org/${pkg.name}">Open Bugs</a></li>
-        <li><a href="https://admin.fedoraproject.org/pkgdb/packages/name/${pkg.name}">Package Database</a></li>
+      <li><a href="${tg.url('http://bugz.fedoraproject.org/%s' % (pkg.name,))}">Open Bugs</a></li>
+        <li><a href="${tg.url('https://admin.fedoraproject.org/pkgdb/packages/name/%s' % (pkg.name,))}">Package Database</a></li>
         <li><a href="http://koji.fedoraproject.org/koji/search?terms=${pkg.name}&amp;type=package&amp;match=glob">Koji Buildsystem</a></li>
     </ul>
 </blockquote>

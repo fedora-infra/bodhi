@@ -13,13 +13,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 from tgcaptcha import CaptchaField
-from turbogears import validators, url, config
+from turbogears import validators, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
                                 HiddenField, RemoteForm, CheckBoxList, JSLink,
                                 DataGrid, CSSLink)
 
-from bodhi.util import make_update_link
+from bodhi.util import make_update_link, url
 from bodhi.validators import *
 
 class CommentForm(Form):

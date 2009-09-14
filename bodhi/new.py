@@ -16,8 +16,10 @@ import os
 import logging
 
 from os.path import join
+from turbogears import expose, controllers, identity, config, flash
+
 from bodhi.widgets import NewUpdateForm
-from turbogears import expose, controllers, identity, config, url, flash
+from bodhi.util import url
 
 log = logging.getLogger(__name__)
 update_form = NewUpdateForm()

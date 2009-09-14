@@ -32,6 +32,8 @@ from turbogears import (controllers, expose, validate, redirect, identity,
 from turbogears.widgets import DataGrid
 
 from fedora.tg.util import request_format
+from fedora.tg.controllers import login as fc_login
+from fedora.tg.controllers import logout as fc_logout
 
 from bodhi import buildsys, util
 from bodhi.rss import Feed
@@ -150,6 +152,11 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.login", allow_json=True)
     def login(self, forward_url=None, previous_url=None, *args, **kw):
+        if config.get('identity.provider') in ('sqlobjectcsrf', 'jsonfas2'):
+            data = fc_login(forward_url, previous_url, args, kw)
+            data['tg_template'] = 'genshi:bodhi.templates.login'
+            return data
+
         if not identity.current.anonymous and identity.was_login_attempted() \
            and not identity.get_identity_errors():
             if request_format() == 'json':
@@ -173,8 +180,11 @@ class Root(controllers.RootController):
                     original_parameters=cherrypy.request.params,
                     forward_url=forward_url)
 
-    @expose()
+    @expose(allow_json=True)
     def logout(self):
+        if config.get('identity.provider') in ('sqlobjectcsrf', 'jsonfas2'):
+            return fc_logout()
+
         identity.current.logout()
         raise redirect('/')
 

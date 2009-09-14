@@ -41,6 +41,10 @@ def start():
     else:
         load_config()
 
+    from fedora.tg.util import enable_csrf
+    if turbogears.config.get('identity.provider') in ('sqlobjectcsrf', 'jsonfas2'):
+        turbogears.startup.call_on_startup.append(enable_csrf)
+
     ## Schedule our periodic tasks
     from bodhi import jobs
     turbogears.startup.call_on_startup.append(jobs.schedule)

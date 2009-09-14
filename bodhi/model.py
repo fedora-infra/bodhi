@@ -23,7 +23,7 @@ import xmlrpclib
 from sqlobject import *
 from datetime import datetime
 
-from turbogears import config, url
+from turbogears import config
 from turbogears.database import PackageHub
 
 from os.path import isfile, join
@@ -31,7 +31,7 @@ from textwrap import wrap
 
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
-from bodhi.util import Singleton, authorized_user, flash_log, build_evr
+from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
 from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 

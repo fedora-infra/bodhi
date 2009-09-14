@@ -33,9 +33,10 @@ from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 from decorator import decorator
-from turbogears import config, url, flash, redirect
+from turbogears import config, flash, redirect, url as tg_url
 from fedora.tg.util import request_format
 from fedora.client import PackageDB
+from fedora.tg.util import url as csrf_url
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
@@ -499,3 +500,10 @@ def testing_statistics():
     print "mean = %d days" % (accumulative.days / len(deltas))
     print "median = %d days" % deltas[len(deltas) / 2].days
     print "mode = %d days" % mode
+
+
+def url(*args, **kw):
+    if config.get('identity.provider') in ('sqlobjectcsrf', 'jsonfas2'):
+        return csrf_url(*args, **kw)
+    else:
+        return tg_url(*args, **kw)
