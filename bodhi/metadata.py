@@ -108,8 +108,10 @@ class ExtendedMetadata:
         updates = self.doc.createElement('updates')
         self.doc.appendChild(updates)
 
-    def _insert(self, parent, name, attrs={}, text=None):
+    def _insert(self, parent, name, attrs=None, text=None):
         """ Helper function to trivialize inserting an element into the doc """
+        if not attrs:
+            attrs = {}
         child = self.doc.createElement(name)
         for item in attrs.items():
             child.setAttribute(item[0], unicode(item[1]))
