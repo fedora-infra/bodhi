@@ -108,8 +108,10 @@ class ExtendedMetadata:
         updates = self.doc.createElement('updates')
         self.doc.appendChild(updates)
 
-    def _insert(self, parent, name, attrs={}, text=None):
+    def _insert(self, parent, name, attrs=None, text=None):
         """ Helper function to trivialize inserting an element into the doc """
+        if not attrs:
+            attrs = {}
         child = self.doc.createElement(name)
         for item in attrs.items():
             child.setAttribute(item[0], unicode(item[1]))
@@ -146,11 +148,14 @@ class ExtendedMetadata:
         ## Build the references
         refs = self.doc.createElement('references')
         for ref in notice._md['references']:
-            self._insert(refs, 'reference', attrs={
-                    'type' : ref['type'],
-                    'href' : ref['href'],
-                    'id'   : ref['id']
-            })
+            attrs = {
+                'type' : ref['type'],
+                'href' : ref['href'],
+                'id'   : ref['id'],
+            }
+            if ref.get('title'):
+                attrs['title'] = ref['title']
+            self._insert(refs, 'reference', attrs=attrs)
         root.appendChild(refs)
 
         ## Errata description
@@ -245,6 +250,7 @@ class ExtendedMetadata:
                             'name'      : rpm['name'],
                             'version'   : rpm['version'],
                             'release'   : rpm['release'],
+                            'epoch'     : rpm['epoch'],
                             'arch'      : rpm['arch'],
                             'src'       : urlpath
                 })

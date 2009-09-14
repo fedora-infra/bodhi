@@ -418,12 +418,15 @@ class Root(controllers.RootController):
                 if request_format() == 'json': return dict()
                 raise redirect(update.get_url())
             if not update.pushed:
-                mail.send_admin('deleted', update)
                 msg = "Deleted %s" % update.title
                 map(lambda x: x.destroySelf(), update.comments)
-                map(lambda x: x.destroySelf(), update.builds)
+                for build in update.builds:
+                    if len(build.updates) == 1:
+                        build.destroySelf()
+                update.untag()
                 update.destroySelf()
                 flash_log(msg)
+                mail.send_admin('deleted', update)
             else:
                 flash_log("Cannot delete a pushed update")
         except SQLObjectNotFound:
@@ -717,29 +720,29 @@ class Root(controllers.RootController):
             # Obsolete any older pending/testing updates.
             # If a build is associated with multiple updates, make sure that
             # all updates are safe to obsolete, or else just skip it.
-            for oldBuild in package.builds:
-                obsoletable = False
-                for update in oldBuild.updates:
-                    if update.status not in ('pending', 'testing') or \
-                       update.request or \
-                       update.release not in buildinfo[build]['releases'] or \
-                       update in pkgBuild.updates or \
-                       (edited and oldBuild in edited.builds):
-                        obsoletable = False
-                        break
-                    if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
-                        log.debug("%s is obsoletable" % oldBuild.nvr)
-                        obsoletable = True
-                if obsoletable:
-                    for update in oldBuild.updates:
-                        # Have the newer update inherit the older updates bugs
-                        for bug in update.bugs:
-                            bugs.append(unicode(bug.bz_id))
-                        # Also inherit the older updates notes as well
-                        notes += '\n' + update.notes
-                        update.obsolete(newer=build)
-                    note.append('This update has obsoleted %s, and has '
-                                'inherited its bugs and notes.' % oldBuild.nvr)
+            #for oldBuild in package.builds:
+            #    obsoletable = False
+            #    for update in oldBuild.updates:
+            #        if update.status not in ('pending', 'testing') or \
+            #           update.request or \
+            #           update.release not in buildinfo[build]['releases'] or \
+            #           update in pkgBuild.updates or \
+            #           (edited and oldBuild in edited.builds):
+            #            obsoletable = False
+            #            break
+            #        if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
+            #            log.debug("%s is obsoletable" % oldBuild.nvr)
+            #            obsoletable = True
+            #    if obsoletable:
+            #        for update in oldBuild.updates:
+            #            # Have the newer update inherit the older updates bugs
+            #            for bug in update.bugs:
+            #                bugs.append(unicode(bug.bz_id))
+            #            # Also inherit the older updates notes as well
+            #            notes += '\n' + update.notes
+            #            update.obsolete(newer=build)
+            #        note.append('This update has obsoleted %s, and has '
+            #                    'inherited its bugs and notes.' % oldBuild.nvr)
 
         # Create or modify the necessary PackageUpdate objects
         for release, builds in releases.items():

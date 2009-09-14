@@ -167,10 +167,13 @@ class MashTask(Thread):
         self.tag = None
         self.updates = set()
         map(self.updates.add, updates)
-        up = self.updates.pop()
-        self.updates.add(up)
-        # eg: MASHING-FEDORA, MASHING-FEDORA-EPEL
-        self.mash_lock_id = up.release.id_prefix
+        if self.updates:
+            up = self.updates.pop()
+            self.updates.add(up)
+            # eg: MASHING-FEDORA, MASHING-FEDORA-EPEL
+            self.mash_lock_id = up.release.id_prefix
+        else:
+            self.mash_lock_id = 'UNKNOWN'
         self.koji = buildsys.get_session()
         # which repos do we want to compose? (updates|updates-testing)
         self.repos = repos
@@ -239,6 +242,11 @@ class MashTask(Thread):
                           "push, or remove %s" % mash_lock)
                 raise MashTaskException
         else:
+            if self.resume:
+                msg = "Trying to resume a push, yet %s doesn't exist!" % mash_lock
+                log.error(msg)
+                raise MashTaskException(msg)
+
             log.debug("Creating lock for updates push: %s" % mash_lock)
             lock = file(mash_lock, 'w')
             pickle.dump({

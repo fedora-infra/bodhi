@@ -210,6 +210,7 @@ def wait_for_tasks(tasks, sleep=300):
     """
     log.debug("Waiting for %d tasks to complete: %s" % (len(tasks), tasks))
     failed_tasks = []
+    session = get_session()
     for task in tasks:
         if not task:
             log.debug("Skipping task: %s" % task)

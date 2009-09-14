@@ -1,6 +1,7 @@
 # $Id: $
 PKGNAME=bodhi
 PKGRPMFLAGS=--define "_topdir ${PWD}" --define "_specdir ${PWD}" --define "_sourcedir ${PWD}/dist" --define "_srcrpmdir ${PWD}" --define "_rpmdir ${PWD}" --define "_builddir ${PWD}"
+RPMTOPDIR=$(shell rpm --eval='%{_topdir}')
 
 default: all
 
@@ -61,6 +62,6 @@ python-crypto python-imaging python-turboflot python-tgcaptcha python-nose.noarc
 
 rpm: srpm
 	@rpm -i bodhi*src.rpm
-	@rpmbuild -ba ~/rpmbuild/SPECS/bodhi.spec
+	@rpmbuild -ba ${RPMTOPDIR}/SPECS/${PKGNAME}.spec
 
 .PHONY: docs test todo clean dist build install virt-install srpm pyflakes profile shell init run install-deps

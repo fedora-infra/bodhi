@@ -895,7 +895,11 @@ class Bugzilla(SQLObject):
                 return
         if bug.product == 'Security Response':
             self.parent = True
-        self.title = str(bug.short_desc)
+        try:
+            self.title = bug.short_desc
+        except Exception, e:
+            log.error("Unable to decode bug title: %s" % e)
+            self.title = 'Unable to decode bug title'
         if 'security' in bug.keywords.lower():
             self.security = True
 
