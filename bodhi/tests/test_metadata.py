@@ -111,6 +111,7 @@ class TestExtendedMetadata(testutil.DBTest):
         update.addPackageBuild(build)
 
         bug = Bugzilla(bz_id=1)
+        bug.title = u'test bug'
         update.addBugzilla(bug)
         cve = CVE(cve_id="CVE-2007-0000")
         update.addCVE(cve)
@@ -152,6 +153,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert bug['href'] == update.bugs[0].get_url()
         assert bug['id'] == '1'
         assert bug['type'] == 'bugzilla'
+        assert bug['title'] == 'test bug'
 
         # FC6's yum update metadata parser doesn't know about some stuff
         from yum import __version__
@@ -187,6 +189,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert bug['href'] == update.bugs[0].get_url()
         assert bug['id'] == '1'
         assert bug['type'] == 'bugzilla'
+        assert bug['title'] == 'test bug', bug
 
         # FC6's yum update metadata parser doesn't know about some stuff
         from yum import __version__

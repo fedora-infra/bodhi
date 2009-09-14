@@ -148,11 +148,14 @@ class ExtendedMetadata:
         ## Build the references
         refs = self.doc.createElement('references')
         for ref in notice._md['references']:
-            self._insert(refs, 'reference', attrs={
-                    'type' : ref['type'],
-                    'href' : ref['href'],
-                    'id'   : ref['id']
-            })
+            attrs = {
+                'type' : ref['type'],
+                'href' : ref['href'],
+                'id'   : ref['id'],
+            }
+            if ref.get('title'):
+                attrs['title'] = ref['title']
+            self._insert(refs, 'reference', attrs=attrs)
         root.appendChild(refs)
 
         ## Errata description
