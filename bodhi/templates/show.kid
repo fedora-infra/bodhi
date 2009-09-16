@@ -190,7 +190,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
             title = 'Unable to fetch bug title'
         cve = title.split()[0].replace(':', '')
         if cve.startswith('CVE-'):
-        title = '<a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cve + '">' + cve + '</a>' + ': ' + escape(' '.join(title.split()[1:]))
+            title = '<a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cve + '">' + cve + '</a>' + ': ' + escape(' '.join(title.split()[1:]))
         ?>
         <a href="${bug.get_url()}">${bug.bz_id}</a> - ${XML(title)}
      </div>
