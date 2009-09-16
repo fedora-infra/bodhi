@@ -28,7 +28,7 @@ if len(update.builds) > 2:
 else:
     for build in update.builds:
         nvr = util.get_nvr(build.nvr)
-        title += "<a href=\"" + tg.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]) + ", "
+        title += "<a href=\"" + util.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]) + ", "
 title = title[:-2]
 
 release = util.link(update.release.long_name, '/' + update.release.name)
@@ -57,31 +57,31 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                         <span py:if="not update.pushed">
                             <span py:if="'security_respons' in tg.identity.groups and update.type == 'security' and not update.approved">
                                 <td>
-                                    <a href="${tg.url('/approve/%s' % update.title)}" class="list"><img src="${tg.url('/static/images/submit.png')}" border="0" />Approve for Stable</a>
+                                    <a href="${util.url('/approve/%s' % update.title)}" class="list"><img src="${tg.url('/static/images/submit.png')}" border="0" />Approve for Stable</a>
                                 </td>
                             </span>
                             <span py:if="update.request == None">
                                 <td>
-                                    <a href="${tg.url('/request/testing/%s' % update.title)}" class="list">
+                                    <a href="${util.url('/request/testing/%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/testing.png')}" border="0"/>
                                         Push to Testing
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="${tg.url('/request/stable/%s' % update.title)}" class="list">
+                                    <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/submit.png')}" border="0"/>
                                         Push to Stable
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="${tg.url('/confirm_delete?nvr=%s' % update.title)}" class="list">
+                                    <a href="${util.url('/confirm_delete?nvr=%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/trash.png')}" border="0"/>
                                         Delete
                                     </a>
                                 </td>
                             </span>
                             <td>
-                                <a href="${tg.url('/edit/%s' % update.title)}" class="list">
+                                <a href="${util.url('/edit/%s' % update.title)}" class="list">
                                     <img src="${tg.url('/static/images/edit.png')}" border="0"/>
                                     Edit
                                 </a>
@@ -89,7 +89,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                         </span>
                         <span py:if="update.pushed and update.status != 'stable'">
                             <td>
-                                <a href="${tg.url('/request/unpush/%s' % update.title)}" class="list">
+                                <a href="${util.url('/request/unpush/%s' % update.title)}" class="list">
                                     <img src="${tg.url('/static/images/revoke.png')}" border="0"/>
                                     Unpush
                                 </a>
@@ -97,14 +97,14 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                             <span py:if="update.status == 'testing'">
                                 <span py:if="update.request == None">
                                     <td>
-                                        <a href="${tg.url('/request/stable/%s' % update.title)}" class="list">
+                                        <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                             <img src="${tg.url('/static/images/submit.png')}" border="0"/>
                                             Mark as Stable
                                         </a>
                                     </td>
                             </span>
                             <td>
-                                <a href="${tg.url('/edit/%s' % update.title)}" class="list">
+                                <a href="${util.url('/edit/%s' % update.title)}" class="list">
                                     <img src="${tg.url('/static/images/edit.png')}" border="0"/>
                                     Edit
                                 </a>
@@ -113,7 +113,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                     </span>
                     <span py:if="update.pushed and update.status == 'stable' and 'releng' in tg.identity.groups">
                       <td>
-                        <a href="${tg.url('/request/unpush/%s' % update.title)}" class="list">
+                        <a href="${util.url('/request/unpush/%s' % update.title)}" class="list">
                             <img src="${tg.url('/static/images/revoke.png')}" border="0"/>
                             Unpush
                         </a>
@@ -121,7 +121,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                     </span>
                     <span py:if="update.request != None">
                         <td>
-                            <a href="${tg.url('/revoke/%s' % update.title)}" class="list">
+                            <a href="${util.url('/revoke/%s' % update.title)}" class="list">
                                 <img src="${tg.url('/static/images/revoke.png')}" border="0"/>
                                 Revoke request
                             </a>
@@ -190,7 +190,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
             title = 'Unable to fetch bug title'
         cve = title.split()[0].replace(':', '')
         if cve.startswith('CVE-'):
-          title = util.link(cve, 'http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cve) + ': ' + escape(' '.join(title.split()[1:]))
+        title = '<a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + cve + '">' + cve + '</a>' + ': ' + escape(' '.join(title.split()[1:]))
         ?>
         <a href="${bug.get_url()}">${bug.bz_id}</a> - ${XML(title)}
      </div>
