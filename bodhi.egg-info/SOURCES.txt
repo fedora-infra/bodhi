@@ -136,8 +136,10 @@ bodhi/templates/comments.kid
 bodhi/templates/confirmation.kid
 bodhi/templates/form.kid
 bodhi/templates/list.kid
+bodhi/templates/login.html
 bodhi/templates/login.kid
 bodhi/templates/masher.kid
+bodhi/templates/master.html
 bodhi/templates/master.kid
 bodhi/templates/metrics.kid
 bodhi/templates/mine.kid

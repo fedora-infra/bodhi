@@ -28,7 +28,7 @@ from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND, OR
 
 from turbogears import (controllers, expose, validate, redirect, identity,
-                        paginate, flash, error_handler, validators, config, url)
+                        paginate, flash, error_handler, validators, config)
 from turbogears.widgets import DataGrid
 
 from fedora.tg.util import request_format
@@ -40,7 +40,7 @@ from bodhi.rss import Feed
 from bodhi.new import NewUpdateController, update_form
 from bodhi.util import make_update_link, make_type_icon, make_karma_icon, link
 from bodhi.util import flash_log, get_pkg_pushers, make_request_icon
-from bodhi.util import json_redirect
+from bodhi.util import json_redirect, url
 from bodhi.admin import AdminController
 from bodhi.metrics import MetricsController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
