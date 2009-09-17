@@ -4,6 +4,7 @@ include apache/bodhi.conf
 include AUTHORS README COPYING ChangeLog
 include *.cfg
 include bodhi/templates/*.kid
+include bodhi/templates/*.html
 include bodhi/config/*.cfg
 include bodhi/config/*.conf
 include bodhi/config/*.mash
