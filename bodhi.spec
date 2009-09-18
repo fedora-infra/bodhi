@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.6.9
-Release:        2%{?dist}
+Version:        0.6.10
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -115,6 +115,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Fri Sep 18 2009 Luke Macken <lmacken@redhat.com> - 0.6.10-1
+- 0.6.10
+
 * Thu Sep 17 2009 Luke Macken <lmacken@redhat.com> - 0.6.9-2
 - More CSRF tweaks
 
