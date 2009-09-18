@@ -29,6 +29,7 @@ from sqlobject.sqlbuilder import AND, OR
 
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config)
+from turbogears import url as tg_url
 from turbogears.widgets import DataGrid
 
 from fedora.tg.util import request_format
@@ -816,7 +817,7 @@ class Root(controllers.RootController):
                     bug.add_comment(update,
                         "%s has been submitted as an update for %s.\n%s" %
                             (update.title, release.long_name,
-                             config.get('base_address') + url(update.get_url())))
+                             config.get('base_address') + tg_url(update.get_url())))
 
             # If a request is specified, make it.  By default we're submitting
             # new updates directly into testing
