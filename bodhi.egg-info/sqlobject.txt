@@ -1,2 +1,0 @@
-db_module=bodhi.model
-history_dir=$base/bodhi/sqlobject-history

@@ -1,3 +1,0 @@
-TurboGears >= 1.0
-TurboMail
-python_fedora
