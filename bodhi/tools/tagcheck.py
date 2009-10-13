@@ -23,9 +23,9 @@ def main():
 
     # Check for testing updates that aren't tagged properly
     for update in PackageUpdate.select(PackageUpdate.q.status=='testing'):
+        dest_tag = update.release.testing_tag
         for build in update.builds:
             tags = [tag['name'] for tag in koji.listTags(build=build.nvr)]
-            dest_tag = '%s-updates-testing' % update.release.dist_tag
             if dest_tag not in tags:
                 print "%s marked as testing, but tagged with %s" % (build.nvr,
                                                                     tags)
@@ -34,7 +34,7 @@ def main():
 
     # Check all candidate updates to see if they are in a different bodhi state
     for release in Release.select():
-        tag = '%s-updates-candidate' % release.dist_tag
+        tag = release.candidate_tag
         tagged = [build['nvr'] for build in koji.listTagged(tag)]
         for nvr in tagged:
             try:
@@ -45,11 +45,11 @@ def main():
                                                           update.status,
                                                           tag)
                         if '--fix' in sys.argv:
-                            dest = '%s-updates-testing' % release.dist_tag
+                            dest = release.testing_tag
                             if update.status == 'stable':
-                                dest = '%s-updates' % release.dist_tag
+                                dest = release.stable_tag
                             elif update.status == 'obsolete':
-                                dest = '%s-updates-candidate' % release.dist_tag
+                                dest = release.candidate_tag
                             broke.add((tag, dest, nvr))
             except SQLObjectNotFound:
                 pass
@@ -57,8 +57,7 @@ def main():
     # Make sure that all builds in koji tagged as an update exist
     # in bodhi, and are in the expect state.
     for release in Release.select():
-        for update_tag in ('updates-testing', 'updates'):
-            tag = '%s-%s' % (release.dist_tag, update_tag)
+        for tag in (release.testing_tag, release.stable_tag):
             tagged = [build['nvr'] for build in koji.listTagged(tag)]
             for nvr in tagged:
                 try:
@@ -74,11 +73,11 @@ def main():
                         print "%s is %s in bodhi but tagged as %s in koji" % (
                                 update.title, update.status, tag)
                         if '--fix' in sys.argv:
-                            dest = '%s-updates-testing' % release.dist_tag
+                            dest = release.testing_tag
                             if update.status == 'stable':
-                                dest = '%s-updates' % release.dist_tag
+                                dest = release.stable_tag
                             elif update.status == 'obsolete':
-                                dest = '%s-updates-candidate' % release.dist_tag
+                                dest = release.candidate_tag
                             for b in update.builds:
                                 broke.add((tag, dest, b.nvr))
 
