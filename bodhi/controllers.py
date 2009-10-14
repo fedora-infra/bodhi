@@ -471,7 +471,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def save(self, builds, type_, notes, bugs, close_bugs=False, edited=False,
              request='testing', suggest_reboot=False, inheritance=False,
-             autokarma=True, stable_karma=3, unstable_karma=-3, **kw):
+             autokarma=False, stable_karma=3, unstable_karma=-3, **kw):
         """ Save an update.
 
         This entails either creating a new update, or editing an existing one.
