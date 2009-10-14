@@ -97,7 +97,8 @@ class TestControllers(testutil.DBTest):
                 'type_'    : 'enhancement',
                 'bugs'    : '1234',
                 'cves'    : 'CVE-2020-0001',
-                'notes'   : 'foobar'
+                'notes'   : 'foobar',
+                'autokarma' : True
         }
         self.save_update(params, session)
         assert "This resource resides temporarily at <a href='http://localhost/updates/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0], cherrypy.response.body[0]
@@ -901,6 +902,7 @@ class TestControllers(testutil.DBTest):
                 'bugs'    : '',
                 'notes'   : 'foobar',
                 'request' : 'Stable',
+                'autokarma' : True,
                 'stable_karma' : 5,
                 'unstable_karma' : -5
         }
@@ -917,6 +919,7 @@ class TestControllers(testutil.DBTest):
                 'bugs'    : '',
                 'notes'   : 'foobar',
                 'request' : 'Stable',
+                'autokarma' : True,
                 'stable_karma' : 1,
                 'unstable_karma' : -1,
         }
