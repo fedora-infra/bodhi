@@ -1,0 +1,4 @@
+recursive-include bodhi/public *
+include bodhi/public/favicon.ico
+recursive-include bodhi/i18n *
+recursive-include bodhi/templates *
