@@ -14,11 +14,10 @@
 import logging
 
 from turbogears.feed import FeedController
-from turbogears import config
+from turbogears import config, url
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
 
-from bodhi.util import url
 from bodhi.model import Release, PackageUpdate, Comment
 
 log = logging.getLogger(__name__)
