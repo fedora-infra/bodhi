@@ -76,6 +76,7 @@ class TestBuild(ModelTest):
         eq_(self.obj.package.builds[0], self.obj)
 
     def test_latest(self):
+        # Note, this build is hardcoded in bodhi/buildsys.py:DevBuildsys
         eq_(self.obj.get_latest(), u"TurboGears-1.0.8-7.fc11")
 
     def test_latest_with_eq_build(self):
@@ -96,13 +97,19 @@ class TestBuild(ModelTest):
 
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
-    klass = model.Build
+    klass = model.Update
     attrs = dict(
-        title = u"TurboGears-1.0.8-3.fc11",
+        type_=u'security',
+        notes=u'foobar',
+        status=u'pending',
+        submitter=u'lmacken',
+        request=u'testing',
+        close_bugs=True,
+        karma=0,
         )
 
     def do_get_dependencies(self):
         return dict(
-                release = model.Release(**TestRelease.attrs),
-                package = model.Package(**TestPackage.attrs),
+                #release = model.Release(**TestRelease.attrs),
+                #package = model.Package(**TestPackage.attrs),
                 )

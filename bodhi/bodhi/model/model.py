@@ -12,6 +12,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import relation
 from sqlalchemy import Table, ForeignKey, Column
 from sqlalchemy.types import Integer, Unicode
+from sqlalchemy.ext.declarative import synonym_for
 
 from bodhi.model import DeclarativeBase, metadata, DBSession
 from bodhi.model.enum import Enum
@@ -191,15 +192,12 @@ class Build(DeclarativeBase):
         """ Return the path of this built update """
         return os.path.join(config.get('build_dir'), *get_nvr(self.nvr))
 
+
 class Update(DeclarativeBase):
     __tablename__ = 'updates'
 
     id = Column(Integer, primary_key=True)
-    title = Column(Unicode(255)) # if null, then make our own?
-    notes = Column(UnicodeText)
-    submitter = Column(Unicode(32), nullable=False)
-    alias = Column(Unicode(32), default=None) # hrm?
-    karma = Column(Integer, default=0)
+    _title = Column('title', UnicodeText)
     type_ = Column(Enum([u'security', u'bugfix', u'enhancement',
                          u'newpackage', u'obsolete']))
     status = Column(Enum([u'pending', u'testing', u'stable',
@@ -208,19 +206,46 @@ class Update(DeclarativeBase):
     request = Column(Enum([u'testing', u'stable', u'obsolete', None]),
                      default=u'testing')
     pushed = Column(Boolean, default=False)
+
+    submitter = Column(Unicode(32), nullable=False)
+    karma = Column(Integer, default=0)
+    notes = Column(UnicodeText)
+
+    # Bug settings
     close_bugs = Column(Boolean, default=True)
-    approved = Column(Boolean, default=False)
+
+    # Team approvals
+    security_approved = Column(Boolean, default=False)
+    releng_approved = Column(Boolean, default=False)
+    qa_approved = Column(Boolean, default=False)
+
+    # Timestamps
     date_submitted = Column(DateTime, default=datetime.now)
-    date_modified = Column(DateTime, default=None)
+    date_modified = Column(DateTime, onupdate=datetime.now)
     date_approved = Column(DateTime, default=None)
     date_pushed = Column(DateTime, default=None)
-    nagged = Column(PickleType, default=None)
+    security_approval_date = Column(DateTime)
+    qa_approval_date = Column(DateTime)
+    releng_approval_date = Column(DateTime)
 
-    releases = relation('Release', secondary=update_release_table, backref='updates')
+    # eg: FEDORA-EPEL-2009-12345
+    alias = Column(Unicode(32), default=None)
+
+    # One-to-many relationships
     comments = relation('Comment', backref='update')
     builds = relation('Build', backref='updates')
+
+    # Many-to-many relationships
     bugs = relation('Bug', secondary=update_bug_table, backref='updates')
     cves = relation('CVE', secondary=update_cve_table, backref='updates')
+    releases = relation('Release', secondary=update_release_table,
+                        backref='updates')
+
+    @synonym_for('_title')
+    @property
+    def title(self, delim=' '):
+        title = ', '.join([build.package.name for build in self.builds])
+        return title + ' %s update' % self.type_
 
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
@@ -731,16 +756,27 @@ class Bug(DeclarativeBase):
     __tablename__ = 'bugs'
 
     id = Column(Integer, primary_key=True)
-    bug_id = Column(Integer, unique=True, nullable=False)
-    title = Column(Unicode(255))
-    security = Column(Boolean, default=False)
-    parent = Column(Boolean, default=False)
-    update_id = Column(Integer, ForeignKey('updates.id'))
-# Support external bug trackers?
-# url column?
-# create a bug tracker table?
 
+    # Bug number. If None, assume ``url`` points to an external bug tracker
+    bug_id = Column(Integer, unique=True)
+
+    # The title of hte bug
+    title = Column(Unicode(255))
+
+    # If we're dealing with a security bug
+    security = Column(Boolean, default=False)
+
+    # Bug URL.  If None, then assume it's in Red Hat Bugzilla
+    url = Column('url', UnicodeText)
+
+    # If this bug is a parent tracker bug for release-specific bugs
+    parent = Column(Boolean, default=False)
+
+    # List of Mitre CVE's associated with this bug
     cves = relation(CVE, secondary=bug_cve_table, backref='bugs')
+
+    # Foreign Keys used by other relations
+    update_id = Column(Integer, ForeignKey('updates.id'))
 
     #_bz_server = config.get("bz_server")
 
@@ -829,14 +865,6 @@ class Bug(DeclarativeBase):
 # TODO: remove this
     def get_url(self):
         return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
-
-    @property
-    def url(self):
-        return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
-
-
-
-
 
 # TODO; put this somewhere else!
 
