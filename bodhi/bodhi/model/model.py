@@ -3,8 +3,10 @@
 
 import os
 import rpm
+import time
 import logging
 
+from textwrap import wrap
 from datetime import datetime
 
 from tg import config
@@ -73,21 +75,19 @@ class Package(DeclarativeBase):
 
     builds = relation('Build', backref='package')
 
-## FIXME: do the proper query on the builds.
     def __str__(self):
         x = header(self.name)
         states = { 'pending' : [], 'testing' : [], 'stable' : [] }
         if len(self.builds):
             for build in self.builds:
-                for state in states.keys():
-                    states[state] += filter(lambda u: u.status == state,
-                                            build.updates)
+                if build.update and build.update.status in states:
+                    states[build.update.status].append(build.update)
         for state in states.keys():
             if len(states[state]):
                 x += "\n %s Updates (%d)\n" % (state.title(),
                                                len(states[state]))
                 for update in states[state]:
-                    x += "    o %s\n" % update.title
+                    x += "    o %s\n" % update.get_title()
         del states
         return x
 
