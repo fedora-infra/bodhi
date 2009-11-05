@@ -45,7 +45,7 @@ from bodhi.exceptions import (RPMNotFound, RepodataException,
 log = logging.getLogger(__name__)
 
 ## Display a given message as a heading
-header = lambda x: "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
+header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
