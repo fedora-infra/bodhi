@@ -497,7 +497,7 @@ class Update(DeclarativeBase):
         val += u"""    Release: %s
      Status: %s
        Type: %s
-      Karma: %d""" % (self.release.long_name,self.status,self.type,self.karma)
+      Karma: %d""" % (self.release.long_name,self.status,self.type_,self.karma)
         if self.request != None:
             val += u"\n    Request: %s" % self.request
         if len(self.bugs):
@@ -908,3 +908,5 @@ class Bug(DeclarativeBase):
 #            releases.append(rel)
 #            releases.sort(lambda x, y: cmp(x['name'], y['name']))
 #        self.data = releases
+
+
