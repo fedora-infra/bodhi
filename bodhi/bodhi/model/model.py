@@ -261,49 +261,68 @@ class Update(DeclarativeBase):
 
     def get_bugstring(self, show_titles=False):
         """Return a space-delimited string of bug numbers for this update """
-        val = ''
+        val = u''
         if show_titles:
             i = 0
             for bug in self.bugs:
-                bugstr = '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
+                bugstr = u'%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
                                           bug.bug_id, bug.title)
-                val += '\n'.join(wrap(bugstr, width=67,
+                val += u'\n'.join(wrap(bugstr, width=67,
                                       subsequent_indent=' ' * 11 + ': ')) + '\n'
                 i += 1
             val = val[:-1]
         else:
-            val = ' '.join([str(bug.bug_id) for bug in self.bugs])
+            val = u' '.join([str(bug.bug_id) for bug in self.bugs])
         return val
 
     def get_cvestring(self):
         """ Return a space-delimited string of CVE ids for this update """
-        return ' '.join([cve.cve_id for cve in self.cves])
+        return u' '.join([cve.cve_id for cve in self.cves])
 
     def assign_id(self):
+        """Assign an update ID to this update.
+
+        This function finds the next number in the sequence of pushed updates
+        for this release, increments it and prefixes it with the id_prefix of
+        the release and the year (ie FEDORA-2007-0001).
         """
-        Assign an update ID to this update.  This function finds the next number
-        in the sequence of pushed updates for this release, increments it and
-        prefixes it with the id_prefix of the release and the year
-        (ie FEDORA-2007-0001)
-        """
-        if self.alias != None and self.alias != u'None':
+        if self.alias not in (None, u'None'):
             log.debug("Keeping current update id %s" % self.alias)
             return
 
-        update = Update.query.filter(Update.alias != None) \
-                             .order_by(Update.alias)
-        #update = PackageUpdate.select(PackageUpdate.q.updateid != 'None',
-        #                              orderBy=PackageUpdate.q.updateid)
-        try:
-            prefix, year, id = update[-1].alias.split('-')
+        releases = DBSession.query(Release) \
+                            .filter_by(id_prefix=self.release.id_prefix) \
+                            .all()
+
+        update = DBSession.query(Update) \
+                          .filter(
+                              and_(Update.date_pushed != None,
+                                   Update.alias != None,
+                                   or_(*[Update.release == release
+                                         for release in releases]))) \
+                          .order_by(Update.date_pushed.desc()) \
+                          .group_by(Update.date_pushed) \
+                          .limit(1) \
+                          .first()
+
+        if not update:
+            id = 1
+        else:
+            split = update.alias.split('-')
+            year, id = split[-2:]
+            prefix = '-'.join(split[:-2])
             if int(year) != time.localtime()[0]: # new year
                 id = 0
             id = int(id) + 1
-        except (AttributeError, IndexError):
-            id = 1
+
         self.alias = u'%s-%s-%0.4d' % (self.release.id_prefix,
-                                          time.localtime()[0],id)
+                                       time.localtime()[0], id)
         log.debug("Setting alias for %s to %s" % (self.title, self.alias))
+
+        # FIXME: don't do this here:
+        self.date_pushed = datetime.utcnow()
+
+        DBSession.flush()
 
     def set_request(self, action, pathcheck=True):
         """ Attempt to request an action for this update.
