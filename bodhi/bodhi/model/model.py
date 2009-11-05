@@ -102,7 +102,7 @@ class Build(DeclarativeBase):
     release_id = Column(Integer, ForeignKey('releases.id'))
     update_id = Column(Integer, ForeignKey('updates.id'))
 
-    release = relation('Release', backref='builds')
+    release = relation('Release', backref='builds', lazy=False)
 
     def get_latest(self):
         """ Return the path to the last released srpm of this package """
@@ -222,8 +222,8 @@ class Update(DeclarativeBase):
     # Timestamps
     date_submitted = Column(DateTime, default=datetime.now)
     date_modified = Column(DateTime, onupdate=datetime.now)
-    date_approved = Column(DateTime, default=None)
-    date_pushed = Column(DateTime, default=None)
+    date_approved = Column(DateTime)
+    date_pushed = Column(DateTime)
     security_approval_date = Column(DateTime)
     qa_approval_date = Column(DateTime)
     releng_approval_date = Column(DateTime)
@@ -231,15 +231,24 @@ class Update(DeclarativeBase):
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(32), default=None)
 
+    # One-to-one relationships
+    release_id = Column(Integer, ForeignKey('releases.id'))
+    release = relation('Release')
+
     # One-to-many relationships
-    comments = relation('Comment', backref='update')
-    builds = relation('Build', backref='updates')
+    comments = relation('Comment', backref='update', lazy=False)
+    builds = relation('Build', backref='update', lazy=False)
 
     # Many-to-many relationships
-    bugs = relation('Bug', secondary=update_bug_table, backref='updates')
-    cves = relation('CVE', secondary=update_cve_table, backref='updates')
-    releases = relation('Release', secondary=update_release_table,
-                        backref='updates')
+    bugs = relation('Bug', secondary=update_bug_table,
+                    backref='updates', lazy=False)
+    cves = relation('CVE', secondary=update_cve_table,
+                    backref='updates', lazy=False)
+
+    # We may or may not need this, since we can determine the releases from the
+    # builds
+    #releases = relation('Release', secondary=update_release_table,
+    #                    backref='updates', lazy=False)
 
     @synonym_for('_title')
     @property
