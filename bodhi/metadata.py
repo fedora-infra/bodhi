@@ -24,7 +24,7 @@ from sqlobject import SQLObjectNotFound
 from turbogears import config
 
 from bodhi.util import get_repo_tag
-from bodhi.model import PackageBuild
+from bodhi.model import PackageBuild, PackageUpdate
 from bodhi.buildsys import get_session
 from bodhi.modifyrepo import RepoMetadata
 from bodhi.exceptions import RepositoryNotFound
@@ -65,7 +65,7 @@ class ExtendedMetadata:
             # Add all relevant notices from the metadata to this document
             ids = [update.updateid for update in self.updates if update.updateid]
             for notice in umd.get_notices():
-                if notice['update_id'] in ids:
+                if notice['update_id'] in ids or notice['type'] == 'security':
                     self._add_notice(notice)
                 else:
                     log.debug("Removing %s from updateinfo" % notice['title'])
@@ -76,6 +76,11 @@ class ExtendedMetadata:
                     self.add_update(update)
                 else:
                     missing_ids.append(update.title)
+
+            # Add *all* security updates
+            # TODO: only the most recent
+            #for update in PackageUpdate.select(PackageUpdate.q.type=='security'):
+            #    self.add_update(update)
 
         if missing_ids:
             log.error("%d updates with missing ID!" % len(missing_ids))
