@@ -731,6 +731,9 @@ class Root(controllers.RootController):
             #           (edited and oldBuild in edited.builds):
             #            obsoletable = False
             #            break
+# TODO:
+# ensure that all of the packages in the old update are present in the new one
+# compare length of builds, and match them.
             #        if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
             #            log.debug("%s is obsoletable" % oldBuild.nvr)
             #            obsoletable = True
