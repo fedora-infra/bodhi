@@ -50,8 +50,11 @@ class Release(SQLObject):
     updates     = MultipleJoin('PackageUpdate', joinColumn='release_id')
     id_prefix   = UnicodeCol(notNone=True)
     dist_tag    = UnicodeCol(notNone=True) # ie dist-fc7
-    locked      = BoolCol(default=False)
     metrics     = PickleCol(default=None) # {metric: {data}}
+
+    # [No Frozen Rawhide] We're going to re-use this column to flag 'pending'
+    # releases, since we'll no longer need to lock releases in this case.
+    locked      = BoolCol(default=False)
 
     def get_version(self):
         regex = re.compile('\D+(\d+)$')
