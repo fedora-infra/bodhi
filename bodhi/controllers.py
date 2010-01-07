@@ -831,6 +831,13 @@ class Root(controllers.RootController):
                     flash_log(str(e))
                     raise InvalidUpdateException(params)
 
+            # Politely discourage devs from pushing critpath straight to stable
+            if (update.request == 'stable' and update.critpath and
+                'qa' not in identity.current.groups and
+                'releng' not in identity.current.groups):
+                note.append("You're pushing a critical path package directly to "
+                            "stable. Please consider pushing to testing first!")
+
         flash_log('. '.join(note))
 
         if request_format() == 'json':
