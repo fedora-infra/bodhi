@@ -837,6 +837,11 @@ class Root(controllers.RootController):
                 'releng' not in identity.current.groups):
                 note.append("You're pushing a critical path package directly to "
                             "stable. Please consider pushing to testing first!")
+            elif update.request == 'stable' and update.release.locked:
+                note.append("This update is bypassing updates-testing for a "
+                            "pending release, which is strongly discouraged. "
+                            "Please ensure that it is properly tested, or "
+                            "consider pushing it to testing first.")
 
         flash_log('. '.join(note))
 
