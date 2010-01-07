@@ -67,12 +67,24 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                         Push to Testing
                                     </a>
                                 </td>
+                                <span py:if="update.release.locked and update.critpath">
+                                    <span py:if="'qa' in tg.identity.groups or 'releng' in tg.identity.groups">
+                                <td>
+                                    <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
+                                        <img src="${tg.url('/static/images/submit.png')}" border="0"/>
+                                        Push Critical Path update to Stable
+                                    </a>
+                                </td>
+                                </span>
+                                <span py:if="not update.release.locked or not update.critpath">
                                 <td>
                                     <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/submit.png')}" border="0"/>
                                         Push to Stable
                                     </a>
                                 </td>
+                                </span>
+                                </span>
                                 <td>
                                     <a href="${util.url('/confirm_delete?nvr=%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/trash.png')}" border="0"/>
@@ -95,14 +107,26 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                 </a>
                             </td>
                             <span py:if="update.status == 'testing'">
-                                <span py:if="update.request == None">
-                                    <td>
-                                        <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
-                                            <img src="${tg.url('/static/images/submit.png')}" border="0"/>
-                                            Mark as Stable
-                                        </a>
-                                    </td>
-                            </span>
+                              <span py:if="update.request == None">
+                                <span py:if="update.release.locked and update.critpath">
+                                    <span py:if="'qa' in tg.identity.groups or 'releng' in tg.identity.groups">
+                                      <td>
+                                          <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
+                                              <img src="${tg.url('/static/images/submit.png')}" border="0"/>
+                                              Mark Critical Path update as Stable
+                                          </a>
+                                      </td>
+                                    </span>
+                                </span>
+                                <span py:if="not update.release.locked or not update.critpath">
+                                      <td>
+                                          <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
+                                              <img src="${tg.url('/static/images/submit.png')}" border="0"/>
+                                              Mark as Stable
+                                          </a>
+                                      </td>
+                                  </span>
+                                </span>
                             <td>
                                 <a href="${util.url('/edit/%s' % update.title)}" class="list">
                                     <img src="${tg.url('/static/images/edit.png')}" border="0"/>
