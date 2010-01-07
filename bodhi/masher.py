@@ -385,6 +385,10 @@ class MashTask(Thread):
         for update in self.updates:
             if update.request == 'stable':
                 self.tag = update.release.stable_tag
+                # [No Frozen Rawhide] Move stable builds going to a locked
+                # release to the dist-tag
+                if update.release.locked and update.critpath:
+                    self.tag = update.release.dist_tag
             elif update.request == 'testing':
                 self.tag = update.release.testing_tag
             elif update.request == 'obsolete':
