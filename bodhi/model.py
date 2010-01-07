@@ -407,6 +407,17 @@ class PackageUpdate(SQLObject):
                 flash_log('%s does not have a request to revoke' % self.title)
             return
 
+        # [No Frozen Rawhide] Disable pushing critical path updates for
+        # pending releases directly to stable.
+        if action == 'stable' and self.release.locked and self.critpath:
+            if ('releng' in identity.current.groups or
+                'qa' in identity.current.groups):
+                self.comment('Critical path update approved by %s' %
+                             identity.current.user_name, author='bodhi')
+            else:
+                log.info('Forcing critical path update into testing')
+                action = 'testing'
+
         self.request = action
         self.pushed = False
         #self.date_pushed = None
