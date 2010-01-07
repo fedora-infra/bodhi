@@ -623,6 +623,12 @@ class Root(controllers.RootController):
                 raise InvalidUpdateException(params)
             edited.unpush()
 
+            # Refresh the tags for these builds
+            for build in edited.builds:
+                if build.nvr in buildinfo:
+                    buildinfo[build.nvr]['tags'] = [tag['name'] for tag in
+                                                    koji.listTags(build.nvr)]
+
         # Make sure all builds are tagged appropriately.  We also determine
         # which builds get pushed for which releases, based on the tag.
         for build in builds:
