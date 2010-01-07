@@ -836,7 +836,8 @@ class Root(controllers.RootController):
                 'qa' not in identity.current.groups and
                 'releng' not in identity.current.groups):
                 note.append("You're pushing a critical path package directly to "
-                            "stable. Please consider pushing to testing first!")
+                            "stable, which is strongly discouraged. Please "
+                            "consider pushing to testing first!")
             elif update.request == 'stable' and update.release.locked:
                 note.append("This update is bypassing updates-testing for a "
                             "pending release, which is strongly discouraged. "
