@@ -351,6 +351,11 @@ class MashTask(Thread):
         """
         for update in self.updates:
             release = update.release
+
+            # [No Frozen Rawhide] Don't mash stable repos for pending releases
+            if update.request == 'stable' and release.locked:
+                continue
+
             if self.resume:
                 self.repos.add(release.stable_repo)
                 self.repos.add(release.testing_repo)
