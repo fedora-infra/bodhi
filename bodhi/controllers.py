@@ -838,6 +838,7 @@ class Root(controllers.RootController):
                 note.append("You're pushing a critical path package directly to "
                             "stable, which is strongly discouraged. Please "
                             "consider pushing to testing first!")
+            # Discourage devs from pushing directly to stable for pending releases
             elif update.request == 'stable' and update.release.locked:
                 note.append("This update is bypassing updates-testing for a "
                             "pending release, which is strongly discouraged. "
