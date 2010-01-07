@@ -110,9 +110,14 @@ class AdminController(Controller, SecureResource):
             else:
                 # Get a list of all updates with a request that aren't
                 # unapproved security updates, or for a locked release
-                requests = filter(lambda update: not update.release.locked,
-                                  PackageUpdate.select(
-                                      PackageUpdate.q.request != None))
+                requests = PackageUpdate.select(PackageUpdate.q.request != None)
+
+                # Come F13+, bodhi will not have locked releases.  It will 
+                # implement the 'No Frozen Rawhide' proposal, and treat 'locked'
+                # releases as pending.
+                #requests = filter(lambda update: not update.release.locked,
+                #                  PackageUpdate.select(
+                #                      PackageUpdate.q.request != None))
                 for update in requests:
                     if update.type == 'security' and not update.approved:
                         continue
