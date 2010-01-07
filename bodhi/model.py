@@ -825,6 +825,17 @@ class PackageUpdate(SQLObject):
             return None
         return int(self.updateid.split('-')[-1])
 
+    @property
+    def critpath(self):
+        """ Return whether or not this update is in the critical path """
+        critical = False
+        critpath_pkgs = config.get('critpath').split()
+        for build in self.builds:
+            if build.package.name in critpath_pkgs:
+                critical = True
+                break
+        return critical
+
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
