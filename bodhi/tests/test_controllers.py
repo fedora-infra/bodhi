@@ -21,9 +21,9 @@ from bodhi.exceptions import DuplicateEntryError
 
 cherrypy.root = Root()
 
-def create_release(num='7', dist='dist-fc'):
+def create_release(num='7', dist='dist-fc', **kw):
     rel = Release(name='F'+num, long_name='Fedora '+num, id_prefix='FEDORA',
-                  dist_tag=dist+num)
+                  dist_tag=dist+num, **kw)
     assert rel
     assert Release.byName('F'+num)
     return rel
@@ -1243,3 +1243,223 @@ class TestControllers(testutil.DBTest):
             assert False, "Old obsolete build still exists!!"
         except SQLObjectNotFound:
             pass
+
+    def test_push_critpath_to_release(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': 'stable',
+                'unstable_karma' : -1,
+        }
+        testutil.capture_log(["bodhi.util", "bodhi.controllers", "bodhi.model"])
+        self.save_update(params, session)
+        log = testutil.get_log()
+        assert "Update successfully created. You're pushing a critical path package directly to stable. Please consider pushing to testing first!" in log, log
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable'
+
+    def test_push_critpath_to_frozen_release(self):
+        session = login()
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': 'stable',
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+
+    def test_push_critpath_to_frozen_release_and_request_stable(self):
+        session = login()
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': 'stable',
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+
+        # Ensure we can't create a stable request
+        testutil.capture_log(["bodhi.util", "bodhi.controllers", "bodhi.model"])
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        log = testutil.get_log()
+        assert "Forcing critical path update into testing" in log
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+
+    def test_push_critpath_to_frozen_release_and_request_stable_as_releng(self):
+        session = login(group='releng')
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': 'stable',
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable'
+
+    def test_critpath_to_frozen_release_available_actions(self):
+        """
+        Ensure devs can attempt to push critpath updates for pending releases
+        to stable, but make sure that it can only go to testing.
+        """
+        session = login()
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+
+        assert "Push to Testing" in cherrypy.response.body[0]
+        assert "Push to Stable" not in cherrypy.response.body[0]
+
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                                method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+
+    def test_critpath_to_frozen_release_available_actions_for_releng(self):
+        """
+        Ensure releng/qa can push critpath updates to stable for pending releases
+        """
+        session = login(group='releng')
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+
+        assert "Push to Testing" in cherrypy.response.body[0]
+        assert "Push Critical Path update to Stable" in cherrypy.response.body[0]
+
+    def test_critpath_to_frozen_release_testing(self):
+        """
+        Ensure devs can *not* push critpath updates directly to stable
+        for pending releases
+        """
+        session = login()
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's pushed to testing
+        update.pushed = True
+        update.status = 'testing'
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+
+        # Ensure the dev cannot push it to stable
+        assert "/updates/request/stable" not in cherrypy.response.body[0]
+
+    def test_non_critpath_to_frozen_release_testing(self):
+        """
+        Ensure non-critpath packages can still be pushed to stable as usual
+        """
+        session = login()
+        create_release(locked=True)
+        params = {
+                'builds'  : 'nethack-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's pushed to testing
+        update.pushed = True
+        update.status = 'testing'
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+
+        assert "/updates/request/stable" in cherrypy.response.body[0]
+
+    def test_critpath_to_frozen_release_testing_admin_actions(self):
+        """
+        Ensure admins can submit critpath updates for pending releases to stable.
+        """
+        session = login(group='qa')
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's pushed to testing
+        update.pushed = True
+        update.status = 'testing'
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+
+        assert "Mark Critical Path update as Stable" in cherrypy.response.body[0]
