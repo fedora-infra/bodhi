@@ -335,6 +335,7 @@ class PackageUpdate(SQLObject):
                                           time.localtime()[0],id)
         log.debug("Setting updateid for %s to %s" % (self.title,
                                                      self.updateid))
+        self.date_pushed = datetime.utcnow()
         hub.commit()
 
     def set_request(self, action, pathcheck=True):

@@ -1260,7 +1260,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(["bodhi.util", "bodhi.controllers", "bodhi.model"])
         self.save_update(params, session)
         log = testutil.get_log()
-        assert "Update successfully created. You're pushing a critical path package directly to stable. Please consider pushing to testing first!" in log, log
+        assert "Update successfully created. You're pushing a critical path package directly to stable, which is strongly discouraged. Please consider pushing to testing first!" in log, log
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable'
 
