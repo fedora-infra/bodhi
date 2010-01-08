@@ -69,21 +69,29 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                 </td>
                                 <span py:if="update.release.locked and update.critpath">
                                     <span py:if="'qa' in tg.identity.groups or 'releng' in tg.identity.groups">
-                                <td>
-                                    <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
-                                        <img src="${tg.url('/static/images/submit.png')}" border="0"/>
-                                        Push Critical Path update to Stable
-                                    </a>
-                                </td>
+                                        <td>
+                                            <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
+                                                <img src="${tg.url('/static/images/submit.png')}" border="0"/>
+                                                Push Critical Path update to Stable
+                                            </a>
+                                        </td>
+                                    </span>
                                 </span>
-                                <span py:if="not update.release.locked or not update.critpath">
+                                <span py:if="update.release.locked and not update.critpath">
+                                    <td>
+                                        <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
+                                            <img src="${tg.url('/static/images/submit.png')}" border="0"/>
+                                            Push to Stable
+                                        </a>
+                                    </td>
+                                </span>
+                                <span py:if="not update.release.locked">
                                 <td>
                                     <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                         <img src="${tg.url('/static/images/submit.png')}" border="0"/>
                                         Push to Stable
                                     </a>
                                 </td>
-                                </span>
                                 </span>
                                 <td>
                                     <a href="${util.url('/confirm_delete?nvr=%s' % update.title)}" class="list">
@@ -118,15 +126,23 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                       </td>
                                     </span>
                                 </span>
-                                <span py:if="not update.release.locked or not update.critpath">
+                                <span py:if="not update.critpath">
                                       <td>
                                           <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                               <img src="${tg.url('/static/images/submit.png')}" border="0"/>
                                               Mark as Stable
                                           </a>
                                       </td>
-                                  </span>
                                 </span>
+                            </span>
+                            <span py:if="not update.release.locked">
+                                  <td>
+                                      <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
+                                          <img src="${tg.url('/static/images/submit.png')}" border="0"/>
+                                          Mark as Stable
+                                      </a>
+                                  </td>
+                            </span>
                             <td>
                                 <a href="${util.url('/edit/%s' % update.title)}" class="list">
                                     <img src="${tg.url('/static/images/edit.png')}" border="0"/>

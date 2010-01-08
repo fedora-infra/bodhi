@@ -1264,6 +1264,50 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable'
 
+    def test_critpath_actions_in_normal_release(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == None
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+        assert "Push to Stable" in cherrypy.response.body[0]
+        assert "Push to Testing" in cherrypy.response.body[0]
+
+    def test_non_critpath_actions_in_normal_release(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'nethack-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == None
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+        assert "Push to Testing" in cherrypy.response.body[0]
+        assert "Push to Stable" in cherrypy.response.body[0], cherrypy.response.body[0]
+
     def test_push_critpath_to_frozen_release(self):
         session = login()
         create_release(locked=True)
@@ -1434,7 +1478,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
 
-        assert "/updates/request/stable" in cherrypy.response.body[0]
+        assert "/updates/request/stable" in cherrypy.response.body[0], cherrypy.response.body[0]
 
     def test_critpath_to_frozen_release_testing_admin_actions(self):
         """
