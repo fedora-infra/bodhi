@@ -58,6 +58,7 @@ Requires: python-tgcaptcha
 Requires: python-decorator
 Requires: mod_wsgi
 Requires: httpd
+Requires: python-markdown2
 
 
 %description server
