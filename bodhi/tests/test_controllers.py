@@ -2,23 +2,24 @@
 # -*- coding: utf-8 -*-
 
 import os
+import urllib
+import simplejson
 import turbogears
 import cPickle as pickle
-from datetime import datetime
 
+from urllib import urlencode
+from datetime import datetime, timedelta
+from sqlobject import SQLObjectNotFound
 from turbogears import testutil, database, config
 turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
-import urllib
-import cherrypy
-
-from sqlobject import SQLObjectNotFound
 from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla, \
                         Group
 from bodhi.controllers import Root
 from bodhi.exceptions import DuplicateEntryError
 
+import cherrypy
 cherrypy.root = Root()
 
 def create_release(num='7', dist='dist-fc', **kw):
@@ -1507,3 +1508,57 @@ class TestControllers(testutil.DBTest):
                                 method='GET', headers=session)
 
         assert "Mark Critical Path update as Stable" in cherrypy.response.body[0]
+
+    def test_created_since(self):
+        """
+        Ensure admins can submit critpath updates for pending releases to stable
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's pushed to stable
+        update.pushed = True
+        update.status = 'stable'
+        update.date_submitted = datetime(2010, 01, 01, 12, 00, 00)
+
+        ## Test web UI
+        testutil.create_request('/updates/list?%s' %
+                urlencode({'created_since': str(update.date_submitted)}),
+                method='GET', headers=session)
+
+        assert '1 update found' in cherrypy.response.body[0], cherrypy.response.body[0]
+        assert 'kernel-2.6.31-1.fc7' in cherrypy.response.body[0]
+
+        ## Test JSON API
+        testutil.create_request('/updates/list?%s' %
+                urlencode({'created_since': str(update.date_submitted),
+                           'tg_format': 'json'}),
+                method='GET', headers=session)
+
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert json['num_items'] == 1
+        assert json['updates'][0]['title'] == params['builds']
+
+        testutil.capture_log(['bodhi.model', 'bodhi.controllers'])
+        testutil.create_request('/updates/list?%s' %
+                urlencode({
+                    'tg_format': 'json',
+                    'created_since': str(update.date_submitted +
+                                         timedelta(days=1)),
+                    }),
+                method='GET', headers=session)
+
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert json['num_items'] == 0, testutil.get_log()

@@ -222,10 +222,12 @@ class Root(controllers.RootController):
             'get_auth': validators.StringBool(),
             'username': validators.UnicodeString(),
             'count_only': validators.StringBool(),
+            'created_since': validators.UnicodeString(),
             })
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
              package=None, mine=False, get_auth=False, username=None,
-             start_date=None, end_date=None, count_only=False, **kw):
+             start_date=None, end_date=None, count_only=False,
+             created_since=None, **kw):
         """ Return a list of updates based on given parameters """
         log.debug('list(%s)' % locals())
         query = []
@@ -239,7 +241,7 @@ class Root(controllers.RootController):
 
         # If no arguments are specified, return the most recent updates
         if not release and not bugs and not cves and not status and not type_ \
-           and not package and not mine and not username:
+           and not package and not mine and not username and not created_since:
             log.debug("No arguments, returning latest")
             updates = PackageUpdate.select(orderBy=orderBy).reversed()
             num_items = updates.count()
@@ -267,11 +269,18 @@ class Root(controllers.RootController):
                     PackageUpdate.q.submitter == identity.current.user_name)
             if username:
                 query.append(PackageUpdate.q.submitter == username)
+            if created_since:
+                created_since = datetime(*time.strptime(created_since,
+                       '%Y-%m-%d %H:%M:%S')[:-2])
+                log.debug('Querying updates created since %s' % created_since)
+                query.append(PackageUpdate.q.date_submitted >= created_since)
             if start_date:
-                start_date = datetime(*time.strptime(start_date, '%Y-%m-%d %H:%M:%S')[:-2])
+                start_date = datetime(*time.strptime(start_date,
+                    '%Y-%m-%d %H:%M:%S')[:-2])
                 query.append(PackageUpdate.q.date_pushed >= start_date)
             if end_date:
-                end_date = datetime(*time.strptime(end_date, '%Y-%m-%d %H:%M:%S')[:-2])
+                end_date = datetime(*time.strptime(end_date,
+                    '%Y-%m-%d %H:%M:%S')[:-2])
                 query.append(PackageUpdate.q.date_pushed <= end_date)
 
             updates = PackageUpdate.select(AND(*query),
