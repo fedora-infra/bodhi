@@ -1551,7 +1551,6 @@ class TestControllers(testutil.DBTest):
         assert json['num_items'] == 1
         assert json['updates'][0]['title'] == params['builds']
 
-        testutil.capture_log(['bodhi.model', 'bodhi.controllers'])
         testutil.create_request('/updates/list?%s' %
                 urlencode({
                     'tg_format': 'json',
@@ -1561,4 +1560,4 @@ class TestControllers(testutil.DBTest):
                 method='GET', headers=session)
 
         json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 0, testutil.get_log()
+        assert json['num_items'] == 0
