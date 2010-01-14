@@ -41,8 +41,8 @@ class SearchController(Controller):
     @expose(template="bodhi.templates.search")
     @validate(validators={ "search" : validators.UnicodeString() })
     @error_handler(index)
-    @paginate('updates', default_order='date_submitted', default_reversed=True,
-              limit=25, allow_limit_override=True)
+    @paginate('updates', default_order='-date_submitted', 
+              limit=20, max_limit=1000)
     def default(self, search, *args, **kw):
         results = set()
 

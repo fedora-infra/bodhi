@@ -1196,7 +1196,6 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/get_updates_from_builds?builds=' +
                 'kernel-2.6.29.1-111.fc7.x86_64%20TurboGears-1.0.2.2-2.fc7',
                 method='POST')
-        import simplejson
         json = simplejson.loads(cherrypy.response.body[0])
         assert 'kernel-2.6.29.1-111.fc7.x86_64' in json
         assert 'TurboGears-1.0.2.2-2.fc7' in json
@@ -1510,9 +1509,6 @@ class TestControllers(testutil.DBTest):
         assert "Mark Critical Path update as Stable" in cherrypy.response.body[0]
 
     def test_created_since(self):
-        """
-        Ensure admins can submit critpath updates for pending releases to stable
-        """
         session = login()
         create_release()
         params = {
@@ -1561,3 +1557,45 @@ class TestControllers(testutil.DBTest):
 
         json = simplejson.loads(cherrypy.response.body[0])
         assert json['num_items'] == 0
+
+    def test_query_limit(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        #update = PackageUpdate.byTitle(params['builds'])
+
+        # Create 100 updates
+        for prefix in xrange(100):
+            update = params.copy()
+            update['builds'] = '%s%d%s' % (update['builds'][0], prefix,
+                                           update['builds'][1:])
+            self.save_update(update, session)
+
+        assert PackageUpdate.select().count() == 100, PackageUpdate.select().count()
+
+        ## Test default limit
+        testutil.create_request('/updates/list?tg_format=json', method='GET',
+                                headers=session)
+
+        assert '100 updates found' in cherrypy.response.body[0], cherrypy.response.body[0]
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert json['num_items'] == 100, json['num_items']
+        assert len(json['updates']) == 20, len(json['updates'])
+
+        ## Try getting all 100
+        testutil.create_request('/updates/list?tg_format=json&tg_paginate_limit=100',
+                                method='GET', headers=session)
+
+        assert '100 updates found' in cherrypy.response.body[0], cherrypy.response.body[0]
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert json['num_items'] == 100, json['num_items']
+        assert len(json['updates']) == 100, len(json['updates'])
