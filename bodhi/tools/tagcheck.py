@@ -35,7 +35,7 @@ def main():
     # Check all candidate updates to see if they are in a different bodhi state
     for release in Release.select():
         tag = release.candidate_tag
-        tagged = [build['nvr'] for build in koji.listTagged(tag)]
+        tagged = [build['nvr'] for build in koji.listTagged(tag, latest=True)]
         for nvr in tagged:
             try:
                 build = PackageBuild.byNvr(nvr)
@@ -58,7 +58,7 @@ def main():
     # in bodhi, and are in the expect state.
     for release in Release.select():
         for tag in (release.testing_tag, release.stable_tag):
-            tagged = [build['nvr'] for build in koji.listTagged(tag)]
+            tagged = [build['nvr'] for build in koji.listTagged(tag, latest=True)]
             for nvr in tagged:
                 try:
                     build = PackageBuild.byNvr(nvr)
