@@ -1558,6 +1558,55 @@ class TestControllers(testutil.DBTest):
         json = simplejson.loads(cherrypy.response.body[0])
         assert json['num_items'] == 0
 
+    def test_pushed_since(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's pushed to stable
+        update.pushed = True
+        update.status = 'stable'
+        update.date_pushed = datetime(2010, 01, 01, 12, 00, 00)
+
+        ## Test web UI
+        testutil.create_request('/updates/list?%s' %
+                urlencode({'pushed_since': str(update.date_pushed)}),
+                method='GET', headers=session)
+
+        assert '1 update found' in cherrypy.response.body[0]
+        assert 'kernel-2.6.31-1.fc7' in cherrypy.response.body[0]
+
+        ## Test JSON API
+        testutil.create_request('/updates/list?%s' %
+                urlencode({'pushed_since': str(update.date_pushed),
+                           'tg_format': 'json'}),
+                method='GET', headers=session)
+
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert json['num_items'] == 1
+        assert json['updates'][0]['title'] == params['builds']
+
+        testutil.create_request('/updates/list?%s' %
+                urlencode({
+                    'tg_format': 'json',
+                    'pushed_since': str(update.date_pushed + timedelta(days=1)),
+                    }),
+                method='GET', headers=session)
+
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert json['num_items'] == 0
+
     def test_query_limit(self):
         session = login()
         create_release()

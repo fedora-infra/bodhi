@@ -223,11 +223,12 @@ class Root(controllers.RootController):
             'username': validators.UnicodeString(),
             'count_only': validators.StringBool(),
             'created_since': validators.UnicodeString(),
+            'pushed_since': validators.UnicodeString(),
             })
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
              package=None, mine=False, get_auth=False, username=None,
              start_date=None, end_date=None, count_only=False,
-             created_since=None, **kw):
+             created_since=None, pushed_since=None, **kw):
         """ Return a list of updates based on given parameters """
         log.debug('list(%s)' % locals())
         query = []
@@ -241,7 +242,8 @@ class Root(controllers.RootController):
 
         # If no arguments are specified, return the most recent updates
         if not release and not bugs and not cves and not status and not type_ \
-           and not package and not mine and not username and not created_since:
+           and not package and not mine and not username and not created_since \
+           and not pushed_since:
             log.debug("No arguments, returning latest")
             updates = PackageUpdate.select(orderBy=orderBy).reversed()
             num_items = updates.count()
@@ -272,8 +274,11 @@ class Root(controllers.RootController):
             if created_since:
                 created_since = datetime(*time.strptime(created_since,
                        '%Y-%m-%d %H:%M:%S')[:-2])
-                log.debug('Querying updates created since %s' % created_since)
                 query.append(PackageUpdate.q.date_submitted >= created_since)
+            if pushed_since:
+                pushed_since = datetime(*time.strptime(pushed_since,
+                       '%Y-%m-%d %H:%M:%S')[:-2])
+                query.append(PackageUpdate.q.date_pushed >= pushed_since)
             if start_date:
                 start_date = datetime(*time.strptime(start_date,
                     '%Y-%m-%d %H:%M:%S')[:-2])
