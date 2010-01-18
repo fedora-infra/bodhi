@@ -47,6 +47,8 @@ bodhi/config/f10-updates-testing.mash
 bodhi/config/f10-updates.mash
 bodhi/config/f11-updates-testing.mash
 bodhi/config/f11-updates.mash
+bodhi/config/f12-updates-testing.mash
+bodhi/config/f12-updates.mash
 bodhi/config/f7-updates-testing.mash
 bodhi/config/f7-updates.mash
 bodhi/config/f8-updates-testing.mash
@@ -101,6 +103,7 @@ bodhi/static/images/revoke.png
 bodhi/static/images/rss.png
 bodhi/static/images/security.png
 bodhi/static/images/shadow.png
+bodhi/static/images/shadow2-big.png
 bodhi/static/images/shadow2.png
 bodhi/static/images/stable-large.png
 bodhi/static/images/submit.png

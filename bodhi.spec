@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.6.11
+Version:        0.7.0
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -116,6 +116,14 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Mon Jan 18 2010 Luke Macken <lmacken@redhat.com> - 0.7.0-1
+- 0.7.0 release, prepping for the F13 release
+- Critical Path & No Frozen Rawhide proposals implemented
+- Many other bugfixes, enhancements, and optimizations
+
+* Fri Nov 06 2009 Luke Macken <lmacken@redhat.com> - 0.6.12-1
+- 0.6.12, for F12
+
 * Sat Sep 19 2009 Luke Macken <lmacken@redhat.com> - 0.6.11-1
 - 0.6.11
 
