@@ -14,4 +14,4 @@ repoviewurl = http://download.fedoraproject.org/pub/fedora/linux/updates/11/%(ar
 repoviewtitle = "Fedora 11 Updates - %(arch)s"
 arches = i386 x86_64 ppc ppc64
 delta = True
-delta_dirs = /pub/fedora/linux/releases/11/Everything,/mnt/koji/mash/updates/f11-updates
+delta_dirs = /pub/fedora/linux/releases/11/Everything/%(arch)s/os/,/mnt/koji/mash/updates/f11-updates/%(arch)s/
