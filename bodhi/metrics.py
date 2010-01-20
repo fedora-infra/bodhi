@@ -290,9 +290,9 @@ class TopTestersMetric(Metric):
         for comment in update.comments:
             if comment.author == 'bodhi' or comment.karma == 0:
                 continue
-            if not self.data.has_key(comment.author):
-                self.data[comment.author] = 0
-            self.data[comment.author] += 1
+            if not self.data.has_key(comment.author.split()[0]):
+                self.data[comment.author.split()[0]] = 0
+            self.data[comment.author.split()[0]] += 1
 
     def done(self):
         items = self.data.items()

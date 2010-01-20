@@ -731,7 +731,7 @@ class PackageUpdate(SQLObject):
         for comment in self.comments:
             if comment.anonymous or comment.author == 'bodhi':
                 continue
-            people.add(comment.author)
+            people.add(comment.author.split()[0])
         mail.send(people, 'comment', self)
 
     def unpush(self):
