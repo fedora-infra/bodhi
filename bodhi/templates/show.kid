@@ -71,7 +71,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                         Push to Testing
                                     </a>
                                 </td>
-                                <span py:if="update.release.locked and update.critpath">
+                                <span py:if="update.release.locked and update.critpath and update.critpath_approved">
                                     <span py:if="'qa' in tg.identity.groups or 'releng' in tg.identity.groups">
                                         <td>
                                             <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
@@ -81,7 +81,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                         </td>
                                     </span>
                                 </span>
-                                <span py:if="update.release.locked and not update.critpath">
+                                <span py:if="update.release.locked and not update.critpath and update.critpath_approved">
                                     <td>
                                         <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                             <img src="${tg.url('/static/images/submit.png')}" border="0"/>
@@ -120,7 +120,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                             </td>
                             <span py:if="update.status == 'testing'">
                               <span py:if="update.request == None">
-                                <span py:if="update.release.locked and update.critpath">
+                                <span py:if="update.release.locked and update.critpath and update.critpath_approved">
                                     <span py:if="'qa' in tg.identity.groups or 'releng' in tg.identity.groups">
                                       <td>
                                           <a href="${util.url('/request/stable/%s' % update.title)}" class="list">

@@ -410,10 +410,14 @@ class PackageUpdate(SQLObject):
         # [No Frozen Rawhide] Disable pushing critical path updates for
         # pending releases directly to stable.
         if action == 'stable' and self.release.locked and self.critpath:
-            if ('releng' in identity.current.groups or
-                'qa' in identity.current.groups):
-                self.comment('Critical path update approved by %s' %
-                             identity.current.user_name, author='bodhi')
+            admin_groups = config.get('admin_groups', 'qa releng').split()
+            for group in identity.current.groups:
+                if group in admin_groups:
+                    if not self.critpath_approved:
+                        action = 'testing'
+                    self.comment('Critical path update approved',
+                                 author=identity.current.user_name)
+                    break
             else:
                 log.info('Forcing critical path update into testing')
                 action = 'testing'
@@ -683,6 +687,14 @@ class PackageUpdate(SQLObject):
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
         if not author: author = identity.current.user_name
+
+        # Hack: Add admin groups to usernames (eg: "lmacken (releng)")
+        admin_groups = config.get('admin_groups', 'releng qa security_respons').split()
+        for group in identity.current.groups:
+            if group in admin_groups:
+                author += ' (%s)' % group
+                break
+
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.author == author and c.karma == karma,
                       self.comments):
@@ -706,6 +718,7 @@ class PackageUpdate(SQLObject):
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
                 mail.send(self.submitter, 'unstable', self)
+
         Comment(text=text, karma=karma, update=self, author=author,
                 anonymous=anonymous)
 
@@ -837,6 +850,27 @@ class PackageUpdate(SQLObject):
                 critical = True
                 break
         return critical
+
+    @property
+    def num_admin_approvals(self):
+        """ Return the number of Releng/QA approvals of this update """
+        approvals = 0
+        for comment in self.comments:
+            # FIXME:
+            # We need to actually store the groups or approvals sanely.
+            # Hack, to get this working for F13 w/o changing the DB
+            if comment.author.endswith(')'):
+                group = comment.author[:-1].split('(')[-1]
+                if group in ('qa', 'releng'):
+                    approvals += 1
+        return approvals
+
+    @property
+    def critpath_approved(self):
+        """ Return whether or not this critpath update has been approved """
+        return self.num_admin_approvals >= config.get(
+                'critpath.num_admin_approvals', 2) and \
+               self.karma >= config.get('critpath.min_karma', 2)
 
 
 class Comment(SQLObject):

@@ -1201,7 +1201,6 @@ class TestControllers(testutil.DBTest):
         assert 'TurboGears-1.0.2.2-2.fc7' in json
         assert json['TurboGears-1.0.2.2-2.fc7']['notes'] == 'foobar'
 
-
     def test_updating_build_during_edit(self):
         session = login()
         create_release()
@@ -1366,7 +1365,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable'
+        assert update.request == 'testing'
 
     def test_critpath_to_frozen_release_available_actions(self):
         """
@@ -1398,11 +1397,12 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
 
-    def test_critpath_to_frozen_release_available_actions_for_releng(self):
+    def test_critpath_to_pending_release_num_approved_comments(self):
         """
         Ensure releng/qa can push critpath updates to stable for pending releases
+        after 1 releng/qa karma, and 1 other karma
         """
-        session = login(group='releng')
+        releng = login(group='releng')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1414,13 +1414,61 @@ class TestControllers(testutil.DBTest):
                 'request': None,
                 'unstable_karma' : -1,
         }
-        self.save_update(params, session)
+        self.save_update(params, releng)
         update = PackageUpdate.byTitle(params['builds'])
         testutil.create_request('/updates/%s' % params['builds'],
-                                method='GET', headers=session)
+                                method='GET', headers=releng)
 
+        # Ensure releng/QA can't push critpath updates alone
         assert "Push to Testing" in cherrypy.response.body[0]
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+
+        # Have a developer +1 the update
+        developer = login(username='bob')
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=developer)
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=developer)
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert not update.request
+        assert len(update.comments) == 1
+        assert update.comments[0].author == 'bob'
+
+        # Have another developer +1 it, so it gets up to +2
+        # Ensure we can't push it to stable, until we get admin approval
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST',
+                                headers=login(username='foobar'))
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=login(username='foobar'))
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert not update.request
+        assert update.karma == 2
+
+        # Have releng try again, and ensure it can be pushed to stable
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert not update.request
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=developer)
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        print update.comments
         assert "Push Critical Path update to Stable" in cherrypy.response.body[0]
+
+        testutil.create_request('/updates/request/stable/%s' %
+                                params['builds'], method='POST',
+                                headers=releng)
+
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable'
 
     def test_critpath_to_frozen_release_testing(self):
         """
@@ -1506,7 +1554,30 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
 
-        assert "Mark Critical Path update as Stable" in cherrypy.response.body[0]
+        assert "Mark Critical Path update as Stable" not in cherrypy.response.body[0]
+
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=session)
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+
+        assert "Mark Critical Path update as Stable" not in cherrypy.response.body[0]
+
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST',
+                                headers=login(username='bob'))
+
+        update = PackageUpdate.byTitle(params['builds'])
+        assert len(update.comments) == 2
+        assert update.comments[1].author == 'bob', update.comments
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.comments[0].author == 'guest (qa)'
+
+        assert "Mark Critical Path update as Stable" in cherrypy.response.body[0], cherrypy.response.body[0]
 
     def test_created_since(self):
         session = login()
