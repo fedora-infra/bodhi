@@ -5,6 +5,7 @@ import os
 import rpm
 import time
 import logging
+import bugzilla
 
 from textwrap import wrap
 from datetime import datetime
@@ -16,6 +17,7 @@ from sqlalchemy import Table, ForeignKey, Column
 from sqlalchemy.types import Integer, Unicode
 from sqlalchemy.ext.declarative import synonym_for
 
+from bodhi import mail
 from bodhi.model import DeclarativeBase, metadata, DBSession
 from bodhi.model.enum import Enum
 from bodhi.util import header, get_nvr, build_evr
@@ -27,9 +29,9 @@ log = logging.getLogger(__name__)
 ## Association tables
 ##
 
-update_release_table = Table('update_release_table', metadata,
-        Column('release_id', Integer, ForeignKey('releases.id')),
-        Column('update_id', Integer, ForeignKey('updates.id')))
+#update_release_table = Table('update_release_table', metadata,
+#        Column('release_id', Integer, ForeignKey('releases.id')),
+#        Column('update_id', Integer, ForeignKey('updates.id')))
 
 #update_build_table = Table('update_build_table', metadata,
 #        Column('update_id', Integer, ForeignKey('updates.id')),
@@ -52,7 +54,7 @@ class Release(DeclarativeBase):
     __tablename__ = 'releases'
 
     id = Column(Integer, primary_key=True)
-    name = Column('name', Unicode(10), unique=True, nullable=False)
+    name = Column(Unicode(10), unique=True, nullable=False)
     long_name = Column(Unicode(25), unique=True, nullable=False)
     version = Column(Integer)
     id_prefix = Column(Unicode(25), nullable=False)
@@ -70,8 +72,8 @@ class Package(DeclarativeBase):
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(50), unique=True, nullable=False)
     committers = Column(PickleType, default=None)
-    stable_karma = Column(Integer)
-    unstable_karma = Column(Integer)
+    stable_karma = Column(Integer, default=3)
+    unstable_karma = Column(Integer, default=-3)
 
     builds = relation('Build', backref='package')
 
@@ -259,6 +261,14 @@ class Update(DeclarativeBase):
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
 
+    @property
+    def stable_karma(self):
+        return self.builds[0].package.stable_karma
+
+    @property
+    def unstable_karma(self):
+        return self.builds[0].package.unstable_karma
+
     def get_bugstring(self, show_titles=False):
         """Return a space-delimited string of bug numbers for this update """
         val = u''
@@ -347,7 +357,7 @@ class Update(DeclarativeBase):
 
         if action == 'unpush':
             self.unpush()
-            self.comment('This update has been unpushed',
+            self.comment(u'This update has been unpushed',
                          author=identity.current.user_name)
             flash_log("%s has been unpushed" % self.title)
             return
@@ -383,7 +393,7 @@ class Update(DeclarativeBase):
         self.pushed = False
         self.date_pushed = None
         flash_log("%s has been submitted for %s" % (self.title, action))
-        self.comment('This update has been submitted for %s' % action,
+        self.comment(u'This update has been submitted for %s' % action,
                      author=identity.current.user_name)
         mail.send_admin(action, self)
 
@@ -391,18 +401,18 @@ class Update(DeclarativeBase):
         """
         Perform post-request actions.
         """
-        if self.request == 'testing':
+        if self.request == u'testing':
             self.pushed = True
             self.date_pushed = datetime.utcnow()
-            self.status = 'testing'
+            self.status = u'testing'
             self.assign_id()
-        elif self.request == 'obsolete':
+        elif self.request == u'obsolete':
             self.pushed = False
-            self.status = 'obsolete'
-        elif self.request == 'stable':
+            self.status = u'obsolete'
+        elif self.request == u'stable':
             self.pushed = True
             self.date_pushed = datetime.utcnow()
-            self.status = 'stable'
+            self.status = u'stable'
             self.assign_id()
         self.request = None
 
@@ -460,13 +470,13 @@ class Update(DeclarativeBase):
         Add a comment to this update about a change in status
         """
         if self.status == 'stable':
-            self.comment('This update has been pushed to stable',
+            self.comment(u'This update has been pushed to stable',
                          author='bodhi')
         elif self.status == 'testing':
-            self.comment('This update has been pushed to testing',
+            self.comment(u'This update has been pushed to testing',
                          author='bodhi')
         elif self.status == 'obsolete':
-            self.comment('This update has been obsoleted', author='bodhi')
+            self.comment(u'This update has been obsoleted', author='bodhi')
 
     def send_update_notice(self):
         log.debug("Sending update notice for %s" % self.title)
@@ -487,8 +497,8 @@ class Update(DeclarativeBase):
                 message = turbomail.Message(sender, mailinglist, subject)
                 message.plain = body
                 try:
-                    turbomail.enqueue(message)
-                    log.debug("Sending mail: %s" % message.plain)
+                    log.debug("Sending mail: %s" % subject)
+                    message.send()
                 except turbomail.MailNotEnabledException:
                     log.warning("mail.on is not True!")
         else:
@@ -575,7 +585,7 @@ class Update(DeclarativeBase):
                 self.bugs.remove(bug)
                 if len(bug.updates) == 0:
                     log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
-                    session.delete(bug)
+                    DBSession.delete(bug)
         for bug in bugs:
             try:
                 bz = Bug.query.filter_by(bug_id=bug).one()
@@ -589,8 +599,8 @@ class Update(DeclarativeBase):
                     bz = Bug(bug_id=int(bug))
             if bz not in self.bugs:
                 self.bugs.append(bz)
-                session.save(bz)
-            session.flush()
+                DBSession.save(bz)
+            DBSession.flush()
 
     def update_cves(self, cves):
         """
@@ -640,7 +650,8 @@ class Update(DeclarativeBase):
         the 'stable_karma' value, then request that this update be marked
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
-        if not author: author = identity.current.user_name
+        if not author:
+            author = identity.current.user_name
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.author == author and c.karma == karma,
                       self.comments):
@@ -654,7 +665,7 @@ class Update(DeclarativeBase):
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if self.stable_karma != 0 and self.stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
-                self.request = 'stable'
+                self.request = u'stable'
                 self.pushed = False
                 self.date_pushed = None
                 mail.send(self.get_maintainers(), 'stablekarma', self)
@@ -668,9 +679,9 @@ class Update(DeclarativeBase):
         comment = Comment(text=text, karma=karma,author=author,
                           anonymous=anonymous)
 
-        session.save(comment)
+        DBSession.add(comment)
         self.comments.append(comment)
-        session.flush()
+        DBSession.flush()
 
         # Send a notification to everyone that has commented on this update
         people = set()
@@ -711,7 +722,7 @@ class Update(DeclarativeBase):
         for build in self.builds:
             koji.untagBuild(tag, build.nvr, force=True)
         self.pushed = False
-        session.flush()
+        DBSession.flush()
 
     def obsolete(self, newer=None):
         """
@@ -721,14 +732,14 @@ class Update(DeclarativeBase):
         """
         log.debug("Obsoleting %s" % self.title)
         self.untag()
-        self.status = 'obsolete'
+        self.status = u'obsolete'
         self.request = None
         if newer:
-            self.comment("This update has been obsoleted by %s" % newer,
-                         author='bodhi')
+            self.comment(u"This update has been obsoleted by %s" % newer,
+                         author=u'bodhi')
         else:
-            self.comment("This update has been obsoleted", author='bodhi')
-        session.flush()
+            self.comment(u"This update has been obsoleted", author=u'bodhi')
+        DBSession.flush()
 
     def get_maintainers(self):
         """
@@ -788,7 +799,7 @@ class Bug(DeclarativeBase):
     # Bug number. If None, assume ``url`` points to an external bug tracker
     bug_id = Column(Integer, unique=True)
 
-    # The title of hte bug
+    # The title of the bug
     title = Column(Unicode(255))
 
     # If we're dealing with a security bug
@@ -837,7 +848,7 @@ class Bug(DeclarativeBase):
         self.title = str(bug.short_desc)
         if 'security' in bug.keywords.lower():
             self.security = True
-        session.flush()
+        DBSession.flush()
 
     def _default_message(self, update):
         message = self.default_msg % (update.get_title(delim=', '), "%s %s" % 

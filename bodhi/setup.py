@@ -21,9 +21,9 @@ setup(
         "toscawidgets >= 0.9.7.1",
         "zope.sqlalchemy >= 0.4 ",
         "repoze.tm2 >= 1.0a4",
-        
+        "TurboMail >= 3.0",
         "repoze.what-quickstart >= 1.0",
-                ],
+    ],
     setup_requires=["PasteScript >= 1.7"],
     paster_plugins=['PasteScript', 'Pylons', 'TurboGears2', 'tg.devtools'],
     packages=find_packages(exclude=['ez_setup']),

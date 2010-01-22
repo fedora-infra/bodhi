@@ -5,8 +5,9 @@ import os
 import time
 
 from tg import config
-from nose.tools import eq_
+from nose.tools import eq_, raises
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 
 from bodhi import model
 from bodhi.tests.models import ModelTest
@@ -49,7 +50,7 @@ class TestPackage(ModelTest):
     attrs = dict(
         name = u"TurboGears",
         committers = ['lmacken'],
-        stable_karma = 5,
+        stable_karma = 3,
         unstable_karma = -3,
         )
 
@@ -175,14 +176,14 @@ class TestUpdate(ModelTest):
                                           time.localtime()[0]))
 
         ## 10k bug
-        update.alias = u'FEDORA-2009-9999'
+        update.alias = u'FEDORA-2010-9999'
         newupdate = self.get_update(name=u'nethack-2.5.6-1.fc10')
         newupdate.assign_id()
-        eq_(newupdate.alias, u'FEDORA-2009-10000')
+        eq_(newupdate.alias, u'FEDORA-2010-10000')
 
         newerupdate = self.get_update(name=u'nethack-2.5.7-1.fc10')
         newerupdate.assign_id()
-        eq_(newerupdate.alias, u'FEDORA-2009-10001')
+        eq_(newerupdate.alias, u'FEDORA-2010-10001')
 
         ## test updates that were pushed at the same time.  assign_id should
         ## be able to figure out which one has the highest id.
@@ -192,6 +193,88 @@ class TestUpdate(ModelTest):
 
         newest = self.get_update(name=u'nethack-2.5.8-1.fc10')
         newest.assign_id()
-        eq_(newest.alias, u'FEDORA-2009-10002')
+        eq_(newest.alias, u'FEDORA-2010-10002')
+
+    def test_epel_id(self):
+        """ Make sure we can handle id_prefixes that contain dashes. eg: FEDORA-EPEL """
+        # Create a normal Fedora update first
+        update = self.obj
+        update.assign_id()
+        eq_(update.alias, u'FEDORA-%s-0001' % time.localtime()[0])
+
+        update = self.get_update(name=u'TurboGears-2.1-1.el5')
+        release = model.Release(name=u'EL-5', long_name=u'Fedora EPEL 5',
+                          dist_tag=u'dist-5E-epel', id_prefix=u'FEDORA-EPEL')
+        update.release = release
+        update.assign_id()
+        eq_(update.alias, u'FEDORA-EPEL-%s-0001' % time.localtime()[0])
+
+        update = self.get_update(name=u'TurboGears-2.2-1.el5')
+        update.release = release
+        update.assign_id()
+        eq_(update.alias, u'%s-%s-0002' % (release.id_prefix,
+                                          time.localtime()[0]))
+
+    @raises(IntegrityError)
+    def test_dupe(self):
+        self.get_update()
+        self.get_update()
+
+    def test_stable_karma(self):
+        update = self.obj
+        update.request = None
+        eq_(update.karma, 0)
+        eq_(update.request, None)
+        update.comment(u"foo", 1, u'foo')
+        eq_(update.karma, 1)
+        eq_(update.request, None)
+        update.comment(u"foo", 1, u'bar')
+        eq_(update.karma, 2)
+        eq_(update.request, None)
+        update.comment(u"foo", 1, u'biz')
+        eq_(update.karma, 3)
+        eq_(update.request, u'stable')
+
+    def test_unstable_karma(self):
+        update = self.obj
+        update.status = u'testing'
+        eq_(update.karma, 0)
+        eq_(update.status, u'testing')
+        update.comment(u"foo", -1, u'foo')
+        eq_(update.status, u'testing')
+        eq_(update.karma, -1)
+        update.comment(u"bar", -1, u'bar')
+        eq_(update.status, u'testing')
+        eq_(update.karma, -2)
+        update.comment(u"biz", -1, u'biz')
+        eq_(update.karma, -3)
+        eq_(update.status, u'obsolete')
+
+    def test_update_bugs(self):
+        update = self.obj
+
+        # try just adding bugs
+        bugs = ['1234']
+        update.update_bugs(bugs)
+        eq_(len(update.bugs), 1)
+        eq_(update.bugs[0].bz_id, 1234)
+
+        # try just removing
+        bugs = []
+        update.update_bugs(bugs)
+        assert len(update.bugs) == 0
+        eq_(model.DBSession.query(model.Bugzilla).filter_by(bz_id=1234).first(), None)
+
+        # Test new duplicate bugs
+        bugs = ['1234', '1234']
+        update.update_bugs(bugs)
+        assert len(update.bugs) == 1
+
+        # Try adding a new bug, and removing the rest
+        bugs = ['4321']
+        update.update_bugs(bugs)
+        assert len(update.bugs) == 1
+        assert update.bugs[0].bz_id == 4321
+        eq_(model.DBSession.query(model.Bugzilla).filter_by(bz_id=1234).first(), None)
 
 # test multibuild update
