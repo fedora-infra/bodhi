@@ -4,7 +4,6 @@
 
 __all__ = ['Globals']
 
-
 class Globals(object):
     """Container for objects available throughout the life of the application.
 
@@ -14,5 +13,6 @@ class Globals(object):
     """
 
     def __init__(self):
-        """Do nothing, by default."""
-        pass
+        from turbomail.adapters import tm_pylons
+        tm_pylons.start_extension()
+
