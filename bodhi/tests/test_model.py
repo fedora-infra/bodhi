@@ -420,7 +420,7 @@ class TestPackageUpdate(testutil.DBTest):
         up.status = 'testing'
         up.status_comment()
         assert len(up.comments) == 1
-        assert up.comments[0].author == 'bodhi'
+        assert up.comments[0].author == 'bodhi', up.comments[0]
         assert up.comments[0].text == 'This update has been pushed to testing'
         up.status = 'stable'
         up.status_comment()
