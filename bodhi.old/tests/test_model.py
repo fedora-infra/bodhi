@@ -71,15 +71,6 @@ class TestPackageUpdate(testutil.DBTest):
     def get_comment(self, update):
         return Comment(author='bodhi', text='foobar', karma=0, update=update)
 
-    def test_dupe(self):
-        update1 = self.get_update()
-        try:
-            update2 = self.get_update()
-        except (DuplicateEntryError, PostgresIntegrityError,
-                SQLiteIntegrityError):
-            return
-        assert False
-
     def test_mail_notices(self):
         """ Make sure all of our mail notices can expand properly """
         me = User(user_name='guest', display_name='Guest', password='guest')
@@ -87,84 +78,6 @@ class TestPackageUpdate(testutil.DBTest):
         self.get_comment(update)
         for title, data in messages.items():
             assert data['body'] % data['fields'](update)
-
-    def test_creation(self):
-        update = self.get_update()
-        assert update.title == 'TurboGears-1.0.2.2-2.fc7'
-        assert update.builds[0].package.name == 'TurboGears'
-        assert update.release.name == 'fc7'
-        assert update.release.updates[0] == update
-        assert update.status == 'testing'
-        assert update.type == 'security'
-        assert update.notes == 'foobar'
-        bug = self.get_bug()
-        cve = self.get_cve()
-        update.addBugzilla(bug)
-        update.addCVE(cve)
-        assert update.bugs[0].bz_id == 1
-        assert update.cves[0].cve_id == 'CVE-2007-0000'
-
-    def test_id(self):
-        update = self.get_update()
-        update.assign_id()
-        assert update.updateid == '%s-%s-0001' % (update.release.id_prefix,
-                                                  time.localtime()[0])
-        assert update.date_pushed
-        update = self.get_update(name='TurboGears-0.4.4-8.fc7')
-        update.assign_id()
-        assert update.updateid == '%s-%s-0002' % (update.release.id_prefix,
-                                                  time.localtime()[0])
-
-        # Create another update for another release that has the same
-        # Release.id_prefix.  This used to trigger a bug that would cause
-        # duplicate IDs across Fedora 10/11 updates.
-        update = self.get_update(name='nethack-3.4.5-1.fc11')
-        otherrel = Release(name='fc11', long_name='Fedora 11',
-                           id_prefix='FEDORA', dist_tag='dist-fc11')
-        update.release = otherrel
-        update.assign_id()
-        assert update.updateid == '%s-%s-0003' % (update.release.id_prefix,
-                                                  time.localtime()[0])
-
-        # 10k bug
-        update.updateid = 'FEDORA-2009-9999'
-        newupdate = self.get_update(name='nethack-2.5.6-1.fc10')
-        newupdate.assign_id()
-        assert newupdate.updateid == 'FEDORA-2009-10000'
-
-        newerupdate = self.get_update(name='nethack-2.5.7-1.fc10')
-        newerupdate.assign_id()
-        assert newerupdate.updateid == 'FEDORA-2009-10001'
-
-        # test updates that were pushed at the same time.  assign_id should
-        # be able to figure out which one has the highest id.
-        now = datetime.utcnow()
-        newupdate.date_pushed = now
-        newerupdate.date_pushed = now
-
-        newest = self.get_update(name='nethack-2.5.8-1.fc10')
-        newest.assign_id()
-        assert newest.updateid == 'FEDORA-2009-10002'
-
-    def test_epel_id(self):
-        """ Make sure we can handle id_prefixes that contain dashes. eg: FEDORA-EPEL """
-        # Create a normal Fedora update first
-        update = self.get_update()
-        update.assign_id()
-        assert update.updateid == 'FEDORA-%s-0001' % time.localtime()[0]
-
-        update = self.get_update(name='TurboGears-2.1-1.el5')
-        release = Release(name='EL-5', long_name='Fedora EPEL 5',
-                          dist_tag='dist-5E-epel', id_prefix='FEDORA-EPEL')
-        update.release = release
-        update.assign_id()
-        assert update.updateid == 'FEDORA-EPEL-%s-0001' % time.localtime()[0]
-
-        update = self.get_update(name='TurboGears-2.2-1.el5')
-        update.release = release
-        update.assign_id()
-        assert update.updateid == '%s-%s-0002' % (release.id_prefix,
-                                                  time.localtime()[0]), update.updateid
 
     def test_url(self):
         update = self.get_update()
@@ -307,34 +220,6 @@ class TestPackageUpdate(testutil.DBTest):
         changelog = update.builds[0].get_changelog(oldtime)
         assert changelog == '* Thu Jun 21 2007 Seth Vidal <skvidal at fedoraproject.org> - 3.2.1-1\n- bump to 3.2.1\n'
 
-    def test_unstable_karma(self):
-        update = self.get_update()
-        assert update.karma == 0
-        assert update.status == 'testing'
-        update.comment("foo", -1, 'foo')
-        assert update.status == 'testing'
-        assert update.karma == -1
-        update.comment("bar", -1, 'bar')
-        assert update.status == 'testing'
-        assert update.karma == -2
-        update.comment("biz", -1, 'biz')
-        assert update.karma == -3
-        assert update.status == 'obsolete'
-
-    def test_stable_karma(self):
-        update = self.get_update()
-        assert update.karma == 0
-        assert update.request == None
-        update.comment("foo", 1, 'foo')
-        assert update.karma == 1
-        assert update.request == None
-        update.comment("foo", 1, 'bar')
-        assert update.karma == 2
-        assert update.request == None
-        update.comment("foo", 1, 'biz')
-        assert update.karma == 3
-        assert update.request == 'stable'
-
     def test_maintainers(self):
         update = self.get_update()
         assert 'bobvila' in update.get_maintainers()
@@ -350,40 +235,6 @@ class TestPackageUpdate(testutil.DBTest):
         update.status = 'obsolete'
         assert update.get_build_tag() == "%s-updates-candidate" % update.release.dist_tag
 
-    def test_update_bugs(self):
-        update = self.get_update()
-
-        # try just adding bugs
-        bugs = ['1234']
-        update.update_bugs(bugs)
-        assert len(update.bugs) == 1
-        assert update.bugs[0].bz_id == 1234
-
-        # try just removing
-        bugs = []
-        update.update_bugs(bugs)
-        assert len(update.bugs) == 0
-        try:
-            Bugzilla.byBz_id(1234)
-            assert False, "Stray bugzilla!"
-        except SQLObjectNotFound:
-            pass
-
-        # Test new duplicate bugs
-        bugs = ['1234', '1234']
-        update.update_bugs(bugs)
-        assert len(update.bugs) == 1
-
-        # Try adding a new bug, and removing the rest
-        bugs = ['4321']
-        update.update_bugs(bugs)
-        assert len(update.bugs) == 1
-        assert update.bugs[0].bz_id == 4321
-        try:
-            Bugzilla.byBz_id(1234)
-            assert False, "Stray bugzilla!"
-        except SQLObjectNotFound:
-            pass
 
     def test_request_complete(self):
         up = self.get_update()
