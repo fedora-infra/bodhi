@@ -167,6 +167,8 @@ class MashTask(Thread):
         self.id = id
         self.tag = None
         self.updates = set()
+        if isinstance(updates[0], basestring):
+            updates = map(PackageUpdate.byTitle, updates)
         map(self.updates.add, updates)
         if self.updates:
             up = self.updates.pop()
