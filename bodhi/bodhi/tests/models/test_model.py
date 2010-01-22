@@ -252,18 +252,19 @@ class TestUpdate(ModelTest):
 
     def test_update_bugs(self):
         update = self.obj
+        eq_(len(update.bugs), 2)
 
         # try just adding bugs
         bugs = ['1234']
         update.update_bugs(bugs)
         eq_(len(update.bugs), 1)
-        eq_(update.bugs[0].bz_id, 1234)
+        eq_(update.bugs[0].bug_id, 1234)
 
         # try just removing
         bugs = []
         update.update_bugs(bugs)
-        assert len(update.bugs) == 0
-        eq_(model.DBSession.query(model.Bugzilla).filter_by(bz_id=1234).first(), None)
+        eq_(len(update.bugs), 0)
+        eq_(model.DBSession.query(model.Bug).filter_by(bug_id=1234).first(), None)
 
         # Test new duplicate bugs
         bugs = ['1234', '1234']
@@ -274,7 +275,7 @@ class TestUpdate(ModelTest):
         bugs = ['4321']
         update.update_bugs(bugs)
         assert len(update.bugs) == 1
-        assert update.bugs[0].bz_id == 4321
-        eq_(model.DBSession.query(model.Bugzilla).filter_by(bz_id=1234).first(), None)
+        assert update.bugs[0].bug_id == 4321
+        eq_(model.DBSession.query(model.Bug).filter_by(bug_id=1234).first(), None)
 
 # test multibuild update

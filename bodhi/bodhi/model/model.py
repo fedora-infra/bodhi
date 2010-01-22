@@ -580,16 +580,19 @@ class Update(DeclarativeBase):
         if not config.get('bodhi_email'):
             log.warning("No bodhi_email defined; not fetching bug details")
             fetchdetails = False
+        to_remove = []
         for bug in self.bugs:
             if bug.bug_id not in bugs:
+                to_remove.append(bug)
+        if to_remove:
+            for bug in to_remove:
                 self.bugs.remove(bug)
                 if len(bug.updates) == 0:
                     log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
                     DBSession.delete(bug)
         for bug in bugs:
-            try:
-                bz = Bug.query.filter_by(bug_id=bug).one()
-            except: # TODO: Catch sqlalchemy's not found exception
+            bz = DBSession.query(Bug).filter_by(bug_id=bug).first()
+            if not bz:
                 if fetchdetails:
                     bugzilla = Bug.get_bz()
                     newbug = bugzilla.getbug(bug)
@@ -600,7 +603,7 @@ class Update(DeclarativeBase):
             if bz not in self.bugs:
                 self.bugs.append(bz)
                 DBSession.save(bz)
-            DBSession.flush()
+        DBSession.flush()
 
     def update_cves(self, cves):
         """
@@ -838,7 +841,7 @@ class Bug(DeclarativeBase):
         if not bug:
             bz = Bugzilla.get_bz()
             try:
-                bug = bz.getbug(self.bz_id)
+                bug = bz.getbug(self.bug_id)
             except xmlrpclib.Fault, f:
                 self.title = 'Invalid bug number'
                 log.warning("Got fault from Bugzilla: %s" % str(f))
@@ -870,12 +873,12 @@ class Bug(DeclarativeBase):
         bz = Bugzilla.get_bz()
         if not comment:
             comment = self._default_message(update)
-        log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
+        log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
         try:
-            bug = bz.getbug(self.bz_id)
+            bug = bz.getbug(self.bug_id)
             bug.addcomment(comment)
         except Exception, e:
-            log.error("Unable to add comment to bug #%d\n%s" % (self.bz_id,
+            log.error("Unable to add comment to bug #%d\n%s" % (self.bug_id,
                                                                 str(e)))
 
     def testing(self, update):
@@ -885,25 +888,25 @@ class Bug(DeclarativeBase):
         """
         bz = Bugzilla.get_bz()
         comment = self._default_message(update)
-        log.debug("Setting Bug #%d to ON_QA" % self.bz_id)
+        log.debug("Setting Bug #%d to ON_QA" % self.bug_id)
         try:
-            bug = bz.getbug(self.bz_id)
+            bug = bz.getbug(self.bug_id)
             bug.setstatus('ON_QA', comment=comment)
         except Exception, e:
-            log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))
+            log.error("Unable to alter bug #%d\n%s" % (self.bug_id, str(e)))
 
     def close_bug(self, update):
         bz = Bugzilla.get_bz()
         try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
-            bug = bz.getbug(self.bz_id)
+            bug = bz.getbug(self.bug_id)
             bug.close('NEXTRELEASE', fixedin=ver)
         except xmlrpclib.Fault, f:
-            log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f)))
+            log.error("Unable to close bug #%d: %s" % (self.bug_id, str(f)))
 
 # TODO: remove this
     def get_url(self):
-        return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
+        return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bug_id
 
 # TODO; put this somewhere else!
 

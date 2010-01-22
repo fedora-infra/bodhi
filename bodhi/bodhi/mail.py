@@ -354,7 +354,7 @@ def get_template(update, use_template='fedora_errata_template'):
                          bug.title != 'Invalid bug number') and \
                         ' - %s' % bug.title or ''
                 info['references'] += u"  [ %d ] Bug #%d%s\n        %s\n" % \
-                                      (i, bug.bz_id, title, bug.get_url())
+                                      (i, bug.bug_id, title, bug.get_url())
                 i += 1
             for cve in update.cves:
                 info['references'] += u"  [ %d ] %s\n        %s\n" % \
