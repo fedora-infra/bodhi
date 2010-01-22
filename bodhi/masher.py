@@ -91,7 +91,8 @@ class Masher(object):
         self.last_log = thread.log
         mail.send_releng('Bodhi Masher Report %s' % 
                          time.strftime("%y%m%d.%H%M"), thread.report())
-        self._threads.remove(thread)
+        if thread in self._threads:
+            self._threads.remove(thread)
         del thread
         if len(self._threads) == 0:
             if len(self._queue):
