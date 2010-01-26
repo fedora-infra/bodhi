@@ -227,6 +227,19 @@ the link below:
                     }
     },
 
+    'critpath_approved' : {
+        'body'    : u"""\
+The Critical Path update `%(package)s` has been approved.
+
+%(updatestr)s
+
+""",
+        'fields'  : lambda x: {
+                        'package'   : x.title,
+                        'updatestr' : unicode(x)
+                    }
+    },
+
 }
 
 fedora_errata_template = u"""\

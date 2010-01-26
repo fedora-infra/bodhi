@@ -414,9 +414,11 @@ class PackageUpdate(SQLObject):
             for group in identity.current.groups:
                 if group in admin_groups:
                     if not self.critpath_approved:
+                        log.info("Critical path update not yet approved!")
                         action = 'testing'
                     self.comment('Critical path update approved',
                                  author=identity.current.user_name)
+                    mail.send_admin('critpath_approved', self)
                     break
             else:
                 log.info('Forcing critical path update into testing')
