@@ -1285,6 +1285,14 @@ class TestControllers(testutil.DBTest):
         assert "Push to Stable" in cherrypy.response.body[0]
         assert "Push to Testing" in cherrypy.response.body[0]
 
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                                method='GET', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # We're allowing devs to still request critpath updates to stable
+        # without a karma prerequisite for non-pending releases.
+        assert update.request == 'stable'
+
     def test_non_critpath_actions_in_normal_release(self):
         session = login()
         create_release()
@@ -1324,8 +1332,17 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
 
-    def test_push_critpath_to_frozen_release_and_request_stable(self):
-        session = login()
+        # Ensure we can't create a stable request
+        testutil.capture_log(["bodhi.util", "bodhi.controllers", "bodhi.model"])
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                                method='POST', headers=session)
+        log = testutil.get_log()
+        assert "Forcing critical path update into testing" in log
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+
+    def test_push_critpath_to_frozen_release_and_request_stable_as_releng(self):
+        session = login(group='releng')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1346,24 +1363,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         log = testutil.get_log()
-        assert "Forcing critical path update into testing" in log
-        update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'testing'
-
-    def test_push_critpath_to_frozen_release_and_request_stable_as_releng(self):
-        session = login(group='releng')
-        create_release(locked=True)
-        params = {
-                'builds'  : 'kernel-2.6.31-1.fc7',
-                'release' : 'Fedora 7',
-                'type_'   : 'bugfix',
-                'bugs'    : '',
-                'notes'   : 'foobar',
-                'stable_karma' : 1,
-                'request': 'stable',
-                'unstable_karma' : -1,
-        }
-        self.save_update(params, session)
+        assert "Critical path update not yet approved!" in log, log
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
 
@@ -1435,6 +1435,15 @@ class TestControllers(testutil.DBTest):
         assert len(update.comments) == 1
         assert update.comments[0].author == 'bob'
 
+        # Make sure not even releng can submit it to stable until it gets another
+        # approval
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                                method='GET', headers=releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+        assert update.karma == 1
+        update.request = None
+
         # Have another developer +1 it, so it gets up to +2
         # Ensure we can't push it to stable, until we get admin approval
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
@@ -1444,8 +1453,11 @@ class TestControllers(testutil.DBTest):
                                 method='GET', headers=login(username='foobar'))
         assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
-        assert not update.request
         assert update.karma == 2
+        assert update.request == 'stable'
+
+        # Reset it, and have releng approve it as well
+        update.request = None
 
         # Have releng try again, and ensure it can be pushed to stable
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
@@ -1569,15 +1581,10 @@ class TestControllers(testutil.DBTest):
                                 headers=login(username='bob'))
 
         update = PackageUpdate.byTitle(params['builds'])
-        assert len(update.comments) == 2
+        assert len(update.comments) == 3, update.comments
         assert update.comments[1].author == 'bob', update.comments
-
-        testutil.create_request('/updates/%s' % params['builds'],
-                                method='GET', headers=session)
-        update = PackageUpdate.byTitle(params['builds'])
-        assert update.comments[0].author == 'guest (qa)'
-
-        assert "Mark Critical Path update as Stable" in cherrypy.response.body[0], cherrypy.response.body[0]
+        assert update.comments[2].author == 'bodhi', update.comments
+        assert update.comments[2].text == 'Critical path update approved'
 
     def test_created_since(self):
         session = login()

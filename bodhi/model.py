@@ -689,9 +689,11 @@ class PackageUpdate(SQLObject):
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
         if not author: author = identity.current.user_name
+        critpath_approved = self.critpath_approved
 
         # Hack: Add admin groups to usernames (eg: "lmacken (releng)")
         admin_groups = config.get('admin_groups', 'releng qa security_respons').split()
+
         for group in identity.current.groups:
             if group in admin_groups:
                 author += ' (%s)' % group
@@ -735,6 +737,14 @@ class PackageUpdate(SQLObject):
                 continue
             people.add(comment.author.split()[0])
         mail.send(people, 'comment', self)
+
+        # If we're a Critical Path update for a pending release
+        if self.critpath and self.release.locked:
+            # If we weren't approved before, and now are, push to stable
+            if not critpath_approved and self.critpath_approved:
+                self.comment('Critical path update approved', author='bodhi')
+                self.request = 'stable'
+                mail.send_admin('critpath_approved', self)
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """

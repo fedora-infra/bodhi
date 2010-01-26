@@ -433,7 +433,7 @@ def send(to, msg_type, update, sender=None):
         to = [to]
     for person in to:
         send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (
-                  if update.critpath and '[CRITPATH] ' or '',
+                  update.critpath and '[CRITPATH] ' or '',
                   msg_type, update.title), messages[msg_type]['body'] % 
                   messages[msg_type]['fields'](update))
 
