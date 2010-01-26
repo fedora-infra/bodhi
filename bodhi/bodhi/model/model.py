@@ -771,6 +771,7 @@ class Comment(DeclarativeBase):
     text = Column(UnicodeText)
     anonymous = Column(Boolean, default=False)
     update_id = Column('update_id', Integer, ForeignKey('updates.id'))
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
     def __str__(self):
         karma = '0'
