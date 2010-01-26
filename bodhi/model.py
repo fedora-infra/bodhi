@@ -861,7 +861,7 @@ class PackageUpdate(SQLObject):
             # Hack, to get this working for F13 w/o changing the DB
             if comment.author.endswith(')'):
                 group = comment.author[:-1].split('(')[-1]
-                if group in ('qa', 'releng'):
+                if group in config.get('admin_groups', 'qa releng').split():
                     approvals += 1
         return approvals
 
