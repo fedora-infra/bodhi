@@ -439,17 +439,13 @@ class MashTask(Thread):
         our repositories
         """
         log.debug("Updating comps...")
-        olddir = os.getcwd()
         comps_dir = config.get('comps_dir')
         if not exists(comps_dir):
-            os.chdir(dirname(comps_dir))
             cmd = 'cvs -d %s co comps' % config.get('comps_cvs')
             log.debug("running command: %s" % cmd)
-            subprocess.call(cmd, shell=True)
-        os.chdir(comps_dir)
-        subprocess.call('cvs update', shell=True)
-        subprocess.call('make', shell=True)
-        os.chdir(olddir)
+            subprocess.call(cmd, shell=True, cwd=comps_dir)
+        subprocess.call('cvs update', shell=True, cwd=comps_dir)
+        subprocess.call('make', shell=True, cwd=comps_dir)
 
     def update_symlinks(self):
         """ Stage our updates repository.
