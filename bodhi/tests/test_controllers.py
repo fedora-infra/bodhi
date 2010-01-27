@@ -359,6 +359,38 @@ class TestControllers(testutil.DBTest):
         assert f7up.builds[0].nvr == f7build
         assert f7up.builds[0].package.name == 'TurboGears'
 
+    def test_add_different_release_to_update(self):
+        """
+        Try adding a build for a different release to an update (#251)
+        """
+        session = login()
+        f7 = create_release()
+        f8 = create_release('8', dist='dist-f')
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'type_'   : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+
+        # Add another build, for a different release
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc8',
+            'release' : 'Fedora 7',
+            'type_'   : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : '',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        logs = testutil.get_log()
+        assert 'Cannot add a F8 build to a F7 update. Please create a new update for python-sqlobject-0.8.2-1.fc8' in logs
+
     def test_edit(self):
         session = login()
         create_release()

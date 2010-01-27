@@ -661,6 +661,14 @@ class Root(controllers.RootController):
                         break
                 if rel:
                     log.debug("Adding %s for %s" % (rel.name, build))
+                    if edited:
+                        if edited.release != rel:
+                            valid = False
+                            flash_log("Cannot add a %s build to a %s update. "
+                                      "Please create a new update for %s" % (
+                                      rel.name, edited.release.name, build))
+                            raise InvalidUpdateException(params)
+
                     if not releases.has_key(rel):
                         releases[rel] = []
                     if build not in releases[rel]:
