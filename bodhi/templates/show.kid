@@ -245,7 +245,18 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
   <blockquote>
     <div py:if="update.comments">
       <div py:for="comment in update.get_comments()">
-        <img py:attrs="{'src' : tg.url('/static/images/comment-%d.png' % comment.karma)}" hspace="3"/><b>${comment.anonymous and 'Anonymous Tester' or comment.author}</b> - ${comment.timestamp}<br/>
+          <img py:attrs="{'src' : tg.url('/static/images/comment-%d.png' % comment.karma)}" hspace="3"/>
+              <div py:if="comment.anonymous">
+                  <div py:if="tg.identity.anonymous">
+                      <b>Anonymous Tester</b> - ${comment.timestamp}<br/>
+                  </div>
+                  <div py:if="not tg.identity.anonymous">
+                      <b>${comment.author}</b> (Anonymous) - ${comment.timestamp}<br/>
+                  </div>
+              </div>
+              <div py:if="not comment.anonymous">
+                  <b>comment.author</b> - ${comment.timestamp}<br/>
+              </div>
         <pre><div py:replace="comment.text">Comment</div></pre>
       </div>
     </div>
