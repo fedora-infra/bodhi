@@ -194,7 +194,7 @@ for more than 2 weeks if you deem it necessary.
 You can submit this update to be pushed to the stable repository by going to
 the following URL:
 
-    http://admin.fedoraproject.org/updates/request/stable/%(package)s
+    https://admin.fedoraproject.org/updates/request/stable/%(package)s
 
 or by running the following command with the bodhi-client:
 
@@ -218,7 +218,7 @@ or by running the following command with the bodhi-client:
 To approve this update and request that it be pushed to stable, you can use 
 the link below:
 
-    http://admin.fedoraproject.org/updates/approve/%(package)s
+    https://admin.fedoraproject.org/updates/approve/%(package)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
@@ -267,7 +267,7 @@ available at http://docs.fedoraproject.org/yum/.
 
 All packages are signed with the Fedora Project GPG key.  More details on the
 GPG keys used by the Fedora Project can be found at
-http://fedoraproject.org/keys
+https://fedoraproject.org/keys
 --------------------------------------------------------------------------------
 """
 
