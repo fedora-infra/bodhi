@@ -224,11 +224,12 @@ class Root(controllers.RootController):
             'count_only': validators.StringBool(),
             'created_since': validators.UnicodeString(),
             'pushed_since': validators.UnicodeString(),
+            'request': validators.UnicodeString(),
             })
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
              package=None, mine=False, get_auth=False, username=None,
              start_date=None, end_date=None, count_only=False,
-             created_since=None, pushed_since=None, **kw):
+             created_since=None, pushed_since=None, request=None, **kw):
         """ Return a list of updates based on given parameters """
         log.debug('list(%s)' % locals())
         query = []
@@ -243,7 +244,7 @@ class Root(controllers.RootController):
         # If no arguments are specified, return the most recent updates
         if not release and not bugs and not cves and not status and not type_ \
            and not package and not mine and not username and not created_since \
-           and not pushed_since:
+           and not pushed_since and not request:
             log.debug("No arguments, returning latest")
             updates = PackageUpdate.select(orderBy=orderBy).reversed()
             num_items = updates.count()
@@ -266,6 +267,8 @@ class Root(controllers.RootController):
                     orderBy = PackageUpdate.q.date_pushed
             if type_:
                 query.append(PackageUpdate.q.type == type_)
+            if request:
+                query.append(PackageUpdate.q.request == request)
             if mine:
                 query.append(
                     PackageUpdate.q.submitter == identity.current.user_name)
