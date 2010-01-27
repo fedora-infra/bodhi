@@ -29,6 +29,7 @@ from turbogears.database import PackageHub
 from os.path import isfile, join
 from textwrap import wrap
 
+from fedora.tg.util import tg_url
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
 from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
@@ -591,7 +592,7 @@ class PackageUpdate(SQLObject):
                                 subsequent_indent=' ' * 13, width=67)
                     comments.append(u'\n'.join(text) + '\n')
             val += u'\n'.join(comments).lstrip()
-        val += u"\n  %s\n" % (config.get('base_address') + url(self.get_url()))
+        val += u"\n  %s\n" % (config.get('base_address') + tg_url(self.get_url()))
         return val
 
     def get_build_tag(self):
