@@ -29,9 +29,10 @@ from sqlobject.sqlbuilder import AND, OR
 
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config)
+from turbogears import url as tg_url
 from turbogears.widgets import DataGrid
 
-from fedora.tg.util import request_format, tg_url
+from fedora.tg.util import request_format
 from fedora.tg.controllers import login as fc_login
 from fedora.tg.controllers import logout as fc_logout
 
@@ -826,6 +827,7 @@ class Root(controllers.RootController):
 
             # Add/remove the necessary Bugzillas
             try:
+                original_bugs = [bug.bz_id for bug in update.bugs]
                 update.update_bugs(bugs)
             except xmlrpclib.Fault, f:
                 log.exception(f)
@@ -848,6 +850,15 @@ class Root(controllers.RootController):
                 #mail.send(update.get_maintainers(), 'edited', update)
                 mail.send(update.submitter, 'edited', update)
                 note.insert(0, "Update successfully edited")
+
+                # Update any newly added bugs
+                for bug in bugs:
+                    if bug not in original_bugs:
+                        log.debug("Updating newly added bug: %s" % bug)
+                        Bugzilla.byBz_id(bug).add_comment(update,
+                            "%s has been submitted as an update for %s.\n%s" %
+                                (update.title, release.long_name,
+                                 config.get('base_address') + tg_url(update.get_url())))
             else:
                 # Notify security team of newly submitted security updates
                 if update.type == 'security':
