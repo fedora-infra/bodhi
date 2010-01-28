@@ -40,7 +40,7 @@ from bodhi.rss import Feed
 from bodhi.new import NewUpdateController, update_form
 from bodhi.util import make_update_link, make_type_icon, make_karma_icon, link
 from bodhi.util import flash_log, get_pkg_pushers, make_request_icon
-from bodhi.util import json_redirect, url
+from bodhi.util import json_redirect, url, get_nvr
 from bodhi.admin import AdminController
 from bodhi.metrics import MetricsController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
@@ -637,6 +637,17 @@ class Root(controllers.RootController):
                           "engineering at %s about unpushing this update." %
                           config.get('release_team_address'))
                 raise InvalidUpdateException(params)
+
+            # Check for conflicting builds when editing
+            for build in builds:
+                for other_build in builds:
+                    if get_nvr(build)[0] == get_nvr(other_build)[0]:
+                        if build != other_build:
+                            flash_log("Unable to save update with conflicting builds of "
+                                      "the same package: %s and %s.  Please remove one "
+                                      "and try again." % (build, other_build))
+                            raise InvalidUpdateException(params)
+
             edited.unpush()
 
             # Refresh the tags for these builds

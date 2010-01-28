@@ -359,6 +359,70 @@ class TestControllers(testutil.DBTest):
         assert f7up.builds[0].nvr == f7build
         assert f7up.builds[0].package.name == 'TurboGears'
 
+    def test_add_older_build_to_update(self):
+        """ Try adding a newer build an update (#385) """
+        session = login()
+        f7 = create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
+            'type_'   : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+
+        # Add another build, for a different release
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7 TurboGears-1.0.2.2-1.fc7',
+            'release' : 'Fedora 7',
+            'type_'   : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : '',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-0.8.2-1.fc7',
+        }
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        logs = testutil.get_log()
+        up = PackageUpdate.select()[0]
+        assert len(up.builds) == 2, up.builds
+        assert up.title == params['edited']
+        assert u'Unable to save update with conflicting builds of the same package: TurboGears-1.0.2.2-2.fc7 and TurboGears-1.0.2.2-1.fc7.  Please remove one and try again.' in logs
+
+    def test_add_newer_build_to_update(self):
+        """ Try adding a newer build an update (#385) """
+        session = login()
+        f7 = create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
+            'type_'   : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+
+        # Add another build, for a different release
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7 TurboGears-1.0.2.2-3.fc7',
+            'release' : 'Fedora 7',
+            'type_'   : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : '',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-0.8.2-1.fc7',
+        }
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        logs = testutil.get_log()
+        up = PackageUpdate.select()[0]
+        assert len(up.builds) == 2, up.builds
+        assert up.title == params['edited']
+        assert u'Unable to save update with conflicting builds of the same package: TurboGears-1.0.2.2-2.fc7 and TurboGears-1.0.2.2-3.fc7.  Please remove one and try again.' in logs
+
     def test_add_different_release_to_update(self):
         """
         Try adding a build for a different release to an update (#251)
