@@ -29,10 +29,9 @@ from sqlobject.sqlbuilder import AND, OR
 
 from turbogears import (controllers, expose, validate, redirect, identity,
                         paginate, flash, error_handler, validators, config)
-from turbogears import url as tg_url
 from turbogears.widgets import DataGrid
 
-from fedora.tg.util import request_format
+from fedora.tg.util import request_format, tg_url
 from fedora.tg.controllers import login as fc_login
 from fedora.tg.controllers import logout as fc_logout
 
