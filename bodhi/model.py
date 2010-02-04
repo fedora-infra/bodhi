@@ -1039,12 +1039,11 @@ class Bugzilla(SQLObject):
         """
         bz = Bugzilla.get_bz()
         try:
-            ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             bug = bz.getbug(self.bz_id)
             if bug.product != 'Fedora' and bug.product != 'Fedora EPEL':
                 log.warning("Not closing %r bug" % bug.product)
                 return
-            bug.close('ERRATA', fixedin=ver)
+            bug.close('ERRATA', fixedin=update.builds[0].nvr)
         except xmlrpclib.Fault, f:
             log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f)))
 
