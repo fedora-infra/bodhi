@@ -255,7 +255,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                   </div>
               </div>
               <div py:if="not comment.anonymous">
-                  <b>comment.author</b> - ${comment.timestamp}<br/>
+                  <b>${comment.author}</b> - ${comment.timestamp}<br/>
               </div>
         <pre><div py:replace="comment.text">Comment</div></pre>
       </div>
