@@ -65,12 +65,14 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                 </td>
                             </span>
                             <span py:if="update.request == None">
-                                <td>
-                                    <a href="${util.url('/request/testing/%s' % update.title)}" class="list">
-                                        <img src="${tg.url('/static/images/testing.png')}" border="0"/>
-                                        Push to Testing
-                                    </a>
-                                </td>
+                                <span py:if="update.status != 'testing'">
+                                    <td>
+                                        <a href="${util.url('/request/testing/%s' % update.title)}" class="list">
+                                            <img src="${tg.url('/static/images/testing.png')}" border="0"/>
+                                            Push to Testing
+                                        </a>
+                                    </td>
+                                </span>
                                 <span py:if="update.release.locked and update.critpath and update.critpath_approved">
                                     <span py:if="'qa' in tg.identity.groups or 'releng' in tg.identity.groups">
                                         <td>
