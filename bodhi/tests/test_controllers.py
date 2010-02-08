@@ -18,6 +18,7 @@ from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla, \
                         Group
 from bodhi.controllers import Root
 from bodhi.exceptions import DuplicateEntryError
+from bodhi.jobs import refresh_metrics
 
 import cherrypy
 cherrypy.root = Root()
@@ -1851,3 +1852,11 @@ class TestControllers(testutil.DBTest):
         logs = testutil.get_log()
         assert 'Updating newly added bug: 2' in logs
         assert len(PackageUpdate.byTitle(params['edited']).bugs) == 2
+
+    def test_metrics_api(self):
+        release = create_release()
+        refresh_metrics()
+        testutil.create_request('/updates/metrics?tg_format=json', method='GET')
+        response = simplejson.loads(cherrypy.response.body[0])
+        assert 'F7' in response
+        assert response['F7']['TopTestersMetric']['data'] == []
