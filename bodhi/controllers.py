@@ -1241,10 +1241,7 @@ class Root(controllers.RootController):
     @expose(allow_json=True)
     def metrics(self, release=None):
         metrics = {}
-        if release:
-            query = [Release.byName(release)]
-        else:
-            query = Release.select()
+        query = release and [Release.byName(release)] or Release.select()
         for release in query:
             metrics[release.name] = release.metrics
         return metrics
