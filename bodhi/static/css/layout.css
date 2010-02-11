@@ -449,6 +449,14 @@ div.flash {
     background: #ffb200;
 }
 
+div.comment-text {
+    font-family: monospace;
+    white-space: pre-wrap;  /* 2009-01-03: best effort for current browsers*/
+    white-space: pre-line;  /* css 2.1, enable later when moz 3.1+ available*/
+/*https://developer.mozilla.org/en/CSS/white-space*/
+/*http://www.w3.org/TR/CSS21/text.html#white-space-prop*/
+}
+
 /*
 ** Login CSS (login.kid)
 */
