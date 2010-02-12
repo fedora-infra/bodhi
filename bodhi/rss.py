@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 class Feed(FeedController):
 
     def get_feed_data(self, release=None, type=None, status=None,
-                      comments=False, submitter=None, *args, **kw):
+                      comments=False, submitter=None, builds=None, *args, **kw):
         query = []
         entries = []
         date = lambda update: update.date_pushed
@@ -60,6 +60,10 @@ class Feed(FeedController):
         if submitter:
             query.append(PackageUpdate.q.submitter == submitter)
             title.append("submitted by %s" % submitter)
+
+        if builds:
+            query.append(PackageUpdate.q.builds == builds)
+            title.append("for %s" % builds)
 
         updates = PackageUpdate.select(AND(*query), orderBy=order).reversed()[:20]
 
