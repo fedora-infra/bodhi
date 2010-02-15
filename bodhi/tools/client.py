@@ -12,10 +12,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
-# Copyright 2007  Red Hat, Inc
+# Copyright 2007-2010  Red Hat, Inc
 # Authors: Luke Macken <lmacken@redhat.com>
 
-__version__ = '0.6.0'
+__version__ = '0.7.0'
 __description__ = 'Command line tool for interacting with Bodhi'
 
 import sys
@@ -185,7 +185,7 @@ def main():
                                   request=opts.request)
                 log.info(data['tg_flash'])
                 if data.has_key('update'):
-                    log.info(data['update'])
+                    log.info(bodhi.update_str(data['update']))
 
             elif opts.request:
                 verify_args(args)
@@ -284,7 +284,7 @@ def main():
                 if data['tg_flash']:
                     log.info(data['tg_flash'])
                 if data.has_key('update'):
-                    log.info(data['update'])
+                    log.info(bodhi.update_str(data['update']))
 
             elif opts.latest:
                 data = bodhi.latest_builds(package=opts.latest)
