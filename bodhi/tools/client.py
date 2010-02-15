@@ -156,6 +156,7 @@ def main():
                         if 'updates' in data:
                             for update in data['updates']:
                                 log.info(bodhi.update_str(update))
+
                 else:
                     verify_args(args)
                     extra_args = {
@@ -175,6 +176,7 @@ def main():
                     if 'updates' in data:
                         for update in data['updates']:
                             log.info(bodhi.update_str(update))
+
             elif opts.edit:
                 verify_args(args)
                 log.info("Editing update for %s" % args[0])
@@ -184,16 +186,19 @@ def main():
                 log.info(data['tg_flash'])
                 if data.has_key('update'):
                     log.info(data['update'])
+
             elif opts.request:
                 verify_args(args)
                 data = bodhi.request(update=args[0], request=opts.request)
                 log.info(data['tg_flash'])
                 if data.has_key('update'):
-                    log.info(data['update'])
+                    log.info(bodhi.update_str(data['update']))
+
             elif opts.delete:
                 verify_args(args)
                 data = bodhi.delete(update=args[0])
                 log.info(data['tg_flash'])
+
             elif opts.push:
                 data = bodhi.push()
                 if not data:
@@ -209,6 +214,7 @@ def main():
                                       data['updates'])
                         fupdates += fdata
                     data['updates'] = fupdates
+
                 if opts.push_release:
                     fupdates = []
                     for prel in opts.push_release:
@@ -256,15 +262,19 @@ def main():
                         params['resume'] = True
                     data = bodhi.send_request('admin/mash', auth=True, req_params=params)
                     log.info(data['tg_flash'])
+
             elif opts.masher:
                 data = bodhi.masher()
                 log.info(data['masher_str'])
+
             elif opts.testable:
                 for update in bodhi.testable():
                     log.info(bodhi.update_str(update, minimal=opts.verbose))
+
             elif opts.candidates:
                 for build in bodhi.candidates():
                     log.info("%-40s %-20s" % (build['nvr'], build['tag_name']))
+
             elif opts.comment or opts.karma:
                 if not len(args) or not args[0]:
                     log.error("Please specify an update to comment on")
@@ -275,6 +285,7 @@ def main():
                     log.info(data['tg_flash'])
                 if data.has_key('update'):
                     log.info(data['update'])
+
             elif opts.latest:
                 data = bodhi.latest_builds(package=opts.latest)
                 if 'tg_flash' in data:
@@ -286,12 +297,14 @@ def main():
                                                y[0].split('-')[1]))
                 for dist, build in data:
                     log.info('%26s  %s' % (dist, build))
+
             elif opts.mine and not args:
                 data = bodhi.query(mine=opts.mine)
                 for update in data['updates']:
                     log.info(bodhi.update_str(update, minimal=True))
                 log.debug(data)
                 log.info(data['title'])
+
             elif opts.status or opts.bugs or opts.release or opts.type_ or \
                  opts.mine or args:
                 def print_query(data):
@@ -319,6 +332,7 @@ def main():
                                        request=opts.request, mine=opts.mine,
                                        limit=opts.limit)
                     print_query(data)
+
             elif opts.download:
                 data = bodhi.query(release=opts.release, status=opts.status,
                                    type_=opts.type_, bugs=opts.bugs,
@@ -344,6 +358,7 @@ def main():
             else:
                 parser.print_help()
             break
+
         except AuthError:
             bodhi.password = getpass('Password for %s: ' % opts.username)
         except ServerError, e:
