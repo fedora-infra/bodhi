@@ -187,7 +187,7 @@ def get_age_in_days(date):
 def flash_log(msg):
     """ Flash and log a given message """
     flash(msg)
-    log.debug(msg)
+    log.info(msg)
 
 def get_release_names():
     from bodhi.tools.init import releases
