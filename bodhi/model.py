@@ -722,21 +722,38 @@ class PackageUpdate(SQLObject):
             else:
                 self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
-            if self.stable_karma != 0 and self.stable_karma == self.karma:
+
+        Comment(text=text, karma=karma, update=self, author=author,
+                anonymous=anonymous)
+
+        if self.stable_karma != 0 and self.stable_karma == self.karma:
+            # If we're a criticalpath update to a pending release that is
+            # not yet approved, ensure that this karma can't cause it 
+            # to go to stable.
+            if (self.critpath and self.release.locked and 
+                not self.critpath_approved):
+                pass
+            else:
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = 'stable'
                 self.pushed = False
                 #self.date_pushed = None
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
-            if self.status == 'testing' and self.unstable_karma != 0 and \
-               self.karma == self.unstable_karma:
-                log.info("Automatically unpushing %s" % self.title)
-                self.obsolete()
-                mail.send(self.submitter, 'unstable', self)
 
-        Comment(text=text, karma=karma, update=self, author=author,
-                anonymous=anonymous)
+        if self.status == 'testing' and self.unstable_karma != 0 and \
+           self.karma == self.unstable_karma:
+            log.info("Automatically unpushing %s" % self.title)
+            self.obsolete()
+            mail.send(self.submitter, 'unstable', self)
+
+        # If we're a Critical Path update for a pending release
+        if self.critpath and self.release.locked:
+            # If we weren't approved before, and now are, push to stable
+            if not critpath_approved and self.critpath_approved:
+                self.comment('Critical path update approved', author='bodhi')
+                self.request = 'stable'
+                mail.send_admin('critpath_approved', self)
 
         # Send a notification to everyone that has commented on this update
         people = set()
@@ -749,14 +766,6 @@ class PackageUpdate(SQLObject):
                 continue
             people.add(comment.author.split()[0])
         mail.send(people, 'comment', self)
-
-        # If we're a Critical Path update for a pending release
-        if self.critpath and self.release.locked:
-            # If we weren't approved before, and now are, push to stable
-            if not critpath_approved and self.critpath_approved:
-                self.comment('Critical path update approved', author='bodhi')
-                self.request = 'stable'
-                mail.send_admin('critpath_approved', self)
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """
