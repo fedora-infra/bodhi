@@ -349,6 +349,7 @@ class PackageUpdate(SQLObject):
 
         @param pathcheck: Check for broken update paths for stable requests
         """
+        notes = []
         if not authorized_user(self, identity):
             raise InvalidRequest("Unauthorized to perform action on %s" %
                                  self.title)
@@ -417,7 +418,15 @@ class PackageUpdate(SQLObject):
                     if not self.critpath_approved:
                         log.info("Critical path update not yet approved!")
                         action = 'testing'
-                    self.comment('Critical path update approved',
+                        notes.append('This critical path update has not '
+                                     'yet been approved.  It must receive '
+                                     '%d positive karma from releng/qa, along '
+                                     'with %d additional karma from the '
+                                     'community.' % (
+                            config.get('critpath.num_admin_approvals'),
+                            config.get('critpath.min_karma') -
+                            config.get('critpath.num_admin_approvals')))
+                    self.comment('Critical path update approved by %s' % group,
                                  author=identity.current.user_name)
                     mail.send_admin('critpath_approved', self)
                     break
@@ -428,7 +437,8 @@ class PackageUpdate(SQLObject):
         self.request = action
         self.pushed = False
         #self.date_pushed = None
-        flash_log("%s has been submitted for %s" % (self.title, action))
+        notes = notes and '. '.join(notes) or ''
+        flash_log("%s has been submitted for %s. %s" %(self.title,action,notes))
         self.comment('This update has been submitted for %s' % action,
                      author=identity.current.user_name)
         mail.send_admin(action, self)
@@ -693,7 +703,8 @@ class PackageUpdate(SQLObject):
         critpath_approved = self.critpath_approved
 
         # Hack: Add admin groups to usernames (eg: "lmacken (releng)")
-        admin_groups = config.get('admin_groups', 'releng qa security_respons').split()
+        admin_groups = config.get('admin_groups',
+                                  'releng qa security_respons').split()
 
         for group in identity.current.groups:
             if group in admin_groups:
