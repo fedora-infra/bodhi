@@ -1238,11 +1238,3 @@ class Root(controllers.RootController):
                 for build in koji.getLatestBuilds(tag, package=package):
                     builds[tag] = build['nvr']
         return builds
-
-    @expose(allow_json=True)
-    def metrics(self, release=None):
-        metrics = {}
-        query = release and [Release.byName(release)] or Release.select()
-        for release in query:
-            metrics[release.name] = release.metrics
-        return metrics

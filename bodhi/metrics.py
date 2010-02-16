@@ -21,6 +21,8 @@ from turboflot import TurboFlot
 from turbogears import expose, config, flash, redirect
 from turbogears.controllers import Controller
 
+from fedora.tg.util import request_format
+
 from bodhi.util import Singleton, get_age_in_days
 from bodhi.model import PackageUpdate, Release, hub
 
@@ -482,8 +484,16 @@ class MetricData(Singleton):
 
 class MetricsController(Controller):
 
-    @expose(template='bodhi.templates.metrics')
+    @expose(template='bodhi.templates.metrics', allow_json=True)
     def index(self, release=None):
+        # /updates/metrics?tg_format=json API
+        if request_format() == 'json':
+            json = {}
+            query = release and [Release.byName(release)] or Release.select()
+            for release in query:
+                json[release.name] = release.metrics
+            return json
+
         try:
             if not release:
                 rel = Release.select()[0]
