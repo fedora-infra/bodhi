@@ -2,8 +2,8 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.7.0
-Release:        6%{?dist}
+Version:        0.7.1
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -116,6 +116,10 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Tue Feb 16 2010 Luke Macken <lmacken@redhat.com> - 0.7.1-1
+- Fix a regression in our metrics controller, and unvail a new
+  metrics JSON API
+
 * Mon Jan 18 2010 Luke Macken <lmacken@redhat.com> - 0.7.0-1
 - 0.7.0 release, prepping for the F13 release
 - Critical Path & No Frozen Rawhide proposals implemented
