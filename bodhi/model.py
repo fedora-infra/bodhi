@@ -412,27 +412,15 @@ class PackageUpdate(SQLObject):
         # [No Frozen Rawhide] Disable pushing critical path updates for
         # pending releases directly to stable.
         if action == 'stable' and self.release.locked and self.critpath:
-            admin_groups = config.get('admin_groups', 'qa releng').split()
-            for group in identity.current.groups:
-                if group in admin_groups:
-                    if not self.critpath_approved:
-                        log.info("Critical path update not yet approved!")
-                        action = 'testing'
-                    self.comment('Critical path update approved by %s' % group,
-                                 author=identity.current.user_name)
-# FIXME: even though they are an admin, this update could still not
-# yet be approved...
-                    mail.send_admin('critpath_approved', self)
-                    break
-            else:
-                log.info('Forcing critical path update into testing')
-                action = 'testing'
             if not self.critpath_approved:
+                action = 'testing'
+                log.info('Forcing critical path update into testing')
                 notes.append('This critical path update has not '
-                             'yet been approved.  It must receive '
-                             '%d positive karma from releng/qa, along '
-                             'with %d additional karma from the '
-                             'community.' % (
+                             'yet been approved.  It must reach a karma '
+                             'of %d, consisting of %d positive karma from '
+                             'releng/qa, along with %d additional karma from '
+                             'the community.' % (
+                    config.get('critpath.min_karma'),
                     config.get('critpath.num_admin_approvals'),
                     config.get('critpath.min_karma') -
                     config.get('critpath.num_admin_approvals')))
