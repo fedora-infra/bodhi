@@ -1460,7 +1460,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         log = testutil.get_log()
-        assert "Critical path update not yet approved!" in log, log
+        assert "Forcing critical path update into testing" in log, log
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
 
