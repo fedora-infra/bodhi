@@ -1856,7 +1856,13 @@ class TestControllers(testutil.DBTest):
     def test_metrics_api(self):
         release = create_release()
         refresh_metrics()
-        testutil.create_request('/updates/metrics?tg_format=json', method='GET')
+        testutil.create_request('/updates/metrics/?tg_format=json', method='GET')
         response = simplejson.loads(cherrypy.response.body[0])
         assert 'F7' in response
         assert response['F7']['TopTestersMetric']['data'] == []
+
+    def test_metrics_html(self):
+        release = create_release()
+        refresh_metrics()
+        testutil.create_request('/updates/metrics/', method='GET')
+        assert 'flot' in cherrypy.response.body[0]
