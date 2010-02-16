@@ -166,7 +166,6 @@ bodhi/tests/__init__.py
 bodhi/tests/test_buildsystem.py
 bodhi/tests/test_client.py
 bodhi/tests/test_controllers.py
-bodhi/tests/test_masher.py
 bodhi/tests/test_metadata.py
 bodhi/tests/test_model.py
 bodhi/tests/test_util.py
