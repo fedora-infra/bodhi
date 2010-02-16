@@ -893,8 +893,8 @@ class Root(controllers.RootController):
                             "consider pushing to testing first!")
             # Discourage devs from pushing directly to stable for pending releases
             elif update.request == 'stable' and update.release.locked:
-                note.append("This update is bypassing updates-testing for a "
-                            "pending release, which is strongly discouraged. "
+                note.append("This update is bypassing testing for an "
+                            "upcoming release, which is strongly discouraged. "
                             "Please ensure that it is properly tested, or "
                             "consider pushing it to testing first.")
 
