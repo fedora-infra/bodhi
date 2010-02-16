@@ -418,21 +418,24 @@ class PackageUpdate(SQLObject):
                     if not self.critpath_approved:
                         log.info("Critical path update not yet approved!")
                         action = 'testing'
-                        notes.append('This critical path update has not '
-                                     'yet been approved.  It must receive '
-                                     '%d positive karma from releng/qa, along '
-                                     'with %d additional karma from the '
-                                     'community.' % (
-                            config.get('critpath.num_admin_approvals'),
-                            config.get('critpath.min_karma') -
-                            config.get('critpath.num_admin_approvals')))
                     self.comment('Critical path update approved by %s' % group,
                                  author=identity.current.user_name)
+# FIXME: even though they are an admin, this update could still not
+# yet be approved...
                     mail.send_admin('critpath_approved', self)
                     break
             else:
                 log.info('Forcing critical path update into testing')
                 action = 'testing'
+            if not self.critpath_approved:
+                notes.append('This critical path update has not '
+                             'yet been approved.  It must receive '
+                             '%d positive karma from releng/qa, along '
+                             'with %d additional karma from the '
+                             'community.' % (
+                    config.get('critpath.num_admin_approvals'),
+                    config.get('critpath.min_karma') -
+                    config.get('critpath.num_admin_approvals')))
 
         self.request = action
         self.pushed = False
