@@ -442,7 +442,6 @@ class PackageUpdate(SQLObject):
             self.pushed = True
             self.status = 'testing'
             self.assign_id()
-            self.date_pushed = datetime.utcnow()
         elif self.request == 'obsolete':
             self.pushed = False
             self.status = 'obsolete'
@@ -450,7 +449,6 @@ class PackageUpdate(SQLObject):
             self.pushed = True
             self.status = 'stable'
             self.assign_id()
-            self.date_pushed = datetime.utcnow()
         self.request = None
         hub.commit()
 
