@@ -49,6 +49,7 @@ bodhi/config/f11-updates-testing.mash
 bodhi/config/f11-updates.mash
 bodhi/config/f12-updates-testing.mash
 bodhi/config/f12-updates.mash
+bodhi/config/f13-updates-testing.mash
 bodhi/config/f7-updates-testing.mash
 bodhi/config/f7-updates.mash
 bodhi/config/f8-updates-testing.mash
