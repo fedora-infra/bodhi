@@ -853,13 +853,13 @@ class Root(controllers.RootController):
 
                 # Update any newly added bugs
                 for bug in bugs:
+                    try:
+                        bug = int(bug)
+                    except ValueError: # bug alias
+                        bugzilla = Bugzilla.get_bz()
+                        bug = bugzilla.getbug(bug).bug_id
                     if bug not in original_bugs:
                         log.debug("Updating newly added bug: %s" % bug)
-                        try:
-                            bug = int(bug)
-                        except ValueError: # bug alias
-                            bugzilla = Bugzilla.get_bz()
-                            bug = bugzilla.getbug(bug).bug_id
                         Bugzilla.byBz_id(bug).add_comment(update,
                             "%s has been submitted as an update for %s.\n%s" %
                                 (update.title, release.long_name,
