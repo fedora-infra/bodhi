@@ -360,7 +360,8 @@ class MashTask(Thread):
                 continue
 
             if self.resume:
-                self.repos.add(release.stable_repo)
+                if not release.locked:
+                    self.repos.add(release.stable_repo)
                 self.repos.add(release.testing_repo)
             elif update.request == 'stable':
                 self.repos.add(release.stable_repo)
