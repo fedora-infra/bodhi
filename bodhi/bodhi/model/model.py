@@ -231,7 +231,7 @@ class Update(DeclarativeBase):
     releng_approval_date = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
-    alias = Column(Unicode(32), default=None)
+    alias = Column(Unicode(32), default=None, unique=True)
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'))
@@ -289,7 +289,7 @@ class Update(DeclarativeBase):
         """ Return a space-delimited string of CVE ids for this update """
         return u' '.join([cve.cve_id for cve in self.cves])
 
-    def assign_id(self):
+    def assign_alias(self):
         """Assign an update ID to this update.
 
         This function finds the next number in the sequence of pushed updates
@@ -405,7 +405,7 @@ class Update(DeclarativeBase):
             self.pushed = True
             self.date_pushed = datetime.utcnow()
             self.status = u'testing'
-            self.assign_id()
+            self.assign_alias()
         elif self.request == u'obsolete':
             self.pushed = False
             self.status = u'obsolete'
@@ -413,7 +413,7 @@ class Update(DeclarativeBase):
             self.pushed = True
             self.date_pushed = datetime.utcnow()
             self.status = u'stable'
-            self.assign_id()
+            self.assign_alias()
         self.request = None
 
     def modify_bugs(self):

@@ -152,15 +152,15 @@ class TestUpdate(ModelTest):
     def test_cvestring(self):
         eq_(self.obj.get_cvestring(), u'CVE-2009-0001')
 
-    def test_assign_id(self):
+    def test_assign_alias(self):
         update = self.obj
-        update.assign_id()
+        update.assign_alias()
         eq_(update.alias, u'%s-%s-0001' % (update.release.id_prefix,
                                           time.localtime()[0]))
         #assert update.date_pushed
 
         update = self.get_update(name=u'TurboGears-0.4.4-8.fc11')
-        update.assign_id()
+        update.assign_alias()
         eq_(update.alias, u'%s-%s-0002' % (update.release.id_prefix,
                                           time.localtime()[0]))
 
@@ -171,47 +171,47 @@ class TestUpdate(ModelTest):
         otherrel = model.Release(name=u'fc10', long_name=u'Fedora 10',
                                  id_prefix=u'FEDORA', dist_tag=u'dist-fc10')
         update.release = otherrel
-        update.assign_id()
+        update.assign_alias()
         eq_(update.alias, u'%s-%s-0003' % (update.release.id_prefix,
                                           time.localtime()[0]))
 
         ## 10k bug
         update.alias = u'FEDORA-2010-9999'
         newupdate = self.get_update(name=u'nethack-2.5.6-1.fc10')
-        newupdate.assign_id()
+        newupdate.assign_alias()
         eq_(newupdate.alias, u'FEDORA-2010-10000')
 
         newerupdate = self.get_update(name=u'nethack-2.5.7-1.fc10')
-        newerupdate.assign_id()
+        newerupdate.assign_alias()
         eq_(newerupdate.alias, u'FEDORA-2010-10001')
 
-        ## test updates that were pushed at the same time.  assign_id should
+        ## test updates that were pushed at the same time.  assign_alias should
         ## be able to figure out which one has the highest id.
         now = datetime.utcnow()
         newupdate.date_pushed = now
         newerupdate.date_pushed = now
 
         newest = self.get_update(name=u'nethack-2.5.8-1.fc10')
-        newest.assign_id()
+        newest.assign_alias()
         eq_(newest.alias, u'FEDORA-2010-10002')
 
     def test_epel_id(self):
         """ Make sure we can handle id_prefixes that contain dashes. eg: FEDORA-EPEL """
         # Create a normal Fedora update first
         update = self.obj
-        update.assign_id()
+        update.assign_alias()
         eq_(update.alias, u'FEDORA-%s-0001' % time.localtime()[0])
 
         update = self.get_update(name=u'TurboGears-2.1-1.el5')
         release = model.Release(name=u'EL-5', long_name=u'Fedora EPEL 5',
                           dist_tag=u'dist-5E-epel', id_prefix=u'FEDORA-EPEL')
         update.release = release
-        update.assign_id()
+        update.assign_alias()
         eq_(update.alias, u'FEDORA-EPEL-%s-0001' % time.localtime()[0])
 
         update = self.get_update(name=u'TurboGears-2.2-1.el5')
         update.release = release
-        update.assign_id()
+        update.assign_alias()
         eq_(update.alias, u'%s-%s-0002' % (release.id_prefix,
                                           time.localtime()[0]))
 
