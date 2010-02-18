@@ -905,9 +905,8 @@ class Bug(DeclarativeBase):
         except xmlrpclib.Fault, f:
             log.error("Unable to close bug #%d: %s" % (self.bug_id, str(f)))
 
-# TODO: remove this
     def get_url(self):
-        return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bug_id
+        return "%s/show_bug.cgi?id=%s" % (config.get('bz_baseurl'), self.bug_id)
 
 # TODO; put this somewhere else!
 
