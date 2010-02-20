@@ -32,7 +32,7 @@ from textwrap import wrap
 
 try:
     from fedora.tg.tg1utils import tg_url
-except ImpotError:
+except ImportError:
     from fedora.tg.util import tg_url
 
 from bodhi import buildsys, mail
