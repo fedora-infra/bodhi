@@ -35,7 +35,11 @@ from datetime import datetime
 from decorator import decorator
 from turbogears import config, flash, redirect
 from fedora.client import PackageDB
-from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
+
+try:
+    from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
+except ImportError
+    from fedora.tg.util import url as csrf_url, tg_url, request_format
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
