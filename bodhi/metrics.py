@@ -21,7 +21,7 @@ from turboflot import TurboFlot
 from turbogears import expose, config, flash, redirect
 from turbogears.controllers import Controller
 
-from fedora.tg.util import request_format
+from fedora.tg.tg1utils import request_format
 
 from bodhi.util import Singleton, get_age_in_days
 from bodhi.model import PackageUpdate, Release, hub

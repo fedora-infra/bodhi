@@ -32,7 +32,7 @@ from turbogears import (controllers, expose, validate, redirect, identity,
 from turbogears import url as tg_url
 from turbogears.widgets import DataGrid
 
-from fedora.tg.util import request_format
+from fedora.tg.tg1utils import request_format
 from fedora.tg.controllers import login as fc_login
 from fedora.tg.controllers import logout as fc_logout
 
