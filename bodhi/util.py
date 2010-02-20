@@ -38,7 +38,7 @@ from fedora.client import PackageDB
 
 try:
     from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
-except ImportError
+except ImportError:
     from fedora.tg.util import url as csrf_url, tg_url, request_format
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
