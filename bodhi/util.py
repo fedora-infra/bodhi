@@ -34,10 +34,8 @@ from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 from decorator import decorator
 from turbogears import config, flash, redirect
-from fedora.tg.util import request_format
 from fedora.client import PackageDB
-from fedora.tg.util import url as csrf_url
-from fedora.tg.util import tg_url
+from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
