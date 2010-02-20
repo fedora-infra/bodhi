@@ -102,7 +102,7 @@ class NewUpdateForm(Form):
                      attrs={'title' : 'Advisory Notes - <p>Some optional details '
                                       'about this update that will appear in '
                                       'the notice.</p>'
-                                      '<p><strong>Exemple:</strong><br />'
+                                      '<p><strong>Example:</strong><br />'
                                       'This is an update that fixes problems with '
                                       '**<strong>connecting to a share</strong>**.</p>'
                                       '<p>The following things *<em>break</em>*:</p>'
