@@ -146,6 +146,23 @@ class TestPackageUpdate(testutil.DBTest):
         newest.assign_id()
         assert newest.updateid == 'FEDORA-2010-10002'
 
+    def test_duplicate_ids(self):
+        older = self.get_update(name='nethack-2.5.8-1.fc10')
+        older.assign_id()
+        assert older.updateid == 'FEDORA-2010-0001', older.updateid
+
+        newest = self.get_update(name='TurboGears-2.5.8-1.fc10')
+        newest.assign_id()
+        assert newest.updateid == 'FEDORA-2010-0002', newest.updateid
+
+        # Now, pretend 'older' goes from testing->stable, and the date_pushed changes
+        older.date_pushed = older.date_pushed + timedelta(days=7)
+
+        up = self.get_update(name='kernel-2.6.9er-1.fc10')
+        up.status = 'testing'
+        up.assign_id()
+        assert up.updateid == 'FEDORA-2010-1003', up.updateid
+
     def test_epel_id(self):
         """ Make sure we can handle id_prefixes that contain dashes. eg: FEDORA-EPEL """
         # Create a normal Fedora update first
