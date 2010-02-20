@@ -27,7 +27,11 @@ from turbogears import expose, identity, redirect, flash, config, validate
 from turbogears.identity import SecureResource
 from turbogears.controllers import Controller
 
-from fedora.tg.tg1utils import request_format
+try:
+    from fedora.tg.tg1utils import request_format
+except ImportError:
+    from fedora.tg.util import request_format
+
 from fedora.client.proxyclient import ProxyClient
 
 from bodhi.util import flash_log
