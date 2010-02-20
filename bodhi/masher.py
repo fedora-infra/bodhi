@@ -73,7 +73,7 @@ class Masher(object):
         self.last_log = None
 
     @synchronized(lock)
-    def queue(self, updates, repos=set(), resume=False):
+    def queue(self, updates, repos=None, resume=False):
         self._queue.append((self.thread_id, updates, repos, resume))
         self.thread_id += 1
         if len(self._threads) == 0:
@@ -153,7 +153,7 @@ class Masher(object):
 
 class MashTask(Thread):
 
-    def __init__(self, id, updates, repos=set(), resume=False):
+    def __init__(self, id, updates, repos=None, resume=False):
         """ Initialize a new MashTask thread.
 
         @param updates: a list of PackageUpdate objects that we want to push
@@ -163,6 +163,7 @@ class MashTask(Thread):
         is mash the repositories, close bugs, and send out update notices.
         """
         Thread.__init__(self)
+        repos = repos and set(repos) or set()
         log.debug("MashTask(%d, %s, %s, %s)" % (id, updates, repos, resume))
         self.id = id
         self.tag = None
