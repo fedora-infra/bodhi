@@ -25,6 +25,7 @@ from datetime import datetime
 
 from turbogears import config
 from turbogears.database import PackageHub
+from turbogears.identity import RequestRequiredException
 
 from os.path import isfile, join
 from textwrap import wrap
@@ -695,10 +696,15 @@ class PackageUpdate(SQLObject):
         admin_groups = config.get('admin_groups',
                                   'releng qa security_respons').split()
 
-        for group in identity.current.groups:
-            if group in admin_groups:
-                author += ' (%s)' % group
-                break
+        try:
+            for group in identity.current.groups:
+                if group in admin_groups:
+                    author += ' (%s)' % group
+                    break
+        except RequestRequiredException:
+            # This happens when we're adding comments from the masher,
+            # in which case this block is not necessary
+            pass
 
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.author == author and c.karma == karma,
