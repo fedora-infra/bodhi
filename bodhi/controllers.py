@@ -35,7 +35,7 @@ from turbogears.widgets import DataGrid
 try:
     from fedora.tg.tg1utils import request_format
 except ImportError:
-    from fedora.tg.tutil import request_format
+    from fedora.tg.util import request_format
 
 from fedora.tg.controllers import login as fc_login
 from fedora.tg.controllers import logout as fc_logout

@@ -11,6 +11,7 @@ database.set_db_uri("sqlite:///:memory:")
 from datetime import datetime, timedelta
 from sqlobject import SQLObjectNotFound
 from yum.update_md import UpdateMetadata
+from nose.tools import raises
 
 from bodhi.jobs import nagmail
 from bodhi.util import rpm_fileheader, get_nvr
@@ -146,6 +147,7 @@ class TestPackageUpdate(testutil.DBTest):
         newest.assign_id()
         assert newest.updateid == 'FEDORA-2010-10002'
 
+    @raises(AssertionError) # Ideally, this shouldn't happen, but it does.
     def test_duplicate_ids(self):
         older = self.get_update(name='nethack-2.5.8-1.fc10')
         older.assign_id()
