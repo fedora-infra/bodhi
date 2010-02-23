@@ -80,10 +80,14 @@ class Release(SQLObject):
 
     @property
     def testing_tag(self):
+        if self.release.locked:
+            return '%s-updates-testing' % self.stable_tag
         return '%s-testing' % self.stable_tag
 
     @property
     def stable_tag(self):
+        if self.release.locked:
+            return self.dist_tag
         if self.name.startswith('EL'): # EPEL Hack.
             return self.dist_tag
         else:
