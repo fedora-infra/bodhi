@@ -535,6 +535,57 @@ class TestPackageUpdate(testutil.DBTest):
         log = testutil.get_log()
         assert "[old_pending] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
 
+    def test_pending_tag_property(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
+        assert update.release.candidate_tag == 'dist-fc7-updates-candidate'
+
+    def test_testing_tag_property(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
+        assert update.release.testing_tag == 'dist-fc7-updates-testing'
+
+    def test_stable_tag_property(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
+        assert update.release.stable_tag == 'dist-fc7-updates'
+
+    def test_stable_tag_property_for_pending_release(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
+        update.release.locked = True
+        assert update.release.stable_tag == 'dist-fc7'
+
+    def test_testing_tag_property_for_pending_release(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
+        update.release.locked = True
+        assert update.release.testing_tag == 'dist-fc7-updates-testing'
+
+    def test_pending_tag_property_for_pending_release(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
+        update.release.locked = True
+        assert update.release.candidate_tag == 'dist-fc7-updates-candidate'
+
+    def _get_epel_release(self):
+        rel = Release.select(Release.q.name=='EL5')
+        if rel.count():
+            rel = rel[0]
+        else:
+            rel = Release(name='EL5', long_name='Fedora EPEL 5', id_prefix='FEDORA-EPEL',
+                          dist_tag='dist-5E-epel')
+        return rel
+
+    def test_epel_pending_tag_property(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.el5')
+        update.release = self._get_epel_release()
+        assert update.release.candidate_tag == 'dist-5E-epel-testing-candidate'
+
+    def test_epel_testing_tag_property(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.el5')
+        update.release = self._get_epel_release()
+        assert update.release.testing_tag == 'dist-5E-epel-testing'
+
+    def test_epel_testing_tag_property(self):
+        update = self.get_update(name='TurboGears-1.0.2.2-2.el5')
+        update.release = self._get_epel_release()
+        assert update.release.stable_tag == 'dist-5E-epel'
+
     def test_utf8_email(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
         bug = self.get_bug()
