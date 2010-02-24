@@ -210,9 +210,14 @@ def main():
                 if opts.push_type:
                     fupdates = []
                     for ptype in opts.push_type:
-                        fdata = filter(lambda x: x['type'] == ptype,
+                        # Filter all testing updates into the set, since
+                        # we only want push_type to apply to stable.
+                        fdata = filter(lambda x: x['type'] == ptype and x['request'] == 'stable',
                                       data['updates'])
                         fupdates += fdata
+                    fdata = filter(lambda x: x['request'] == 'testing',
+                                      data['updates'])
+                    fupdates += fdata
                     data['updates'] = fupdates
 
                 if opts.push_release:
