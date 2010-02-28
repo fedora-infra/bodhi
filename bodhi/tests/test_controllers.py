@@ -1890,8 +1890,6 @@ class TestControllers(testutil.DBTest):
         assert u'·' in body.decode('utf-8')
 
         # Try throwing it at the root controller directly
-        # FIXME: figure out how to authenticate properly when calling
-        # controllers directly
         testutil.set_identity_user(User.select()[0])
         try:
             testutil.call(cherrypy.root.save, **{'stable_karma': 3, 'edited': False, 'builds': [u'TurboGears2-2.0.3-1.fc7'], 'autokarma': False, 'inheritance': False, 'suggest_reboot': False, 'notes': u'\xb7', 'bugs': '1', 'unstable_karma': -3, 'type_': u'bugfix', 'close_bugs': False})
