@@ -799,6 +799,15 @@ class Root(controllers.RootController):
 
         # Create or modify the necessary PackageUpdate objects
         for release, builds in releases.items():
+            try:
+                # Encode our unicode strings to UTF-8 before they hit SQLObject
+                # This has fixed numerous tickets, such as #288
+                notes = notes.encode('utf-8', 'replace')
+                type_ = type_.encode('utf8', 'replace')
+            except Exception, e:
+                log.exception(e)
+                log.error('Unable to convert our update to utf-8; passing '
+                          'unicode strings to SQLObject.')
             if edited:
                 update = edited
                 log.debug("Editing update %s" % edited.title)
@@ -815,7 +824,6 @@ class Root(controllers.RootController):
                             build.destroySelf()
             else:
                 try:
-                    type_ = type_.encode('utf8') # hack, for ticket #288
                     update = PackageUpdate(title=','.join(builds),
                                            release=release,
                                            submitter=identity.current.user_name,
