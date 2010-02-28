@@ -927,7 +927,10 @@ class Root(controllers.RootController):
                         updates=updates, num_items=0,
                         title='Updates sucessfully created!')
         else:
-            raise redirect(updates[0].get_url())
+            if updates:
+                raise redirect(updates[0].get_url())
+            else:
+                raise redirect('/')
 
     @expose(template='bodhi.templates.list')
     @paginate('updates', limit=20, max_limit=20)
