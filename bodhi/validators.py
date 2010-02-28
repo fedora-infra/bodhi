@@ -37,13 +37,15 @@ class AutoCompleteValidator(validators.Schema):
 
     def _to_python(self, value, state):
         tokens = []
-        if type(value) in (str, unicode):
+        if isinstance(value, basestring):
             tokens = value.split()
-        elif type(value) ==  dict:
+        elif isinstance(value, dict):
             if isinstance(value['text'], list):
                 tokens = value['text']
             else:
                 tokens = [value['text']]
+        elif isinstance(value, (list, tuple)):
+            tokens = value
         results = []
         for token in tokens:
             if token:
