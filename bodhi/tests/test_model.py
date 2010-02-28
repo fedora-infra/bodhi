@@ -581,10 +581,16 @@ class TestPackageUpdate(testutil.DBTest):
         update.release = self._get_epel_release()
         assert update.release.testing_tag == 'dist-5E-epel-testing'
 
-    def test_epel_testing_tag_property(self):
+    def test_epel_stable_tag_property(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.el5')
         update.release = self._get_epel_release()
         assert update.release.stable_tag == 'dist-5E-epel'
+
+    def test_bullets_in_notes(self):
+        update = self.get_update(name='foo-1.2.3-4')
+        update.notes = u'\xb7'
+        u = PackageUpdate.byTitle('foo-1.2.3-4')
+        assert u.notes == u'\xb7'
 
     def test_utf8_email(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')

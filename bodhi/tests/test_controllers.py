@@ -1866,3 +1866,35 @@ class TestControllers(testutil.DBTest):
         refresh_metrics()
         testutil.create_request('/updates/metrics/', method='GET')
         assert 'flot' in cherrypy.response.body[0]
+
+    def test_bullets(self):
+        session = login()
+        f7 = create_release()
+        params = {
+            'notes'   : '\xc2\xb7',
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'type_'   : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+        }
+        #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        #logs = testutil.get_log()
+        #assert False, logs
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.notes == u'\xb7'
+        assert update.notes.encode('utf-8') == '\xc2\xb7'
+        testutil.create_request('/updates/' + params['builds'])
+        body  = cherrypy.response.body[0]
+        assert '\xc2\xb7' in body
+        assert u'·' in body.decode('utf-8')
+
+        # Try throwing it at the root controller directly
+        # FIXME: figure out how to authenticate properly when calling
+        # controllers directly
+        testutil.set_identity_user(User.select()[0])
+        try:
+            testutil.call(cherrypy.root.save, **{'stable_karma': 3, 'edited': False, 'builds': [u'TurboGears2-2.0.3-1.fc7'], 'autokarma': False, 'inheritance': False, 'suggest_reboot': False, 'notes': u'\xb7', 'bugs': '1', 'unstable_karma': -3, 'type_': u'bugfix', 'close_bugs': False})
+        except cherrypy._cperror.HTTPRedirect, e:
+            assert e.status == 303
+            assert e.urls[0] == u'/updates/TurboGears2-2.0.3-1.fc7'
