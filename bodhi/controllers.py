@@ -548,6 +548,9 @@ class Root(controllers.RootController):
         }
 
         # Basic sanity checks
+        if not builds:
+            flash_log("Error: Didn't receive any builds")
+            raise InvalidUpdateException(params)
         if type_ not in config.get('update_types'):
             flash_log('Unknown update type: %s.  Valid types are: %s' % (
                       type_, config.get('update_types')))
