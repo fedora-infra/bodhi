@@ -1262,7 +1262,7 @@ class Root(controllers.RootController):
                     builds[tag] = build['nvr']
         return builds
 
-    @expose(template='bodhi.templates.pending', allow_json=True)
+    @expose(template='bodhi.templates.critpath', allow_json=True)
     @paginate('updates', limit=1000, max_limit=1000)
     def critpath(self, *args, **kw):
         updates = []
