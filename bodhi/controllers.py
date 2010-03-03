@@ -1261,3 +1261,17 @@ class Root(controllers.RootController):
                 for build in koji.getLatestBuilds(tag, package=package):
                     builds[tag] = build['nvr']
         return builds
+
+    @expose(template='bodhi.templates.list', allow_json=True)
+    @paginate('updates', limit=1000, max_limit=1000)
+    def critpath(self, *args, **kw):
+        updates = []
+        releases = Release.select(Release.q.locked==True)
+        for update in PackageUpdate.select(
+                AND(PackageUpdate.q.status != 'stable',
+                    OR(*[PackageUpdate.q.releaseID == release.id
+                         for release in releases]))):
+            if update.critpath:
+                updates.append(update)
+        return dict(updates=updates, num_items=len(updates),
+                    title='Critical Path Updates')
