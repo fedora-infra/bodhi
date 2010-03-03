@@ -33,6 +33,8 @@ else:
         title += "<a href=\"" + util.url('/%s' % nvr[0]) + "\">" + nvr[0] + "</a>-" + '-'.join(nvr[-2:]) + ", "
 title = title[:-2]
 
+critpath = update.critpath and 'critical path ' or ''
+
 release = util.link(update.release.long_name, '/' + update.release.name)
 submitter = util.link(update.submitter, '/user/' + update.submitter)
 
@@ -50,7 +52,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 <table width="97%">
    <tr>
         <td>
-            <div class="show"><img align="absmiddle" src="${tg.url('/static/images/%s.png' % update.type)}" alt="${update.type}"/> ${XML(title)} ${update.type} update</div>
+            <div class="show"><img align="absmiddle" src="${tg.url('/static/images/%s.png' % update.type)}" alt="${update.type}"/> ${XML(title)} ${critpath}${update.type} update</div>
         </td>
 
         <!-- update options -->
