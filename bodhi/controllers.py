@@ -1262,7 +1262,7 @@ class Root(controllers.RootController):
                     builds[tag] = build['nvr']
         return builds
 
-    @expose(template='bodhi.templates.list', allow_json=True)
+    @expose(template='bodhi.templates.pending', allow_json=True)
     @paginate('updates', limit=1000, max_limit=1000)
     def critpath(self, *args, **kw):
         updates = []
@@ -1273,5 +1273,6 @@ class Root(controllers.RootController):
                          for release in releases]))):
             if update.critpath:
                 updates.append(update)
-        return dict(updates=updates, num_items=len(updates),
-                    title='Critical Path Updates')
+        num_items = len(updates)
+        return dict(updates=updates, num_items=num_items,
+                    title='%d Critical Path Updates' % num_items)
