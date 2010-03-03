@@ -138,6 +138,7 @@ bodhi/templates/captchacommentform.kid
 bodhi/templates/commentform.kid
 bodhi/templates/comments.kid
 bodhi/templates/confirmation.kid
+bodhi/templates/critpath.kid
 bodhi/templates/form.kid
 bodhi/templates/list.kid
 bodhi/templates/login.html
@@ -175,6 +176,7 @@ bodhi/tools/__init__.py
 bodhi/tools/clean-testing.py
 bodhi/tools/client.py
 bodhi/tools/dev_init.py
+bodhi/tools/fix_dupe_ids.py
 bodhi/tools/init.py
 bodhi/tools/metrics.py
 bodhi/tools/pickledb.py
