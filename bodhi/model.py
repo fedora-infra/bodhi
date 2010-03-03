@@ -738,12 +738,13 @@ class PackageUpdate(SQLObject):
                 not self.critpath_approved):
                 pass
             else:
-                log.info("Automatically marking %s as stable" % self.title)
-                self.request = 'stable'
-                self.pushed = False
-                #self.date_pushed = None
-                mail.send(self.submitter, 'stablekarma', self)
-                mail.send_admin('stablekarma', self)
+                if self.status != 'stable':
+                    log.info("Automatically marking %s as stable" % self.title)
+                    self.request = 'stable'
+                    self.pushed = False
+                    #self.date_pushed = None
+                    mail.send(self.submitter, 'stablekarma', self)
+                    mail.send_admin('stablekarma', self)
 
         if self.status == 'testing' and self.unstable_karma != 0 and \
            self.karma == self.unstable_karma:
