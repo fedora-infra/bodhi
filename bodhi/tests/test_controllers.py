@@ -1683,6 +1683,30 @@ class TestControllers(testutil.DBTest):
         assert update.comments[2].author == 'bodhi', update.comments
         assert update.comments[2].text == 'Critical path update approved'
 
+    def test_critpath_request_complete(self):
+        """
+        Ensure devs can *not* push critpath updates directly to stable
+        for pending releases
+        """
+        session = login()
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': 'stable',
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.critpath
+
+        update.request_complete()
+        assert not update.request
+
     def test_created_since(self):
         session = login()
         create_release()
