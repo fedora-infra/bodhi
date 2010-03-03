@@ -86,6 +86,10 @@ def get_parser():
     parser.add_option("-D", "--download", action="store", dest="download",
                       metavar="UPDATE", help="Download an update")
 
+    parser.add_option("", "--critpath", action="store_true",
+                      help="Display a list of pending critical path updates",
+                      dest="critpath")
+
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
                       dest="status", help="List [pending|testing|stable|"
@@ -106,6 +110,7 @@ def get_parser():
     parser.add_option("-L", "--latest", action="store", type="string",
                       dest="latest", help="List the latest builds of a "
                       "specific package across all releases")
+
     ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Show debugging messages")
@@ -302,6 +307,16 @@ def main():
                                                y[0].split('-')[1]))
                 for dist, build in data:
                     log.info('%26s  %s' % (dist, build))
+
+            elif opts.critpath:
+                log.info("Getting a list of critical path updates...")
+                data = bodhi.send_request('critpath')
+                if data['tg_flash']:
+                    log.info(data['tg_flash'])
+                for update in data['updates']:
+                    log.info(bodhi.update_str(update, minimal=not opts.verbose))
+                log.info("%d pending critical path updates found" % (
+                    len(data['updates'])))
 
             elif opts.mine and not args:
                 data = bodhi.query(mine=opts.mine)
