@@ -1164,14 +1164,14 @@ class TestControllers(testutil.DBTest):
         assert len(update.comments) == 1
         assert update.comments[0].author == 'guest'
         assert update.comments[0].karma == 0
-        assert update.comments[0].text == 'This update has been submitted for testing'
+        assert update.comments[0].text == 'This update has been submitted for testing. '
         testutil.create_request('/updates/request/stable/%s' %
                                 params['builds'], method='POST',
                                 headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable'
         assert len(update.comments) == 2
-        assert update.get_comments()[-1].text == 'This update has been submitted for stable'
+        assert update.get_comments()[-1].text == 'This update has been submitted for stable. '
         testutil.create_request('/updates/request/obsolete/%s' %
                                 params['builds'], method='POST',
                                 headers=session)
