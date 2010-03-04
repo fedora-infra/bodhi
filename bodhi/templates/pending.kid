@@ -63,5 +63,14 @@
         </tr>
     </table>
 
+    <div class="list">
+        <span py:for="page in tg.paginate.pages">
+            <a py:if="page != tg.paginate.current_page"
+                href="${tg.paginate.get_href(page)}">${page}</a>
+            <b py:if="page == tg.paginate.current_page">${page}</b>
+        </span>
+        <a href="?tg_paginate_limit=${num_items}">all</a>
+    </div>
+
 </body>
 </html>
