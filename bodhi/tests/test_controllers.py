@@ -1628,6 +1628,10 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
 
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+
+        assert "/updates/request/stable" in cherrypy.response.body[0], cherrypy.response.body[0]
         # Pretend it's pushed to testing
         update.pushed = True
         update.status = 'testing'
