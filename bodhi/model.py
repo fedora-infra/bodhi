@@ -749,7 +749,8 @@ class PackageUpdate(SQLObject):
         if self.status == 'testing' and self.unstable_karma != 0 and \
            self.karma == self.unstable_karma:
             log.info("Automatically unpushing %s" % self.title)
-            self.obsolete()
+            self.obsolete(msg='This update has reached a karma of %s and is '
+                              'being unpushed and marked as unstable' % self.karma)
             mail.send(self.submitter, 'unstable', self)
 
         # If we're a Critical Path update for a pending release
@@ -814,7 +815,7 @@ class PackageUpdate(SQLObject):
                 log.exception(e)
         self.pushed = False
 
-    def obsolete(self, newer=None):
+    def obsolete(self, newer=None, msg=None):
         """
         Obsolete this update. Even though unpushing/obsoletion is an "instant"
         action, changes in the repository will not propagate until the next
@@ -828,6 +829,8 @@ class PackageUpdate(SQLObject):
         if newer:
             self.comment("This update has been obsoleted by %s" % newer,
                          author='bodhi')
+        elif msg:
+            self.comment(msg, author='bodhi')
         else:
             self.comment("This update has been obsoleted", author='bodhi')
 
