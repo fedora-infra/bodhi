@@ -442,11 +442,18 @@ class MashTask(Thread):
         """
         log.debug("Updating comps...")
         comps_dir = config.get('comps_dir')
+        comps_url = config.get('comps_cvs')
         if not exists(comps_dir):
-            cmd = 'cvs -d %s co comps' % config.get('comps_cvs')
+            if comps_url.startswith('git://'):
+                cmd = 'git clone %s' % (comps_url,)
+            else:
+                cmd = 'cvs -d %s co comps' % (comps_url,)
             log.debug("running command: %s" % cmd)
             subprocess.call(cmd, shell=True, cwd=comps_dir)
-        subprocess.call('cvs update', shell=True, cwd=comps_dir)
+        if comps_url.startswith('git://'):
+            subprocess.call('git pull', shell=True, cwd=comps_dir)
+        else:
+            subprocess.call('cvs update', shell=True, cwd=comps_dir)
         subprocess.call('make', shell=True, cwd=comps_dir)
 
     def update_symlinks(self):
