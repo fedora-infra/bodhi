@@ -442,7 +442,7 @@ class MashTask(Thread):
         """
         log.debug("Updating comps...")
         comps_dir = config.get('comps_dir')
-        comps_url = config.get('comps_cvs')
+        comps_url = config.get('comps_url')
         if not exists(comps_dir):
             if comps_url.startswith('git://'):
                 cmd = 'git clone %s' % (comps_url,)
