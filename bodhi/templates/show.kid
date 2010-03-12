@@ -39,7 +39,11 @@ release = util.link(update.release.long_name, '/' + update.release.name)
 submitter = util.link(update.submitter, '/user/' + update.submitter)
 
 reg = re.compile(r'(^[-*] .*(?:\n[-*] .*)*)', re.MULTILINE)
-notes = markdown(reg.sub(r'\n\1\n', escape(update.notes)))
+
+markdown_extras = [
+        "code-friendly" # Disable _ and __ for em and strong. Underscores is a frequent character in URLs, let's not break them.
+        ]
+notes = markdown(reg.sub(r'\n\1\n', escape(update.notes)), extras=markdown_extras)
 
 if update.karma < 0: karma = -1
 elif update.karma > 0: karma = 1
