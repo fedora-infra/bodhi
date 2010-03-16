@@ -416,8 +416,8 @@ def send_mail(sender, to, subject, body):
     try:
         log.debug("Sending mail: %r" % message.plain)
         turbomail.enqueue(message)
-    except MailNotEnabledException:
-        log.warning("TurboMail is not enabled!")
+    except MailNotEnabledException, e:
+        log.warning(str(e))
     except Exception, e:
         log.exception(e)
         log.error("Exception thrown when trying to send mail: %s" % str(e))
