@@ -62,7 +62,12 @@
             </td>
             <td class="list">
                 <center>
-                    <img src="${tg.url('/static/images/karma%d.png' % update.karma)}" /> ${update.karma}
+                    <?python
+                    if update.karma < 0: karma = -1
+                    elif update.karma > 0: karma = 1
+                    else: karma = 0
+                    ?>
+                    <img src="${tg.url('/static/images/karma%d.png' % karma)}" /> ${update.karma}
                 </center>
             </td>
             <td class="list">
