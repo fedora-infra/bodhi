@@ -762,16 +762,7 @@ class PackageUpdate(SQLObject):
                 mail.send_admin('critpath_approved', self)
 
         # Send a notification to everyone that has commented on this update
-        people = set()
-        people.add(self.submitter)
-        # Until we can differentiate between maintainers and committers
-        #for person in self.get_maintainers():
-        #    people.add(person)
-        for comment in self.comments:
-            if comment.anonymous or comment.author == 'bodhi':
-                continue
-            people.add(comment.author.split()[0])
-        mail.send(people, 'comment', self)
+        mail.send(self.people_to_notify(), 'comment', self)
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """
@@ -913,6 +904,20 @@ class PackageUpdate(SQLObject):
                 'critpath.num_admin_approvals', 2) and \
                self.karma >= config.get('critpath.min_karma', 2)
 
+    def people_to_notify(self):
+        """ Return a list of people to notify when this update changes """
+        people = set()
+        people.add(self.submitter)
+        for comment in self.comments:
+            if comment.anonymous or comment.author == 'bodhi':
+                continue
+            people.add(comment.author.split()[0])
+        # This won't differentiate between maintainers and committers.
+        # Do we want to spam *all* committers of a package for all
+        # of it's updates?  If so,
+        #for person in self.get_maintainers():
+        #    people.add(person)
+        return people
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)

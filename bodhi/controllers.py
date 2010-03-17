@@ -449,6 +449,7 @@ class Root(controllers.RootController):
                 update.destroySelf()
                 flash_log(msg)
                 mail.send_admin('deleted', update)
+                mail.send(update.people_to_notify(), 'deleted', update)
             else:
                 flash_log("Cannot delete a pushed update")
         except SQLObjectNotFound:
