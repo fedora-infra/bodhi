@@ -701,19 +701,20 @@ class PackageUpdate(SQLObject):
         if not author: author = identity.current.user_name
         critpath_approved = self.critpath_approved
 
-        # Hack: Add admin groups to usernames (eg: "lmacken (releng)")
-        admin_groups = config.get('admin_groups',
-                                  'releng qa security_respons').split()
+        # Add admin groups to usernames (eg: "lmacken (releng)")
+        if not anonymous and author != 'bodhi':
+            admin_groups = config.get('admin_groups',
+                                      'releng qa security_respons').split()
 
-        try:
-            for group in identity.current.groups:
-                if group in admin_groups:
-                    author += ' (%s)' % group
-                    break
-        except RequestRequiredException:
-            # This happens when we're adding comments from the masher,
-            # in which case this block is not necessary
-            pass
+            try:
+                for group in list(identity.current.groups)[::-1]:
+                    if group in admin_groups:
+                        author += ' (%s)' % group
+                        break
+            except RequestRequiredException:
+                # This happens when we're adding comments from the masher,
+                # in which case this block is not necessary
+                pass
 
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.author == author and c.karma == karma,
