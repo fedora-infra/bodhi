@@ -747,8 +747,6 @@ class Root(controllers.RootController):
                 package = Package.byName(nvr[0])
             except SQLObjectNotFound:
                 package = Package(name=nvr[0])
-            if suggest_reboot:
-                package.suggest_reboot = True
 
             # Update our ACL cache for this pkg
             package.committers = buildinfo[build]['people']
