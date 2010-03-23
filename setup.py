@@ -165,6 +165,7 @@ setup(
         "TurboGears >= 1.0",
         "TurboMail",
         "python_fedora",
+        "markdown",
     ],
     scripts = [],
     data_files = data_files,
