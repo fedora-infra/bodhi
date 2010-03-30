@@ -19,6 +19,7 @@ BuildRequires: python-devel
 
 BuildRequires: TurboGears python-bugzilla
 BuildRequires: python-fedora python-TurboMail TurboGears yum koji
+BuildRequires: python-turboflot python-tgcaptcha
 
 %description
 Bodhi is a web application that facilitates the process of publishing
