@@ -178,7 +178,8 @@ class ExtendedMetadata:
                         'version' : pkg['version'],
                         'release' : pkg['release'],
                         'arch'    : pkg['arch'],
-                        'src'     : pkg['src']
+                        'src'     : pkg['src'],
+                        'epoch'   : pkg.get('epoch', 0),
                 })
                 self._insert(p, 'filename', text=pkg['filename'])
                 collection.appendChild(p)
