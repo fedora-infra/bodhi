@@ -858,7 +858,9 @@ class PackageUpdate(SQLObject):
                 karma=self.karma,
                 close_bugs=self.close_bugs,
                 nagged=self.nagged,
-                approved=self.approved)
+                approved=self.approved,
+                critpath=self.critpath,
+                critpath_approved=self.critpath_approved)
 
     def get_comments(self):
         sorted = []
