@@ -312,8 +312,14 @@ class MashTask(Thread):
         for update in self.updates:
             for build in update.builds:
                 if update.request == 'testing':
-                    if build.nvr not in pending_nvrs[update.release.name]:
-                        self.error_log("%s not tagged as candidate" % build.nvr)
+                    if update.status == 'testing':
+                        if build.nvr not in testing_nvrs[update.release.name]:
+                            self.error_log("%s not tagged as testing" %
+                                           build.nvr)
+                    elif update.status == 'pending':
+                        if build.nvr not in pending_nvrs[update.release.name]:
+                            self.error_log("%s not tagged as candidate" %
+                                           build.nvr)
                 elif update.request == 'stable':
                     if update.status == 'testing':
                         if build.nvr not in testing_nvrs[update.release.name]:
