@@ -422,7 +422,8 @@ class PackageUpdate(SQLObject):
         # pending releases directly to stable.
         if action == 'stable' and self.release.locked and self.critpath:
             if not self.critpath_approved:
-                action = 'testing'
+                if self.status != 'testing':
+                    action = 'testing'
                 log.info('Forcing critical path update into testing')
                 notes.append('This critical path update has not '
                              'yet been approved.  It must reach a karma '
