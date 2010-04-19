@@ -1162,16 +1162,16 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
         assert len(update.comments) == 1
-        assert update.comments[0].author == 'guest'
+        assert update.comments[0].author == 'bodhi', update.comments[0].author
         assert update.comments[0].karma == 0
-        assert update.comments[0].text == 'This update has been submitted for testing. '
+        assert update.comments[0].text == 'This update has been submitted for testing by guest. ', update.comments[0].text
         testutil.create_request('/updates/request/stable/%s' %
                                 params['builds'], method='POST',
                                 headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable'
         assert len(update.comments) == 2
-        assert update.get_comments()[-1].text == 'This update has been submitted for stable. '
+        assert update.get_comments()[-1].text == 'This update has been submitted for stable by guest. '
         testutil.create_request('/updates/request/obsolete/%s' %
                                 params['builds'], method='POST',
                                 headers=session)
@@ -1551,16 +1551,16 @@ class TestControllers(testutil.DBTest):
         assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 2
-        assert update.request == 'stable'
-
-        # Reset it, and have releng approve it as well
-        update.request = None
+        assert update.request != 'stable', update.request
 
         # Have releng try again, and ensure it can be pushed to stable
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                 params['builds'], method='POST', headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
-        assert not update.request
+        assert update.request == 'stable'
+
+        # Reset it
+        update.request = None
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=developer)

@@ -208,4 +208,4 @@ close_bugs=True
         update = bodhi.query()['updates'][0]
         assert update and isinstance(update, dict)
         assert bodhi.update_str(update).startswith(u'================================================================================\n     TurboGears-1.0.3.2-1.fc7\n================================================================================\n    Release: Fedora 7\n     Status: pending\n       Type: bugfix\n      Karma: 0\n    Request: stable\n       Bugs: 12345 - None\n           : 6789 - None\n      Notes: foo\n  Submitter: guest\n')
-        assert bodhi.update_str(update).endswith(u' (karma 0)\n             This update has been submitted for stable.\n\n  http://localhost:8084/updates/TurboGears-1.0.3.2-1.fc7\n'), repr(bodhi.update_str(update))
+        assert bodhi.update_str(update).endswith(u' (karma 0)\n             This update has been submitted for stable by guest.\n\n  http://localhost:8084/updates/TurboGears-1.0.3.2-1.fc7\n')
