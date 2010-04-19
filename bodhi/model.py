@@ -439,8 +439,8 @@ class PackageUpdate(SQLObject):
         #self.date_pushed = None
         notes = notes and '. '.join(notes) or ''
         flash_log("%s has been submitted for %s. %s" %(self.title,action,notes))
-        self.comment('This update has been submitted for %s. %s' % (action, notes),
-                     author=identity.current.user_name)
+        self.comment('This update has been submitted for %s by %s. %s' % (
+            action, identity.current.user_name, notes), author='bodhi')
         mail.send_admin(action, self)
 
     def request_complete(self):
