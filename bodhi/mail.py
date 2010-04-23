@@ -209,6 +209,19 @@ or by running the following command with the bodhi-client:
                    }
     },
 
+    'old_testing_critpath' : {
+        'body'    : u"""\
+The critical path update for %(package)s has been in 'testing' status for over
+2 weeks, and has yet to be approved.
+
+%(updatestr)s
+""",
+        'fields' : lambda x: {
+                        'package'     : x.title,
+                        'updatestr'   : unicode(x)
+                   }
+    },
+
     'security' : {
         'body'    : u"""\
 %(submitter)s has submitted the following update.

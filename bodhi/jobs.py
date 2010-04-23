@@ -74,7 +74,6 @@ def nagmail():
     Nag the submitters of updates based on a list of queries
     """
     log.info("Starting nagmail job!")
-
     queries = [
             ('old_testing', PackageUpdate.select(
                                     AND(PackageUpdate.q.status == 'testing',
@@ -85,6 +84,8 @@ def nagmail():
                                         PackageUpdate.q.request == None)),
              lambda update: update.date_submitted),
     ]
+    oldname = None
+    mail_admin = False
 
     for name, query, date in queries:
         for update in query:
@@ -96,11 +97,28 @@ def nagmail():
                     nagged = update.nagged
                 else:
                     nagged = {}
+
+                if update.critpath:
+                    if update.critpath_approved:
+                        continue
+                    else:
+                        oldname = name
+                        name = 'old_testing_critpath'
+                        mail_admin = True
+
                 log.info("[%s] Nagging %s about %s" % (name, update.submitter,
                                                        update.title))
                 mail.send(update.submitter, name, update)
+                if mail_admin:
+                    mail.send_admin(name, update)
+                    mail_admin = False
+
                 nagged[name] = datetime.utcnow()
                 update.nagged = nagged
+
+                if oldname:
+                    name = oldname
+                    oldname = None
 
     log.info("nagmail complete!")
 
