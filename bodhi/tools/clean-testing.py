@@ -52,8 +52,7 @@ def clean_testing_builds(untag=False):
                         except SQLObjectNotFound:
                             if untag:
                                 print "Untagging via koji"
-                                koji.untagBuild('%s-updates-testing' %
-                                                release.dist_tag,
+                                koji.untagBuild(release.testing_tag,
                                                 testing_build['nvr'],
                                                 force=True)
                             else:
