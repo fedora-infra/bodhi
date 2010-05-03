@@ -97,7 +97,10 @@ def load_db():
     # {'updates': [], 'releases': []}
     if isinstance(data, dict):
         for release in data['releases']:
-            Release(**release)
+            try:
+                Release.byName(release['name'])
+            except SQLObjectNotFound:
+                Release(**release)
         data = data['updates']
 
     progress = ProgressBar(maxValue=len(data))
@@ -124,20 +127,23 @@ def load_db():
         if not u.has_key('date_modified'):
             u['date_modified'] = None
 
-        update = PackageUpdate(title=u['title'],
-                               date_submitted=u['date_submitted'],
-                               date_pushed=u['date_pushed'],
-                               date_modified=u['date_modified'],
-                               release=release,
-                               submitter=u['submitter'],
-                               updateid=u['updateid'],
-                               type=u['type'],
-                               status=u['status'],
-                               pushed=u['pushed'],
-                               notes=u['notes'],
-                               karma=u['karma'],
-                               request=request,
-                               approved=u['approved'])
+        try:
+            update = PackageUpdate.byTitle(u['title'])
+        except SQLObjectNotFound:
+            update = PackageUpdate(title=u['title'],
+                                   date_submitted=u['date_submitted'],
+                                   date_pushed=u['date_pushed'],
+                                   date_modified=u['date_modified'],
+                                   release=release,
+                                   submitter=u['submitter'],
+                                   updateid=u['updateid'],
+                                   type=u['type'],
+                                   status=u['status'],
+                                   pushed=u['pushed'],
+                                   notes=u['notes'],
+                                   karma=u['karma'],
+                                   request=request,
+                                   approved=u['approved'])
 
         ## Create Package and PackageBuild objects
         for pkg, nvr in u['builds']:
