@@ -74,7 +74,7 @@ def save_db():
         data['pushed'] = update.pushed
         data['notes'] = update.notes
         data['request'] = update.request
-        data['comments'] = [(c.timestamp, c.author, c.text, c.karma) for c in update.comments]
+        data['comments'] = [(c.timestamp, c.author, c.text, c.karma, c.anonymous) for c in update.comments]
         if hasattr(update, 'approved'):
             data['approved'] = update.approved
         else:
@@ -167,9 +167,9 @@ def load_db():
             except SQLObjectNotFound:
                 cve = CVE(cve_id=cve_id)
             update.addCVE(cve)
-        for timestamp, author, text, karma in u['comments']:
+        for timestamp, author, text, karma, anonymous in u['comments']:
             comment = Comment(timestamp=timestamp, author=author, text=text,
-                              karma=karma, update=update)
+                              karma=karma, update=update, anonymous=anonymous)
 
         progress()
 
