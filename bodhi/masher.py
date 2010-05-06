@@ -564,8 +564,9 @@ class MashTask(Thread):
                                      % time.strftime("%y%m%d.%H%M"))
                 out = file(failed_output, 'w')
                 out.write(stdout)
-                out.write('\n\nstderr:\n\n')
-                out.write(stderr)
+                if stderr:
+                    out.write('\n\nstderr:\n\n')
+                    out.write(stderr)
                 out.close()
                 log.info("Wrote failed mash output to %s" % failed_output)
                 self.log = failed_output
