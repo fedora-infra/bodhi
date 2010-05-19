@@ -770,78 +770,84 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         assert "This resource resides temporarily" in cherrypy.response.body[0], cherrypy.response.body[0]
 
-    #def test_obsoleting(self):
-    #    session = login()
-    #    create_release()
-    #    params = {
-    #            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-    #            'release' : 'Fedora 7',
-    #            'type_'   : 'enhancement',
-    #            'bugs'    : '1234',
-    #            'cves'    : 'CVE-2020-0001',
-    #            'notes'   : 'foobar',
-    #            'request' : None
-    #    }
-    #    self.save_update(params, session)
-    #    print cherrypy.response.body[0]
-    #    assert "This resource resides temporarily at <a href='http://localhost/updates/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
-    #    update = PackageUpdate.byTitle(params['builds'])
-    #    assert update.status == 'pending'
-
-    #    # Throw a newer build in, which should obsolete the previous
-    #    newparams = {
-    #            'builds'  : 'TurboGears-1.0.2.2-3.fc7',
-    #            'release' : 'Fedora 7',
-    #            'type_'    : 'enhancement',
-    #            'bugs'    : '4321',
-    #            'cves'    : 'CVE-2020-0001',
-    #            'notes'   : 'bizbaz'
-    #    }
-    #    self.save_update(newparams, session)
-    #    newupdate = PackageUpdate.byTitle(newparams['builds'])
-    #    assert newupdate.status == 'pending'
-    #    update = PackageUpdate.byTitle(params['builds'])
-    #    assert update.status == 'obsolete'
-
-    #    # The newer build should also inherit the obsolete updates bugs
-    #    bugz = [bug.bz_id for bug in newupdate.bugs]
-    #    assert 1234 in bugz and 4321 in bugz
-
-    #    # The newer update should also inherit the obsolete updates notes
-    #    assert newupdate.notes == "%s\n%s" % (newparams['notes'], params['notes'])
-
-    def test_obsoleting_request(self):
+    def test_obsoleting(self):
         session = login()
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
                 'release' : 'Fedora 7',
-                'type_'    : 'enhancement',
+                'type_'   : 'enhancement',
                 'bugs'    : '1234',
                 'cves'    : 'CVE-2020-0001',
-                'notes'   : 'foobar'
+                'notes'   : 'foobar',
+                'request' : None
         }
         self.save_update(params, session)
+        print cherrypy.response.body[0]
         assert "This resource resides temporarily at <a href='http://localhost/updates/TurboGears-1.0.2.2-2.fc7'>http://localhost/updates/TurboGears-1.0.2.2-2.fc7</a>" in cherrypy.response.body[0]
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
-        assert update.request == 'testing'
 
-        # Throw a newer build in, which should *NOT* obsolete the previous,
-        # since it has an active request
+        # Throw a newer build in, which should obsolete the previous
         newparams = {
                 'builds'  : 'TurboGears-1.0.2.2-3.fc7',
                 'release' : 'Fedora 7',
                 'type_'    : 'enhancement',
                 'bugs'    : '4321',
                 'cves'    : 'CVE-2020-0001',
-                'notes'   : 'foobar'
+                'notes'   : 'bizbaz'
         }
         self.save_update(newparams, session)
         newupdate = PackageUpdate.byTitle(newparams['builds'])
         assert newupdate.status == 'pending'
         update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'obsolete'
+
+        # The newer build should also inherit the obsolete updates bugs
+        bugz = [bug.bz_id for bug in newupdate.bugs]
+        assert 1234 in bugz and 4321 in bugz
+
+        # The newer update should also inherit the obsolete updates notes
+        assert newupdate.notes == "%s\n%s" % (newparams['notes'], params['notes'])
+
+    def test_obsoleting_multibuild_update(self):
+        """ Ensure that a new update cannot obsolete an older update that
+        contains this new build along with others """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlalchemy-0.5-0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar',
+                'request' : None
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert update.status == 'pending'
+        assert len(update.builds) == 2
+        assert len(update.builds[0].updates) == 1
+        update.status = 'testing'
+        update.pushed = True
+        update.date_pushed = datetime.now()
+
+        # Throw a newer build in, which should *NOT* obsolete the previous
+        newparams = {
+                'builds'  : 'python-sqlalchemy-0.5.1-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '',
+                'cves'    : '',
+                'notes'   : ''
+        }
+        self.save_update(newparams, session)
+        newupdate = PackageUpdate.byTitle(newparams['builds'])
+        assert newupdate.status == 'pending'
+        assert newupdate.notes == ''
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
+        assert update.status == 'testing', update.status
 
     def test_list(self):
         """

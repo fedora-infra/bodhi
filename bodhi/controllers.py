@@ -769,32 +769,37 @@ class Root(controllers.RootController):
             # Obsolete any older pending/testing updates.
             # If a build is associated with multiple updates, make sure that
             # all updates are safe to obsolete, or else just skip it.
-            #for oldBuild in package.builds:
-            #    obsoletable = False
-            #    for update in oldBuild.updates:
-            #        if update.status not in ('pending', 'testing') or \
-            #           update.request or \
-            #           update.release not in buildinfo[build]['releases'] or \
-            #           update in pkgBuild.updates or \
-            #           (edited and oldBuild in edited.builds):
-            #            obsoletable = False
-            #            break
-# TODO:
-# ensure that all of the packages in the old update are present in the new one
-# compare length of builds, and match them.
-            #        if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
-            #            log.debug("%s is obsoletable" % oldBuild.nvr)
-            #            obsoletable = True
-            #    if obsoletable:
-            #        for update in oldBuild.updates:
-            #            # Have the newer update inherit the older updates bugs
-            #            for bug in update.bugs:
-            #                bugs.append(unicode(bug.bz_id))
-            #            # Also inherit the older updates notes as well
-            #            notes += '\n' + update.notes
-            #            update.obsolete(newer=build)
-            #        note.append('This update has obsoleted %s, and has '
-            #                    'inherited its bugs and notes.' % oldBuild.nvr)
+            for oldBuild in package.builds:
+                obsoletable = False
+                print "Potentially obsoleting %s with %s" % (oldBuild.nvr, build)
+                print oldBuild
+                print oldBuild.updates
+                for update in oldBuild.updates:
+                    print update
+                    if update.status not in ('pending', 'testing') or \
+                       update.request or \
+                       update.release not in buildinfo[build]['releases'] or \
+                       update in pkgBuild.updates or \
+                       (edited and oldBuild in edited.builds):
+                        obsoletable = False
+                        break
+                    # Ensure that all of the packages in the old update are
+                    # present in the new one.  If not, don't obsolete it but
+                    # make sure the developer knows that the update exists
+                    #for build in builds:
+                    if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
+                        log.debug("%s is obsoletable" % oldBuild.nvr)
+                        obsoletable = True
+                if obsoletable:
+                    for update in oldBuild.updates:
+                        # Have the newer update inherit the older updates bugs
+                        for bug in update.bugs:
+                            bugs.append(unicode(bug.bz_id))
+                        # Also inherit the older updates notes as well
+                        notes += '\n' + update.notes
+                        update.obsolete(newer=build)
+                    note.append('This update has obsoleted %s, and has '
+                                'inherited its bugs and notes.' % oldBuild.nvr)
 
         # Create or modify the necessary PackageUpdate objects
         for release, builds in releases.items():
