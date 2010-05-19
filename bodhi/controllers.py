@@ -912,7 +912,7 @@ class Root(controllers.RootController):
 
             # Politely discourage devs from pushing critpath straight to stable
             if (update.request == 'stable' and update.critpath and
-                'qa' not in identity.current.groups and
+                'proventesters' not in identity.current.groups and
                 'releng' not in identity.current.groups and
                 not update.critpath_approved):
                 note.append("You're pushing a critical path package directly to "
