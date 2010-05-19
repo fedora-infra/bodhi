@@ -1102,6 +1102,9 @@ class TestControllers(testutil.DBTest):
 
     def test_admin_push(self):
         session = login(username='admin', group='releng')
+        me = User.by_user_name('admin')
+        testers = Group(group_name='proventesters', display_name='proventesters')
+        me.addGroup(testers)
         create_release()
         testutil.create_request('/updates/admin/push', headers=session)
         assert '0 pending requests' in cherrypy.response.body[0]
@@ -1113,6 +1116,7 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'Initial release of new package!',
                 'request' : 'stable'
         }
+
         self.save_update(params, session)
         assert PackageUpdate.select().count() == 1
         assert PackageUpdate.select()[0].request == 'stable'
@@ -1445,7 +1449,7 @@ class TestControllers(testutil.DBTest):
         assert update.request == 'testing'
 
     def test_push_critpath_to_frozen_release_and_request_stable_as_releng(self):
-        session = login(group='releng')
+        session = login(group='proventesters')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1505,7 +1509,7 @@ class TestControllers(testutil.DBTest):
         Ensure releng/qa can push critpath updates to stable for pending releases
         after 1 releng/qa karma, and 1 other karma
         """
-        releng = login(group='releng')
+        releng = login(group='proventesters')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1651,7 +1655,7 @@ class TestControllers(testutil.DBTest):
         """
         Ensure admins can submit critpath updates for pending releases to stable.
         """
-        session = login(group='qa')
+        session = login(group='proventesters')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
