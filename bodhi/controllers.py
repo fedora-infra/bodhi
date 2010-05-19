@@ -771,11 +771,7 @@ class Root(controllers.RootController):
             # all updates are safe to obsolete, or else just skip it.
             for oldBuild in package.builds:
                 obsoletable = False
-                print "Potentially obsoleting %s with %s" % (oldBuild.nvr, build)
-                print oldBuild
-                print oldBuild.updates
                 for update in oldBuild.updates:
-                    print update
                     if update.status not in ('pending', 'testing') or \
                        update.request or \
                        update.release not in buildinfo[build]['releases'] or \
@@ -783,10 +779,17 @@ class Root(controllers.RootController):
                        (edited and oldBuild in edited.builds):
                         obsoletable = False
                         break
+                    # Ensure the same number of builds are present
+                    if len(update.builds) != len(releases[update.release]):
+                        obsoletable = False
+                        break
                     # Ensure that all of the packages in the old update are
-                    # present in the new one.  If not, don't obsolete it but
-                    # make sure the developer knows that the update exists
-                    #for build in builds:
+                    # present in the new one.
+                    pkgs = [get_nvr(b)[0] for b in releases[update.release]]
+                    for build in update.builds:
+                        if build.package.name not in pkgs:
+                            obsoletable = False
+                            break
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
                         log.debug("%s is obsoletable" % oldBuild.nvr)
                         obsoletable = True
