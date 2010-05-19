@@ -786,7 +786,6 @@ class PackageUpdate(SQLObject):
                 task = koji.moveBuild(curtag, newtag, build.nvr, force=True)
                 tasks.append(task)
         if tasks:
-            log.debug('Waiting for %s tasks to complete...' % tasks)
             if buildsys.wait_for_tasks(tasks, sleep=1):
                 log.error('One or more tasks failed!')
             else:
