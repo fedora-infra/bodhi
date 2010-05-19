@@ -29,8 +29,8 @@ def main():
         updates = PackageUpdate.select(PackageUpdate.q.releaseID==release.id)
         stats[release.name] = {
                 'num_updates': updates.count(),
-                'num_testing': 0,
-                'num_testing_without_karma': 0,
+                'num_tested': 0,
+                'num_tested_without_karma': 0,
                 'num_feedback': 0,
                 'num_anon_feedback': 0,
                 'num_critpath': 0,
@@ -97,9 +97,9 @@ def main():
                 if not feedback_done:
                     data['critpath_without_karma'].add(update)
             if testingtime_done:
-                data['num_testing'] += 1
+                data['num_tested'] += 1
                 if not feedback_done:
-                    data['num_testing_without_karma'] += 1
+                    data['num_tested_without_karma'] += 1
 
         data['deltas'].sort()
 
@@ -120,12 +120,12 @@ def main():
                 data['num_anon_feedback'], float(data['num_anon_feedback']) /
                 (data['num_anon_feedback'] + sum(data['karma'].values())) * 100)
         print " * %d out of %d updates went through testing (%0.2f%%)" % (
-                data['num_testing'], data['num_updates'],
-                float(data['num_testing']) / data['num_updates'] * 100)
+                data['num_tested'], data['num_updates'],
+                float(data['num_tested']) / data['num_updates'] * 100)
         print " * %d testing updates were pushed *without* karma (%0.2f%%)" %(
-                data['num_testing_without_karma'],
-                float(data['num_testing_without_karma']) /
-                data['num_testing'] * 100)
+                data['num_tested_without_karma'],
+                float(data['num_tested_without_karma']) /
+                data['num_tested'] * 100)
         print " * %d critical path updates pushed *without* karma" % (
                 len(data['critpath_without_karma']))
         for update in data['critpath_without_karma']:
