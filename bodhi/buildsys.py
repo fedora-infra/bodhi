@@ -131,13 +131,17 @@ class DevBuildsys(Buildsystem):
         if 'fc7' in build:
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
+                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                      'name': 'dist-fc7-updates-testing', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
         else:
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-f8-updates-candidate', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-f8', 'perm': None, 'perm_id': None}]
+                     'name': 'dist-f8', 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                     'name': 'dist-f8-updates-testing', 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
         if tag not in ('dist-rawhide', 'dist-fc7', 'dist-fc7-updates-candidate',

@@ -657,6 +657,23 @@ class Root(controllers.RootController):
                                       "and try again." % (build, other_build))
                             raise InvalidUpdateException(params)
 
+            # Make sure the tag has not been moved, which indicates that we
+            # are in the middle of pushing this update
+            if edited.get_implied_build_tag() not in buildinfo[builds[0]]['tags']:
+                if edited.request:
+                    flash_log("Unable to edit update. %s is currently tagged with %s "
+                              "where bodhi expects it to be %s. This most likely means "
+                              "that this update is currently being pushed." % (
+                              builds[0], buildinfo[builds[0]]['tags'],
+                              edited.get_implied_build_tag()))
+                    raise InvalidUpdateException(params)
+                else:
+                    log.warn('Mismatched tags for an update without a request!?')
+                    log.debug(edited)
+                    log.debug('Implied tag: %s\nActual tags: %s' % (
+                        edited.get_implied_build_tag(),
+                        buildinfo[builds[0]]['tags']))
+
             edited.unpush()
 
             # Refresh the tags for these builds

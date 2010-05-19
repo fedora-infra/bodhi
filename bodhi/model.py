@@ -617,6 +617,8 @@ class PackageUpdate(SQLObject):
             tag = self.release.testing_tag
         return tag
 
+    get_implied_build_tag = get_build_tag
+
     def update_bugs(self, bugs):
         """
         Create any new bugs, and remove any missing ones.  Destroy removed bugs
