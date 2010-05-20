@@ -1934,3 +1934,56 @@ class TestControllers(testutil.DBTest):
         except cherrypy._cperror.HTTPRedirect, e:
             assert e.status == 303
             assert e.urls[0] == u'/updates/TurboGears2-2.0.3-1.fc7'
+
+    def test_karma_change(self):
+        """
+        Ensure that a developer can give negative karma, and then proceed to later
+        give positive karma.
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.8-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'autokarma' : True,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        assert PackageUpdate.byTitle(params['builds']).karma == 0
+
+        dev1 = login(username='bob')
+        testutil.create_request('/updates/comment?text=bar&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=dev1)
+        up = PackageUpdate.byTitle(params['builds'])
+        assert up.karma == 1
+
+        dev2 = login(username='jim')
+        testutil.create_request('/updates/comment?text=biz&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=dev2)
+        assert PackageUpdate.byTitle(params['builds']).karma == 2
+
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=-1' % 
+                                params['builds'], method='POST', headers=session)
+        assert PackageUpdate.byTitle(params['builds']).karma == 1
+
+        # Give a bunch of +0's
+        testutil.create_request('/updates/comment?text=blah&title=%s&karma=0' % 
+                                params['builds'], method='POST', headers=dev1)
+        assert PackageUpdate.byTitle(params['builds']).karma == 1
+        testutil.create_request('/updates/comment?text=blah&title=%s&karma=0' % 
+                                params['builds'], method='POST', headers=session)
+        assert PackageUpdate.byTitle(params['builds']).karma == 1
+        testutil.create_request('/updates/comment?text=blah&title=%s&karma=0' % 
+                                params['builds'], method='POST', headers=dev2)
+        assert PackageUpdate.byTitle(params['builds']).karma == 1
+
+        # have the submitter +1 the update
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=session)
+        up = PackageUpdate.byTitle(params['builds'])
+        assert up.karma == 2, up
