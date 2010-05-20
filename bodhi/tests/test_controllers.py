@@ -1986,4 +1986,4 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                 params['builds'], method='POST', headers=session)
         up = PackageUpdate.byTitle(params['builds'])
-        assert up.karma == 2, up
+        assert up.karma == 3
