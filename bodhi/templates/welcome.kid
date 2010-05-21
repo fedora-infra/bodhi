@@ -32,7 +32,7 @@
                         <tr>
                             <td>
                                 <span id="bodhitip" title="Bodhi Project Homepage">
-                                    <a href="http://fedorahosted.org/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
+                                    <a href="https://fedorahosted.org/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
                                 </span>
                             </td>
                             <td>
