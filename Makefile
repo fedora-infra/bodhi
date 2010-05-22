@@ -47,6 +47,9 @@ pyflakes:
 	find . -name '*.py' | xargs pyflakes
 
 init:
+	curl -O https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
+	tar -jxvf bodhi-pickledb.tar.bz2
+	rm bodhi-pickledb.tar.bz2
 	tg-admin --config=bodhi.cfg sql create && bodhi/tools/init.py && bodhi/tools/dev_init.py && bodhi/tools/pickledb.py load bodhi-pickledb*
 
 run:
