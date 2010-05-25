@@ -74,7 +74,7 @@ def main():
                         if comment.karma != 0:
                             data['num_anon_feedback'] += 1
                     else:
-                        author = comment.author.split('(')[0]
+                        author = comment.author.split('(')[0].strip()
                         if author not in data['karma']:
                             data['karma'][author] = 0
                             karma[author] = 0
