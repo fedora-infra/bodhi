@@ -74,11 +74,12 @@ def main():
                         if comment.karma != 0:
                             data['num_anon_feedback'] += 1
                     else:
-                        if comment.author not in data['karma']:
-                            data['karma'][comment.author] = 0
-                            karma[comment.author] = 0
-                        data['karma'][comment.author] += 1
-                        karma[comment.author] += 1
+                        author = comment.author.split('(')[0]
+                        if author not in data['karma']:
+                            data['karma'][author] = 0
+                            karma[author] = 0
+                        data['karma'][author] += 1
+                        karma[author] += 1
                 if (not testingtime_done and
                     comment.text == 'This update has been pushed to testing'):
                     for othercomment in update.comments:
