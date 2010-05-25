@@ -201,7 +201,7 @@ class AdminController(Controller, SecureResource):
         """
         log.debug('Calling remote method "%s" with %s' % (method, kwargs))
         try:
-            client = ProxyClient(config.get('masher'), debug=True)
+            client = ProxyClient(config.get('masher'))
             cookie = SimpleCookie(cherrypy.request.headers.get('Cookie'))
             session, data = client.send_request(method,
                                                 auth_params={'session_id': cookie.get('tg-visit').value},
