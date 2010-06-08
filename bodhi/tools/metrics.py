@@ -41,6 +41,11 @@ def main():
                 'occurrences': {},
                 'accumulative': timedelta(),
                 'packages': defaultdict(int),
+                # for tracking number of types of karma
+                '1': 0,
+                '0': 0,
+                '-1': 0,
+                None: 0,
                 }
         data = stats[release.name]
 
@@ -64,16 +69,26 @@ def main():
             testingtime_done = False
 
             for comment in update.comments:
-                if not feedback_done and (not comment.author.startswith('bodhi')
-                    and comment.karma != 0 and '@' not in comment.author):
-                    data['num_feedback'] += 1
-                    feedback += 1
-                    feedback_done = True
+
+                data[str(comment.karma)] += 1 # Track the # of +1's, -1's, and +0's.
+
+                # For figuring out if an update has received feedback or not
+                if not feedback_done:
+                    if (not comment.author.startswith('bodhi')
+                        and comment.karma != 0
+                        and not comment.anonymous):
+                        data['num_feedback'] += 1 # per-release tracking of feedback
+                        feedback += 1 # total number of updates that have received feedback
+                        feedback_done = True # so we don't run this for each comment
+
+                # Tracking per-author karma & anonymous feedback
                 if not comment.author.startswith('bodhi'):
-                    if comment.anonymous or '@' in comment.author:
+                    if comment.anonymous:
+                        # @@: should we track anon +0 comments as "feedback"?
                         if comment.karma != 0:
                             data['num_anon_feedback'] += 1
                     else:
+                        # strip the group name from the author names
                         author = comment.author.split('(')[0].strip()
                         if author not in data['karma']:
                             data['karma'][author] = 0
@@ -115,6 +130,10 @@ def main():
         print " * %d updates received feedback (%0.2f%%)" % (
                 data['num_feedback'], (float(data['num_feedback']) /
                  data['num_updates'] * 100))
+        print " * %d +0 comments" % data['0']
+        print " * %d +1 comments" % data['1']
+        print " * %d -1 comments" % data['-1']
+        print " * %d None comments" % data[None]
         print " * %d unique authenticated karma submitters" % (
                 len(data['karma']))
         print " * %d anonymous users gave feedback (%0.2f%%)" % (
