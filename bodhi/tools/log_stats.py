@@ -95,6 +95,14 @@ def main():
         print "   * mode = %d days" % sorted(stable_occur.items(),
                                              key=itemgetter(1))[-1][0]
 
+        print " * Time spent in testing of updates that were unpushed by karma:"
+        print "   * mean = %d days" % (unstable_accum.days / len(unstable_deltas))
+        print "   * median = %d days" % unstable_deltas[len(unstable_deltas)/2].days
+        print "   * mode = %d days" % sorted(unstable_occur.items(),
+                                             key=itemgetter(1))[-1][0]
+
+
+
 
 if __name__ == '__main__':
     load_config()
