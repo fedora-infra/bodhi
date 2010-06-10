@@ -248,7 +248,7 @@ class Root(controllers.RootController):
         # If no arguments are specified, return the most recent updates
         if not release and not bugs and not cves and not status and not type_ \
            and not package and not mine and not username and not created_since \
-           and not pushed_since and not request:
+           and not pushed_since and not request and not start_date and not end_date:
             log.debug("No arguments, returning latest")
             updates = PackageUpdate.select(orderBy=orderBy).reversed()
             num_items = updates.count()
