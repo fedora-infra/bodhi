@@ -899,10 +899,13 @@ class Root(controllers.RootController):
                         bug = bugzilla.getbug(bug).bug_id
                     if bug not in original_bugs:
                         log.debug("Updating newly added bug: %s" % bug)
-                        Bugzilla.byBz_id(bug).add_comment(update,
-                            "%s has been submitted as an update for %s.\n%s" %
-                                (update.title, release.long_name,
-                                 config.get('base_address') + tg_url(update.get_url())))
+                        try:
+                            Bugzilla.byBz_id(bug).add_comment(update,
+                                "%s has been submitted as an update for %s.\n%s" %
+                                    (update.title, release.long_name,
+                                     config.get('base_address') + tg_url(update.get_url())))
+                        except SQLObjectNotFound:
+                            log.debug('Bug #%d not found in our database' % bug)
             else:
                 # Notify security team of newly submitted security updates
                 if update.type == 'security':
