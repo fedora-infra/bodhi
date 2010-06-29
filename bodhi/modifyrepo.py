@@ -26,9 +26,9 @@
 
 import os
 import sys
-import sha
 import gzip
 
+from hashlib import sha1 as sha
 from xml.dom import minidom
 from bodhi.exceptions import RepositoryNotFound
 
@@ -98,17 +98,17 @@ class RepoMetadata:
         self._insert_element(data, 'location',
                              attrs={ 'href' : 'repodata/' + mdname })
         self._insert_element(data, 'checksum', attrs={ 'type' : 'sha' },
-                             text=sha.new(newmd).hexdigest())
+                             text=sha(newmd).hexdigest())
         self._insert_element(data, 'timestamp',
                              text=str(os.stat(destmd).st_mtime))
         self._insert_element(data, 'open-checksum', attrs={ 'type' : 'sha' },
-                             text=sha.new(md.encode('utf-8')).hexdigest())
+                             text=sha(md.encode('utf-8')).hexdigest())
 
         #print "           type =", mdtype 
         #print "       location =", 'repodata/' + mdname
-        #print "       checksum =", sha.new(newmd).hexdigest()
+        #print "       checksum =", sha(newmd).hexdigest()
         #print "      timestamp =", str(os.stat(destmd).st_mtime)
-        #print "  open-checksum =", sha.new(md).hexdigest()
+        #print "  open-checksum =", sha(md).hexdigest()
 
         ## Write the updated repomd.xml
         outmd = file(self.repomdxml, 'w')
