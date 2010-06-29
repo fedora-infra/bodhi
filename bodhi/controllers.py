@@ -1296,16 +1296,25 @@ class Root(controllers.RootController):
         return builds
 
     @expose(template='bodhi.templates.critpath', allow_json=True)
+    @validate(validators={'untested': validators.StringBool()})
     @paginate('updates', limit=1000, max_limit=1000)
-    def critpath(self, *args, **kw):
+    def critpath(self, untested=False, release=None, *args, **kw):
         updates = []
-        releases = Release.select(Release.q.locked==True)
+        if release:
+            releases = [Release.byName(release)]
+        else:
+            releases = Release.select()
         for update in PackageUpdate.select(
                 AND(PackageUpdate.q.status != 'stable',
                     OR(*[PackageUpdate.q.releaseID == release.id
                          for release in releases]))):
             if update.critpath:
-                updates.append(update)
+                if untested:
+                    if update.critpath_approved:
+                        updates.append(update)
+                else:
+                    updates.append(update)
         num_items = len(updates)
         return dict(updates=updates, num_items=num_items,
-                    title='%d Critical Path Updates' % num_items)
+                    title='%d %sCritical Path Updates' % (num_items,
+                        untested and 'Untested ' or ''))
