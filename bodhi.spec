@@ -60,6 +60,7 @@ Requires: python-decorator
 Requires: mod_wsgi
 Requires: httpd
 Requires: python-markdown
+Requires: python-hashlib
 
 
 %description server

@@ -166,6 +166,7 @@ setup(
         "TurboMail",
         "python_fedora",
         "markdown",
+        "hashlib",
     ],
     scripts = [],
     data_files = data_files,
