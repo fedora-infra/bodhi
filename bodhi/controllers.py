@@ -1310,7 +1310,7 @@ class Root(controllers.RootController):
                          for release in releases]))):
             if update.critpath:
                 if untested:
-                    if update.critpath_approved:
+                    if not update.critpath_approved:
                         updates.append(update)
                 else:
                     updates.append(update)
