@@ -89,6 +89,9 @@ def get_parser():
     parser.add_option("", "--critpath", action="store_true",
                       help="Display a list of pending critical path updates",
                       dest="critpath")
+    parser.add_option("", "--untested", action="store_true",
+                      help="Display a list of untested critical path updates",
+                      dest="untested", default=False)
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -310,7 +313,10 @@ def main():
 
             elif opts.critpath:
                 log.info("Getting a list of critical path updates...")
-                data = bodhi.send_request('critpath')
+                data = bodhi.send_request('critpath', req_params={
+                    'untested': opts.untested,
+                    'release': opts.release,
+                    })
                 if data['tg_flash']:
                     log.info(data['tg_flash'])
                 for update in data['updates']:
