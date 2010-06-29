@@ -178,6 +178,7 @@ bodhi/tools/client.py
 bodhi/tools/dev_init.py
 bodhi/tools/fix_dupe_ids.py
 bodhi/tools/init.py
+bodhi/tools/log_stats.py
 bodhi/tools/metrics.py
 bodhi/tools/pickledb.py
 bodhi/tools/rmrelease.py
