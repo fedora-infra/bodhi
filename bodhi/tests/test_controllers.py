@@ -1350,7 +1350,11 @@ class TestControllers(testutil.DBTest):
         except SQLObjectNotFound:
             pass
 
-    def test_push_critpath_to_release(self):
+    def test_push_untested_critpath_to_release(self):
+        """
+        Ensure that we cannot push an untested critpath update directly to
+        stable.
+        """
         session = login()
         create_release()
         params = {
@@ -1366,9 +1370,9 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(["bodhi.util", "bodhi.controllers", "bodhi.model"])
         self.save_update(params, session)
         log = testutil.get_log()
-        assert "Update successfully created. You're pushing a critical path package directly to stable, which is strongly discouraged. Please consider pushing to testing first!" in log, log
+        assert "Forcing critical path update into testing" in log, log
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable'
+        assert update.request == 'testing'
 
     def test_critpath_actions_in_normal_release(self):
         session = login()
@@ -1389,16 +1393,18 @@ class TestControllers(testutil.DBTest):
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
-        assert "Push to Stable" in cherrypy.response.body[0]
+        assert "Push to Stable" not in cherrypy.response.body[0]
         assert "Push to Testing" in cherrypy.response.body[0]
 
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                 method='GET', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
 
-        # We're allowing devs to still request critpath updates to stable
+        # We're no longer allowing devs to request critpath updates to stable
         # without a karma prerequisite for non-pending releases.
-        assert update.request == 'stable'
+        # This feature can be disabled by setting
+        #`critpath.num_admin_approvals = 0` in your configuration
+        assert update.request == 'testing'
 
     def test_non_critpath_actions_in_normal_release(self):
         session = login()

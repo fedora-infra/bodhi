@@ -420,20 +420,26 @@ class PackageUpdate(SQLObject):
 
         # [No Frozen Rawhide] Disable pushing critical path updates for
         # pending releases directly to stable.
-        if action == 'stable' and self.release.locked and self.critpath:
-            if not self.critpath_approved:
-                if self.status != 'testing':
-                    action = 'testing'
-                log.info('Forcing critical path update into testing')
-                notes.append('This critical path update has not '
-                             'yet been approved.  It must reach a karma '
-                             'of %d, consisting of %d positive karma from '
-                             'releng/qa, along with %d additional karma from '
-                             'the community.' % (
-                    config.get('critpath.min_karma'),
-                    config.get('critpath.num_admin_approvals'),
-                    config.get('critpath.min_karma') -
-                    config.get('critpath.num_admin_approvals')))
+        if action == 'stable' and self.critpath:
+            if config.get('critpath.num_admin_approvals'):
+                if not self.critpath_approved:
+                    notes.append('This critical path update has not '
+                                 'yet been approved for pushing to the stable '
+                                 'repository.  It must first reach a karma '
+                                 'of %d, consisting of %d positive karma from '
+                                 'proventesters, along with %d additional '
+                                 'karma from the community.' % (
+                        config.get('critpath.min_karma'),
+                        config.get('critpath.num_admin_approvals'),
+                        config.get('critpath.min_karma') -
+                        config.get('critpath.num_admin_approvals')))
+                    if self.status == 'testing':
+                        self.request = None
+                        flash_log('. '.join(notes))
+                        return
+                    else:
+                        log.info('Forcing critical path update into testing')
+                        action = 'testing'
 
         self.request = action
         self.pushed = False
@@ -738,11 +744,10 @@ class PackageUpdate(SQLObject):
             # If we're a criticalpath update to a pending release that is
             # not yet approved, ensure that this karma can't cause it 
             # to go to stable.
-            if (self.critpath and self.release.locked and 
-                not self.critpath_approved):
+            if self.critpath and not self.critpath_approved:
                 pass
             else:
-                if self.status != 'stable':
+                if 'stable' not in (self.status, self.request):
                     log.info("Automatically marking %s as stable" % self.title)
                     self.request = 'stable'
                     self.pushed = False
@@ -757,8 +762,8 @@ class PackageUpdate(SQLObject):
                               'being unpushed and marked as unstable' % self.karma)
             mail.send(self.submitter, 'unstable', self)
 
-        # If we're a Critical Path update for a pending release
-        if self.critpath and self.release.locked:
+        # If we're a Critical Path update
+        if self.critpath:
             # If we weren't approved before, and now are, push to stable
             if not critpath_approved and self.critpath_approved:
                 self.comment('Critical path update approved', author='bodhi')
@@ -898,7 +903,7 @@ class PackageUpdate(SQLObject):
             # Hack, to get this working for F13 w/o changing the DB
             if comment.author.endswith(')'):
                 group = comment.author[:-1].split('(')[-1]
-                if group in config.get('admin_groups', 'qa releng').split():
+                if group in config.get('admin_groups').split():
                     approvals += 1
         return approvals
 

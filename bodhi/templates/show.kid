@@ -77,27 +77,17 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                                 </span>
 
                                 <span py:if="update.status != 'stable'">
-                                    <span py:if="update.release.locked">
-                                        <span py:if="update.critpath">
-                                            <span py:if="update.critpath_approved">
-                                                <td>
-                                                    <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
-                                                        <img src="${tg.url('/static/images/submit.png')}" border="0"/>
-                                                        Push Critical Path update to Stable
-                                                    </a>
-                                                </td>
-                                            </span>
-                                        </span>
-                                        <span py:if="not update.critpath">
+                                    <span py:if="update.critpath">
+                                        <span py:if="update.critpath_approved">
                                             <td>
                                                 <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                                     <img src="${tg.url('/static/images/submit.png')}" border="0"/>
-                                                    Push to Stable
+                                                    Push Critical Path update to Stable
                                                 </a>
                                             </td>
                                         </span>
                                     </span>
-                                    <span py:if="not update.release.locked">
+                                    <span py:if="not update.critpath">
                                         <td>
                                             <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                                 <img src="${tg.url('/static/images/submit.png')}" border="0"/>
@@ -129,27 +119,17 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
                             </td>
                             <span py:if="update.status == 'testing'">
                               <span py:if="update.request == None">
-                                  <span py:if="update.release.locked">
-                                      <span py:if="update.critpath">
-                                          <span py:if="update.critpath_approved">
-                                              <td>
-                                                  <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
-                                                      <img src="${tg.url('/static/images/submit.png')}" border="0"/>
-                                                      Mark Critical Path update as Stable
-                                                  </a>
-                                              </td>
-                                          </span>
-                                      </span>
-                                      <span py:if="not update.critpath">
+                                  <span py:if="update.critpath">
+                                      <span py:if="update.critpath_approved">
                                           <td>
                                               <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                                   <img src="${tg.url('/static/images/submit.png')}" border="0"/>
-                                                  Mark as Stable
+                                                  Mark Critical Path update as Stable
                                               </a>
                                           </td>
                                       </span>
                                   </span>
-                                  <span py:if="not update.release.locked">
+                                  <span py:if="not update.critpath">
                                       <td>
                                           <a href="${util.url('/request/stable/%s' % update.title)}" class="list">
                                               <img src="${tg.url('/static/images/submit.png')}" border="0"/>

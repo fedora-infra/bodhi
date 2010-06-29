@@ -930,20 +930,26 @@ class Root(controllers.RootController):
                     flash_log(str(e))
                     raise InvalidUpdateException(params)
 
-            # Politely discourage devs from pushing critpath straight to stable
-            if (update.request == 'stable' and update.critpath and
-                'proventesters' not in identity.current.groups and
-                'releng' not in identity.current.groups and
-                not update.critpath_approved):
-                note.append("You're pushing a critical path package directly to "
-                            "stable, which is strongly discouraged. Please "
-                            "consider pushing to testing first!")
-            # Discourage devs from pushing directly to stable for pending releases
-            elif update.request == 'stable' and update.release.locked:
-                note.append("This update is bypassing testing for an "
-                            "upcoming release, which is strongly discouraged. "
-                            "Please ensure that it is properly tested, or "
-                            "consider pushing it to testing first.")
+            # Disable pushing critpath updates straight to stable
+            # XXX: This block shouldn't be necessary, as the set_request call
+            # above should handle this logic.  Keeping it here for another
+            # release to see if this gets hit.
+            if config.get('critpath.num_admin_approvals'):
+                if (update.request == 'stable' and update.critpath and
+                    not update.critpath_approved):
+                    update.request = 'testing'
+                    log.error("Unapproved critpath request is 'stable'.  "
+                              "This shouldn't happen!")
+                    note.append('This critical path update has not '
+                                'yet been approved for pushing to the stable '
+                                'repository.  It must first reach a karma '
+                                'of %d, consisting of %d positive karma from '
+                                'proventesters, along with %d additional '
+                                'karma from the community.' % (
+                        config.get('critpath.min_karma'),
+                        config.get('critpath.num_admin_approvals'),
+                        config.get('critpath.min_karma') -
+                        config.get('critpath.num_admin_approvals')))
 
         flash_log('. '.join(note))
 
