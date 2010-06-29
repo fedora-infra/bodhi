@@ -1300,7 +1300,7 @@ class Root(controllers.RootController):
     @paginate('updates', limit=1000, max_limit=1000)
     def critpath(self, untested=False, release=None, *args, **kw):
         updates = []
-        if release:
+        if release and release != u'None':
             releases = [Release.byName(release)]
         else:
             releases = Release.select()
