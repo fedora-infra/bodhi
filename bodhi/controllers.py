@@ -1308,6 +1308,7 @@ class Root(controllers.RootController):
             releases = Release.select()
         for update in PackageUpdate.select(
                 AND(PackageUpdate.q.status != 'stable',
+                    PackageUpdate.q.status != 'obsolete',
                     OR(*[PackageUpdate.q.releaseID == release.id
                          for release in releases]))):
             if update.critpath:
