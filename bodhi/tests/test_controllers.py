@@ -1510,10 +1510,10 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
 
-    def test_critpath_to_pending_release_num_approved_comments(self):
+    def test_critpath_with_autokarma_disabled(self):
         """
-        Ensure releng/qa can push critpath updates to stable for pending releases
-        after 1 releng/qa karma, and 1 other karma
+        Ensure that people can still disable karma automatism with critpath
+        updates.
         """
         releng = login(group='proventesters')
         create_release(locked=True)
@@ -1523,9 +1523,10 @@ class TestControllers(testutil.DBTest):
                 'type_'   : 'bugfix',
                 'bugs'    : '',
                 'notes'   : 'foobar',
-                'stable_karma' : 1,
+                'autokarma': False,
+                'stable_karma' : 10,
                 'request': None,
-                'unstable_karma' : -1,
+                'unstable_karma' : -10,
         }
         self.save_update(params, releng)
         update = PackageUpdate.byTitle(params['builds'])
@@ -1573,7 +1574,75 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                 params['builds'], method='POST', headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable'
+        print update.stable_karma, update.unstable_karma
+        assert update.request == None
+
+    def test_critpath_to_pending_release_num_approved_comments(self):
+        """
+        Ensure releng/qa can push critpath updates to stable for pending releases
+        after 1 releng/qa karma, and 1 other karma
+        """
+        releng = login(group='proventesters')
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'autokarma': True,
+                'stable_karma' : 10,
+                'request': None,
+                'unstable_karma' : -10,
+        }
+        self.save_update(params, releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=releng)
+
+        # Ensure releng/QA can't push critpath updates alone
+        assert "Push to Testing" in cherrypy.response.body[0]
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+
+        # Have a developer +1 the update
+        developer = login(username='bob')
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=developer)
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=developer)
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert not update.request
+        assert len(update.comments) == 1
+        assert update.comments[0].author == 'bob'
+
+        # Make sure not even releng can submit it to stable until it gets another
+        # approval
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                                method='GET', headers=releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing'
+        assert update.karma == 1
+        update.request = None
+
+        # Have another developer +1 it, so it gets up to +2
+        # Ensure we can't push it to stable, until we get admin approval
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST',
+                                headers=login(username='foobar'))
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=login(username='foobar'))
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.karma == 2
+        assert update.request != 'stable', update.request
+
+        # Have releng try again, and ensure it can be pushed to stable
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        print update.stable_karma, update.unstable_karma
+        assert update.request == 'stable', update.request
 
         # Reset it
         update.request = None
