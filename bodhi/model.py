@@ -712,13 +712,12 @@ class PackageUpdate(SQLObject):
 
         # Add admin groups to usernames (eg: "lmacken (releng)")
         if not anonymous and author != 'bodhi':
-            admin_groups = config.get('admin_groups',
-                                      'releng qa security_respons').split()
-
+            admin_groups = config.get('admin_groups', '').split()
             try:
-                for group in list(identity.current.groups)[::-1]:
-                    if group in admin_groups:
-                        author += ' (%s)' % group
+                groups =  list(identity.current.groups)
+                for admin_group in admin_groups:
+                    if admin_group in groups:
+                        author += ' (%s)' % admin_group
                         break
             except RequestRequiredException:
                 # This happens when we're adding comments from the masher,
