@@ -788,6 +788,8 @@ class Root(controllers.RootController):
             # all updates are safe to obsolete, or else just skip it.
             for oldBuild in package.builds:
                 obsoletable = False
+                if oldBuild.nvr == build:
+                    continue
                 for update in oldBuild.updates:
                     if update.status not in ('pending', 'testing') or \
                        update.request or \
