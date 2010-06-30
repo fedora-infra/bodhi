@@ -766,8 +766,9 @@ class PackageUpdate(SQLObject):
             # If we weren't approved before, and now are, push to stable
             if not critpath_approved and self.critpath_approved:
                 self.comment('Critical path update approved', author='bodhi')
-                self.request = 'stable'
                 mail.send_admin('critpath_approved', self)
+                if self.stable_karma != 0:
+                    self.request = 'stable'
 
         # Send a notification to everyone that has commented on this update
         mail.send(self.people_to_notify(), 'comment', self)
