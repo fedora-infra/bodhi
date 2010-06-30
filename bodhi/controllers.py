@@ -805,8 +805,8 @@ class Root(controllers.RootController):
                     # Ensure that all of the packages in the old update are
                     # present in the new one.
                     pkgs = [get_nvr(b)[0] for b in releases[update.release]]
-                    for build in update.builds:
-                        if build.package.name not in pkgs:
+                    for _build in update.builds:
+                        if _build.package.name not in pkgs:
                             obsoletable = False
                             break
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
