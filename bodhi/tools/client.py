@@ -379,7 +379,8 @@ def main():
                 parser.print_help()
             break
 
-        except AuthError:
+        except AuthError, e:
+            log.debug('Caught AuthError: %s' % str(e))
             bodhi.password = getpass('Password for %s: ' % opts.username)
         except ServerError, e:
             log.exception(e)
