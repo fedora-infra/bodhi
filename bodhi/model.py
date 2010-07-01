@@ -1045,14 +1045,14 @@ class Bugzilla(SQLObject):
             log.warning("No bodhi_email defined; skipping bug comment")
             return
         bz = Bugzilla.get_bz()
-        if bug.product not in config.get('bz_products', '').split(','):
-            log.warning("Skipping %r bug #%d" % (bug.product, self.bz_id))
-            return
         if not comment:
             comment = self._default_message(update)
-        log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
         try:
             bug = bz.getbug(self.bz_id)
+            if bug.product not in config.get('bz_products', '').split(','):
+                log.warning("Skipping %r bug #%d" % (bug.product, self.bz_id))
+                return
+            log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
             bug.addcomment(comment)
         except Exception, e:
             log.error("Unable to add comment to bug #%d\n%s" % (self.bz_id,
