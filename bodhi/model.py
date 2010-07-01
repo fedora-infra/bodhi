@@ -898,6 +898,8 @@ class PackageUpdate(SQLObject):
         """ Return the number of Releng/QA approvals of this update """
         approvals = 0
         for comment in self.comments:
+            if comment.karma != 1:
+                continue
             # FIXME:
             # We need to actually store the groups or approvals sanely.
             # Hack, to get this working for F13 w/o changing the DB
