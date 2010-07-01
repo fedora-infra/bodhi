@@ -1043,6 +1043,9 @@ class Bugzilla(SQLObject):
             log.warning("No bodhi_email defined; skipping bug comment")
             return
         bz = Bugzilla.get_bz()
+        if bug.product not in config.get('bz_products', '').split(','):
+            log.warning("Skipping %r bug #%d" % (bug.product, self.bz_id))
+            return
         if not comment:
             comment = self._default_message(update)
         log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
@@ -1064,7 +1067,7 @@ class Bugzilla(SQLObject):
             log.debug("Setting Bug #%d to ON_QA" % self.bz_id)
             try:
                 bug = bz.getbug(self.bz_id)
-                if bug.product != 'Fedora' and bug.product != 'Fedora EPEL':
+                if bug.product not in config.get('bz_products', '').split(','):
                     log.warning("Skipping %r bug" % bug.product)
                     return
                 bug.setstatus('ON_QA', comment=comment)
@@ -1083,7 +1086,7 @@ class Bugzilla(SQLObject):
         bz = Bugzilla.get_bz()
         try:
             bug = bz.getbug(self.bz_id)
-            if bug.product != 'Fedora' and bug.product != 'Fedora EPEL':
+            if bug.product not in config.get('bz_products', '').split(','):
                 log.warning("Not closing %r bug" % bug.product)
                 return
             bug.close('ERRATA', fixedin=update.builds[0].nvr)
