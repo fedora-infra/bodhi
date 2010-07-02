@@ -276,6 +276,13 @@ def main():
 
             elif opts.testable:
                 for update in bodhi.testable():
+                    # Allow for some basic filtering of installed updates
+                    if opts.critpath:
+                        if not update['critpath']:
+                            continue
+                    if opts.type_:
+                        if not update['type'] == opts.type_:
+                            continue
                     log.info(bodhi.update_str(update, minimal=opts.verbose))
 
             elif opts.candidates:
