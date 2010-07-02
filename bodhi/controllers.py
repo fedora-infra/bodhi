@@ -559,12 +559,13 @@ class Root(controllers.RootController):
         if request not in ('testing', 'stable', None):
             flash_log('Unknown request: %s.  Valid requests are: testing, ' 
                       'stable, None' % request)
-        if stable_karma < 1:
-            flash_log("Stable karma must be at least 1.")
-            raise InvalidUpdateException(params)
-        if stable_karma <= unstable_karma:
-            flash_log("Stable karma must be higher than unstable karma.")
-            raise InvalidUpdateException(params)
+        if autokarma:
+            if stable_karma < 1:
+                flash_log("Stable karma must be at least 1.")
+                raise InvalidUpdateException(params)
+            if stable_karma <= unstable_karma:
+                flash_log("Stable karma must be higher than unstable karma.")
+                raise InvalidUpdateException(params)
 
         # Make sure this update doesn't already exist
         if not edited:
