@@ -157,7 +157,7 @@ def main():
                             log.info(data['tg_flash'])
                         if 'updates' in data:
                             for update in data['updates']:
-                                log.info(bodhi.update_str(update))
+                                print(bodhi.update_str(update).encode("UTF-8"))
 
                 else:
                     verify_args(args)
@@ -177,7 +177,7 @@ def main():
                         log.info(data['tg_flash'])
                     if 'updates' in data:
                         for update in data['updates']:
-                            log.info(bodhi.update_str(update))
+                            print(bodhi.update_str(update).encode("UTF-8"))
 
             elif opts.edit:
                 verify_args(args)
@@ -187,14 +187,14 @@ def main():
                                   request=opts.request)
                 log.info(data['tg_flash'])
                 if data.has_key('update'):
-                    log.info(bodhi.update_str(data['update']))
+                    print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.request:
                 verify_args(args)
                 data = bodhi.request(update=args[0], request=opts.request)
                 log.info(data['tg_flash'])
                 if data.has_key('update'):
-                    log.info(bodhi.update_str(data['update']))
+                    print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.delete:
                 verify_args(args)
@@ -283,7 +283,7 @@ def main():
                     if opts.type_:
                         if not update['type'] == opts.type_:
                             continue
-                    log.info(bodhi.update_str(update, minimal=opts.verbose))
+                    print(bodhi.update_str(update, minimal=opts.verbose).encode("UTF-8"))
 
             elif opts.candidates:
                 for build in bodhi.candidates():
@@ -298,7 +298,7 @@ def main():
                 if data['tg_flash']:
                     log.info(data['tg_flash'])
                 if data.has_key('update'):
-                    log.info(bodhi.update_str(data['update']))
+                    print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.latest:
                 data = bodhi.latest_builds(package=opts.latest)
@@ -310,7 +310,7 @@ def main():
                 data.sort(cmp=lambda x, y: cmp(x[0].split('-')[1],
                                                y[0].split('-')[1]))
                 for dist, build in data:
-                    log.info('%26s  %s' % (dist, build))
+                    print('%26s  %s' % (dist, build))
 
             elif opts.critpath:
                 log.info("Getting a list of critical path updates...")
@@ -321,14 +321,14 @@ def main():
                 if data['tg_flash']:
                     log.info(data['tg_flash'])
                 for update in data['updates']:
-                    log.info(bodhi.update_str(update, minimal=not opts.verbose))
+                    print(bodhi.update_str(update, minimal=not opts.verbose).encode("UTF-8"))
                 log.info("%d pending critical path updates found" % (
                     len(data['updates'])))
 
             elif opts.mine and not args:
                 data = bodhi.query(mine=opts.mine)
                 for update in data['updates']:
-                    log.info(bodhi.update_str(update, minimal=True))
+                    print(bodhi.update_str(update, minimal=True).encode("UTF-8"))
                 log.debug(data)
                 log.info(data['title'])
 
@@ -340,12 +340,12 @@ def main():
                         sys.exit(-1)
                     if data['num_items'] > 1:
                         for update in data['updates']:
-                            log.info(bodhi.update_str(update, minimal=True))
+                            print(bodhi.update_str(update, minimal=True).encode("UTF-8"))
                         log.info("%d updates found (%d shown)" % (
                             data['num_items'], len(data['updates'])))
                     else:
                         for update in data['updates']:
-                            log.info(bodhi.update_str(update))
+                            print(bodhi.update_str(update).encode("UTF-8"))
                 if args:
                     for arg in args:
                         data = bodhi.query(package=arg, release=opts.release,
@@ -369,7 +369,7 @@ def main():
                     log.info("%d possible updates were found" %
                              len(data['updates']))
                     for update in data['updates']:
-                        log.info(bodhi.update_str(update, minimal=True))
+                        print(bodhi.update_str(update, minimal=True).encode("UTF-8"))
                 else:
                     update = data['updates'][0]
                     log.info("Downloading %s..." % update['title'])
