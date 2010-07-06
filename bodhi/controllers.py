@@ -834,7 +834,10 @@ class Root(controllers.RootController):
                 log.exception(e)
                 log.error('Unable to convert our update to utf-8; passing '
                           'unicode strings to SQLObject.')
+
+            old_type = None
             if edited:
+                old_type = edited.type
                 update = edited
                 log.debug("Editing update %s" % edited.title)
                 update.set(release=release, date_modified=datetime.utcnow(),
@@ -908,6 +911,11 @@ class Root(controllers.RootController):
                                      config.get('base_address') + tg_url(update.get_url())))
                         except SQLObjectNotFound:
                             log.debug('Bug #%d not found in our database' % bug)
+
+                # If this update was changed to a security update, notify
+                # the security team.
+                if old_type != 'security' and update.type == 'security':
+                    mail.send(config.get('security_team'), 'security', update)
             else:
                 # Notify security team of newly submitted security updates
                 if update.type == 'security':
