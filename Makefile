@@ -22,6 +22,7 @@ todo:
 clean:
 	find . -name '*.pyc' | xargs rm -f
 	rm -rf virtenv
+	rm bodhi-pickledb.tar.bz2
 
 dist:
 	python setup.py sdist --formats=bztar
@@ -47,10 +48,11 @@ pyflakes:
 	find . -name '*.py' | xargs pyflakes
 
 init:
-	curl -O https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
+	wget -N https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
 	tar -jxvf bodhi-pickledb.tar.bz2
-	rm bodhi-pickledb.tar.bz2
-	tg-admin --config=bodhi.cfg sql create && bodhi/tools/init.py && bodhi/tools/dev_init.py && bodhi/tools/pickledb.py load bodhi-pickledb*
+	tg-admin --config=bodhi.cfg sql create && bodhi/tools/init.py && bodhi/tools/dev_init.py && bodhi/tools/pickledb.py load bodhi-pickledb-*
+	# remove the untared pickledb
+	rm bodhi-pickledb-*
 
 run:
 	python start-bodhi
