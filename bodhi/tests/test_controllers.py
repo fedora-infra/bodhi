@@ -2063,3 +2063,40 @@ class TestControllers(testutil.DBTest):
                                 params['builds'], method='POST', headers=session)
         up = PackageUpdate.byTitle(params['builds'])
         assert up.karma == 3
+
+    def test_suggest_reboot(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'         : 'TurboGears-1.0.8-1.fc7',
+                'release'        : 'Fedora 7',
+                'type_'          : 'security',
+                'bugs'           : '',
+                'notes'          : 'foobar',
+                'request'        : 'Stable',
+                'suggest_reboot' : True,
+                'autokarma'      : True,
+                'stable_karma'   : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+
+        # Ensure the flag gets set properly
+        assert PackageUpdate.byTitle(params['builds']).builds[0].package.suggest_reboot
+
+        params = {
+                'builds'  : 'TurboGears-1.0.8-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'suggest_reboot': False,
+                'autokarma' : True,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+
+        # Ensure the flag gets unset properly
+        assert not PackageUpdate.byTitle(params['builds']).builds[0].package.suggest_reboot

@@ -546,6 +546,7 @@ class Root(controllers.RootController):
                 'autokarma'   : autokarma,
                 'stable_karma': stable_karma,
                 'unstable_karma': unstable_karma,
+                'suggest_reboot': suggest_reboot,
         }
 
         # Basic sanity checks
@@ -768,6 +769,9 @@ class Root(controllers.RootController):
 
             # Update our ACL cache for this pkg
             package.committers = buildinfo[build]['people']
+
+            # Set the reboot suggested flag
+            package.suggest_reboot = suggest_reboot
 
             # If new karma thresholds are specified, save them
             if not autokarma:
