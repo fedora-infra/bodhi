@@ -170,7 +170,14 @@ class MashTask(Thread):
         self.updates = set()
         if isinstance(updates[0], basestring):
             updates = map(PackageUpdate.byTitle, updates)
-        map(self.updates.add, updates)
+        for update in updates:
+            if update.status == 'obsolete':
+                log.warning("Skipping obsolete update %s" % update.title)
+                continue
+            if not update.request:
+                log.warning('Skipping update without request: %s' %update.title)
+                continue
+            self.updates.add(update)
         if self.updates:
             up = self.updates.pop()
             self.updates.add(up)
