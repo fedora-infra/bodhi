@@ -1048,6 +1048,7 @@ class TestControllers(testutil.DBTest):
                 'request' : 'Stable',
                 'stable_karma' : 1,
                 'unstable_karma' : 2,
+                'autokarma': True,
         }
         testutil.capture_log('bodhi.util')
         self.save_update(params, session)
