@@ -727,7 +727,8 @@ class PackageUpdate(SQLObject):
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.author == author and c.karma == karma,
                       self.comments):
-            mycomments = [c.karma for c in self.comments if c.author == author]
+            mycomments = [c.karma for c in self.comments if c.author == author
+                          and not c.anonymous]
             if karma == 1 and -1 in mycomments:
                 self.karma += 2
             elif karma == -1 and 1 in mycomments:
