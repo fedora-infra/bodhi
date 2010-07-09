@@ -740,20 +740,39 @@ class PackageUpdate(SQLObject):
         Comment(text=text, karma=karma, update=self, author=author,
                 anonymous=anonymous)
 
-        if self.stable_karma != 0 and self.stable_karma == self.karma:
-            # If we're a criticalpath update to a pending release that is
-            # not yet approved, ensure that this karma can't cause it 
-            # to go to stable.
-            if self.critpath and not self.critpath_approved:
-                pass
-            else:
-                if 'stable' not in (self.status, self.request):
-                    log.info("Automatically marking %s as stable" % self.title)
+        if self.critpath:
+            min_karma = config.get('critpath.min_karma')
+            # If we weren't approved before, but are now...
+            if not critpath_approved and self.critpath_approved:
+                self.comment('Critical path update approved', author='bodhi')
+                mail.send_admin('critpath_approved', self)
+            # Karma automatism enabled
+            if self.stable_karma != 0:
+                # If this update has a stable karma threshold that is lower
+                # than the critpath.min_karma, then automatically push it to
+                # stable once it has met the requirements.
+                if (self.stable_karma < min_karma and self.critpath_approved and
+                    self.karma >= min_karma and self.pushable):
                     self.request = 'stable'
-                    self.pushed = False
-                    #self.date_pushed = None
                     mail.send(self.submitter, 'stablekarma', self)
                     mail.send_admin('stablekarma', self)
+                # If we're approved and meet the minimum requirements, then
+                # automatically push this update to the stable repository
+                if (self.critpath_approved and self.pushable and
+                    self.karma >= self.stable_karma and
+                    self.karma >= min_karma):
+                    self.request = 'stable'
+                    mail.send(self.submitter, 'stablekarma', self)
+                    mail.send_admin('stablekarma', self)
+
+        if self.stable_karma != 0 and self.stable_karma == self.karma:
+            if self.pushable:
+                log.info("Automatically marking %s as stable" % self.title)
+                self.request = 'stable'
+                self.pushed = False
+                #self.date_pushed = None
+                mail.send(self.submitter, 'stablekarma', self)
+                mail.send_admin('stablekarma', self)
 
         if self.status == 'testing' and self.unstable_karma != 0 and \
            self.karma == self.unstable_karma:
@@ -761,15 +780,6 @@ class PackageUpdate(SQLObject):
             self.obsolete(msg='This update has reached a karma of %s and is '
                               'being unpushed and marked as unstable' % self.karma)
             mail.send(self.submitter, 'unstable', self)
-
-        # If we're a Critical Path update
-        if self.critpath:
-            # If we weren't approved before, and now are, push to stable
-            if not critpath_approved and self.critpath_approved:
-                self.comment('Critical path update approved', author='bodhi')
-                mail.send_admin('critpath_approved', self)
-                if self.stable_karma != 0:
-                    self.request = 'stable'
 
         # Send a notification to everyone that has commented on this update
         mail.send(self.people_to_notify(), 'comment', self)
@@ -864,6 +874,8 @@ class PackageUpdate(SQLObject):
                 request=self.request,
                 comments=[comment.__json__() for comment in self.comments],
                 karma=self.karma,
+                stable_karma=self.stable_karma,
+                unstable_karma=self.unstable_karma,
                 close_bugs=self.close_bugs,
                 nagged=self.nagged,
                 approved=self.approved,
@@ -931,6 +943,17 @@ class PackageUpdate(SQLObject):
         #for person in self.get_maintainers():
         #    people.add(person)
         return people
+
+    @property
+    def pushable(self):
+        """ Return whether or not this update is in a pushable state.
+
+        Note that this does not take into account critical path or karma
+        policies.
+        """
+        return self.status != 'obsolete' and 'stable' not in (self.request,
+                self.status)
+
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
