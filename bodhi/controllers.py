@@ -88,6 +88,10 @@ class Root(controllers.RootController):
         RESULTS, FIELDS, GRID = range(3)
         updates = None
 
+        notice = config.get('frontpage_notice')
+        if notice:
+            flash(notice)
+
         # { 'Title' : [SelectResults, [(row, row_callback),]], ... }
         grids = {
             'comments' : [
