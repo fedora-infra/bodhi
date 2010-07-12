@@ -39,6 +39,9 @@ class NewUpdateController(controllers.Controller):
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
     def index(self, *args, **kw):
+        notice = config.get('newupdate_notice')
+        if notice:
+            flash(notice)
         self.build_pkglist()
         return dict(form=update_form, values=kw, action=url("/save"),
                     title='New Update Form')
