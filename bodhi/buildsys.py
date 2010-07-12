@@ -81,6 +81,26 @@ class DevBuildsys(Buildsystem):
                     'tag_name': 'dist-fc7-updates-testing',
                     'task_id': 127621,
                     'version': '1.0.2.2'}
+
+        elif 'el5' in build:
+            return {'build_id': 16058,
+                    'completion_time': '2007-08-24 23:26:10.890319',
+                    'creation_event_id': 151517,
+                    'creation_time': '2007-08-24 19:38:29.422344',
+                    'epoch': None,
+                    'id': 16058,
+                    'name': 'kernel',
+                    'nvr': 'kernel-2.6.31-1.el5',
+                    'owner_id': 388,
+                    'owner_name': 'lmacken',
+                    'package_id': 8,
+                    'package_name': 'kernel',
+                    'release': '1.el5',
+                    'state': 1,
+                    'tag_id': 19,
+                    'tag_name': 'dist-5E-epel-testing-candidate',
+                    'task_id': 127621,
+                    'version': '2.6.31'}
         else:
             return {'build_id': 16058,
                     'completion_time': '2007-08-24 23:26:10.890319',
@@ -135,6 +155,13 @@ class DevBuildsys(Buildsystem):
                       'name': 'dist-fc7-updates-testing', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
+        elif 'el5' in build:
+            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                     'name': 'dist-5E-epel', 'perm': None, 'perm_id': None}]
         else:
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-f8-updates-candidate', 'perm': None, 'perm_id': None},
@@ -150,7 +177,9 @@ class DevBuildsys(Buildsystem):
                        'dist-fc8', 'dist-fc8-updates',
                        'dist-fc8-updates-testing', 'dist-f8-updates-candidate',
                        'dist-f9', 'dist-f9-updates', 'dist-f9-updates-testing',
-                       'dist-f9-updates-candidate'):
+                       'dist-f9-updates-candidate',
+                       'dist-5E-epel-testing-candidate', 'dist-5E-epel',
+                       'dist-5E-epel-testing'):
             raise koji.GenericError
         return [self.getBuild(),]
 
