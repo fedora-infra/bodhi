@@ -2198,4 +2198,20 @@ class TestControllers(testutil.DBTest):
         # Ensure the flag gets unset properly
         assert not PackageUpdate.byTitle(params['builds']).builds[0].package.suggest_reboot
 
-
+    def test_push_critpath_to_EPEL(self):
+        session = login()
+        rel = Release(name='EL5', long_name='Fedora EPEL 5',
+                      id_prefix='FEDORA-EPEL', dist_tag='dist-5E-epel')
+        params = {
+                'builds'  : 'kernel-2.6.31-1.el5',
+                'release' : 'Fedora EPEL 5',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': 'stable',
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable', update.request

@@ -898,6 +898,10 @@ class PackageUpdate(SQLObject):
     @property
     def critpath(self):
         """ Return whether or not this update is in the critical path """
+        # HACK: Avoid the current critpath policy for EPEL
+        if self.release.name.startswith('EL'):
+            return False
+
         critical = False
         critpath_pkgs = config.get('critpath').split()
         for build in self.builds:
