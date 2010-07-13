@@ -43,7 +43,7 @@ from fedora.tg.controllers import logout as fc_logout
 from bodhi import buildsys, util
 from bodhi.rss import Feed
 from bodhi.new import NewUpdateController, update_form
-from bodhi.util import make_update_link, make_type_icon, make_karma_icon, link
+from bodhi.util import make_update_link, make_type_icon, make_karma_icon, link, make_release_link, make_submitter_link
 from bodhi.util import flash_log, get_pkg_pushers, make_request_icon
 from bodhi.util import json_redirect, url, get_nvr
 from bodhi.admin import AdminController
@@ -115,12 +115,12 @@ class Root(controllers.RootController):
                 ).reversed(),
                 [
                     ('Update', make_update_link),
-                    ('Release', lambda row: row.release.long_name),
+                    ('Release', make_release_link),
                     ('Status', lambda row: row.status),
                     ('Type', make_type_icon),
                     ('Request', make_request_icon),
                     ('Karma', make_karma_icon),
-                    ('Submitter', lambda row: row.submitter),
+                    ('Submitter', make_submitter_link),
                     ('Age', lambda row: row.get_submitted_age()),
                 ]
             ]
@@ -133,7 +133,7 @@ class Root(controllers.RootController):
                 ).reversed(),
                 [
                     ('Update', make_update_link),
-                    ('Release', lambda row: row.release.long_name),
+                    ('Release', make_release_link),
                     ('Status', lambda row: row.status),
                     ('Type', make_type_icon),
                     ('Request', make_request_icon),
