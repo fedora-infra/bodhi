@@ -58,7 +58,7 @@
                 <img src="${tg.url('/static/images/karma%d.png' % karma)}" align="top"/> <b>${update.karma}</b>
             </td>
             <td class="list">
-                ${update.submitter}
+                <a href="${tg.url('/user/' + update.submitter)}">${update.submitter}</a>
             </td>
             <td class="list">
                 ${update.date_pushed}
