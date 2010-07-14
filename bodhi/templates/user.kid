@@ -18,6 +18,17 @@ from bodhi.model import Release, PackageUpdate, Releases
 
 <body>
     &nbsp;&nbsp;<b>${"%s's %d updates" % (username, num_items)}</b>
+
+    <ul type="none">
+        <li>
+            <img src="${tg.url('/static/images/rss.png')}" border="0"/>
+            <a href="${tg.url('/rss/rss2.0?submitter=%s' % username)}">RSS Feed of Updates</a>
+        </li>
+        <li>
+            <img src="${tg.url('/static/images/rss.png')}" border="0"/>
+            <a href="${tg.url('/rss/rss2.0?comments=True&amp;user=%s' % username)}">RSS Feed of Comments</a>
+        </li>
+    </ul>
     <div py:if="num_items" class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"

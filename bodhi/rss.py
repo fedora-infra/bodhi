@@ -25,7 +25,8 @@ log = logging.getLogger(__name__)
 class Feed(FeedController):
 
     def get_feed_data(self, release=None, type=None, status=None,
-                      comments=False, submitter=None, builds=None, *args, **kw):
+                      comments=False, submitter=None, builds=None, 
+                      user=None, *args, **kw):
         query = []
         entries = []
         date = lambda update: update.date_pushed
@@ -33,7 +34,7 @@ class Feed(FeedController):
         title = []
 
         if comments:
-            return self.get_latest_comments()
+            return self.get_latest_comments(user=user)
         if release:
             try:
                 rel = Release.byName(release.upper())
@@ -95,10 +96,14 @@ class Feed(FeedController):
                 entries = entries
         )
 
-    def get_latest_comments(self):
+    def get_latest_comments(self, user=None):
         entries = []
-        comments = Comment.select(Comment.q.author != 'bodhi', 
-                                  orderBy=Comment.q.timestamp).reversed()[:20]
+        if user:
+            comments = Comment.select(Comment.q.author == user,
+                    orderBy=Comment.q.timestamp).reversed()[:20]
+        else:
+            comments = Comment.select(Comment.q.author != 'bodhi',
+                    orderBy=Comment.q.timestamp).reversed()[:20]
         for comment in comments:
             entries.append({
                 'id'        : config.get('base_address') + \
