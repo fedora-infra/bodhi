@@ -16,7 +16,7 @@ import logging
 from turbogears.feed import FeedController
 from turbogears import config, url
 from sqlobject import SQLObjectNotFound
-from sqlobject.sqlbuilder import AND
+from sqlobject.sqlbuilder import AND, OR
 
 from bodhi.model import Release, PackageUpdate, Comment, Package
 
@@ -26,13 +26,15 @@ class Feed(FeedController):
 
     def get_feed_data(self, release=None, type=None, status=None,
                       comments=False, submitter=None, builds=None, 
-                      user=None, package=None, *args, **kw):
+                      user=None, package=None, critpath=False, *args, **kw):
         query = []
         entries = []
         date = lambda update: update.date_pushed
         order = PackageUpdate.q.date_pushed
         title = []
 
+        if critpath:
+            return self.get_critpath_updates(release=release)
         if comments:
             return self.get_latest_comments(user=user)
         if package:
@@ -142,6 +144,41 @@ class Feed(FeedController):
             })
         return dict(
                 title = 'Latest Updates for %s' % package,
+                subtitle = "",
+                link = config.get('base_address') + url('/'),
+                entries = entries
+        )
+
+    def get_critpath_updates(self, release=None):
+        entries = []
+        base = config.get('base_address')
+        title = 'Latest Critical Path Updates'
+        if release:
+            release = Release.byName(release)
+            releases = [release]
+            title = title + ' for %s' % release.long_name
+        else:
+            releases = Release.select()
+        i = 0
+        for update in PackageUpdate.select(
+                AND(PackageUpdate.q.status != 'obsolete',
+                    OR(*[PackageUpdate.q.releaseID == release.id
+                         for release in releases])),
+                orderBy=PackageUpdate.q.date_submitted):
+            if i >= 20:
+                break
+            if update.critpath:
+                entries.append({
+                    'id'        : base + url(update.get_url()),
+                    'summary'   : update.notes,
+                    'link'      : base + url(update.get_url()),
+                    'published' : update.date_submitted,
+                    'updated'   : update.date_submitted,
+                    'title'     : update.title,
+                })
+                i += 1
+        return dict(
+                title = title,
                 subtitle = "",
                 link = config.get('base_address') + url('/'),
                 entries = entries
