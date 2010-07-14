@@ -1207,9 +1207,13 @@ class Root(controllers.RootController):
 
     @expose(template='bodhi.templates.comments')
     @paginate('comments', limit=20, max_limit=20)
-    def comments(self):
-        data = Comment.select(Comment.q.author != 'bodhi',
-                              orderBy=Comment.q.timestamp).reversed()
+    def comments(self, user=None):
+        if user:
+            data = Comment.select(Comment.q.author == user,
+                                  orderBy=Comment.q.timestamp).reversed()
+        else:
+            data = Comment.select(Comment.q.author != 'bodhi',
+                                  orderBy=Comment.q.timestamp).reversed()
         return dict(comments=data, num_items=data.count())
 
     @expose(template='bodhi.templates.confirmation')
