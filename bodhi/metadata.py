@@ -33,7 +33,7 @@ from yum.update_md import UpdateMetadata
 
 log = logging.getLogger(__name__)
 
-class ExtendedMetadata:
+class ExtendedMetadata(object):
 
     def __init__(self, repo, cacheduinfo=None):
         self.tag = get_repo_tag(repo)
