@@ -18,7 +18,7 @@ from turbogears import config, url
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
 
-from bodhi.model import Release, PackageUpdate, Comment
+from bodhi.model import Release, PackageUpdate, Comment, Package
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class Feed(FeedController):
 
     def get_feed_data(self, release=None, type=None, status=None,
                       comments=False, submitter=None, builds=None, 
-                      user=None, *args, **kw):
+                      user=None, package=None, *args, **kw):
         query = []
         entries = []
         date = lambda update: update.date_pushed
@@ -35,6 +35,8 @@ class Feed(FeedController):
 
         if comments:
             return self.get_latest_comments(user=user)
+        if package:
+            return self.get_package_updates(package)
         if release:
             try:
                 rel = Release.byName(release.upper())
@@ -121,4 +123,26 @@ class Feed(FeedController):
                 subtitle = "",
                 link = config.get('base_address') + url('/'),
                 entries = entries,
+        )
+
+    def get_package_updates(self, package):
+        entries = []
+        pkg = Package.byName(package)
+        base = config.get('base_address')
+        for i, update in enumerate(pkg.updates()):
+            if i >= 20:
+                break
+            entries.append({
+                'id'        : base + url(update.get_url()),
+                'summary'   : update.notes,
+                'link'      : base + url(update.get_url()),
+                'published' : update.date_submitted,
+                'updated'   : update.date_submitted,
+                'title'     : update.title,
+            })
+        return dict(
+                title = 'Latest Updates for %s' % package,
+                subtitle = "",
+                link = config.get('base_address') + url('/'),
+                entries = entries
         )
