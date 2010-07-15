@@ -390,12 +390,15 @@ class UpdateTypeMetric(Metric):
             'num_bugfix': 0,
             'num_enhancement': 0,
             'num_newpackage': 0,
+            'num_critpath': 0,
         }
 
     def update(self, update):
         self.release['num_%s' % update.status] += 1
         if update.pushed:
             self.release['num_%s' % update.type] += 1
+        if update.critpath:
+            self.release['num_critpath'] += 1
 
     def done(self):
         pass
