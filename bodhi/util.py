@@ -167,6 +167,18 @@ def make_karma_icon(update):
         karma = 0
     return Element('img', src=url('/static/images/karma%d.png' % karma))
 
+def make_link(text, href):
+    link = Element('a', href=url(href))
+    link.text = text
+    return link
+
+def make_release_link(update):
+    return make_link(update.release.long_name, '/' + update.release.name)
+
+def make_submitter_link(update):
+    return make_link(update.submitter, '/user/' + update.submitter)
+
+
 def get_age(date):
     age = datetime.utcnow() - date
     if age.days == 0:

@@ -2215,3 +2215,32 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable', update.request
+
+    def test_duplicate_packages(self):
+        """
+        Ensure that bodhi disallows submitting an update with two versions
+        of the same package (#264).
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'         : 'TurboGears-1.0.8-1.fc7,TurboGears-1.0.8-2.fc7',
+                'release'        : 'Fedora 7',
+                'type_'          : 'bugfix',
+                'bugs'           : '',
+                'notes'          : 'foobar',
+                'request'        : 'Stable',
+                'suggest_reboot' : True,
+                'autokarma'      : True,
+                'stable_karma'   : 5,
+                'unstable_karma' : -5
+        }
+        testutil.capture_log(['bodhi.controller', 'bodhi.util'])
+        self.save_update(params, session)
+        log = testutil.get_log()
+        assert "You cannot submit an update containing multiple versions of TurboGears" in log, log
+        try:
+            up = PackageUpdate.byTitle(params['builds'])
+            assert False, "Update with duplicate packages was saved!"
+        except SQLObjectNotFound, e:
+            pass
