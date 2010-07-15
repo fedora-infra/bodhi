@@ -9,15 +9,6 @@
 
 <body>
     &nbsp;&nbsp;<b>${title}</b>&nbsp;<a href="${tg.url('/rss/rss2.0?critpath=True%s' % (release_name and '&amp;release=%s' % release_name or ''))}"><img src="${tg.url('/static/images/rss.png')}" border="0"/></a>
-    <ul>
-        <li py:if="release_name"><a href="${tg.url('/critpath?release=' + release_name)}">Show all critical path updates for ${release_name}</a></li>
-        <!--
-        <li py:if="not release_name"><a href="${tg.url('/critpath')}">Show all critical path updates</a></li>
-        <li py:if="unapproved">
-            <a href="${tg.url('/critpath')}">Show all critical path updates</a>
-        </li>
-        -->
-    </ul>
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
