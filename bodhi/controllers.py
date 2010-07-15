@@ -1319,26 +1319,40 @@ class Root(controllers.RootController):
         return builds
 
     @expose(template='bodhi.templates.critpath', allow_json=True)
-    @validate(validators={'untested': validators.StringBool()})
+    @validate(validators={
+        'untested': validators.StringBool(),
+        'unapproved': validators.StringBool(),
+    })
     @paginate('updates', limit=1000, max_limit=1000)
-    def critpath(self, untested=False, release=None, *args, **kw):
+    def critpath(self, untested=False, unapproved=False, release=None, *args,
+            **kw):
         updates = []
+        title = '%d %sCritical Path Updates'
+        query = [PackageUpdate.q.status != 'obsolete']
+        release_name = None
         if release and release != u'None':
-            releases = [Release.byName(release)]
+            release = Release.byName(release)
+            releases = [release]
+            release_name = release.name
+            title = title + ' for ' + release.long_name
         else:
             releases = Release.select()
+        if untested or unapproved:
+            query.append(PackageUpdate.q.status != 'stable')
         for update in PackageUpdate.select(
-                AND(PackageUpdate.q.status != 'stable',
-                    PackageUpdate.q.status != 'obsolete',
-                    OR(*[PackageUpdate.q.releaseID == release.id
-                         for release in releases]))):
+                AND(OR(*[PackageUpdate.q.releaseID == release.id
+                    for release in releases]),
+                    *query),
+                orderBy=PackageUpdate.q.date_submitted).reversed():
             if update.critpath:
-                if untested:
+                if untested or unapproved:
                     if not update.critpath_approved:
                         updates.append(update)
                 else:
                     updates.append(update)
         num_items = len(updates)
         return dict(updates=updates, num_items=num_items,
-                    title='%d %sCritical Path Updates' % (num_items,
-                        untested and 'Untested ' or ''))
+                    title=title % (num_items, (untested or unapproved) and
+                        'Unapproved ' or ''),
+                    unapproved=unapproved or untested,
+                    release_name=release_name)
