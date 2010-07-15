@@ -26,15 +26,19 @@ class Feed(FeedController):
 
     def get_feed_data(self, release=None, type=None, status=None,
                       comments=False, submitter=None, builds=None, 
-                      user=None, package=None, critpath=False, *args, **kw):
+                      user=None, package=None, critpath=False,
+                      unapproved=None, *args, **kw):
         query = []
         entries = []
         date = lambda update: update.date_pushed
         order = PackageUpdate.q.date_pushed
         title = []
+        critpath = critpath in (True, 'True', 'true')
+        unapproved = unapproved in (True, 'True', 'true')
 
         if critpath:
-            return self.get_critpath_updates(release=release)
+            return self.get_critpath_updates(release=release,
+                                             unapproved=unapproved)
         if comments:
             return self.get_latest_comments(user=user)
         if package:
@@ -149,25 +153,31 @@ class Feed(FeedController):
                 entries = entries
         )
 
-    def get_critpath_updates(self, release=None):
+    def get_critpath_updates(self, release=None, unapproved=None):
+        i = 0
         entries = []
         base = config.get('base_address')
         title = 'Latest Critical Path Updates'
+        query = [PackageUpdate.q.status != 'obsolete']
         if release:
             release = Release.byName(release)
             releases = [release]
             title = title + ' for %s' % release.long_name
         else:
             releases = Release.select()
-        i = 0
+        if unapproved:
+            query.append(PackageUpdate.q.status != 'stable')
         for update in PackageUpdate.select(
-                AND(PackageUpdate.q.status != 'obsolete',
-                    OR(*[PackageUpdate.q.releaseID == release.id
-                         for release in releases])),
-                orderBy=PackageUpdate.q.date_submitted):
+                AND(OR(*[PackageUpdate.q.releaseID == release.id
+                         for release in releases]),
+                    *query),
+                orderBy=PackageUpdate.q.date_submitted).reversed():
             if i >= 20:
                 break
             if update.critpath:
+                if unapproved:
+                    if update.critpath_approved:
+                        continue
                 entries.append({
                     'id'        : base + url(update.get_url()),
                     'summary'   : update.notes,
