@@ -9,6 +9,9 @@
 
 <body>
     &nbsp;&nbsp;<b>${title}</b>
+    <ul>
+        <li><a href="${tg.url('/critpath?untested=True&amp;release=' + updates[0].release.name)}">Show unapproved ${updates[0].release.name} Critical Path updates</a>&nbsp;<a href="${tg.url('/rss/rss2.0?critpath=True&amp;release=' + updates[0].release.name)}"><img src="${tg.url('/static/images/rss.png')}" border="0"/></a></li>
+    </ul>
     <div class="list">
         <span py:for="page in tg.paginate.pages">
             <a py:if="page != tg.paginate.current_page"
