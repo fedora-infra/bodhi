@@ -244,6 +244,11 @@ class PackageBuild(SQLObject):
         """ Return a the url to details about this build """
         return '/' + self.nvr
 
+    def get_tags(self):
+        """ Return the koji tags for this build """
+        koji = buildsys.get_session()
+        return [tag['name'] for tag in koji.listTags(build=self.nvr)]
+
     def __json__(self):
         return dict(nvr=self.nvr, package=self.package.__json__())
 
