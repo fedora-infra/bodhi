@@ -573,18 +573,20 @@ class TestControllers(testutil.DBTest):
                                    headers=session)
         try:
             update = PackageUpdate.byTitle(params['builds'])
-            print update
-            assert False, "Update never deleted!"
+            assert update.status == 'obsolete', update.status
+            #print update
+            #assert False, "Update never deleted!"
         except SQLObjectNotFound:
             pass
 
-        for build in params['builds'].split(','):
-            try:
-                build = PackageBuild.byNvr(build)
-                print build
-                assert False, "Build never deleted!"
-            except SQLObjectNotFound:
-                pass
+        # We're not deleting any builds or updates anymore...
+        #for build in params['builds'].split(','):
+        #    try:
+        #        build = PackageBuild.byNvr(build)
+        #        print build
+        #        assert False, "Build never deleted!"
+        #    except SQLObjectNotFound:
+        #        pass
 
     def test_requests(self):
         session = login()

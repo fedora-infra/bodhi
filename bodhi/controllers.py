@@ -443,19 +443,30 @@ class Root(controllers.RootController):
                 flash_log("Cannot delete an update you did not submit")
                 if request_format() == 'json': return dict()
                 raise redirect(update.get_url())
-            if not update.pushed:
-                msg = "Deleted %s" % update.title
-                map(lambda x: x.destroySelf(), update.comments)
-                for build in update.builds:
-                    if len(build.updates) == 1:
-                        build.destroySelf()
-                update.untag()
-                update.destroySelf()
-                flash_log(msg)
-                mail.send_admin('deleted', update)
-                mail.send(update.people_to_notify(), 'deleted', update)
-            else:
-                flash_log("Cannot delete a pushed update")
+
+            # We're no longer deleting anything from our database
+            # "Deleting" an update will now obsolete it 
+            # In the TG2 port, we should have a seperate state for this
+
+            update.move_to_candidate()
+            update.status = 'obsolete'
+            update.comment("This update has been obsoleted")
+            flash_log('Obsoleted <a href="%s">%s</a>' % (update.get_url(),
+                update.title))
+
+            #if not update.pushed:
+            #    msg = "Deleted %s" % update.title
+            #    map(lambda x: x.destroySelf(), update.comments)
+            #    for build in update.builds:
+            #        if len(build.updates) == 1:
+            #            build.destroySelf()
+            #    update.untag()
+            #    update.destroySelf()
+            #    flash_log(msg)
+            #    mail.send_admin('deleted', update)
+            #    mail.send(update.people_to_notify(), 'deleted', update)
+            #else:
+            #    flash_log("Cannot delete a pushed update")
         except SQLObjectNotFound:
             flash_log("Update %s does not exist" % update)
         if request_format() == 'json': return dict()
