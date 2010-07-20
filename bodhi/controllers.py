@@ -218,7 +218,7 @@ class Root(controllers.RootController):
         return updates
 
     @expose(template="bodhi.templates.list", allow_json=True)
-    @paginate('updates', limit=20, max_limit=1000)
+    @paginate('updates', limit=25, max_limit=1000)
     @validate(validators={
             'release': validators.UnicodeString(),
             'bugs': validators.UnicodeString(),
@@ -386,7 +386,7 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.mine", allow_json=True)
     @identity.require(identity.not_anonymous())
-    @paginate('updates', limit=20, max_limit=20)
+    @paginate('updates', limit=25, max_limit=25)
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
@@ -996,7 +996,7 @@ class Root(controllers.RootController):
                 raise redirect('/')
 
     @expose(template='bodhi.templates.list')
-    @paginate('updates', limit=20, max_limit=20)
+    @paginate('updates', limit=25, max_limit=25)
     def default(self, *args, **kw):
         """
         This method allows for the following requests
@@ -1217,7 +1217,7 @@ class Root(controllers.RootController):
         raise redirect('/')
 
     @expose(template='bodhi.templates.comments')
-    @paginate('comments', limit=20, max_limit=20)
+    @paginate('comments', limit=25, max_limit=25)
     def comments(self, user=None):
         if user:
             data = Comment.select(Comment.q.author == user,
@@ -1305,7 +1305,7 @@ class Root(controllers.RootController):
         return dict(updates=updates)
 
     @expose(template="bodhi.templates.user")
-    @paginate('updates', limit=25, max_limit=20)
+    @paginate('updates', limit=25, max_limit=25)
     def user(self, username):
         """ Return a list of updates submitted by a given person """
         updates = PackageUpdate.select(PackageUpdate.q.submitter == username,
