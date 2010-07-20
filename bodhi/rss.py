@@ -43,7 +43,7 @@ class Feed(FeedController):
         if comments:
             return self.get_latest_comments(user=user)
         if package:
-            return self.get_package_updates(package)
+            return self.get_package_updates(package, release)
         if release:
             try:
                 rel = Release.byName(release.upper())
@@ -141,7 +141,7 @@ class Feed(FeedController):
                 entries = entries,
         )
 
-    def get_package_updates(self, package):
+    def get_package_updates(self, package, release):
         entries = []
         pkg = Package.byName(package)
         base = config.get('base_address')
@@ -150,6 +150,9 @@ class Feed(FeedController):
             if delta and delta.days > config.get('feeds.num_days_to_show'):
                 if len(entries) >= config.get('feeds.max_entries'):
                     break
+
+            if release and not update.release.name == release:
+                continue
 
             entries.append({
                 'id'        : base + url(update.get_url()),
