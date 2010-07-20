@@ -984,6 +984,24 @@ class PackageUpdate(SQLObject):
         return self.status != 'obsolete' and 'stable' not in (self.request,
                 self.status)
 
+    @property
+    def time_in_testing(self):
+        """ Return the number of days that this update has been in testing """
+        timestamp = None
+        for comment in self.comments:
+            if comment.text == 'This update has been pushed to testing':
+                timestamp = comment.timestamp
+                if self.status == 'testing':
+                    return datetime.utcnow() - timestamp
+                else:
+                    break
+        if not timestamp:
+            return
+        for comment in self.comments:
+            if comment.text == 'This update has been pushed to stable':
+                return comment.timestamp - timestamp
+        return datetime.utcnow() - timestamp
+
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
