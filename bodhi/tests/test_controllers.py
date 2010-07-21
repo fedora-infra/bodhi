@@ -2026,7 +2026,7 @@ class TestControllers(testutil.DBTest):
         assert '100 updates found' in cherrypy.response.body[0], cherrypy.response.body[0]
         json = simplejson.loads(cherrypy.response.body[0])
         assert json['num_items'] == 100, json['num_items']
-        assert len(json['updates']) == 20, len(json['updates'])
+        assert len(json['updates']) == 25, len(json['updates'])
 
         ## Try getting all 100
         testutil.create_request('/updates/list?tg_format=json&tg_paginate_limit=100',
