@@ -267,7 +267,13 @@ class Root(controllers.RootController):
                 #       another value to the output which indicates if the.
                 #       logged in user is allowed to create a new update for.
                 #       this package
-                rel = Release.byName(release.upper())
+                try:
+                    rel = Release.byName(release.upper())
+                except SQLObjectNotFound:
+                    try:
+                        rel = Release.byName(release.replace('-', '').upper())
+                    except SQLObjectNotFound:
+                        return dict(error="Unknown release %r" % release)
                 query.append(PackageUpdate.q.releaseID == rel.id)
             if status:
                 query.append(PackageUpdate.q.status == status)
