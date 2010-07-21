@@ -1,4 +1,3 @@
-# $Id: new.py,v 1.8 2007/01/06 08:03:21 lmacken Exp $
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; version 2 of the License.
@@ -16,25 +15,37 @@ import os
 import logging
 
 from os.path import join
+from operator import itemgetter
 from turbogears import expose, controllers, identity, config, flash
 
 from bodhi.widgets import NewUpdateForm
+from bodhi.buildsys import get_session
+from bodhi.model import Release
 from bodhi.util import url
 
 log = logging.getLogger(__name__)
 update_form = NewUpdateForm()
 
+packages = []
+
+# Load the list of packages from koji
+if config.get('buildsystem') == 'koji':
+    try:
+        koji = get_session()
+        packages = [pkg['package_name'] for pkg in koji.listPackages()]
+        log.debug("%d packages loaded from koji" % len(packages))
+    except Exception, e:
+        log.exception(e)
+        log.error("There was a problem loading the package list from koji")
+else:
+    # Resort to looking on the filesystem for the package names
+    try:
+        packages = os.listdir(config.get('build_dir'))
+    except (OSError, TypeError):
+        log.warning("Warning: build_dir either invalid or not set in app.cfg")
+
+
 class NewUpdateController(controllers.Controller):
-
-    build_dir = config.get('build_dir')
-    packages  = []
-
-    def build_pkglist(self):
-        """ Cache a list of packages used for the package AutoCompleteField """
-        try:
-            self.packages = os.listdir(self.build_dir)
-        except (OSError, TypeError):
-            log.warning("Warning: build_dir either invalid or not set in app.cfg")
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
@@ -42,7 +53,6 @@ class NewUpdateController(controllers.Controller):
         notice = config.get('newupdate_notice')
         if notice:
             flash(notice)
-        self.build_pkglist()
         return dict(form=update_form, values=kw, action=url("/save"),
                     title='New Update Form')
 
@@ -55,21 +65,30 @@ class NewUpdateController(controllers.Controller):
         """
         if not name: return dict()
         matches = []
-        if not self.packages: self.build_pkglist()
-        if name[-1] == '-' and name[:-1] and name[:-1] in self.packages:
-            name = name[:-1]
-            for version in os.listdir(join(self.build_dir, name)):
-                for release in os.listdir(join(self.build_dir, name, version)):
-                    matches.append('-'.join((name, version, release)))
+        pkgname = name[:-1]
+        if name[-1] == '-' and pkgname and pkgname in packages:
+            name = pkgname
+            matches.extend(self._fetch_candidate_builds(pkgname))
         else:
-            for pkg in self.packages:
+            for pkg in packages:
                 if name == pkg:
-                    for version in os.listdir(join(self.build_dir, name)):
-                        for release in os.listdir(join(self.build_dir, name,
-                                                       version)):
-                            matches.append('-'.join((name, version, release)))
+                    matches.extend(self._fetch_candidate_builds(pkg))
                     break
                 elif pkg.startswith(name):
                     matches.append(pkg)
-        matches.reverse()
         return dict(pkgs=matches)
+
+    def _fetch_candidate_builds(self, pkg):
+        """ Return all candidate builds for a given package """
+        matches = {}
+        koji = get_session()
+        koji.multicall = True
+        for tag in [r.candidate_tag for r in Release.select()]:
+            koji.getLatestBuilds(tag, package=pkg)
+        results = koji.multiCall()
+        for result in results:
+            for entries in result:
+                for entry in entries:
+                    matches[entry['nvr']] = entry['completion_time']
+        return [build[0] for build in
+                sorted(matches.items(), key=itemgetter(1), reverse=True)]
