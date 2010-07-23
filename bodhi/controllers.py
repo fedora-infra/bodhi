@@ -270,10 +270,11 @@ class Root(controllers.RootController):
                 try:
                     rel = Release.byName(release.upper())
                 except SQLObjectNotFound:
-                    try:
-                        rel = Release.byName(release.replace('-', '').upper())
-                    except SQLObjectNotFound:
-                        return dict(error="Unknown release %r" % release)
+                    # Make names like EL-5 and el5 both find the right release
+                    for r in Release.select():
+                        if r.name.upper().replace('-', '') == release.replace('-', '').upper():
+                            rel = r
+                    return dict(error="Unknown release %r" % release)
                 query.append(PackageUpdate.q.releaseID == rel.id)
             if status:
                 query.append(PackageUpdate.q.status == status)
