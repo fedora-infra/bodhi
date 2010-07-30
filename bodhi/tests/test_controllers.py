@@ -573,18 +573,20 @@ class TestControllers(testutil.DBTest):
                                    headers=session)
         try:
             update = PackageUpdate.byTitle(params['builds'])
-            print update
-            assert False, "Update never deleted!"
+            assert update.status == 'obsolete', update.status
+            #print update
+            #assert False, "Update never deleted!"
         except SQLObjectNotFound:
             pass
 
-        for build in params['builds'].split(','):
-            try:
-                build = PackageBuild.byNvr(build)
-                print build
-                assert False, "Build never deleted!"
-            except SQLObjectNotFound:
-                pass
+        # We're not deleting any builds or updates anymore...
+        #for build in params['builds'].split(','):
+        #    try:
+        #        build = PackageBuild.byNvr(build)
+        #        print build
+        #        assert False, "Build never deleted!"
+        #    except SQLObjectNotFound:
+        #        pass
 
     def test_requests(self):
         session = login()
@@ -2024,7 +2026,7 @@ class TestControllers(testutil.DBTest):
         assert '100 updates found' in cherrypy.response.body[0], cherrypy.response.body[0]
         json = simplejson.loads(cherrypy.response.body[0])
         assert json['num_items'] == 100, json['num_items']
-        assert len(json['updates']) == 20, len(json['updates'])
+        assert len(json['updates']) == 25, len(json['updates'])
 
         ## Try getting all 100
         testutil.create_request('/updates/list?tg_format=json&tg_paginate_limit=100',

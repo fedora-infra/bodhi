@@ -244,6 +244,11 @@ class PackageBuild(SQLObject):
         """ Return a the url to details about this build """
         return '/' + self.nvr
 
+    def get_tags(self):
+        """ Return the koji tags for this build """
+        koji = buildsys.get_session()
+        return [tag['name'] for tag in koji.listTags(build=self.nvr)]
+
     def __json__(self):
         return dict(nvr=self.nvr, package=self.package.__json__())
 
@@ -812,6 +817,27 @@ class PackageUpdate(SQLObject):
         self.status = 'pending'
         mail.send_admin('unpushed', self)
 
+    def move_to_candidate(self):
+        """ Move this update back to the candidate tag """
+        log.info("Moving %s back to %s" % (self.title,
+            self.release.candidate_tag))
+        koji = buildsys.get_session()
+        known_tags = (self.release.candidate_tag, self.release.testing_tag)
+        for build in self.builds:
+            for tag in build.get_tags():
+                if tag in known_tags:
+                    try:
+                        koji.moveBuild(tag, self.release.candidate_tag,
+                                       build.nvr, force=True)
+                        break
+                    except Exception, e:
+                        log.exception(e)
+                        log.error('There was a problem moving %s' % build.nvr)
+                else:
+                    log.warning("Not moving tag: %s" % tag)
+        if self.pushed:
+            self.pushed = False
+
     def untag(self):
         """ Untag all of the builds in this update """
         log.info("Untagging %s" % self.title)
@@ -957,6 +983,24 @@ class PackageUpdate(SQLObject):
         """
         return self.status != 'obsolete' and 'stable' not in (self.request,
                 self.status)
+
+    @property
+    def time_in_testing(self):
+        """ Return the number of days that this update has been in testing """
+        timestamp = None
+        for comment in self.comments:
+            if comment.text == 'This update has been pushed to testing':
+                timestamp = comment.timestamp
+                if self.status == 'testing':
+                    return datetime.utcnow() - timestamp
+                else:
+                    break
+        if not timestamp:
+            return
+        for comment in self.comments:
+            if comment.text == 'This update has been pushed to stable':
+                return comment.timestamp - timestamp
+        return datetime.utcnow() - timestamp
 
 
 class Comment(SQLObject):

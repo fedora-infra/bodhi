@@ -13,6 +13,7 @@
 
 import logging
 
+from datetime import datetime
 from turbogears.feed import FeedController
 from turbogears import config, url
 from sqlobject import SQLObjectNotFound
@@ -42,7 +43,7 @@ class Feed(FeedController):
         if comments:
             return self.get_latest_comments(user=user)
         if package:
-            return self.get_package_updates(package)
+            return self.get_package_updates(package, release)
         if release:
             try:
                 rel = Release.byName(release.upper())
@@ -74,9 +75,13 @@ class Feed(FeedController):
             query.append(PackageUpdate.q.builds == builds)
             title.append("for %s" % builds)
 
-        updates = PackageUpdate.select(AND(*query), orderBy=order).reversed()[:20]
+        updates = PackageUpdate.select(AND(*query), orderBy=order).reversed()
 
         for update in updates:
+            delta = datetime.utcnow() - update.date_submitted
+            if delta and delta.days > config.get('feeds.num_days_to_show'):
+                if len(entries) >= config.get('feeds.max_entries'):
+                    break
             entries.append({
                 'id'        : config.get('base_address') + url(update.get_url()),
                 'summary'   : update.notes,
@@ -108,11 +113,16 @@ class Feed(FeedController):
         entries = []
         if user:
             comments = Comment.select(Comment.q.author == user,
-                    orderBy=Comment.q.timestamp).reversed()[:20]
+                    orderBy=Comment.q.timestamp).reversed()
         else:
             comments = Comment.select(Comment.q.author != 'bodhi',
-                    orderBy=Comment.q.timestamp).reversed()[:20]
+                    orderBy=Comment.q.timestamp).reversed()
         for comment in comments:
+            delta = datetime.utcnow() - comment.update.date_submitted
+            if delta and delta.days > config.get('feeds.num_days_to_show'):
+                if len(entries) >= config.get('feeds.max_entries'):
+                    break
+
             entries.append({
                 'id'        : config.get('base_address') + \
                               url(comment.update.get_url()),
@@ -131,13 +141,19 @@ class Feed(FeedController):
                 entries = entries,
         )
 
-    def get_package_updates(self, package):
+    def get_package_updates(self, package, release):
         entries = []
         pkg = Package.byName(package)
         base = config.get('base_address')
         for i, update in enumerate(pkg.updates()):
-            if i >= 20:
-                break
+            delta = datetime.utcnow() - update.date_submitted
+            if delta and delta.days > config.get('feeds.num_days_to_show'):
+                if len(entries) >= config.get('feeds.max_entries'):
+                    break
+
+            if release and not update.release.name == release:
+                continue
+
             entries.append({
                 'id'        : base + url(update.get_url()),
                 'summary'   : update.notes,
@@ -172,8 +188,12 @@ class Feed(FeedController):
                          for release in releases]),
                     *query),
                 orderBy=PackageUpdate.q.date_submitted).reversed():
-            if i >= 20:
-                break
+
+            delta = datetime.utcnow() - update.date_submitted
+            if delta and delta.days > config.get('feeds.num_days_to_show'):
+                if len(entries) >= config.get('feeds.max_entries'):
+                    break
+
             if update.critpath:
                 if unapproved:
                     if update.critpath_approved:
