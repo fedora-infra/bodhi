@@ -749,14 +749,7 @@ class MashTask(Thread):
         repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
         if not exists(repomd):
             log.error("Cannot find local repomd: %s" % repomd)
-            # Hack, for new gpg key
-            repomd = join(mashdir, repo, 'i386.newkey', 'repodata', 'repomd.xml')
-            if not exists(repomd):
-                log.error("Cannot find local repomd: %s" % repomd)
-                return
-            else:
-                log.info("Found repomd at %s" % repomd)
-                master_repomd = config.get('master_newkey_repomd')
+            return
         checksum = sha.new(file(repomd).read()).hexdigest()
         while True:
             sleep(600)
@@ -786,10 +779,6 @@ class MashTask(Thread):
             olduinfo = join(config.get('mashed_dir'), '%s.repodata' % repo,
                             'i386', 'updateinfo.xml.gz')
             olduinfo = exists(olduinfo) and olduinfo or None
-            if not olduinfo:
-                olduinfo = join(config.get('mashed_dir'), '%s.repodata' % repo,
-                                'i386.newkey', 'updateinfo.xml.gz')
-                olduinfo = exists(olduinfo) and olduinfo or None
             repo = join(mashdir, repo)
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
             uinfo = ExtendedMetadata(repo, olduinfo)
