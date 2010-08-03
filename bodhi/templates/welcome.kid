@@ -13,6 +13,8 @@
 
     <script language="javascript">
         $(document).ready(function(){
+            $('#testingtip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
+            $('#wikitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
             $('#bodhitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
             $('#wftip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
             $('#clitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
@@ -31,8 +33,13 @@
                     <table>
                         <tr>
                             <td>
-                                <span id="bodhitip" title="Bodhi Project Homepage">
-                                    <a href="https://fedorahosted.org/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
+                                <span id="wikitip" title="Bodhi Guide">
+                                    <a href="https://fedoraproject.org/wiki/Bodhi"><img src="${tg.url('/static/images/info.png')}" border="0" height="36" width="36"/></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span id="testingtip" title="Proven Testers Guide">
+                                    <a href="https://fedoraproject.org/wiki/Proventester"><img src="${tg.url('/static/images/hardhat.png')}" border="0" height="36" width="36"/></a>
                                 </span>
                             </td>
                             <td>
@@ -49,6 +56,11 @@
                             <td>
                                 <span id="bugtip" title="File a bug or feature request against bodhi">
                                     <a href="https://fedorahosted.org/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" border="0" /></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span id="bodhitip" title="Bodhi Project Homepage">
+                                    <a href="https://fedorahosted.org/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
                                 </span>
                             </td>
                             <td>
