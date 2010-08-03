@@ -109,6 +109,11 @@ class Release(SQLObject):
         else:
             return '%s-updates-testing' % id
 
+    @property
+    def mandatory_days_in_testing(self):
+        return config.get('%s.mandatory_days_in_testing' %
+                          self.id_prefix.lower().replace('-', '_'))
+
     def __json__(self):
         return dict(name=self.name, long_name=self.long_name,
                     id_prefix=self.id_prefix, dist_tag=self.dist_tag,
@@ -446,11 +451,35 @@ class PackageUpdate(SQLObject):
                         log.info('Forcing critical path update into testing')
                         action = 'testing'
 
+        # Ensure this update meets the minimum testing requirements
+        flash_notes = '' 
+        if action == 'stable' and not self.critpath:
+            # Check if we've met the karma requirements
+            if self.karma >= self.stable_karma:
+                pass
+            else:
+                # If we haven't met the stable karma requirements, check if it has met
+                # the mandatory time-in-testing requirements
+                if self.release.mandatory_days_in_testing:
+                    if not self.met_testing_requirements:
+                        flash_notes = 'This update has not yet met the minimum testing requirements defined in the <a href="https://fedoraproject.org/wiki/Package_update_acceptance_criteria">Package Update Acceptance Criteria</a>'
+                        if self.status == 'testing':
+                            self.request = None
+                            flash_log(flash_notes)
+                            return
+                        elif self.request == 'testing':
+                            flash_log(flash_notes)
+                            return
+                        else:
+                            action = 'testing'
+
         self.request = action
         self.pushed = False
         #self.date_pushed = None
         notes = notes and '. '.join(notes) or ''
-        flash_log("%s has been submitted for %s. %s" %(self.title,action,notes))
+        flash_notes = flash_notes and '. %s' % flash_notes
+        flash_log("%s has been submitted for %s. %s%s" % (self.title,
+            action, notes, flash_notes))
         self.comment('This update has been submitted for %s by %s. %s' % (
             action, identity.current.user_name, notes), author='bodhi')
         mail.send_admin(action, self)
@@ -985,22 +1014,63 @@ class PackageUpdate(SQLObject):
                 self.status)
 
     @property
-    def time_in_testing(self):
+    def days_in_testing(self):
         """ Return the number of days that this update has been in testing """
         timestamp = None
         for comment in self.comments:
             if comment.text == 'This update has been pushed to testing':
                 timestamp = comment.timestamp
                 if self.status == 'testing':
-                    return datetime.utcnow() - timestamp
+                    return (datetime.utcnow() - timestamp).days
                 else:
                     break
         if not timestamp:
             return
         for comment in self.comments:
             if comment.text == 'This update has been pushed to stable':
-                return comment.timestamp - timestamp
-        return datetime.utcnow() - timestamp
+                return (comment.timestamp - timestamp).days
+        return (datetime.utcnow() - timestamp).days
+
+    @property
+    def meets_testing_requirements(self):
+        """
+        Return whether or not this update meets the testing requirements
+        for this specific release.
+
+        If this release does not have a mandatory testing requirement, then
+        simply return True.
+        """
+        if self.critpath:
+            return self.critpath_approved
+        num_days = self.release.mandatory_days_in_testing
+        if not num_days:
+            return True
+        return self.days_in_testing >= num_days
+
+    @property
+    def met_testing_requirements(self):
+        """
+        Return whether or not this update has already met the testing
+        requirements.
+
+        If this release does not have a mandatory testing requirement, then
+        simply return True.
+        """
+        min_num_days = self.release.mandatory_days_in_testing
+        num_days = self.days_in_testing
+        if min_num_days:
+            if num_days < min_num_days:
+                return False
+        else:
+            return True
+        for comment in self.comments:
+            if comment.author == 'bodhi' and \
+               comment.text.startswith('This update has reached') and \
+               comment.text.endswith('days in testing and can be pushed to'
+                                     ' stable now if the maintainer wishes'):
+                return True
+        return False
+
 
 
 class Comment(SQLObject):

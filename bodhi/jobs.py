@@ -166,6 +166,30 @@ def refresh_metrics():
         log.exception(e)
 
 
+def approve_testing_updates():
+    """
+    Scan all testing updates and approve ones that have met the per-release
+    testing requirements.
+
+    https://fedoraproject.org/wiki/Package_update_acceptance_criteria
+    """
+    log.info('Running approve_testing_updates job...')
+    for update in PackageUpdate.select(
+            AND(PackageUpdate.q.status == 'testing',
+                PackageUpdate.q.request == None)):
+        # If this release does not have any testing requirements, skip it
+        if not update.release.mandatory_days_in_testing:
+            continue
+        # If this has already met testing requirements, skip it
+        if update.met_testing_requirements:
+            continue
+        if update.meets_testing_requirements:
+            log.info('%s now meets testing requirements' % update.title)
+            update.comment(
+                config.get('testing_approval_msg') % update.days_in_testing,
+                author='bodhi')
+
+
 def schedule():
     """ Schedule our periodic tasks """
 
@@ -209,3 +233,10 @@ def schedule():
                                     taskname='Refresh our metrics',
                                     initialdelay=7200,
                                     interval=86400)
+
+    # Approve updates that have been in testing for a certain amount of time
+    if 'approve_testing_updates' in jobs:
+        log.debug("Scheduling approve_testing_updates job")
+        scheduler.add_weekday_task(action=approve_testing_updates,
+                                   weekdays=range(1,8),
+                                   timeonday=(0,0))

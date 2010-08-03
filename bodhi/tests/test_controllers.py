@@ -2246,3 +2246,71 @@ class TestControllers(testutil.DBTest):
             assert False, "Update with duplicate packages was saved!"
         except SQLObjectNotFound, e:
             pass
+
+    def test_week_in_testing(self):
+        from bodhi.jobs import approve_testing_updates
+        session = login()
+        create_release()
+        params = {
+            'builds'         : 'TurboGears-1.0.8-1.fc7',
+            'release'        : 'Fedora 7',
+            'type_'          : 'bugfix',
+            'bugs'           : '',
+            'notes'          : 'foobar',
+            'request'        : 'Stable',
+            'suggest_reboot' : True,
+            'autokarma'      : True,
+            'stable_karma'   : 5,
+            'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        up = PackageUpdate.byTitle(params['builds'])
+
+        # Ensure we can't push directly to stable
+        assert up.request == 'testing'
+
+        # Pretend it's pushed to testing
+        up.status = 'testing'
+        up.status_comment()
+        assert not up.days_in_testing
+
+        # Run the approve_testing_updates job, which shouldn't do anything
+        approve_testing_updates()
+
+        # Fake almost a week of testing
+        assert len(up.comments) == 2, up.comments
+        up.comments[1].timestamp -= timedelta(days=6)
+        assert up.days_in_testing == 6
+
+        # Run the approve_testing_updates job, which shouldn't do anything
+        approve_testing_updates()
+
+        # Ensure it can't be pushed, and that there are no comments
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        up = PackageUpdate.byTitle(params['builds'])
+        assert not up.request
+        assert len(up.comments) == 2, up.comments[-1].text
+
+        # Fake a week of testing
+        up.comments[0].timestamp -= timedelta(days=1)
+        assert up.days_in_testing == 7, up.days_in_testing
+
+        # Run the approve_testing_updates job, which should approve this update
+        approve_testing_updates()
+
+        # assert approval comment in comments
+        up = PackageUpdate.byTitle(params['builds'])
+        assert len(up.comments) == 3
+        assert up.comments[-1].text == 'This update has reached 7 days in testing and can be pushed to stable now if the maintainer wishes'
+
+        # ensure it's not auto pushed to testing
+        assert up.status == 'testing'
+        assert not up.request
+
+        # ensure we can push it to testing
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        up = PackageUpdate.byTitle(params['builds'])
+        assert up.request == 'stable'
+        assert up.comments[-1].text == u'This update has been submitted for stable by guest. '
