@@ -59,6 +59,9 @@ def get_parser():
     parser.add_option("--push-release", action="append", type="string",
                        dest="push_release",
                        help="Types of updates to push (releng only)")
+    parser.add_option("--push-request", action="append", type="string",
+                       dest="push_request",
+                       help="Requests of updates to push (stable or testing) (releng only)")
     parser.add_option("--push-build", action="append", type="string",
                       dest="push_build", help="Push a specific builds (releng only)")
     parser.add_option("--resume-push", action="store_true", dest="resume_push",
@@ -228,6 +231,13 @@ def main():
                     fupdates += fdata
                     data['updates'] = fupdates
 
+                if opts.push_request:
+                    fupdates = []
+                    for req in opts.push_request:
+                        fdata = filter(lambda x: x['request'] == req,
+                                       data['updates'])
+                        fupdates += fdata
+                    data['updates'] = fupdates
                 if opts.push_release:
                     fupdates = []
                     for prel in opts.push_release:
