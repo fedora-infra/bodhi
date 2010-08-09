@@ -1374,3 +1374,7 @@ class Root(controllers.RootController):
                         'Unapproved ' or ''),
                     unapproved=unapproved or untested,
                     release_name=release_name)
+
+    @expose(allow_json=True)
+    def releases(self):
+        return dict(releases=[release.__json__() for release in Release.select()])
