@@ -171,16 +171,6 @@ class DevBuildsys(Buildsystem):
                      'name': 'dist-f8-updates-testing', 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
-        if tag not in ('dist-rawhide', 'dist-fc7', 'dist-fc7-updates-candidate',
-                       'dist-fc7-updates-testing', 'dist-fc7-updates',
-                       'dist-f8', 'dist-f8-updates', 'dist-f8-updates-testing',
-                       'dist-fc8', 'dist-fc8-updates',
-                       'dist-fc8-updates-testing', 'dist-f8-updates-candidate',
-                       'dist-f9', 'dist-f9-updates', 'dist-f9-updates-testing',
-                       'dist-f9-updates-candidate',
-                       'dist-5E-epel-testing-candidate', 'dist-5E-epel',
-                       'dist-5E-epel-testing'):
-            raise koji.GenericError
         return [self.getBuild(),]
 
     def getLatestBuilds(self, *args, **kw):

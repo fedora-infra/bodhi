@@ -22,11 +22,11 @@ class TestExtendedMetadata(testutil.DBTest):
     def test_extended_metadata(self):
         # grab the name of a build in updates-testing, and create it in our db
         koji = get_session()
-        builds = koji.listTagged('dist-fc7-updates-testing', latest=True)
+        builds = koji.listTagged('dist-f13-updates-testing', latest=True)
 
         # Create all of the necessary database entries
-        release = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
-                          dist_tag='dist-fc7')
+        release = Release(name='F13', long_name='Fedora 13',
+                          id_prefix='FEDORA', dist_tag='dist-f13')
         package = Package(name=builds[0]['package_name'])
         update = PackageUpdate(title=builds[0]['nvr'],
                                release=release,
@@ -45,7 +45,7 @@ class TestExtendedMetadata(testutil.DBTest):
         print update
 
         ## Initialize our temporary repo
-        temprepo = join(tempfile.mkdtemp('bodhi'), 'f7-updates-testing')
+        temprepo = join(tempfile.mkdtemp('bodhi'), 'f13-updates-testing')
         print "Inserting updateinfo into temprepo: %s" % temprepo
         mkmetadatadir(join(temprepo, 'i386'))
         repodata = join(temprepo, 'i386', 'repodata')
@@ -62,7 +62,7 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
         uinfo.add(updateinfo)
-        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
+        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
         assert not notice
         notice = uinfo.get_notice(get_nvr(update.title))
         assert notice
@@ -95,11 +95,11 @@ class TestExtendedMetadata(testutil.DBTest):
     def test_extended_metadata_updating(self):
         # grab the name of a build in updates-testing, and create it in our db
         koji = get_session()
-        builds = koji.listTagged('dist-fc7-updates-testing', latest=True)
+        builds = koji.listTagged('dist-f13-updates-testing', latest=True)
 
         # Create all of the necessary database entries
-        release = Release(name='fc7', long_name='Fedora 7', id_prefix='FEDORA',
-                          dist_tag='dist-fc7')
+        release = Release(name='F13', long_name='Fedora 13', id_prefix='FEDORA',
+                          dist_tag='dist-f13')
         package = Package(name=builds[0]['package_name'])
         update = PackageUpdate(title=builds[0]['nvr'],
                                release=release,
@@ -135,7 +135,7 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
         uinfo.add(updateinfo)
-        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
+        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
         assert not notice
         notice = uinfo.get_notice(get_nvr(update.title))
         assert notice
@@ -171,7 +171,7 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
         uinfo.add(updateinfo)
-        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc7'))
+        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
         assert not notice
         notice = uinfo.get_notice(get_nvr(update.title))
         assert notice
