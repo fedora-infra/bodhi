@@ -172,13 +172,20 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 
 <table class="show">
     <tr py:for="field in (
-        ['Release',       XML(release)],
-        ['Update ID',     update.updateid],
-        ['Builds',        XML(buildinfo)],
-        ['Date Released', update.date_pushed],
-        ['Status',        update.status],
-        ['Submitter',     XML(submitter)],
-        ['Karma',         XML(karma)],)">
+        ['Release',         XML(release)],
+        ['Update ID',       update.updateid],
+        ['Builds',          XML(buildinfo)],
+        ['Status',          update.status],
+        ['Requested',       update.request],
+        ['Pushed',          update.pushed],
+        ['Date Submitted',  update.date_submitted],
+        ['Date Released',   update.date_pushed],
+        ['Date Modified',   update.date_modified],
+        ['Submitter',       XML(submitter)],
+        ['Karma',           XML(karma)],
+        ['Stable karma',    update.builds[0].package.stable_karma],
+        ['Unstable karma',  update.builds[0].package.unstable_karma],
+        )">
       <div py:if="field[1] != None and field[1] != ''">
           <td class="title"><b>${field[0]}:</b></td>
           <td class="value">${field[1]}</td>
@@ -187,13 +194,8 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
     <div py:if="not tg.identity.anonymous and 
                 util.authorized_user(update, identity)">
       <tr py:for="title, value in (
-            ['Stable karma', update.builds[0].package.stable_karma],
-            ['Unstable karma', update.builds[0].package.unstable_karma],
-            ['Requested', update.request],
-            ['Pushed', update.pushed],
-            ['Modified', update.date_modified],
             ['Close bugs', update.close_bugs],
-            ['Date Submitted', update.date_submitted])">
+            )">
         <div py:if="value and value != ''">
           <td class="title"><b>${title}:</b></td>
           <td class="value">${value}</td>
