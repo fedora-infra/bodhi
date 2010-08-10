@@ -1087,18 +1087,19 @@ class Comment(SQLObject):
 
     @property
     def html_text(self):
-        text = encode_entity(self.text)
-        for token in text.split():
+        text = []
+        for token in encode_entity(self.text).split():
             if token.startswith('http'):
-                text = text.replace(token, '<a href="%s">%s</a>' % (
-                    token, token))
+                text.append('<a href="%s">%s</a>' % (token, token))
             elif token.startswith('#') and isint(token[1:]):
-                text = text.replace(token, '<a href="%s">%s</a>' % (
+                text.append('<a href="%s">%s</a>' % (
                     config.get('bz_buglink') + token[1:], token))
             elif len(token) == 6 and isint(token):
-                text = text.replace(token, '<a href="%s">%s</a>' % (
-                        config.get('bz_buglink') + token, token))
-        return XML(text)
+                text.append('<a href="%s">%s</a>' % (
+                    config.get('bz_buglink') + token, token))
+            else:
+                text.append(token)
+        return XML(' '.join(text))
 
     def __str__(self):
         karma = '0'
