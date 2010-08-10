@@ -688,6 +688,7 @@ class PackageUpdate(SQLObject):
                     newbug = bugzilla.getbug(bug)
                     bz = Bugzilla(bz_id=newbug.bug_id)
                     bz.fetch_details(newbug)
+                    bz.modified()
                 else:
                     bz = Bugzilla(bz_id=int(bug))
             if bz not in self.bugs:
@@ -1196,6 +1197,20 @@ class Bugzilla(SQLObject):
         except Exception, e:
             log.error("Unable to add comment to bug #%d\n%s" % (self.bz_id,
                                                                 str(e)))
+
+    def modified(self):
+        """ Change the status of this bug to MODIFIED """
+        bz = Bugzilla.get_bz()
+        log.debug("Setting Bug #%d to MODIFIED" % self.bz_id)
+        try:
+            bug = bz.getbug(self.bz_id)
+            if bug.product not in config.get('bz_products', '').split(','):
+                log.warning("Skipping %r bug" % bug.product)
+                return
+            if bug.bug_status != 'MODIFIED':
+                bug.setstatus('MODIFIED')
+        except Exception, e:
+            log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))
 
     def testing(self, update):
         """
