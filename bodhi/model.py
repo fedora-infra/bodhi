@@ -1090,7 +1090,8 @@ class Comment(SQLObject):
         text = encode_entity(self.text)
         for token in text.split():
             if token.startswith('http'):
-                text = text.replace(token, link(token, token))
+                text = text.replace(token, '<a href="%s">%s</a>' % (
+                    token, token))
             elif token.startswith('#') and isint(token[1:]):
                 text = text.replace(token, '<a href="%s">%s</a>' % (
                     config.get('bz_buglink') + token[1:], token))
