@@ -1089,7 +1089,7 @@ class Comment(SQLObject):
     def html_text(self):
         text = encode_entity(self.text)
         for token in text.split():
-            if token.startswith('http://'):
+            if token.startswith('http'):
                 text = text.replace(token, link(token, token))
             elif token.startswith('#') and isint(token[1:]):
                 text = text.replace(token, '<a href="%s">%s</a>' % (
