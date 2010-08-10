@@ -108,7 +108,7 @@ def get_parser():
     parser.add_option("-N", "--notes", action="store", type="string",
                       dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
-                      help="Update type [bugfix|security|enhancement]",
+                      help="Update type [bugfix|security|enhancement|newpackage]",
                       dest="type_", metavar="TYPE")
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
