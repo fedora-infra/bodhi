@@ -21,6 +21,7 @@ import turbomail
 import xmlrpclib
 
 from kid import XML
+from kid.element import encode_entity
 from sqlobject import *
 from datetime import datetime
 
@@ -39,7 +40,7 @@ except ImportError:
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
 from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
-from bodhi.util import link
+from bodhi.util import link, isint
 from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 
@@ -1086,12 +1087,14 @@ class Comment(SQLObject):
 
     @property
     def html_text(self):
-        text = self.text
+        text = encode_entity(self.text)
         for token in text.split():
             if token.startswith('http://'):
                 text = text.replace(token, link(token, token))
-        for bug in re.findall(r'bug #*(\d+)', text, re.I):
-            text = text.replace(bug, link(bug, config.get('bz_buglink') + bug))
+            elif token.startswith('#') and isint(token[1:]):
+                text = text.replace(token, link(token, config.get('bz_buglink') + token[1:]))
+            elif len(token) == 6 and isint(token):
+                text = text.replace(token, link(token, config.get('bz_buglink') + token))
         return XML(text)
 
     def __str__(self):

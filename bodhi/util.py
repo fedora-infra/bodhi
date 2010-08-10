@@ -522,3 +522,11 @@ def url(*args, **kw):
         return csrf_url(*args, **kw)
     else:
         return tg_url(*args, **kw)
+
+
+def isint(num):
+    try:
+        int(num)
+        return True
+    except ValueError:
+        return False
