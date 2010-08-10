@@ -1092,11 +1092,11 @@ class Comment(SQLObject):
             if token.startswith('http://'):
                 text = text.replace(token, link(token, token))
             elif token.startswith('#') and isint(token[1:]):
-                text = text.replace(token,
-                        link(token, config.get('bz_buglink') + token[1:]))
+                text = text.replace(token, '<a href="%s">%s</a>' % (
+                    config.get('bz_buglink') + token[1:], token))
             elif len(token) == 6 and isint(token):
-                text = text.replace(token,
-                        link(token, config.get('bz_buglink') + token))
+                text = text.replace(token, '<a href="%s">%s</a>' % (
+                        config.get('bz_buglink') + token, token))
         return XML(text)
 
     def __str__(self):
