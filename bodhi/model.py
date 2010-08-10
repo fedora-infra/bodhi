@@ -20,6 +20,7 @@ import bugzilla
 import turbomail
 import xmlrpclib
 
+from kid import XML
 from sqlobject import *
 from datetime import datetime
 
@@ -38,6 +39,7 @@ except ImportError:
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
 from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
+from bodhi.util import link
 from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 
@@ -1081,6 +1083,16 @@ class Comment(SQLObject):
     karma       = IntCol(default=0)
     text        = UnicodeCol()
     anonymous   = BoolCol(default=False)
+
+    @property
+    def html_text(self):
+        text = self.text
+        for token in text.split():
+            if token.startswith('http://'):
+                text = text.replace(token, link(token, token))
+        for bug in re.findall(r'bug #*(\d+)', text, re.I):
+            text = text.replace(bug, link(bug, config.get('bz_buglink') + bug))
+        return XML(text)
 
     def __str__(self):
         karma = '0'
