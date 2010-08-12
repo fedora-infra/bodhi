@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.7.7
+Version:        0.7.8
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -36,6 +36,7 @@ Summary: Bodhi Client
 Group: Applications/Internet
 Requires: python-simplejson koji yum
 Requires: python-fedora >= 0.3.5
+Requires: python-kitchen
 
 %description client
 Client tools for interacting with bodhi
@@ -118,6 +119,10 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Thu Aug 12 2010 Luke Macken <lmacken@redhat.com> - 0.7.8-1
+- 0.7.8 release
+- Have the bodhi-client subpackage require python-kitchen
+
 * Tue Aug 03 2010 Luke Macken <lmacken@redhat.com> - 0.7.7-1
 - 0.7.7 release
 
