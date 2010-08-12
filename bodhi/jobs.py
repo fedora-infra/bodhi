@@ -24,7 +24,7 @@ import subprocess
 from os.path import isdir, realpath, dirname, join, islink, exists
 from datetime import datetime
 from turbogears import scheduler, config
-from sqlobject.sqlbuilder import AND
+from sqlobject.sqlbuilder import AND, OR
 
 from bodhi import mail
 from bodhi.util import get_age_in_days
@@ -131,7 +131,6 @@ def fix_bug_titles():
     see if we can re-fetch those bugs.
     """
     from bodhi.model import Bugzilla
-    from sqlobject.sqlbuilder import OR
     log.debug("Running fix_bug_titles job")
     for bug in Bugzilla.select(
                  OR(Bugzilla.q.title == 'Invalid bug number',
@@ -175,8 +174,8 @@ def approve_testing_updates():
     """
     log.info('Running approve_testing_updates job...')
     for update in PackageUpdate.select(
-            AND(PackageUpdate.q.status == 'testing',
-                PackageUpdate.q.request == None)):
+            OR(PackageUpdate.q.status == 'testing',
+               PackageUpdate.q.status == 'pending')):
         # If this release does not have any testing requirements, skip it
         if not update.release.mandatory_days_in_testing:
             continue
