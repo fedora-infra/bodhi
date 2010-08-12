@@ -1021,7 +1021,7 @@ class PackageUpdate(SQLObject):
     def days_in_testing(self):
         """ Return the number of days that this update has been in testing """
         timestamp = None
-        for comment in self.comments:
+        for comment in self.comments[::-1]:
             if comment.text == 'This update has been pushed to testing':
                 timestamp = comment.timestamp
                 if self.status == 'testing':
