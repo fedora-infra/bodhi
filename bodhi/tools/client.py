@@ -22,11 +22,11 @@ import sys
 import logging
 import urllib2
 import subprocess
-import kitchen
 
 from getpass import getpass, getuser
 from optparse import OptionParser
 
+from kitchen.text.converters import to_bytes
 from fedora.client import AuthError, ServerError
 from fedora.client.bodhi import BodhiClient
 
@@ -404,7 +404,7 @@ def main():
             break
 
         except AuthError, e:
-            log.debug('Caught AuthError: %s' % kitchen.to_bytes(e))
+            log.debug('Caught AuthError: %s' % to_bytes(e))
             bodhi.password = getpass('Password for %s: ' % opts.username)
         except ServerError, e:
             log.exception(e)

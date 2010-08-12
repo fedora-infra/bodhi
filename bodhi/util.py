@@ -35,6 +35,7 @@ from datetime import datetime
 from decorator import decorator
 from turbogears import config, flash, redirect
 from fedora.client import PackageDB
+from kitchen.text.converters import to_unicode, to_bytes
 
 try:
     from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
@@ -43,7 +44,6 @@ except ImportError:
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
-
 
 log = logging.getLogger(__name__)
 
@@ -439,12 +439,6 @@ def sanity_check_repodata(myurl):
         if not ret:
             raise RepodataException('updateinfo.xml.gz contains empty ID tags')
 
-
-def to_unicode(obj, encoding='utf-8'):
-    if isinstance(obj, basestring):
-        if not isinstance(obj, unicode):
-            obj = unicode(obj, encoding, 'replace')
-    return obj
 
 @decorator
 def json_redirect(f, *args, **kw):
