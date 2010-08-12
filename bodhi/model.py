@@ -1088,6 +1088,8 @@ class Comment(SQLObject):
     @property
     def html_text(self):
         text = []
+        if not self.text:
+            return ''
         for token in encode_entity(self.text).split():
             if token.startswith('http'):
                 text.append('<a href="%s">%s</a>' % (token, token))
