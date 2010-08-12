@@ -22,6 +22,7 @@ import sys
 import logging
 import urllib2
 import subprocess
+import kitchen
 
 from getpass import getpass, getuser
 from optparse import OptionParser
@@ -403,7 +404,7 @@ def main():
             break
 
         except AuthError, e:
-            log.debug('Caught AuthError: %s' % str(e))
+            log.debug('Caught AuthError: %s' % kitchen.to_bytes(e))
             bodhi.password = getpass('Password for %s: ' % opts.username)
         except ServerError, e:
             log.exception(e)
