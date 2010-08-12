@@ -62,6 +62,7 @@ Requires: mod_wsgi
 Requires: httpd
 Requires: python-markdown
 Requires: python-hashlib
+Requires: python-kitchen
 
 
 %description server
