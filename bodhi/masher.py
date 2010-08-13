@@ -168,7 +168,7 @@ class MashTask(Thread):
         self.id = id
         self.tag = None
         self.updates = set()
-        if isinstance(updates[0], basestring):
+        if updates and isinstance(updates[0], basestring):
             updates = map(PackageUpdate.byTitle, updates)
         for update in updates:
             if update.status == 'obsolete':
