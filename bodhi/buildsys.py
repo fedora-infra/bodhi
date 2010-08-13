@@ -163,12 +163,13 @@ class DevBuildsys(Buildsystem):
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': 'dist-5E-epel', 'perm': None, 'perm_id': None}]
         else:
+            release = build.split('.')[-1].replace('fc', 'f')
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-f8-updates-candidate', 'perm': None, 'perm_id': None},
+                     'name': 'dist-%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-f8', 'perm': None, 'perm_id': None},
+                     'name': 'dist-%s' % release, 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-f8-updates-testing', 'perm': None, 'perm_id': None}]
+                     'name': 'dist-%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
         return [self.getBuild(),]
