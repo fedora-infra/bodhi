@@ -124,9 +124,9 @@ class NewUpdateForm(Form):
                                                     'update'}),
             CheckBox(name='autokarma', label='Enable karma automatism',
                      default=True, validator=validators.StringBool(),
-                     attrs={'onclick':
-                         '$("#form_stable_karma").attr("disabled", !$("#form_stable_karma").attr("disabled"));'
-                         '$("#form_unstable_karma").attr("disabled", !$("#form_unstable_karma").attr("disabled"));',
+                     attrs={'onchange':
+                         '$("#form_stable_karma").attr("disabled", !$("#form_autokarma").attr("checked"));'
+                         '$("#form_unstable_karma").attr("disabled", !$("#form_autokarma").attr("checked"));',
                     'title': 'Karma Automatism - Enable update request '
                              'automation based on user feedback',
             }),
