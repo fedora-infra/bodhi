@@ -183,11 +183,16 @@ def approve_testing_updates():
         # If this has already met testing requirements, skip it
         if update.met_testing_requirements:
             continue
+        # If this is a critpath update, skip it, since they have their own
+        # testing requirements, aside from spending time in testing.
+        if update.critpath:
+            continue
         if update.meets_testing_requirements:
             log.info('%s now meets testing requirements' % update.title)
             update.comment(
                 config.get('testing_approval_msg') % update.days_in_testing,
                 author='bodhi')
+    log.info('approve_testing_updates job complete.')
 
 
 def schedule():
