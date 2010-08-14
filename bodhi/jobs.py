@@ -242,6 +242,9 @@ def schedule():
     # Approve updates that have been in testing for a certain amount of time
     if 'approve_testing_updates' in jobs:
         log.debug("Scheduling approve_testing_updates job")
-        scheduler.add_weekday_task(action=approve_testing_updates,
-                                   weekdays=range(1,8),
-                                   timeonday=(0,0))
+        scheduler.add_interval_task(action=approve_testing_updates,
+                                   # Run every 6 hours
+                                   initialdelay=21600,
+                                   interval=21600)
+                                   #weekdays=range(1,8),
+                                   #timeonday=(0,0))
