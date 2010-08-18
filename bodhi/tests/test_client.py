@@ -114,13 +114,11 @@ class TestClient(testutil.DBTest):
         bodhi = self.__get_bodhi_client()
         opts = self.__get_opts()
         self.__save_update(self.build, opts, bodhi)
-        up = PackageUpdate.byTitle(self.build)
-        assert up.status == 'pending'
+        assert PackageUpdate.byTitle(self.build)
         data = bodhi.delete(update=self.build)
         try:
-            up = PackageUpdate.byTitle(self.build)
-            assert up.status == 'obsolete'
-            #assert False, "Update not deleted properly"
+            PackageUpdate.byTitle(self.build)
+            assert False, "Update not deleted properly"
         except SQLObjectNotFound:
             pass
 

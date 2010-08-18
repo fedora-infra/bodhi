@@ -850,27 +850,6 @@ class PackageUpdate(SQLObject):
         self.status = 'pending'
         mail.send_admin('unpushed', self)
 
-    def move_to_candidate(self):
-        """ Move this update back to the candidate tag """
-        log.info("Moving %s back to %s" % (self.title,
-            self.release.candidate_tag))
-        koji = buildsys.get_session()
-        known_tags = (self.release.candidate_tag, self.release.testing_tag)
-        for build in self.builds:
-            for tag in build.get_tags():
-                if tag in known_tags:
-                    try:
-                        koji.moveBuild(tag, self.release.candidate_tag,
-                                       build.nvr, force=True)
-                        break
-                    except Exception, e:
-                        log.exception(e)
-                        log.error('There was a problem moving %s' % build.nvr)
-                else:
-                    log.warning("Not moving tag: %s" % tag)
-        if self.pushed:
-            self.pushed = False
-
     def untag(self):
         """ Untag all of the builds in this update """
         log.info("Untagging %s" % self.title)
