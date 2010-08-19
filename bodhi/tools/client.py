@@ -41,7 +41,7 @@ except:
 log = logging.getLogger(__name__)
 
 def get_parser():
-    usage = "usage: %prog [options] [build|package]"
+    usage = "usage: %prog [options] [build...|package]"
     parser = OptionParser(usage, description=__description__,
                           version=__version__)
 
@@ -170,9 +170,9 @@ def main():
                                 print(bodhi.update_str(update).encode("UTF-8"))
 
                 else:
-                    verify_args(args)
+                    builds = ",".join(args)
                     extra_args = {
-                        'builds': args[0],
+                        'builds': builds,
                         'type_': opts.type_,
                         'bugs': opts.bugs,
                         'notes': opts.notes,
@@ -181,7 +181,7 @@ def main():
                     if not extra_args['type_']:
                         log.error("Error: No update type specified (ie: -t bugfix)")
                         sys.exit(-1)
-                    log.info("Creating a new update for %s" % args[0])
+                    log.info("Creating a new update for %s" % builds)
                     data = bodhi.save(**extra_args)
                     if data.get('tg_flash'):
                         log.info(data['tg_flash'])
