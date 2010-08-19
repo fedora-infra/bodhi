@@ -105,7 +105,7 @@ def get_parser():
                       dest="bugs", help="Specify any number of Bugzilla IDs "
                       "(--bugs=1234,5678)", default="")
     parser.add_option("-r", "--release", action="store", type="string",
-                      dest="release", help="Specify a release [F8|F9|F10] (optional)")
+                      dest="release", help="Specify a release [F12|F13|F14] (optional)")
     parser.add_option("-N", "--notes", action="store", type="string",
                       dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
