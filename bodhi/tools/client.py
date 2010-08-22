@@ -125,6 +125,10 @@ def get_parser():
                       default=60, help="Maximum number of updates to return "
                       "(default: 60)")
 
+    ## Expert options
+    parser.add_option("", "--bodhi-url", type="string",
+            help="Bodhi url to use for testing purposes (default: %s)" %
+            BODHI_URL, dest="bodhi_url", default=BODHI_URL)
     return parser
 
 def setup_logger(verbose):
@@ -142,7 +146,7 @@ def main():
     opts, args = parser.parse_args()
     setup_logger(opts.verbose)
 
-    bodhi = BodhiClient(BODHI_URL, username=opts.username, debug=opts.verbose)
+    bodhi = BodhiClient(opts.bodhi_url, username=opts.username, debug=opts.verbose)
 
     def verify_args(args):
         if not args and len(args) != 1:
