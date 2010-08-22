@@ -635,11 +635,13 @@ class PackageUpdate(SQLObject):
             for comment in self.comments:
                 if comment.anonymous:
                     anonymous = " (unauthenticated)"
+                    ignored = " (ignored)"
                 else:
                     anonymous = ""
-                comments.append(u"%s%s%s - %s (karma %s)" % (' ' * 13,
+                    ignored = ""
+                comments.append(u"%s%s%s - %s (karma %s%s)" % (' ' * 13,
                                 comment.author, anonymous, comment.timestamp,
-                                comment.karma))
+                                comment.karma, ignored))
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,
                                 subsequent_indent=' ' * 13, width=67)
@@ -1109,10 +1111,13 @@ class Comment(SQLObject):
             karma = '%+d' % (self.karma,)
         if self.anonymous:
             anonymous = " (unauthenticated)"
+            ignored = " (ignored)"
         else:
             anonymous = ""
-        return "%s%s - %s (karma: %s)\n%s" % (self.author, anonymous,
-                                            self.timestamp, karma, self.text)
+            ignored = ""
+        return "%s%s - %s (karma: %s%s)\n%s" % (self.author, anonymous,
+                                            self.timestamp, karma, ignored,
+                                            self.text)
 
     def __json__(self):
         return dict(author=self.author, text=self.text,
