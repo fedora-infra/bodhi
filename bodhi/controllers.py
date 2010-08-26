@@ -1216,7 +1216,7 @@ class Root(controllers.RootController):
                         break_long_words=False).fill(text)
                 update.comment(text, karma)
                 if request_format() == 'json':
-                    return dict(update=unicode(update))
+                    return dict(update=update.__json__())
                 raise redirect(update.get_url())
             except SQLObjectNotFound:
                 flash_log("Update %s does not exist" % title)
