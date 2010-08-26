@@ -898,8 +898,9 @@ class PackageUpdate(SQLObject):
         self.status = 'obsolete'
         self.request = None
         if newer:
-            self.comment("This update has been obsoleted by %s" % newer,
-                         author='bodhi')
+            self.comment("This update has been obsoleted by %s" %
+                    config.get('base_address') + url('/%s' % newer),
+                    author='bodhi')
         elif msg:
             self.comment(msg, author='bodhi')
         else:
