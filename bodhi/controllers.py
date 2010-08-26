@@ -218,7 +218,7 @@ class Root(controllers.RootController):
         return updates
 
     @expose(template="bodhi.templates.list", allow_json=True)
-    @paginate('updates', limit=25, max_limit=1000)
+    @paginate('updates', limit=25, max_limit=None)
     @validate(validators={
             'release': validators.UnicodeString(),
             'bugs': validators.UnicodeString(),
@@ -393,7 +393,7 @@ class Root(controllers.RootController):
 
     @expose(template="bodhi.templates.mine", allow_json=True)
     @identity.require(identity.not_anonymous())
-    @paginate('updates', limit=25, max_limit=25)
+    @paginate('updates', limit=25, max_limit=None)
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
@@ -1003,7 +1003,7 @@ class Root(controllers.RootController):
                 raise redirect('/')
 
     @expose(template='bodhi.templates.list')
-    @paginate('updates', limit=25, max_limit=25)
+    @paginate('updates', limit=25, max_limit=None)
     def default(self, *args, **kw):
         """
         This method allows for the following requests
@@ -1224,7 +1224,7 @@ class Root(controllers.RootController):
         raise redirect('/')
 
     @expose(template='bodhi.templates.comments')
-    @paginate('comments', limit=25, max_limit=25)
+    @paginate('comments', limit=25, max_limit=None)
     def comments(self, user=None):
         if user:
             data = Comment.select(Comment.q.author == user,
@@ -1341,7 +1341,7 @@ class Root(controllers.RootController):
         'untested': validators.StringBool(),
         'unapproved': validators.StringBool(),
     })
-    @paginate('updates', limit=1000, max_limit=1000)
+    @paginate('updates', limit=1000, max_limit=None)
     def critpath(self, untested=False, unapproved=False, release=None, *args,
             **kw):
         updates = []
