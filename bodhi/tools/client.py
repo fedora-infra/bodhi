@@ -254,7 +254,6 @@ def main():
                     data['updates'] = filter(lambda x: x['title'] in opts.push_build,
                                              data['updates'])
 
-                log.debug(data)
                 log.info("[ %d Pending Requests ]" % len(data['updates']))
                 for status in ('testing', 'stable', 'obsolete'):
                     updates = filter(lambda x: x['request'] == status,
