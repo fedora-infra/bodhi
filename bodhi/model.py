@@ -1105,6 +1105,16 @@ class Comment(SQLObject):
                 text.append(token)
         return XML(' '.join(text))
 
+    @property
+    def author_name(self):
+        return self.author.split(' (')[0]
+
+    @property
+    def author_group(self):
+        split = self.author.split(' (')
+        if len(split) == 2:
+            return split[1][:-1]
+
     def __str__(self):
         karma = '0'
         if self.karma != 0:
@@ -1120,9 +1130,9 @@ class Comment(SQLObject):
                                             self.text)
 
     def __json__(self):
-        return dict(author=self.author, text=self.text,
-                    anonymous=self.anonymous, karma=self.karma,
-                    timestamp=self.timestamp)
+        return dict(author=self.author_name, group=self.author_group,
+                    text=self.text, anonymous=self.anonymous,
+                    karma=self.karma, timestamp=self.timestamp)
 
 
 class CVE(SQLObject):
