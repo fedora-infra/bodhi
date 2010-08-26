@@ -562,7 +562,8 @@ class MashTask(Thread):
             updatepath = join(config.get('mashed_dir'), repo)
             mashcmd = self.cmd % (mashdir, comps) + '-p %s ' % updatepath + repo
             log.info("Running `%s`" % mashcmd)
-            p = subprocess.Popen(mashcmd, stdout=subprocess.PIPE, shell=True)
+            p = subprocess.Popen(mashcmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, shell=True)
             stdout, stderr = p.communicate()
             log.info("mash returncode = %s" % p.returncode)
             if p.returncode:
