@@ -117,6 +117,15 @@ def get_parser():
     parser.add_option("-L", "--latest", action="store", type="string",
                       dest="latest", help="List the latest builds of a "
                       "specific package across all releases")
+    parser.add_option("", "--disable-autokarma", action="store_true",
+                      dest="disable_autokarma", help="Disable karma automatism",
+                      default=False)
+    parser.add_option("-S", "--stablekarma", action="store", type="int",
+                      dest="stablekarma", help="Stable karma threshold",
+                      default=3)
+    parser.add_option("-U", "--unstablekarma", action="store", type="int",
+                      dest="unstablekarma", help="Unstable karma threshold",
+                      default=-3)
 
     ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
@@ -181,6 +190,9 @@ def main():
                         'bugs': opts.bugs,
                         'notes': opts.notes,
                         'request': opts.request or 'testing',
+                        'stable_karma': opts.stablekarma,
+                        'unstable_karma': opts.unstablekarma,
+                        'autokarma': not opts.disable_autokarma,
                     }
                     if not extra_args['type_']:
                         log.error("Error: No update type specified (ie: -t bugfix)")
