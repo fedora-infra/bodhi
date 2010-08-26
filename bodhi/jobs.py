@@ -78,18 +78,18 @@ def nagmail():
             ('old_testing', PackageUpdate.select(
                                     AND(PackageUpdate.q.status == 'testing',
                                         PackageUpdate.q.request == None)),
-             lambda update: update.date_pushed),
+             lambda update: update.days_in_testing),
             ('old_pending', PackageUpdate.select(
                                     AND(PackageUpdate.q.status == 'pending',
                                         PackageUpdate.q.request == None)),
-             lambda update: update.date_submitted),
+             lambda update: get_age_in_days(update.date_submitted)),
     ]
     oldname = None
     mail_admin = False
 
     for name, query, date in queries:
         for update in query:
-            if get_age_in_days(date(update)) > 14:
+            if date(update) > 14:
                 if update.nagged:
                     if update.nagged.has_key(name) and update.nagged[name]:
                         if (datetime.utcnow() - update.nagged[name]).days < 7:
