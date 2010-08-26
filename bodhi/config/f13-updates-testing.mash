@@ -15,5 +15,5 @@ repoviewtitle = "Fedora 13 Updates Testing - %(arch)s"
 arches = i386 x86_64
 delta = True
 # Enable this once F13 releases
-#delta_dirs = /pub/fedora/linux/releases/13/Everything/%(arch)s/os/,/mnt/koji/mash/updates/f13-updates/%(arch)s/
-delta_dirs = /pub/fedora/linux/development/13/%(arch)s/os/
+delta_dirs = /pub/fedora/linux/releases/13/Everything/%(arch)s/os/,/mnt/koji/mash/updates/f13-updates/%(arch)s/
+#delta_dirs = /pub/fedora/linux/development/13/%(arch)s/os/
