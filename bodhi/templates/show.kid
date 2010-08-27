@@ -7,6 +7,11 @@
     <meta content="text/html; charset=UTF-8" http-equiv="content-type"
             py:replace="''"/>
         <title>${update.title}</title>
+    <link rel="stylesheet" href="${tg.url('/static/css/jquery.tooltip.css')}" />
+    <script src="${tg.url('/static/js/jquery.dimensions.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/jquery.tooltip.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/chili-1.7.pack.js')}" type="text/javascript"></script>
+    <script src="${tg.url('/static/js/jquery.bgiframe.js')}" type="text/javascript"></script>
 </head>
 
 <?python
@@ -45,6 +50,13 @@ if update.karma < 0: karma = -1
 elif update.karma > 0: karma = 1
 else: karma = 0
 karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/karma%d.png' % karma), update.karma)
+
+statusinfo = {
+    'pending': 'Pending - <b>This update has yet to be pushed to a repository.  If it has a "testing" request, that means that it is in the queue to be pushed to the updates-testing repository. This process requires a release engineer to sign the packages and manually trigger the push, which usually occurs on a daily basis.</b>',
+    'testing': 'Testing - <b>This update is currently in the updates-testing repository. Once it meets the minimum karma or time-in-testing requirements, it can then be pushed to the stable updates repository. If wish to install this update and you do not have the updates-testing repo enabled, you can run `yum --enablerepo=updates-testing install package`.</b>',
+    'obsolete': 'Obsolete - <b>This update has been obsoleted by a newer update.</b>',
+    'stable': 'Stable - <b>This update has been released to the stable updates repository and is available for all users to install via the standard update mechanisms.</b>',
+}
 ?>
 
 <body>
@@ -171,11 +183,11 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 </center>
 
 <table class="show">
+    <tr><td class="title">Status:</td><td class="value">${update.status} <span title="${statusinfo[update.status]}" id="statusinfo"><img src="${tg.url('/static/images/i.gif')}" /></span></td></tr>
     <tr py:for="field in (
         ['Release',         XML(release)],
         ['Update ID',       update.updateid],
         ['Builds',          XML(buildinfo)],
-        ['Status',          update.status],
         ['Requested',       update.request],
         ['Pushed',          update.pushed],
         ['Date Submitted',  update.date_submitted],
@@ -268,6 +280,16 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
   $(document).ready(function(){
     $('#commentform').hide();
     $('#addcomment').show();
+
+    $('#statusinfo').Tooltip({
+        event: 'click',
+        extraClass: "pretty fancy pretty-big fancy-big",
+        showBody: " - ",
+        left: 5,
+        top: -15,
+        fixPNG: true,
+    });
+
   });
 </script>
 </body>

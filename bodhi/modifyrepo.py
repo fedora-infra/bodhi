@@ -32,7 +32,7 @@ from hashlib import sha1 as sha
 from xml.dom import minidom
 from bodhi.exceptions import RepositoryNotFound
 
-class RepoMetadata:
+class RepoMetadata(object):
 
     def __init__(self, repo):
         """ Parses the repomd.xml file existing in the given repo directory. """

@@ -15,7 +15,7 @@
 # Copyright 2007-2010  Red Hat, Inc
 # Authors: Luke Macken <lmacken@redhat.com>
 
-__version__ = '0.7.0'
+__version__ = '0.7.8'
 __description__ = 'Command line tool for interacting with Bodhi'
 
 import sys
@@ -41,7 +41,7 @@ except:
 log = logging.getLogger(__name__)
 
 def get_parser():
-    usage = "usage: %prog [options] [build|package]"
+    usage = "usage: %prog [options] [build...|package]"
     parser = OptionParser(usage, description=__description__,
                           version=__version__)
 
@@ -105,7 +105,7 @@ def get_parser():
                       dest="bugs", help="Specify any number of Bugzilla IDs "
                       "(--bugs=1234,5678)", default="")
     parser.add_option("-r", "--release", action="store", type="string",
-                      dest="release", help="Specify a release [F8|F9|F10] (optional)")
+                      dest="release", help="Specify a release [F12|F13|F14] (optional)")
     parser.add_option("-N", "--notes", action="store", type="string",
                       dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
@@ -117,6 +117,15 @@ def get_parser():
     parser.add_option("-L", "--latest", action="store", type="string",
                       dest="latest", help="List the latest builds of a "
                       "specific package across all releases")
+    parser.add_option("", "--disable-autokarma", action="store_true",
+                      dest="disable_autokarma", help="Disable karma automatism",
+                      default=False)
+    parser.add_option("-S", "--stablekarma", action="store", type="int",
+                      dest="stablekarma", help="Stable karma threshold",
+                      default=3)
+    parser.add_option("-U", "--unstablekarma", action="store", type="int",
+                      dest="unstablekarma", help="Unstable karma threshold",
+                      default=-3)
 
     ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
@@ -125,6 +134,10 @@ def get_parser():
                       default=60, help="Maximum number of updates to return "
                       "(default: 60)")
 
+    ## Expert options
+    parser.add_option("", "--bodhi-url", type="string",
+            help="Bodhi url to use for testing purposes (default: %s)" %
+            BODHI_URL, dest="bodhi_url", default=BODHI_URL)
     return parser
 
 def setup_logger(verbose):
@@ -142,7 +155,7 @@ def main():
     opts, args = parser.parse_args()
     setup_logger(opts.verbose)
 
-    bodhi = BodhiClient(BODHI_URL, username=opts.username, debug=opts.verbose)
+    bodhi = BodhiClient(opts.bodhi_url, username=opts.username, debug=opts.verbose)
 
     def verify_args(args):
         if not args and len(args) != 1:
@@ -170,18 +183,21 @@ def main():
                                 print(bodhi.update_str(update).encode("UTF-8"))
 
                 else:
-                    verify_args(args)
+                    builds = ",".join(args)
                     extra_args = {
-                        'builds': args[0],
+                        'builds': builds,
                         'type_': opts.type_,
                         'bugs': opts.bugs,
                         'notes': opts.notes,
                         'request': opts.request or 'testing',
+                        'stable_karma': opts.stablekarma,
+                        'unstable_karma': opts.unstablekarma,
+                        'autokarma': not opts.disable_autokarma,
                     }
                     if not extra_args['type_']:
                         log.error("Error: No update type specified (ie: -t bugfix)")
                         sys.exit(-1)
-                    log.info("Creating a new update for %s" % args[0])
+                    log.info("Creating a new update for %s" % builds)
                     data = bodhi.save(**extra_args)
                     if data.get('tg_flash'):
                         log.info(data['tg_flash'])
@@ -247,10 +263,9 @@ def main():
                         fupdates += fdata
                     data['updates'] = fupdates
                 if opts.push_build:
-                    data['updates'] = filter(lambda x: x['title'] in opts.push_build,
-                                             data['updates'])
+                    data['updates'] = filter(lambda x: x['title'].split(',')[0] in
+                                             opts.push_build, data['updates'])
 
-                log.debug(data)
                 log.info("[ %d Pending Requests ]" % len(data['updates']))
                 for status in ('testing', 'stable', 'obsolete'):
                     updates = filter(lambda x: x['request'] == status,

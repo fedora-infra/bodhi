@@ -70,7 +70,7 @@ baseurl=file://%(testrepo)s/testing/%(rel)s/%(arch)s
 enabled=%(testing)s
 """
 
-class TestRepoClosure:
+class TestRepoClosure(object):
 
     def __init__(self, updates):
         self.updates = updates

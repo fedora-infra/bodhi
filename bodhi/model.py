@@ -635,11 +635,13 @@ class PackageUpdate(SQLObject):
             for comment in self.comments:
                 if comment.anonymous:
                     anonymous = " (unauthenticated)"
+                    ignored = " (ignored)"
                 else:
                     anonymous = ""
-                comments.append(u"%s%s%s - %s (karma %s)" % (' ' * 13,
+                    ignored = ""
+                comments.append(u"%s%s%s - %s (karma %s%s)" % (' ' * 13,
                                 comment.author, anonymous, comment.timestamp,
-                                comment.karma))
+                                comment.karma, ignored))
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,
                                 subsequent_indent=' ' * 13, width=67)
@@ -875,8 +877,9 @@ class PackageUpdate(SQLObject):
         self.status = 'obsolete'
         self.request = None
         if newer:
-            self.comment("This update has been obsoleted by %s" % newer,
-                         author='bodhi')
+            self.comment("This update has been obsoleted by %s" %
+                    config.get('base_address') + url('/%s' % newer),
+                    author='bodhi')
         elif msg:
             self.comment(msg, author='bodhi')
         else:
@@ -1082,21 +1085,34 @@ class Comment(SQLObject):
                 text.append(token)
         return XML(' '.join(text))
 
+    @property
+    def author_name(self):
+        return self.author.split(' (')[0]
+
+    @property
+    def author_group(self):
+        split = self.author.split(' (')
+        if len(split) == 2:
+            return split[1][:-1]
+
     def __str__(self):
         karma = '0'
         if self.karma != 0:
             karma = '%+d' % (self.karma,)
         if self.anonymous:
             anonymous = " (unauthenticated)"
+            ignored = " (ignored)"
         else:
             anonymous = ""
-        return "%s%s - %s (karma: %s)\n%s" % (self.author, anonymous,
-                                            self.timestamp, karma, self.text)
+            ignored = ""
+        return "%s%s - %s (karma: %s%s)\n%s" % (self.author, anonymous,
+                                            self.timestamp, karma, ignored,
+                                            self.text)
 
     def __json__(self):
-        return dict(author=self.author, text=self.text,
-                    anonymous=self.anonymous, karma=self.karma,
-                    timestamp=self.timestamp)
+        return dict(author=self.author_name, group=self.author_group,
+                    text=self.text, anonymous=self.anonymous,
+                    karma=self.karma, timestamp=self.timestamp)
 
 
 class CVE(SQLObject):

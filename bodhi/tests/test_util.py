@@ -7,12 +7,15 @@ from turbogears import config, update_config, database
 from bodhi.util import Singleton, sanity_check_repodata, mkmetadatadir
 
 import logging
+
+
 log = logging.getLogger(__name__)
 
 update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
-class TestUtil:
+
+class TestUtil(object):
 
     def test_singleton(self):
         """ Make sure our Singleton class actually works """
