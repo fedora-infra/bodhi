@@ -467,6 +467,7 @@ class TestPackageUpdate(testutil.DBTest):
         assert not update.nagged
         update.date_pushed = datetime.utcnow() - timedelta(days=20)
         testutil.capture_log('bodhi.jobs')
+        assert False, update.days_in_testing
         nagmail()
         log = testutil.get_log()
         assert "[old_testing] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
