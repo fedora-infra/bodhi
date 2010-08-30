@@ -41,14 +41,22 @@ class Buildsystem(object):
     def listTagged(self): raise NotImplementedError
     def taskFinished(self): raise NotImplementedError
     def untagBuild(self): raise NotImplementedError
+    def tagBuild(self): raise NotImplementedError
 
 
 class DevBuildsys(Buildsystem):
     """
     A dummy buildsystem instance used during development and testing
     """
+
+    def multiCall(self):
+        pass
+
     def moveBuild(self, *args, **kw):
         log.debug("moveBuild(%s, %s)" % (args, kw))
+
+    def tagBuild(self, *args, **kw):
+        log.debug("tagBuild(%s, %s)" % (args, kw))
 
     def untagBuild(self, *args, **kw):
         log.debug("untagBuild(%s, %s)" % (args, kw))
