@@ -431,6 +431,17 @@ class MashTask(Thread):
         if not self.success:
             raise MashTaskException("Failed to move builds")
 
+    def remove_pending_tags(self):
+        """ Remove all pending tags from these updates """
+        log.debug("Removing pending tags from builds")
+        self.koji.multicall = True
+        for update in self.updates:
+            if update.request == 'stable':
+                update.remove_tag(update.release.pending_stable_tag, koji=self.koji)
+            elif update.request == 'testing':
+                update.remove_tag(update.release.pending_testing_tag, koji=self.koji)
+        self.koji.multiCall()
+
     # With a large pushes, this tends to cause much buildsystem churn, as well
     # as polluting the tag history.
     #def undo_move(self):
@@ -610,6 +621,12 @@ class MashTask(Thread):
             # Move koji build tags
             if not self.resume and len(self.updates):
                 self.move_builds()
+
+            # Remove all pending tags
+            # TODO: Once AutoQA is Good To Go, then we'll want to prevent
+            # updates from being pushed if they have not gotten the appropriate 
+            # karma from AutoQA.  For now, bodhi is simply handling the pending tags.
+            self.remove_pending_tags()
 
             # Mash our repositories
             self.mash()

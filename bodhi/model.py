@@ -97,6 +97,14 @@ class Release(SQLObject):
             return '%s-updates' % self.dist_tag
 
     @property
+    def pending_testing_tag(self):
+        return self.testing_tag + '-pending'
+
+    @property
+    def pending_stable_tag(self):
+        return self.stable_tag + '-pending'
+
+    @property
     def stable_repo(self):
         id = self.name.replace('-', '').lower()
         if self.name.startswith('EL'): # EPEL Hack.
@@ -475,6 +483,13 @@ class PackageUpdate(SQLObject):
                             return
                         else:
                             action = 'testing'
+
+        # Add the appropriate 'pending' koji tag to this update, so tools like
+        # AutoQA can mash repositories of them for testing.
+        if action == 'testing':
+            self.add_tag(self.release.pending_testing_tag)
+        elif action == 'stable':
+            self.add_tag(self.release.pending_stable_tag)
 
         self.request = action
         self.pushed = False
@@ -884,6 +899,30 @@ class PackageUpdate(SQLObject):
             self.comment(msg, author='bodhi')
         else:
             self.comment("This update has been obsoleted", author='bodhi')
+
+    def add_tag(self, tag, koji=None):
+        """ Add a koji tag to all builds in this update """
+        log.debug('Adding tag %s to %s' % (tag, self.title))
+        return_multicall = not koji
+        if not koji:
+            koji = buildsys.get_session()
+            koji.multicall = True
+        for build in self.builds:
+            koji.tagBuild(tag, build.nvr, force=True)
+        if return_multicall:
+            return koji.multiCall()
+
+    def remove_tag(self, tag, koji=None):
+        """ Remove a koji tag from all builds in this update """
+        log.debug('Removing tag %s from %s' % (tag, self.title))
+        return_multicall = not koji
+        if not koji:
+            koji = buildsys.get_session()
+            koji.multicall = True
+        for build in self.builds:
+            koji.untagBuild(tag, build.nvr, force=True)
+        if return_multicall:
+            return koji.multiCall()
 
     def get_maintainers(self):
         """
