@@ -495,6 +495,43 @@ p.padded {
     padding-left: 10px;
 }
 
+/* New python-fedora login form */
+
+label {
+    text-align: right;
+    vertical-align: top;
+    background-color: #f1f1f1;
+    float: left;
+    clear: left;
+    width: 100px;
+    font-weight: bold;
+    padding: 10px 10px 10px 100px;
+}
+
+#user_name {
+    text-align: left;
+    padding-top: 5px;
+    padding-left: 5px;
+    padding: 5px;
+}
+
+#password {
+    text-align: left;
+    padding-top: 5px;
+    padding-left: 5px;
+    padding: 5px;
+}
+
+#login-box form{
+    border-collapse: collapse;
+    border-bottom: 1px solid #bcbcbc;
+    border-top: 1px solid #bcbcbc;
+    width: 100%;
+}
+
+
+
+
 /*
 td.title {
     text-align: right;
