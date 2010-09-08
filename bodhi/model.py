@@ -1120,6 +1120,13 @@ class Comment(SQLObject):
             elif len(token) == 6 and isint(token):
                 text.append('<a href="%s">%s</a>' % (
                     config.get('bz_buglink') + token, token))
+            elif token.startswith('rhbz#'):
+                num = token.split('#')[1]
+                if isint(num):
+                    text.append('<a href="%s">%s</a>' % (
+                        config.get('bz_buglink') + num, num))
+                else:
+                    text.append(token)
             else:
                 text.append(token)
         return XML(' '.join(text))
