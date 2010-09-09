@@ -2216,7 +2216,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable', update.request
 
-    def test_duplicate_packages(self):
+    def test_duplicate_packages_for_same_release(self):
         """
         Ensure that bodhi disallows submitting an update with two versions
         of the same package (#264).
@@ -2238,7 +2238,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controller', 'bodhi.util'])
         self.save_update(params, session)
         log = testutil.get_log()
-        assert "You cannot submit an update containing multiple versions of TurboGears" in log, log
+        assert u'Unable to save update with conflicting builds of the same package: TurboGears-1.0.8-1.fc7 and TurboGears-1.0.8-2.fc7.  Please remove one and try again.' in log, log
         try:
             up = PackageUpdate.byTitle(params['builds'])
             assert False, "Update with duplicate packages was saved!"

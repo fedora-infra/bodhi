@@ -579,6 +579,20 @@ class Root(controllers.RootController):
                 flash_log("Stable karma must be higher than unstable karma.")
                 raise InvalidUpdateException(params)
 
+        # Check for conflicting builds
+        for build in builds:
+            build_nvr = get_nvr(build)
+            for other_build in builds:
+                other_build_nvr = get_nvr(other_build)
+                if build == other_build:
+                    continue
+                if (build_nvr[0] == other_build_nvr[0] and
+                    build_nvr[2].split('.')[-1] == other_build_nvr[2].split('.')[-1]):
+                    flash_log("Unable to save update with conflicting builds of "
+                              "the same package: %s and %s. Please remove one "
+                              "and try again." % (build, other_build))
+                    raise InvalidUpdateException(params)
+
         # Make sure this update doesn't already exist
         if not edited:
             for build in builds:
@@ -659,16 +673,6 @@ class Root(controllers.RootController):
                           "engineering at %s about unpushing this update." %
                           config.get('release_team_address'))
                 raise InvalidUpdateException(params)
-
-            # Check for conflicting builds when editing
-            for build in builds:
-                for other_build in builds:
-                    if get_nvr(build)[0] == get_nvr(other_build)[0]:
-                        if build != other_build:
-                            flash_log("Unable to save update with conflicting builds of "
-                                      "the same package: %s and %s.  Please remove one "
-                                      "and try again." % (build, other_build))
-                            raise InvalidUpdateException(params)
 
             # Make sure the tag has not been moved, which indicates that we
             # are in the middle of pushing this update
