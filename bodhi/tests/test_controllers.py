@@ -499,6 +499,8 @@ class TestControllers(testutil.DBTest):
         for build in PackageBuild.select():
             assert len(build.updates), "%s has no updates!" % build.nvr
 
+        assert update.comments[-1].text == u'guest has edited this update. New build(s): python-sqlobject-0.8.2-1.fc7. '
+
         # Remove a build and bug
         params = {
             'builds'  : 'python-sqlobject-0.8.2-1.fc7',
