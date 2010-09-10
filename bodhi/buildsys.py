@@ -111,6 +111,8 @@ class DevBuildsys(Buildsystem):
                     'task_id': 127621,
                     'version': '2.6.31'}
         else:
+            f = build.split('.')[-1].replace('fc', 'f')
+            release = build.split('.')[-1]
             return {'build_id': 16058,
                     'completion_time': '2007-08-24 23:26:10.890319',
                     'creation_event_id': 151517,
@@ -118,15 +120,15 @@ class DevBuildsys(Buildsystem):
                     'epoch': None,
                     'id': 16058,
                     'name': 'TurboGears',
-                    'nvr': 'TurboGears-1.0.2.2-2.fc8',
+                    'nvr': 'TurboGears-1.0.2.2-2.%s' % release,
                     'owner_id': 388,
                     'owner_name': 'lmacken',
                     'package_id': 8,
                     'package_name': 'TurboGears',
-                    'release': '2.fc8',
+                    'release': '2.%s' % release,
                     'state': 1,
                     'tag_id': 19,
-                    'tag_name': 'dist-f8-updates-testing',
+                    'tag_name': 'dist-%s-updates-testing' % f,
                     'task_id': 127621,
                     'version': '1.0.2.2'}
 
