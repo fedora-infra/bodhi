@@ -2245,6 +2245,39 @@ class TestControllers(testutil.DBTest):
         except SQLObjectNotFound, e:
             pass
 
+    def test_duplicate_packages_for_different_releases(self):
+        """
+        Ensure that bodhi allows submitting an update with two versions of the
+        same package to different releases.
+        """
+        session = login()
+        create_release()
+        create_release('8', dist='dist-f')
+        params = {
+                'builds'         : 'TurboGears-1.0.8-1.fc7,TurboGears-1.0.8-2.fc8',
+                'type_'          : 'bugfix',
+                'bugs'           : '',
+                'notes'          : 'foobar',
+                'request'        : 'Stable',
+                'suggest_reboot' : True,
+                'autokarma'      : True,
+                'stable_karma'   : 5,
+                'unstable_karma' : -5
+        }
+        testutil.capture_log(['bodhi.controller', 'bodhi.util'])
+        self.save_update(params, session)
+        log = testutil.get_log()
+        try:
+            up = PackageUpdate.byTitle(params['builds'])
+            assert False, "Update created with 2 builds for 2 different releases!"
+        except SQLObjectNotFound:
+            pass
+        one, two = params['builds'].split(',')
+        up1 = PackageUpdate.byTitle(one)
+        assert up1.title == one
+        up2 = PackageUpdate.byTitle(two)
+        assert up2.title == two
+
     def test_week_in_testing(self):
         from bodhi.jobs import approve_testing_updates
         session = login()
