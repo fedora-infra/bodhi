@@ -557,7 +557,7 @@ class Root(controllers.RootController):
                 'autokarma'   : autokarma,
                 'stable_karma': stable_karma,
                 'unstable_karma': unstable_karma,
-                'suggest_reboot': suggest_reboot,
+                'suggest_reboot': suggest_reboot and 'True' or '',
         }
 
         # Basic sanity checks
