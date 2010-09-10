@@ -390,7 +390,7 @@ class TestControllers(testutil.DBTest):
         up = PackageUpdate.select()[0]
         assert len(up.builds) == 2, up.builds
         assert up.title == params['edited']
-        assert u'Unable to save update with conflicting builds of the same package: TurboGears-1.0.2.2-2.fc7 and TurboGears-1.0.2.2-1.fc7.  Please remove one and try again.' in logs
+        assert u'Unable to save update with conflicting builds of the same package: TurboGears-1.0.2.2-2.fc7 and TurboGears-1.0.2.2-1.fc7. Please remove one and try again.' in logs
 
     def test_add_newer_build_to_update(self):
         """ Try adding a newer build an update (#385) """
@@ -422,7 +422,7 @@ class TestControllers(testutil.DBTest):
         up = PackageUpdate.select()[0]
         assert len(up.builds) == 2, up.builds
         assert up.title == params['edited']
-        assert u'Unable to save update with conflicting builds of the same package: TurboGears-1.0.2.2-2.fc7 and TurboGears-1.0.2.2-3.fc7.  Please remove one and try again.' in logs
+        assert u'Unable to save update with conflicting builds of the same package: TurboGears-1.0.2.2-2.fc7 and TurboGears-1.0.2.2-3.fc7. Please remove one and try again.' in logs
 
     def test_add_different_release_to_update(self):
         """

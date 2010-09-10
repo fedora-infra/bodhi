@@ -462,14 +462,16 @@ class TestPackageUpdate(testutil.DBTest):
     def test_old_testing_nagmail(self):
         update = self.get_update()
         update.status = 'testing'
+        update.status_comment()
         assert not update.nagged
         nagmail()
         assert not update.nagged
+        update.comments[-1].timestamp = datetime.utcnow() - timedelta(days=20)
         update.date_pushed = datetime.utcnow() - timedelta(days=20)
         testutil.capture_log('bodhi.jobs')
         nagmail()
         log = testutil.get_log()
-        assert "[old_testing] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
+        assert "[old_testing] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log, log
         assert update.nagged, update.nagged
         assert update.nagged.has_key('old_testing')
 
