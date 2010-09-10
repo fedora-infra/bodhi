@@ -691,7 +691,31 @@ class Root(controllers.RootController):
                         edited.get_implied_build_tag(),
                         buildinfo[builds[0]]['tags']))
 
-            edited.unpush()
+            # Determine which builds have been added or removed
+            edited_builds = [build.nvr for build in edited.builds]
+            new_builds = []
+            removed_builds = []
+            for build in builds:
+                if build not in edited_builds:
+                    new_builds.append(build)
+            for build in edited_builds:
+                if build not in builds:
+                    removed_builds.append(build)
+            if new_builds or removed_builds:
+                # Comment on the update with details of added/removed builds
+                comment = '%s has edited this update. ' % identity.current.user_name
+                if new_builds:
+                    comment += 'New build(s): %s. ' % ', '.join(new_builds)
+                if removed_builds:
+                    comment += 'Removed build(s): %s.' % ', '.join(removed_builds)
+                edited.comment(comment, karma=0, author='bodhi')
+
+                # Make sure all builds are tagged as updates-candidate
+                # and bring the update back to a pending state
+                edited.unpush()
+            else:
+                # No need to change the bodhi state or koji tag
+                pass
 
             # Refresh the tags for these builds
             for build in edited.builds:
