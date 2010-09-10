@@ -466,7 +466,7 @@ class PackageUpdate(SQLObject):
         flash_notes = '' 
         if action == 'stable' and not self.critpath:
             # Check if we've met the karma requirements
-            if self.karma >= self.stable_karma:
+            if self.karma >= self.stable_karma or self.critpath_approved:
                 pass
             else:
                 # If we haven't met the stable karma requirements, check if it has met
