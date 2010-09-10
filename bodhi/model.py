@@ -841,22 +841,30 @@ class PackageUpdate(SQLObject):
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """
+        log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
         tasks = []
-        newtag = self.release.candidate_tag
-        curtag = self.get_build_tag()
-        if curtag == self.release.candidate_tag:
-            log.debug("%s already unpushed" % self.title)
-            return
-        log.debug("Unpushing %s" % self.title)
         for build in self.builds:
-            if build.inherited:
-                log.debug("Removing %s tag from inherited build %s" % (
-                    curtag, build.nvr))
-                koji.untagBuild(curtag, build.nvr, force=True)
+            curtag = build.get_tags()
+            if curtag:
+                if self.release.testing_tag in curtag:
+                    curtag = self.release.testing_tag
+                    if build.inherited:
+                        log.debug("Removing %s tag from inherited build %s" % (
+                            curtag, build.nvr))
+                        koji.untagBuild(curtag, build.nvr, force=True)
+                    else:
+                        log.debug("Moving %s from %s to %s" % (build.nvr, curtag,
+                            self.release.candidate_tag))
+                        task = koji.moveBuild(curtag, self.release.candidate_tag,
+                                              build.nvr, force=True)
+                        tasks.append(task)
+                else:
+                    # Could be stable or candidate already... so don't do anything
+                    pass
             else:
-                log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
-                task = koji.moveBuild(curtag, newtag, build.nvr, force=True)
+                # Build is untagged
+                task = koji.tagBuild(self.release.candidate_tag,build.nvr,force=True)
                 tasks.append(task)
         if tasks:
             if buildsys.wait_for_tasks(tasks, sleep=1):
