@@ -78,10 +78,13 @@ bodhi/static/images/desc.gif
 bodhi/static/images/edit.png
 bodhi/static/images/enhancement.png
 bodhi/static/images/favicon.ico
+bodhi/static/images/hardhat.png
 bodhi/static/images/header-faq.png
 bodhi/static/images/header-fedora_logo.png
 bodhi/static/images/header-fedora_logo.png.old
 bodhi/static/images/header-projects.png
+bodhi/static/images/i.gif
+bodhi/static/images/info.png
 bodhi/static/images/karma-1.png
 bodhi/static/images/karma0.png
 bodhi/static/images/karma1.png
