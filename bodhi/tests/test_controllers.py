@@ -2347,3 +2347,62 @@ class TestControllers(testutil.DBTest):
         up = PackageUpdate.byTitle(params['builds'])
         assert up.request == 'stable'
         assert up.comments[-1].text == u'This update has been submitted for stable by guest. '
+
+    def test_push_noncritpath_on_critpath_reqs(self):
+        """
+        Make sure normal updates can meet the testing requirements after
+        achieving critpath-level approval.
+        """
+        session = login(username='admin', group='proventesters')
+        create_release()
+        f7 = Release.byName('F7')
+        assert f7.mandatory_days_in_testing, f7.mandatory_days_in_testing
+        params = {
+                'builds'  : 'nethack-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : '',
+                'autokarma': True,
+                'stable_karma' : 3,
+                'request': 'stable',
+                'unstable_karma' : -3,
+        }
+
+        #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        #logs = testutil.get_log()
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request != 'stable', update.request
+
+        # proventester +1
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                params['builds'], method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.karma == 1
+        assert update.request != 'stable'
+        assert len(update.comments) == 2
+        assert not update.critpath
+        assert not update.critpath_approved
+        assert update.num_admin_approvals == 1
+
+        # try to push, and fail
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request != 'stable'
+
+        # normal user +1
+        testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=1' %
+                                params['builds'], method='POST',
+                                headers=login())
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.karma == 2, update.karma
+        assert update.request != 'stable'
+        assert update.num_admin_approvals == 1
+
+        # currently: try to push fail... eventually, succeed
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable'
