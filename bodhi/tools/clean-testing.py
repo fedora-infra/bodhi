@@ -13,11 +13,11 @@ import turbogears
 from sqlobject import SQLObjectNotFound, AND
 from turbogears.database import PackageHub
 
-from bodhi.util import load_config
+from bodhi.util import load_config, build_evr
 from bodhi.model import Release, PackageBuild, PackageUpdate
 from bodhi.buildsys import get_session
 
-def compare_builds(testing_build, stable_build, untag):
+def compare_builds(testing_build, stable_build, untag, tag):
     if stable_build['package_name'] == testing_build['package_name']:
         if rpm.labelCompare((str(testing_build['epoch']),
                              testing_build['version'],
@@ -42,9 +42,8 @@ def compare_builds(testing_build, stable_build, untag):
             except SQLObjectNotFound:
                 if untag:
                     print "Untagging via koji"
-                    koji.untagBuild(release.testing_tag,
-                                    testing_build['nvr'],
-                                    force=True)
+                    koji = get_session()
+                    koji.untagBuild(tag, testing_build['nvr'], force=True)
                 else:
                     print "Need to untag koji build %s" % testing_build['nvr']
 
@@ -62,9 +61,9 @@ def clean_testing_builds(untag=False):
         testing_nvrs = [build['nvr'] for build in testing_builds]
         for testing_build in testing_builds:
             for build in testing_builds:
-                compare_builds(testing_build, build, untag)
+                compare_builds(testing_build, build, untag, release.testing_tag)
             for build in stable_builds:
-                compare_builds(testing_build, build, untag)
+                compare_builds(testing_build, build, untag, release.testing_tag)
 
         # Find testing updates that aren't in the list of latest builds
         for update in PackageUpdate.select(AND(PackageUpdate.q.releaseID==release.id,
@@ -82,12 +81,16 @@ def clean_testing_builds(untag=False):
                         if stable.startswith(build.package.name + '-'):
                             latest_stable = stable
                             break
-                    print "%s in testing, latest_testing = %s, latest_stable = %s" % (
-                            update.title, latest_testing, latest_stable)
-                    if untag:
-                        print "Obsoleting %s" % update.title
-                        assert latest_testing
-                        update.obsolete(newer=latest_testing)
+                    if latest_testing:
+                        koji_build = koji.getBuild(build.nvr)
+                        latest_build = koji.getBuild(latest_testing)
+                        if rpm.labelCompare(build_evr(koji_build),
+                                            build_evr(latest_build)) < 0:
+                            print "%s in testing, latest_testing = %s, latest_stable = %s" % (
+                                    update.title, latest_testing, latest_stable)
+                            if untag:
+                                print "Obsoleting %s" % update.title
+                                update.obsolete(newer=latest_testing)
 
 
 if __name__ == '__main__':
