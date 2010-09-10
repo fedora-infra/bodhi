@@ -23,9 +23,9 @@ import logging
 import subprocess
 import cPickle as pickle
 
-from sqlobject import SQLObjectNotFound
+from sqlobject import SQLObjectNotFound, AND
 from threading import Thread, Lock
-from turbogears import config
+from turbogears import config, url
 from os.path import exists, join, islink, isdir, dirname, basename
 from time import sleep
 
@@ -723,13 +723,34 @@ class MashTask(Thread):
         for i, subbody in enumerate(mail.get_template(update,use_template='maillist_template')):
             self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
+    def get_unapproved_critpath_updates(self, release):
+        release = Release.select(Release.q.long_name==release)
+        updates = []
+        for update in PackageUpdate.select(
+                AND(PackageUpdate.q.releaseID == release.id,
+                    PackageUpdate.q.status != 'stable',
+                    PackageUpdate.q.request == None),
+                orderBy=PackageUpdate.q.date_submitted).reversed():
+            if update.critpath and not update.critpath_approved:
+                updates.append(update)
+        return updates
+
     def send_digest_mail(self):
         '''
         Send digest mail to mailing lists
         '''
         for prefix, content in self.testing_digest.items():
             log.debug("Sending digest for updates-testing %s" % prefix)
-            maildata = u'The following builds have been pushed to %s updates-testing\n\n' % prefix
+            maildata = u''
+            try:
+                maildata += u'The following %s Critical Path updates have yet to be approved:\n\n' % prefix
+                for update in self.get_unapproved_critpath_updates(prefix):
+                    maildata += u'    %s\n' % config.get('base_address') + url(update.get_url())
+                maildata += '\n\n'
+            except Exception, e:
+                log.exception(e)
+
+            maildata += u'The following builds have been pushed to %s updates-testing\n\n' % prefix
             # get a list af all nvr's
             updlist = content.keys()
             # sort the list
