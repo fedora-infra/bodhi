@@ -493,7 +493,7 @@ class Root(controllers.RootController):
         }
         log.debug("values = %s" % values)
         if update.status == 'testing':
-            flash("Editing this update will move it back to a pending state.")
+            flash("Adding or removing builds from this update will move it back to a pending state.")
         return dict(form=update_form, values=values, action=url("/save"),
                     title='Edit Update')
 
