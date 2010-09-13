@@ -549,6 +549,79 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle('python-sqlobject-0.8.2-1.fc7')
         assert len(update.builds) == 1
 
+    def test_edit_notes(self):
+        """
+        Make sure we can edit the notes without having the update go back to pending
+        """
+        session = login()
+        create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's pushed to testing
+        update.status = 'testing'
+        update.request = None
+
+        # Add another build, and a bug
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : '',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        assert update.status == 'testing'
+        assert update.request == None
+
+
+    def test_edit_builds(self):
+        """ Make sure we can edit builds in an update """
+        session = login()
+        create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : ''
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's pushed to testing
+        update.status = 'testing'
+        update.request = None
+
+        # Add another build, and a bug
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.1-1.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : '',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
+
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+
     def test_delete(self):
         session = login()
         create_release()
