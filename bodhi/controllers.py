@@ -662,6 +662,7 @@ class Root(controllers.RootController):
 
         # If we're editing an update, unpush it first so we can assume all
         # of the builds are tagged as update candidates
+        edited_testing_update = False
         if edited:
             try:
                 edited = PackageUpdate.byTitle(edited)
@@ -713,15 +714,15 @@ class Root(controllers.RootController):
                 # Make sure all builds are tagged as updates-candidate
                 # and bring the update back to a pending state
                 edited.unpush()
+
+                # Refresh the tags for these builds
+                for build in edited.builds:
+                    if build.nvr in buildinfo:
+                        buildinfo[build.nvr]['tags'] = [tag['name'] for tag in
+                                                        koji.listTags(build.nvr)]
             else:
                 # No need to change the bodhi state or koji tag
-                pass
-
-            # Refresh the tags for these builds
-            for build in edited.builds:
-                if build.nvr in buildinfo:
-                    buildinfo[build.nvr]['tags'] = [tag['name'] for tag in
-                                                    koji.listTags(build.nvr)]
+                edited_testing_update = True
 
         # Make sure all builds are tagged appropriately.  We also determine
         # which builds get pushed for which releases, based on the tag.
@@ -733,6 +734,9 @@ class Root(controllers.RootController):
             for tag in tags:
                 rel = None
                 for r in Release.select():
+                    if edited_testing_update and tag == r.testing_tag:
+                        rel = r
+                        break
                     if tag == r.candidate_tag:
                         rel = r
                         break
