@@ -241,14 +241,15 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == -1
 
-        # don't let them do it again
+        # let them change their -1 to a +1
         x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=1' %
                                    params['builds'], method='POST',
                                    headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.karma == -1
+        assert update.karma == 1, update.karma
 
-        # Add a new comment, and make sure we can access the comments in the proper order
+        # Add a new comment, and make sure we can access the comments in the
+        # proper order
         x = testutil.create_request('/updates/comment?text=woopdywoop&title=%s' %
                                    params['builds'], method='POST',
                                    headers=session)
@@ -2231,10 +2232,48 @@ class TestControllers(testutil.DBTest):
         assert PackageUpdate.byTitle(params['builds']).karma == 1
 
         # have the submitter +1 the update
+        #testutil.capture_log(['bodhi.controller', 'bodhi.util'])
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                 params['builds'], method='POST', headers=session)
         up = PackageUpdate.byTitle(params['builds'])
-        assert up.karma == 3
+        #assert False, testutil.get_log()
+        assert up.karma == 3, up.karma
+
+    def test_reverting_karma(self):
+        """
+        Ensure that a developer can give negative karma, and then proceed to
+        later give positive karma.
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.8-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'autokarma' : True,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        assert PackageUpdate.byTitle(params['builds']).karma == 0
+
+        testutil.create_request('/updates/comment?text=bar&title=%s&karma=1' % 
+                                params['builds'], method='POST',
+                                headers=session)
+        assert PackageUpdate.byTitle(params['builds']).karma == 1
+
+        testutil.create_request('/updates/comment?text=bar&title=%s&karma=-1' % 
+                                params['builds'], method='POST',
+                                headers=session)
+        assert PackageUpdate.byTitle(params['builds']).karma == -1
+
+        testutil.create_request('/updates/comment?text=bar&title=%s&karma=1' % 
+                                params['builds'], method='POST',
+                                headers=session)
+        assert PackageUpdate.byTitle(params['builds']).karma == 1, PackageUpdate.byTitle(params['builds']).karma
 
     def test_suggest_reboot(self):
         session = login()

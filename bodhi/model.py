@@ -779,15 +779,18 @@ class PackageUpdate(SQLObject):
                 # in which case this block is not necessary
                 pass
 
-        if not anonymous and karma != 0 and \
-           not filter(lambda c: c.author == author and c.karma == karma,
-                      self.comments):
+        if not anonymous and karma != 0:
             mycomments = [c.karma for c in self.comments if c.author == author
-                          and not c.anonymous]
-            if karma == 1 and -1 in mycomments:
-                self.karma += 2
-            elif karma == -1 and 1 in mycomments:
-                self.karma -= 2
+                          and not c.anonymous and c.karma != 0]
+            if mycomments:
+                if karma == 1 and mycomments[-1] == -1:
+                    self.karma += 2
+                elif karma == -1 and mycomments[-1] == 1:
+                    self.karma -= 2
+                elif mycomments[-1] == self.karma:
+                    pass
+                else:
+                    self.karma += karma
             else:
                 self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
