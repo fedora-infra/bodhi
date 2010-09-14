@@ -143,6 +143,7 @@ def main():
         for type in types:
             print " * %d %s updates (%0.2f%%)" % (data['num_%s' % type], type,
                     float(data['num_%s' % type]) / data['num_updates'] * 100)
+        print " * %d bugs resolved" % len(data['bugs'])
         print " * %d critical path updates (%0.2f%%)" % (data['num_critpath'],
                 float(data['num_critpath']) / data['num_updates'] * 100)
         print " * %d approved critical path updates" % (
