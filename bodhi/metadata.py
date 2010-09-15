@@ -301,6 +301,7 @@ class ExtendedMetadata(object):
                         filename += '-t'
                 else:
                     log.error('Unknown repo %s' % self.repo)
+                    return
 
                 tags_url = config.get('pkgtags_url') + filename
                 log.info('Downloading %s' % tags_url)
