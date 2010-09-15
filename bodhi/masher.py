@@ -735,6 +735,14 @@ class MashTask(Thread):
                 updates.append(update)
         return updates
 
+    def get_security_updates(self, release):
+        release = Release.select(Release.q.long_name==release)
+        return PackageUpdate.select(
+                AND(PackageUpdate.q.releaseID == release.id,
+                    PackageUpdate.q.type == 'security',
+                    PackageUpdate.q.status == 'testing',
+                    PackageUpdate.q.request == None))
+
     def send_digest_mail(self):
         '''
         Send digest mail to mailing lists
@@ -743,6 +751,11 @@ class MashTask(Thread):
             log.debug("Sending digest for updates-testing %s" % prefix)
             maildata = u''
             try:
+                maildata += u'The following %s Security updates need testing:\n\n' % prefix
+                for update in self.get_security_updates(prefix):
+                    maildata += u'    %s\n' % config.get('base_address') + url(update.get_url())
+                maildata += '\n\n'
+
                 maildata += u'The following %s Critical Path updates have yet to be approved:\n\n' % prefix
                 for update in self.get_unapproved_critpath_updates(prefix):
                     maildata += u'    %s\n' % config.get('base_address') + url(update.get_url())
