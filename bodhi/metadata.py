@@ -16,6 +16,7 @@
 __version__ = '1.4'
 
 import os
+import urllib
 import logging
 
 from xml.dom import minidom
@@ -278,3 +279,36 @@ class ExtendedMetadata(object):
                 repomd.add(self.doc)
             except RepositoryNotFound:
                 log.error("Cannot find repomd.xml in %s" % self.repo)
+
+    def insert_pkgtags(self):
+        """ Download and inject the pkgtags sqlite from the pkgdb """
+        try:
+            for arch in os.listdir(self.repo):
+                if arch == 'SRPMS':
+                    continue
+                filename = ''
+                if self.repo.startswith('f'):
+                    release = self.repo[1:].split('-')[0]
+                    filename = 'F-%s-%s-' % (release, arch)
+                    if 'testing' in self.repo:
+                        filename += 'tu'
+                    else:
+                        filename += 'u'
+                elif self.repo.startswith('el'):
+                    release = self.repo[2:].split('-')[0]
+                    filename = 'E-%s-%s' % (release, arch)
+                    if 'testing' in self.repo:
+                        filename += '-t'
+                else:
+                    log.error('Unknown repo %s' % self.repo)
+
+                tags_url = config.get('pkgtags_url') + filename
+                log.info('Downloading %s' % tags_url)
+                f = urllib.urlretrieve(tags_url, filename='/tmp/pkgtags.sqlite')
+
+                repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
+                repomd.add('/tmp/pkgtags.sqlite')
+
+        except Exception, e:
+            log.exception(e)
+            log.error("There was a problem injecting pkgtags")

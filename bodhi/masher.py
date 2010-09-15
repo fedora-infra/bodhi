@@ -835,6 +835,7 @@ class MashTask(Thread):
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
             uinfo = ExtendedMetadata(repo, olduinfo)
             uinfo.insert_updateinfo()
+            uinfo.insert_pkgtags()
 
         log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
         self.genmd = False
