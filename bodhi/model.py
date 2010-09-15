@@ -780,19 +780,12 @@ class PackageUpdate(SQLObject):
                 pass
 
         if not anonymous and karma != 0:
-            mycomments = [c.karma for c in self.comments if c.author == author
-                          and not c.anonymous and c.karma != 0]
-            if mycomments:
-                if karma == 1 and mycomments[-1] == -1:
-                    self.karma += 2
-                elif karma == -1 and mycomments[-1] == 1:
-                    self.karma -= 2
-                elif mycomments[-1] == self.karma:
-                    pass
-                else:
-                    self.karma += karma
-            else:
-                self.karma += karma
+            my_karmas = [c.karma for c in self.comments if c.author == author
+                         and not c.anonymous and c.karma != 0]
+            if len(my_karmas) > 0:
+                # Remove the previous karma.
+                self.karma -= my_karmas[-1]
+            self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
 
         Comment(text=text, karma=karma, update=self, author=author,
