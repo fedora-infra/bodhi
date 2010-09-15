@@ -30,6 +30,8 @@ import gzip
 
 from hashlib import sha1 as sha
 from xml.dom import minidom
+from kitchen.text.converters import to_bytes
+
 from bodhi.exceptions import RepositoryNotFound
 
 class RepoMetadata(object):
@@ -79,7 +81,7 @@ class RepoMetadata(object):
         mdtype = mdname.split('.')[0]
         destmd = os.path.join(self.repodir, mdname)
         newmd = gzip.GzipFile(destmd, 'wb')
-        newmd.write(md.encode('utf-8'))
+        newmd.write(to_bytes(md, errors='ignore', non_string='passthru'))
         newmd.close()
         print "Wrote:", destmd
 
@@ -102,7 +104,7 @@ class RepoMetadata(object):
         self._insert_element(data, 'timestamp',
                              text=str(os.stat(destmd).st_mtime))
         self._insert_element(data, 'open-checksum', attrs={ 'type' : 'sha' },
-                             text=sha(md.encode('utf-8')).hexdigest())
+                             text=sha(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
 
         #print "           type =", mdtype 
         #print "       location =", 'repodata/' + mdname
