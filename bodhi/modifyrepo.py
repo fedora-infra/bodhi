@@ -63,7 +63,7 @@ class RepoMetadata(object):
         if isinstance(metadata, minidom.Document):
             md = metadata.toxml()
             mdname = 'updateinfo.xml'
-        elif isinstance(metadata, str):
+        elif isinstance(metadata, basestring):
             if os.path.exists(metadata):
                 oldmd = file(metadata, 'r')
                 md = oldmd.read()
