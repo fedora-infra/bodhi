@@ -2546,3 +2546,47 @@ class TestControllers(testutil.DBTest):
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable'
+
+    def test_obsoleting_different_batches_of_updates(self):
+        """
+        Make sure a batch of builds can't obsolete an update that only has a
+        single build
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'nethack-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : '',
+                'autokarma': True,
+                'stable_karma' : 3,
+                'request': 'stable',
+                'unstable_karma' : -3,
+        }
+
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request != 'stable', update.request
+        update.status = 'testing'
+        update.pushed = True
+        update.request = None
+        update.pushed = True
+
+        new_params = {
+                'builds'  : 'kernel-2.6.40-1.fc7,nethack-2.6.32-1.fc7,TurboGears-1.2.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : '',
+                'autokarma': True,
+                'stable_karma' : 3,
+                'request': 'stable',
+                'unstable_karma' : -3,
+        }
+        self.save_update(new_params, session)
+
+        # Make sure it doesn't obsolete the older one
+        assert PackageUpdate.byTitle(new_params['builds']).status == 'pending'
+        assert PackageUpdate.byTitle(params['builds']).status == 'testing'
