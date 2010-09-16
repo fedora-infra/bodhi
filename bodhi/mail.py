@@ -355,8 +355,7 @@ def get_template(update, use_template='fedora_errata_template'):
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
-            info['notes'] = u"Update Information:\n\n%s\n" % \
-                    '\n'.join(wrap(update.notes, width=80))
+            info['notes'] = u"Update Information:\n\n%s\n" % update.notes
             info['notes'] += line
 
         # Add this updates referenced Bugzillas and CVEs
