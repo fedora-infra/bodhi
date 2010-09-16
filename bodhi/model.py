@@ -404,11 +404,12 @@ class PackageUpdate(SQLObject):
             self.obsolete()
             flash_log("%s has been obsoleted" % self.title)
             return
-        elif self.type == 'security' and not self.approved:
-            flash_log("%s is awaiting approval of the Security Team" %
-                      self.title)
-            self.request = action
-            return
+        #elif self.type == 'security' and not self.approved:
+        #    flash_log("%s is awaiting approval of the Security Team" %
+        #              self.title)
+        #    # FIXME: Disallow direct to stable pushes of stable
+        #    self.request = action
+        #    return
         elif action == 'stable' and pathcheck:
             # Make sure we don't break update paths by trying to push out
             # an update that is older than than the latest.
