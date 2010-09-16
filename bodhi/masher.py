@@ -361,6 +361,34 @@ class MashTask(Thread):
         del pending_nvrs, testing_nvrs, stable_nvrs
         return self.safe
 
+    def safe_to_resume(self):
+        """
+        Check for bodhi/koji inconsistencies, and make sure it is safe to
+        perform actions against this set of updates
+        """
+        testing_nvrs = {}
+        stable_nvrs = {}
+        log.debug("Making sure builds are safe to resume")
+
+        # For each release, populate the lists of pending/testing/stable builds
+        for update in self.updates:
+            if not testing_nvrs.has_key(update.release.name):
+                testing_nvrs[update.release.name] = [build['nvr'] for build in
+                        self.koji.listTagged(update.release.testing_tag)]
+                stable_nvrs[update.release.name] = [build['nvr'] for build in
+                        self.koji.listTagged(update.release.stable_tag)]
+
+        for update in self.updates:
+            for build in update.builds:
+                if update.request == 'testing':
+                    if build.nvr not in testing_nvrs[update.release.name]:
+                        self.error_log("%s not tagged as testing" % build.nvr)
+                elif update.request == 'stable':
+                    if build.nvr not in stable_nvrs[update.release.name]:
+                        self.error_log("%s not tagged as stable" % build.nvr)
+
+        return self.safe
+
     def _find_repos(self):
         """
         Based on our updates, build a list of repositories that we need to
@@ -610,15 +638,23 @@ class MashTask(Thread):
         """
         self.success = True
         try:
-            if not self.resume and not self.safe_to_move():
-                log.error("safe_to_move failed! -- aborting")
-                self._unlock()
-                masher.done(self)
-                return
+            if self.resume:
+                if not self.safe_to_resume():
+                    log.error("safe_to_resume failed! -- aborting")
+                    self._unlock()
+                    masher.done(self)
+                    return
             else:
-                log.debug("Builds look OK to me")
+                if not self.safe_to_move():
+                    log.error("safe_to_move failed! -- aborting")
+                    self._unlock()
+                    masher.done(self)
+                    return
+
+            log.debug("Builds look OK to me")
 
             # Update all bug titles for security updates
+            log.info('Updating bug titles for security updates')
             for update in self.updates:
                 if update.type == 'security':
                     for bug in update.bugs:
