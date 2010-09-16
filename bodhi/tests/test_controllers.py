@@ -691,7 +691,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable'
+        assert update.request == 'testing'
 
     def test_unauthorized_request(self):
         session = login()
@@ -1001,7 +1001,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable'
+        assert update.request == 'testing'
         params = {
                 'builds'  : 'nethack-2.10-3.20070831cvs.fc7',
                 'release' : 'Fedora 7',
@@ -1224,7 +1224,7 @@ class TestControllers(testutil.DBTest):
 
         self.save_update(params, session)
         assert PackageUpdate.select().count() == 1
-        assert PackageUpdate.select()[0].request == 'stable'
+        assert PackageUpdate.select()[0].request == 'testing'
         testutil.create_request('/updates/admin/push', headers=session)
 
         # Make sure security updates do not slip in unapproved
@@ -1244,7 +1244,7 @@ class TestControllers(testutil.DBTest):
         #testutil.print_log()
         assert '1 pending request' in cherrypy.response.body[0], cherrypy.response.body[0]
 
-        # Revoke the stable request from the update
+        # Revoke the testingrequest from the update
         testutil.create_request('/updates/revoke/%s' % params['builds'],
                                 headers=session)
 
@@ -1284,15 +1284,15 @@ class TestControllers(testutil.DBTest):
                                 params['builds'], method='POST',
                                 headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable'
-        assert len(update.comments) == 2
-        assert update.get_comments()[-1].text == 'This update has been submitted for stable by guest. '
+        assert update.request == 'testing'
+        assert len(update.comments) == 1
+        assert update.get_comments()[-1].text == 'This update has been submitted for testing by guest. '
         testutil.create_request('/updates/request/obsolete/%s' %
                                 params['builds'], method='POST',
                                 headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         print update
-        assert len(update.comments) == 3
+        assert len(update.comments) == 2
         assert update.get_comments()[-1].text == 'This update has been obsoleted'
         assert update.get_comments()[-1].author == 'bodhi'
 
@@ -2356,7 +2356,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable', update.request
+        assert update.request == 'testing', update.request
 
     def test_duplicate_packages_for_same_release(self):
         """
