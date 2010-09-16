@@ -1053,6 +1053,34 @@ class TestControllers(testutil.DBTest):
         assert update.approved
         assert update.request == 'testing'
 
+    def test_security_approval_to_stable(self):
+        """
+        Make sure we disallow pushing directly to stable after security approval
+        """
+        session = login(group='security_respons')
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'stable',
+                'autokarma': False,
+        }
+        #testutil.capture_log(['bodhi.model', 'bodhi.controllers', 'bodhi.admin', 'bodhi.masher', 'bodhi.util'])
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        #assert False, testutil.get_log()
+        assert update.request == 'testing', update.request
+        assert not update.approved
+
+        url = '/updates/approve?update=' + params['builds']
+        testutil.create_request(url, headers=session, method='POST')
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.approved
+        assert update.request == 'testing', update.request
+
     def test_cached_acls(self):
         """
         Make sure that the list of committers for this package is getting
