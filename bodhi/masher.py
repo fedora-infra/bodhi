@@ -618,6 +618,12 @@ class MashTask(Thread):
             else:
                 log.debug("Builds look OK to me")
 
+            # Update all bug titles for security updates
+            for update in self.updates:
+                if update.type == 'security':
+                    for bug in update.bugs:
+                        bug.fetch_details()
+
             # Move koji build tags
             if not self.resume and len(self.updates):
                 self.move_builds()
