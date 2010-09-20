@@ -287,20 +287,21 @@ class ExtendedMetadata(object):
                 if arch == 'SRPMS':
                     continue
                 filename = ''
-                if self.repo.startswith('f'):
-                    release = self.repo[1:].split('-')[0]
+                reponame = os.path.basename(self.repo)
+                if reponame.startswith('f'):
+                    release = reponame[1:].split('-')[0]
                     filename = 'F-%s-%s-' % (release, arch)
-                    if 'testing' in self.repo:
+                    if 'testing' in reponame:
                         filename += 'tu'
                     else:
                         filename += 'u'
-                elif self.repo.startswith('el'):
-                    release = self.repo[2:].split('-')[0]
+                elif reponame.startswith('el'):
+                    release = reponame[2:].split('-')[0]
                     filename = 'E-%s-%s' % (release, arch)
-                    if 'testing' in self.repo:
+                    if 'testing' in reponame:
                         filename += '-t'
                 else:
-                    log.error('Unknown repo %s' % self.repo)
+                    log.error('Unknown repo %s' % reponame)
                     return
 
                 tags_url = config.get('pkgtags_url') + filename
