@@ -1050,7 +1050,8 @@ class PackageUpdate(SQLObject):
         """ Return the number of days that this update has been in testing """
         timestamp = None
         for comment in self.comments[::-1]:
-            if comment.text == 'This update has been pushed to testing':
+            if comment.text == 'This update has been pushed to testing' and \
+                    comment.author == 'bodhi':
                 timestamp = comment.timestamp
                 if self.status == 'testing':
                     return (datetime.utcnow() - timestamp).days
@@ -1059,7 +1060,8 @@ class PackageUpdate(SQLObject):
         if not timestamp:
             return
         for comment in self.comments:
-            if comment.text == 'This update has been pushed to stable':
+            if comment.text == 'This update has been pushed to stable' and \
+                    comment.author == 'bodhi':
                 return (comment.timestamp - timestamp).days
         return (datetime.utcnow() - timestamp).days
 
