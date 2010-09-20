@@ -2590,3 +2590,46 @@ class TestControllers(testutil.DBTest):
         # Make sure it doesn't obsolete the older one
         assert PackageUpdate.byTitle(new_params['builds']).status == 'pending'
         assert PackageUpdate.byTitle(params['builds']).status == 'testing'
+
+    def test_push_EPEL_before_tested(self):
+        """
+        Try pushing an epel package to stable after 13 days in testing, which
+        will fail, and then try after 14 days.
+        """
+        session = login()
+        rel = Release(name='EL5', long_name='Fedora EPEL 5',
+                      id_prefix='FEDORA-EPEL', dist_tag='dist-5E-epel')
+        params = {
+                'builds'  : 'TurboGears-2.0.9-1.el5',
+                'release' : 'Fedora EPEL 5',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : '',
+                'autokarma': True,
+                'stable_karma' : 1,
+                'request': 'stable',
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing', update.request
+
+        update.comment('This update has been pushed to testing', author='bodhi')
+        update.comments[-1].timestamp -= timedelta(days=13)
+
+        assert update.days_in_testing == 13
+
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing', update.request
+
+        update.comments[-2].timestamp -= timedelta(days=1)
+        assert update.days_in_testing == 14, update.days_in_testing
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        log = testutil.get_log()
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable', log
