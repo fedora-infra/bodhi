@@ -778,7 +778,7 @@ class MashTask(Thread):
         return updates
 
     def get_security_updates(self, release):
-        release = Release.select(Release.q.long_name==release)
+        release = Release.select(Release.q.long_name==release)[0]
         return PackageUpdate.select(
                 AND(PackageUpdate.q.releaseID == release.id,
                     PackageUpdate.q.type == 'security',
