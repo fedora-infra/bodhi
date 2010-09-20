@@ -474,8 +474,9 @@ class PackageUpdate(SQLObject):
                 # If we haven't met the stable karma requirements, check if it has met
                 # the mandatory time-in-testing requirements
                 if self.release.mandatory_days_in_testing:
-                    if not self.met_testing_requirements:
-                        flash_notes = 'This update has not yet met the minimum testing requirements defined in the <a href="https://fedoraproject.org/wiki/Package_update_acceptance_criteria">Package Update Acceptance Criteria</a>'
+                    if not self.met_testing_requirements and \
+                       not self.meets_testing_requirements:
+                        flash_notes = config.get('not_yet_tested_msg')
                         if self.status == 'testing':
                             self.request = None
                             flash_log(flash_notes)
