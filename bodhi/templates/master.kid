@@ -142,7 +142,7 @@ $(document).ready(function() {
         Copyright &copy; 2007-2010 Red Hat, Inc. and others.  All Rights Reserved.<br/>
         Licensed under the GNU Public License v2 or later.<br />
         The Fedora Project is maintained and driven by the community and sponsored by Red Hat.<br/>This is a community maintained site.  Red Hat is not responsible for content.<br/>
-        [ <a href="http://fedoraproject.org/wiki/Legal">Legal</a>, <a href="http://fedoraproject.org/wiki/Legal/TrademarkGuidelines">Trademark Guidelines</a>, <a href="https://fedorahosted.org/bodhi">Source Code</a> ]
+        [ <a href="https://fedoraproject.org/wiki/Legal">Legal</a>, <a href="https://fedoraproject.org/wiki/Legal/TrademarkGuidelines">Trademark Guidelines</a>, <a href="https://fedorahosted.org/bodhi">Source Code</a> ]
     </div>
     <!-- footer END -->
 
