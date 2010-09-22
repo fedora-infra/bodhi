@@ -793,15 +793,19 @@ class MashTask(Thread):
             log.debug("Sending digest for updates-testing %s" % prefix)
             maildata = u''
             try:
-                maildata += u'The following %s Security updates need testing:\n\n' % prefix
-                for update in self.get_security_updates(prefix):
-                    maildata += u'    %s\n' % config.get('base_address') + url(update.get_url())
-                maildata += '\n\n'
+                security_updates = self.get_security_updates(prefix)
+                if security_updates:
+                    maildata += u'The following %s Security updates need testing:\n\n' % prefix
+                    for update in security_updates:
+                        maildata += u'    %s\n' % (config.get('base_address') + url(update.get_url()))
+                    maildata += '\n\n'
 
-                maildata += u'The following %s Critical Path updates have yet to be approved:\n\n' % prefix
-                for update in self.get_unapproved_critpath_updates(prefix):
-                    maildata += u'    %s\n' % config.get('base_address') + url(update.get_url())
-                maildata += '\n\n'
+                critpath_updates = self.get_unapproved_critpath_updates(prefix)
+                if critpath_updates:
+                    maildata += u'The following %s Critical Path updates have yet to be approved:\n\n' % prefix
+                    for update in self.get_unapproved_critpath_updates(prefix):
+                        maildata += u'    %s\n' % (config.get('base_address') + url(update.get_url()))
+                    maildata += '\n\n'
             except Exception, e:
                 log.exception(e)
 
