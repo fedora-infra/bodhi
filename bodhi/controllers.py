@@ -647,7 +647,10 @@ class Root(controllers.RootController):
                 raise InvalidUpdateException(params)
             except Exception, e:
                 log.exception(e)
-                flash_log(str(e))
+                if 'dbname' in str(e):
+                    flash_log('Error: database connection limit reached.  Please try again later')
+                else:
+                    flash_log(str(e))
                 raise InvalidUpdateException(params)
 
             # Verify that the user is either in the committers list, or is
