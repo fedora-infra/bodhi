@@ -718,6 +718,13 @@ class Root(controllers.RootController):
                 # and bring the update back to a pending state
                 edited.unpush()
 
+                # Remove the appropriate builds
+                for build in removed_builds:
+                    b = PackageBuild.byNvr(build)
+                    edited.removePackageBuild(b)
+                    if len(b.updates) == 0:
+                        b.destroySelf()
+
                 # Refresh the tags for these builds
                 for build in edited.builds:
                     if build.nvr in buildinfo:

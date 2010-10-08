@@ -2633,3 +2633,44 @@ class TestControllers(testutil.DBTest):
         log = testutil.get_log()
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable', log
+
+    def test_replace_build_with_newer(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.8-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'autokarma' : True,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+
+        # Add another build, for a different release
+        params = {
+            'builds'  : 'TurboGears-1.0.8-1.fc7.1',
+            'release' : 'Fedora 7',
+            'type_'   : 'bugfix',
+            'cves'    : '',
+            'bugs'    : '',
+            'notes'   : '',
+            'edited'  : 'TurboGears-1.0.8-1.fc7',
+        }
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        logs = testutil.get_log()
+
+        up = PackageUpdate.byTitle('TurboGears-1.0.8-1.fc7.1')
+        assert up.comments[-1].text == 'guest has edited this update. New build(s): TurboGears-1.0.8-1.fc7.1. Removed build(s): TurboGears-1.0.8-1.fc7.'
+        assert len(up.builds) == 1, logs
+        try:
+            PackageBuild.byNvr('TurboGears-1.0.8-1.fc7')
+            assert False, "Removed build not deleted from database!"
+        except SQLObjectNotFound:
+            pass
+
