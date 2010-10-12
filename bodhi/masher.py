@@ -766,7 +766,7 @@ class MashTask(Thread):
             self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
     def get_unapproved_critpath_updates(self, release):
-        release = Release.select(Release.q.long_name==release)
+        release = Release.select(Release.q.long_name==release)[0]
         updates = []
         for update in PackageUpdate.select(
                 AND(PackageUpdate.q.releaseID == release.id,
