@@ -1969,10 +1969,12 @@ class TestControllers(testutil.DBTest):
         assert update.critpath
         assert update.critpath_approved
         #assert False, testutil.get_log()
-        assert len(update.comments) == 3, update.comments
-        assert update.comments[1].author == 'bob', update.comments
-        assert update.comments[2].author == 'bodhi', update.comments
-        assert update.comments[2].text == 'Critical path update approved'
+        assert len(update.comments) == 4, update.comments
+        assert update.comments[1].author == 'bodhi', update.comments
+        assert update.comments[1].text == config.get('stablekarma_comment')
+        assert update.comments[2].author == 'bob', update.comments
+        assert update.comments[-1].author == 'bodhi', update.comments
+        assert update.comments[-1].text == 'Critical path update approved'
 
     def test_critpath_request_complete(self):
         """

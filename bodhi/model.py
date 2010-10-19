@@ -808,6 +808,7 @@ class PackageUpdate(SQLObject):
                 if (self.stable_karma < min_karma and self.critpath_approved and
                     self.karma >= min_karma and self.pushable):
                     self.request = 'stable'
+                    self.comment(config.get('stablekarma_comment'), author='bodhi')
                     mail.send(self.submitter, 'stablekarma', self)
                     mail.send_admin('stablekarma', self)
                 # If we're approved and meet the minimum requirements, then
@@ -816,6 +817,7 @@ class PackageUpdate(SQLObject):
                     self.karma >= self.stable_karma and
                     self.karma >= min_karma):
                     self.request = 'stable'
+                    self.comment(config.get('stablekarma_comment'), author='bodhi')
                     mail.send(self.submitter, 'stablekarma', self)
                     mail.send_admin('stablekarma', self)
 
@@ -825,6 +827,7 @@ class PackageUpdate(SQLObject):
                 self.request = 'stable'
                 self.pushed = False
                 #self.date_pushed = None
+                self.comment(config.get('stablekarma_comment'), author='bodhi')
                 mail.send(self.submitter, 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
 
