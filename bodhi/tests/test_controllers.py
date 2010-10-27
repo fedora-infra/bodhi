@@ -2176,7 +2176,8 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/metrics/?tg_format=json', method='GET')
         response = simplejson.loads(cherrypy.response.body[0])
         assert 'F7' in response
-        assert response['F7']['TopTestersMetric']['data'] == []
+        print response
+        assert response['F7']['TopTestersMetric']['data'] == [], response
 
     def test_metrics_html(self):
         release = create_release()
@@ -2676,3 +2677,45 @@ class TestControllers(testutil.DBTest):
         except SQLObjectNotFound:
             pass
 
+    def test_push_EPEL_critpath_before_tested(self):
+        """
+        Try pushing an epel package to stable after 13 days in testing, which
+        will fail, and then try after 14 days.
+        """
+        session = login()
+        rel = Release(name='EL5', long_name='Fedora EPEL 5',
+                      id_prefix='FEDORA-EPEL', dist_tag='dist-5E-epel')
+        params = {
+                'builds'  : 'kernel-2.6.31-1.el5',
+                'release' : 'Fedora EPEL 5',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : '',
+                'autokarma': True,
+                'stable_karma' : 1,
+                'request': 'stable',
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing', update.request
+
+        update.comment('This update has been pushed to testing', author='bodhi')
+        update.comments[-1].timestamp -= timedelta(days=13)
+
+        assert update.days_in_testing == 13
+
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing', update.request
+
+        update.comments[-2].timestamp -= timedelta(days=1)
+        assert update.days_in_testing == 14, update.days_in_testing
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                               method='POST', headers=session)
+        log = testutil.get_log()
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'stable', log
