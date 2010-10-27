@@ -641,7 +641,6 @@ class MashTask(Thread):
             if self.resume:
                 if not self.safe_to_resume():
                     log.error("safe_to_resume failed! -- aborting")
-                    self._unlock()
                     masher.done(self)
                     return
             else:
