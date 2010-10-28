@@ -667,7 +667,8 @@ class MashTask(Thread):
             # TODO: Once AutoQA is Good To Go, then we'll want to prevent
             # updates from being pushed if they have not gotten the appropriate 
             # karma from AutoQA.  For now, bodhi is simply handling the pending tags.
-            self.remove_pending_tags()
+            if not self.resume:
+                self.remove_pending_tags()
 
             # Mash our repositories
             self.mash()
