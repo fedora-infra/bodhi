@@ -772,6 +772,7 @@ class MashTask(Thread):
         for update in PackageUpdate.select(
                 AND(PackageUpdate.q.releaseID == release.id,
                     PackageUpdate.q.status != 'stable',
+                    PackageUpdate.q.status != 'obsolete',
                     PackageUpdate.q.request == None),
                 orderBy=PackageUpdate.q.date_submitted).reversed():
             if update.critpath and not update.critpath_approved:
