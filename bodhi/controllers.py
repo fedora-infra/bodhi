@@ -315,7 +315,14 @@ class Root(controllers.RootController):
             # The package argument may be an update, build or package.
             if package:
                 try:
-                    update = PackageUpdate.byTitle(package)
+                    try:
+                        update = PackageUpdate.byTitle(package)
+                    except:
+                        update = PackageUpdate.select(PackageUpdate.q.updateid==package)
+                        if update.count():
+                            update = update[0]
+                        else:
+                            raise SQLObjectNotFound
                     if not release and not status and not type_:
                         updates = [update]
                     else:
@@ -1239,7 +1246,14 @@ class Root(controllers.RootController):
             flash_log("Karma must be one of (1, 0, -1), not %s" % repr(karma))
         else:
             try:
-                update = PackageUpdate.byTitle(title)
+                try:
+                    update = PackageUpdate.byTitle(title)
+                except SQLObjectNotFound:
+                    update = PackageUpdate.select(PackageUpdate.q.updateid == title)
+                    if update.count():
+                        update = update[0]
+                    else:
+                        raise SQLObjectNotFound
                 if text == 'None':
                     text = None
                 else:

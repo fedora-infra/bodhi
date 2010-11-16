@@ -972,6 +972,15 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
 
+        # Test querying by updateid
+        up = PackageUpdate.byTitle(params['builds'])
+        up.assign_id()
+        url = '/updates/list?' + urllib.urlencode({
+                'package'    : up.updateid
+        })
+        testutil.create_request(url, method='GET')
+        assert "1 update found" in cherrypy.response.body[0]
+
     def test_default_request(self):
         """
         Verify that updates are automatically submitted to testing, and that
@@ -2719,3 +2728,29 @@ class TestControllers(testutil.DBTest):
         log = testutil.get_log()
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable', log
+
+    def test_comment_by_updateid(self):
+        """ Ensure we can comment on updates using the updateid """
+        session = login()
+        create_release()
+        params = {
+                'builds'         : 'TurboGears-1.0.8-1.fc7',
+                'type_'          : 'bugfix',
+                'bugs'           : '',
+                'notes'          : 'foobar',
+                'request'        : 'Stable',
+                'suggest_reboot' : True,
+                'autokarma'      : True,
+                'stable_karma'   : 5,
+                'unstable_karma' : -5
+        }
+        testutil.capture_log(['bodhi.controller', 'bodhi.util'])
+        self.save_update(params, session)
+        log = testutil.get_log()
+        up = PackageUpdate.byTitle(params['builds'])
+        up.assign_id()
+        assert up.updateid
+        testutil.create_request('/updates/comment/foobar/%s' % up.updateid,
+                                method='POST', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.comments[-1].text == 'foobar', update.comments
