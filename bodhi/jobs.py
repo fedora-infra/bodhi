@@ -86,7 +86,7 @@ def nagmail():
     ]
     oldname = None
     mail_admin = False
-    mail_proventesters = False
+    #mail_proventesters = False
 
     for name, query, date in queries:
         for update in query:
@@ -106,7 +106,7 @@ def nagmail():
                         oldname = name
                         name = 'old_testing_critpath'
                         mail_admin = True
-                        mail_proventesters = True
+                        #mail_proventesters = True
 
                 log.info("[%s] Nagging %s about %s" % (name, update.submitter,
                                                        update.title))
@@ -114,9 +114,9 @@ def nagmail():
                 if mail_admin:
                     mail.send_admin(name, update)
                     mail_admin = False
-                if mail_proventesters:
-                    mail.send(config.get('proventesters_email'), name, update)
-                    mail_proventesters = False
+                #if mail_proventesters:
+                #    mail.send(config.get('proventesters_email'), name, update)
+                #    mail_proventesters = False
 
                 nagged[name] = datetime.utcnow()
                 update.nagged = nagged
