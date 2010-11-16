@@ -53,7 +53,7 @@ karma = "<img src=\"%s\" align=\"top\" /> <b>%d</b>" % (tg.url('/static/images/k
 
 statusinfo = {
     'pending': 'Pending - <b>This update has yet to be pushed to a repository.  If it has a "testing" request, that means that it is in the queue to be pushed to the updates-testing repository. This process requires a release engineer to sign the packages and manually trigger the push, which usually occurs on a daily basis.</b>',
-    'testing': 'Testing - <b>This update is currently in the updates-testing repository. Once it meets the minimum karma or time-in-testing requirements, it can then be pushed to the stable updates repository. If wish to install this update and you do not have the updates-testing repo enabled, you can run `yum --enablerepo=updates-testing install package`.</b>',
+    'testing': 'Testing - <b>This update is currently in the updates-testing repository. Once it meets the minimum karma or time-in-testing requirements, it can then be pushed to the stable updates repository. If wish to install this update and you do not have the updates-testing repo enabled, you can run `yum --enablerepo=%s install package`.</b>' % (update.release.collection_name == 'Fedora EPEL' and 'epel-testing' or 'updates-testing',),
     'obsolete': 'Obsolete - <b>This update has been obsoleted by a newer update.</b>',
     'stable': 'Stable - <b>This update has been released to the stable updates repository and is available for all users to install via the standard update mechanisms.</b>',
 }
