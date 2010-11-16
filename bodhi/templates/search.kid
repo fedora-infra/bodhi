@@ -20,6 +20,9 @@
     <table class="list">
         <tr class="list">
             <th class="list">
+                <b>ID</b>
+            </th>
+            <th class="list">
                 <b>Update</b>
             </th>
             <th class="list">
@@ -46,6 +49,9 @@
         </tr>
         <?python row_color = "#FFFFFF" ?>
         <tr class="list" bgcolor="${row_color}" py:for="update in updates">
+            <td class="list">
+                ${update.updateid}
+            </td>
             <td class="list" width="35%">
                 <a class="list" href="${tg.url(update.get_url())}">${update.title.replace(',', ', ')}</a>
             </td>
