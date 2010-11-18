@@ -1,5 +1,6 @@
 #!/usr/bin/python -tt
 """ Start script for bodhi """
+__requires__='bodhi'
 from bodhi.commands import start, ConfigurationError
 
 if __name__ == '__main__':
