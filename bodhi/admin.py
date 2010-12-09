@@ -123,8 +123,9 @@ class AdminController(Controller, SecureResource):
                 #                  PackageUpdate.select(
                 #                      PackageUpdate.q.request != None))
                 for update in requests:
-                    if update.type == 'security' and not update.approved:
-                        continue
+                    # Disable security approval requirement
+                    #if update.type == 'security' and not update.approved:
+                    #    continue
                     updates.append(update)
         return dict(updates=updates, resume=resume)
 
