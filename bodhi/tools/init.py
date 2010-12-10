@@ -17,6 +17,8 @@
 
 """ Bodhi Initialization """
 
+__requires__ = 'bodhi'
+
 from os.path import isfile
 
 from turbogears import config, update_config

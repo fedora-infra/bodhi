@@ -19,6 +19,8 @@ This script pickles all updates/bugs/cves/comments and writes it out to disk
 in the format of bodhi-pickledb-YYYYMMDD.HHMM
 """
 
+__requires__ = 'bodhi'
+
 import sys
 import time
 import cPickle as pickle

@@ -8,6 +8,8 @@ This script will populate your bodhi instance with sample releases, updates,
 comments, etc.
 """
 
+__requires__ = 'bodhi'
+
 from turbogears.database import PackageHub
 from bodhi.util import load_config
 from bodhi.exceptions import DuplicateEntryError
