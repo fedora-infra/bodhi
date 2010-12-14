@@ -5,6 +5,8 @@ A tool for generating statistics for each release.
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
 """
 
+__requires__ = 'bodhi'
+
 from operator import itemgetter
 from sqlobject import AND
 from datetime import timedelta
