@@ -975,9 +975,18 @@ class Root(controllers.RootController):
                         log.debug("Updating newly added bug: %s" % bug)
                         try:
                             Bugzilla.byBz_id(bug).add_comment(update,
-                                "%s has been submitted as an update for %s.\n%s" %
-                                    (update.title, release.long_name,
-                                     config.get('base_address') + tg_url(update.get_url())))
+                                "Package %s:\n"
+                                "* should fix your issue,\n"
+                                "* was pushed to the %s updates-testing repository,\n"
+                                "* should be available at your local mirror within two days.\n"
+                                "Update it with:\n"
+                                "# su -c 'yum update --enablerepo=updates-testing %s'\n"
+                                "as soon as you are able to, then reboot.\n"
+                                "Please go to the following url:\n"
+                                "%s\n"
+                                "then log in and leave karma (feedback)." %
+                                    (update.title, release.long_name, update.title,
+                                    config.get('base_address') + tg_url(update.get_url())))
                         except SQLObjectNotFound:
                             log.debug('Bug #%d not found in our database' % bug)
 
@@ -996,9 +1005,18 @@ class Root(controllers.RootController):
                 # Comment on all bugs
                 for bug in update.bugs:
                     bug.add_comment(update,
-                        "%s has been submitted as an update for %s.\n%s" %
-                            (update.title, release.long_name,
-                             config.get('base_address') + tg_url(update.get_url())))
+                        "Package %s:\n"
+                        "* should fix your issue,\n"
+                        "* was pushed to the %s updates-testing repository,\n"
+                        "* should be available at your local mirror within two days.\n"
+                        "Update it with:\n"
+                        "# su -c 'yum update --enablerepo=updates-testing %s'\n"
+                        "as soon as you are able to, then reboot.\n"
+                        "Please go to the following url:\n"
+                        "%s\n"
+                        "then log in and leave karma (feedback)." %
+                            (update.title, release.long_name, update.title,
+                            config.get('base_address') + tg_url(update.get_url())))
 
             # If a request is specified, make it.  By default we're submitting
             # new updates directly into testing
