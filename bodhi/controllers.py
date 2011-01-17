@@ -439,6 +439,10 @@ class Root(controllers.RootController):
             raise redirect(update.get_url())
         flash_log("%s request revoked" % update.request.title())
         mail.send_admin('revoke', update)
+        if update.request == 'testing':
+            update.remove_tag(update.release.pending_testing_tag)
+        elif update.request == 'stable':
+            update.remove_tag(update.release.pending_stable_tag)
         update.request = None
         raise redirect(update.get_url())
 

@@ -807,6 +807,10 @@ class PackageUpdate(SQLObject):
                 # stable once it has met the requirements.
                 if (self.stable_karma < min_karma and self.critpath_approved and
                     self.karma >= min_karma and self.pushable):
+                    if self.request == 'testing':
+                        self.remove_tag(self.release.pending_testing_tag)
+                    if self.request != 'stable':
+                        self.add_tag(self.release.pending_stable_tag)
                     self.request = 'stable'
                     self.comment(config.get('stablekarma_comment'), author='bodhi')
                     mail.send(self.submitter, 'stablekarma', self)
@@ -816,6 +820,10 @@ class PackageUpdate(SQLObject):
                 if (self.critpath_approved and self.pushable and
                     self.karma >= self.stable_karma and
                     self.karma >= min_karma):
+                    if self.request == 'testing':
+                        self.remove_tag(self.release.pending_testing_tag)
+                    if self.request != 'stable':
+                        self.add_tag(self.release.pending_stable_tag)
                     self.request = 'stable'
                     self.comment(config.get('stablekarma_comment'), author='bodhi')
                     mail.send(self.submitter, 'stablekarma', self)
@@ -824,6 +832,10 @@ class PackageUpdate(SQLObject):
         if self.stable_karma != 0 and self.stable_karma == self.karma:
             if self.pushable:
                 log.info("Automatically marking %s as stable" % self.title)
+                if self.request == 'testing':
+                    self.remove_tag(self.release.pending_testing_tag)
+                if self.request != 'stable':
+                    self.add_tag(self.release.pending_stable_tag)
                 self.request = 'stable'
                 self.pushed = False
                 #self.date_pushed = None
