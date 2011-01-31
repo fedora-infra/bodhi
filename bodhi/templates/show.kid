@@ -57,6 +57,11 @@ statusinfo = {
     'obsolete': 'Obsolete - <b>This update has been obsoleted by a newer update.</b>',
     'stable': 'Stable - <b>This update has been released to the stable updates repository and is available for all users to install via the standard update mechanisms.</b>',
 }
+
+## Build a list of test cases for this update
+test_cases = []
+for build in update.builds:
+    test_cases.extend(build.package.get_test_cases())
 ?>
 
 <body>
@@ -244,6 +249,13 @@ statusinfo = {
         <a href="${bug.get_url()}">${bug.bz_id}</a> - ${XML(title)}
      </div>
     </blockquote>
+  </div>
+
+  <div py:if="test_cases">
+    <div class="show">Test Cases</div>
+    <ul py:for="test in test_cases">
+      <li><a href="https://fedoraproject.org/wiki/${test}">${test.replace('QA:', '')}</a></li>
+    </ul>
   </div>
 
   <div class="show">Feedback</div>

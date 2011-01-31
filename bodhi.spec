@@ -63,6 +63,7 @@ Requires: httpd
 Requires: python-markdown
 Requires: python-hashlib
 Requires: python-kitchen
+Requires: python-simplemediawiki
 
 
 %description server
@@ -120,6 +121,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Mon Jan 31 2011 Luke Macken <lmacken@redhat.com> - 0.7.11
+- Require python-simplemediawiki for our test case integration
+
 * Mon Jan 10 2011 Luke Macken <lmacken@redhat.com> - 0.7.10-1
 - 0.7.10 release
 

@@ -170,6 +170,37 @@ class Package(SQLObject):
         return dict(name=self.name, suggest_reboot=self.suggest_reboot,
                     committers=self.committers)
 
+    def get_test_cases(self):
+        """ Get a list of test cases from the wiki """
+        from simplemediawiki import MediaWiki
+        wiki = MediaWiki('https://fedoraproject.org/w/api.php')
+        cat_page = 'Category:Package %s test cases' % self.name
+        limit = 10
+
+        def list_categorymembers(wiki, cat_page, limit=10):
+            # Build query arguments and call wiki
+            query = dict(action='query', list='categorymembers', cmtitle=cat_page)
+            response = wiki.call(query)
+            members = [entry.get('title') for entry in
+                       response.get('query',{}).get('categorymembers',{})
+                       if entry.has_key('title')]
+
+            # Determine whether we need to recurse
+            idx = 0
+            while True:
+                if idx >= len(members) or limit <= 0:
+                    break
+                # Recurse?
+                if members[idx].startswith('Category:') and limit > 0:
+                    members.extend(list_categorymembers(wiki, members[idx], limit-1))
+                    members.remove(members[idx]) # remove Category from list
+                else:
+                    idx += 1
+
+            return members
+
+        return list_categorymembers(wiki, cat_page)
+
 
 class PackageBuild(SQLObject):
     nvr             = UnicodeCol(notNone=True, alternateID=True)
