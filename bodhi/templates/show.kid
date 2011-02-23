@@ -254,7 +254,7 @@ for build in update.builds:
   <div py:if="test_cases">
     <div class="show">Test Cases</div>
     <ul py:for="test in test_cases">
-      <li style="line-height:0px;"><a href="https://fedoraproject.org/wiki/${test}">${test.replace('QA:', '')}</a></li>
+      <li style="line-height:0px;"><a href="https://fedoraproject.org/wiki/${test}">${test.replace('QA:Testcase', '')}</a></li>
     </ul>
   </div>
 
