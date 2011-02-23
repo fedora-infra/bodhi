@@ -122,6 +122,12 @@ class Release(SQLObject):
 
     @property
     def mandatory_days_in_testing(self):
+        name = self.name.lower().replace('-', '')
+        status = config.get('%s.status' % name, None)
+        if status:
+            days = config.get('%s.%s.mandatory_days_in_testing' % (name, status))
+            if days:
+                return days
         return config.get('%s.mandatory_days_in_testing' %
                           self.id_prefix.lower().replace('-', '_'))
 
@@ -1062,6 +1068,16 @@ class PackageUpdate(SQLObject):
     @property
     def critpath_approved(self):
         """ Return whether or not this critpath update has been approved """
+        release_name = self.release.name.lower().replace('-', '')
+        status = config.get('%s.status' % release_name, None)
+        if status:
+            num_admin_approvals = config.get('%s.%s.critpath.num_admin_approvals' % (
+                    release_name, status), None)
+            min_karma = config.get('%s.%s.critpath.min_karma' % (
+                    release_name, status), None)
+            if num_admin_approvals and min_karma:
+                return self.num_admin_approvals >= num_admin_approvals and \
+                        self.karma >= min_karma
         return self.num_admin_approvals >= config.get(
                 'critpath.num_admin_approvals', 2) and \
                self.karma >= config.get('critpath.min_karma', 2)
