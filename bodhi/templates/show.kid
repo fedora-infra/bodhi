@@ -57,11 +57,6 @@ statusinfo = {
     'obsolete': 'Obsolete - <b>This update has been obsoleted by a newer update.</b>',
     'stable': 'Stable - <b>This update has been released to the stable updates repository and is available for all users to install via the standard update mechanisms.</b>',
 }
-
-## Build a list of test cases for this update
-test_cases = []
-for build in update.builds:
-    test_cases.extend(build.package.get_test_cases())
 ?>
 
 <body>
@@ -251,9 +246,9 @@ for build in update.builds:
     </blockquote>
   </div>
 
-  <div py:if="test_cases">
+  <div py:if="update.nagged and 'test_cases' in update.nagged.keys() and update.nagged['test_cases']">
     <div class="show">Test Cases</div>
-    <ul py:for="test in test_cases">
+    <ul py:for="test in update.nagged['test_cases']">
       <li style="line-height:0px;"><a href="https://fedoraproject.org/wiki/${test}">${test.replace('QA:Testcase', '')}</a></li>
     </ul>
   </div>

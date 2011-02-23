@@ -949,7 +949,6 @@ class Root(controllers.RootController):
                 log.error("Unknown exception thrown from python-bugzilla!")
                 note.insert(0, "Unable to access one or more bugs.  Exception: %s" % e)
 
-
             # If there are any security bugs, make sure this update is
             # properly marked as a security update
             if update.type != 'security':
@@ -957,6 +956,22 @@ class Root(controllers.RootController):
                     if bug.security:
                         update.type = 'security'
                         break
+
+            # Append links to unit tests in the update notes
+            try:
+                test_cases = []
+                for build in update.builds:
+                    test_cases.extend(build.package.get_test_cases())
+                # HACK: shove the unit tests into this PickleCol
+                if test_cases:
+                    if not update.nagged:
+                        nagged = {}
+                    else:
+                        nagged = update.nagged
+                    nagged['test_cases'] = test_cases
+                    update.nagged = nagged
+            except Exception, e:
+                log.exception(e)
 
             # Send out mail notifications
             if edited:
