@@ -948,6 +948,13 @@ class PackageUpdate(SQLObject):
         log.debug("Obsoleting %s" % self.title)
         if self.status != 'pending':
             self.untag()
+
+        # Remove the appropriate pending tags
+        if self.request == 'testing':
+            self.remove_tag(self.release.pending_testing_tag)
+        elif self.request == 'stable':
+            self.remove_tag(self.release.pending_stable_tag)
+
         self.status = 'obsolete'
         self.request = None
         if newer:
