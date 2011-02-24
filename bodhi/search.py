@@ -45,6 +45,7 @@ class SearchController(Controller):
               limit=20, max_limit=1000)
     def default(self, search, *args, **kw):
         results = set()
+        search = search.strip()
 
         # Search name-version-release
         map(results.add, PackageUpdate.select(
