@@ -1,10 +1,12 @@
 AUTHORS
 COPYING
 MANIFEST.in
+Makefile
 README
 bodhi.cfg
 bodhi.spec
 setup.py
+start-bodhi
 apache/bodhi.conf
 apache/bodhi.wsgi
 bodhi/__init__.py
