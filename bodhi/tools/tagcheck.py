@@ -21,6 +21,46 @@ def main():
     tasks = []
     broke = set()
 
+    # Clean up any stray pending tags
+    for release in Release.select():
+        print "Finding all pending-testing builds..."
+        if release.name.startswith('EL'):
+            continue
+
+        tag = release.pending_testing_tag
+        tagged = [build['nvr'] for build in koji.listTagged(tag)]
+        for nvr in tagged:
+            try:
+                build = PackageBuild.byNvr(nvr)
+                for update in build.updates:
+                    if update.status in ('testing', 'stable', 'obsolete'):
+                        print "%s %s" % (nvr, update.status)
+                        if '--fix' in sys.argv:
+                            print "Untagging %s" % nvr
+                            koji.untagBuild(tag, nvr, force=True)
+            except SQLObjectNotFound:
+                print "Can't find build for %s" % nvr
+                if '--fix' in sys.argv:
+                    print "Untagging %s" % nvr
+                    koji.untagBuild(tag, nvr, force=True)
+
+        tag = release.pending_stable_tag
+        tagged = [build['nvr'] for build in koji.listTagged(tag)]
+        for nvr in tagged:
+            try:
+                build = PackageBuild.byNvr(nvr)
+                for update in build.updates:
+                    if update.status in ('pending', 'obsolete'):
+                        print "%s %s" % (nvr, update.status)
+                        if '--fix' in sys.argv:
+                            print "Untagging %s" % nvr
+                            koji.untagBuild(tag, nvr, force=True)
+            except SQLObjectNotFound:
+                print "Can't find build for %s" % nvr
+                if '--fix' in sys.argv:
+                    print "Untagging %s" % nvr
+                    koji.untagBuild(tag, nvr, force=True)
+
     # Check for testing updates that aren't tagged properly
     for update in PackageUpdate.select(PackageUpdate.q.status=='testing'):
         dest_tag = update.release.testing_tag
@@ -99,7 +139,6 @@ def main():
         else:
             print "Error moving tags!"
             print "bad_tasks = %r" % bad_tasks
-
 
 
 if __name__ == '__main__':
