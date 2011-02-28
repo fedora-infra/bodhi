@@ -102,6 +102,8 @@ class Release(SQLObject):
 
     @property
     def pending_stable_tag(self):
+        if self.locked:
+            return '%s-updates-pending' % self.dist_tag
         return self.stable_tag + '-pending'
 
     @property
