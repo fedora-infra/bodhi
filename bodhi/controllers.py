@@ -1004,7 +1004,8 @@ class Root(controllers.RootController):
                                 "Please go to the following url:\n"
                                 "%s\n"
                                 "then log in and leave karma (feedback)." %
-                                    (update.title, release.long_name, repo, update.title,
+                                    (update.get_title(delim=', '),
+                                    release.long_name, repo, update.get_title(),
                                     config.get('base_address') + tg_url(update.get_url())))
                         except SQLObjectNotFound:
                             log.debug('Bug #%d not found in our database' % bug)
@@ -1038,7 +1039,8 @@ class Root(controllers.RootController):
                         "Please go to the following url:\n"
                         "%s\n"
                         "then log in and leave karma (feedback)." %
-                            (update.title, release.long_name, repo, update.title,
+                            (update.get_title(delim=', '),
+                            release.long_name, repo, update.get_title(),
                             config.get('base_address') + tg_url(update.get_url())))
 
             # If a request is specified, make it.  By default we're submitting
