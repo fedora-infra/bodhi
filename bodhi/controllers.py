@@ -988,6 +988,10 @@ class Root(controllers.RootController):
                         bug = bugzilla.getbug(bug).bug_id
                     if bug not in original_bugs:
                         log.debug("Updating newly added bug: %s" % bug)
+                        if update.release.collection_name == 'Fedora EPEL':
+                            repo = 'epel-testing'
+                        else:
+                            repo = 'updates-testing'
                         try:
                             Bugzilla.byBz_id(bug).add_comment(update,
                                 "Package %s:\n"
@@ -995,12 +999,12 @@ class Root(controllers.RootController):
                                 "* was pushed to the %s updates-testing repository,\n"
                                 "* should be available at your local mirror within two days.\n"
                                 "Update it with:\n"
-                                "# su -c 'yum update --enablerepo=updates-testing %s'\n"
+                                "# su -c 'yum update --enablerepo=%s %s'\n"
                                 "as soon as you are able to, then reboot.\n"
                                 "Please go to the following url:\n"
                                 "%s\n"
                                 "then log in and leave karma (feedback)." %
-                                    (update.title, release.long_name, update.title,
+                                    (update.title, release.long_name, repo, update.title,
                                     config.get('base_address') + tg_url(update.get_url())))
                         except SQLObjectNotFound:
                             log.debug('Bug #%d not found in our database' % bug)
@@ -1019,18 +1023,22 @@ class Root(controllers.RootController):
 
                 # Comment on all bugs
                 for bug in update.bugs:
+                    if update.release.collection_name == 'Fedora EPEL':
+                        repo = 'epel-testing'
+                    else:
+                        repo = 'updates-testing'
                     bug.add_comment(update,
                         "Package %s:\n"
                         "* should fix your issue,\n"
                         "* was pushed to the %s updates-testing repository,\n"
                         "* should be available at your local mirror within two days.\n"
                         "Update it with:\n"
-                        "# su -c 'yum update --enablerepo=updates-testing %s'\n"
+                        "# su -c 'yum update --enablerepo=%s %s'\n"
                         "as soon as you are able to, then reboot.\n"
                         "Please go to the following url:\n"
                         "%s\n"
                         "then log in and leave karma (feedback)." %
-                            (update.title, release.long_name, update.title,
+                            (update.title, release.long_name, repo, update.title,
                             config.get('base_address') + tg_url(update.get_url())))
 
             # If a request is specified, make it.  By default we're submitting
