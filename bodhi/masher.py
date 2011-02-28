@@ -528,7 +528,12 @@ class MashTask(Thread):
 
             # make sure the new repository has our arches
             for arch in config.get('arches').split():
-                if arch not in arches and arch not in [arch.split('.')[0] for arch in arches]:
+                if '/' in arch: # 'ppc/ppc64'
+                    one, other = arch.split('/')
+                    if one not in arches and other not in arches:
+                        self.error_log("Cannot find arch %s OR %s in %s" % (one, other, newrepo))
+                        raise MashTaskException
+                elif arch not in arches:
                     self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
                     raise MashTaskException
 
