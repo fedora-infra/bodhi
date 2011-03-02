@@ -870,17 +870,20 @@ class PackageUpdate(SQLObject):
 
         if self.stable_karma != 0 and self.stable_karma == self.karma:
             if self.pushable:
-                log.info("Automatically marking %s as stable" % self.title)
-                if self.request == 'testing':
-                    self.remove_tag(self.release.pending_testing_tag)
-                if self.request != 'stable':
-                    self.add_tag(self.release.pending_stable_tag)
-                self.request = 'stable'
-                self.pushed = False
-                #self.date_pushed = None
-                self.comment(config.get('stablekarma_comment'), author='bodhi')
-                mail.send(self.submitter, 'stablekarma', self)
-                mail.send_admin('stablekarma', self)
+                if self.critpath and not self.critpath_approved:
+                    pass
+                else:
+                    log.info("Automatically marking %s as stable" % self.title)
+                    if self.request == 'testing':
+                        self.remove_tag(self.release.pending_testing_tag)
+                    if self.request != 'stable':
+                        self.add_tag(self.release.pending_stable_tag)
+                    self.request = 'stable'
+                    self.pushed = False
+                    #self.date_pushed = None
+                    self.comment(config.get('stablekarma_comment'), author='bodhi')
+                    mail.send(self.submitter, 'stablekarma', self)
+                    mail.send_admin('stablekarma', self)
 
         if self.status == 'testing' and self.unstable_karma != 0 and \
            self.karma == self.unstable_karma:
@@ -1175,7 +1178,6 @@ class PackageUpdate(SQLObject):
                                      ' stable now if the maintainer wishes'):
                 return True
         return False
-
 
 
 class Comment(SQLObject):
