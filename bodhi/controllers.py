@@ -716,8 +716,9 @@ class Root(controllers.RootController):
             for build in edited_builds:
                 if build not in builds:
                     removed_builds.append(build)
+
+            # Comment on the update with details of added/removed builds
             if new_builds or removed_builds:
-                # Comment on the update with details of added/removed builds
                 comment = '%s has edited this update. ' % identity.current.user_name
                 if new_builds:
                     comment += 'New build(s): %s. ' % ', '.join(new_builds)
