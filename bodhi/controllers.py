@@ -1435,7 +1435,11 @@ class Root(controllers.RootController):
         query = [PackageUpdate.q.status != 'obsolete']
         release_name = None
         if release and release != u'None':
-            release = Release.byName(release)
+            try:
+                release = Release.byName(release)
+            except SQLObjectNotFound:
+                flash('Unknown release: %s' % release)
+                raise redirect('/')
             releases = [release]
             release_name = release.name
             title = title + ' for ' + release.long_name

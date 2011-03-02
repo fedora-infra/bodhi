@@ -48,7 +48,6 @@ class Feed(FeedController):
             try:
                 rel = Release.byName(release.upper())
             except SQLObjectNotFound:
-                log.warning("Cannot find Release '%s' for RSS data" % release)
                 return dict(title = '%s not found' % release, entries=[])
             query.append(PackageUpdate.q.releaseID == rel.id)
             title.append(rel.long_name)
@@ -176,7 +175,10 @@ class Feed(FeedController):
         title = 'Latest Critical Path Updates'
         query = [PackageUpdate.q.status != 'obsolete']
         if release:
-            release = Release.byName(release)
+            try:
+                release = Release.byName(release)
+            except SQLObjectNotFound:
+                return dict(title = '%s release not found' % release, entries=[])
             releases = [release]
             title = title + ' for %s' % release.long_name
         else:
