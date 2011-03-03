@@ -1273,6 +1273,7 @@ class Bugzilla(SQLObject):
     _bz_server = config.get("bz_server")
     default_msg = "%s has been pushed to the %s repository.  If problems " + \
                   "still persist, please make note of it in this bug report."
+    newpackage_msg = "%s has been pushed to the %s repository."
 
     def __json__(self):
         return dict(bz_id=self.bz_id, title=self.title, security=self.security,
@@ -1310,8 +1311,12 @@ class Bugzilla(SQLObject):
             self.security = True
 
     def _default_message(self, update):
-        message = self.default_msg % (update.get_title(delim=', '), "%s %s" % 
-                                   (update.release.long_name, update.status))
+        if update.type == 'newpackage':
+            message = self.newpackage_msg % (update.get_title(delim=', '),
+                    "%s %s" % (update.release.long_name, update.status))
+        else:
+            message = self.default_msg % (update.get_title(delim=', '),
+                    "%s %s" % (update.release.long_name, update.status))
         if update.status == "testing":
             repo = 'updates-testing'
             message += ("\n If you want to test the update, you can install " +
