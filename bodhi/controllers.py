@@ -988,19 +988,11 @@ class Root(controllers.RootController):
                             repo = 'updates-testing'
                         try:
                             Bugzilla.byBz_id(bug).add_comment(update,
-                                "Package %s:\n"
-                                "* should fix your issue,\n"
-                                "* was pushed to the %s updates-testing repository,\n"
-                                "* should be available at your local mirror within two days.\n"
-                                "Update it with:\n"
-                                "# su -c 'yum update --enablerepo=%s %s'\n"
-                                "as soon as you are able to, then reboot.\n"
-                                "Please go to the following url:\n"
-                                "%s\n"
-                                "then log in and leave karma (feedback)." %
-                                    (update.get_title(delim=', '),
-                                    release.long_name, repo, update.get_title(),
-                                    config.get('base_address') + tg_url(update.get_url())))
+                                "%s has been submitted as an update for %s.\n%s"
+                                % (update.get_title(delim=', '),
+                                   release.long_name,
+                                   config.get('base_address') +
+                                   tg_url(update.get_url())))
                         except SQLObjectNotFound:
                             log.debug('Bug #%d not found in our database' % bug)
 
@@ -1023,19 +1015,10 @@ class Root(controllers.RootController):
                     else:
                         repo = 'updates-testing'
                     bug.add_comment(update,
-                        "Package %s:\n"
-                        "* should fix your issue,\n"
-                        "* was pushed to the %s updates-testing repository,\n"
-                        "* should be available at your local mirror within two days.\n"
-                        "Update it with:\n"
-                        "# su -c 'yum update --enablerepo=%s %s'\n"
-                        "as soon as you are able to, then reboot.\n"
-                        "Please go to the following url:\n"
-                        "%s\n"
-                        "then log in and leave karma (feedback)." %
-                            (update.get_title(delim=', '),
-                            release.long_name, repo, update.get_title(),
-                            config.get('base_address') + tg_url(update.get_url())))
+                        "%s has been submitted as an update for %s.\n%s" %
+                            (update.title, release.long_name,
+                             config.get('base_address') +
+                             tg_url(update.get_url())))
 
             # If a request is specified, make it.  By default we're submitting
             # new updates directly into testing

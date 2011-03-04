@@ -1271,9 +1271,19 @@ class Bugzilla(SQLObject):
     parent   = BoolCol(default=False)
 
     _bz_server = config.get("bz_server")
-    default_msg = "%s has been pushed to the %s repository.  If problems " + \
-                  "still persist, please make note of it in this bug report."
+
     newpackage_msg = "%s has been pushed to the %s repository."
+    stable_msg = "%s has been pushed to the %s repository.  If problems " + \
+                  "still persist, please make note of it in this bug report."
+    testing_msg = "Package %s:\n" + \
+            "* should fix your issue,\n" + \
+            "* was pushed to the %s testing repository,\n" + \
+            "* should be available at your local mirror within two days.\n" + \
+            "Update it with:\n" + \
+            "# su -c 'yum update --enablerepo=%s %s'\n" + \
+            "as soon as you are able to%s.\n" + \
+            "Please go to the following url:\n%s\n" + \
+            "then log in and leave karma (feedback)."
 
     def __json__(self):
         return dict(bz_id=self.bz_id, title=self.title, security=self.security,
@@ -1314,19 +1324,22 @@ class Bugzilla(SQLObject):
         if update.type == 'newpackage':
             message = self.newpackage_msg % (update.get_title(delim=', '),
                     "%s %s" % (update.release.long_name, update.status))
-        else:
-            message = self.default_msg % (update.get_title(delim=', '),
-                    "%s %s" % (update.release.long_name, update.status))
-        if update.status == "testing":
+        elif update.status == 'testing':
             repo = 'updates-testing'
-            message += ("\n If you want to test the update, you can install " +
-                       "it with \n su -c 'yum --enablerepo=%s " +
-                       "update %s'.  You can provide feedback for this " +
-                       "update here: %s") % (repo,
-                           ' '.join([build.package.name for build in 
-                                     update.builds]),
-                           config.get('base_address') + url(update.get_url()))
-
+            reboot = ''
+            for build in update.builds:
+                if build.package.suggest_reboot:
+                    reboot = ', then reboot'
+                    break
+            if update.release.name.startswith('EL'):
+                repo = 'epel-testing'
+            message = self.testing_msg % (
+                update.get_title(delim=', '),
+                release.long_name, repo, update.get_title(), reboot,
+                config.get('base_address') + tg_url(update.get_url()))
+        else:
+            message = self.stable_msg % (update.get_title(delim=', '),
+                    "%s %s" % (update.release.long_name, update.status))
         return message
 
     def add_comment(self, update, comment=None):
