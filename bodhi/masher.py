@@ -533,6 +533,11 @@ class MashTask(Thread):
                     if one not in arches and other not in arches:
                         self.error_log("Cannot find arch %s OR %s in %s" % (one, other, newrepo))
                         raise MashTaskException
+                    else:
+                        if one in arches:
+                            arch = one
+                        else:
+                            arch = other
                 elif arch not in arches:
                     self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
                     raise MashTaskException
