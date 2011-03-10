@@ -461,6 +461,11 @@ class Root(controllers.RootController):
                 flash_log("Cannot delete an update you did not submit")
                 if request_format() == 'json': return dict()
                 raise redirect(update.get_url())
+            # Remove the appropriate pending tags
+            if self.request == 'testing':
+                self.remove_tag(self.release.pending_testing_tag)
+            elif self.request == 'stable':
+                self.remove_tag(self.release.pending_stable_tag)
             if not update.pushed:
                 msg = "Deleted %s" % update.title
                 map(lambda x: x.destroySelf(), update.comments)
