@@ -1237,7 +1237,10 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/admin/push', headers=session)
 
         # Make sure security updates do not slip in unapproved
-        assert '0 pending requests' in cherrypy.response.body[0]
+        #assert '0 pending requests' in cherrypy.response.body[0], cherrypy.response.body[0]
+
+        # We no longer require security approval
+        assert '1 pending requests' in cherrypy.response.body[0], cherrypy.response.body[0]
 
         # approve the update
         me = User.by_user_name('admin')
