@@ -921,7 +921,7 @@ class TestControllers(testutil.DBTest):
         self.save_update(newparams, session)
         newupdate = PackageUpdate.byTitle(newparams['builds'])
         assert newupdate.status == 'pending'
-        assert newupdate.notes == ''
+        assert newupdate.notes in ('', None), newupdate.notes
         update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert update.status == 'testing', update.status
 
