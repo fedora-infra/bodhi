@@ -441,7 +441,10 @@ class MashTask(Thread):
                 self.tag = update.release.candidate_tag
             current_tag = update.get_build_tag()
             for build in update.builds:
-                if build.inherited or update.release.locked:
+                if build.inherited:
+                    log.debug("Adding tag %s to %s" % (self.tag, build.nvr))
+                    self.koji.tagBuild(self.tag, build.nvr, force=True)
+                elif update.release.locked and update.request == 'stable':
                     log.debug("Adding tag %s to %s" % (self.tag, build.nvr))
                     self.koji.tagBuild(self.tag, build.nvr, force=True)
                 else:
