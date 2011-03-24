@@ -23,7 +23,7 @@ import logging
 import tempfile
 import subprocess
 import urlgrabber
-import turbogears
+#import turbogears
 
 from kid import Element
 from yum import repoMDObject
@@ -31,7 +31,7 @@ from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 from decorator import decorator
-from turbogears import config, flash, redirect, url as tg_url
+#from turbogears import config, flash, redirect, url as tg_url
 #from fedora.tg.util import request_format
 from fedora.client import PackageDB
 #from fedora.tg.util import url as csrf_url

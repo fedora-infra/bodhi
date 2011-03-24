@@ -14,11 +14,11 @@
 
 import rpm
 import logging
-import turbomail
+#import turbomail
 
 from textwrap import wrap
-from turbomail import MailNotEnabledException
-from turbogears import config, identity
+#from turbomail import MailNotEnabledException
+#from turbogears import config, identity
 
 from bodhi.util import rpm_fileheader, to_unicode
 from bodhi.exceptions import RPMNotFound
