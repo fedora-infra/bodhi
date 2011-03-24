@@ -715,6 +715,14 @@ class Root(controllers.RootController):
                 if build not in builds:
                     removed_builds.append(build)
 
+                    # Remove the appropriate pending tags
+                    if edited.request == 'stable':
+                        koji.untagBuild(edited.release.pending_stable_tag,
+                                        build, force=True)
+                    elif edited.request == 'testing':
+                        koji.untagBuild(edited.release.pending_testing_tag,
+                                        build, force=True)
+
             # Comment on the update with details of added/removed builds
             if new_builds or removed_builds:
                 comment = '%s has edited this update. ' % identity.current.user_name
