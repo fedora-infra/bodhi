@@ -393,6 +393,7 @@ def sanity_check_repodata(myurl):
     Sanity check the repodata for a given repository.
     Initial implementation by Seth Vidal.
     """
+    myurl = str(myurl)
     tempdir = tempfile.mkdtemp()
     errorstrings = []
     if myurl[-1] != '/':
