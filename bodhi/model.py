@@ -1335,7 +1335,7 @@ class Bugzilla(SQLObject):
                 repo = 'epel-testing'
             message = self.testing_msg % (
                 update.get_title(delim=', '),
-                release.long_name, repo, update.get_title(), reboot,
+                update.release.long_name, repo, update.get_title(), reboot,
                 config.get('base_address') + tg_url(update.get_url()))
         else:
             message = self.stable_msg % (update.get_title(delim=', '),
