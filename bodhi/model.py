@@ -181,7 +181,7 @@ class Package(SQLObject):
     def get_test_cases(self):
         """ Get a list of test cases from the wiki """
         from simplemediawiki import MediaWiki
-        wiki = MediaWiki('https://fedoraproject.org/w/api.php')
+        wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
         cat_page = 'Category:Package %s test cases' % self.name
         limit = 10
 
