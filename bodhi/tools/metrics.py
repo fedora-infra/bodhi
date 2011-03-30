@@ -51,6 +51,9 @@ def main():
                 'accumulative': timedelta(),
                 'packages': defaultdict(int),
                 'proventesters': set(),
+                'proventesters_1': 0,
+                'proventesters_0': 0,
+                'proventesters_-1': 0,
                 # for tracking number of types of karma
                 '1': 0,
                 '0': 0,
@@ -85,6 +88,7 @@ def main():
 
                 if comment.author_group == 'proventesters':
                     data['proventesters'].add(comment.author_name)
+                    data['proventesters_%d' % comment.karma] += 1
 
                 # For figuring out if an update has received feedback or not
                 if not feedback_done:
@@ -161,6 +165,8 @@ def main():
         print " * %d unique authenticated karma submitters" % (
                 len(data['karma']))
         print " * %d proventesters" % len(data['proventesters'])
+        print "   * %d +1's from proventesters" % data['proventesters_1']
+        print "   * %d -1's from proventesters" % data['proventesters_-1']
         print " * %d anonymous users gave feedback (%0.2f%%)" % (
                 data['num_anon_feedback'], float(data['num_anon_feedback']) /
                 (data['num_anon_feedback'] + sum(data['karma'].values())) * 100)
