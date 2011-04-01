@@ -22,7 +22,7 @@ import xmlrpclib
 import textwrap
 
 from cgi import escape
-from koji import GenericError
+from koji import GenericError, TagError
 from datetime import datetime
 from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND, OR
@@ -716,12 +716,15 @@ class Root(controllers.RootController):
                     removed_builds.append(build)
 
                     # Remove the appropriate pending tags
-                    if edited.request == 'stable':
-                        koji.untagBuild(edited.release.pending_stable_tag,
-                                        build, force=True)
-                    elif edited.request == 'testing':
-                        koji.untagBuild(edited.release.pending_testing_tag,
-                                        build, force=True)
+                    try:
+                        if edited.request == 'stable':
+                            koji.untagBuild(edited.release.pending_stable_tag,
+                                            build, force=True)
+                        elif edited.request == 'testing':
+                            koji.untagBuild(edited.release.pending_testing_tag,
+                                            build, force=True)
+                    except TagError,e :
+                        log.debug(str(e))
 
             # Comment on the update with details of added/removed builds
             if new_builds or removed_builds:
