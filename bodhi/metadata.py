@@ -282,35 +282,36 @@ class ExtendedMetadata(object):
 
     def insert_pkgtags(self):
         """ Download and inject the pkgtags sqlite from the pkgdb """
-        try:
-            for arch in os.listdir(self.repo):
-                if arch == 'SRPMS':
-                    continue
-                filename = ''
-                reponame = os.path.basename(self.repo)
-                if reponame.startswith('f'):
-                    release = reponame[1:].split('-')[0]
-                    filename = 'F-%s-%s-' % (release, arch)
-                    if 'testing' in reponame:
-                        filename += 'tu'
+        if config.get('pkgtags_url') not in [None, ""]:
+            try:
+                for arch in os.listdir(self.repo):
+                    if arch == 'SRPMS':
+                        continue
+                    filename = ''
+                    reponame = os.path.basename(self.repo)
+                    if reponame.startswith('f'):
+                        release = reponame[1:].split('-')[0]
+                        filename = 'F-%s-%s-' % (release, arch)
+                        if 'testing' in reponame:
+                            filename += 'tu'
+                        else:
+                            filename += 'u'
+                    elif reponame.startswith('el'):
+                        release = reponame[2:].split('-')[0]
+                        filename = 'E-%s-%s' % (release, arch)
+                        if 'testing' in reponame:
+                            filename += '-t'
                     else:
-                        filename += 'u'
-                elif reponame.startswith('el'):
-                    release = reponame[2:].split('-')[0]
-                    filename = 'E-%s-%s' % (release, arch)
-                    if 'testing' in reponame:
-                        filename += '-t'
-                else:
-                    log.error('Unknown repo %s' % reponame)
-                    return
+                        log.error('Unknown repo %s' % reponame)
+                        return
 
-                tags_url = config.get('pkgtags_url') + filename
-                log.info('Downloading %s' % tags_url)
-                f = urllib.urlretrieve(tags_url, filename='/tmp/pkgtags.sqlite')
+                    tags_url = config.get('pkgtags_url') + filename
+                    log.info('Downloading %s' % tags_url)
+                    f = urllib.urlretrieve(tags_url, filename='/tmp/pkgtags.sqlite')
 
-                repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
-                repomd.add('/tmp/pkgtags.sqlite')
+                    repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
+                    repomd.add('/tmp/pkgtags.sqlite')
 
-        except Exception, e:
-            log.exception(e)
-            log.error("There was a problem injecting pkgtags")
+            except Exception, e:
+                log.exception(e)
+                log.error("There was a problem injecting pkgtags")

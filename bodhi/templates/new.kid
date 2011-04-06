@@ -65,6 +65,7 @@
     <div py:for="field in hidden_fields"
          py:replace="field.display(value_for(field), **params_for(field))" />
 
+    <h3 class="padded">Add New Update</h3>
     <table border="0" cellspacing="0" cellpadding="0">
     <tr py:for="i, field in enumerate(fields)">
         <td class="title">

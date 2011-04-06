@@ -5,6 +5,7 @@
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
     <script language="javascript" type="text/javascript" src="${tg.url('/static/js/jquery.flot.js')}"></script>
     <script language="javascript" type="text/javascript" src="${tg.url('/static/js/excanvas.js')}"></script>
+    <title>${title}</title>
 </head>
 <body>
   <center>

@@ -11,25 +11,21 @@
 </head>
 
 <body onload="document.login.user_name.focus()">
-    <blockquote>
-        <h1 class="padded">Fedora Update System</h1>
-        <p class="padded">${message}<br/>
-        Hint: Use your Fedora username, not your e-mail address.</p> 
-    </blockquote>
-    <form action="${previous_url}" method="POST" name="login">
+    <div class="padded">
+        <h1>Fedora Update System</h1>
+        <p>${message}</p>
+        <p>Hint: Use your Fedora username, not your e-mail address.</p> 
+    </div>
+    <form action="${tg.url(previous_url)}" method="POST" name="login">
         <table class="login">
             <tr>
-                <td class="title">
-                    Username:
-                </td>
+                <td class="title">Username:</td>
                 <td class="value">
                     <input type="text" size="25" name="user_name" />
                 </td>
             </tr>
             <tr>
-                <td class="title">
-                    Password:
-                </td>
+                <td class="title">Password:</td>
                 <td class="value">
                     <input type="password" size="25" name="password" />
                 </td>
@@ -48,9 +44,6 @@
         <input py:for="name,value in original_parameters.items()"
             type="hidden" name="${name}" value="${value}"/>
     </form>
-    <blockquote>
-        <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/user/resetpass">Fedora Accounts System</a>.</p>
-    </blockquote>
-
+    <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/user/resetpass">Fedora Accounts System</a>.</p>
 </body>
 </html>
