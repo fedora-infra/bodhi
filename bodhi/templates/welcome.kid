@@ -25,6 +25,10 @@
     </script>
 
 </head>
+<?python
+from turbogears import config
+koji_url = config.get('koji_url')
+?>
 <body>
     <table width="90%" align="center" valign="top">
             <tr>
@@ -65,7 +69,7 @@
                             </td>
                             <td>
                                 <span id="kojitip" title="Koji Buildsystem">
-                                    <a href="http://koji.fedoraproject.org/koji/" class="list"><font size="6">麹</font></a>
+                                    <a href="${koji_url}/koji/" class="list"><font size="6">麹</font></a>
                                 </span>
                             </td>
                         </tr>

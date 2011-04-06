@@ -8,6 +8,11 @@
             py:replace="''"/>
         <title>${pkg.name}</title>
 </head>
+<?python
+from turbogears import config
+
+koji_url = config.get('koji_url')
+?>
 
 <body>
 
@@ -32,7 +37,7 @@
         </li>
         <li>
             <img src="https://fedoraproject.org/static/images/icons/fedora-infra-icon_koji.png"/>
-            <a href="http://koji.fedoraproject.org/koji/search?terms=${pkg.name}&amp;type=package&amp;match=glob">Koji Buildsystem</a>
+            <a href="${koji_url}/koji/search?terms=${pkg.name}&amp;type=package&amp;match=glob">Koji Buildsystem</a>
         </li>
         <li>
             <img src="https://fedoraproject.org/static/css/../images/icons/fedora-infra-icon_source-control.png"/>

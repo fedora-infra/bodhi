@@ -17,15 +17,17 @@
 <?python
 from cgi import escape
 from bodhi import util
-from turbogears import identity
+from turbogears import identity, config
 from markdown import markdown
 import re
+
+koji_url = config.get('koji_url')
 
 ## Link to build info and logs
 buildinfo = ''
 for build in update.builds:
     nvr = util.get_nvr(build.nvr)
-    buildinfo += '<a href="http://koji.fedoraproject.org/koji/search?terms=%s&amp;type=build&amp;match=glob">%s</a> (<a href="http://koji.fedoraproject.org/packages/%s/%s/%s/data/logs">logs</a>)<br/>' % (build.nvr, build.nvr, nvr[0], nvr[1], nvr[2])
+    buildinfo += '<a href="%s/koji/search?terms=%s&amp;type=build&amp;match=glob">%s</a> (<a href="%s/packages/%s/%s/%s/data/logs">logs</a>)<br/>' % (koji_url, build.nvr, build.nvr, koji_url, nvr[0], nvr[1], nvr[2])
 
 ## Make the package name linkable in the n-v-r
 title = ''
