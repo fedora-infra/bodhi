@@ -38,6 +38,9 @@ try:
 except:
     BODHI_URL = 'https://admin.fedoraproject.org/updates/'
 
+update_types = ['bugfix', 'security', 'enhancement', 'newpackage']
+update_requests = ['stable', 'testing', 'obsolete', 'unpush']
+
 log = logging.getLogger(__name__)
 
 def get_parser():
@@ -109,7 +112,7 @@ def get_parser():
     parser.add_option("-N", "--notes", action="store", type="string",
                       dest="notes", help="Update notes", default="")
     parser.add_option("-t", "--type", action="store", type="string",
-                      help="Update type [bugfix|security|enhancement|newpackage]",
+                      help="Update type [%s]" % '|'.join(update_types),
                       dest="type_", metavar="TYPE")
     parser.add_option("-u", "--username", action="store", type="string",
                       dest="username", default=getuser(),
@@ -172,6 +175,14 @@ def main():
                         if not update_args['type_']:
                             log.error("Error: No update type specified (ie: "
                                       "type=bugfix), skipping.")
+                            continue
+                        if update_args['type_'] not in update_types:
+                            log.error('Error: Invalid update type %r. Must be one of %r' % (
+                            update_args['type_'], update_types))
+                            continue
+                        if update_args['request'] not in update_requests:
+                            log.error('Error: Invalid update request %r. Must be one of %r' % (
+                            update_args['request'], update_requests))
                             continue
                         log.info("Creating a new update for %s" %
                                  update_args['builds'])
