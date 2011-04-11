@@ -711,6 +711,18 @@ class Root(controllers.RootController):
             for build in builds:
                 if build not in edited_builds:
                     new_builds.append(build)
+
+                    # Add the appropriate pending tags
+                    try:
+                        if edited.request == 'testing':
+                            koji.tagBuild(edited.release.pending_testing_tag,
+                                          build.nvr, force=True)
+                        elif edited.request == 'stable':
+                            koji.tagBuild(edited.release.pending_stable_tag,
+                                          build.nvr, force=True)
+                    except TagError, e:
+                        log.exception(e)
+
             for build in edited_builds:
                 if build not in builds:
                     removed_builds.append(build)
