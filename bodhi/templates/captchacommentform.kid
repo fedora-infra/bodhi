@@ -10,6 +10,11 @@
     <table cellpadding="0" cellspacing="0" width="45%">
         <tr>
             <td colspan="3">
+                Tip: <a href="${tg.url('/login')}">Login</a> to impact how quickly this update gets pushed or unpushed.
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
                 ${display_field_for("author")}
             </td>
         </tr>
