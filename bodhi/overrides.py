@@ -86,11 +86,6 @@ class BuildRootOverrideController(Controller):
             for tag in tags:
                 for rel in Release.select():
                     if tag == rel.candidate_tag:
-                        #if release and release.name != rel.name:
-                        #    flash('Error: You cannot submit buildroot '
-                        #          'overrides for more than one release at '
-                        #          'a time')
-                        #    raise redirect('/override/new')
                         release = rel
                     elif tag in (rel.testing_tag, rel.stable_tag):
                         flash('Error: %s is already tagged with %s' % (
