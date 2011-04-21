@@ -51,6 +51,7 @@ from bodhi.metrics import MetricsController
 from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
                          Bugzilla, CVE, Comment)
 from bodhi.search import SearchController
+from bodhi.overrides import BuildRootOverrideController
 from bodhi.widgets import CommentForm, OkCancelForm, CommentCaptchaForm
 from bodhi.exceptions import (DuplicateEntryError, InvalidRequest,
                               PostgresIntegrityError, SQLiteIntegrityError,
@@ -65,6 +66,7 @@ class Root(controllers.RootController):
     search = SearchController()
     rss = Feed("rss2.0")
     metrics = MetricsController()
+    override = BuildRootOverrideController()
 
     comment_form = CommentForm()
     comment_captcha_form = CommentCaptchaForm()

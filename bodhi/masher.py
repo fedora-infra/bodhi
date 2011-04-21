@@ -31,7 +31,7 @@ from time import sleep
 
 from bodhi import buildsys, mail
 from bodhi.util import synchronized, sanity_check_repodata
-from bodhi.model import PackageUpdate, Release
+from bodhi.model import PackageUpdate, Release, BuildRootOverride
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import MashTaskException
 
@@ -473,6 +473,18 @@ class MashTask(Thread):
                 update.remove_tag(update.release.pending_testing_tag, koji=self.koji)
         self.koji.multiCall()
 
+    def obsolete_buildroot_overrides(self):
+        """ Obsolete any buildroot overrides that are in this push """
+        for update in self.updates:
+            for build in update.builds:
+                try:
+                    override = BuildRootOverride.byBuild(build.nvr)
+                    log.info('Expiring buildroot override: %s' % build.nvr)
+                    override.untag()
+                    override.destroySelf()
+                except SQLObjectNotFound:
+                    pass
+
     # With a large pushes, this tends to cause much buildsystem churn, as well
     # as polluting the tag history.
     #def undo_move(self):
@@ -676,6 +688,7 @@ class MashTask(Thread):
             # Move koji build tags
             if not self.resume and len(self.updates):
                 self.move_builds()
+                self.obsolete_buildroot_overrides()
 
             # Remove all pending tags
             # TODO: Once AutoQA is Good To Go, then we'll want to prevent

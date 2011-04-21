@@ -253,6 +253,22 @@ The Critical Path update `%(package)s` has been approved.
                     }
     },
 
+    'buildroot_override' : {
+        'body'    : u"""\
+%(submitter)s has added %(package)s to the buildroot override tag for %(release)s.
+
+    Notes: %(notes)s
+
+    https://admin.fedoraproject.org/updates/overrides
+
+""",
+        'fields'  : lambda x: {
+                        'package'   : x.build,
+                        'submitter' : identity.current.user_name,
+                        'release'   : x.release.long_name,
+                        'notes'     : x.notes,
+                    }
+    },
 }
 
 fedora_errata_template = u"""\

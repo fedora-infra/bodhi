@@ -28,7 +28,7 @@ from sqlobject.sqlbuilder import AND
 
 from bodhi import mail
 from bodhi.util import get_age_in_days
-from bodhi.model import Release, PackageUpdate
+from bodhi.model import Release, PackageUpdate, BuildRootOverride
 
 log = logging.getLogger(__name__)
 
@@ -200,6 +200,19 @@ def approve_testing_updates():
     log.info('approve_testing_updates job complete.')
 
 
+def expire_buildroot_overrides():
+    """ Iterate over all of the buildroot overrides, expiring appropriately """
+    log.info('Running expire_buildroot_overrides job')
+    now = datetime.utcnow()
+    for override in BuildRootOverride.select():
+        if (now - override.expiration).days >= 0:
+            log.info('Automatically expiring buildroot override: %s' %
+                     override.builds)
+            override.untag()
+            override.destroySelf()
+    log.info('expire_buildroot_overrides job complete!')
+
+
 def schedule():
     """ Schedule our periodic tasks """
 
@@ -248,6 +261,16 @@ def schedule():
     if 'approve_testing_updates' in jobs:
         log.debug("Scheduling approve_testing_updates job")
         scheduler.add_interval_task(action=approve_testing_updates,
+                                   # Run every 6 hours
+                                   initialdelay=21600,
+                                   interval=21600)
+                                   #weekdays=range(1,8),
+                                   #timeonday=(0,0))
+
+    # Automatically expire buildroot overrides
+    if 'approve_testing_updates' in jobs:
+        log.debug("Scheduling expire_buildroot_overrides job")
+        scheduler.add_interval_task(action=expire_buildroot_overrides,
                                    # Run every 6 hours
                                    initialdelay=21600,
                                    interval=21600)

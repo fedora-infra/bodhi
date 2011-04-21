@@ -49,7 +49,7 @@ hub = PackageHub("bodhi")
 __connection__ = hub
 
 soClasses=('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
-           'Bugzilla', 'Comment', 'User', 'Group', 'Visit')
+           'Bugzilla', 'Comment', 'User', 'Group', 'Visit', 'BuildRootOverride')
 
 
 class Release(SQLObject):
@@ -105,6 +105,10 @@ class Release(SQLObject):
         if self.locked:
             return '%s-updates-pending' % self.dist_tag
         return self.stable_tag + '-pending'
+
+    @property
+    def override_tag(self):
+        return '%s-override' % self.dist_tag
 
     @property
     def stable_repo(self):
@@ -1414,6 +1418,29 @@ class Bugzilla(SQLObject):
 
     def get_url(self):
         return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % self.bz_id
+
+
+class BuildRootOverride(SQLObject):
+    build = UnicodeCol(alternateID=True, notNone=True)
+    date_submitted = DateTimeCol(default=datetime.utcnow, notNone=True)
+    notes = UnicodeCol()
+    expiration = DateTimeCol(default=None)
+    date_expired = DateTimeCol(default=None)
+    submitter = UnicodeCol(notNone=True)
+    release = ForeignKey('Release')
+
+    def tag(self):
+        koji = buildsys.get_session()
+        log.debug('Tagging %s with %s' % (self.build,
+            self.release.override_tag))
+        koji.tagBuild(self.release.override_tag, self.build, force=True)
+        mail.send_admin('buildroot_override', self)
+
+    def untag(self):
+        koji = buildsys.get_session()
+        log.debug('Untagging %s with %s' % (self.build,
+            self.release.override_tag))
+        koji.untagBuild(self.release.override_tag, self.build, force=True)
 
 
 class Releases(Singleton):

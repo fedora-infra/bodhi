@@ -192,3 +192,16 @@ class SortableDataGrid(DataGrid):
     javascript = [LocalJSLink('bodhi', '/static/js/jquery.js'),
                   LocalJSLink('bodhi', '/static/js/jquery.tablesorter.js')]
     css = [LocalCSSLink('bodhi', '/static/css/flora.tablesorter.css')]
+
+class BuildRootOverrideForm(Form):
+    template = "bodhi.templates.overrideform"
+    fields = [
+            AutoCompleteField('builds', label='Build',
+                              search_controller=url('/new/search'),
+                              search_param='name', result_name='pkgs',
+                              template='bodhi.templates.packagefield',
+                              validator=AutoCompleteValidator()),
+            TextArea('notes', validator=validators.UnicodeString(),
+                     rows=13, cols=65),
+    ]
+    submit_text = "Submit"
