@@ -436,6 +436,8 @@ def get_template(update, use_template='fedora_errata_template'):
 
 def send_mail(sender, to, subject, body):
     from turbomail import MailNotEnabledException
+    if to in config.get('exclude_mail').split():
+        return
     message = turbomail.Message(sender, to, subject)
     message.plain = body
     try:
