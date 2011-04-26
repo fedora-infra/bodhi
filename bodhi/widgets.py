@@ -17,7 +17,7 @@ from turbogears import validators, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
                                 HiddenField, RemoteForm, CheckBoxList, JSLink,
-                                DataGrid, CSSLink)
+                                DataGrid, CSSLink, CalendarDatePicker)
 
 from bodhi.util import make_update_link, url
 from bodhi.validators import *
@@ -203,5 +203,6 @@ class BuildRootOverrideForm(Form):
                               validator=AutoCompleteValidator()),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=13, cols=65),
+            CalendarDatePicker('expiration')
     ]
     submit_text = "Submit"

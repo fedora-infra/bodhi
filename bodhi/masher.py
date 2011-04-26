@@ -476,14 +476,15 @@ class MashTask(Thread):
     def obsolete_buildroot_overrides(self):
         """ Obsolete any buildroot overrides that are in this push """
         for update in self.updates:
-            for build in update.builds:
-                try:
-                    override = BuildRootOverride.byBuild(build.nvr)
-                    log.info('Expiring buildroot override: %s' % build.nvr)
-                    override.untag()
-                    override.destroySelf()
-                except SQLObjectNotFound:
-                    pass
+            if update.request == 'stable':
+                for build in update.builds:
+                    try:
+                        override = BuildRootOverride.byBuild(build.nvr)
+                        log.info('Expiring buildroot override: %s' % build.nvr)
+                        override.untag()
+                        override.destroySelf()
+                    except SQLObjectNotFound:
+                        pass
 
     # With a large pushes, this tends to cause much buildsystem churn, as well
     # as polluting the tag history.

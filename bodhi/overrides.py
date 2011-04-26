@@ -39,19 +39,22 @@ class BuildRootOverrideController(Controller):
     @paginate('overrides', default_order='-date_submitted', 
               limit=20, max_limit=1000)
     def index(self, build=None, tg_errors=None, *args, **kw):
-        overrides = BuildRootOverride.select()
+        if 'releng' in identity.current.groups:
+            overrides = BuildRootOverride.select()
+        else:
+            overrides = BuildRootOverride.select(
+                    BuildRootOverride.q.submitter == identity.current.user_name)
         return dict(overrides=overrides, title='Buildroot Overrides',
                     num_items=overrides.count())
 
     @expose(template="bodhi.templates.form")
-    def new(self, build=None, tg_errors=None, *args, **kw):
-        if tg_errors:
-            flash(tg_errors)
-        if build:
-            log.debug('redirecting!')
-            raise redirect('/override/%s' % build)
-        return dict(form=override_form, values={}, action=url('/override/save'),
-                    title='Buildroot Overrides')
+    def new(self, tg_errors=None, *args, **kw):
+        #if tg_errors:
+        #    flash(tg_errors)
+        expiration = datetime.utcnow() + \
+            timedelta(days=config.get('buildroot_overrides.expire_after', 1))
+        return dict(form=override_form, values={'expiration': expiration},
+                    action=url('/override/save'), title='Buildroot Overrides')
 
     @expose(allow_json=True)
     def expire(self, build, *args, **kw):
@@ -74,8 +77,17 @@ class BuildRootOverrideController(Controller):
     @expose('json')
     @validate(form=override_form)
     @error_handler(new)
-    def save(self, builds, notes, *args, **kw):
+    def save(self, builds, notes, expiration, *args, **kw):
         log.debug('BuildRootOverrideController.save(%s)' % builds)
+
+        try:
+            koji = get_session()
+        except Exception, e:
+            flash('Unable to connect to Koji')
+            if request_format() == 'json':
+                return dict()
+            raise redirect('/override/new')
+
         for build in builds:
             release = None
             n, v, r = get_nvr(build)
@@ -86,7 +98,6 @@ class BuildRootOverrideController(Controller):
                 flash("Error: You do not have commit privileges to %s" % n)
 
             # Make sure the build is tagged correctly
-            koji = get_session()
             try:
                 tags = [tag['name'] for tag in koji.listTags(build)]
             except Exception, e:
@@ -109,19 +120,15 @@ class BuildRootOverrideController(Controller):
 
             if not release:
                 flash('Error: Could not determine release for %s with tags %s' %
-                        (builds, tags))
+                        (build, map(str, tags)))
                 if request_format() == 'json':
                     return dict()
-                raise redirect('/override')
+                raise redirect('/override/new')
 
             # Create a new overrides object
             override = BuildRootOverride(build=build,
                     notes=notes, submitter=identity.current.user_name,
-                    releaseID=release.id)
-
-            now = datetime.utcnow()
-            override.expiration = now + \
-                timedelta(days=config.get('buildroot_overrides.expire_after'))
+                    expiration=expiration, releaseID=release.id)
 
             # Tag the build
             override.tag()

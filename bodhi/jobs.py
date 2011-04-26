@@ -272,7 +272,7 @@ def schedule():
         log.debug("Scheduling expire_buildroot_overrides job")
         scheduler.add_interval_task(action=expire_buildroot_overrides,
                                    # Run every 6 hours
-                                   initialdelay=21600,
-                                   interval=21600)
+                                   initialdelay=3600,
+                                   interval=3600)
                                    #weekdays=range(1,8),
                                    #timeonday=(0,0))
