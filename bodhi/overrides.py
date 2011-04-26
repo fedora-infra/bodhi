@@ -33,8 +33,8 @@ log = logging.getLogger(__name__)
 override_form = BuildRootOverrideForm()
 
 class BuildRootOverrideController(Controller):
-    require = identity.not_anonymous()
 
+    @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.overrides")
     @paginate('overrides', default_order='-date_submitted', 
               limit=20, max_limit=1000)
@@ -47,6 +47,7 @@ class BuildRootOverrideController(Controller):
         return dict(overrides=overrides, title='Buildroot Overrides',
                     num_items=overrides.count())
 
+    @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
     def new(self, tg_errors=None, *args, **kw):
         #if tg_errors:
@@ -56,6 +57,7 @@ class BuildRootOverrideController(Controller):
         return dict(form=override_form, values={'expiration': expiration},
                     action=url('/override/save'), title='Buildroot Overrides')
 
+    @identity.require(identity.not_anonymous())
     @expose(allow_json=True)
     def expire(self, build, *args, **kw):
         """ Expire a given override """
@@ -74,6 +76,7 @@ class BuildRootOverrideController(Controller):
             return dict()
         raise redirect('/override')
 
+    @identity.require(identity.not_anonymous())
     @expose('json')
     @validate(form=override_form)
     @error_handler(new)
@@ -96,6 +99,9 @@ class BuildRootOverrideController(Controller):
             people, groups = get_pkg_pushers(n)
             if identity.current.user_name not in people[0]:
                 flash("Error: You do not have commit privileges to %s" % n)
+                if request_format() == 'json':
+                    return dict()
+                raise redirect('/override/new')
 
             # Make sure the build is tagged correctly
             try:
