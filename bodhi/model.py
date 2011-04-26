@@ -1442,6 +1442,12 @@ class BuildRootOverride(SQLObject):
             self.release.override_tag))
         koji.untagBuild(self.release.override_tag, self.build, force=True)
 
+    def __json__(self):
+        return dict(build=self.build, date_submitted=self.date_submitted,
+                    notes=self.notes, expiration=self.expiration,
+                    date_expired=self.date_expired, submitter=self.submitter,
+                    release=self.release.name)
+
 
 class Releases(Singleton):
     """ A cache of frequently used release data.

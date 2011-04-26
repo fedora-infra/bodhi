@@ -99,6 +99,12 @@ def get_parser():
     parser.add_option("", "--untested", action="store_true",
                       help="Display a list of untested critical path updates",
                       dest="untested", default=False)
+    parser.add_option("-O", "--buildroot-override", action="store",
+                      help="Submit a build as a buildroot override",
+                      dest="override", metavar="BUILD")
+    parser.add_option("-E", "--expire-override", action="store",
+                      help="Expire a buildroot override",
+                      dest="expire_override", metavar="BUILD")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -165,6 +171,8 @@ def main():
             log.error("Please specifiy a comma-separated list of builds")
             sys.exit(-1)
 
+    override_notes = None
+    
     while True:
         try:
             if opts.new:
@@ -418,6 +426,25 @@ def main():
                                             arch == 'i686' and ' --arch=i386 --arch=i586'
                                             or '', build['nvr']),
                                         shell=True)
+            elif opts.override:
+                if not override_notes:
+                    override_notes = raw_input('Notes: ').strip()
+                data = bodhi.send_request('override/save', req_params={
+                    'builds': opts.override,
+                    'notes': override_notes,
+                    }, auth=True)
+                if data.get('tg_flash'):
+                    log.info(data['tg_flash'])
+                else:
+                    log.info("No data returned from bodhi?")
+            elif opts.expire_override:
+                data = bodhi.send_request('override/expire', req_params={
+                    'build': opts.expire_override,
+                    }, auth=True)
+                if data.get('tg_flash'):
+                    log.info(data['tg_flash'])
+                else:
+                    log.info("No data returned from bodhi?")
             else:
                 parser.print_help()
             break

@@ -18,6 +18,11 @@ from turbogears import (expose, paginate, validate, validators, redirect,
                         error_handler, url, flash, identity, config)
 from turbogears.controllers import Controller
 
+try:
+    from fedora.tg.tg1utils import request_format
+except ImportError:
+    from fedora.tg.util import request_format
+
 from bodhi.model import BuildRootOverride, Release
 from bodhi.buildsys import get_session
 from bodhi.util import get_nvr, get_pkg_pushers
@@ -62,9 +67,11 @@ class BuildRootOverrideController(Controller):
             build, identity.current.user_name))
         flash('Buildroot override for %s successful untagged' % build)
         override.destroySelf()
+        if request_format() == 'json':
+            return dict()
         raise redirect('/override')
 
-    @expose(template="bodhi.templates.search")
+    @expose('json')
     @validate(form=override_form)
     @error_handler(new)
     def save(self, builds, notes, *args, **kw):
@@ -80,7 +87,13 @@ class BuildRootOverrideController(Controller):
 
             # Make sure the build is tagged correctly
             koji = get_session()
-            tags = [tag['name'] for tag in koji.listTags(build)]
+            try:
+                tags = [tag['name'] for tag in koji.listTags(build)]
+            except Exception, e:
+                flash(str(e))
+                if request_format() == 'json':
+                    return dict()
+                raise redirect('/override/new')
             
             # Determine the release by the tag, and sanity check the builds
             for tag in tags:
@@ -90,11 +103,15 @@ class BuildRootOverrideController(Controller):
                     elif tag in (rel.testing_tag, rel.stable_tag):
                         flash('Error: %s is already tagged with %s' % (
                             build, tag))
+                        if request_format() == 'json':
+                            return dict()
                         raise redirect('/override/new')
 
             if not release:
                 flash('Error: Could not determine release for %s with tags %s' %
                         (builds, tags))
+                if request_format() == 'json':
+                    return dict()
                 raise redirect('/override')
 
             # Create a new overrides object
@@ -111,4 +128,6 @@ class BuildRootOverrideController(Controller):
 
         flash('Your buildroot override has been successfully tagged. '
               'It may take up to 20 minutes for the buildroot to regenerate.')
+        if request_format() == 'json':
+            return dict(override.__json__())
         raise redirect('/override')
