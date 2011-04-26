@@ -25,6 +25,7 @@ bodhi/metrics.py
 bodhi/model.py
 bodhi/modifyrepo.py
 bodhi/new.py
+bodhi/overrides.py
 bodhi/release.py
 bodhi/rss.py
 bodhi/search.py
@@ -145,6 +146,8 @@ bodhi/templates/metrics.kid
 bodhi/templates/mine.kid
 bodhi/templates/new.kid
 bodhi/templates/obsolete.kid
+bodhi/templates/overrideform.kid
+bodhi/templates/overrides.kid
 bodhi/templates/packagefield.kid
 bodhi/templates/pending.kid
 bodhi/templates/pkg.kid
