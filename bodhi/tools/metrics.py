@@ -94,7 +94,7 @@ def main():
 
                 if comment.text == 'This update has reached the stable karma threshold and will be pushed to the stable updates repository':
                     data['num_stablekarma'] += 1
-                elif comment.text.endswith('days in testing and can be pushed to stable now if the maintainer wishes'):
+                elif comment.text and comment.text.endswith('days in testing and can be pushed to stable now if the maintainer wishes'):
                     data['num_testingtime'] += 1
 
                 # For figuring out if an update has received feedback or not
