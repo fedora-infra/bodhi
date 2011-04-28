@@ -39,6 +39,8 @@ def main():
                 'num_critpath': 0,
                 'num_critpath_approved': 0,
                 'num_critpath_unapproved': 0,
+                'num_stablekarma': 0,
+                'num_testingtime': 0,
                 'critpath_without_karma': set(),
                 'stable_with_negative_karma': PackageUpdate.select(
                     AND(PackageUpdate.q.releaseID==release.id,
@@ -89,6 +91,11 @@ def main():
                 if comment.author_group == 'proventesters':
                     data['proventesters'].add(comment.author_name)
                     data['proventesters_%d' % comment.karma] += 1
+
+                if comment.text == 'This update has reached the stable karma threshold and will be pushed to the stable updates repository':
+                    data['num_stablekarma'] += 1
+                elif comment.text.endswith('days in testing and can be pushed to stable now if the maintainer wishes'):
+                    data['num_testingtime'] += 1
 
                 # For figuring out if an update has received feedback or not
                 if not feedback_done:
@@ -172,16 +179,22 @@ def main():
         print " * %d anonymous users gave feedback (%0.2f%%)" % (
                 data['num_anon_feedback'], float(data['num_anon_feedback']) /
                 (data['num_anon_feedback'] + sum(data['karma'].values())) * 100)
-        print " * %d out of %d stable updates went through testing (%0.2f%%)" %(
-                data['num_tested'], data['num_stable'],
-                float(data['num_tested']) / data['num_stable'] * 100)
+# This does not take into account updates that reach stablekarma before being pushed to testing!
+#        print " * %d out of %d stable updates went through testing (%0.2f%%)" %(
+#                data['num_tested'], data['num_stable'],
+#                float(data['num_tested']) / data['num_stable'] * 100)
+        print " * %d updates reached the stable karma threshold (%0.2f%%)" %(
+                data['num_stablekarma'],
+                float(data['num_stablekarma']) / data['num_stable'] * 100)
+        print " * %d updates reached the minimum time in testing threshold (%0.2f%%)" % (
+                data['num_testingtime'],
+                float(data['num_testingtime']) / data['num_stable'] * 100)
         print " * %d went from testing to stable *without* karma (%0.2f%%)" %(
                 data['num_tested_without_karma'],
                 float(data['num_tested_without_karma']) /
                 data['num_tested'] * 100)
         print " * %d updates were pushed to stable with negative karma (%0.2f%%)" % (
                 data['stable_with_negative_karma'], float(data['stable_with_negative_karma']) / data['num_stable'] * 100)
-        # TODO: pushed with negative karma
         print " * %d critical path updates pushed to stable *without* karma" % (
                 len(data['critpath_without_karma']))
         #for update in data['critpath_without_karma']:
