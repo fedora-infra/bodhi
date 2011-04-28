@@ -106,7 +106,7 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{python_sitelib}/%{name}/
 %{_bindir}/start-%{name}
 %{_bindir}/%{name}-*
-%{_sysconfdir}/httpd/conf.d/bodhi.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %dir %{_sysconfdir}/bodhi/
 %attr(-,apache,root) %{_datadir}/%{name}
 %attr(-,apache,root) %config(noreplace) %{_sysconfdir}/bodhi/*
