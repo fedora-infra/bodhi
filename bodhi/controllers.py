@@ -1225,8 +1225,7 @@ class Root(controllers.RootController):
         raise redirect("/")
 
     @expose(template='bodhi.templates.show')
-    # Stacked validators seem to be broken in TG 1.0.8
-    #@validate(validators={'karma': validators.Int()})
+    @validate(validators={'karma': validators.Int()})
     @validate(form=comment_captcha_form)
     def captcha_comment(self, text, title, author, karma, captcha=None,
                         tg_errors=None):
@@ -1279,7 +1278,10 @@ class Root(controllers.RootController):
 
     @expose(allow_json=True)
     @error_handler()
-    #@validate(validators={'karma': validators.Int()})
+    @validate(validators={
+        'karma': validators.Int(),
+        'email': validators.StringBool()
+    })
     @validate(form=comment_form)
     @identity.require(identity.not_anonymous())
     def comment(self, text, title, karma=0, tg_errors=None, email=True):
@@ -1289,6 +1291,7 @@ class Root(controllers.RootController):
         :text: The text of the comment.
         :title: The title of the update comment on.
         :karma: The karma of this comment (-1, 0, 1)
+        :email: Whether or not this comment should trigger email notifications
 
         """
         try:
