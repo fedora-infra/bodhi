@@ -134,7 +134,8 @@ def main():
                     if status in ('testing', 'pending'):
                         data['num_critpath_unapproved'] += 1
                 data['num_critpath'] += 1
-                if not feedback_done:
+                #if not feedback_done:
+                if update.status == 'stable' and update.karma == 0:
                     data['critpath_without_karma'].add(update)
             if testingtime_done:
                 data['num_tested'] += 1
@@ -180,7 +181,7 @@ def main():
         print " * %d updates were pushed to stable with negative karma (%0.2f%%)" % (
                 data['stable_with_negative_karma'], float(data['stable_with_negative_karma']) / data['num_stable'] * 100)
         # TODO: pushed with negative karma
-        print " * %d critical path updates pushed *without* karma" % (
+        print " * %d critical path updates pushed to stable *without* karma" % (
                 len(data['critpath_without_karma']))
         #for update in data['critpath_without_karma']:
         #    print "   * %s submitted by %s" % (update.title, update.submitter)
