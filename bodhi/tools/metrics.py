@@ -145,6 +145,7 @@ def main():
         data['deltas'].sort()
 
         print " * %d updates" % data['num_updates']
+        print " * %d packages updated" % (len(data['packages']))
         for status in statuses:
             print " * %d %s updates" % (data['num_%s' % status], status)
         for type in types:
@@ -192,7 +193,6 @@ def main():
                 data['deltas'][len(data['deltas']) / 2].days)
         print "   * mode = %d days" % (
                 sorted(data['occurrences'].items(), key=itemgetter(1))[-1][0])
-        print " * %d packages updated" % (len(data['packages']))
         #for package in sorted(data['packages'].items(), key=itemgetter(1), reverse=True):
         #    print "    * %s: %d" % (package[0].name, package[1])
         print
