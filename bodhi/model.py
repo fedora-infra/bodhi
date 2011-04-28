@@ -800,7 +800,7 @@ class PackageUpdate(SQLObject):
             color = '#00ff00' # green
         return color
 
-    def comment(self, text, karma=0, author=None, anonymous=False):
+    def comment(self, text, karma=0, author=None, anonymous=False, email=True):
         """ Add a comment to this update, adjusting the karma appropriately.
 
         Each user has the ability to comment as much as they want, but only
@@ -897,7 +897,8 @@ class PackageUpdate(SQLObject):
             mail.send(self.submitter, 'unstable', self)
 
         # Send a notification to everyone that has commented on this update
-        mail.send(self.people_to_notify(), 'comment', self)
+        if email:
+            mail.send(self.people_to_notify(), 'comment', self)
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """

@@ -1282,7 +1282,7 @@ class Root(controllers.RootController):
     #@validate(validators={'karma': validators.Int()})
     @validate(form=comment_form)
     @identity.require(identity.not_anonymous())
-    def comment(self, text, title, karma=0, tg_errors=None):
+    def comment(self, text, title, karma=0, tg_errors=None, email=True):
         """ Add a comment to an update.
 
         Arguments:
@@ -1314,7 +1314,7 @@ class Root(controllers.RootController):
                 else:
                     text = textwrap.TextWrapper(width=80,
                         break_long_words=False).fill(text)
-                update.comment(text, karma)
+                update.comment(text, karma, email=email)
                 if request_format() == 'json':
                     return dict(update=update.__json__())
                 raise redirect(update.get_url())
