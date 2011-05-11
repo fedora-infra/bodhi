@@ -100,12 +100,15 @@ def get_parser():
     parser.add_option("", "--untested", action="store_true",
                       help="Display a list of untested critical path updates",
                       dest="untested", default=False)
+
+    ## Buildroot Override Options
     parser.add_option("-o", "--buildroot-override", action="store",
                       help="Submit a build as a buildroot override",
                       dest="override", metavar="BUILD")
     parser.add_option("--duration", action="store",
                       help="Duration of the buildroot override",
-                      dest="duration", metavar="DAYS")
+                      dest="duration", metavar="DAYS",
+                      default=3)
     parser.add_option("-O", "--list-overrides", action="store_true",
                       help="List all buildroot overrides",
                       dest="list_overrides")
@@ -118,6 +121,10 @@ def get_parser():
     parser.add_option("--show-expired", action="store_true",
                       help="Show expired buildroot overrides",
                       dest="show_expired", default=False)
+    parser.add_option("--edit-override", action="store",
+                      help="Edit override duration or notes",
+                      dest="edit_override", default=None,
+                      metavar="BUILD")
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -390,17 +397,23 @@ def main():
                 log.info(data['title'])
 
             ## Buildroot Overrides commands
-            elif opts.override:
+            elif opts.override or opts.edit_override:
+                controller = 'override/save'
+                if opts.edit_override:
+                    controller = 'override/save_edit_cli'
+                    builds = opts.edit_override
+                else:
+                    builds = opts.override
                 expiration = None
                 if opts.duration:
                     expiration = (datetime.utcnow() +
-                            timedelta(days=int(opts.duration))).strftime('%m/%d/%Y')
+                        timedelta(days=int(opts.duration))).strftime('%m/%d/%Y')
                 if opts.notes:
                     override_notes = opts.notes
-                if not override_notes:
+                if not override_notes and not opts.edit_override:
                     override_notes = raw_input('Notes: ').strip()
-                data = bodhi.send_request('override/save', req_params={
-                    'builds': opts.override,
+                data = bodhi.send_request(controller, req_params={
+                    'builds': builds,
                     'notes': override_notes,
                     'expiration': expiration,
                     }, auth=True)
@@ -428,10 +441,13 @@ def main():
                     print " * Notes: %s" % override['notes']
                     print " * Submitter: %s" % override['submitter']
                     print " * Submitted: %s" % override['date_submitted']
+                    if override['expiration']:
+                        print " * Expiration: %s" % override['expiration']
                     if override['date_expired']:
                         print " * Expired: %s" % override['date_expired']
                     print
 
+            ## Query updates
             elif opts.status or opts.bugs or opts.release or opts.type_ or \
                  opts.mine or args:
                 def print_query(data):
