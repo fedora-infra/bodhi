@@ -659,6 +659,8 @@ class Root(controllers.RootController):
                        release.testing_tag in tags:
                         pkgdb_args['collectionName'] = release.collection_name
                         pkgdb_args['collectionVersion'] = str(release.get_version())
+                        buildinfo[build]['release'] = release
+                        break
 
                 people, groups = get_pkg_pushers(pkg, **pkgdb_args)
                 people = people[0] # we only care about committers, not watchers
@@ -703,12 +705,28 @@ class Root(controllers.RootController):
             # Make sure the tag has not been moved, which indicates that we
             # are in the middle of pushing this update
             if edited.get_implied_build_tag() not in buildinfo[builds[0]]['tags']:
-                flash_log("Unable to edit update. %s is currently tagged with %s "
-                          "where bodhi expects it to be %s. This could mean "
-                          "that this update is currently being pushed." % (
-                          builds[0], buildinfo[builds[0]]['tags'],
-                          edited.get_implied_build_tag()))
-                raise InvalidUpdateException(params)
+                if edited.request:
+                    flash_log("Unable to edit update. %s is currently tagged "
+                              "with %s " "where bodhi expects it to be %s. "
+                              "This could mean that this update is currently "
+                              "being pushed." % (
+                                  builds[0], buildinfo[builds[0]]['tags'],
+                                  edited.get_implied_build_tag()))
+                    raise InvalidUpdateException(params)
+                else:
+                    # Check if the tag is for a different release
+                    for b in buildinfo:
+                        if buildinfo[b]['release'] != edited.release:
+                            flash_log('Error: Unable to add build for a '
+                                      'different release to this update')
+                            raise InvalidUpdateException(params)
+
+                    # Ideally, this should never happen.
+                    log.warn('Mismatched tags for an update without a request?')
+                    log.debug(edited)
+                    log.debug('Implied tag: %s\nActual tags: %s' % (
+                        edited.get_implied_build_tag(),
+                        buildinfo[builds[0]]['tags']))
 
             # Determine which builds have been added or removed
             edited_builds = [build.nvr for build in edited.builds]

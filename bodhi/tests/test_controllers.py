@@ -457,6 +457,52 @@ class TestControllers(testutil.DBTest):
         logs = testutil.get_log()
         assert 'Cannot add a F8 build to a F7 update. Please create a new update for python-sqlobject-0.8.2-1.fc8' in logs
 
+    def test_remove_build_and_add_different_release_to_update(self):
+        """
+        Try removing a build and adding a build for a different release to an
+        update (#251)
+        """
+        session = login()
+        f7 = create_release()
+        f8 = create_release('8', dist='dist-f')
+        orig_params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'type_'   : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo'
+        }
+        self.save_update(orig_params, session)
+
+        # Add another build, for a different release
+        params = {
+            'builds'  : 'python-sqlobject-0.8.2-1.fc8',
+            'release' : 'Fedora 7',
+            'type_'   : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : 'foo',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        logs = testutil.get_log()
+        assert u"Unable to edit update. python-sqlobject-0.8.2-1.fc8 is currently tagged with [u'dist-f8-updates-candidate'] where bodhi expects it to be dist-fc7-updates-candidate. This could mean that this update is currently being pushed." in logs
+
+        # Try again without a request..
+        new_build = 'python-sqlalchemy-1.0.2.2-2.fc7'
+        orig_params['builds'] = new_build
+        orig_params['request'] = None
+        self.save_update(orig_params, session)
+        assert PackageUpdate.byTitle(new_build)
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        params['edited'] = new_build
+        self.save_update(params, session)
+        logs = testutil.get_log()
+        assert 'Error: Unable to add build for a different release to this update' in logs
+
     def test_edit(self):
         session = login()
         create_release()
