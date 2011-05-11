@@ -203,6 +203,6 @@ class BuildRootOverrideForm(Form):
                               validator=AutoCompleteValidator()),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=13, cols=65),
-            CalendarDatePicker('expiration')
+            CalendarDatePicker('expiration', not_empty=False)
     ]
     submit_text = "Submit"
