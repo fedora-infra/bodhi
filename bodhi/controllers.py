@@ -597,6 +597,9 @@ class Root(controllers.RootController):
             if stable_karma <= unstable_karma:
                 flash_log("Stable karma must be higher than unstable karma.")
                 raise InvalidUpdateException(params)
+        if not notes:
+            flash_log('Error: You must supply details for this update')
+                raise InvalidUpdateException(params)
 
         # Check for conflicting builds
         for build in builds:

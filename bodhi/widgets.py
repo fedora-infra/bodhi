@@ -99,7 +99,7 @@ class NewUpdateForm(Form):
                                        'CVE-2008-0001'}),
             TextArea('notes', validator=validators.UnicodeString(),
                      rows=13, cols=65,
-                     attrs={'title' : 'Advisory Notes - <p>Some optional details '
+                     attrs={'title' : 'Advisory Notes - <p>Some details '
                                       'about this update that will appear in '
                                       'the notice.</p>'
                                       '<p><strong>Example:</strong><br />'
