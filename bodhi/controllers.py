@@ -474,6 +474,7 @@ class Root(controllers.RootController):
                 for build in update.builds:
                     if len(build.updates) == 1:
                         build.destroySelf()
+                update.expire_buildroot_overrides()
                 update.untag()
                 update.destroySelf()
                 flash_log(msg)

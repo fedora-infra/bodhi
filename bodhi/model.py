@@ -932,6 +932,10 @@ class PackageUpdate(SQLObject):
                 log.error('One or more tasks failed!')
             else:
                 log.debug('Tasks complete!')
+
+        # Expire any buildroot overrides
+        self.expire_buildroot_overrides()
+
         self.pushed = False
         self.status = 'pending'
         mail.send_admin('unpushed', self)
@@ -964,6 +968,9 @@ class PackageUpdate(SQLObject):
             self.remove_tag(self.release.pending_testing_tag)
         elif self.request == 'stable':
             self.remove_tag(self.release.pending_stable_tag)
+
+        # Expire any buildroot overrides
+        self.expire_buildroot_overrides()
 
         self.status = 'obsolete'
         self.request = None
@@ -1183,6 +1190,19 @@ class PackageUpdate(SQLObject):
                                      ' stable now if the maintainer wishes'):
                 return True
         return False
+
+    def expire_buildroot_overrides(self):
+        """ Obsolete any buildroot overrides from this update """
+        for build in self.builds:
+            try:
+                override = BuildRootOverride.byBuild(build.nvr)
+                if not override.date_expired:
+                    log.info('Expiring buildroot override: %s' % build.nvr)
+                    override.untag()
+                else:
+                    log.warning('Override %s already expired!' % build.nvr)
+            except SQLObjectNotFound:
+                pass
 
 
 class Comment(SQLObject):

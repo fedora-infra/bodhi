@@ -13,6 +13,12 @@
     &nbsp;&nbsp;<a href="${tg.url('/override/new')}"><img src="${tg.url('/static/images/plus.png')}"/>Submit a new override</a>
     </div>
     <div style="float:right">
+        <div py:if="mine">
+            &nbsp;&nbsp;[ <a href="${tg.url('/override/list')}">Show all</a> ]
+        </div>
+        <div py:if="not mine">
+            &nbsp;&nbsp;[ <a href="${tg.url('/override/list?mine=True')}">Show mine</a> ]
+        </div>
         <div py:if="show_expired">
             &nbsp;&nbsp;[ <a href="${tg.url('/override/list')}">Hide expired overrides</a> ]
         </div>

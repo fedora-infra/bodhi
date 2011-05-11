@@ -79,7 +79,8 @@ class BuildRootOverrideController(Controller):
         return dict(overrides=overrides,
                     title=title % num_items,
                     num_items=num_items,
-                    show_expired=show_expired)
+                    show_expired=show_expired,
+                    mine=mine)
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
@@ -96,6 +97,10 @@ class BuildRootOverrideController(Controller):
     def expire(self, build, *args, **kw):
         """ Expire a given override """
         override = BuildRootOverride.byBuild(build)
+        if override.date_expired:
+            flash('Override %s already expired!' % build)
+            if request_format() == 'json': return dict()
+            raise redirect('/override')
         override.date_expired = datetime.utcnow()
         try:
             override.untag()
@@ -106,8 +111,7 @@ class BuildRootOverrideController(Controller):
         log.info('Buildroot override %s manually expired by %s' % (
             build, identity.current.user_name))
         flash('Buildroot override for %s successful untagged' % build)
-        if request_format() == 'json':
-            return dict()
+        if request_format() == 'json': return dict()
         raise redirect('/override')
 
     @identity.require(identity.not_anonymous())
