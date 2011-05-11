@@ -25,6 +25,7 @@ import subprocess
 
 from getpass import getpass, getuser
 from optparse import OptionParser
+from datetime import datetime, timedelta
 
 from kitchen.text.converters import to_bytes
 from fedora.client import AuthError, ServerError
@@ -99,12 +100,24 @@ def get_parser():
     parser.add_option("", "--untested", action="store_true",
                       help="Display a list of untested critical path updates",
                       dest="untested", default=False)
-    parser.add_option("-O", "--buildroot-override", action="store",
+    parser.add_option("-o", "--buildroot-override", action="store",
                       help="Submit a build as a buildroot override",
                       dest="override", metavar="BUILD")
+    parser.add_option("--duration", action="store",
+                      help="Duration of the buildroot override",
+                      dest="duration", metavar="DAYS")
+    parser.add_option("-O", "--list-overrides", action="store_true",
+                      help="List all buildroot overrides",
+                      dest="list_overrides")
+    parser.add_option("--my-overrides", action="store_true",
+                      help="List all of your specific buildroot overrides",
+                      dest="my_overrides", default=False)
     parser.add_option("-E", "--expire-override", action="store",
                       help="Expire a buildroot override",
                       dest="expire_override", metavar="BUILD")
+    parser.add_option("--show-expired", action="store_true",
+                      help="Show expired buildroot overrides",
+                      dest="show_expired", default=False)
 
     ## Details
     parser.add_option("-s", "--status", action="store", type="string",
@@ -172,7 +185,7 @@ def main():
             sys.exit(-1)
 
     override_notes = None
-    
+
     while True:
         try:
             if opts.new:
@@ -376,6 +389,49 @@ def main():
                 log.debug(data)
                 log.info(data['title'])
 
+            ## Buildroot Overrides commands
+            elif opts.override:
+                expiration = None
+                if opts.duration:
+                    expiration = (datetime.utcnow() +
+                            timedelta(days=int(opts.duration))).strftime('%m/%d/%Y')
+                if opts.notes:
+                    override_notes = opts.notes
+                if not override_notes:
+                    override_notes = raw_input('Notes: ').strip()
+                data = bodhi.send_request('override/save', req_params={
+                    'builds': opts.override,
+                    'notes': override_notes,
+                    'expiration': expiration,
+                    }, auth=True)
+                if data.get('tg_flash'):
+                    log.info(data['tg_flash'])
+                else:
+                    log.info("No data returned from bodhi?")
+            elif opts.expire_override:
+                data = bodhi.send_request('override/expire', req_params={
+                    'build': opts.expire_override,
+                    }, auth=True)
+                if data.get('tg_flash'):
+                    log.info(data['tg_flash'])
+                else:
+                    log.info("No data returned from bodhi?")
+            elif opts.list_overrides or opts.my_overrides:
+                data = bodhi.send_request('override/list', req_params={
+                    'mine': opts.my_overrides,
+                    'release': opts.release,
+                    'show_expired': opts.show_expired,
+                    }, auth=True)
+                print data['title'] + '\n' + '=' * len(data['title']) + '\n'
+                for override in data['overrides']:
+                    print "[ %s ]" % override['build']
+                    print " * Notes: %s" % override['notes']
+                    print " * Submitter: %s" % override['submitter']
+                    print " * Submitted: %s" % override['date_submitted']
+                    if override['date_expired']:
+                        print " * Expired: %s" % override['date_expired']
+                    print
+
             elif opts.status or opts.bugs or opts.release or opts.type_ or \
                  opts.mine or args:
                 def print_query(data):
@@ -426,25 +482,7 @@ def main():
                                             arch == 'i686' and ' --arch=i386 --arch=i586'
                                             or '', build['nvr']),
                                         shell=True)
-            elif opts.override:
-                if not override_notes:
-                    override_notes = raw_input('Notes: ').strip()
-                data = bodhi.send_request('override/save', req_params={
-                    'builds': opts.override,
-                    'notes': override_notes,
-                    }, auth=True)
-                if data.get('tg_flash'):
-                    log.info(data['tg_flash'])
-                else:
-                    log.info("No data returned from bodhi?")
-            elif opts.expire_override:
-                data = bodhi.send_request('override/expire', req_params={
-                    'build': opts.expire_override,
-                    }, auth=True)
-                if data.get('tg_flash'):
-                    log.info(data['tg_flash'])
-                else:
-                    log.info("No data returned from bodhi?")
+
             else:
                 parser.print_help()
             break
