@@ -44,7 +44,7 @@
         <?python row_color = "#FFFFFF" ?>
         <tr class="list" bgcolor="${row_color}" py:for="override in overrides">
             <td class="list">
-                ${override.build}
+                <a href="${tg.url('/override/edit?build=' + override.build)}">${override.build}</a>
             </td>
             <td class="list">
                 ${override.notes}
@@ -53,10 +53,10 @@
                 <a href="${tg.url('/user/' + override.submitter)}">${override.submitter}</a>
             </td>
             <td class="list">
-                ${override.date_submitted.strftime('%m/%d/%Y')}
+                ${override.date_submitted and override.date_submitted.strftime('%m/%d/%Y') or ''}
             </td>
             <td class="list">
-                ${override.expiration.strftime('%m/%d/%Y')}
+                ${override.expiration and override.expiration.strftime('%m/%d/%Y') or ''}
             </td>
             <td class="list">
                 <div py:if="override.date_expired">
