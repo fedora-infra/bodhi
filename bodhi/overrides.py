@@ -114,8 +114,13 @@ class BuildRootOverrideController(Controller):
     @expose('json')
     @validate(form=override_form)
     @error_handler(new)
-    def save(self, builds, notes, expiration, *args, **kw):
-        log.debug('BuildRootOverrideController.save(%s)' % builds)
+    def save(self, builds, notes, expiration=None, *args, **kw):
+        log.debug(repr(locals()))
+        last_release = None # for our koji wait-repo example
+
+        if not expiration:
+            expiration = datetime.utcnow() + \
+                    timedelta(days=config.get('buildroot_overrides.expire_after'))
 
         try:
             koji = get_session()
@@ -125,7 +130,7 @@ class BuildRootOverrideController(Controller):
                 return dict()
             raise redirect('/override/new')
 
-        for build in builds:
+        for build in iterate(builds):
             release = None
             n, v, r = get_nvr(build)
 
@@ -145,12 +150,12 @@ class BuildRootOverrideController(Controller):
                 if request_format() == 'json':
                     return dict()
                 raise redirect('/override/new')
-            
+
             # Determine the release by the tag, and sanity check the builds
             for tag in tags:
                 for rel in Release.select():
                     if tag == rel.candidate_tag:
-                        release = rel
+                        release = last_release = rel
                     elif tag in (rel.testing_tag, rel.stable_tag):
                         flash('Error: %s is already tagged with %s' % (
                             build, tag))
@@ -166,15 +171,24 @@ class BuildRootOverrideController(Controller):
                 raise redirect('/override/new')
 
             # Create a new overrides object
-            override = BuildRootOverride(build=build,
-                    notes=notes, submitter=identity.current.user_name,
-                    expiration=expiration, releaseID=release.id)
+            try:
+                override = BuildRootOverride(build=build,
+                        notes=notes, submitter=identity.current.user_name,
+                        expiration=expiration, releaseID=release.id)
+            except DuplicateEntryError:
+                flash('Error: buildroot override for %r already exists' % build)
+                if request_format() == 'json':
+                    return dict()
+                raise redirect('/override/new')
 
             # Tag the build
             override.tag()
 
         flash('Your buildroot override has been successfully tagged. '
-              'It may take up to 20 minutes for the buildroot to regenerate.')
+              'It may take up to 20 minutes for the buildroot to regenerate. '
+              'You can wait for the new buildroot by running '
+              '`koji wait-repo %s-build`' % last_release.dist_tag)
+
         if request_format() == 'json':
             return dict(override.__json__())
         raise redirect('/override')
