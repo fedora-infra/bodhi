@@ -14,9 +14,11 @@
 import logging
 
 from datetime import datetime, timedelta
+from sqlobject import AND
 from turbogears import (expose, paginate, validate, validators, redirect,
                         error_handler, url, flash, identity, config)
 from turbogears.controllers import Controller
+from kitchen.iterutils import iterate
 
 try:
     from fedora.tg.tg1utils import request_format
@@ -27,6 +29,7 @@ from bodhi.model import BuildRootOverride, Release
 from bodhi.buildsys import get_session
 from bodhi.util import get_nvr, get_pkg_pushers
 from bodhi.widgets import BuildRootOverrideForm
+from bodhi.exceptions import DuplicateEntryError
 
 log = logging.getLogger(__name__)
 
@@ -35,23 +38,54 @@ override_form = BuildRootOverrideForm()
 class BuildRootOverrideController(Controller):
 
     @identity.require(identity.not_anonymous())
-    @expose(template="bodhi.templates.overrides")
+    @expose()
+    def index(self):
+        raise redirect('/override/list')
+
+    @identity.require(identity.not_anonymous())
+    @expose(template="bodhi.templates.overrides", allow_json=True)
+    @validate(validators={
+        'build': validators.UnicodeString(),
+        'mine': validators.StringBool(),
+        'release': validators.UnicodeString(),
+        'show_expired': validators.StringBool()
+    })
     @paginate('overrides', default_order='-date_submitted', 
               limit=20, max_limit=1000)
-    def index(self, build=None, tg_errors=None, *args, **kw):
-        if 'releng' in identity.current.groups:
-            overrides = BuildRootOverride.select()
+    def list(self, build=None, tg_errors=None, mine=False, release=None, 
+             show_expired=False, **kw):
+        query = []
+        title = '%d Buildroot Overrides'
+        if mine:
+            query.append(
+                BuildRootOverride.q.submitter == identity.current.user_name)
+            title += ' submitted by %s' % identity.current.user_name
+        if release:
+            rel = Release.byName(release)
+            query.append(
+                BuildRootOverride.q.releaseID == rel.id)
+            title += ' for %s' % rel.long_name
+        if not show_expired:
+            query.append(
+                BuildRootOverride.q.date_expired == None)
+
+        overrides = BuildRootOverride.select(AND(*query))
+
+        if request_format() == 'json':
+            overrides = [o.__json__() for o in overrides]
+            num_items = len(overrides)
         else:
-            overrides = BuildRootOverride.select(
-                    BuildRootOverride.q.submitter == identity.current.user_name)
-        return dict(overrides=overrides, title='Buildroot Overrides',
-                    num_items=overrides.count())
+            num_items = overrides.count()
+        return dict(overrides=overrides,
+                    title=title % num_items,
+                    num_items=num_items,
+                    show_expired=show_expired)
 
     @identity.require(identity.not_anonymous())
     @expose(template="bodhi.templates.form")
     def new(self, tg_errors=None, *args, **kw):
-        #if tg_errors:
-        #    flash(tg_errors)
+        if tg_errors:
+            flash(tg_errors)
         expiration = datetime.utcnow() + \
             timedelta(days=config.get('buildroot_overrides.expire_after', 1))
         return dict(form=override_form, values={'expiration': expiration},
