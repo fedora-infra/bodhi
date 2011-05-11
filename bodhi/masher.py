@@ -480,9 +480,11 @@ class MashTask(Thread):
                 for build in update.builds:
                     try:
                         override = BuildRootOverride.byBuild(build.nvr)
-                        log.info('Expiring buildroot override: %s' % build.nvr)
-                        override.untag()
-                        override.destroySelf()
+                        if not override.date_expired:
+                            log.info('Expiring buildroot override: %s' %
+                                     build.nvr)
+                            override.untag()
+                            override.destroySelf()
                     except SQLObjectNotFound:
                         pass
 
