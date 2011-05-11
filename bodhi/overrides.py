@@ -96,6 +96,7 @@ class BuildRootOverrideController(Controller):
     def expire(self, build, *args, **kw):
         """ Expire a given override """
         override = BuildRootOverride.byBuild(build)
+        override.date_expired = datetime.utcnow()
         try:
             override.untag()
         except Exception, e:
@@ -105,7 +106,6 @@ class BuildRootOverrideController(Controller):
         log.info('Buildroot override %s manually expired by %s' % (
             build, identity.current.user_name))
         flash('Buildroot override for %s successful untagged' % build)
-        override.destroySelf()
         if request_format() == 'json':
             return dict()
         raise redirect('/override')
