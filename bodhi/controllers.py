@@ -599,7 +599,7 @@ class Root(controllers.RootController):
                 raise InvalidUpdateException(params)
         if not notes:
             flash_log('Error: You must supply details for this update')
-                raise InvalidUpdateException(params)
+            raise InvalidUpdateException(params)
 
         # Check for conflicting builds
         for build in builds:
