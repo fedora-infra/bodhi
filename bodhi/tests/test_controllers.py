@@ -305,7 +305,7 @@ class TestControllers(testutil.DBTest):
         params = {
             'builds'  : 'TurboGears-1.0.4.4-1.fc7 nethack-3.4.3-17.fc8',
             'type_'    : 'bugfix',
-            'bugs'    : '', 'cves'    : '', 'notes'   : ''
+            'bugs'    : '', 'cves'    : '', 'notes'   : 'foo'
         }
         self.save_update(params, session)
         params['builds'] = params['builds'].replace(' ', ',')
@@ -2211,7 +2211,6 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
 
-        # Add another build, for a different release
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
             'release' : 'Fedora 7',
