@@ -455,7 +455,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert 'Cannot add a F8 build to a F7 update. Please create a new update for python-sqlobject-0.8.2-1.fc8' in logs
+        assert 'Error: Unable to add build for a different release to this update' in logs, logs
 
     def test_remove_build_and_add_different_release_to_update(self):
         """
@@ -488,7 +488,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert u"Unable to edit update. python-sqlobject-0.8.2-1.fc8 is currently tagged with [u'dist-f8-updates-candidate'] where bodhi expects it to be dist-fc7-updates-candidate. This could mean that this update is currently being pushed." in logs
+        assert u"Error: Unable to add build for a different release to this update" in logs
 
         # Try again without a request..
         new_build = 'python-sqlalchemy-1.0.2.2-2.fc7'
