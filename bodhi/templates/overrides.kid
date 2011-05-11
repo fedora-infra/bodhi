@@ -9,14 +9,16 @@
 
 <body>
     &nbsp;&nbsp;<h2>${title}</h2>
+    <div style="float:left">
     &nbsp;&nbsp;<a href="${tg.url('/override/new')}"><img src="${tg.url('/static/images/plus.png')}"/>Submit a new override</a>
-    <br/>
-    <div py:if="num_items" class="list">
-        <span py:for="page in tg.paginate.pages">
-            <a py:if="page != tg.paginate.current_page"
-                href="${tg.paginate.get_href(page)}">${page}</a>
-            <b py:if="page == tg.paginate.current_page">${page}</b>
-        </span>
+    </div>
+    <div style="float:right">
+        <div py:if="show_expired">
+            &nbsp;&nbsp;[ <a href="${tg.url('/override/list')}">Hide expired overrides</a> ]
+        </div>
+        <div py:if="not show_expired">
+            &nbsp;&nbsp;[ <a href="${tg.url('/override/list?show_expired=True')}">Show expired overrides</a> ]
+        </div>
     </div>
 
     <table class="list">
@@ -25,22 +27,18 @@
                 <b>Build</b>
             </th>
             <th class="list">
-                <b>Release</b>
-            </th>
-            <th class="list">
                 <b>Notes</b>
-            </th>
-            <th class="list">
-                <b>Submitted</b>
             </th>
             <th class="list">
                 <b>Submitter</b>
             </th>
             <th class="list">
+                <b>Submitted</b>
+            </th>
+            <th class="list">
                 <b>Expiration</b>
             </th>
             <th class="list">
-                <b>Manual Expiration</b>
             </th>
         </tr>
         <?python row_color = "#FFFFFF" ?>
@@ -49,23 +47,25 @@
                 ${override.build}
             </td>
             <td class="list">
-                <a class="list" href="${tg.url('/%s' % override.release.name)}">${override.release.name}</a>
-            </td>
-            <td class="list">
                 ${override.notes}
-            </td>
-            <td class="list">
-                ${override.date_submitted}
             </td>
             <td class="list">
                 <a href="${tg.url('/user/' + override.submitter)}">${override.submitter}</a>
             </td>
             <td class="list">
-                ${override.expiration}
+                ${override.date_submitted.strftime('%m/%d/%Y')}
             </td>
             <td class="list">
-                <div py:if="'releng' in tg.identity.groups or tg.identity.user_name == override.submitter">
-                    <a href="${tg.url('/override/expire/%s' % override.build)}">Expire</a>
+                ${override.expiration.strftime('%m/%d/%Y')}
+            </td>
+            <td class="list">
+                <div py:if="override.date_expired">
+                    <b>EXPIRED</b>
+                </div>
+                <div py:if="not override.date_expired">
+                    <div py:if="'releng' in tg.identity.groups or tg.identity.user_name == override.submitter">
+                        <a href="${tg.url('/override/expire/%s' % override.build)}">Expire</a>
+                    </div>
                 </div>
             </td>
             <?python row_color = (row_color == "#f1f1f1") and "#FFFFFF" or "#f1f1f1" ?>
