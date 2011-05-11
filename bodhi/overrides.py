@@ -14,7 +14,7 @@
 import logging
 
 from datetime import datetime, timedelta
-from sqlobject import AND
+from sqlobject import AND, SQLObjectNotFound
 from turbogears import (expose, paginate, validate, validators, redirect,
                         error_handler, url, flash, identity, config)
 from turbogears.controllers import Controller
@@ -118,9 +118,11 @@ class BuildRootOverrideController(Controller):
         log.debug(repr(locals()))
         last_release = None # for our koji wait-repo example
 
-        if not expiration:
-            expiration = datetime.utcnow() + \
-                    timedelta(days=config.get('buildroot_overrides.expire_after'))
+        if expiration:
+            if datetime.utcnow() > expiration:
+                flash('Cannot set an expiration in the past')
+                if request_format() == 'json': return dict()
+                raise redirect('/override/new')
 
         try:
             koji = get_session()
@@ -138,8 +140,7 @@ class BuildRootOverrideController(Controller):
             people, groups = get_pkg_pushers(n)
             if identity.current.user_name not in people[0]:
                 flash("Error: You do not have commit privileges to %s" % n)
-                if request_format() == 'json':
-                    return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/override/new')
 
             # Make sure the build is tagged correctly
@@ -147,8 +148,7 @@ class BuildRootOverrideController(Controller):
                 tags = [tag['name'] for tag in koji.listTags(build)]
             except Exception, e:
                 flash(str(e))
-                if request_format() == 'json':
-                    return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/override/new')
 
             # Determine the release by the tag, and sanity check the builds
@@ -159,15 +159,13 @@ class BuildRootOverrideController(Controller):
                     elif tag in (rel.testing_tag, rel.stable_tag):
                         flash('Error: %s is already tagged with %s' % (
                             build, tag))
-                        if request_format() == 'json':
-                            return dict()
+                        if request_format() == 'json': return dict()
                         raise redirect('/override/new')
 
             if not release:
                 flash('Error: Could not determine release for %s with tags %s' %
                         (build, map(str, tags)))
-                if request_format() == 'json':
-                    return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/override/new')
 
             # Create a new overrides object
@@ -177,8 +175,7 @@ class BuildRootOverrideController(Controller):
                         expiration=expiration, releaseID=release.id)
             except DuplicateEntryError:
                 flash('Error: buildroot override for %r already exists' % build)
-                if request_format() == 'json':
-                    return dict()
+                if request_format() == 'json': return dict()
                 raise redirect('/override/new')
 
             # Tag the build
@@ -189,6 +186,87 @@ class BuildRootOverrideController(Controller):
               'You can wait for the new buildroot by running '
               '`koji wait-repo %s-build`' % last_release.dist_tag)
 
-        if request_format() == 'json':
-            return dict(override.__json__())
+        if request_format() == 'json': return override.__json__()
+        raise redirect('/override')
+
+    @identity.require(identity.not_anonymous())
+    @expose(template="bodhi.templates.form")
+    def edit(self, build):
+        """ Edit an override """
+        try:
+            override = BuildRootOverride.byBuild(build)
+        except SQLObjectNotFound:
+            flash('Cannot find override %r' % build)
+            raise redirect('/override')
+        values = {
+                'builds': {'text': override.build, 'hidden': override.build},
+                'expiration': override.expiration,
+                'notes': override.notes,
+                'edited': override.build,
+        }
+        if override.date_expired:
+            flash('This override is EXPIRED. Editing it will re-enable it')
+        return dict(form=override_form, values=values,
+                    action=url("/override/save_edit"),
+                    title='Edit Buildroot Override')
+
+    @identity.require(identity.not_anonymous())
+    @expose('json')
+    @validate(validators={
+        'builds': validators.UnicodeString(),
+        'notes': validators.UnicodeString(),
+        'expiration': validators.DateTimeConverter(format='%m/%d/%Y',
+                                                   not_empty=False)
+    })
+    @error_handler(new)
+    def save_edit_cli(self, builds, notes, expiration=None, **kw):
+        log.debug(repr(locals()))
+        if expiration:
+            if datetime.utcnow() > expiration:
+                flash('Cannot set an expiration in the past')
+                if request_format() == 'json': return dict()
+                raise redirect('/override/edit?build=' + builds)
+        try:
+            override = BuildRootOverride.byBuild(builds)
+        except SQLObjectNotFound:
+            flash('Cannot find override to edit %r' % builds)
+            raise redirect('/override')
+        override.notes = notes
+        override.expiration = expiration
+        if override.date_expired:
+            log.debug('Retagging expired override: %s' % override.build)
+            override.date_expired = None
+            override.tag()
+        flash('%s successfully edited' % builds)
+        if request_format() == 'json': return override.__json__()
+        raise redirect('/override')
+
+    @identity.require(identity.not_anonymous())
+    @expose('json')
+    @validate(form=override_form)
+    @error_handler(new)
+    def save_edit(self, builds, notes, expiration=None, **kw):
+        log.debug(repr(locals()))
+        if len(builds) > 1:
+            flash('Unable to add builds to an existing override')
+            raise redirect('/override')
+        builds = builds[0]
+        if expiration:
+            if datetime.utcnow() > expiration:
+                flash('Cannot set an expiration in the past')
+                if request_format() == 'json': return dict()
+                raise redirect('/override/edit?build=' + builds)
+        try:
+            override = BuildRootOverride.byBuild(builds)
+        except SQLObjectNotFound:
+            flash('Cannot find override to edit %r' % builds)
+            raise redirect('/override')
+        override.notes = notes
+        override.expiration = expiration
+        if override.date_expired:
+            log.debug('Retagging expired override: %s' % override.build)
+            override.date_expired = None
+            override.tag()
+        flash('%s successfully edited' % builds)
+        if request_format() == 'json': return override.__json__()
         raise redirect('/override')
