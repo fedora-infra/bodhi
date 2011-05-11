@@ -159,7 +159,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'REGRESSION!',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         cherrypy.config.update({'build_dir': '/tmp'})
         self.save_update(params, session)
@@ -215,7 +215,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
@@ -266,7 +266,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         testutil.capture_log("bodhi.util")
         self.save_update(params, session)
@@ -284,7 +284,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         testutil.capture_log("bodhi.util")
         self.save_update(params, session)
@@ -340,7 +340,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
         f7build, f8build = params['builds'].split()
@@ -370,7 +370,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
 
@@ -381,7 +381,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'bugs'    : '1',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'edited'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-0.8.2-1.fc7',
         }
 
@@ -402,7 +402,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
 
@@ -413,7 +413,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'bugs'    : '1',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'edited'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-0.8.2-1.fc7',
         }
 
@@ -437,7 +437,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
 
@@ -448,7 +448,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'bugs'    : '1',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'edited'  : 'TurboGears-1.0.2.2-2.fc7'
         }
 
@@ -466,7 +466,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
@@ -478,7 +478,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '1',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'edited'  : 'TurboGears-1.0.2.2-2.fc7'
         }
         self.save_update(params, session)
@@ -562,7 +562,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
@@ -578,7 +578,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '1',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'edited'  : 'TurboGears-1.0.2.2-2.fc7'
         }
         self.save_update(params, session)
@@ -598,7 +598,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
@@ -614,7 +614,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '1',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'edited'  : 'TurboGears-1.0.2.2-2.fc7'
         }
         self.save_update(params, session)
@@ -632,7 +632,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
@@ -671,7 +671,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
         print cherrypy.response.body[0]
@@ -702,7 +702,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'request' : 'testing',
         }
         self.save_update(params, session)
@@ -721,7 +721,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'request' : 'foobar!',
         }
         self.save_update(params, session)
@@ -739,7 +739,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
 
         # Monkey-patch our DevBuildsys 
@@ -781,7 +781,7 @@ class TestControllers(testutil.DBTest):
             'type_'    : 'bugfix',
             'bugs'    : '',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
 
@@ -841,7 +841,7 @@ class TestControllers(testutil.DBTest):
                 'type_'    : 'enhancement',
                 'bugs'    : '',
                 'cves'    : '',
-                'notes'   : ''
+                'notes'   : 'foo'
         }
         self.save_update(params, session)
         assert "This resource resides temporarily" in cherrypy.response.body[0], cherrypy.response.body[0]
@@ -916,7 +916,7 @@ class TestControllers(testutil.DBTest):
                 'type_'    : 'enhancement',
                 'bugs'    : '',
                 'cves'    : '',
-                'notes'   : ''
+                'notes'   : 'foo'
         }
         self.save_update(newparams, session)
         newupdate = PackageUpdate.byTitle(newparams['builds'])
@@ -1157,7 +1157,7 @@ class TestControllers(testutil.DBTest):
                 'release' : 'Fedora 7',
                 'type_'    : 'security',
                 'bugs'    : '',
-                'notes'   : '',
+                'notes'   : 'foo',
                 'request' : 'Stable',
                 'stable_karma' : 1,
                 'unstable_karma' : 2,
@@ -1350,7 +1350,7 @@ class TestControllers(testutil.DBTest):
                 'release' : 'Fedora 7',
                 'type_'   : 'enhancement',
                 'bugs'    : '',
-                'notes'   : '',
+                'notes'   : 'foo',
                 'edited'  : u'kdelibs-4.1.0-5.fc9,kdegames-4.1.0-2.fc9,konq-plugins-4.1.0-2.fc9,qt-4.4.1-2.fc9,quarticurve-kwin-theme-0.0-0.5.beta4.fc9,kdepimlibs-4.1.0-2.fc9,kdebase-workspace-4.1.0-8.fc9,akonadi-1.0.0-2.fc9,kde-l10n-4.1.0-2.fc9,kdegraphics-4.1.0-3.fc9,kdeutils-4.1.0-1.fc9,kdebindings-4.1.0-5.fc9,kde-i18n-3.5.9-8.fc9,kdeartwork-4.1.0-1.fc9,kdemultimedia-4.1.0-1.fc9,kdetoys-4.1.0-1.fc9,kdebase-runtime-4.1.0-1.fc9,kdeadmin-4.1.0-2.fc9,kdenetwork-4.1.0-2.fc9,kdeaccessibility-4.1.0-1.fc9,kdeplasma-addons-4.1.0-1.fc9,kdeedu-4.1.0-1.fc9,kdebase-4.1.0-1.fc9,kdesdk-4.1.0-1.fc9,kde-filesystem-4-17.fc9,qscintilla-2.2-3.fc9,qgtkstyle-0.0-0.2.20080719svn693.fc9,compiz-0.7.6-3.fc9,soprano-2.1-1.fc9,PyQt4-4.4.2-2.fc9,sip-4.7.6-1.fc9,automoc-1.0-0.8.rc1.fc9,phonon-4.2.0-2.fc9',
         }
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
@@ -1368,7 +1368,7 @@ class TestControllers(testutil.DBTest):
                 'builds'  : u'TurboGears-1.0.7-1.fc8',
                 'type_'   : 'bugfix',
                 'bugs'    : '',
-                'notes'   : '',
+                'notes'   : 'foo',
         }
         #testutil.capture_log(['bodhi.controllers', 'bodhi.util'])
         self.save_update(params, session)
@@ -2161,7 +2161,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'bugs'    : '1',
             'cves'    : '',
-            'notes'   : ''
+            'notes'   : 'foo'
         }
         self.save_update(params, session)
 
@@ -2172,7 +2172,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'bugs'    : '1 2',
             'cves'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'edited'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-0.8.2-1.fc7',
         }
 
@@ -2517,7 +2517,7 @@ class TestControllers(testutil.DBTest):
                 'release' : 'Fedora 7',
                 'type_'   : 'bugfix',
                 'bugs'    : '',
-                'notes'   : '',
+                'notes'   : 'foo',
                 'autokarma': True,
                 'stable_karma' : 3,
                 'request': 'stable',
@@ -2574,7 +2574,7 @@ class TestControllers(testutil.DBTest):
                 'release' : 'Fedora 7',
                 'type_'   : 'bugfix',
                 'bugs'    : '',
-                'notes'   : '',
+                'notes'   : 'foo',
                 'autokarma': True,
                 'stable_karma' : 3,
                 'request': 'stable',
@@ -2594,7 +2594,7 @@ class TestControllers(testutil.DBTest):
                 'release' : 'Fedora 7',
                 'type_'   : 'bugfix',
                 'bugs'    : '',
-                'notes'   : '',
+                'notes'   : 'foo',
                 'autokarma': True,
                 'stable_karma' : 3,
                 'request': 'stable',
@@ -2619,7 +2619,7 @@ class TestControllers(testutil.DBTest):
                 'release' : 'Fedora EPEL 5',
                 'type_'   : 'bugfix',
                 'bugs'    : '',
-                'notes'   : '',
+                'notes'   : 'foo',
                 'autokarma': True,
                 'stable_karma' : 1,
                 'request': 'stable',
@@ -2672,7 +2672,7 @@ class TestControllers(testutil.DBTest):
             'type_'   : 'bugfix',
             'cves'    : '',
             'bugs'    : '',
-            'notes'   : '',
+            'notes'   : 'foo',
             'edited'  : 'TurboGears-1.0.8-1.fc7',
         }
 
@@ -2702,7 +2702,7 @@ class TestControllers(testutil.DBTest):
                 'release' : 'Fedora EPEL 5',
                 'type_'   : 'bugfix',
                 'bugs'    : '',
-                'notes'   : '',
+                'notes'   : 'foo',
                 'autokarma': True,
                 'stable_karma' : 1,
                 'request': 'stable',
@@ -2757,3 +2757,19 @@ class TestControllers(testutil.DBTest):
                                 method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.comments[-1].text == 'foobar', update.comments
+
+    def test_mandatory_notes(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '1234',
+                'notes'   : '',
+                'autokarma' : True
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        logs = testutil.get_log()
+        assert 'Error: You must supply details for this update' in logs
