@@ -495,12 +495,12 @@ class Update(Base):
         """
         if self.status is UpdateStatus.stable:
             self.comment(u'This update has been pushed to stable',
-                         author='bodhi')
+                         author=u'bodhi')
         elif self.status is UpdateStatus.testing:
             self.comment(u'This update has been pushed to testing',
-                         author='bodhi')
+                         author=u'bodhi')
         elif self.status is UpdateStatus.obsolete:
-            self.comment(u'This update has been obsoleted', author='bodhi')
+            self.comment(u'This update has been obsoleted', author=u'bodhi')
 
     def send_update_notice(self):
         log.debug("Sending update notice for %s" % self.title)
