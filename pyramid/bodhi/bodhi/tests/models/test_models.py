@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from bodhi import models as model
 from bodhi.models import UpdateStatus, UpdateType, UpdateRequest
 from bodhi.tests.models import ModelTest
+from bodhi.exceptions import InvalidRequest
 
 class TestRelease(ModelTest):
     """Unit test case for the ``Release`` model."""
@@ -140,7 +141,7 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].package.name, u'TurboGears')
 
     def test_title(self):
-        eq_(self.obj.title, u'TurboGears security update')
+        eq_(self.obj.title, u'TurboGears-1.0.8-3.fc11 security update')
 
     def test_pkg_str(self):
         """ Ensure str(pkg) is correct """
@@ -276,5 +277,32 @@ class TestUpdate(ModelTest):
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 4321
         eq_(model.DBSession.query(model.Bug).filter_by(bug_id=1234).first(), None)
+
+    def test_set_request_unpush(self):
+        eq_(self.obj.status, UpdateStatus.pending)
+        self.obj.status = UpdateStatus.testing
+        self.obj.set_request('U')
+        eq_(self.obj.status, UpdateStatus.unpushed)
+
+    @raises(InvalidRequest)
+    def test_set_request_testing(self):
+        self.obj.set_request('T')
+
+    def test_set_request_stable(self):
+        eq_(self.obj.status, UpdateStatus.pending)
+        self.obj.set_request('S')
+        eq_(self.obj.status, UpdateStatus.pending)
+        # TODO: verify results (via session flash?)
+
+    def test_set_request_obsolete(self):
+        eq_(self.obj.status, UpdateStatus.pending)
+        self.obj.set_request('O')
+        eq_(self.obj.status, UpdateStatus.obsolete)
+
+    def test_request_complete(self):
+        eq_(self.obj.pushed, False)
+        eq_(self.obj.date_pushed, None)
+        eq_(self.obj.pushed, True)
+        assert self.obj.date_pushed
 
 # test multibuild update
