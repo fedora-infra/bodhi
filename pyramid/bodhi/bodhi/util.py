@@ -123,6 +123,8 @@ def synchronized(lock):
     return wrap
 
 def authorized_user(update, identity):
+    # FIXME: port to pyramid auth
+    return True
     return 'releng' in identity.current.groups or \
            'cvsadmin' in identity.current.groups or \
            'security_respons' in identity.current.groups or \
@@ -183,7 +185,8 @@ def get_age_in_days(date):
 
 def flash_log(msg):
     """ Flash and log a given message """
-    flash(msg)
+    # FIXME: request.session.flash()
+    #flash(msg)
     log.debug(msg)
 
 def get_release_names():

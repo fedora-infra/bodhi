@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+import bugzilla
 import xmlrpclib
 import transaction
 
@@ -17,13 +18,17 @@ from sqlalchemy.ext.declarative import declarative_base, synonym_for
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
-from bodhi.util import header, build_evr
 from bodhi import buildsys, mail
+from bodhi.util import header, build_evr, authorized_user, rpm_fileheader, get_nvr, flash_log, get_age
+from bodhi.util import get_age_in_days # TODO: move these methods into the model
 from bodhi.models.enum import DeclEnum
+from bodhi.exceptions import InvalidRequest, RPMNotFound
 
 log = logging.getLogger(__name__)
 
 config = {} # FIXME!
+from bunch import Bunch
+identity = Bunch(current=Bunch(user_name=u'Bob'))
 
 class BodhiBase(object):
     """ Our custom model base class """
@@ -39,6 +44,8 @@ DBSession = scoped_session(sessionmaker())
 
 ##
 ## Enumerated type declarations
+## Note: We're using single-letter names at the moment for compatiblity with
+## sqlite dbs
 ##
 
 class UpdateStatus(DeclEnum):
@@ -292,8 +299,8 @@ class Update(Base):
 
     @synonym_for('_title')
     @property
-    def title(self, delim=' '):
-        title = ', '.join([build.package.name for build in self.builds])
+    def title(self, show_nvrs=True, delim=' '):
+        title = ', '.join([build.nvr for build in self.builds])
         return title + ' %s update' % self.type.description
 
     def get_title(self, delim=' '):
@@ -477,7 +484,7 @@ class Update(Base):
 
                     # Now, close our parents bugs as long as nothing else
                     # depends on them, and they are not in a NEW state
-                    bz = Bugzilla.get_bz()
+                    bz = Bug.get_bz()
                     for bug in self.bugs:
                         if bug.parent:
                             parent = bz.getbug(bug.bug_id)
@@ -653,11 +660,11 @@ class Update(Base):
         Create any new CVES, and remove any missing ones.  Destroy removed CVES 
         that are no longer referenced anymore.
         """
+        Session = DBSession()
         for cve in self.cves:
             if cve.cve_id not in cves and len(cve.updates) == 0:
                 log.debug("Destroying stray CVE #%s" % cve.cve_id)
-                session.delete(cve)
-                session.flush()
+                Session.delete(cve)
         for cve_id in cves:
             try:
                 cve = CVE.query.filter_by(cve_id=cve_id).one()
@@ -666,9 +673,9 @@ class Update(Base):
             except: # TODO: catch sqlalchemy's not found exception!
                 log.debug("Creating new CVE: %s" % cve_id)
                 cve = CVE(cve_id=cve_id)
-                session.save(cve)
+                ession.save(cve)
                 self.cves.append(cve)
-        session.flush()
+        Session.commit()
 
     def get_pushed_age(self):
         return get_age(self.date_pushed)
@@ -759,7 +766,7 @@ class Update(Base):
         self.pushed = False
         self.status = UpdateStatus.unpushed
         mail.send_admin('unpushed', self)
-        session.flush()
+        #DBSession.flush()
 
     def untag(self):
         """ Untag all of the builds in this update """
@@ -887,7 +894,7 @@ class Bug(Base):
 
     def fetch_details(self, bug=None):
         if not bug:
-            bz = Bugzilla.get_bz()
+            bz = Bug.get_bz()
             try:
                 bug = bz.getbug(self.bug_id)
             except xmlrpclib.Fault, f:
@@ -919,7 +926,7 @@ class Bug(Base):
         if not config.get('bodhi_email'):
             log.warning("No bodhi_email defined; skipping bug comment")
             return
-        bz = Bugzilla.get_bz()
+        bz = Bug.get_bz()
         if not comment:
             comment = self._default_message(update)
         log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
@@ -935,7 +942,7 @@ class Bug(Base):
         Change the status of this bug to ON_QA, and comment on the bug with
         some details on how to test and provide feedback for this update.
         """
-        bz = Bugzilla.get_bz()
+        bz = Bug.get_bz()
         comment = self._default_message(update)
         log.debug("Setting Bug #%d to ON_QA" % self.bug_id)
         try:
@@ -945,7 +952,7 @@ class Bug(Base):
             log.error("Unable to alter bug #%d\n%s" % (self.bug_id, str(e)))
 
     def close_bug(self, update):
-        bz = Bugzilla.get_bz()
+        bz = Bug.get_bz()
         try:
             ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             bug = bz.getbug(self.bug_id)
