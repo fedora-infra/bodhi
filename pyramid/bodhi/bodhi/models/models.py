@@ -941,6 +941,18 @@ class Bug(Base):
         return "%s/show_bug.cgi?id=%s" % (config.get('bz_baseurl'), self.bug_id)
 
 
+#class Stack(Base):
+#    """
+#    A Stack in bodhi represents a group of packages that are commonly pushed
+#    together as a group.
+#    """
+#    # name
+#    # packages =  Many to many?
+#    # updates
+
+
+
+
 class MyApp(object):
     __name__ = None
     __parent__ = None
