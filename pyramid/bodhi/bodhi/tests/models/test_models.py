@@ -300,9 +300,34 @@ class TestUpdate(ModelTest):
         eq_(self.obj.status, UpdateStatus.obsolete)
 
     def test_request_complete(self):
-        eq_(self.obj.pushed, False)
+        self.obj.request = None
         eq_(self.obj.date_pushed, None)
+        self.obj.set_request('T')
+        self.obj.request_complete()
         eq_(self.obj.pushed, True)
         assert self.obj.date_pushed
+        eq_(self.obj.status, UpdateStatus.testing)
 
-# test multibuild update
+    def test_status_comment(self):
+        self.obj.status = UpdateStatus.testing
+        self.obj.status_comment()
+        eq_(len(self.obj.comments), 1)
+        eq_(self.obj.comments[0].author, u'bodhi')
+        eq_(self.obj.comments[0].text, u'This update has been pushed to testing')
+        self.obj.status = UpdateStatus.stable
+        self.obj.status_comment()
+        eq_(len(self.obj.comments), 2)
+        eq_(self.obj.comments[1].author, u'bodhi')
+        eq_(self.obj.comments[1].text, u'This update has been pushed to stable')
+
+    def test_get_url(self):
+        eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
+        self.obj.assign_alias()
+        eq_(self.obj.get_url(), u'/F11/FEDORA-%s-0001' % time.localtime()[0])
+
+    def test_get_build_tag(self):
+        eq_(self.obj.get_build_tag(), u'dist-f11-updates-candidate')
+        self.obj.status = UpdateStatus.testing
+        eq_(self.obj.get_build_tag(), u'dist-f11-updates-testing')
+        self.obj.status = UpdateStatus.stable
+        eq_(self.obj.get_build_tag(), u'dist-f11-updates')
