@@ -646,7 +646,7 @@ class Update(Base):
             if bz not in self.bugs:
                 Session.add(bz)
                 self.bugs.append(bz)
-        Session.flush()
+        Session.commit()
 
     def update_cves(self, cves):
         """
