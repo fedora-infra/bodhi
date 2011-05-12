@@ -17,8 +17,6 @@ from sqlalchemy.ext.declarative import declarative_base, synonym_for
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
-from zope.sqlalchemy import ZopeTransactionExtension
-
 from bodhi.util import header, build_evr
 from bodhi import buildsys, mail
 from bodhi.models.enum import DeclEnum
@@ -37,7 +35,7 @@ class BodhiBase(object):
 
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+DBSession = scoped_session(sessionmaker())
 
 ##
 ## Enumerated type declarations
