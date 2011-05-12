@@ -379,23 +379,19 @@ class Update(Base):
 
         DBSession.flush()
 
-    def set_request(self, action, pathcheck=True):
+    def set_request(self, action):
         """ Attempt to request an action for this update.
 
         This method either sets the given request on this update, or raises
         an InvalidRequest exception.
 
         At the moment, this method cannot be called outside of a request.
-
-        @param pathcheck: Check for broken update paths for stable requests
         """
         if not authorized_user(self, identity):
             raise InvalidRequest("Unauthorized to perform action on %s" %
                                  self.title)
         action = UpdateRequest.from_string(action)
-        #if action not in ('testing', 'stable', 'obsolete', 'unpush'):
-        #    raise InvalidRequest("Unknown request: %s" % action)
-        if action.description == self.status.description:
+        if action is self.status:
             raise InvalidRequest("%s already %s" % (self.title,
                                                     action.description))
         if action is self.request:
@@ -411,30 +407,17 @@ class Update(Base):
             self.obsolete()
             flash_log("%s has been obsoleted" % self.title)
             return
-        elif self.type is UpdateType.security and not self.approved:
-            flash_log("%s is awaiting approval of the Security Team" %
-                      self.title)
-            self.request = action
-            return
-        elif action is UpdateRequest.stable and pathcheck:
-            # Make sure we don't break update paths by trying to push out
-            # an update that is older than than the latest.
-            koji = buildsys.get_session()
-            for build in self.builds:
-                mybuild = koji.getBuild(build.nvr)
-                mybuild['nvr'] = "%s-%s-%s" % (mybuild['name'],
-                                               mybuild['version'],
-                                               mybuild['release'])
-                kojiBuilds = koji.listTagged(self.release.dist_tag + '-updates',
-                                             package=build.package.name,
-                                             latest=True)
-                for oldBuild in kojiBuilds:
-                    if rpm.labelCompare(build_evr(mybuild),
-                                        build_evr(oldBuild)) < 0:
-                        raise InvalidRequest("Broken update path: %s is "
-                                             "already released, and is newer "
-                                             "than %s" % (oldBuild['nvr'],
-                                                          mybuild['nvr']))
+        # TODO:
+        # Make it so that we can optionally configure bodhi to require mandatory
+        # signoff from a specific group before an update can hit stable:
+        #       eg: Security Team (for security updates) 
+        #                or
+        #           AutoQA (for all updates)
+        #elif self.type is UpdateType.security and not self.date_approved:
+        #    flash_log("%s is awaiting approval of the Security Team" %
+        #              self.title)
+        #    self.request = action
+        #    return
         self.request = action
         self.pushed = False
         self.date_pushed = None
@@ -449,19 +432,13 @@ class Update(Base):
         Perform post-request actions.
         """
         if self.request is UpdateRequest.testing:
-            self.pushed = True
-            self.date_pushed = datetime.utcnow()
-            self.status = UpdateType.testing
-            self.assign_alias()
-        elif self.request is UpdateRequest.obsolete:
-            self.pushed = False
-            self.status = UpdateStatus.obsolete
+            self.status = UpdateStatus.testing
         elif self.request is UpdateRequest.stable:
-            self.pushed = True
-            self.date_pushed = datetime.utcnow()
             self.status = UpdateStatus.stable
-            self.assign_alias()
         self.request = None
+        self.pushed = True
+        self.date_pushed = datetime.utcnow()
+        self.assign_alias()
 
     def modify_bugs(self):
         """
