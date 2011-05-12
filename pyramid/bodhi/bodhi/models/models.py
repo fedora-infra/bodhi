@@ -4,6 +4,7 @@ import logging
 import xmlrpclib
 import transaction
 
+from textwrap import wrap
 from datetime import datetime
 
 from sqlalchemy import create_engine
