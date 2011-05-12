@@ -411,6 +411,9 @@ def send_mail(sender, to, subject, body):
 
 def send(to, msg_type, update, sender=None):
     """ Send an update notification email to a given recipient """
+    # TODO: port to pyramid mail sender?
+    return 
+
     if not sender:
         sender = config.get('bodhi_email')
     if not sender:
@@ -430,4 +433,6 @@ def send_releng(subject, body):
 
 def send_admin(msg_type, update, sender=None):
     """ Send an update notification to the admins/release team. """
+    # TODO: port to pyramid mail handler
+    return
     send(config.get('release_team_address'), msg_type, update, sender)
