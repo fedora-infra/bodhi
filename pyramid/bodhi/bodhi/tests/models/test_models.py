@@ -155,14 +155,13 @@ class TestUpdate(ModelTest):
     def test_assign_alias(self):
         update = self.obj
         update.assign_alias()
-        eq_(update.alias, u'%s-%s-0001' % (update.release.id_prefix,
-                                          time.localtime()[0]))
+        year = time.localtime()[0]
+        eq_(update.alias, u'%s-%s-0001' % (update.release.id_prefix, year))
         #assert update.date_pushed
 
         update = self.get_update(name=u'TurboGears-0.4.4-8.fc11')
         update.assign_alias()
-        eq_(update.alias, u'%s-%s-0002' % (update.release.id_prefix,
-                                          time.localtime()[0]))
+        eq_(update.alias, u'%s-%s-0002' % (update.release.id_prefix, year))
 
         ## Create another update for another release that has the same
         ## Release.id_prefix.  This used to trigger a bug that would cause
@@ -172,18 +171,18 @@ class TestUpdate(ModelTest):
                                  id_prefix=u'FEDORA', dist_tag=u'dist-fc10')
         update.release = otherrel
         update.assign_alias()
-        eq_(update.alias, u'%s-%s-0003' % (update.release.id_prefix,
-                                          time.localtime()[0]))
+        eq_(update.alias, u'%s-%s-0003' % (update.release.id_prefix, year))
 
         ## 10k bug
-        update.alias = u'FEDORA-2010-9999'
+        update.alias = u'FEDORA-%s-9999' % year
         newupdate = self.get_update(name=u'nethack-2.5.6-1.fc10')
+        newupdate.release = otherrel
         newupdate.assign_alias()
-        eq_(newupdate.alias, u'FEDORA-2010-10000')
+        eq_(newupdate.alias, u'FEDORA-%s-10000' % year)
 
         newerupdate = self.get_update(name=u'nethack-2.5.7-1.fc10')
         newerupdate.assign_alias()
-        eq_(newerupdate.alias, u'FEDORA-2010-10001')
+        eq_(newerupdate.alias, u'FEDORA-%s-10001' % year)
 
         ## test updates that were pushed at the same time.  assign_alias should
         ## be able to figure out which one has the highest id.
@@ -193,7 +192,7 @@ class TestUpdate(ModelTest):
 
         newest = self.get_update(name=u'nethack-2.5.8-1.fc10')
         newest.assign_alias()
-        eq_(newest.alias, u'FEDORA-2010-10002')
+        eq_(newest.alias, u'FEDORA-%s-10002' % year)
 
     def test_epel_id(self):
         """ Make sure we can handle id_prefixes that contain dashes. eg: FEDORA-EPEL """
