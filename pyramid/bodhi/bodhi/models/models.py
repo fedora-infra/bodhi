@@ -669,7 +669,7 @@ class Update(Base):
             except: # TODO: catch sqlalchemy's not found exception!
                 log.debug("Creating new CVE: %s" % cve_id)
                 cve = CVE(cve_id=cve_id)
-                ession.save(cve)
+                Session.save(cve)
                 self.cves.append(cve)
         Session.commit()
 
