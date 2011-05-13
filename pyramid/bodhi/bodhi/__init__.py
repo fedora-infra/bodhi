@@ -5,7 +5,7 @@ from pyramid.request import Request
 from pyramid.security import unauthenticated_userid
 from pyramid.config import Configurator
 
-from bodhi.models import appmaker
+from bodhi.resources import appmaker
 
 class BodhiRequest(Request):
     @reify
@@ -25,12 +25,14 @@ def main(global_config, **settings):
     engine = engine_from_config(settings, 'sqlalchemy.')
     get_root = appmaker(engine)
     config = Configurator(settings=settings, root_factory=get_root)
-    config.set_request_factory(BodhiRequest)
+    #config.set_request_factory(BodhiRequest)
     config.add_static_view('static', 'bodhi:static')
-    config.add_view('bodhi.views.view_root', 
-                    context='bodhi.models.Release', 
-                    renderer="templates/root.pt")
-    #config.add_view('bodhi.views.view_model',
-    #                context='bodhi.models.MyModel',
-    #                renderer="templates/model.pt")
+
+    config.add_view('bodhi.views.view_model_instance',
+                    context='bodhi.models.Base',
+                    renderer='json')
+    config.add_view('bodhi.views.view_model',
+                    context='bodhi.resources.BodhiResource',
+                    renderer='json')
+    config.scan()
     return config.make_wsgi_app()
