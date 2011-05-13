@@ -951,52 +951,20 @@ class Bug(Base):
 #    # updates
 
 
-
-
-class MyApp(object):
-    __name__ = None
-    __parent__ = None
-
-    def __getitem__(self, key):
-        session = DBSession()
-        try:
-            id = int(key)
-        except (ValueError, TypeError):
-            raise KeyError(key)
-
-        query = session.query(Release).filter_by(id=id)
-
-        try:
-            item = query.one()
-            item.__parent__ = self
-            item.__name__ = key
-            return item
-        except NoResultFound:
-            raise KeyError(key)
-
-    def get(self, key, default=None):
-        try:
-            item = self.__getitem__(key)
-        except KeyError:
-            item = default
-        return item
-
-    def __iter__(self):
-        session= DBSession()
-        query = session.query(Release)
-        return iter(query)
-
-root = MyApp()
-
-def default_get_root(request):
-    return root
-
 def populate():
     session = DBSession()
-    model = Release(name=u'F15')
-    session.add(model)
-    session.flush()
-    transaction.commit()
+    release = Release(name=u'F15', long_name=u'Fedora 15', id_prefix=u'FEDORA', dist_tag=u'dist-f15')
+    session.add(release)
+    pkg = Package(name=u'bodhi')
+    session.add(pkg)
+    build = Build(nvr=u'bodhi-2.0-1.fc15', release=release)
+    session.add(build)
+    update = Update(builds=[build], submitter=u'bodhi')
+    update.type = UpdateType.bugfix
+    session.add(update)
+    session.commit()
+    #session.flush()
+    #transaction.commit()
 
 def initialize_sql(engine):
     DBSession.configure(bind=engine)
@@ -1006,7 +974,3 @@ def initialize_sql(engine):
         populate()
     except IntegrityError:
         DBSession.rollback()
-
-def appmaker(engine):
-    initialize_sql(engine)
-    return default_get_root
