@@ -267,8 +267,10 @@ class Update(Base):
     notes = Column(UnicodeText)
 
     # Enumerated types
-    type = Column(UpdateType.db_type())
-    status = Column(UpdateStatus.db_type())
+    type = Column(UpdateType.db_type(), nullable=False)
+    status = Column(UpdateStatus.db_type(),
+                    default=UpdateStatus.pending,
+                    nullable=False)
     request = Column(UpdateRequest.db_type())
 
     # Flags
