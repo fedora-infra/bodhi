@@ -32,11 +32,28 @@ identity = Bunch(current=Bunch(user_name=u'Bob'))
 
 class BodhiBase(object):
     """ Our custom model base class """
+    __exclude_columns___ = None # List of columns to exclude from JSON
 
     def __init__(self, **kw):
         """ Automatically mapping attributes """
         for key, value in kw.iteritems():
             setattr(self, key, value)
+
+    def __json__(self):
+        items = []
+        exclude = getattr(self, '__exclude_columns__', [])
+        for col in self.__table__.columns:
+            if col.name in exclude:
+                continue
+            prop = getattr(self, col.name)
+            if isinstance(prop, list):
+                prop = [child.__json__() for child in prop]
+            elif hasattr(prop, '__json__'):
+                prop = prop.__json__()
+            elif isinstance(prop, datetime):
+                prop = prop.strftime('%Y-%m-%d %H:%M:%S')
+            items.append((col.name, prop))
+        return dict(items)
 
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
