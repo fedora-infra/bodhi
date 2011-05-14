@@ -34,5 +34,5 @@ def main(global_config, **settings):
     config.add_view('bodhi.views.view_model',
                     context='bodhi.resources.BodhiResource',
                     renderer='json')
-    config.scan()
+    #config.scan()
     return config.make_wsgi_app()
