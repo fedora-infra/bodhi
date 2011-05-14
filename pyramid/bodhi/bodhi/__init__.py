@@ -7,17 +7,17 @@ from pyramid.config import Configurator
 
 from bodhi.resources import appmaker
 
-class BodhiRequest(Request):
-    @reify
-    def user(self):
-        # <your database connection, however you get it, the below line
-        # is just an example>
-        dbconn = self.registry.settings['dbconn']
-        userid = unauthenticated_userid(self)
-        if userid is not None:
-            # this should return None if the user doesn't exist
-            # in the database
-            return dbconn['users'].query({'id':userid})
+#class BodhiRequest(Request):
+#    @reify
+#    def user(self):
+#        # <your database connection, however you get it, the below line
+#        # is just an example>
+#        dbconn = self.registry.settings['dbconn']
+#        userid = unauthenticated_userid(self)
+#        if userid is not None:
+#            # this should return None if the user doesn't exist
+#            # in the database
+#            return dbconn['users'].query({'id':userid})
 
 
 def main(global_config, **settings):

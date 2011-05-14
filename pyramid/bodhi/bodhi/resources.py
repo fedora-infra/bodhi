@@ -28,24 +28,22 @@ class BodhiResource(object):
 
     def __getitem__(self, key):
         session = DBSession()
-        log.debug('%s(%r)'% (self.__class__.__name__, key))
         try:
             return session.query(self.__model__).filter_by(**{self.__column__: key}).one()
         except NoResultFound:
-            log.debug('NoResultsFound')
             raise KeyError(key)
 
-    def get(self, key, default=None):
-        try:
-            item = self.__getitem__(key)
-        except KeyError:
-            item = default
-        return item
+    #def get(self, key, default=None):
+    #    try:
+    #        item = self.__getitem__(key)
+    #    except KeyError:
+    #        item = default
+    #    return item
 
-    def __iter__(self):
-        session = DBSession()
-        query = session.query(self.__model__)
-        return iter(query)
+    #def __iter__(self):
+    #    session = DBSession()
+    #    query = session.query(self.__model__)
+    #    return iter(query)
 
 
 class PackageResource(BodhiResource):
