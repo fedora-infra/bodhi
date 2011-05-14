@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.orm.exc import NoResultFound
 
 from bodhi.models import initialize_sql, DBSession
-from bodhi.models import Update, Package, Build, Release #, User
+from bodhi.models import Update, Package, Build, Release, User
 
 log = logging.getLogger(__name__)
 
@@ -76,11 +76,9 @@ class ReleaseResource(BodhiResource):
     __model__ = Release
     __column__ = u'name'
 
-
-# TODO: proper User model?
-#class UserResource(BodhiResource):
-#    __model__ = Update
-#    __keys__ = (u'submitter')
+class UserResource(BodhiResource):
+    __model__ = User
+    __keys__ = u'name'
 
 root = BodhiRoot()
 

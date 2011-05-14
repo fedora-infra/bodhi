@@ -107,7 +107,6 @@ class TestUpdate(ModelTest):
         type=UpdateType.security,
         status=UpdateStatus.pending,
         request=UpdateRequest.testing,
-        submitter=u'lmacken',
         close_bugs=True,
         notes=u'foobar',
         karma=0,
@@ -117,11 +116,12 @@ class TestUpdate(ModelTest):
         release = model.Release(**TestRelease.attrs)
         return dict(
             builds = [model.Build(nvr=u'TurboGears-1.0.8-3.fc11',
-                            package=model.Package(**TestPackage.attrs),
-                            release = release)],
+                                  package=model.Package(**TestPackage.attrs),
+                                  release = release)],
             bugs = [model.Bug(bug_id=1), model.Bug(bug_id=2)],
             cves = [model.CVE(cve_id=u'CVE-2009-0001')],
             release = release,
+            user = model.User(name=u'lmacken')
             )
 
     def get_update(self, name=u'TurboGears-1.0.8-3.fc11'):
@@ -331,3 +331,8 @@ class TestUpdate(ModelTest):
         eq_(self.obj.get_build_tag(), u'dist-f11-updates-testing')
         self.obj.status = UpdateStatus.stable
         eq_(self.obj.get_build_tag(), u'dist-f11-updates')
+
+
+class TestUser(ModelTest):
+    klass = model.User
+    attrs = dict(name=u'Bob Vila')

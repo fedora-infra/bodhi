@@ -263,9 +263,9 @@ class Update(Base):
 
     id = Column(Integer, primary_key=True)
     _title = Column('title', UnicodeText)
-    submitter = Column(Unicode(32), nullable=False)
+    # TODO: more flexible karma schema
     karma = Column(Integer, default=0)
-    notes = Column(UnicodeText)
+    notes = Column(UnicodeText, nullable=False) # Mandatory notes
 
     # Enumerated types
     type = Column(UpdateType.db_type(), nullable=False)
@@ -316,6 +316,8 @@ class Update(Base):
     # builds
     #releases = relation('Release', secondary=update_release_table,
     #                    backref='updates', lazy=False)
+
+    user_id = Column(Integer, ForeignKey('users.id'))
 
     @synonym_for('_title')
     @property
@@ -584,7 +586,7 @@ class Update(Base):
             val += u"\n      Notes: %s" % '\n'.join(notes)
         val += u"""
   Submitter: %s
-  Submitted: %s\n""" % (self.submitter, self.date_submitted)
+  Submitted: %s\n""" % (self.user.name, self.date_submitted)
         if len(self.comments):
             val += u"   Comments: "
             comments = []
@@ -821,7 +823,8 @@ class Comment(Base):
     anonymous = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-    update_id = Column('update_id', Integer, ForeignKey('updates.id'))
+    update_id = Column(Integer, ForeignKey('updates.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
 
     def __str__(self):
         karma = '0'
@@ -961,6 +964,17 @@ class Bug(Base):
         return "%s/show_bug.cgi?id=%s" % (config.get('bz_baseurl'), self.bug_id)
 
 
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(32), unique=True, nullable=False)
+
+    # One-to-many relationships
+    comments = relation(Comment, backref='user', lazy=False)
+    updates = relation(Update, backref='user', lazy=False)
+
+
 #class Stack(Base):
 #    """
 #    A Stack in bodhi represents a group of packages that are commonly pushed
@@ -973,13 +987,15 @@ class Bug(Base):
 
 def populate():
     session = DBSession()
+    user = User(name=u'bodhi')
+    session.add(user)
     release = Release(name=u'F15', long_name=u'Fedora 15', id_prefix=u'FEDORA', dist_tag=u'dist-f15')
     session.add(release)
     pkg = Package(name=u'bodhi')
     session.add(pkg)
     build = Build(nvr=u'bodhi-2.0-1.fc15', release=release)
     session.add(build)
-    update = Update(builds=[build], submitter=u'bodhi')
+    update = Update(builds=[build], user=user)
     update.type = UpdateType.bugfix
     session.add(update)
     session.commit()
