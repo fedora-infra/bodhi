@@ -995,7 +995,7 @@ def populate():
     session.add(pkg)
     build = Build(nvr=u'bodhi-2.0-1.fc15', release=release)
     session.add(build)
-    update = Update(builds=[build], user=user)
+    update = Update(builds=[build], user=user, notes=u'Useful details!')
     update.type = UpdateType.bugfix
     session.add(update)
     session.commit()
