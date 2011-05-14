@@ -77,7 +77,7 @@ def default_get_root(request):
         u'builds':  BuildResource,
         u'packages': PackageResource,
         u'releases': ReleaseResource,
-        #'users': UserResource,
+        u'users': UserResource,
         })
     return root
 
