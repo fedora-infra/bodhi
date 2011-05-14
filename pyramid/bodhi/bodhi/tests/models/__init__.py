@@ -10,7 +10,9 @@ from bodhi.tests import setup_db, teardown_db
 
 def setup():
     """Function called by nose on module load"""
-    setup_db()
+    # Doesn't appear to be necessary as long as our functional test suite
+    # runs first (which sets up the DBSession)
+    #setup_db()
 
 def teardown():
     """Function called by nose after all tests in this module ran"""

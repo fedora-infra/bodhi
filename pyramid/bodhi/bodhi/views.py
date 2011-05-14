@@ -7,7 +7,6 @@ def view_model_instance(context, request):
     return {'context': context.__json__()}
 
 def view_model(context, request):
-    print "view_model(%s)" % context
     session = DBSession()
     # TODO: pagination
     entries = session.query(context.__model__).all()
