@@ -19,18 +19,6 @@ class BodhiRoot(object):
         resource.__name__ = key
         return resource
 
-    def get(self, key, default=None):
-        try:
-            item = self.__getitem__(key)
-        except KeyError:
-            item = default
-        return item
-
-    def __iter__(self):
-        session = DBSession()
-        query = session.query(self.__model__)
-        return iter(query)
-
 
 class BodhiResource(object):
     __name__ = None
