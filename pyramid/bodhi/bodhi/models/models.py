@@ -115,6 +115,7 @@ bug_cve_table = Table('bug_cve_table', metadata,
 
 class Release(Base):
     __tablename__ = 'releases'
+    __exclude_columns__ = ('metrics')
 
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(10), unique=True, nullable=False)
