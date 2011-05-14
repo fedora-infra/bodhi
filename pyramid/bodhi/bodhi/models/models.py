@@ -47,7 +47,8 @@ class BodhiBase(object):
                 continue
             prop = getattr(self, col.name)
             if isinstance(prop, list):
-                prop = [child.__json__() for child in prop]
+                prop = [child.__json__() for child in prop
+                        if hasattr(child, '__json__')]
             elif hasattr(prop, '__json__'):
                 prop = prop.__json__()
             elif isinstance(prop, datetime):

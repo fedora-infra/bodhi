@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """Unit test suite for the models of the application."""
 
-from nose.tools import assert_equals
+import json
+
+from nose.tools import assert_equals, eq_
 
 from bodhi.models import DBSession
 from bodhi.tests import setup_db, teardown_db
@@ -44,6 +46,9 @@ class ModelTest(object):
         pass
 
     def test_query_obj(self):
-        obj = DBSession.query(self.klass).one()
         for key, value in self.attrs.iteritems():
-            assert_equals(getattr(obj, key), value)
+            assert_equals(getattr(self.obj, key), value)
+
+    def test_json(self):
+        """ Ensure our models can return valid JSON """
+        assert json.dumps(self.obj.__json__())
