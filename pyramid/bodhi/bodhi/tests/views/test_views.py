@@ -16,16 +16,4 @@ class ViewTests(unittest.TestCase):
         request = testing.DummyRequest()
         context = DBSession.query(Release).first()
         info = view_model_instance(context, request)
-        self.assertEqual(info['context'], {
-            'candidate_tag': u'dist-f11-updates-candidate',
-            'dist_tag': u'dist-f11',
-            'id': 1,
-            'id_prefix': u'FEDORA',
-            'locked': False,
-            'long_name': u'Fedora 11',
-            'metrics': {'test_metric': [0, 1, 2, 3, 4]},
-            'name': u'F11',
-            'stable_tag': u'dist-f11-updates',
-            'testing_tag': u'dist-f11-updates-testing',
-            'version': 11
-            })
+        self.assertEqual(info['context'], context.__json__())
