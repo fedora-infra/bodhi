@@ -28,11 +28,24 @@ def main(global_config, **settings):
     #config.set_request_factory(BodhiRequest)
     config.add_static_view('static', 'bodhi:static')
 
+    # JSON views
+    config.add_view('bodhi.views.view_model_instance_json',
+                    context='bodhi.models.Base',
+                    accept='application/json',
+                    renderer='json')
+    config.add_view('bodhi.views.view_model_json',
+                    context='bodhi.resources.BodhiResource',
+                    accept='application/json',
+                    renderer='json')
+
+    # Mako template views
     config.add_view('bodhi.views.view_model_instance',
                     context='bodhi.models.Base',
-                    renderer='json')
+                    accept='text/html',
+                    renderer='bodhi:templates/instance.mak')
     config.add_view('bodhi.views.view_model',
+                    accept='text/html',
                     context='bodhi.resources.BodhiResource',
-                    renderer='json')
-    #config.scan()
+                    renderer='bodhi:templates/model.mak')
+
     return config.make_wsgi_app()
