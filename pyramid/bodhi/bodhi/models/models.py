@@ -32,7 +32,7 @@ identity = Bunch(current=Bunch(user_name=u'Bob'))
 
 class BodhiBase(object):
     """ Our custom model base class """
-    __exclude_columns___ = None # List of columns to exclude from JSON
+    __exclude_columns___ = ('id',) # List of columns to exclude from JSON
 
     def __init__(self, **kw):
         """ Automatically mapping attributes """
@@ -115,7 +115,7 @@ bug_cve_table = Table('bug_cve_table', metadata,
 
 class Release(Base):
     __tablename__ = 'releases'
-    __exclude_columns__ = ('metrics')
+    __exclude_columns__ = ('id', 'metrics')
 
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(10), unique=True, nullable=False)
