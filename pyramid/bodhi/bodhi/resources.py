@@ -53,7 +53,7 @@ class ReleaseResource(BodhiResource):
 
 class UserResource(BodhiResource):
     __model__ = User
-    __keys__ = u'name'
+    __column__ = u'name'
 
 root = BodhiRoot()
 
