@@ -25,9 +25,15 @@ class BodhiResource(object):
     __parent__ = None
     __model__ = None
     __column__ = None
+    __filter__ = None
 
     def __getitem__(self, key):
         session = DBSession()
+        if self.__filter__:
+            try:
+                key = self.__filter__(key)
+            except:
+                raise KeyError(key)
         try:
             return session.query(self.__model__).filter_by(
                     **{self.__column__: key}).one()
