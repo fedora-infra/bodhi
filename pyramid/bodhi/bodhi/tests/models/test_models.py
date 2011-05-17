@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Test suite for the Bodhi models"""
 
-import os
 import time
 
 from nose.tools import eq_, raises
@@ -312,12 +311,12 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.testing
         self.obj.status_comment()
         eq_(len(self.obj.comments), 1)
-        eq_(self.obj.comments[0].author, u'bodhi')
+        eq_(self.obj.comments[0].user.name, u'bodhi')
         eq_(self.obj.comments[0].text, u'This update has been pushed to testing')
         self.obj.status = UpdateStatus.stable
         self.obj.status_comment()
         eq_(len(self.obj.comments), 2)
-        eq_(self.obj.comments[1].author, u'bodhi')
+        eq_(self.obj.comments[1].user.name, u'bodhi')
         eq_(self.obj.comments[1].text, u'This update has been pushed to stable')
 
     def test_get_url(self):

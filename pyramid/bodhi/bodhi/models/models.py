@@ -719,9 +719,9 @@ class Update(Base):
         if not author:
             author = identity.current.user_name
         if not anonymous and karma != 0 and \
-           not filter(lambda c: c.author == author and c.karma == karma,
+           not filter(lambda c: c.user.name == author and c.karma == karma,
                       self.comments):
-            mycomments = [c.karma for c in self.comments if c.author == author]
+            mycomments = [c.karma for c in self.comments if c.user.name == author]
             if karma == 1 and -1 in mycomments:
                 self.karma += 2
             elif karma == -1 and 1 in mycomments:
@@ -743,8 +743,15 @@ class Update(Base):
                 self.obsolete()
                 mail.send(self.get_maintainers(), 'unstable', self)
 
-        comment = Comment(text=text, karma=karma,author=author,
-                          anonymous=anonymous)
+        comment = Comment(text=text, karma=karma, anonymous=anonymous)
+        if anonymous:
+            author = u'anonymous'
+        try:
+            user = User.query.filter_by(name=author).one()
+        except NoResultFound:
+            user = User(name=author)
+            DBSession.add(user)
+        user.comments.append(comment)
 
         DBSession.add(comment)
         self.comments.append(comment)
@@ -755,9 +762,9 @@ class Update(Base):
         for person in self.get_maintainers():
             people.add(person)
         for comment in self.comments:
-            if comment.anonymous or comment.author == 'bodhi':
+            if comment.anonymous or comment.user.name == u'bodhi':
                 continue
-            people.add(comment.author)
+            people.add(comment.user.name)
         mail.send(people, 'comment', self)
 
     def unpush(self):
