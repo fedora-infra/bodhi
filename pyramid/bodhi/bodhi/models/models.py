@@ -831,7 +831,6 @@ class Comment(Base):
     __tablename__ = 'comments'
 
     id = Column(Integer, primary_key=True)
-    author = Column(Unicode(50), nullable=False)
     karma = Column(Integer, default=0)
     text = Column(UnicodeText)
     anonymous = Column(Boolean, default=False)
