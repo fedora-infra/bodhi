@@ -262,6 +262,19 @@ class Root(controllers.RootController):
                         title="%d %s found" % (num_items, num_items == 1 and
                                                'update' or 'updates'))
 
+        # If we're looking for bugs specifically (#610)
+        if bugs:
+            updates = []
+            bugs = bugs.replace('#', '').split(',')
+            for bug in bugs:
+                try:
+                    bug = Bugzilla.byBz_id(int(bug))
+                    for update in bug.updates:
+                        updates.append(update.__json__())
+                except (SQLObjectNotFound, ValueError):
+                    pass
+            return dict(updates=updates, num_items=len(updates))
+
         try:
             if release:
                 # TODO: if a specific release is requested along with get_auth,
@@ -359,12 +372,12 @@ class Root(controllers.RootController):
             # simply make them queries
 
             # Filter results by Bugs and/or CVEs
-            if bugs:
-                results = []
-                for bug in map(Bugzilla.byBz_id, map(int, bugs.split(','))):
-                    map(results.append,
-                        filter(lambda x: bug in x.bugs, updates))
-                updates = results
+            #if bugs:
+            #    results = []
+            #    for bug in map(Bugzilla.byBz_id, map(int, bugs.split(','))):
+            #        map(results.append,
+            #            filter(lambda x: bug in x.bugs, updates))
+            #    updates = results
             if cves:
                 results = []
                 for cve in map(CVE.byCve_id, cves.split(',')):
