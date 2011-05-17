@@ -56,11 +56,11 @@ class BodhiBase(object):
             items.append((col.name, prop))
         return dict(items)
 
-    @property
-    def grid_columns(self):
+    @classmethod
+    def grid_columns(cls):
         columns = []
-        exclude = getattr(self, '__exclude_columns__', [])
-        for col in self.__table__.columns:
+        exclude = getattr(cls, '__exclude_columns__', [])
+        for col in cls.__table__.columns:
             if col.name in exclude:
                 continue
             columns.append(col.name)
