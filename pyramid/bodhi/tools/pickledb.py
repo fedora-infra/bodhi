@@ -26,16 +26,17 @@ import time
 import cPickle as pickle
 
 from os.path import isfile
-from sqlobject import SQLObjectNotFound
-from turbogears.database import PackageHub
+#from sqlobject import SQLObjectNotFound
+#from turbogears.database import PackageHub
 
-from bodhi.util import ProgressBar, load_config
+#from bodhi.util import ProgressBar, load_config
+from bodhi.util import ProgressBar
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
                               PostgresIntegrityError)
-from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
-                         Package, PackageBuild)
-
-hub = __connection__ = PackageHub("bodhi")
+#from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
+#                         Package, PackageBuild)
+#
+#hub = __connection__ = PackageHub("bodhi")
 
 def save_db():
     ## Save each release and it's metrics
@@ -186,99 +187,183 @@ def load_sqlalchemy_db():
     db = file(sys.argv[2], 'r')
     data = pickle.load(db)
 
+    from bodhi.models import initialize_sql, DBSession
+    from bodhi.models import Release, Update, Build, Comment, User, Bug, CVE
+    from bodhi.models import Package
+    from bodhi.models import UpdateType, UpdateStatus, UpdateRequest
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm.exc import NoResultFound
+
+    engine = create_engine('sqlite:///bodhi.db')
+    initialize_sql(engine)
+
     # Legacy format was just a list of update dictionaries
     # Now we'll pull things out into an organized dictionary:
     # {'updates': [], 'releases': []}
     if isinstance(data, dict):
         for release in data['releases']:
             try:
-                Release.byName(release['name'])
-            except SQLObjectNotFound:
-                Release(**release)
+                Release.query.filter_by(name=release['name']).one()
+            except NoResultFound:
+                r = Release(**release)
+                DBSession.add(r)
         data = data['updates']
 
     progress = ProgressBar(maxValue=len(data))
 
     for u in data:
         try:
-            release = Release.byName(u['release'][0])
-        except SQLObjectNotFound:
+            release = Release.query.filter_by(name=u['release'][0]).one()
+        except NoResultFound:
             release = Release(name=u['release'][0], long_name=u['release'][1],
-                              id_prefix=u['release'][2], dist_tag=u['release'][3])
+                              id_prefix=u['release'][2],
+                              dist_tag=u['release'][3])
+            DBSession.add(release)
 
         ## Backwards compatbility
         request = u['request']
         if u['request'] == 'move':
-            request = 'stable'
+            u['request'] = 'stable'
         elif u['request'] == 'push':
-            request = 'testing'
+            u['request'] = 'testing'
         elif u['request'] == 'unpush':
-            request = 'obsolete'
-        if u['approved'] in (True, False):
+            u['request'] = 'obsolete'
+        if u['approved'] not in (True, False):
             u['approved'] = None
         if u.has_key('update_id'):
             u['updateid'] = u['update_id']
         if not u.has_key('date_modified'):
             u['date_modified'] = None
 
-        try:
-            update = PackageUpdate.byTitle(u['title'])
-        except SQLObjectNotFound:
-            update = PackageUpdate(title=u['title'],
-                                   date_submitted=u['date_submitted'],
-                                   date_pushed=u['date_pushed'],
-                                   date_modified=u['date_modified'],
-                                   release=release,
-                                   submitter=u['submitter'],
-                                   updateid=u['updateid'],
-                                   type=u['type'],
-                                   status=u['status'],
-                                   pushed=u['pushed'],
-                                   notes=u['notes'],
-                                   karma=u['karma'],
-                                   request=request,
-                                   approved=u['approved'])
+        # Port to new enum types
+        if u['request']:
+            if u['request'] == 'stable':
+                u['request'] = UpdateRequest.stable
+            elif u['request'] == 'testing':
+                u['request'] = UpdateRequest.testing
+            else:
+                raise Exception("Unknown request: %s" % u['request'])
 
-        ## Create Package and PackageBuild objects
+        if u['type'] == 'bugfix':
+            u['type'] = UpdateType.bugfix
+        elif u['type'] == 'newpackage':
+            u['type'] = UpdateType.newpackage
+        elif u['type'] == 'enhancement':
+            u['type'] = UpdateType.enhancement
+        elif u['type'] == 'security':
+            u['type'] = UpdateType.security
+        else:
+            raise Exception("Unknown type: %r" % u['type'])
+
+        if u['status'] == 'pending':
+            u['status'] = UpdateStatus.pending
+        elif u['status'] == 'testing':
+            u['status'] = UpdateStatus.testing
+        elif u['status'] == 'obsolete':
+            u['status'] = UpdateStatus.obsolete
+        elif u['status'] == 'stable':
+            u['status'] = UpdateStatus.stable
+        elif u['status'] == 'unpushed':
+            u['status'] = UpdateStatus.unpushed
+        else:
+            raise Exception("Unknown status: %r" % u['status'])
+
+        try:
+            update = Update.query.filter_by(title=u['title']).one()
+        except NoResultFound:
+            update = Update(_title=u['title'],
+                            date_submitted=u['date_submitted'],
+                            date_pushed=u['date_pushed'],
+                            date_modified=u['date_modified'],
+                            #release=release,
+                            alias=u['updateid'],
+                            pushed=u['pushed'],
+                            notes=u['notes'],
+                            karma=u['karma'],
+                            type=u['type'],
+                            status=u['status'],
+                            request=u['request'],
+                            )
+                            #approved=u['approved'])
+            DBSession.add(update)
+
+            try:
+                user = User.query.filter_by(name=u['submitter']).one()
+            except NoResultFound:
+                user = User(name=u['submitter'])
+                DBSession.add(user)
+                user.updates.append(update)
+
+        ## Create Package and Build objects
         for pkg, nvr in u['builds']:
             try:
-                package = Package.byName(pkg)
-            except SQLObjectNotFound:
+                package = Package.query.filter_by(name=pkg).one()
+            except NoResultFound:
                 package = Package(name=pkg)
+                DBSession.add(package)
             try:
-                build = PackageBuild.byNvr(nvr)
-            except SQLObjectNotFound:
-                build = PackageBuild(nvr=nvr, package=package)
-            update.addPackageBuild(build)
+                build = Build.query.filter_by(nvr=nvr).one()
+            except NoResultFound:
+                build = Build(nvr=nvr, package=package)
+                DBSession.add(build)
+            update.builds.append(build)
 
         ## Create all Bugzilla objects for this update
         for bug_num, bug_title, security, parent in u['bugs']:
             try:
-                bug = Bugzilla.byBz_id(bug_num)
-            except SQLObjectNotFound:
-                bug = Bugzilla(bz_id=bug_num, security=security, parent=parent)
-                bug.title = bug_title
-            update.addBugzilla(bug)
+                bug = Bug.query.filter_by(bug_id=bug_num).one()
+            except NoResultFound:
+                bug = Bug(bug_id=bug_num, security=security, parent=parent,
+                          title=bug_title)
+                DBSession.add(bug)
+            update.bugs.append(bug)
 
         ## Create all CVE objects for this update
         for cve_id in u['cves']:
             try:
-                cve = CVE.byCve_id(cve_id)
-            except SQLObjectNotFound:
+                cve = CVE.query.filter_by(cve_id=cve_id).one()
+            except NoResultFound:
                 cve = CVE(cve_id=cve_id)
-            update.addCVE(cve)
+                DBSession.add(cve)
+            update.cves.append(cve)
+
+        ## Create all Comments for this update
         for timestamp, author, text, karma, anonymous in u['comments']:
-            comment = Comment(timestamp=timestamp, author=author, text=text,
-                              karma=karma, update=update, anonymous=anonymous)
+            comment = Comment(timestamp=timestamp, text=text,
+                              karma=karma, anonymous=anonymous)
+            DBSession.add(comment)
+            update.comments.append(comment)
+            if anonymous:
+                name = 'anonymous'
+            else:
+                name = author
+            try:
+                user = User.query.filter_by(name=name).one()
+            except NoResultFound:
+                user = User(name=name)
+                DBSession.add(user)
+                user.comments.append(comment)
+
+        DBSession.flush()
 
         progress()
+
+    DBSession.commit()
+
+    print("Database migration complete!")
+    print(" * %d updates" % Update.query.count())
+    print(" * %d builds" % Build.query.count())
+    print(" * %d comments" % Comment.query.count())
+    print(" * %d users" % User.query.count())
+    print(" * %d bugs" % Bug.query.count())
+    print(" * %d CVEs" % CVE.query.count())
 
 def usage():
     print "Usage: ./pickledb.py [ save | load <file> ]"
     sys.exit(-1)
 
 def main():
-    load_config()
+    #load_config()
     if len(sys.argv) < 2:
         usage()
     elif sys.argv[1] == 'save':
@@ -292,10 +377,11 @@ def main():
             hub.commit()
     elif sys.argv[1] == 'migrate' and len(sys.argv) == 3:
         try:
-            hub.begin()
+            #hub.begin()
             load_sqlalchemy_db()
         finally:
-            hub.commit()
+            pass
+            #hub.commit()
     else:
         usage()
 
