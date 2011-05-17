@@ -70,6 +70,8 @@ class BodhiBase(object):
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
 DBSession = scoped_session(sessionmaker())
+Base.query = DBSession.query_property()
+
 
 ##
 ## Enumerated type declarations
