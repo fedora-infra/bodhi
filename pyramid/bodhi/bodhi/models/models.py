@@ -744,6 +744,7 @@ class Update(Base):
                 mail.send(self.get_maintainers(), 'unstable', self)
 
         comment = Comment(text=text, karma=karma, anonymous=anonymous)
+
         if anonymous:
             author = u'anonymous'
         try:
@@ -1017,6 +1018,9 @@ def populate():
     session.add(build)
     update = Update(builds=[build], user=user, notes=u'Useful details!')
     update.type = UpdateType.bugfix
+    bug = Bug(bug_id=12345)
+    session.add(bug)
+    update.bugs.append(bug)
     session.add(update)
     session.commit()
     #session.flush()

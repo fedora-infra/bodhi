@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.orm.exc import NoResultFound
 
 from bodhi.models import initialize_sql, DBSession
-from bodhi.models import Update, Package, Build, Release, User
+from bodhi.models import Update, Package, Build, Release, User, Bug
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +55,12 @@ class UserResource(BodhiResource):
     __model__ = User
     __column__ = u'name'
 
+class BugResource(BodhiResource):
+    __model__ = Bug
+    __column__ = u'bug_id'
+    __filter__ = int
+
+
 root = BodhiRoot()
 
 def default_get_root(request):
@@ -65,6 +71,7 @@ def default_get_root(request):
         u'packages': PackageResource,
         u'releases': ReleaseResource,
         u'users': UserResource,
+        u'bugs': BugResource,
         })
     return root
 

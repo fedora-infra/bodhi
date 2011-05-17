@@ -27,3 +27,10 @@ class FunctionalTests(unittest.TestCase):
         data = json.loads(res.body)
         eq_(data[u'entries'][0][u'name'], 'F15')
 
+    def test_releases_view_invalid_bug(self):
+        res = app.get('/bugs/abc', status=404)
+
+    def test_releases_view_bug(self):
+        res = app.get('/bugs/12345', status=200)
+        data = json.loads(res.body)
+        eq_(data[u'context'][u'bug_id'], 12345)
