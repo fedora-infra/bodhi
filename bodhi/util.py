@@ -20,12 +20,10 @@ import os
 import rpm
 import sys
 import logging
-import urllib2
 import tempfile
-import simplejson
 import subprocess
 import urlgrabber
-import turbogears
+#import turbogears
 
 from kid import Element
 from yum import repoMDObject
@@ -33,22 +31,19 @@ from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 from decorator import decorator
-from turbogears import config, flash, redirect
+#from turbogears import config, flash, redirect, url as tg_url
+#from fedora.tg.util import request_format
 from fedora.client import PackageDB
-from kitchen.text.converters import to_unicode, to_bytes
-
-try:
-    from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
-except ImportError:
-    from fedora.tg.util import url as csrf_url, tg_url, request_format
+#from fedora.tg.util import url as csrf_url
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
 
+
 log = logging.getLogger(__name__)
 
 ## Display a given message as a heading
-header = lambda x: "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
+header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
@@ -128,6 +123,8 @@ def synchronized(lock):
     return wrap
 
 def authorized_user(update, identity):
+    # FIXME: port to pyramid auth
+    return True
     return 'releng' in identity.current.groups or \
            'cvsadmin' in identity.current.groups or \
            'security_respons' in identity.current.groups or \
@@ -167,18 +164,6 @@ def make_karma_icon(update):
         karma = 0
     return Element('img', src=url('/static/images/karma%d.png' % karma))
 
-def make_link(text, href):
-    link = Element('a', href=url(href))
-    link.text = text
-    return link
-
-def make_release_link(update):
-    return make_link(update.release.long_name, '/' + update.release.name)
-
-def make_submitter_link(update):
-    return make_link(update.submitter, '/user/' + update.submitter)
-
-
 def get_age(date):
     age = datetime.utcnow() - date
     if age.days == 0:
@@ -200,8 +185,9 @@ def get_age_in_days(date):
 
 def flash_log(msg):
     """ Flash and log a given message """
-    flash(msg)
-    log.info(msg)
+    # FIXME: request.session.flash()
+    #flash(msg)
+    log.debug(msg)
 
 def get_release_names():
     from bodhi.tools.init import releases
@@ -440,6 +426,12 @@ def sanity_check_repodata(myurl):
             raise RepodataException('updateinfo.xml.gz contains empty ID tags')
 
 
+def to_unicode(obj, encoding='utf-8'):
+    if isinstance(obj, basestring):
+        if not isinstance(obj, unicode):
+            obj = unicode(obj, encoding, 'replace')
+    return obj
+
 @decorator
 def json_redirect(f, *args, **kw):
     try:
@@ -516,11 +508,3 @@ def url(*args, **kw):
         return csrf_url(*args, **kw)
     else:
         return tg_url(*args, **kw)
-
-
-def isint(num):
-    try:
-        int(num)
-        return True
-    except ValueError:
-        return False

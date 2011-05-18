@@ -14,10 +14,11 @@
 
 import rpm
 import logging
-import turbomail
+#import turbomail
 
 from textwrap import wrap
-from turbogears import config, identity
+#from turbomail import MailNotEnabledException
+#from turbogears import config, identity
 
 from bodhi.util import rpm_fileheader, to_unicode
 from bodhi.exceptions import RPMNotFound
@@ -194,7 +195,7 @@ for more than 2 weeks if you deem it necessary.
 You can submit this update to be pushed to the stable repository by going to
 the following URL:
 
-    https://admin.fedoraproject.org/updates/request/stable/%(package)s
+    http://admin.fedoraproject.org/updates/request/stable/%(package)s
 
 or by running the following command with the bodhi-client:
 
@@ -209,19 +210,6 @@ or by running the following command with the bodhi-client:
                    }
     },
 
-    'old_testing_critpath' : {
-        'body'    : u"""\
-The critical path update for %(package)s has been in 'testing' status for over
-2 weeks, and has yet to be approved.
-
-%(updatestr)s
-""",
-        'fields' : lambda x: {
-                        'package'     : x.title,
-                        'updatestr'   : unicode(x)
-                   }
-    },
-
     'security' : {
         'body'    : u"""\
 %(submitter)s has submitted the following update.
@@ -231,24 +219,11 @@ The critical path update for %(package)s has been in 'testing' status for over
 To approve this update and request that it be pushed to stable, you can use 
 the link below:
 
-    https://admin.fedoraproject.org/updates/approve/%(package)s
+    http://admin.fedoraproject.org/updates/approve/%(package)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
                         'submitter' : identity.current.user_name,
-                        'updatestr' : unicode(x)
-                    }
-    },
-
-    'critpath_approved' : {
-        'body'    : u"""\
-The Critical Path update `%(package)s` has been approved.
-
-%(updatestr)s
-
-""",
-        'fields'  : lambda x: {
-                        'package'   : x.title,
                         'updatestr' : unicode(x)
                     }
     },
@@ -280,7 +255,7 @@ available at http://docs.fedoraproject.org/yum/.
 
 All packages are signed with the Fedora Project GPG key.  More details on the
 GPG keys used by the Fedora Project can be found at
-https://fedoraproject.org/keys
+http://fedoraproject.org/keys
 --------------------------------------------------------------------------------
 """
 
@@ -342,7 +317,10 @@ def get_template(update, use_template='fedora_errata_template'):
         info['url']     = h[rpm.RPMTAG_URL]
         if update.status == 'testing':
             info['testing'] = ' Test'
-            info['yum_repository'] = ' --enablerepo=updates-testing'
+            if update.release.name in ('F9', 'F8'):
+                info['yum_repository'] = ' --enablerepo=updates-testing-newkey'
+            else:
+                info['yum_repository'] = ' --enablerepo=updates-testing'
         else:
             info['testing'] = ''
             info['yum_repository'] = ''
@@ -355,7 +333,8 @@ def get_template(update, use_template='fedora_errata_template'):
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
-            info['notes'] = u"Update Information:\n\n%s\n" % update.notes
+            info['notes'] = u"Update Information:\n\n%s\n" % \
+                    '\n'.join(wrap(update.notes, width=80))
             info['notes'] += line
 
         # Add this updates referenced Bugzillas and CVEs
@@ -375,7 +354,7 @@ def get_template(update, use_template='fedora_errata_template'):
                          bug.title != 'Invalid bug number') and \
                         ' - %s' % bug.title or ''
                 info['references'] += u"  [ %d ] Bug #%d%s\n        %s\n" % \
-                                      (i, bug.bz_id, title, bug.get_url())
+                                      (i, bug.bug_id, title, bug.get_url())
                 i += 1
             for cve in update.cves:
                 info['references'] += u"  [ %d ] %s\n        %s\n" % \
@@ -419,20 +398,22 @@ def get_template(update, use_template='fedora_errata_template'):
     return templates
 
 def send_mail(sender, to, subject, body):
-    from turbomail import MailNotEnabledException
     message = turbomail.Message(sender, to, subject)
     message.plain = body
     try:
         log.debug("Sending mail: %r" % message.plain)
-        turbomail.enqueue(message)
-    except MailNotEnabledException, e:
-        log.warning(str(e))
+        message.send()
+    except MailNotEnabledException:
+        log.warning("TurboMail is not enabled!")
     except Exception, e:
         log.exception(e)
         log.error("Exception thrown when trying to send mail: %s" % str(e))
 
 def send(to, msg_type, update, sender=None):
     """ Send an update notification email to a given recipient """
+    # TODO: port to pyramid mail sender?
+    return 
+
     if not sender:
         sender = config.get('bodhi_email')
     if not sender:
@@ -441,9 +422,8 @@ def send(to, msg_type, update, sender=None):
     if type(to) not in (list, set, tuple):
         to = [to]
     for person in to:
-        send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (
-                  update.critpath and '[CRITPATH] ' or '',
-                  msg_type, update.title), messages[msg_type]['body'] % 
+        send_mail(sender, person, '[Fedora Update] [%s] %s' % (msg_type,
+                  update.title), messages[msg_type]['body'] % 
                   messages[msg_type]['fields'](update))
 
 def send_releng(subject, body):
@@ -453,4 +433,6 @@ def send_releng(subject, body):
 
 def send_admin(msg_type, update, sender=None):
     """ Send an update notification to the admins/release team. """
+    # TODO: port to pyramid mail handler
+    return
     send(config.get('release_team_address'), msg_type, update, sender)

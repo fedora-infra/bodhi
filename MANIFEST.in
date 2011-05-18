@@ -1,15 +1,2 @@
-exclude start-bodhi
-include apache/bodhi.wsgi
-include apache/bodhi.conf
-include AUTHORS README COPYING ChangeLog Makefile start-bodhi
-include *.cfg
-include bodhi/templates/*.kid
-include bodhi/templates/*.html
-include bodhi/config/*.cfg
-include bodhi/config/*.conf
-include bodhi/config/*.mash
-include bodhi/static/js/*
-include bodhi/static/css/*
-include bodhi/static/images/*
-include bodhi.spec
-include docs/bodhi.1
+include *.txt *.ini *.cfg *.rst
+recursive-include bodhi *.ico *.png *.css *.gif *.jpg *.pt *.txt *.mak *.mako *.js *.html *.xml
