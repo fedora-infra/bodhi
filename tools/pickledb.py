@@ -194,6 +194,11 @@ def load_sqlalchemy_db():
     from sqlalchemy import create_engine
     from sqlalchemy.orm.exc import NoResultFound
 
+    # Caches for quick lookup
+    releases = {}
+    packages = {}
+    users = {}
+
     engine = create_engine('sqlite:///bodhi.db')
     initialize_sql(engine)
 
@@ -213,12 +218,16 @@ def load_sqlalchemy_db():
 
     for u in data:
         try:
-            release = Release.query.filter_by(name=u['release'][0]).one()
-        except NoResultFound:
-            release = Release(name=u['release'][0], long_name=u['release'][1],
-                              id_prefix=u['release'][2],
-                              dist_tag=u['release'][3])
-            DBSession.add(release)
+            release = releases[u['release'][0]]
+        except KeyError:
+            try:
+                release = Release.query.filter_by(name=u['release'][0]).one()
+            except NoResultFound:
+                release = Release(name=u['release'][0], long_name=u['release'][1],
+                                  id_prefix=u['release'][2],
+                                  dist_tag=u['release'][3])
+                DBSession.add(release)
+            releases[u['release'][0]] = release
 
         ## Backwards compatbility
         request = u['request']
@@ -270,6 +279,7 @@ def load_sqlalchemy_db():
 
         try:
             update = Update.query.filter_by(title=u['title']).one()
+            continue
         except NoResultFound:
             update = Update(_title=u['title'],
                             date_submitted=u['date_submitted'],
@@ -288,25 +298,34 @@ def load_sqlalchemy_db():
             DBSession.add(update)
 
             try:
-                user = User.query.filter_by(name=u['submitter']).one()
-            except NoResultFound:
-                user = User(name=u['submitter'])
-                DBSession.add(user)
-                user.updates.append(update)
+                user = users[u['submitter']]
+            except KeyError:
+                try:
+                    user = User.query.filter_by(name=u['submitter']).one()
+                except NoResultFound:
+                    user = User(name=u['submitter'])
+                    DBSession.add(user)
+                    user.updates.append(update)
+                users[u['submitter']] = user
 
         ## Create Package and Build objects
         for pkg, nvr in u['builds']:
             try:
-                package = Package.query.filter_by(name=pkg).one()
-            except NoResultFound:
-                package = Package(name=pkg)
-                DBSession.add(package)
+                package = packages[pkg]
+            except KeyError:
+                try:
+                    package = Package.query.filter_by(name=pkg).one()
+                except NoResultFound:
+                    package = Package(name=pkg)
+                    DBSession.add(package)
+                packages[pkg] = package
+
             try:
                 build = Build.query.filter_by(nvr=nvr).one()
             except NoResultFound:
                 build = Build(nvr=nvr, package=package)
                 DBSession.add(build)
-            update.builds.append(build)
+                update.builds.append(build)
 
         ## Create all Bugzilla objects for this update
         for bug_num, bug_title, security, parent in u['bugs']:
@@ -328,7 +347,13 @@ def load_sqlalchemy_db():
             update.cves.append(cve)
 
         ## Create all Comments for this update
-        for timestamp, author, text, karma, anonymous in u['comments']:
+        for c in u['comments']:
+            try:
+                timestamp, author, text, karma, anonymous = c
+            except ValueError:
+                timestamp, author, text, karma = c
+                anonymous = '@' in author
+
             comment = Comment(timestamp=timestamp, text=text,
                               karma=karma, anonymous=anonymous)
             DBSession.add(comment)
@@ -338,11 +363,16 @@ def load_sqlalchemy_db():
             else:
                 name = author
             try:
-                user = User.query.filter_by(name=name).one()
-            except NoResultFound:
-                user = User(name=name)
-                DBSession.add(user)
-                user.comments.append(comment)
+                user = users[name]
+            except KeyError:
+                try:
+                    user = User.query.filter_by(name=name).one()
+                except NoResultFound:
+                    user = User(name=name)
+                    DBSession.add(user)
+                    user.comments.append(comment)
+                    user.updates.append(update)
+                users[name] = user
 
         DBSession.flush()
 
