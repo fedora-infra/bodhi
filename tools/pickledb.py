@@ -380,7 +380,7 @@ def load_sqlalchemy_db():
 
     DBSession.commit()
 
-    print("Database migration complete!")
+    print("\n\nDatabase migration complete!")
     print(" * %d updates" % Update.query.count())
     print(" * %d builds" % Build.query.count())
     print(" * %d comments" % Comment.query.count())
