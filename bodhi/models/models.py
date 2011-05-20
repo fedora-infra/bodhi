@@ -312,6 +312,9 @@ class Update(Base):
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(32), default=None, unique=True)
 
+    # deprecated: our legacy update ID
+    old_updateid = Column(Unicode(32), default=None)
+
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'))
     release = relation('Release')
@@ -1016,7 +1019,7 @@ def populate():
     session.add(pkg)
     build = Build(nvr=u'bodhi-2.0-1.fc15', release=release)
     session.add(build)
-    update = Update(builds=[build], user=user, notes=u'Useful details!')
+    update = Update(builds=[build], user=user, notes=u'Useful details!', release=release)
     update.type = UpdateType.bugfix
     bug = Bug(bug_id=12345)
     session.add(bug)
