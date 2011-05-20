@@ -24,6 +24,9 @@ class EnumSymbol(object):
     def __repr__(self):
         return "<%s>" % self.name
 
+    def __unicode__(self):
+        return unicode(self.description)
+
     def __json__(self):
         return self.description
 
