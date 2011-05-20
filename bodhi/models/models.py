@@ -992,7 +992,7 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    name = Column(Unicode(32), unique=True, nullable=False)
+    name = Column(Unicode(64), unique=True, nullable=False)
 
     # One-to-many relationships
     comments = relation(Comment, backref='user', lazy=False)
