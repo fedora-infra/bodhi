@@ -87,7 +87,7 @@ class BuildRootOverrideController(Controller):
     @expose(template="bodhi.templates.form")
     def new(self, tg_errors=None, *args, **kw):
         if tg_errors:
-            flash(tg_errors)
+            flash(str(tg_errors))
         expiration = datetime.utcnow() + \
             timedelta(days=config.get('buildroot_overrides.expire_after', 1))
         return dict(form=override_form, values={'expiration': expiration},
