@@ -16,9 +16,10 @@ import logging
 from datetime import datetime, timedelta
 from sqlobject import AND, SQLObjectNotFound
 from turbogears import (expose, paginate, validate, validators, redirect,
-                        error_handler, url, flash, identity, config)
+                        error_handler, flash, identity, config)
 from turbogears.controllers import Controller
 from kitchen.iterutils import iterate
+from bodhi.util import url
 
 try:
     from fedora.tg.tg1utils import request_format
