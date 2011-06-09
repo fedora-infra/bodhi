@@ -19,7 +19,6 @@ from turbogears import (expose, paginate, validate, validators, redirect,
                         error_handler, flash, identity, config)
 from turbogears.controllers import Controller
 from kitchen.iterutils import iterate
-from bodhi.util import url
 
 try:
     from fedora.tg.tg1utils import request_format
@@ -28,9 +27,10 @@ except ImportError:
 
 from bodhi.model import BuildRootOverride, Release
 from bodhi.buildsys import get_session
-from bodhi.util import get_nvr, get_pkg_pushers
+from bodhi.util import get_nvr, get_pkg_pushers, url
 from bodhi.widgets import BuildRootOverrideForm
-from bodhi.exceptions import DuplicateEntryError
+from bodhi.exceptions import DuplicateEntryError, PostgresIntegrityError
+
 
 log = logging.getLogger(__name__)
 
@@ -183,7 +183,7 @@ class BuildRootOverrideController(Controller):
                 override = BuildRootOverride(build=build,
                         notes=notes, submitter=identity.current.user_name,
                         expiration=expiration, releaseID=release.id)
-            except DuplicateEntryError:
+            except (DuplicateEntryError, PostgresIntegrityError):
                 flash('Error: buildroot override for %r already exists' % build)
                 if request_format() == 'json': return dict()
                 raise redirect('/override/new')
