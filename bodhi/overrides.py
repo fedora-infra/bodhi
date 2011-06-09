@@ -142,7 +142,12 @@ class BuildRootOverrideController(Controller):
             n, v, r = get_nvr(build)
 
             # Make sure the user has commit rights
-            people, groups = get_pkg_pushers(n)
+            try:
+                people, groups = get_pkg_pushers(n)
+            except Exception, e:
+                flash(str(e))
+                if request_format() == 'json': return dict()
+                raise redirect('/override/new')
             if identity.current.user_name not in people[0]:
                 flash("Error: You do not have commit privileges to %s" % n)
                 if request_format() == 'json': return dict()
