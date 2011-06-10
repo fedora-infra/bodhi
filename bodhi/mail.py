@@ -458,10 +458,12 @@ def send(to, msg_type, update, sender=None):
         return
     if type(to) not in (list, set, tuple):
         to = [to]
+    critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
+    title = getattr(update, 'title', getattr(update, 'build', ''))
     for person in to:
         send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (
-                  update.critpath and '[CRITPATH] ' or '',
-                  msg_type, update.title), messages[msg_type]['body'] % 
+                  critpath, msg_type, title),
+                  messages[msg_type]['body'] %
                   messages[msg_type]['fields'](update))
 
 def send_releng(subject, body):
