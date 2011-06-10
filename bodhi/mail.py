@@ -16,7 +16,6 @@ import rpm
 import logging
 import turbomail
 
-from textwrap import wrap
 from turbogears import config, identity
 
 from bodhi.util import rpm_fileheader, to_unicode
