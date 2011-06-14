@@ -49,6 +49,23 @@ Display and push any pending updates (releng only)
 Show debugging messages
 .IP "\fB\-l --limit\fP"
 Maximum number of updates to return (default: 10)
+.IP "\fB\-o --buildroot-override\fP BUILD"
+Submit a not-yet-stable build (NVR) to build root temporarily until
+\fB--duration\fP period expires or the build becomes stable or deleted or
+unpushed or obsoleted
+.IP "\fB--duration\fP DAYS"
+Set duration of build as build root override in days (default: 3)
+.IP "\fB\-O --list-overrides\fP"
+List effective build root overrides
+.IP "\fB\--my-overrides\fP"
+List effective build root overrides submitted by you
+.IP "\fB--show-expired\fP"
+Show expired build root overrides in addition (requires
+\fB\--list-overrides\fP or \fB\--my-overrides\fP)
+.IP "\fB--edit-override\fP BUILD"
+Edit override duration od notes
+.IP "\fB\-E --expire-override\fP BUILD"
+Remove overriding build from build root
 .IP "\fB\-h --help\fP"
 display the usage message
 
