@@ -204,12 +204,12 @@ def expire_buildroot_overrides():
     """ Iterate over all of the buildroot overrides, expiring appropriately """
     log.info('Running expire_buildroot_overrides job')
     now = datetime.utcnow()
-    for override in BuildRootOverride.select():
-        if (now - override.expiration).days >= 0:
+    for override in BuildRootOverride.select(BuildRootOverride.date_expired == None):
+        if now > override.expiration:
             log.info('Automatically expiring buildroot override: %s' %
-                     override.builds)
+                     override.build)
             override.untag()
-            override.destroySelf()
+            override.date_expired = now
     log.info('expire_buildroot_overrides job complete!')
 
 
