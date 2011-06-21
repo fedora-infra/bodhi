@@ -164,9 +164,9 @@ class BuildRootOverrideController(Controller):
             # Determine the release by the tag, and sanity check the builds
             for tag in tags:
                 for rel in Release.select():
-                    if tag == rel.candidate_tag:
+                    if tag in (rel.candidate_tag, rel.testing_tag):
                         release = last_release = rel
-                    elif tag in (rel.testing_tag, rel.stable_tag):
+                    elif tag == rel.stable_tag:
                         flash('Error: %s is already tagged with %s' % (
                             build, tag))
                         if request_format() == 'json': return dict()
