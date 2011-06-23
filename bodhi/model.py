@@ -1376,7 +1376,12 @@ class Bugzilla(SQLObject):
             comment = self._default_message(update)
         try:
             bug = bz.getbug(self.bz_id)
-            if bug.product not in config.get('bz_products', '').split(','):
+            # We only want to comment on Security Response bugs when an update
+            # reaches the stable repository (#485)
+            if bug.product == 'Security Response' and update.status == 'stable':
+                pass
+            # Skip commenting on any products not listed in our config
+            elif bug.product not in config.get('bz_products', '').split(','):
                 log.warning("Skipping %r bug #%d" % (bug.product, self.bz_id))
                 return
             log.debug("Adding comment to Bug #%d: %s" % (self.bz_id, comment))
