@@ -881,7 +881,7 @@ class Root(controllers.RootController):
                             flash_log("Broken update path: %s is older "
                                       "than %s in %s" % (kojiBuild['nvr'],
                                       oldBuild['nvr'], tag))
-                            raise redirect('/new', **params)
+                            raise InvalidUpdateException(params)
 
         # Create all of the PackageBuild objects, obsoleting any older updates
         for build in builds:
