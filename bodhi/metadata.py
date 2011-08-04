@@ -252,7 +252,7 @@ class ExtendedMetadata(object):
                     arch = rpm['arch']
                 urlpath = join(config.get('file_url'),
                                update.status == 'testing' and 'testing' or '',
-                               update.release.name[-1], arch, filename)
+                               update.release.get_version(), arch, filename)
                 pkg = self._insert(collection, 'package', attrs={
                             'name'      : rpm['name'],
                             'version'   : rpm['version'],
