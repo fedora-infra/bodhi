@@ -758,7 +758,7 @@ class Root(controllers.RootController):
                         elif edited.request == 'stable':
                             koji.tagBuild(edited.release.pending_stable_tag,
                                           build, force=True)
-                    except TagError, e:
+                    except (TagError, GenericError),  e:
                         log.exception(e)
 
             for build in edited_builds:
