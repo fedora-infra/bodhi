@@ -477,7 +477,10 @@ class MashTask(Thread):
         """ Obsolete any buildroot overrides that are in this push """
         for update in self.updates:
             if update.request == 'stable':
-                update.expire_buildroot_overrides()
+                try:
+                    update.expire_buildroot_overrides()
+                except Exception, e:
+                    log.exception(e)
 
     # With a large pushes, this tends to cause much buildsystem churn, as well
     # as polluting the tag history.
