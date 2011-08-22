@@ -62,8 +62,8 @@ class AdminController(Controller, SecureResource):
             from bodhi.masher import masher
             tags = []
             for release in Release.select():
-                tags.append('%s-updates' % release.dist_tag.split('-')[1])
-                tags.append('%s-updates-testing' % release.dist_tag.split('-')[1])
+                tags.append(release.stable_tag)
+                tags.append(release.testing_tag)
             return dict(masher_str=str(masher), tags=tags)
 
     @expose(template='bodhi.templates.text')
