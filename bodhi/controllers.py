@@ -1307,8 +1307,13 @@ class Root(controllers.RootController):
         if text == 'None':
             text = None
         else:
-            text = textwrap.TextWrapper(width=80,
-                break_long_words=False).fill(text)
+            try: # Python 2.6+
+                text = textwrap.TextWrapper(width=80,
+                    break_long_words=False,
+                    break_on_hyphens=False).fill(text)
+            except TypeError: # Python 2.4
+                text = textwrap.TextWrapper(width=80,
+                    break_long_words=False).fill(text)
         update.comment(text, karma, author=author, anonymous=True)
         raise redirect(update.get_url())
 
@@ -1351,8 +1356,13 @@ class Root(controllers.RootController):
                 if text == 'None':
                     text = None
                 else:
-                    text = textwrap.TextWrapper(width=80,
-                        break_long_words=False).fill(text)
+                    try: # Python 2.6+
+                        text = textwrap.TextWrapper(width=80,
+                            break_long_words=False,
+                            break_on_hyphens=False).fill(text)
+                    except TypeError: # Python 2.4
+                        text = textwrap.TextWrapper(width=80,
+                            break_long_words=False).fill(text)
                 update.comment(text, karma, email=email)
                 if request_format() == 'json':
                     return dict(update=update.__json__())
