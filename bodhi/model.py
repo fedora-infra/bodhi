@@ -573,7 +573,6 @@ class PackageUpdate(SQLObject):
         if self.status == 'testing':
             map(lambda bug: bug.testing(self), self.bugs)
         elif self.status == 'stable':
-            map(lambda bug: bug.add_comment(self), self.bugs)
 
             if self.close_bugs:
                 if self.type == 'security':
@@ -581,7 +580,7 @@ class PackageUpdate(SQLObject):
                     for bug in self.bugs:
                         if not bug.parent:
                             log.debug("Closing tracker bug %d" % bug.bz_id)
-                            bug.close_bug(self)
+                            bug.close_bug(self, bug._default_message(self))
 
                     # Now, close our parents bugs as long as nothing else
                     # depends on them, and they are not in a NEW state
@@ -592,6 +591,7 @@ class PackageUpdate(SQLObject):
                             if parent.bug_status == "NEW":
                                 log.debug("Parent bug %d is still NEW; not "
                                           "closing.." % bug.bz_id)
+                                bug.add_comment(self)
                                 continue
                             depsclosed = True
                             for dep in parent.dependson:
@@ -608,9 +608,14 @@ class PackageUpdate(SQLObject):
                                     break
                             if depsclosed:
                                 log.debug("Closing parent bug %d" % bug.bz_id)
-                                bug.close_bug(self)
+                                bug.close_bug(self, bug._default_message(self))
+                            else:
+                                bug.add_comment(self)
                 else:
-                    map(lambda bug: bug.close_bug(self), self.bugs)
+                    map(lambda bug: bug.close_bug(
+                            self, bug._default_message(self)), self.bugs)
+            else:
+                map(lambda bug: bug.add_comment(self), self.bugs)
 
     def status_comment(self):
         """
@@ -1429,7 +1434,7 @@ class Bugzilla(SQLObject):
         else:
             log.debug('Skipping bug modification, close_bugs == False')
 
-    def close_bug(self, update):
+    def close_bug(self, update, comment=''):
         """Close this bugzilla with details from an update.
 
         This method will only close Fedora or Fedora EPEL bugs, and it will
@@ -1442,7 +1447,7 @@ class Bugzilla(SQLObject):
             if bug.product not in config.get('bz_products', '').split(','):
                 log.warning("Not closing %r bug" % bug.product)
                 return
-            bug.close('ERRATA', fixedin=update.builds[0].nvr)
+            bug.close('ERRATA', fixedin=update.builds[0].nvr, comment=comment)
         except xmlrpclib.Fault, f:
             log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f)))
 
