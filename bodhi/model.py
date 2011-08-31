@@ -661,12 +661,11 @@ class PackageUpdate(SQLObject):
     def get_url(self):
         """ Return the relative URL to this update """
         path = ['/']
-        # Until our update ids are reliable...
-        #if self.updateid:
-        #    path.append(self.release.name)
-        #    path.append(self.updateid)
-        #else:
-        path.append(self.title)
+        if self.updateid:
+            #path.append(self.release.name)
+            path.append(self.updateid)
+        else:
+            path.append(self.title)
         return join(*path)
 
     def __str__(self):
