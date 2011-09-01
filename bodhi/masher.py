@@ -514,10 +514,23 @@ class MashTask(Thread):
             log.debug("running command: %s" % cmd)
             subprocess.call(cmd, shell=True, cwd=comps_dir)
         if comps_url.startswith('git://'):
-            subprocess.call('git pull', shell=True, cwd=comps_dir)
+            log.debug('Running git pull')
+            p = subprocess.Popen('git pull', shell=True, cwd=comps_dir,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+            log.debug(out)
+            if err:
+                log.error(err)
         else:
             subprocess.call('cvs update', shell=True, cwd=comps_dir)
-        subprocess.call('make', shell=True, cwd=comps_dir)
+
+        log.info('Merging translations')
+        p = subprocess.Popen('make', shell=True, cwd=comps_dir,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        log.debug(out)
+        if err:
+            log.error(err)
 
     def update_symlinks(self):
         """ Stage our updates repository.
