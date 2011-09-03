@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.orm.exc import NoResultFound
 
 from bodhi.models import initialize_sql, DBSession
-from bodhi.models import Update, Package, Build, Release, User, Bug
+from bodhi.models import Update, Package, Build, Release, User, Bug, Comment
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +18,6 @@ class BodhiRoot(object):
         resource.__parent__ = self
         resource.__name__ = key
         return resource
-
 
 class BodhiResource(object):
     __name__ = None
@@ -39,7 +38,6 @@ class BodhiResource(object):
                     **{self.__column__: key}).one()
         except NoResultFound:
             raise KeyError(key)
-
 
 class PackageResource(BodhiResource):
     __model__ = Package
@@ -66,6 +64,10 @@ class BugResource(BodhiResource):
     __column__ = u'bug_id'
     __filter__ = int
 
+class CommentResource(BodhiResource):
+    __model__ = Comment
+    __column__ = u'id'
+    __filter__ = int
 
 root = BodhiRoot()
 
@@ -76,6 +78,7 @@ def default_get_root(request):
         u'builds':  BuildResource,
         u'packages': PackageResource,
         u'releases': ReleaseResource,
+        u'comments': CommentResource,
         u'users': UserResource,
         u'bugs': BugResource,
         })
