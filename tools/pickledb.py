@@ -406,12 +406,7 @@ def main():
         finally:
             hub.commit()
     elif sys.argv[1] == 'migrate' and len(sys.argv) == 3:
-        try:
-            #hub.begin()
-            load_sqlalchemy_db()
-        finally:
-            pass
-            #hub.commit()
+        load_sqlalchemy_db()
     else:
         usage()
 
