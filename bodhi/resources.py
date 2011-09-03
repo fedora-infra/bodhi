@@ -4,6 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from bodhi.models import initialize_sql, DBSession
 from bodhi.models import Update, Package, Build, Release, User, Bug, Comment
+from bodhi.widgets import widgets
 
 log = logging.getLogger(__name__)
 
@@ -69,6 +70,11 @@ class CommentResource(BodhiResource):
     __column__ = u'id'
     __filter__ = int
 
+
+class WidgetResource(object):
+    def __getitem__(self, key):
+        return widgets[key]
+
 root = BodhiRoot()
 
 def default_get_root(request):
@@ -81,6 +87,7 @@ def default_get_root(request):
         u'comments': CommentResource,
         u'users': UserResource,
         u'bugs': BugResource,
+        u'grid': WidgetResource,
         })
     return root
 

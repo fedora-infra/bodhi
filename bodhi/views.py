@@ -2,6 +2,7 @@ from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
 
 from bodhi.models import DBSession
+from bodhi.widgets import widgets
 
 ## JSON views
 
@@ -31,5 +32,7 @@ def view_model(context, request):
                 items_per_page=items_per_page)
     grid = Grid([entry.__json__() for entry in page],
                 context.__model__.grid_columns())
+
+    #grid = widgets[context.__model__.__name__]
     return {'caption': context.__model__.__name__ + 's',
             'grid': grid, 'page': page}

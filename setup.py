@@ -13,6 +13,9 @@ requires = [
     'sqlalchemy',
     #'zope.sqlalchemy',
     'WebError',
+    'tw2.core',
+    'tw2.sqla',
+    'tw2.jqplugins.jqgrid',
     ]
 
 if sys.version_info[:3] < (2,5,0):

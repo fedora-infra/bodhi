@@ -48,4 +48,8 @@ def main(global_config, **settings):
                     context='bodhi.resources.BodhiResource',
                     renderer='bodhi:templates/model.mak')
 
+    # Widget data providers
+    widget_view = lambda context, request: context.request(request)
+    config.add_view(view=widget_view, context='tw2.core.widgets.WidgetMeta')
+
     return config.make_wsgi_app()
