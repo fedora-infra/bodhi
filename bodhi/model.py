@@ -1212,6 +1212,17 @@ class PackageUpdate(SQLObject):
             except SQLObjectNotFound:
                 pass
 
+    def get_tags(self):
+        """
+        Return a list of all of the tags that all of the builds in this update
+        are tagged with
+        """
+        tags = set()
+        for build in self.builds:
+            for tag in build.get_tags():
+                tag.add(tags)
+        return list(tags)
+
 
 class Comment(SQLObject):
     timestamp   = DateTimeCol(default=datetime.utcnow)
