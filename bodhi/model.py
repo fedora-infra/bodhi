@@ -537,6 +537,13 @@ class PackageUpdate(SQLObject):
         elif action == 'stable':
             self.add_tag(self.release.pending_stable_tag)
 
+        # If an obsolete build is being re-submitted, return
+        # it to the pending state, and make sure it's tagged as a candidate
+        if self.status == 'obsolete':
+            self.status = 'pending'
+            if not self.release.candidate_tag in self.get_tags():
+                self.add_tag(self.release.candidate_tag)
+
         self.request = action
         self.pushed = False
         #self.date_pushed = None
