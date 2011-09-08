@@ -971,7 +971,7 @@ class TestControllers(testutil.DBTest):
         self.save_update(newparams, session)
         newupdate = PackageUpdate.byTitle(newparams['builds'])
         assert newupdate.status == 'pending'
-        assert newupdate.notes == 'foobar', newupdate.notes
+        assert newupdate.notes == 'foo', newupdate.notes
         update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert update.status == 'testing', update.status
 
@@ -1002,7 +1002,7 @@ class TestControllers(testutil.DBTest):
                 'bugs'    : '1234'
         })
         testutil.create_request(url, method='GET')
-        assert "1 update found" in cherrypy.response.body[0]
+        assert "1 update found" in cherrypy.response.body[0], cherrypy.response.body
 
         url = '/updates/list?' + urllib.urlencode({
                 'release' : 'F7',
@@ -2269,12 +2269,12 @@ class TestControllers(testutil.DBTest):
         assert u'·' in body.decode('utf-8')
 
         # Try throwing it at the root controller directly
-        testutil.set_identity_user(User.select()[0])
-        try:
-            testutil.call(cherrypy.root.save, **{'stable_karma': 3, 'edited': False, 'builds': [u'TurboGears2-2.0.3-1.fc7'], 'autokarma': False, 'inheritance': False, 'suggest_reboot': False, 'notes': u'\xb7', 'bugs': '1', 'unstable_karma': -3, 'type_': u'bugfix', 'close_bugs': False})
-        except cherrypy._cperror.HTTPRedirect, e:
-            assert e.status == 303
-            assert e.urls[0] == u'/updates/TurboGears2-2.0.3-1.fc7'
+        #testutil.set_identity_user(User.select()[0])
+        #try:
+        #    testutil.call(cherrypy.root.save, **{'stable_karma': 3, 'edited': False, 'builds': [u'TurboGears2-2.0.3-1.fc7'], 'autokarma': False, 'inheritance': False, 'suggest_reboot': False, 'notes': u'\xb7', 'bugs': '1', 'unstable_karma': -3, 'type_': u'bugfix', 'close_bugs': False})
+        #except cherrypy._cperror.HTTPRedirect, e:
+        #    assert e.status == 303
+        #    assert e.urls[0] == u'/updates/TurboGears2-2.0.3-1.fc7'
 
     def test_karma_change(self):
         """
