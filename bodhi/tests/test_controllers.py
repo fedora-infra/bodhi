@@ -34,11 +34,14 @@ def login(username='guest', display_name='guest', group=None):
     try:
         guest = User(user_name=username, display_name=display_name,
                      password='guest')
-        if group:
-            group = Group(group_name=group, display_name=group)
-            guest.addGroup(group)
     except DuplicateEntryError:
         guest = User.by_user_name(username)
+    if group:
+        try:
+            group = Group(group_name=group, display_name=group)
+        except DuplicateEntryError:
+            group = Group.by_group_name(group)
+        guest.addGroup(group)
     testutil.create_request('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
     assert cherrypy.response.status == '200 OK', cherrypy.response.body[0]
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
