@@ -829,6 +829,12 @@ class PackageUpdate(SQLObject):
         if not author: author = identity.current.user_name
         critpath_approved = self.critpath_approved
 
+        # Update submitter may only submit a karma of zero
+        if author == self.submitter:
+            if karma != 0:
+                flash_log("The karma value of your comment has been changed to zero, because you submitted the update.")
+                karma = 0
+
         # Add admin groups to usernames (eg: "lmacken (releng)")
         if not anonymous and author != 'bodhi':
             admin_groups = config.get('admin_groups', '').split()
