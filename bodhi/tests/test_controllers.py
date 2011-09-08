@@ -59,7 +59,8 @@ class TestControllers(testutil.DBTest):
         testutil.DBTest.tearDown(self)
         turbogears.startup.stopTurboGears()
 
-    def save_update(self, params, session={}):
+    def save_update(self, params, session=None):
+        if not session: session = {}
         pairs = urllib.urlencode(params)
         url = '/updates/save?' + pairs
         print url
