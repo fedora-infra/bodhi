@@ -1492,7 +1492,11 @@ class BuildRootOverride(SQLObject):
         koji = buildsys.get_session()
         log.debug('Untagging %s with %s' % (self.build,
             self.release.override_tag))
-        koji.untagBuild(self.release.override_tag, self.build, force=True)
+        try:
+            koji.untagBuild(self.release.override_tag, self.build, force=True)
+        except Exception, e:
+            log.exception(e)
+            log.error('There was non-fatal problem expiring the override')
 
     def __json__(self):
         return dict(build=self.build, date_submitted=self.date_submitted,
