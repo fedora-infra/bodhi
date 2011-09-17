@@ -141,18 +141,6 @@ class BuildRootOverrideController(Controller):
             release = None
             n, v, r = get_nvr(build)
 
-            # Make sure the user has commit rights
-            try:
-                people, groups = get_pkg_pushers(n)
-            except Exception, e:
-                flash(str(e))
-                if request_format() == 'json': return dict()
-                raise redirect('/override/new')
-            if identity.current.user_name not in people[0]:
-                flash("Error: You do not have commit privileges to %s" % n)
-                if request_format() == 'json': return dict()
-                raise redirect('/override/new')
-
             # Make sure the build is tagged correctly
             try:
                 tags = [tag['name'] for tag in koji.listTags(build)]
@@ -175,6 +163,25 @@ class BuildRootOverrideController(Controller):
             if not release:
                 flash('Error: Could not determine release for %s with tags %s' %
                         (build, map(str, tags)))
+                if request_format() == 'json': return dict()
+                raise redirect('/override/new')
+
+            # Make sure the user has commit rights to the appropriate branch
+            pkgdb_args = {
+                    'collectionName': 'Fedora',
+                    'collectionVersion': 'devel',
+            }
+            pkgdb_args['collectionName'] = release.collection_name
+            pkgdb_args['collectionVersion'] = str(release.get_version())
+
+            try:
+                people, groups = get_pkg_pushers(n, **pkgdb_args)
+            except Exception, e:
+                flash(str(e))
+                if request_format() == 'json': return dict()
+                raise redirect('/override/new')
+            if identity.current.user_name not in people[0]:
+                flash("Error: You do not have commit privileges to %s" % n)
                 if request_format() == 'json': return dict()
                 raise redirect('/override/new')
 
