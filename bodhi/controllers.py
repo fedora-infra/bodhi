@@ -773,7 +773,7 @@ class Root(controllers.RootController):
                         elif edited.request == 'testing':
                             koji.untagBuild(edited.release.pending_testing_tag,
                                             build, force=True)
-                    except (TagError GenericError),e :
+                    except (TagError, GenericError),e :
                         log.debug(str(e))
 
             # Comment on the update with details of added/removed builds
