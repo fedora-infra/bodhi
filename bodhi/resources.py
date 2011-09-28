@@ -4,6 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from bodhi.models import initialize_sql, DBSession
 from bodhi.models import Update, Package, Build, Release, User, Bug, Comment
+from bodhi.widgets import NewUpdateForm
 
 log = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ def default_get_root(request):
         u'comments': CommentResource,
         u'users': UserResource,
         u'bugs': BugResource,
+        u'new': lambda: NewUpdateForm.req(),
         })
     return root
 

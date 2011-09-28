@@ -33,3 +33,13 @@ def view_model(context, request):
                 context.__model__.grid_columns())
     return {'caption': context.__model__.__name__ + 's',
             'grid': grid, 'page': page}
+
+
+## Widgets
+
+def view_widget(context, request):
+    import tw2.core
+    context.fetch_data(request)
+    mw = tw2.core.core.request_local()['middleware']
+    mw.controllers.register(context, 'update_submit')
+    return {'widget':context}

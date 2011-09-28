@@ -55,4 +55,9 @@ def main(global_config, **settings):
                     context='bodhi.resources.BodhiResource',
                     renderer='bodhi:templates/model.mak')
 
+    # Widgets
+    config.add_view('bodhi.views.view_widget',
+                    context='bodhi.widgets.NewUpdateForm',
+                    renderer="bodhi:templates/widget.mak")
+
     return config.make_wsgi_app()

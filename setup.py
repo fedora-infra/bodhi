@@ -13,6 +13,12 @@ requires = [
     'sqlalchemy',
     #'zope.sqlalchemy',
     'WebError',
+
+    # tw2
+    'tw2.core',
+    'tw2.dynforms',
+    'tw2.forms',
+    'tw2.sqla',
     ]
 
 if sys.version_info[:3] < (2,5,0):
