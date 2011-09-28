@@ -11,12 +11,15 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
 from sqlalchemy import DateTime
-from sqlalchemy import Table, Column, ForeignKey
+from sqlalchemy import Table, ForeignKey
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import scoped_session, sessionmaker, relation, relationship
 from sqlalchemy.ext.declarative import declarative_base, synonym_for
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+
+#from sqlalchemy import Column
+from formalchemy import Column
 
 from bodhi import buildsys, mail
 from bodhi.util import header, build_evr, authorized_user, rpm_fileheader, get_nvr, flash_log, get_age
@@ -273,6 +276,8 @@ class Build(Base):
 
 
 class Update(Base):
+    __label__ = 'Update'       # label used in UI
+    __plural__ = 'Updates'     # plural used in UI
     __tablename__ = 'updates'
 
     id = Column(Integer, primary_key=True)

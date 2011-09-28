@@ -13,6 +13,10 @@ requires = [
     'sqlalchemy',
     #'zope.sqlalchemy',
     'WebError',
+
+    # Testing
+    'pyramid_formalchemy',
+    'fa.jquery',
     ]
 
 if sys.version_info[:3] < (2,5,0):
