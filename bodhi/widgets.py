@@ -31,16 +31,25 @@ class NewUpdateForm(tw2.sqla.DbFormPage):
             # auto-populate this with the latest-pkg candidate tag
             version = tw2.forms.TextField()
 
-        type_ = tw2.forms.SingleSelectField(options=bodhi.models.UpdateType.values())
-        notes = tw2.forms.TextArea(rows=5, cols=50, validator=tw2.core.StringLengthValidator(min=10))
+        type_ = tw2.forms.SingleSelectField(
+                options=bodhi.models.UpdateType.values(),
+                validator=tw2.core.OneOfValidator(
+                    values=bodhi.models.UpdateType.values()))
+        notes = tw2.forms.TextArea(rows=5, cols=50,
+                validator=tw2.core.StringLengthValidator(min=10))
 
         class bugs(tw2.forms.TableFieldSet):
             bugs = tw2.forms.TextField()
-            closebugs = tw2.forms.CheckBox(label='Automatically close bugs')
+            closebugs = tw2.forms.CheckBox(label='Automatically close bugs',
+                    validator=tw2.core.BoolValidator())
 
         class karma(tw2.forms.TableFieldSet):
-            autokarma = tw2.forms.CheckBox(label='Enable karma automatism')
-            stablekarma = tw2.forms.TextField(label='Stable threshold', size=2, value=3)
-            unstablekarma = tw2.forms.TextField(label='Unstable threshold', size=2, value=-3)
+            autokarma = tw2.forms.CheckBox(label='Enable karma automatism',
+                    validator=tw2.core.BoolValidator())
+            stablekarma = tw2.forms.TextField(label='Stable threshold', size=2,
+                    value=3, validator=tw2.core.IntValidator())
+            unstablekarma = tw2.forms.TextField(label='Unstable threshold', size=2,
+                    value=-3, validator=tw2.core.IntValidator())
 
-        reboot = tw2.forms.CheckBox(label='Suggest reboot')
+        reboot = tw2.forms.CheckBox(label='Suggest reboot',
+                validator=tw2.core.BoolValidator())
