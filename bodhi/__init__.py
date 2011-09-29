@@ -8,6 +8,7 @@ from pyramid_beaker import session_factory_from_settings
 from pyramid_beaker import set_cache_regions_from_settings
 
 from bodhi.resources import appmaker
+import bodhi.buildsys
 
 #class BodhiRequest(Request):
 #    @reify
@@ -26,6 +27,9 @@ def main(global_config, **settings):
     """ This function returns a WSGI application """
     engine = engine_from_config(settings, 'sqlalchemy.')
     get_root = appmaker(engine)
+
+    # Setup our buildsystem
+    bodhi.buildsys.setup_buildsystem(settings)
 
     # Beaker Sessions & Caching
     session_factory = session_factory_from_settings(settings)

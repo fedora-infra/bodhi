@@ -16,19 +16,12 @@ import koji
 import logging
 
 from os.path import join, expanduser
-
-
-#from tg import config
-# FIXME:
-config = {}
-
 from bodhi.util import get_nvr
 
 log = logging.getLogger(__name__)
 
-## Our buildsystem session.  This could be a koji ClientSession or an instance
-## of our Buildsystem class.
-session = None
+_buildsystem = None
+
 
 class Buildsystem:
     """
@@ -131,7 +124,7 @@ class DevBuildsys(Buildsystem):
         return [{'build_id': 127983, 'tag_name': 'dist-f11-updates', 'owner_name': 'toshio', 'package_name': 'TurboGears', 'task_id': 1616247, 'creation_event_id': 1952597, 'creation_time': '2009-08-20 03:29:55.31542', 'epoch': None, 'tag_id': 87, 'name': 'TurboGears', 'completion_time': '2009-08-20 03:33:51.134736', 'state': 1, 'version': '1.0.8', 'release': '7.fc11', 'package_id': 1256, 'owner_id': 293, 'id': 127983, 'nvr': 'TurboGears-1.0.8-7.fc11'}]
 
 
-def koji_login(client=None, clientca=None, serverca=None):
+def koji_login(config, client=None, clientca=None, serverca=None):
     """
     Login to Koji and return the session
     """
@@ -152,32 +145,26 @@ def koji_login(client=None, clientca=None, serverca=None):
     koji_session.ssl_login(client, clientca, serverca)
     return koji_session
 
+
 def get_session():
     """ Get a new buildsystem instance """
-    session = None
-    buildsys = config.get('buildsystem')
+    global _buildsystem
+    if not _buildsystem:
+        log.warning('No buildsystem configured; assuming testing')
+        return DevBuildsys()
+    return _buildsystem()
+
+
+def setup_buildsystem(settings):
+    global _buildsystem
+    assert not _buildsystem, "Buildsystem already configured?"
+    buildsys = settings.get('buildsystem')
     if buildsys == 'koji':
-        session = koji_login()
+        log.debug('Using Koji Buildsystem')
+        _buildsystem = lambda: koji_login(config=settings)
     elif buildsys in ('dev', None):
-        session = DevBuildsys()
-    return session
-
-def _get_session():
-    """
-    Get our buildsystem instance.
-
-    :deprecated: This returns a "singleton" instance, but seems to
-    cause some issues in production.
-    """
-    global session
-    if not session:
-        buildsys = config.get('buildsystem')
-        log.info("Creating new %s buildsystem instance" % buildsys)
-        if buildsys == 'koji':
-            session = koji_login()
-        elif buildsys == 'dev':
-            session = DevBuildsys()
-    return session
+        log.debug('Using DevBuildsys')
+        _buildsystem = DevBuildsys
 
 
 def wait_for_tasks(tasks, sleep=300):
