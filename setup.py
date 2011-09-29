@@ -9,7 +9,13 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'pyramid',
+    'pyramid_beaker',
+    'WebError',
+
+    # not needed until we need need multiphase commits.
+    # we may want to enable this for the pyramid_mailer.
     #'repoze.tm2>=1.0b1', # default_commit_veto
+
     'sqlalchemy',
     #'zope.sqlalchemy',
     'WebError',

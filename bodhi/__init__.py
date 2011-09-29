@@ -4,6 +4,8 @@ from pyramid.decorator import reify
 from pyramid.request import Request
 from pyramid.security import unauthenticated_userid
 from pyramid.config import Configurator
+from pyramid_beaker import session_factory_from_settings
+from pyramid_beaker import set_cache_regions_from_settings
 
 from bodhi.resources import appmaker
 
@@ -25,12 +27,12 @@ def main(global_config, **settings):
     engine = engine_from_config(settings, 'sqlalchemy.')
     get_root = appmaker(engine)
 
-    # Sessions
-    #from pyramid_beaker import session_factory_from_settings
-    #session_factory = session_factory_from_settings(settings)
+    # Beaker Sessions & Caching
+    session_factory = session_factory_from_settings(settings)
+    set_cache_regions_from_settings(settings)
 
-    config = Configurator(settings=settings, root_factory=get_root)
-                          #session_factory=session_factory)
+    config = Configurator(settings=settings, root_factory=get_root,
+                          session_factory=session_factory)
 
     #config.set_request_factory(BodhiRequest)
     config.add_static_view('static', 'bodhi:static')
