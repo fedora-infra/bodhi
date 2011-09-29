@@ -80,23 +80,23 @@ Base.query = DBSession.query_property()
 ##
 
 class UpdateStatus(DeclEnum):
-    pending = 'P', 'pending'
-    testing = 'T', 'testing'
-    stable = 'S', 'stable'
-    unpushed = 'U', 'unpushed'
-    obsolete = 'O', 'obsolete'
+    pending = 'pending', 'pending'
+    testing = 'testing', 'testing'
+    stable = 'stable', 'stable'
+    unpushed = 'unpushed', 'unpushed'
+    obsolete = 'obsolete', 'obsolete'
 
 class UpdateType(DeclEnum):
-    bugfix = 'B', 'bugfix'
-    security = 'S', 'security'
-    newpackage = 'N', 'new package'
-    enhancement = 'E', 'enhancement'
+    bugfix = 'bugfix', 'bugfix'
+    security = 'security', 'security'
+    newpackage = 'newpackage', 'new package'
+    enhancement = 'enhancement', 'enhancement'
 
 class UpdateRequest(DeclEnum):
-    testing = 'T', 'testing'
-    stable = 'S', 'stable'
-    obsolete = 'O', 'obsolete'
-    unpush = 'U', 'unpush'
+    testing = 'testing', 'testing'
+    stable = 'stable', 'stable'
+    obsolete = 'obsolete', 'obsolete'
+    unpush = 'unpush', 'unpush'
 
 ##
 ## Association tables
