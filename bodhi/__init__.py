@@ -60,4 +60,6 @@ def main(global_config, **settings):
                     context='bodhi.widgets.NewUpdateForm',
                     renderer="bodhi:templates/widget.mak")
 
+    config.add_translation_dirs('bodhi:locale/')
+
     return config.make_wsgi_app()

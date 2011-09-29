@@ -19,6 +19,10 @@ requires = [
     'tw2.dynforms',
     'tw2.forms',
     'tw2.sqla',
+
+    # i18n
+    'Babel',
+    'lingua',
     ]
 
 if sys.version_info[:3] < (2,5,0):
@@ -44,6 +48,10 @@ setup(name='bodhi',
       install_requires = requires,
       tests_require = requires,
       test_suite="bodhi",
+      message_extractors = { '.': [
+          ('**.py', 'lingua_python', None),
+          ('**.mak', 'lingua_xml', None),
+      ]},
       entry_points = """\
       [paste.app_factory]
       main = bodhi:main

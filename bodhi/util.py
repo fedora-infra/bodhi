@@ -39,7 +39,9 @@ from fedora.client import PackageDB
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
 
+from pyramid.i18n import TranslationStringFactory
 
+_ = TranslationStringFactory('bodhi')
 log = logging.getLogger(__name__)
 
 ## Display a given message as a heading
