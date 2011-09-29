@@ -47,9 +47,9 @@ class NewUpdateForm(tw2.sqla.DbFormPage):
             autokarma = tw2.forms.CheckBox(label='Enable karma automatism',
                     validator=tw2.core.BoolValidator())
             stablekarma = tw2.forms.TextField(label='Stable threshold', size=2,
-                    value=3, validator=tw2.core.IntValidator())
+                    value=3, validator=tw2.core.IntValidator(min=1))
             unstablekarma = tw2.forms.TextField(label='Unstable threshold', size=2,
-                    value=-3, validator=tw2.core.IntValidator())
+                    value=-3, validator=tw2.core.IntValidator(max=-1))
 
         reboot = tw2.forms.CheckBox(label='Suggest reboot',
                 validator=tw2.core.BoolValidator())
