@@ -9,7 +9,8 @@ def setup():
     from bodhi import main
     from webtest import TestApp
     global app
-    app = main({}, **{'sqlalchemy.url': 'sqlite://'})
+    app = main({}, **{'sqlalchemy.url': 'sqlite://',
+                      'mako.directories': 'bodhi:templates'})
     app = TestApp(app)
 
 class FunctionalTests(unittest.TestCase):
