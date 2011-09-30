@@ -35,6 +35,12 @@ def view_model(context, request):
             'grid': grid, 'page': page}
 
 
+## 404
+
+def notfound_view(context, request):
+    request.response_status = 404
+    return dict()
+
 ## Widgets
 
 def view_widget(context, request):

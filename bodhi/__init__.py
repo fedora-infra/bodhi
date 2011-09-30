@@ -1,5 +1,6 @@
 from sqlalchemy import engine_from_config
 
+from pyramid.exceptions import NotFound
 from pyramid.decorator import reify
 from pyramid.request import Request
 from pyramid.security import unauthenticated_userid
@@ -67,5 +68,10 @@ def main(global_config, **settings):
                     renderer="bodhi:templates/widget.mak")
 
     config.add_translation_dirs('bodhi:locale/')
+
+    # 404
+    config.add_view('bodhi.views.notfound_view',
+                    renderer='bodhi:templates/404.mak',
+                    context=NotFound)
 
     return config.make_wsgi_app()
