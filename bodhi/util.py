@@ -38,9 +38,9 @@ from fedora.client import PackageDB
 from kitchen.text.converters import to_unicode, to_bytes
 
 try:
-    from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
+    from fedora.tg.utils import url as csrf_url, tg_url, request_format
 except ImportError:
-    from fedora.tg.util import url as csrf_url, tg_url, request_format
+    from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
                               InvalidUpdateException)
