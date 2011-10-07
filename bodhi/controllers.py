@@ -715,13 +715,6 @@ class Root(controllers.RootController):
                           config.get('release_team_address'))
                 raise InvalidUpdateException(params)
 
-            # Ensure all builds are for this release
-            for b in buildinfo:
-                if buildinfo[b]['release'] != edited.release:
-                    flash_log('Error: Unable to add build for a '
-                              'different release to this update')
-                    raise InvalidUpdateException(params)
-
             # Make sure the tag has not been moved, which indicates that we
             # are in the middle of pushing this update
             if edited.get_implied_build_tag() not in buildinfo[builds[0]]['tags']:
