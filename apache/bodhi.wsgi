@@ -2,7 +2,7 @@ import sys
 sys.stdout = sys.stderr
 
 import __main__
-__main__.__requires__ = __requires__ = 'TurboGears'
+__main__.__requires__ = __requires__ = 'bodhi'
 import pkg_resources
 pkg_resources.require(__requires__)
 
