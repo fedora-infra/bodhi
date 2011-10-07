@@ -165,7 +165,7 @@ setup(
         "TurboGears >= 1.0",
         "TurboMail",
         "python_fedora",
-        "markdown",
+        #"markdown",
         "CherryPy<3.0",
         #"hashlib",
     ],
