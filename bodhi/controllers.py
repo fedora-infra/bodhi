@@ -869,19 +869,20 @@ class Root(controllers.RootController):
                                              kojiBuild['release'])
 
             # Check for broken update paths
-            log.info("Checking for broken update paths")
-            for release in buildinfo[build]['releases']:
-                tags = ['dist-rawhide', release.dist_tag, release.stable_tag]
-                for tag in tags:
-                    pkg = buildinfo[build]['nvr'][0]
-                    for oldBuild in koji.listTagged(tag, package=pkg,
-                                                    latest=True):
-                        if rpm.labelCompare(util.build_evr(kojiBuild),
-                                            util.build_evr(oldBuild)) < 0:
-                            flash_log("Broken update path: %s is older "
-                                      "than %s in %s" % (kojiBuild['nvr'],
-                                      oldBuild['nvr'], tag))
-                            raise InvalidUpdateException(params)
+            # OBSOLETED BY AUTOQA
+            #log.info("Checking for broken update paths")
+            #for release in buildinfo[build]['releases']:
+            #    tags = ['dist-rawhide', release.dist_tag, release.stable_tag]
+            #    for tag in tags:
+            #        pkg = buildinfo[build]['nvr'][0]
+            #        for oldBuild in koji.listTagged(tag, package=pkg,
+            #                                        latest=True):
+            #            if rpm.labelCompare(util.build_evr(kojiBuild),
+            #                                util.build_evr(oldBuild)) < 0:
+            #                flash_log("Broken update path: %s is older "
+            #                          "than %s in %s" % (kojiBuild['nvr'],
+            #                          oldBuild['nvr'], tag))
+            #                raise InvalidUpdateException(params)
 
         # Create all of the PackageBuild objects, obsoleting any older updates
         for build in builds:
