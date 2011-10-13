@@ -246,7 +246,7 @@ class ExtendedMetadata(object):
                 filename = "%s.%s.rpm" % (rpm['nvr'], rpm['arch'])
                 if rpm['arch'] == 'src':
                     arch = 'SRPMS'
-                elif rpm['arch'] == 'noarch':
+                elif rpm['arch'] in ('noarch', 'i686'):
                     arch = 'i386'
                 else:
                     arch = rpm['arch']
