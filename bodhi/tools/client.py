@@ -371,8 +371,8 @@ def main():
                         log.info(data['tg_flash'])
                     del(data['tg_flash'])
                 data = data.items()
-                data.sort(cmp=lambda x, y: cmp(x[0].split('-')[1],
-                                               y[0].split('-')[1]))
+                data.sort(cmp=lambda x, y: cmp(x[0].replace('dist-','').split('-')[0],
+                                               y[0].replace('dist-','').split('-')[0]))
                 for dist, build in data:
                     print('%26s  %s' % (dist, build))
 
