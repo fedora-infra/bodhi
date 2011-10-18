@@ -777,90 +777,90 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         assert "Value must be one of: Testing; Stable; None; None; testing; stable; none (not u'foobar!')" in cherrypy.response.body[0], cherrypy.response.body[0]
 
-    def test_broken_update_path_on_submission(self):
-        """ Make sure we are unable to break upgrade paths upon submission """
-        from bodhi.buildsys import get_session
-        koji = get_session()
-        session = login()
-        create_release()
-        params = {
-            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-            'release' : 'Fedora 7',
-            'type_'    : 'bugfix',
-            'bugs'    : '',
-            'cves'    : '',
-            'notes'   : 'foo'
-        }
+    #def test_broken_update_path_on_submission(self):
+    #    """ Make sure we are unable to break upgrade paths upon submission """
+    #    from bodhi.buildsys import get_session
+    #    koji = get_session()
+    #    session = login()
+    #    create_release()
+    #    params = {
+    #        'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+    #        'release' : 'Fedora 7',
+    #        'type_'    : 'bugfix',
+    #        'bugs'    : '',
+    #        'cves'    : '',
+    #        'notes'   : 'foo'
+    #    }
 
-        # Monkey-patch our DevBuildsys 
-        from bodhi.buildsys import DevBuildsys
-        oldGetBuild = DevBuildsys.getBuild
-        DevBuildsys.getBuild = lambda *x, **y: {
-                'epoch': None, 'name': 'TurboGears',
-                'nvr': 'TurboGears-1.0.2.2-2.fc7',
-                'release': '2.fc7',
-                'tag_name': 'dist-fc7-updates-testing',
-                'version': '1.0.2.2'
-                }
+    #    # Monkey-patch our DevBuildsys 
+    #    from bodhi.buildsys import DevBuildsys
+    #    oldGetBuild = DevBuildsys.getBuild
+    #    DevBuildsys.getBuild = lambda *x, **y: {
+    #            'epoch': None, 'name': 'TurboGears',
+    #            'nvr': 'TurboGears-1.0.2.2-2.fc7',
+    #            'release': '2.fc7',
+    #            'tag_name': 'dist-fc7-updates-testing',
+    #            'version': '1.0.2.2'
+    #            }
 
-        # Make a newer build already exist
-        oldListTagged = DevBuildsys.listTagged
-        DevBuildsys.listTagged = lambda *x, **y: [
-                {'epoch': None, 'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
-                 'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
-        ]
+    #    # Make a newer build already exist
+    #    oldListTagged = DevBuildsys.listTagged
+    #    DevBuildsys.listTagged = lambda *x, **y: [
+    #            {'epoch': None, 'name': 'TurboGears',
+    #             'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
+    #             'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
+    #    ]
 
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
-        self.save_update(params, session)
-        DevBuildsys.getBuild = oldGetBuild
-        DevBuildsys.listTagged = oldListTagged
-        assert 'Broken update path: TurboGears-1.0.2.2-2.fc7 is older than TurboGears-1.0.2.3-2.fc7 in dist-rawhide' in testutil.get_log()
+    #    testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+    #    self.save_update(params, session)
+    #    DevBuildsys.getBuild = oldGetBuild
+    #    DevBuildsys.listTagged = oldListTagged
+    #    assert 'Broken update path: TurboGears-1.0.2.2-2.fc7 is older than TurboGears-1.0.2.3-2.fc7 in dist-rawhide' in testutil.get_log()
 
-    def test_broken_update_path_on_request(self):
-        """ Make sure we are unable to break upgrade paths upon request
-            https://bugzilla.redhat.com/show_bug.cgi?id=448861
-        """
-        from bodhi.buildsys import get_session
-        koji = get_session()
-        session = login()
-        create_release()
-        params = {
-            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-            'release' : 'Fedora 7',
-            'type_'    : 'bugfix',
-            'bugs'    : '',
-            'cves'    : '',
-            'notes'   : 'foo'
-        }
-        self.save_update(params, session)
+    #def test_broken_update_path_on_request(self):
+    #    """ Make sure we are unable to break upgrade paths upon request
+    #        https://bugzilla.redhat.com/show_bug.cgi?id=448861
+    #    """
+    #    from bodhi.buildsys import get_session
+    #    koji = get_session()
+    #    session = login()
+    #    create_release()
+    #    params = {
+    #        'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+    #        'release' : 'Fedora 7',
+    #        'type_'    : 'bugfix',
+    #        'bugs'    : '',
+    #        'cves'    : '',
+    #        'notes'   : 'foo'
+    #    }
+    #    self.save_update(params, session)
 
-        # Monkey-patch our DevBuildsys 
-        from bodhi.buildsys import DevBuildsys
-        oldGetBuild = DevBuildsys.getBuild
-        DevBuildsys.getBuild = lambda *x, **y: {
-                'epoch': None, 'name': 'TurboGears',
-                'nvr': 'TurboGears-1.0.2.2-2.fc7',
-                'release': '2.fc7',
-                'tag_name': 'dist-fc7-updates-testing',
-                'version': '1.0.2.2'
-                }
+    #    # Monkey-patch our DevBuildsys 
+    #    from bodhi.buildsys import DevBuildsys
+    #    oldGetBuild = DevBuildsys.getBuild
+    #    DevBuildsys.getBuild = lambda *x, **y: {
+    #            'epoch': None, 'name': 'TurboGears',
+    #            'nvr': 'TurboGears-1.0.2.2-2.fc7',
+    #            'release': '2.fc7',
+    #            'tag_name': 'dist-fc7-updates-testing',
+    #            'version': '1.0.2.2'
+    #            }
 
-        # Make a newer build already exist
-        oldListTagged = koji.listTagged
-        DevBuildsys.listTagged = lambda *x, **y: [
-                {'epoch': None, 'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
-                 'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
-        ]
+    #    # Make a newer build already exist
+    #    oldListTagged = koji.listTagged
+    #    DevBuildsys.listTagged = lambda *x, **y: [
+    #            {'epoch': None, 'name': 'TurboGears',
+    #             'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
+    #             'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
+    #    ]
 
-        testutil.capture_log(['bodhi.util', 'bodhi.controllers', 'bodhi.model'])
-        testutil.create_request('/updates/request/stable/%s' % params['builds'],
-                               method='POST', headers=session)
-        DevBuildsys.getBuild = oldGetBuild
-        DevBuildsys.listTagged = oldListTagged
-        output = testutil.get_log()
-        assert 'Broken update path: TurboGears-1.0.2.3-2.fc7 is already released, and is newer than TurboGears-1.0.2.2-2.fc7' in output, output
+    #    testutil.capture_log(['bodhi.util', 'bodhi.controllers', 'bodhi.model'])
+    #    testutil.create_request('/updates/request/stable/%s' % params['builds'],
+    #                           method='POST', headers=session)
+    #    DevBuildsys.getBuild = oldGetBuild
+    #    DevBuildsys.listTagged = oldListTagged
+    #    output = testutil.get_log()
+    #    assert 'Broken update path: TurboGears-1.0.2.3-2.fc7 is already released, and is newer than TurboGears-1.0.2.2-2.fc7' in output, output
 
     # Disabled for now, since we want to try and avoid as much bugzilla
     # contact during our test cases as possible :)
