@@ -263,7 +263,10 @@ class Root(controllers.RootController):
                                                'update' or 'updates'))
 
         # If we're looking for bugs specifically (#610)
-        if bugs:
+        if bugs and not release and not status and not type_ and not package \
+                and not mine and not username and not created_since \
+                and not pushed_since and not request and not start_date \
+                and not end_date:
             updates = []
             bugs = bugs.replace('#', '').split(',')
             for bug in bugs:
