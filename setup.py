@@ -167,6 +167,8 @@ setup(
         "python_fedora",
         #"markdown",
         "CherryPy<3.0",
+        "kitchen",
+        "python-fedora",
         #"hashlib",
     ],
     scripts = [],
