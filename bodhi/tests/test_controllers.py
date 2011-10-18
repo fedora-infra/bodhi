@@ -459,7 +459,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert 'Error: Unable to add build for a different release to this update' in logs, logs
+        assert 'Cannot add a F8 build to a F7 update. Please create a new update for python-sqlobject-0.8.2-1.fc8' in logs, logs
 
     def test_remove_build_and_add_different_release_to_update(self):
         """
