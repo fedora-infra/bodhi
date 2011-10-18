@@ -292,7 +292,10 @@ class Root(controllers.RootController):
                     for r in Release.select():
                         if r.name.upper().replace('-', '') == release.replace('-', '').upper():
                             rel = r
-                    return dict(error="Unknown release %r" % release)
+                            break
+                    if not rel:
+                        err = 'Unknown release %r' % release
+                        return dict(error=err, num_items=0, title=err, updates=[])
                 query.append(PackageUpdate.q.releaseID == rel.id)
             if status:
                 query.append(PackageUpdate.q.status == status)
