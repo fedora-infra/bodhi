@@ -492,7 +492,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert u"Error: Unable to add build for a different release to this update" in logs
+        assert u"Unable to edit update" in '\n'.join(logs), logs
 
         # Try again without a request..
         new_build = 'python-sqlalchemy-1.0.2.2-2.fc7'
@@ -505,7 +505,7 @@ class TestControllers(testutil.DBTest):
         params['edited'] = new_build
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert 'Error: Unable to add build for a different release to this update' in logs
+        assert 'Cannot add a F8 build to a F7 update.' in '\n'.join(logs), logs
 
     def test_edit(self):
         session = login()
@@ -1190,9 +1190,9 @@ class TestControllers(testutil.DBTest):
                 'stable_karma' : 1,
                 'unstable_karma' : -1,
         }
-        testutil.capture_log(['bodhi.controller', 'bodhi.util'])
+        #testutil.capture_log(['bodhi.controller', 'bodhi.util'])
         self.save_update(params, session)
-        print testutil.get_log()
+        #print testutil.get_log()
         update = PackageUpdate.byTitle(params['builds'].replace(' ', ','))
         assert update.builds[0].package.stable_karma == params['stable_karma']
         assert update.builds[0].package.unstable_karma == params['unstable_karma']
@@ -1403,9 +1403,9 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foo',
                 'edited'  : u'kdelibs-4.1.0-5.fc9,kdegames-4.1.0-2.fc9,konq-plugins-4.1.0-2.fc9,qt-4.4.1-2.fc9,quarticurve-kwin-theme-0.0-0.5.beta4.fc9,kdepimlibs-4.1.0-2.fc9,kdebase-workspace-4.1.0-8.fc9,akonadi-1.0.0-2.fc9,kde-l10n-4.1.0-2.fc9,kdegraphics-4.1.0-3.fc9,kdeutils-4.1.0-1.fc9,kdebindings-4.1.0-5.fc9,kde-i18n-3.5.9-8.fc9,kdeartwork-4.1.0-1.fc9,kdemultimedia-4.1.0-1.fc9,kdetoys-4.1.0-1.fc9,kdebase-runtime-4.1.0-1.fc9,kdeadmin-4.1.0-2.fc9,kdenetwork-4.1.0-2.fc9,kdeaccessibility-4.1.0-1.fc9,kdeplasma-addons-4.1.0-1.fc9,kdeedu-4.1.0-1.fc9,kdebase-4.1.0-1.fc9,kdesdk-4.1.0-1.fc9,kde-filesystem-4-17.fc9,qscintilla-2.2-3.fc9,qgtkstyle-0.0-0.2.20080719svn693.fc9,compiz-0.7.6-3.fc9,soprano-2.1-1.fc9,PyQt4-4.4.2-2.fc9,sip-4.7.6-1.fc9,automoc-1.0-0.8.rc1.fc9,phonon-4.2.0-2.fc9',
         }
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
-        testutil.print_log()
+        #testutil.print_log()
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
         assert PackageUpdate.select().count() == 1
@@ -1899,7 +1899,7 @@ class TestControllers(testutil.DBTest):
         assert not update.critpath_approved
 
         # Have releng try again, and ensure it can be pushed to stable
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                 params['builds'], method='POST', headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
@@ -1918,8 +1918,8 @@ class TestControllers(testutil.DBTest):
                                     headers=dev_user)
 
         update = PackageUpdate.byTitle(params['builds'])
-        logs = testutil.get_log()
-        print logs
+        #logs = testutil.get_log()
+        #print logs
         #assert False, logs
         assert update.request == 'stable', update.__json__()
 
