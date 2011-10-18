@@ -1255,7 +1255,7 @@ class Root(controllers.RootController):
         raise redirect("/")
 
     @expose(template='bodhi.templates.show')
-    @validate(validators={'karma': validators.Int()})
+    #@validate(validators={'karma': validators.Int()})
     @validate(form=comment_captcha_form)
     def captcha_comment(self, text, title, author, karma, captcha=None,
                         tg_errors=None):
@@ -1264,7 +1264,7 @@ class Root(controllers.RootController):
         try:
             karma = int(karma)
         except:
-            pass
+            karma = None
         try:
             update = PackageUpdate.byTitle(title)
         except SQLObjectNotFound:
