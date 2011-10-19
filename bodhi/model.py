@@ -665,10 +665,10 @@ class PackageUpdate(SQLObject):
         else:
             log.error("Cannot find mailing list address for update notice")
 
-    def get_url(self):
+    def get_url(self, show_builds=False):
         """ Return the relative URL to this update """
         path = ['/']
-        if self.updateid:
+        if self.updateid and not show_builds:
             #path.append(self.release.name)
             path.append(self.updateid)
         else:
