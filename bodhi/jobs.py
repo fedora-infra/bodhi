@@ -24,11 +24,12 @@ import subprocess
 from os.path import isdir, realpath, dirname, join, islink, exists
 from datetime import datetime
 from turbogears import scheduler, config
+from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
 
 from bodhi import mail
 from bodhi.util import get_age_in_days
-from bodhi.model import Release, PackageUpdate, BuildRootOverride
+from bodhi.model import Release, PackageUpdate, BuildRootOverride, PackageBuild
 
 log = logging.getLogger(__name__)
 
@@ -204,12 +205,29 @@ def expire_buildroot_overrides():
     """ Iterate over all of the buildroot overrides, expiring appropriately """
     log.info('Running expire_buildroot_overrides job')
     now = datetime.utcnow()
-    for override in BuildRootOverride.select(BuildRootOverride.date_expired == None):
-        if now > override.expiration:
+    for override in BuildRootOverride.select(BuildRootOverride.q.date_expired == None):
+        if override.expiration and now > override.expiration:
             log.info('Automatically expiring buildroot override: %s' %
                      override.build)
-            override.untag()
-            override.date_expired = now
+
+            # Hack around overrides w/o a release.
+            if not override.release:
+                try:
+                    build = PackageBuild.byNvr(override.build)
+                    if len(build.updates):
+                        override.release = build.updates[0].release
+                        print "Fixing release for %s: %s" % (override.build,
+                                override.release.name)
+                        override.untag()
+                        override.date_expired = now
+                    else:
+                        log.error("Cannot determine release for override: %s" % override)
+                except SQLObjectNotFound:
+                    log.error("Cannot find build for override: %s" % override)
+            else:
+                override.untag()
+                override.date_expired = now
+
     log.info('expire_buildroot_overrides job complete!')
 
 
