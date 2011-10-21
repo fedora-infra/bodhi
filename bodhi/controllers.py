@@ -278,8 +278,13 @@ class Root(controllers.RootController):
                         rel = r
                         break
                 if not rel:
-                    err = 'Unknown release %r' % release
-                    return dict(error=err, num_items=0, title=err, updates=[])
+                    # Try by dist tag
+                    rel = Release.select(Release.q.dist_tag == release)
+                    if rel.count():
+                        rel = rel[0]
+                    else:
+                        err = 'Unknown release %r' % release
+                        return dict(error=err, num_items=0, title=err, updates=[])
             release = rel
 
         # If we're looking for bugs specifically (#610)
