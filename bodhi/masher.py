@@ -178,6 +178,8 @@ class MashTask(Thread):
                 log.warning('Skipping update without request: %s' %update.title)
                 continue
             self.updates.add(update)
+            update.comment('This update is currently being pushed to the %s %s updates repository.' % (update.release.long_name, update.request), author='bodhi', email=False)
+
         if self.updates:
             up = self.updates.pop()
             self.updates.add(up)
