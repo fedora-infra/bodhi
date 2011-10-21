@@ -357,7 +357,8 @@ class Root(controllers.RootController):
                         if not release and not status and not type_:
                             updates = [pkg for pkg in pkg.updates()]
                         else:
-                            updates = filter(lambda up: up in updates,
+                            update_ids = [update.id for update in updates]
+                            updates = filter(lambda up: up.id in update_ids,
                                              pkg.updates())
                     except SQLObjectNotFound:
                         try:
