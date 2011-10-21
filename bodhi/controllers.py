@@ -262,8 +262,28 @@ class Root(controllers.RootController):
                         title="%d %s found" % (num_items, num_items == 1 and
                                                'update' or 'updates'))
 
+        if release:
+            # TODO: if a specific release is requested along with get_auth,
+            #       and it is not found in PackageUpdate we should add.
+            #       another value to the output which indicates if the.
+            #       logged in user is allowed to create a new update for.
+            #       this package
+            rel = None
+            try:
+                rel = Release.byName(release.upper())
+            except SQLObjectNotFound:
+                # Make names like EL-5 and el5 both find the right release
+                for r in Release.select():
+                    if r.name.upper().replace('-', '') == release.replace('-', '').upper():
+                        rel = r
+                        break
+                if not rel:
+                    err = 'Unknown release %r' % release
+                    return dict(error=err, num_items=0, title=err, updates=[])
+            release = rel
+
         # If we're looking for bugs specifically (#610)
-        if bugs and not release and not status and not type_ and not package \
+        if bugs and not status and not type_ and not package \
                 and not mine and not username and not created_since \
                 and not pushed_since and not request and not start_date \
                 and not end_date:
@@ -273,30 +293,22 @@ class Root(controllers.RootController):
                 try:
                     bug = Bugzilla.byBz_id(int(bug))
                     for update in bug.updates:
-                        updates.append(update.__json__())
+                        if release:
+                            if update.release != release:
+                                continue
+                        updates.append(update)
                 except (SQLObjectNotFound, ValueError):
                     pass
-            return dict(updates=updates, num_items=len(updates))
+            if request_format() == 'json':
+                update = [update.__json__() for update in updates]
+            num_items = len(updates)
+            return dict(updates=updates, num_items=num_items,
+                        title='%d %s found' % (num_items,
+                            num_items == 1 and 'update' or 'updats'))
 
         try:
             if release:
-                # TODO: if a specific release is requested along with get_auth,
-                #       and it is not found in PackageUpdate we should add.
-                #       another value to the output which indicates if the.
-                #       logged in user is allowed to create a new update for.
-                #       this package
-                try:
-                    rel = Release.byName(release.upper())
-                except SQLObjectNotFound:
-                    # Make names like EL-5 and el5 both find the right release
-                    for r in Release.select():
-                        if r.name.upper().replace('-', '') == release.replace('-', '').upper():
-                            rel = r
-                            break
-                    if not rel:
-                        err = 'Unknown release %r' % release
-                        return dict(error=err, num_items=0, title=err, updates=[])
-                query.append(PackageUpdate.q.releaseID == rel.id)
+                query.append(PackageUpdate.q.releaseID == release.id)
             if status:
                 query.append(PackageUpdate.q.status == status)
                 if status == 'stable':
