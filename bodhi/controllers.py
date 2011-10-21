@@ -338,7 +338,7 @@ class Root(controllers.RootController):
                 try:
                     try:
                         update = PackageUpdate.byTitle(package)
-                    except:
+                    except SQLObjectNotFound:
                         update = PackageUpdate.select(PackageUpdate.q.updateid==package)
                         if update.count():
                             update = update[0]
