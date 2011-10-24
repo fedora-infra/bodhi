@@ -286,7 +286,7 @@ def schedule():
                                    #timeonday=(0,0))
 
     # Automatically expire buildroot overrides
-    if 'approve_testing_updates' in jobs:
+    if 'expire_buildroot_overrides' in jobs:
         log.debug("Scheduling expire_buildroot_overrides job")
         scheduler.add_interval_task(action=expire_buildroot_overrides,
                                    # Run every 6 hours
