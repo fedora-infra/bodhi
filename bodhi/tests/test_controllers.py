@@ -975,6 +975,49 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert update.status == 'testing', update.status
 
+    def test_obsoleting_update_with_different_packages(self):
+        """ Ensure that a new update cannot obsolete an older update that
+        contains a different package """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlalchemy-0.5.0-1.fc7 nethack-1.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar',
+                'request' : None
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
+        assert update.status == 'pending'
+        assert len(update.builds) == 3
+        assert len(update.builds[0].updates) == 1
+        update.status = 'testing'
+        update.pushed = True
+        update.date_pushed = datetime.now()
+
+        # Throw a newer build in, which should *NOT* obsolete the previous
+        newparams = {
+                'builds'  : 'TurboGears-1.0.3.2-2.fc7 python-sqlalchemy-0.6.0-1.fc7 kernel-3.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '',
+                'cves'    : '',
+                'notes'   : 'foo'
+        }
+        #testutil.capture_log(['bodhi.model', 'bodhi.controllers', 'bodhi.admin', 'bodhi.masher', 'bodhi.util'])
+        self.save_update(newparams, session)
+        #assert False, testutil.get_log()
+        newupdate = PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+        assert newupdate.status == 'pending'
+        assert newupdate.notes == 'foo', newupdate.notes
+
+        # Ensure the original update is still in tact
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
+        assert update.status == 'testing', update.status
+
     def test_list(self):
         """
         This unittest verifies various aspects of the generic list controller

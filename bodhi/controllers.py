@@ -945,6 +945,9 @@ class Root(controllers.RootController):
                        (edited and oldBuild in edited.builds):
                         obsoletable = False
                         break
+                    if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
+                        log.debug("%s is newer than %s" % (nvr, oldBuild.nvr))
+                        obsoletable = True
                     # Ensure the same number of builds are present
                     if len(update.builds) != len(releases[update.release]):
                         obsoletable = False
@@ -956,10 +959,8 @@ class Root(controllers.RootController):
                         if _build.package.name not in pkgs:
                             obsoletable = False
                             break
-                    if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
-                        log.debug("%s is obsoletable" % oldBuild.nvr)
-                        obsoletable = True
                 if obsoletable:
+                    log.info('%s is obsoletable' % oldBuild.nvr)
                     for update in oldBuild.updates:
                         # Have the newer update inherit the older updates bugs
                         for bug in update.bugs:
