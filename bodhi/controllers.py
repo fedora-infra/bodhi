@@ -1177,10 +1177,12 @@ class Root(controllers.RootController):
 
         # /PackageUpdate.updateid/*
         if args:
-            update = PackageUpdate.select(PackageUpdate.q.updateid)
+            update = PackageUpdate.select(PackageUpdate.q.updateid == args[0])
             if update.count():
+                update = update[0]
                 return dict(tg_template='bodhi.templates.show',
-                            update=update[0], comment_form=form)
+                            update=update, comment_form=form,
+                            updates=[], values={'title': update.title})
 
         # /Package.name
         if len(args) == 1:
