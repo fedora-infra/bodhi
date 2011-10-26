@@ -1158,6 +1158,7 @@ class Root(controllers.RootController):
 
             /Package.name
             /PackageUpdate.title
+            /PackageUpdate.updateid/*
             /PackageBuild.nvr
             /Release.name
             /Release.name/PackageUpdate.update_id
@@ -1173,6 +1174,14 @@ class Root(controllers.RootController):
         query = []
         form = identity.current.anonymous and self.comment_captcha_form \
                                            or self.comment_form
+
+        # /PackageUpdate.updateid/*
+        if args:
+            update = PackageUpdate.select(PackageUpdate.q.updateid)
+            if update.count():
+                return dict(tg_template='bodhi.templates.show',
+                            update=update[0], comment_form=form)
+
         # /Package.name
         if len(args) == 1:
             try:

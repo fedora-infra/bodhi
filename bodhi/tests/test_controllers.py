@@ -2865,3 +2865,21 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         logs = testutil.get_log()
         assert 'Error: You must supply details for this update' in logs
+
+    def test_new_updateid_url(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'notes'   : 'notes go here',
+        }
+        self.save_update(params, session)
+        up = PackageUpdate.byTitle(params['builds'])
+        up.assign_id()
+        testutil.create_request('/updates/' + up.updateid)
+        assert 'notes go here' in cherrypy.response.body[0]
+        testutil.create_request('/updates/%s/%s' % (up.updateid, up.title))
+        assert 'notes go here' in cherrypy.response.body[0]
