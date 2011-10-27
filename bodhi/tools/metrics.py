@@ -42,6 +42,9 @@ def main():
                 'num_stablekarma': 0,
                 'num_testingtime': 0,
                 'critpath_without_karma': set(),
+                'conflicted_proventesters': 0,
+                'critpath_positive_karma_including_proventesters': 0,
+                'critpath_positive_karma_negative_proventesters': 0,
                 'stable_with_negative_karma': PackageUpdate.select(
                     AND(PackageUpdate.q.releaseID==release.id,
                         PackageUpdate.q.status=='stable',
@@ -140,6 +143,34 @@ def main():
                 #if not feedback_done:
                 if update.status == 'stable' and update.karma == 0:
                     data['critpath_without_karma'].add(update)
+
+                # Proventester metrics
+                proventester_karma = defaultdict(int) # {username: karma}
+                positive_proventesters = 0
+                negative_proventesters = 0
+                for comment in update.comments:
+                    if comment.author_group == 'proventesters':
+                        proventester_karma[comment.author_name] += comment.karma
+                for _karma in proventester_karma.values():
+                    if _karma > 0:
+                        positive_proventesters += 1
+                    elif _karma < 0:
+                        negative_proventesters += 1
+
+                # Conflicting proventesters
+                if positive_proventesters and negative_proventesters:
+                    data['conflicted_proventesters'] += 1
+
+                # Track updates with overall positive karma, including positive
+                # karma from a proventester
+                if update.karma > 0 and positive_proventesters:
+                    data['critpath_positive_karma_including_proventesters'] += 1
+
+                # Track updates with overall positive karma, including negative
+                # karma from a proventester
+                if update.karma > 0 and negative_proventesters:
+                    data['critpath_positive_karma_negative_proventesters'] += 1
+
             if testingtime_done:
                 data['num_tested'] += 1
                 if not feedback_done:
@@ -172,6 +203,10 @@ def main():
         print " * %d proventesters" % len(data['proventesters'])
         print "   * %d +1's from proventesters" % data['proventesters_1']
         print "   * %d -1's from proventesters" % data['proventesters_-1']
+        if data['num_critpath']:
+            print " * %d critpath updates with conflicting proventesters (%0.2f%% of critpath)" % (data['conflicted_proventesters'], float(data['conflicted_proventesters']) / data['num_critpath'] * 100)
+            print " * %d critpath updates with positive karma and negative proventester feedback (%0.2f%% of critpath)" % (data['critpath_positive_karma_negative_proventesters'], float(data['critpath_positive_karma_negative_proventesters']) / data['num_critpath'] * 100)
+            print " * %d critpath updates with positive karma and positive proventester feedback (%0.2f%% of critpath)" % (data['critpath_positive_karma_including_proventesters'], float(data['critpath_positive_karma_including_proventesters']) / data['num_critpath'] * 100)
         print " * %d anonymous users gave feedback (%0.2f%%)" % (
                 data['num_anon_feedback'], float(data['num_anon_feedback']) /
                 (data['num_anon_feedback'] + sum(data['karma'].values())) * 100)
