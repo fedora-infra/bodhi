@@ -50,7 +50,7 @@ def main():
             try:
                 build = PackageBuild.byNvr(nvr)
                 for update in build.updates:
-                    if update.status in ('pending', 'obsolete'):
+                    if update.status in ('pending', 'obsolete', 'stable'):
                         print "%s %s" % (nvr, update.status)
                         if '--fix' in sys.argv:
                             print "Untagging %s" % nvr

@@ -33,7 +33,7 @@ from bodhi.util import ProgressBar, load_config
 from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
                               PostgresIntegrityError)
 from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
-                         Package, PackageBuild)
+                         Package, PackageBuild, BuildRootOverride)
 
 hub = __connection__ = PackageHub("bodhi")
 
@@ -85,14 +85,26 @@ def save_db():
         updates.append(data)
         progress()
 
+    # Save all buildroot overrides
+    overrides = []
+    for override in BuildRootOverride.select():
+        overrides.append(override.__json__())
+
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
-    pickle.dump({'updates': updates, 'releases': releases}, dump)
+    pickle.dump({'updates': updates, 'releases': releases, 'overrides': overrides}, dump)
     dump.close()
 
 def load_db():
     print "\nLoading pickled database %s" % sys.argv[2]
     db = file(sys.argv[2], 'r')
     data = pickle.load(db)
+
+    # Load up all of the overrides
+    for override in data.get('overrides', []):
+        try:
+            BuildRootOverride.byBuild(override['build'])
+        except SQLObjectNotFound:
+            BuildRootOverride(**override)
 
     # Legacy format was just a list of update dictionaries
     # Now we'll pull things out into an organized dictionary:

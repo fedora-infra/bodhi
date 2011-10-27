@@ -669,8 +669,8 @@ class PackageUpdate(SQLObject):
         """ Return the relative URL to this update """
         path = ['/']
         if self.updateid:
-            #path.append(self.release.name)
             path.append(self.updateid)
+            path.append(self.title)
         else:
             path.append(self.title)
         return join(*path)

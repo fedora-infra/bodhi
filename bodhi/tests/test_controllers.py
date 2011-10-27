@@ -459,7 +459,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert 'Error: Unable to add build for a different release to this update' in logs, logs
+        assert 'Cannot add a F8 build to a F7 update. Please create a new update for python-sqlobject-0.8.2-1.fc8' in logs, logs
 
     def test_remove_build_and_add_different_release_to_update(self):
         """
@@ -492,7 +492,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert u"Error: Unable to add build for a different release to this update" in logs
+        assert u"Unable to edit update" in '\n'.join(logs), logs
 
         # Try again without a request..
         new_build = 'python-sqlalchemy-1.0.2.2-2.fc7'
@@ -505,7 +505,7 @@ class TestControllers(testutil.DBTest):
         params['edited'] = new_build
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert 'Error: Unable to add build for a different release to this update' in logs
+        assert 'Cannot add a F8 build to a F7 update.' in '\n'.join(logs), logs
 
     def test_edit(self):
         session = login()
@@ -777,90 +777,90 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         assert "Value must be one of: Testing; Stable; None; None; testing; stable; none (not u'foobar!')" in cherrypy.response.body[0], cherrypy.response.body[0]
 
-    def test_broken_update_path_on_submission(self):
-        """ Make sure we are unable to break upgrade paths upon submission """
-        from bodhi.buildsys import get_session
-        koji = get_session()
-        session = login()
-        create_release()
-        params = {
-            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-            'release' : 'Fedora 7',
-            'type_'    : 'bugfix',
-            'bugs'    : '',
-            'cves'    : '',
-            'notes'   : 'foo'
-        }
+    #def test_broken_update_path_on_submission(self):
+    #    """ Make sure we are unable to break upgrade paths upon submission """
+    #    from bodhi.buildsys import get_session
+    #    koji = get_session()
+    #    session = login()
+    #    create_release()
+    #    params = {
+    #        'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+    #        'release' : 'Fedora 7',
+    #        'type_'    : 'bugfix',
+    #        'bugs'    : '',
+    #        'cves'    : '',
+    #        'notes'   : 'foo'
+    #    }
 
-        # Monkey-patch our DevBuildsys 
-        from bodhi.buildsys import DevBuildsys
-        oldGetBuild = DevBuildsys.getBuild
-        DevBuildsys.getBuild = lambda *x, **y: {
-                'epoch': None, 'name': 'TurboGears',
-                'nvr': 'TurboGears-1.0.2.2-2.fc7',
-                'release': '2.fc7',
-                'tag_name': 'dist-fc7-updates-testing',
-                'version': '1.0.2.2'
-                }
+    #    # Monkey-patch our DevBuildsys 
+    #    from bodhi.buildsys import DevBuildsys
+    #    oldGetBuild = DevBuildsys.getBuild
+    #    DevBuildsys.getBuild = lambda *x, **y: {
+    #            'epoch': None, 'name': 'TurboGears',
+    #            'nvr': 'TurboGears-1.0.2.2-2.fc7',
+    #            'release': '2.fc7',
+    #            'tag_name': 'dist-fc7-updates-testing',
+    #            'version': '1.0.2.2'
+    #            }
 
-        # Make a newer build already exist
-        oldListTagged = DevBuildsys.listTagged
-        DevBuildsys.listTagged = lambda *x, **y: [
-                {'epoch': None, 'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
-                 'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
-        ]
+    #    # Make a newer build already exist
+    #    oldListTagged = DevBuildsys.listTagged
+    #    DevBuildsys.listTagged = lambda *x, **y: [
+    #            {'epoch': None, 'name': 'TurboGears',
+    #             'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
+    #             'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
+    #    ]
 
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
-        self.save_update(params, session)
-        DevBuildsys.getBuild = oldGetBuild
-        DevBuildsys.listTagged = oldListTagged
-        assert 'Broken update path: TurboGears-1.0.2.2-2.fc7 is older than TurboGears-1.0.2.3-2.fc7 in dist-rawhide' in testutil.get_log()
+    #    testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+    #    self.save_update(params, session)
+    #    DevBuildsys.getBuild = oldGetBuild
+    #    DevBuildsys.listTagged = oldListTagged
+    #    assert 'Broken update path: TurboGears-1.0.2.2-2.fc7 is older than TurboGears-1.0.2.3-2.fc7 in dist-rawhide' in testutil.get_log()
 
-    def test_broken_update_path_on_request(self):
-        """ Make sure we are unable to break upgrade paths upon request
-            https://bugzilla.redhat.com/show_bug.cgi?id=448861
-        """
-        from bodhi.buildsys import get_session
-        koji = get_session()
-        session = login()
-        create_release()
-        params = {
-            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
-            'release' : 'Fedora 7',
-            'type_'    : 'bugfix',
-            'bugs'    : '',
-            'cves'    : '',
-            'notes'   : 'foo'
-        }
-        self.save_update(params, session)
+    #def test_broken_update_path_on_request(self):
+    #    """ Make sure we are unable to break upgrade paths upon request
+    #        https://bugzilla.redhat.com/show_bug.cgi?id=448861
+    #    """
+    #    from bodhi.buildsys import get_session
+    #    koji = get_session()
+    #    session = login()
+    #    create_release()
+    #    params = {
+    #        'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+    #        'release' : 'Fedora 7',
+    #        'type_'    : 'bugfix',
+    #        'bugs'    : '',
+    #        'cves'    : '',
+    #        'notes'   : 'foo'
+    #    }
+    #    self.save_update(params, session)
 
-        # Monkey-patch our DevBuildsys 
-        from bodhi.buildsys import DevBuildsys
-        oldGetBuild = DevBuildsys.getBuild
-        DevBuildsys.getBuild = lambda *x, **y: {
-                'epoch': None, 'name': 'TurboGears',
-                'nvr': 'TurboGears-1.0.2.2-2.fc7',
-                'release': '2.fc7',
-                'tag_name': 'dist-fc7-updates-testing',
-                'version': '1.0.2.2'
-                }
+    #    # Monkey-patch our DevBuildsys 
+    #    from bodhi.buildsys import DevBuildsys
+    #    oldGetBuild = DevBuildsys.getBuild
+    #    DevBuildsys.getBuild = lambda *x, **y: {
+    #            'epoch': None, 'name': 'TurboGears',
+    #            'nvr': 'TurboGears-1.0.2.2-2.fc7',
+    #            'release': '2.fc7',
+    #            'tag_name': 'dist-fc7-updates-testing',
+    #            'version': '1.0.2.2'
+    #            }
 
-        # Make a newer build already exist
-        oldListTagged = koji.listTagged
-        DevBuildsys.listTagged = lambda *x, **y: [
-                {'epoch': None, 'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
-                 'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
-        ]
+    #    # Make a newer build already exist
+    #    oldListTagged = koji.listTagged
+    #    DevBuildsys.listTagged = lambda *x, **y: [
+    #            {'epoch': None, 'name': 'TurboGears',
+    #             'nvr': 'TurboGears-1.0.2.3-2.fc7', 'release': '2.fc7',
+    #             'tag_name': 'dist-fc7-updates-testing', 'version': '1.0.2.3'},
+    #    ]
 
-        testutil.capture_log(['bodhi.util', 'bodhi.controllers', 'bodhi.model'])
-        testutil.create_request('/updates/request/stable/%s' % params['builds'],
-                               method='POST', headers=session)
-        DevBuildsys.getBuild = oldGetBuild
-        DevBuildsys.listTagged = oldListTagged
-        output = testutil.get_log()
-        assert 'Broken update path: TurboGears-1.0.2.3-2.fc7 is already released, and is newer than TurboGears-1.0.2.2-2.fc7' in output, output
+    #    testutil.capture_log(['bodhi.util', 'bodhi.controllers', 'bodhi.model'])
+    #    testutil.create_request('/updates/request/stable/%s' % params['builds'],
+    #                           method='POST', headers=session)
+    #    DevBuildsys.getBuild = oldGetBuild
+    #    DevBuildsys.listTagged = oldListTagged
+    #    output = testutil.get_log()
+    #    assert 'Broken update path: TurboGears-1.0.2.3-2.fc7 is already released, and is newer than TurboGears-1.0.2.2-2.fc7' in output, output
 
     # Disabled for now, since we want to try and avoid as much bugzilla
     # contact during our test cases as possible :)
@@ -972,6 +972,49 @@ class TestControllers(testutil.DBTest):
         newupdate = PackageUpdate.byTitle(newparams['builds'])
         assert newupdate.status == 'pending'
         assert newupdate.notes == 'foo', newupdate.notes
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
+        assert update.status == 'testing', update.status
+
+    def test_obsoleting_update_with_different_packages(self):
+        """ Ensure that a new update cannot obsolete an older update that
+        contains a different package """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlalchemy-0.5.0-1.fc7 nethack-1.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar',
+                'request' : None
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
+        assert update.status == 'pending'
+        assert len(update.builds) == 3
+        assert len(update.builds[0].updates) == 1
+        update.status = 'testing'
+        update.pushed = True
+        update.date_pushed = datetime.now()
+
+        # Throw a newer build in, which should *NOT* obsolete the previous
+        newparams = {
+                'builds'  : 'TurboGears-1.0.3.2-2.fc7 python-sqlalchemy-0.6.0-1.fc7 kernel-3.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '',
+                'cves'    : '',
+                'notes'   : 'foo'
+        }
+        #testutil.capture_log(['bodhi.model', 'bodhi.controllers', 'bodhi.admin', 'bodhi.masher', 'bodhi.util'])
+        self.save_update(newparams, session)
+        #assert False, testutil.get_log()
+        newupdate = PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+        assert newupdate.status == 'pending'
+        assert newupdate.notes == 'foo', newupdate.notes
+
+        # Ensure the original update is still in tact
         update = PackageUpdate.byTitle(','.join(params['builds'].split()))
         assert update.status == 'testing', update.status
 
@@ -1190,9 +1233,9 @@ class TestControllers(testutil.DBTest):
                 'stable_karma' : 1,
                 'unstable_karma' : -1,
         }
-        testutil.capture_log(['bodhi.controller', 'bodhi.util'])
+        #testutil.capture_log(['bodhi.controller', 'bodhi.util'])
         self.save_update(params, session)
-        print testutil.get_log()
+        #print testutil.get_log()
         update = PackageUpdate.byTitle(params['builds'].replace(' ', ','))
         assert update.builds[0].package.stable_karma == params['stable_karma']
         assert update.builds[0].package.unstable_karma == params['unstable_karma']
@@ -1403,9 +1446,9 @@ class TestControllers(testutil.DBTest):
                 'notes'   : 'foo',
                 'edited'  : u'kdelibs-4.1.0-5.fc9,kdegames-4.1.0-2.fc9,konq-plugins-4.1.0-2.fc9,qt-4.4.1-2.fc9,quarticurve-kwin-theme-0.0-0.5.beta4.fc9,kdepimlibs-4.1.0-2.fc9,kdebase-workspace-4.1.0-8.fc9,akonadi-1.0.0-2.fc9,kde-l10n-4.1.0-2.fc9,kdegraphics-4.1.0-3.fc9,kdeutils-4.1.0-1.fc9,kdebindings-4.1.0-5.fc9,kde-i18n-3.5.9-8.fc9,kdeartwork-4.1.0-1.fc9,kdemultimedia-4.1.0-1.fc9,kdetoys-4.1.0-1.fc9,kdebase-runtime-4.1.0-1.fc9,kdeadmin-4.1.0-2.fc9,kdenetwork-4.1.0-2.fc9,kdeaccessibility-4.1.0-1.fc9,kdeplasma-addons-4.1.0-1.fc9,kdeedu-4.1.0-1.fc9,kdebase-4.1.0-1.fc9,kdesdk-4.1.0-1.fc9,kde-filesystem-4-17.fc9,qscintilla-2.2-3.fc9,qgtkstyle-0.0-0.2.20080719svn693.fc9,compiz-0.7.6-3.fc9,soprano-2.1-1.fc9,PyQt4-4.4.2-2.fc9,sip-4.7.6-1.fc9,automoc-1.0-0.8.rc1.fc9,phonon-4.2.0-2.fc9',
         }
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
-        testutil.print_log()
+        #testutil.print_log()
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
         assert PackageUpdate.select().count() == 1
@@ -1899,7 +1942,7 @@ class TestControllers(testutil.DBTest):
         assert not update.critpath_approved
 
         # Have releng try again, and ensure it can be pushed to stable
-        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
                                 params['builds'], method='POST', headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
@@ -1918,8 +1961,8 @@ class TestControllers(testutil.DBTest):
                                     headers=dev_user)
 
         update = PackageUpdate.byTitle(params['builds'])
-        logs = testutil.get_log()
-        print logs
+        #logs = testutil.get_log()
+        #print logs
         #assert False, logs
         assert update.request == 'stable', update.__json__()
 
@@ -2822,3 +2865,21 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         logs = testutil.get_log()
         assert 'Error: You must supply details for this update' in logs
+
+    def test_new_updateid_url(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'notes'   : 'notes go here',
+        }
+        self.save_update(params, session)
+        up = PackageUpdate.byTitle(params['builds'])
+        up.assign_id()
+        testutil.create_request('/updates/' + up.updateid)
+        assert 'notes go here' in cherrypy.response.body[0]
+        testutil.create_request('/updates/%s/%s' % (up.updateid, up.title))
+        assert 'notes go here' in cherrypy.response.body[0]

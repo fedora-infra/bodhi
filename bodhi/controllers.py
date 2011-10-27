@@ -262,35 +262,58 @@ class Root(controllers.RootController):
                         title="%d %s found" % (num_items, num_items == 1 and
                                                'update' or 'updates'))
 
+        if release:
+            # TODO: if a specific release is requested along with get_auth,
+            #       and it is not found in PackageUpdate we should add.
+            #       another value to the output which indicates if the.
+            #       logged in user is allowed to create a new update for.
+            #       this package
+            rel = None
+            try:
+                rel = Release.byName(release.upper())
+            except SQLObjectNotFound:
+                # Make names like EL-5 and el5 both find the right release
+                for r in Release.select():
+                    if r.name.upper().replace('-', '') == release.replace('-', '').upper():
+                        rel = r
+                        break
+                if not rel:
+                    # Try by dist tag
+                    rel = Release.select(Release.q.dist_tag == release)
+                    if rel.count():
+                        rel = rel[0]
+                    else:
+                        err = 'Unknown release %r' % release
+                        return dict(error=err, num_items=0, title=err, updates=[])
+            release = rel
+
         # If we're looking for bugs specifically (#610)
-        if bugs:
+        if bugs and not status and not type_ and not package \
+                and not mine and not username and not created_since \
+                and not pushed_since and not request and not start_date \
+                and not end_date:
             updates = []
             bugs = bugs.replace('#', '').split(',')
             for bug in bugs:
                 try:
                     bug = Bugzilla.byBz_id(int(bug))
                     for update in bug.updates:
-                        updates.append(update.__json__())
+                        if release:
+                            if update.release != release:
+                                continue
+                        updates.append(update)
                 except (SQLObjectNotFound, ValueError):
                     pass
-            return dict(updates=updates, num_items=len(updates))
+            if request_format() == 'json':
+                update = [update.__json__() for update in updates]
+            num_items = len(updates)
+            return dict(updates=updates, num_items=num_items,
+                        title='%d %s found' % (num_items,
+                            num_items == 1 and 'update' or 'updats'))
 
         try:
             if release:
-                # TODO: if a specific release is requested along with get_auth,
-                #       and it is not found in PackageUpdate we should add.
-                #       another value to the output which indicates if the.
-                #       logged in user is allowed to create a new update for.
-                #       this package
-                try:
-                    rel = Release.byName(release.upper())
-                except SQLObjectNotFound:
-                    # Make names like EL-5 and el5 both find the right release
-                    for r in Release.select():
-                        if r.name.upper().replace('-', '') == release.replace('-', '').upper():
-                            rel = r
-                    return dict(error="Unknown release %r" % release)
-                query.append(PackageUpdate.q.releaseID == rel.id)
+                query.append(PackageUpdate.q.releaseID == release.id)
             if status:
                 query.append(PackageUpdate.q.status == status)
                 if status == 'stable':
@@ -332,7 +355,7 @@ class Root(controllers.RootController):
                 try:
                     try:
                         update = PackageUpdate.byTitle(package)
-                    except:
+                    except SQLObjectNotFound:
                         update = PackageUpdate.select(PackageUpdate.q.updateid==package)
                         if update.count():
                             update = update[0]
@@ -351,7 +374,8 @@ class Root(controllers.RootController):
                         if not release and not status and not type_:
                             updates = [pkg for pkg in pkg.updates()]
                         else:
-                            updates = filter(lambda up: up in updates,
+                            update_ids = [update.id for update in updates]
+                            updates = filter(lambda up: up.id in update_ids,
                                              pkg.updates())
                     except SQLObjectNotFound:
                         try:
@@ -921,6 +945,9 @@ class Root(controllers.RootController):
                        (edited and oldBuild in edited.builds):
                         obsoletable = False
                         break
+                    if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
+                        log.debug("%s is newer than %s" % (nvr, oldBuild.nvr))
+                        obsoletable = True
                     # Ensure the same number of builds are present
                     if len(update.builds) != len(releases[update.release]):
                         obsoletable = False
@@ -932,10 +959,8 @@ class Root(controllers.RootController):
                         if _build.package.name not in pkgs:
                             obsoletable = False
                             break
-                    if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
-                        log.debug("%s is obsoletable" % oldBuild.nvr)
-                        obsoletable = True
                 if obsoletable:
+                    log.info('%s is obsoletable' % oldBuild.nvr)
                     for update in oldBuild.updates:
                         # Have the newer update inherit the older updates bugs
                         for bug in update.bugs:
@@ -1133,6 +1158,7 @@ class Root(controllers.RootController):
 
             /Package.name
             /PackageUpdate.title
+            /PackageUpdate.updateid/*
             /PackageBuild.nvr
             /Release.name
             /Release.name/PackageUpdate.update_id
@@ -1148,6 +1174,16 @@ class Root(controllers.RootController):
         query = []
         form = identity.current.anonymous and self.comment_captcha_form \
                                            or self.comment_form
+
+        # /PackageUpdate.updateid/*
+        if args:
+            update = PackageUpdate.select(PackageUpdate.q.updateid == args[0])
+            if update.count():
+                update = update[0]
+                return dict(tg_template='bodhi.templates.show',
+                            update=update, comment_form=form,
+                            updates=[], values={'title': update.title})
+
         # /Package.name
         if len(args) == 1:
             try:
@@ -1255,7 +1291,7 @@ class Root(controllers.RootController):
         raise redirect("/")
 
     @expose(template='bodhi.templates.show')
-    @validate(validators={'karma': validators.Int()})
+    #@validate(validators={'karma': validators.Int()})
     @validate(form=comment_captcha_form)
     def captcha_comment(self, text, title, author, karma, captcha=None,
                         tg_errors=None):
@@ -1264,7 +1300,7 @@ class Root(controllers.RootController):
         try:
             karma = int(karma)
         except:
-            pass
+            karma = None
         try:
             update = PackageUpdate.byTitle(title)
         except SQLObjectNotFound:

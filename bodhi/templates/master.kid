@@ -88,8 +88,17 @@ $(document).ready(function() {
                 </ul>
             </div>
             <ul id="fedora-side-nav">
-                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/logout')}">Logout</a></li>
-                <li py:if="tg.identity.anonymous"><a href="${tg.url('/login')}">Login</a></li>
+                <li py:if="tg.identity.anonymous and not tg.identity.only_token">
+                  <a href="${tg.url('/login')}">Login</a>
+                </li>
+                <li py:if="tg.identity.anonymous and tg.identity.only_token">
+                <a href="${tg.url(tg.request.path_info)}">
+                  CSRF protected<br />
+                  Verify Login</a>
+                </li>
+                <li py:if="not tg.identity.anonymous or tg.identity.only_token">
+                  <a href="${tg.url('/logout')}">Logout</a>
+                </li>
                 <li><a href="${tg.url('/')}">${tg.identity.anonymous and ' ' or "%s's " % tg.identity.user_name}Home</a></li>
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
                 <li py:if="not tg.identity.anonymous"><a href="${tg.url('/new/')}">New Update</a></li>
@@ -140,8 +149,8 @@ $(document).ready(function() {
     <!-- footer BEGIN -->
     <div id="fedora-footer">
         Bodhi Version: ${version} -- Server: ${hostname}<br/>
-        Copyright &copy; 2007-2010 Red Hat, Inc. and others.<br/>
-        Licensed under the GNU Public License v2 or later.<br />
+        Copyright &copy; 2007-2011 Red Hat, Inc. and others.<br/>
+        Licensed under the GNU General Public License v2 or later.<br />
         The Fedora Project is maintained and driven by the community and sponsored by Red Hat.<br/>This is a community maintained site.  Red Hat is not responsible for content.<br/>
         [ <a href="https://fedoraproject.org/wiki/Legal">Legal</a>, <a href="https://fedoraproject.org/wiki/Legal/TrademarkGuidelines">Trademark Guidelines</a>, <a href="https://fedorahosted.org/bodhi">Source Code</a> ]
     </div>

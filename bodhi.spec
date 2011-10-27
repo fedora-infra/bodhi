@@ -20,6 +20,7 @@ BuildRequires: python-devel
 BuildRequires: TurboGears python-bugzilla
 BuildRequires: python-fedora python-TurboMail TurboGears yum koji
 BuildRequires: python-turboflot python-tgcaptcha
+BuildRequires: python-fedora-turbogears
 
 %description
 Bodhi is a web application that facilitates the process of publishing
@@ -121,6 +122,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Fri Oct 21 2011 Luke Macken <lmacken@redhat.com> - 0.8.3-1
+- 0.8.3 release
+
 * Mon Feb 28 2011 Luke Macken <lmacken@redhat.com> - 0.7.12
 - 0.7.12 release
 

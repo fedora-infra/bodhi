@@ -251,7 +251,7 @@ statusinfo = {
   <div py:if="update.nagged and 'test_cases' in update.nagged.keys() and update.nagged['test_cases']">
     <div class="show">Test Cases</div>
     <ul py:for="test in update.nagged['test_cases']">
-      <li style="line-height:0px;"><a href="https://fedoraproject.org/wiki/${test}">${test.replace('QA:Testcase', '')}</a></li>
+      <li><a href="https://fedoraproject.org/wiki/${test}">${test.replace('QA:Testcase', '')}</a></li>
     </ul>
   </div>
 

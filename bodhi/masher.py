@@ -23,6 +23,7 @@ import logging
 import subprocess
 import cPickle as pickle
 
+from operator import attrgetter
 from sqlobject import SQLObjectNotFound, AND
 from threading import Thread, Lock
 from turbogears import config, url
@@ -178,6 +179,8 @@ class MashTask(Thread):
                 log.warning('Skipping update without request: %s' %update.title)
                 continue
             self.updates.add(update)
+            update.comment('This update is currently being pushed to the %s %s updates repository.' % (update.release.long_name, update.request), author='bodhi', email=False)
+
         if self.updates:
             up = self.updates.pop()
             self.updates.add(up)
@@ -428,7 +431,7 @@ class MashTask(Thread):
         self.moving = True
         log.debug("Setting up koji multicall for moving builds")
         self.koji.multicall = True
-        for update in self.updates:
+        for update in sorted(self.updates, key=attrgetter('date_submitted')):
             if update.request == 'stable':
                 self.tag = update.release.stable_tag
                 # [No Frozen Rawhide] Move stable builds going to a pending

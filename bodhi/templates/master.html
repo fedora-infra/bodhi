@@ -106,8 +106,16 @@ $(document).ready(function() {
                 </li>
                 <li class="release"><a href="${tg.url('/comments')}" class="link">Comments</a><a href="${tg.url('/rss/rss2.0?comments=True')}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
                 </li>
-                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/logout')}">Logout</a></li>
-                <li py:if="tg.identity.anonymous"><a href="${tg.url('/login')}">Login</a></li>
+                <li py:if="tg.identity.anonymous and not tg.identity.only_token">
+                  <a href="${tg.url('/login')}">Login</a>
+                </li>
+                <li py:if="tg.identity.anonymous and tg.identity.only_token">
+                <a href="${tg.url(tg.request.path_info)}">CSRF protected<br />
+                  Verify Login</a>
+                </li>
+                <li py:if="not tg.identity.anonymous or tg.identity.only_token">
+                  <a href="${tg.url('/logout')}">Logout</a>
+                </li>
             </ul>
         </div>
         <!-- leftside END -->
