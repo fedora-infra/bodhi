@@ -23,7 +23,7 @@ def main():
     load_config()
     stats = {} # {release: {'stat': ...}}
     feedback = 0 # total number of updates that received feedback
-    karma = {} # {username: # of karma submissions}
+    karma = defaultdict(int) # {username: # of karma submissions}
     num_updates = PackageUpdate.select().count()
     proventesters = set()
 
@@ -47,7 +47,7 @@ def main():
                         PackageUpdate.q.status=='stable',
                         PackageUpdate.q.karma < 0)).count(),
                 'bugs': set(),
-                'karma': {},
+                'karma': defaultdict(int),
                 'deltas': [],
                 'occurrences': {},
                 'accumulative': timedelta(),
@@ -113,11 +113,7 @@ def main():
                         if comment.karma != 0:
                             data['num_anon_feedback'] += 1
                     else:
-                        # strip the group name from the author names
-                        author = comment.author.split('(')[0].strip()
-                        if author not in data['karma']:
-                            data['karma'][author] = 0
-                            karma[author] = 0
+                        author = comment.author_name
                         data['karma'][author] += 1
                         karma[author] += 1
 
