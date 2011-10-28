@@ -19,6 +19,9 @@ from bodhi.model import PackageUpdate, Release
 statuses = ('stable', 'testing', 'pending', 'obsolete')
 types = ('bugfix', 'enhancement', 'security', 'newpackage')
 
+def short_url(update):
+    return 'https://admin.fedoraproject.org/updates/%s' % update.builds[0].nvr
+
 def main():
     load_config()
     stats = {} # {release: {'stat': ...}}
@@ -42,9 +45,9 @@ def main():
                 'num_stablekarma': 0,
                 'num_testingtime': 0,
                 'critpath_without_karma': set(),
-                'conflicted_proventesters': 0,
-                'critpath_positive_karma_including_proventesters': 0,
-                'critpath_positive_karma_negative_proventesters': 0,
+                'conflicted_proventesters': [],
+                'critpath_positive_karma_including_proventesters': [],
+                'critpath_positive_karma_negative_proventesters': [],
                 'stable_with_negative_karma': PackageUpdate.select(
                     AND(PackageUpdate.q.releaseID==release.id,
                         PackageUpdate.q.status=='stable',
@@ -159,17 +162,17 @@ def main():
 
                 # Conflicting proventesters
                 if positive_proventesters and negative_proventesters:
-                    data['conflicted_proventesters'] += 1
+                    data['conflicted_proventesters'] += [short_url(update)]
 
                 # Track updates with overall positive karma, including positive
                 # karma from a proventester
                 if update.karma > 0 and positive_proventesters:
-                    data['critpath_positive_karma_including_proventesters'] += 1
+                    data['critpath_positive_karma_including_proventesters'] += [short_url(update)]
 
                 # Track updates with overall positive karma, including negative
                 # karma from a proventester
                 if update.karma > 0 and negative_proventesters:
-                    data['critpath_positive_karma_negative_proventesters'] += 1
+                    data['critpath_positive_karma_negative_proventesters'] += [short_url(update)]
 
             if testingtime_done:
                 data['num_tested'] += 1
@@ -204,9 +207,13 @@ def main():
         print "   * %d +1's from proventesters" % data['proventesters_1']
         print "   * %d -1's from proventesters" % data['proventesters_-1']
         if data['num_critpath']:
-            print " * %d critpath updates with conflicting proventesters (%0.2f%% of critpath)" % (data['conflicted_proventesters'], float(data['conflicted_proventesters']) / data['num_critpath'] * 100)
-            print " * %d critpath updates with positive karma and negative proventester feedback (%0.2f%% of critpath)" % (data['critpath_positive_karma_negative_proventesters'], float(data['critpath_positive_karma_negative_proventesters']) / data['num_critpath'] * 100)
-            print " * %d critpath updates with positive karma and positive proventester feedback (%0.2f%% of critpath)" % (data['critpath_positive_karma_including_proventesters'], float(data['critpath_positive_karma_including_proventesters']) / data['num_critpath'] * 100)
+            print " * %d critpath updates with conflicting proventesters (%0.2f%% of critpath)" % (len(data['conflicted_proventesters']), float(len(data['conflicted_proventesters'])) / data['num_critpath'] * 100)
+            for u in data['conflicted_proventesters']:
+                print "   * " + u
+            print " * %d critpath updates with positive karma and negative proventester feedback (%0.2f%% of critpath)" % (len(data['critpath_positive_karma_negative_proventesters']), float(len(data['critpath_positive_karma_negative_proventesters'])) / data['num_critpath'] * 100)
+            for u in data['critpath_positive_karma_negative_proventesters']:
+                print "   * " + u
+            print " * %d critpath updates with positive karma and positive proventester feedback (%0.2f%% of critpath)" % (len(data['critpath_positive_karma_including_proventesters']), float(len(data['critpath_positive_karma_including_proventesters'])) / data['num_critpath'] * 100)
         print " * %d anonymous users gave feedback (%0.2f%%)" % (
                 data['num_anon_feedback'], float(data['num_anon_feedback']) /
                 (data['num_anon_feedback'] + sum(data['karma'].values())) * 100)
