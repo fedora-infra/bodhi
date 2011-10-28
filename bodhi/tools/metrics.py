@@ -253,7 +253,7 @@ def main():
     print
     print "Out of %d total updates, %d received feedback (%0.2f%%)" % (
             num_updates, feedback, (float(feedback) / num_updates * 100))
-    print "Out of %d total unique karma submitters, the top 50 are:" % (
+    print "Out of %d total unique commenters, the top 50 are:" % (
             len(karma))
     for submitter in sorted(karma.iteritems(), key=itemgetter(1), reverse=True)[:50]:
         print " * %s (%d)" % (submitter[0], submitter[1])
