@@ -181,9 +181,11 @@ class BuildRootOverrideController(Controller):
                 if request_format() == 'json': return dict()
                 raise redirect('/override/new')
             if identity.current.user_name not in people[0]:
-                flash("Error: You do not have commit privileges to %s" % n)
-                if request_format() == 'json': return dict()
-                raise redirect('/override/new')
+                if 'provenpackager' not in identity.current.groups:
+
+                    flash("Error: You do not have commit privileges to %s" % n)
+                    if request_format() == 'json': return dict()
+                    raise redirect('/override/new')
 
             # Create a new overrides object
             try:
