@@ -437,6 +437,8 @@ def send_mail(sender, to, subject, body):
     from turbomail import MailNotEnabledException
     if to in config.get('exclude_mail').split():
         return
+    if '@' not in to:
+        to = '%s@%s' % (to, config.get('default_email_domain'))
     message = turbomail.Message(sender, to, subject)
     message.plain = body
     try:
