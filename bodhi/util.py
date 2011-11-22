@@ -295,9 +295,9 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
 
     return ((pAllowed, pNotify), (gAllowed, gNotify))
 
-def cache_with_expire(expire=600):
+def cache_with_expire(expire=86400):
     # expire is the number of seconds to cache for.
-    # Default is 600s == 10 minutes
+    # Default is 86400s == 24 hours
     _cache = {}
     def cached(func, *args, **kwargs):
         # Setup the args
