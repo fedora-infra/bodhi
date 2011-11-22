@@ -52,9 +52,6 @@ header = lambda x: "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
-# Setup one pkgdb client instance to use with any function here
-pkgdb = PackageDB(config.get('pkgdb_url'))
-
 def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)
     is_oldrpm = hasattr(rpm, 'opendb')
@@ -264,8 +261,10 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
     if config.get('acl_system') == 'dummy':
         return (['guest'], ['guest']), (['guest'], ['guest'])
 
+
     # Note if AppError is raised (for no pkgNamme or other server errors) we
     # do not catch the exception here.
+    pkgdb = PackageDB(config.get('pkgdb_url'))
     pkg = pkgdb.get_owners(pkgName, collectionName, collectionVersion)
 
     # Owner is allowed to commit and gets notified of pushes
@@ -330,6 +329,7 @@ def cache_with_expire(expire=600):
 def get_critpath_pkgs(collection):
     critpath_type = config.get('critpath.type', None)
     if critpath_type == 'pkgdb':
+        pkgdb = PackageDB(config.get('pkgdb_url'))
         critpath_pkgs = pkgdb.get_critpath_pkgs([collection])
     else:
         critpath_pkgs = []
