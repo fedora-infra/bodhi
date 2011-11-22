@@ -331,6 +331,7 @@ def get_critpath_pkgs(collection='devel'):
     if critpath_type == 'pkgdb':
         pkgdb = PackageDB(config.get('pkgdb_url'))
         critpath_pkgs = pkgdb.get_critpath_pkgs([collection])
+        critpath_pkgs = getattr(critpath_pkgs, collection, [])
     else:
         critpath_pkgs = []
         # HACK: Avoid the current critpath policy for EPEL
