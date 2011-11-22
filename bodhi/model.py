@@ -40,7 +40,7 @@ except ImportError:
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
 from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
-from bodhi.util import link, isint
+from bodhi.util import link, isint, get_critpath_pkgs
 from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 
@@ -1076,12 +1076,11 @@ class PackageUpdate(SQLObject):
     @property
     def critpath(self):
         """ Return whether or not this update is in the critical path """
-        # HACK: Avoid the current critpath policy for EPEL
-        if self.release.name.startswith('EL'):
-            return False
-
         critical = False
-        critpath_pkgs = config.get('critpath').split()
+        critpath_pkgs = get_critpath_pkgs(self.release.name)
+        if not critpath_pkgs:
+            # Optimize case where there's no critpath packages
+            return False
         for build in self.builds:
             if build.package.name in critpath_pkgs:
                 critical = True

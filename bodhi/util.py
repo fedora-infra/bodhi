@@ -31,7 +31,7 @@ from kid import Element
 from yum import repoMDObject
 from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from decorator import decorator
 from turbogears import config, flash, redirect
 from fedora.client import PackageDB
@@ -51,6 +51,9 @@ log = logging.getLogger(__name__)
 header = lambda x: "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
+
+# Setup one pkgdb client instance to use with any function here
+pkgdb = PackageDB(config.get('pkgdb_url'))
 
 def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)
@@ -261,7 +264,6 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
     if config.get('acl_system') == 'dummy':
         return (['guest'], ['guest']), (['guest'], ['guest'])
 
-    pkgdb = PackageDB(config.get('pkgdb_url'))
     # Note if AppError is raised (for no pkgNamme or other server errors) we
     # do not catch the exception here.
     pkg = pkgdb.get_owners(pkgName, collectionName, collectionVersion)
@@ -293,6 +295,49 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
             gAllowed.append(group['groupname'])
 
     return ((pAllowed, pNotify), (gAllowed, gNotify))
+
+def cache_with_expire(expire=600):
+    # expire is the number of seconds to cache for.
+    # Default is 600s == 10 minutes
+    _cache = {}
+    def cached(func, *args, **kwargs):
+        # Setup the args
+        if kwargs:
+            key = args, frozenset(kwargs.iteritems())
+        else:
+            key = args
+
+        # Retrieve from cache
+        entry = None
+        if key in _cache:
+            entry = _cache[key]
+            if (datetime.utcnow() - entry[0]) < timedelta(0, expire, 0):
+                # Unexpired cache
+                result = entry[1]
+            else:
+                # Expired cache
+                del _cache[key]
+                entry = None
+
+        # Retrieve fresh entry
+        if entry is None:
+            result = func(*args, **kwargs)
+            _cache[key] = (datetime.utcnow(), result)
+        return result
+    return decorator(cached)
+
+@cache_with_expire
+def get_critpath_pkgs(collection):
+    critpath_type = config.get('critpath.type', None)
+    if critpath_type == 'pkgdb':
+        critpath_pkgs = pkgdb.get_critpath_pkgs([collection])
+    else:
+        critpath_pkgs = []
+        # HACK: Avoid the current critpath policy for EPEL
+        if not collection.startswith('EL'):
+            # Note: ''.split() == []
+            critpath_pkgs = config.get('critpath', '').split()
+    return critpath_pkgs
 
 def build_evr(build):
     if not build['epoch']:
