@@ -493,11 +493,14 @@ class PackageUpdate(SQLObject):
                                  'repository.  It must first reach a karma '
                                  'of %d, consisting of %d positive karma from '
                                  'proventesters, along with %d additional '
-                                 'karma from the community.' % (
+                                 'karma from the community. Or, it must '
+                                 'spend %d days in testing without any '
+                                 'negative feedback' % (
                         config.get('critpath.min_karma'),
                         config.get('critpath.num_admin_approvals'),
                         config.get('critpath.min_karma') -
-                        config.get('critpath.num_admin_approvals')))
+                        config.get('critpath.num_admin_approvals'),
+                        config.get('critpath.stable_after_days_without_negative_karma')))
                     if self.status == 'testing':
                         self.request = None
                         flash_log('. '.join(notes))
@@ -1116,6 +1119,9 @@ class PackageUpdate(SQLObject):
             if num_admin_approvals and min_karma:
                 return self.num_admin_approvals >= num_admin_approvals and \
                         self.karma >= min_karma
+        # https://fedorahosted.org/bodhi/ticket/642
+        if self.meets_testing_requirements:
+            return True
         return self.num_admin_approvals >= config.get(
                 'critpath.num_admin_approvals', 2) and \
                self.karma >= config.get('critpath.min_karma', 2)
@@ -1175,7 +1181,8 @@ class PackageUpdate(SQLObject):
         simply return True.
         """
         if self.critpath:
-            return self.critpath_approved
+            num_days = config.get('critpath.stable_after_days_without_negative_karma')
+            return self.days_in_testing >= num_days
         num_days = self.release.mandatory_days_in_testing
         if not num_days:
             return True
