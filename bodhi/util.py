@@ -326,7 +326,7 @@ def cache_with_expire(expire=600):
         return result
     return decorator(cached)
 
-@cache_with_expire
+@cache_with_expire()
 def get_critpath_pkgs(collection):
     critpath_type = config.get('critpath.type', None)
     if critpath_type == 'pkgdb':
