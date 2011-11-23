@@ -24,7 +24,10 @@ from kid import XML
 from kid.element import encode_entity
 from sqlobject import *
 from datetime import datetime
-from collections import defaultdict
+try:
+    from collections import defaultdict
+except ImportError:
+    from kitchen.pycompat25.collections import defaultdict
 
 from turbogears import config
 from turbogears.database import PackageHub
