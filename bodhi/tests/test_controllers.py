@@ -2148,12 +2148,64 @@ class TestControllers(testutil.DBTest):
         # Ensure it can now be pushed
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=releng)
+        assert "Mark Critical Path update as Stable" in cherrypy.response.body[0]
 
         testutil.create_request('/updates/request/stable/%s' %
                                 params['builds'], method='POST',
                                 headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'stable', update.request
+
+    def test_critpath_two_weeks_with_negative_karma(self):
+        """
+        Ensure critpath updates cannot be pushed to stable after two weeks with
+        negative feedback.
+        """
+        releng = login(group='proventesters')
+        create_release(locked=True)
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'autokarma': True,
+                'stable_karma' : 3,
+                'request': None,
+                'unstable_karma' : -3,
+                'autokarma': True,
+        }
+        self.save_update(params, releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=releng)
+
+        # Ensure releng/QA can't push critpath updates alone
+        assert "Push to Testing" in cherrypy.response.body[0]
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+        testutil.create_request('/updates/request/stable/%s' %
+                                params['builds'], method='POST',
+                                headers=releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == 'testing', update.request
+
+        # Time travel
+        update.pushed = True
+        update.request = None
+        update.status = 'testing'
+        update.status_comment()
+        update.comments[-1].timestamp -= timedelta(days=14)
+
+        # Give some negative karma
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=-1' % 
+                                params['builds'], method='POST', headers=releng)
+
+        # Ensure it cannot now be pushed
+        testutil.create_request('/updates/request/stable/%s' %
+                                params['builds'], method='POST',
+                                headers=releng)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request != 'stable', update.request
 
     def test_created_since(self):
         session = login()

@@ -24,6 +24,7 @@ from kid import XML
 from kid.element import encode_entity
 from sqlobject import *
 from datetime import datetime
+from collections import defaultdict
 
 from turbogears import config
 from turbogears.database import PackageHub
@@ -1181,6 +1182,16 @@ class PackageUpdate(SQLObject):
         simply return True.
         """
         if self.critpath:
+            # Ensure there is no negative karma. We're looking at the sum of
+            # each users karma for this update, which takes into account
+            # changed votes.
+            feedback = defaultdict(int)
+            for comment in self.comments:
+                if not comment.anonymous:
+                    feedback[comment.author] += comment.karma
+            for karma in feedback.values():
+                if karma < 0:
+                    return False
             num_days = config.get('critpath.stable_after_days_without_negative_karma')
             return self.days_in_testing >= num_days
         num_days = self.release.mandatory_days_in_testing
