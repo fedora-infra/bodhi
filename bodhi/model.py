@@ -24,6 +24,7 @@ from kid import XML
 from kid.element import encode_entity
 from sqlobject import *
 from datetime import datetime
+from collections import defaultdict
 
 from turbogears import config
 from turbogears.database import PackageHub
@@ -40,7 +41,7 @@ except ImportError:
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
 from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
-from bodhi.util import link, isint
+from bodhi.util import link, isint, get_critpath_pkgs
 from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 
@@ -493,11 +494,14 @@ class PackageUpdate(SQLObject):
                                  'repository.  It must first reach a karma '
                                  'of %d, consisting of %d positive karma from '
                                  'proventesters, along with %d additional '
-                                 'karma from the community.' % (
+                                 'karma from the community. Or, it must '
+                                 'spend %d days in testing without any '
+                                 'negative feedback' % (
                         config.get('critpath.min_karma'),
                         config.get('critpath.num_admin_approvals'),
                         config.get('critpath.min_karma') -
-                        config.get('critpath.num_admin_approvals')))
+                        config.get('critpath.num_admin_approvals'),
+                        config.get('critpath.stable_after_days_without_negative_karma')))
                     if self.status == 'testing':
                         self.request = None
                         flash_log('. '.join(notes))
@@ -1075,12 +1079,11 @@ class PackageUpdate(SQLObject):
     @property
     def critpath(self):
         """ Return whether or not this update is in the critical path """
-        # HACK: Avoid the current critpath policy for EPEL
-        if self.release.name.startswith('EL'):
-            return False
-
         critical = False
-        critpath_pkgs = config.get('critpath').split()
+        critpath_pkgs = get_critpath_pkgs(self.release.name.lower())
+        if not critpath_pkgs:
+            # Optimize case where there's no critpath packages
+            return False
         for build in self.builds:
             if build.package.name in critpath_pkgs:
                 critical = True
@@ -1116,6 +1119,9 @@ class PackageUpdate(SQLObject):
             if num_admin_approvals and min_karma:
                 return self.num_admin_approvals >= num_admin_approvals and \
                         self.karma >= min_karma
+        # https://fedorahosted.org/bodhi/ticket/642
+        if self.meets_testing_requirements:
+            return True
         return self.num_admin_approvals >= config.get(
                 'critpath.num_admin_approvals', 2) and \
                self.karma >= config.get('critpath.min_karma', 2)
@@ -1175,7 +1181,18 @@ class PackageUpdate(SQLObject):
         simply return True.
         """
         if self.critpath:
-            return self.critpath_approved
+            # Ensure there is no negative karma. We're looking at the sum of
+            # each users karma for this update, which takes into account
+            # changed votes.
+            feedback = defaultdict(int)
+            for comment in self.comments:
+                if not comment.anonymous:
+                    feedback[comment.author] += comment.karma
+            for karma in feedback.values():
+                if karma < 0:
+                    return False
+            num_days = config.get('critpath.stable_after_days_without_negative_karma')
+            return self.days_in_testing >= num_days
         num_days = self.release.mandatory_days_in_testing
         if not num_days:
             return True
