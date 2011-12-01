@@ -1492,7 +1492,7 @@ class Root(controllers.RootController):
                     orderBy=PackageUpdate.q.date_submitted)
         return dict(updates=updates)
 
-    @expose(template="bodhi.templates.user")
+    @expose(template="bodhi.templates.user", allow_json=True)
     @paginate('updates', limit=25, max_limit=25)
     def user(self, username):
         """ Return a list of updates submitted by a given person """
