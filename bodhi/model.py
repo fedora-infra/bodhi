@@ -956,7 +956,6 @@ class PackageUpdate(SQLObject):
         #    self.expire_buildroot_overrides()
         #except Exception, e:
         #    log.exception(e)
-        #    log.error('There was non-fatal problem expiring the override')
 
         self.pushed = False
         self.status = 'pending'
@@ -992,7 +991,7 @@ class PackageUpdate(SQLObject):
             self.remove_tag(self.release.pending_stable_tag)
 
         # Expire any buildroot overrides
-        self.expire_buildroot_overrides()
+        #self.expire_buildroot_overrides()
 
         self.status = 'obsolete'
         self.request = None

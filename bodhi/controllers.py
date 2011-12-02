@@ -655,19 +655,18 @@ class Root(controllers.RootController):
                     raise InvalidUpdateException(params)
 
         # Make sure this update doesn't already exist
-        if not edited:
-            for build in builds:
-                try:
-                    b = PackageBuild.byNvr(build)
-                    if request_format() == 'json':
-                        flash_log("%s update already exists!" % build)
-                        return dict()
-                    else:
-                        flash_log("%s update already exists!" % 
-                                  link(build, b.get_url()))
-                        raise redirect('/new', **params)
-                except SQLObjectNotFound:
-                    pass
+        for build in builds:
+            try:
+                b = PackageBuild.byNvr(build)
+                if request_format() == 'json':
+                    flash_log("%s update already exists!" % build)
+                    return dict()
+                else:
+                    flash_log("%s update already exists!" % 
+                              link(build, b.get_url()))
+                    raise redirect('/new', **params)
+            except SQLObjectNotFound:
+                pass
 
         # Make sure the submitter has commit access to these builds
         for build in builds:
@@ -719,8 +718,9 @@ class Root(controllers.RootController):
             # Verify that the user is either in the committers list, or is
             # a member of a groups that has privileges to commit to this package
             if not identity.current.user_name in people and \
-               not filter(lambda group: group in identity.current.groups,
-                          config.get('admin_groups').split()) and \
+               # Disallow admin_groups from pushing anything
+               #not filter(lambda group: group in identity.urrent.groups,
+               #           config.get('admin_groups').split()) and \
                not filter(lambda x: x in identity.current.groups, groups[0]):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, pkg))
