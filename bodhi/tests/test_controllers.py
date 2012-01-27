@@ -1614,7 +1614,8 @@ class TestControllers(testutil.DBTest):
         # without a karma prerequisite for non-pending releases.
         # This feature can be disabled by setting
         #`critpath.num_admin_approvals = 0` in your configuration
-        assert update.request == 'testing'
+        assert update.request == 'testing', update.request
+        #assert update.karma == 1, update.karma
 
     def test_non_critpath_actions_in_normal_release(self):
         session = login()
@@ -1937,9 +1938,6 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 2
         assert update.request != 'stable', update.request
-
-        # Ensure we're not yet approved
-        assert not update.critpath_approved
 
         # Have releng try again, and ensure it can be pushed to stable
         #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
