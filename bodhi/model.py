@@ -490,7 +490,7 @@ class PackageUpdate(SQLObject):
         # [No Frozen Rawhide] Disable pushing critical path updates for
         # pending releases directly to stable.
         if action == 'stable' and self.critpath:
-            if config.get('critpath.num_admin_approvals'):
+            if config.get('critpath.num_admin_approvals') is not None:
                 if not self.critpath_approved:
                     notes.append('This critical path update has not '
                                  'yet been approved for pushing to the stable '
@@ -1119,7 +1119,7 @@ class PackageUpdate(SQLObject):
                     release_name, status), None)
             min_karma = config.get('%s.%s.critpath.min_karma' % (
                     release_name, status), None)
-            if num_admin_approvals and min_karma:
+            if num_admin_approvals is not None and min_karma:
                 return self.num_admin_approvals >= num_admin_approvals and \
                         self.karma >= min_karma
         # https://fedorahosted.org/bodhi/ticket/642
