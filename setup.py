@@ -26,6 +26,10 @@ requires = [
     'WebError',
     'webhelpers',
 
+    # Useful tools
+    'kitchen',
+    'python-fedora',
+
     # tw2
     'tw2.core',
     'tw2.dynforms',
