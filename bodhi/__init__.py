@@ -50,6 +50,10 @@ def main(global_config, **settings):
                      view='bodhi.views.latest_candidates',
                      renderer='json')
 
+    # Auto-completion search
+    config.add_route('search_pkgs', '/search_pkgs', view='bodhi.views.search_pkgs',
+                     renderer='json', request_method='GET')
+
     # JSON views
     config.add_view('bodhi.views.view_model_instance_json',
                     context='bodhi.models.Base',

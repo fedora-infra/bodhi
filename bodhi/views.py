@@ -1,7 +1,16 @@
+import logging
+import tw2.core
+
+from beaker.cache import cache_region
 from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
 
-from bodhi.models import DBSession
+from bodhi import buildsys
+from bodhi.models import DBSession, Release
+from bodhi.widgets import NewUpdateForm
+from bodhi.util import _
+
+log = logging.getLogger(__name__)
 
 ## JSON views
 
@@ -90,6 +99,13 @@ def get_all_packages():
     log.debug('Fetching list of all packages...')
     koji = buildsys.get_session()
     return [pkg['package_name'] for pkg in koji.listPackages()]
+
+
+def search_pkgs(request):
+    """ Called by the NewUpdateForm.builds AutocompleteWidget """
+    packages = get_all_packages()
+    return [{'id': p, 'label': p, 'value': p} for p in packages
+            if request.GET['term'] in p]
 
 
 def latest_candidates(request):
