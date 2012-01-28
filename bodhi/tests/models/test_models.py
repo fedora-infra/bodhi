@@ -20,9 +20,6 @@ class TestRelease(ModelTest):
         long_name = u"Fedora 11",
         id_prefix = u"FEDORA",
         dist_tag = u"dist-f11",
-        candidate_tag = u"dist-f11-updates-candidate",
-        testing_tag = u"dist-f11-updates-testing",
-        stable_tag = u"dist-f11-updates",
         version = 11,
         locked = False,
         metrics = {'test_metric': [0, 1, 2, 3, 4]}
@@ -37,9 +34,9 @@ class TestEPELRelease(ModelTest):
         long_name = u"Fedora EPEL 5",
         id_prefix = u"FEDORA-EPEL",
         dist_tag = u"dist-5E-epel",
-        candidate_tag = u"dist-5E-epel-testing-candidate",
-        testing_tag = u"dist-5E-epel-testing",
-        stable_tag = u"dist-5E-epel",
+        _candidate_tag = u"dist-5E-epel-testing-candidate",
+        _testing_tag = u"dist-5E-epel-testing",
+        _stable_tag = u"dist-5E-epel",
         version = 5,
         )
 

@@ -136,11 +136,70 @@ class Release(Base):
     version = Column(Integer)
     id_prefix = Column(Unicode(25), nullable=False)
     dist_tag = Column(Unicode(20), nullable=False)
-    stable_tag = Column(UnicodeText)
-    testing_tag = Column(UnicodeText)
-    candidate_tag = Column(UnicodeText)
+    _stable_tag = Column(UnicodeText)
+    _testing_tag = Column(UnicodeText)
+    _candidate_tag = Column(UnicodeText)
+    # TODO:
+    #_pending_tag = Column(UnicodeText)
     locked = Column(Boolean, default=False)
     metrics = Column(PickleType, default=None)
+
+    @synonym_for('_stable_tag')
+    @property
+    def stable_tag(self):
+        if self._stable_tag:
+            return self._stable_tag
+        else:
+            if self.name.startswith('EL'): # EPEL Hack.
+                return '%s-testing-candidate' % self.dist_tag
+            else:
+                return '%s-updates-candidate' % self.dist_tag
+
+    @synonym_for('_testing_tag')
+    @property
+    def testing_tag(self):
+        if self._testing_tag:
+            return self._testing_tag
+        else:
+            if self.locked:
+                return '%s-updates-testing' % self.stable_tag
+            return '%s-testing' % self.stable_tag
+
+    @synonym_for('_candidate_tag')
+    @property
+    def candidate_tag(self):
+        if self._candidate_tag:
+            return self._candidate_tag
+        else:
+            if self.name.startswith('EL'): # EPEL Hack.
+                return '%s-testing-candidate' % self.dist_tag
+            else:
+                return '%s-updates-candidate' % self.dist_tag
+
+    @property
+    def pending_testing_tag(self):
+        return self.testing_tag + '-pending'
+
+    @property
+    def pending_stable_tag(self):
+        if self.locked:
+            return '%s-updates-pending' % self.dist_tag
+        return self.stable_tag + '-pending'
+
+    @property
+    def override_tag(self):
+        return '%s-override' % self.dist_tag
+
+    @property
+    def mandatory_days_in_testing(self):
+        name = self.name.lower().replace('-', '')
+        status = config.get('%s.status' % name, None)
+        if status:
+            days = config.get('%s.%s.mandatory_days_in_testing' % (name, status))
+            if days:
+                return days
+        return config.get('%s.mandatory_days_in_testing' %
+                          self.id_prefix.lower().replace('-', '_'))
 
 
 class Package(Base):
