@@ -44,8 +44,41 @@ def notfound_view(context, request):
 ## Widgets
 
 def view_widget(context, request):
-    import tw2.core
     context.fetch_data(request)
     mw = tw2.core.core.request_local()['middleware']
     mw.controllers.register(context, 'update_submit')
     return {'widget':context}
+
+
+def save(request):
+    print request.params
+
+    # Validate the CSRF token
+    #token = request.session.get_csrf_token()
+    #if token != request.POST['csrf_token']:
+    #    raise ValueError('CSRF token did not match')
+
+    # Validate parameters
+    try:
+        validated = NewUpdateForm.validate(request.POST)
+    except tw2.core.ValidationError, ve:
+        # TODO
+        print ve
+        raise
+
+    from pprint import pprint
+    pprint(validated)
+
+    ## Sanity checks
+    # Check for conflicting builds
+    # Make sure update doesn't exist
+    # Make sure submitter has commit access
+    # Editing magic
+    # Make sure builds are tagged properly
+    # Create model instances
+    # Obsolete any older updates, inherit data
+    # Bugzilla interactions
+    # Security checks
+    # Look for unit tests
+    # Send out email notifications
+    # Set request, w/ critpath checks

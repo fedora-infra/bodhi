@@ -42,6 +42,10 @@ def main(global_config, **settings):
     #config.set_request_factory(BodhiRequest)
     config.add_static_view('static', 'bodhi:static')
 
+    # Save method
+    config.add_route('save', '/save', view='bodhi.views.save',
+                     request_method='POST')
+
     # JSON views
     config.add_view('bodhi.views.view_model_instance_json',
                     context='bodhi.models.Base',

@@ -39,3 +39,9 @@ class ViewTests(unittest.TestCase):
         info = view_model(ReleaseResource, request)
         self.assertEqual(len(info['page']), 2)
         self.assertEqual(info['caption'], 'Releases')
+
+    #def test_save_one(self):
+    #    from bodhi.views import save
+    #    request = testing.DummyRequest()
+    #    info = save(request)
+    #    #assert False, info
