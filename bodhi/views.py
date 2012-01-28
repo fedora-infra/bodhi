@@ -82,3 +82,11 @@ def save(request):
     # Look for unit tests
     # Send out email notifications
     # Set request, w/ critpath checks
+
+
+@cache_region('long_term', 'package_list')
+def get_all_packages():
+    """ Get a list of all packages in Koji """
+    log.debug('Fetching list of all packages...')
+    koji = buildsys.get_session()
+    return [pkg['package_name'] for pkg in koji.listPackages()]
