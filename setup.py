@@ -1,3 +1,8 @@
+# The following two imports are required to shut up an
+# atexit error when running tests with python 2.7
+import logging
+import multiprocessing
+
 import os
 import sys
 
@@ -19,16 +24,21 @@ requires = [
     'sqlalchemy',
     #'zope.sqlalchemy',
     'WebError',
+    'webhelpers',
 
     # tw2
     'tw2.core',
     'tw2.dynforms',
     'tw2.forms',
     'tw2.sqla',
+    'tw2.jqplugins.jqgrid',
 
     # i18n
     'Babel',
     'lingua',
+
+    # External resources
+    'python-bugzilla',
     ]
 
 if sys.version_info[:3] < (2,5,0):
@@ -52,8 +62,8 @@ setup(name='bodhi',
       include_package_data=True,
       zip_safe=False,
       install_requires = requires,
-      tests_require = requires,
-      test_suite="bodhi",
+      tests_require = ['nose', 'nose-cov',],
+      test_suite="nose.collector",
       message_extractors = { '.': [
           ('**.py', 'lingua_python', None),
           ('**.mak', 'lingua_xml', None),

@@ -8,3 +8,4 @@ MANIFEST
 virtenv
 build
 bodhi-pickledb*
+*.egg*
