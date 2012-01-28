@@ -3,6 +3,7 @@ import tw2.forms
 import tw2.sqla
 import tw2.dynforms
 import tw2.jqplugins.jqgrid
+import tw2.jqplugins.ui
 
 import bodhi.models
 
@@ -25,11 +26,50 @@ class NewUpdateForm(tw2.sqla.DbFormPage):
         action = '/save'
         id = tw2.forms.HiddenField()
 
-        class builds(tw2.dynforms.GrowingGridLayout):
-            # TODO: package auto-completion
-            package = tw2.forms.TextField()
-            # auto-populate this with the latest-pkg candidate tag
-            version = tw2.forms.TextField()
+        class packages(tw2.dynforms.GrowingGridLayout):
+            package = tw2.jqplugins.ui.AutocompleteWidget(options={
+                'source': '/search_pkgs',
+                'minLength': 2,
+                'select': tw2.core.JSSymbol(src="""
+                    function (event, ui) {
+                        $.ajax({
+                            url: 'latest_candidates',
+                            data: {package: ui.item.id},
+                            success: function(builds) {
+                                /* TODO: if no builds, notify maintainer */
+                                if (builds.length == 0) {
+                                    $('#flash').text('No candidate builds found for ' + ui.item.id);
+                                }
+                                $.each(builds, function (i, build) {
+                                    last = $('#newupdateform\\\\:builds input:last');
+                                    if (typeof last == undefined ) {
+                                        id = 0;
+                                        parent = last.parent();
+                                    } else {
+                                        id = parseInt(last.attr('id')) + 1 + '';
+                                        parent = $('#newupdateform\\\\:builds');
+                                    }
+
+                                    $('<input/>', {
+                                        id: id,
+                                        value: build,
+                                        type: 'checkbox',
+                                        checked: true,
+                                    }).prependTo(
+                                        $('<li/>')
+                                            .appendTo(parent)
+                                            .append(
+                                                $('<label/>', {
+                                                    for: id,
+                                                    text: build
+                                                })));
+                                });
+                            },
+                        });
+                    }"""),
+                })
+
+        builds = tw2.forms.CheckBoxList(options=[])
 
         type_ = tw2.forms.SingleSelectField(
                 options=bodhi.models.UpdateType.values(),
@@ -48,8 +88,8 @@ class NewUpdateForm(tw2.sqla.DbFormPage):
                     validator=tw2.core.BoolValidator())
             stablekarma = tw2.forms.TextField(label='Stable threshold', size=2,
                     value=3, validator=tw2.core.IntValidator(min=1))
-            unstablekarma = tw2.forms.TextField(label='Unstable threshold', size=2,
-                    value=-3, validator=tw2.core.IntValidator(max=-1))
+            unstablekarma = tw2.forms.TextField(label='Unstable threshold',
+                    size=2, value=-3, validator=tw2.core.IntValidator(max=-1))
 
         reboot = tw2.forms.CheckBox(label='Suggest reboot',
                 validator=tw2.core.BoolValidator())
