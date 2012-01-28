@@ -90,3 +90,25 @@ def get_all_packages():
     log.debug('Fetching list of all packages...')
     koji = buildsys.get_session()
     return [pkg['package_name'] for pkg in koji.listPackages()]
+
+
+def latest_candidates(request):
+    """
+    For a given `package`, this method returns the most recent builds tagged
+    into the Release.candidate_tag for all Releases.
+    """
+    result = []
+    koji = buildsys.get_session()
+    pkg = request.params.get('package')
+    log.debug('latest_candidate(%r)' % pkg)
+    if pkg:
+        session = DBSession()
+        koji.multicall = True
+        for release in session.query(Release).all():
+            koji.listTagged(release.candidate_tag, package=pkg, latest=True)
+        results = koji.multiCall()
+        for build in results:
+            if build and build[0] and build[0][0]:
+                result.append(build[0][0]['nvr'])
+    log.debug(result)
+    return result

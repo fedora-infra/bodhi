@@ -46,6 +46,10 @@ def main(global_config, **settings):
     config.add_route('save', '/save', view='bodhi.views.save',
                      request_method='POST')
 
+    config.add_route('latest_candidates', '/latest_candidates',
+                     view='bodhi.views.latest_candidates',
+                     renderer='json')
+
     # JSON views
     config.add_view('bodhi.views.view_model_instance_json',
                     context='bodhi.models.Base',
