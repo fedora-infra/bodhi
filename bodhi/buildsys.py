@@ -27,18 +27,35 @@ class Buildsystem:
     """
     The parent for our buildsystem.  Not only does this help us keep track of
     the functionality that we expect from our buildsystem, but it also alows
-    us to create a development subclass of this object to use during development
-    so we don't alter any production data.
+    us to create a development subclass of this object to use during
+    development so we don't alter any production data.
     """
-    def getBuild(self): raise NotImplementedError
-    def getLatestBuilds(self): raise NotImplementedError
-    def moveBuild(self): raise NotImplementedError
-    def ssl_login(self): raise NotImplementedError
-    def listBuildRPMs(self):raise NotImplementedError
-    def listTags(self): raise NotImplementedError
-    def listTagged(self): raise NotImplementedError
-    def taskFinished(self): raise NotImplementedError
-    def untagBuild(self): raise NotImplementedError
+    def getBuild(self):
+        raise NotImplementedError
+
+    def getLatestBuilds(self):
+        raise NotImplementedError
+
+    def moveBuild(self):
+        raise NotImplementedError
+
+    def ssl_login(self):
+        raise NotImplementedError
+
+    def listBuildRPMs(self):
+        raise NotImplementedError
+
+    def listTags(self):
+        raise NotImplementedError
+
+    def listTagged(self):
+        raise NotImplementedError
+
+    def taskFinished(self):
+        raise NotImplementedError
+
+    def untagBuild(self):
+        raise NotImplementedError
 
 
 class DevBuildsys(Buildsystem):
@@ -58,7 +75,7 @@ class DevBuildsys(Buildsystem):
         return True
 
     def getTaskInfo(self, task):
-        return { 'state' : koji.TASK_STATES['CLOSED'] }
+        return {'state': koji.TASK_STATES['CLOSED']}
 
     def getBuild(self, build):
         n, v, r = get_nvr(build)
@@ -95,33 +112,76 @@ class DevBuildsys(Buildsystem):
                  'payloadhash': 'f3ec9bdce453816f94283a15a47cb952',
                  'release': '2.fc7',
                  'size': 1993385,
-                 'version': '1.0.2.2'},]
+                 'version': '1.0.2.2'},
+            ]
 
     def listTags(self, build, *args, **kw):
         if 'fc7' in build:
-            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
-                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
+            return [{
+                'arches': 'i386 x86_64 ppc ppc64',
+                'name': 'dist-fc7-updates-candidate',
+                'id': 10,
+                'locked': True,
+                'perm': None,
+                'perm_id': None
+            }, {
+                'arches': 'i386 x86_64 ppc ppc64',
+                'name': 'dist-fc7',
+                'id': 5,
+                'locked': True,
+                'perm': None,
+                'perm_id': None
+            }]
         else:
-            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-f8-updates-candidate', 'perm': None, 'perm_id': None},
-                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-f8', 'perm': None, 'perm_id': None}]
+            return [{
+                'arches': 'i386 x86_64 ppc ppc64',
+                'id': 10,
+                'locked': True,
+                'name': 'dist-f8-updates-candidate',
+                'perm': None,
+                'perm_id': None
+            }, {
+                'arches': 'i386 x86_64 ppc ppc64',
+                'id': 5,
+                'locked': True,
+                'name': 'dist-f8',
+                'perm': None,
+                'perm_id': None
+            }]
 
     def listTagged(self, tag, *args, **kw):
-        if tag not in ('dist-rawhide', 'dist-fc7', 'dist-fc7-updates-candidate',
-                       'dist-fc7-updates-testing', 'dist-fc7-updates',
-                       'dist-f8', 'dist-f8-updates', 'dist-f8-updates-testing',
-                       'dist-fc8', 'dist-fc8-updates',
-                       'dist-fc8-updates-testing', 'dist-f8-updates-candidate',
-                       'dist-f9', 'dist-f9-updates', 'dist-f9-updates-testing',
-                       'dist-f9-updates-candidate'):
+        if tag not in (
+                'dist-rawhide', 'dist-fc7', 'dist-fc7-updates-candidate',
+                'dist-fc7-updates-testing', 'dist-fc7-updates',
+                'dist-f8', 'dist-f8-updates', 'dist-f8-updates-testing',
+                'dist-fc8', 'dist-fc8-updates',
+                'dist-fc8-updates-testing', 'dist-f8-updates-candidate',
+                'dist-f9', 'dist-f9-updates', 'dist-f9-updates-testing',
+                'dist-f9-updates-candidate'):
             raise koji.GenericError
-        return [self.getBuild(),]
+        return [self.getBuild(), ]
 
     def getLatestBuilds(self, *args, **kw):
-        return [{'build_id': 127983, 'tag_name': 'dist-f11-updates', 'owner_name': 'toshio', 'package_name': 'TurboGears', 'task_id': 1616247, 'creation_event_id': 1952597, 'creation_time': '2009-08-20 03:29:55.31542', 'epoch': None, 'tag_id': 87, 'name': 'TurboGears', 'completion_time': '2009-08-20 03:33:51.134736', 'state': 1, 'version': '1.0.8', 'release': '7.fc11', 'package_id': 1256, 'owner_id': 293, 'id': 127983, 'nvr': 'TurboGears-1.0.8-7.fc11'}]
+        return [{
+            'build_id': 127983,
+            'tag_name': 'dist-f11-updates',
+            'owner_name': 'toshio',
+            'package_name': 'TurboGears',
+            'task_id': 1616247,
+            'creation_event_id': 1952597,
+            'creation_time': '2009-08-20 03:29:55.31542',
+            'epoch': None,
+            'tag_id': 87,
+            'name': 'TurboGears',
+            'completion_time': '2009-08-20 03:33:51.134736',
+            'state': 1,
+            'version': '1.0.8',
+            'release': '7.fc11',
+            'package_id': 1256,
+            'owner_id': 293,
+            'id': 127983,
+            'nvr': 'TurboGears-1.0.8-7.fc11'
+        }]
 
 
 def koji_login(config, client=None, clientca=None, serverca=None):

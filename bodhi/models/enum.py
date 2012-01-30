@@ -4,6 +4,7 @@ import re
 
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 
+
 class EnumSymbol(object):
     """Define a fixed symbol tied to a parent class."""
 
@@ -70,6 +71,7 @@ class DeclEnum(object):
     def db_type(cls):
         return DeclEnumType(cls)
 
+
 class DeclEnumType(SchemaType, TypeDecorator):
     def __init__(self, enum):
         self.enum = enum
@@ -77,7 +79,7 @@ class DeclEnumType(SchemaType, TypeDecorator):
                         *enum.values(),
                         name="ck%s" % re.sub(
                                     '([A-Z])',
-                                    lambda m:"_" + m.group(1).lower(),
+                                    lambda m: "_" + m.group(1).lower(),
                                     enum.__name__)
                     )
 

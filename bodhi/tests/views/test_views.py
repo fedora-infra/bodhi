@@ -4,6 +4,7 @@ from pyramid import testing
 
 from bodhi.models import DBSession, Release
 
+
 class ViewTests(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()

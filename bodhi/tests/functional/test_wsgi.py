@@ -5,6 +5,7 @@ from nose.tools import eq_
 
 app = None
 
+
 def setup():
     from bodhi import main
     from webtest import TestApp
@@ -12,6 +13,7 @@ def setup():
     app = main({}, **{'sqlalchemy.url': 'sqlite://',
                       'mako.directories': 'bodhi:templates'})
     app = TestApp(app)
+
 
 class FunctionalTests(unittest.TestCase):
 

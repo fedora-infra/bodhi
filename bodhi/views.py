@@ -14,8 +14,10 @@ log = logging.getLogger(__name__)
 
 ## JSON views
 
+
 def view_model_instance_json(context, request):
     return {'context': context.__json__()}
+
 
 def view_model_json(context, request):
     session = DBSession()
@@ -27,8 +29,10 @@ def view_model_json(context, request):
 
 ## Mako templated views
 
+
 def view_model_instance(context, request):
     return {'context': context}
+
 
 def view_model(context, request):
     session = DBSession()
@@ -52,11 +56,12 @@ def notfound_view(context, request):
 
 ## Widgets
 
+
 def view_widget(context, request):
     context.fetch_data(request)
     mw = tw2.core.core.request_local()['middleware']
     mw.controllers.register(context, 'update_submit')
-    return {'widget':context}
+    return {'widget': context}
 
 
 def save(request):

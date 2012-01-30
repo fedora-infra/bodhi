@@ -12,6 +12,7 @@ class UpdateList(tw2.sqla.DbListPage):
     entity = bodhi.models.Update
     title = 'Updates'
     newlink = tw2.forms.LinkField(link='/new', text='New', value=1)
+
     class child(tw2.forms.GridLayout):
         title = tw2.forms.LabelField()
         id = tw2.forms.LinkField(link='/edit?id=$', text='Edit', label=None)

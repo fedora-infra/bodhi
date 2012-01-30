@@ -12,17 +12,18 @@ from bodhi.models import UpdateStatus, UpdateType, UpdateRequest
 from bodhi.tests.models import ModelTest
 from bodhi.exceptions import InvalidRequest
 
+
 class TestRelease(ModelTest):
     """Unit test case for the ``Release`` model."""
     klass = model.Release
     attrs = dict(
-        name = u"F11",
-        long_name = u"Fedora 11",
-        id_prefix = u"FEDORA",
-        dist_tag = u"dist-f11",
-        version = 11,
-        locked = False,
-        metrics = {'test_metric': [0, 1, 2, 3, 4]}
+        name=u"F11",
+        long_name=u"Fedora 11",
+        id_prefix=u"FEDORA",
+        dist_tag=u"dist-f11",
+        version=11,
+        locked=False,
+        metrics={'test_metric': [0, 1, 2, 3, 4]}
         )
 
 
@@ -30,14 +31,14 @@ class TestEPELRelease(ModelTest):
     """Unit test case for the ``Release`` model."""
     klass = model.Release
     attrs = dict(
-        name = u"EL5",
-        long_name = u"Fedora EPEL 5",
-        id_prefix = u"FEDORA-EPEL",
-        dist_tag = u"dist-5E-epel",
-        _candidate_tag = u"dist-5E-epel-testing-candidate",
-        _testing_tag = u"dist-5E-epel-testing",
-        _stable_tag = u"dist-5E-epel",
-        version = 5,
+        name=u"EL5",
+        long_name=u"Fedora EPEL 5",
+        id_prefix=u"FEDORA-EPEL",
+        dist_tag=u"dist-5E-epel",
+        _candidate_tag=u"dist-5E-epel-testing-candidate",
+        _testing_tag=u"dist-5E-epel-testing",
+        _stable_tag=u"dist-5E-epel",
+        version=5,
         )
 
 
@@ -45,10 +46,10 @@ class TestPackage(ModelTest):
     """Unit test case for the ``Package`` model."""
     klass = model.Package
     attrs = dict(
-        name = u"TurboGears",
-        committers = ['lmacken'],
-        stable_karma = 3,
-        unstable_karma = -3,
+        name=u"TurboGears",
+        committers=['lmacken'],
+        stable_karma=3,
+        unstable_karma=-3,
         )
 
 
@@ -56,14 +57,14 @@ class TestBuild(ModelTest):
     """Unit test case for the ``Build`` model."""
     klass = model.Build
     attrs = dict(
-        nvr = u"TurboGears-1.0.8-3.fc11",
-        inherited = False,
+        nvr=u"TurboGears-1.0.8-3.fc11",
+        inherited=False,
         )
 
     def do_get_dependencies(self):
         return dict(
-                release = model.Release(**TestRelease.attrs),
-                package = model.Package(**TestPackage.attrs),
+                release=model.Release(**TestRelease.attrs),
+                package=model.Package(**TestPackage.attrs),
                 )
 
     def test_release_relation(self):
@@ -111,22 +112,24 @@ class TestUpdate(ModelTest):
     def do_get_dependencies(self):
         release = model.Release(**TestRelease.attrs)
         return dict(
-            builds = [model.Build(nvr=u'TurboGears-1.0.8-3.fc11',
+            builds=[model.Build(nvr=u'TurboGears-1.0.8-3.fc11',
                                   package=model.Package(**TestPackage.attrs),
-                                  release = release)],
-            bugs = [model.Bug(bug_id=1), model.Bug(bug_id=2)],
-            cves = [model.CVE(cve_id=u'CVE-2009-0001')],
-            release = release,
-            user = model.User(name=u'lmacken')
+                                  release=release)],
+            bugs=[model.Bug(bug_id=1), model.Bug(bug_id=2)],
+            cves=[model.CVE(cve_id=u'CVE-2009-0001')],
+            release=release,
+            user=model.User(name=u'lmacken')
             )
 
     def get_update(self, name=u'TurboGears-1.0.8-3.fc11'):
         attrs = self.attrs.copy()
-        pkg = model.DBSession.query(model.Package).filter_by(name=u'TurboGears').one()
-        rel = model.DBSession.query(model.Release).filter_by(name=u'F11').one()
+        pkg = model.DBSession.query(model.Package) \
+                .filter_by(name=u'TurboGears').one()
+        rel = model.DBSession.query(model.Release) \
+                .filter_by(name=u'F11').one()
         attrs.update(dict(
-            builds = [model.Build(nvr=name, package=pkg, release=rel)],
-            release = rel,
+            builds=[model.Build(nvr=name, package=pkg, release=rel)],
+            release=rel,
             ))
         return self.klass(**attrs)
 
@@ -192,7 +195,9 @@ class TestUpdate(ModelTest):
         eq_(newest.alias, u'FEDORA-%s-10002' % year)
 
     def test_epel_id(self):
-        """ Make sure we can handle id_prefixes that contain dashes. eg: FEDORA-EPEL """
+        """ Make sure we can handle id_prefixes that contain dashes.
+        eg: FEDORA-EPEL
+        """
         # Create a normal Fedora update first
         update = self.obj
         update.assign_alias()
@@ -260,7 +265,8 @@ class TestUpdate(ModelTest):
         bugs = []
         update.update_bugs(bugs)
         eq_(len(update.bugs), 0)
-        eq_(model.DBSession.query(model.Bug).filter_by(bug_id=1234).first(), None)
+        eq_(model.DBSession.query(model.Bug)
+                .filter_by(bug_id=1234).first(), None)
 
         # Test new duplicate bugs
         bugs = ['1234', '1234']
@@ -272,7 +278,8 @@ class TestUpdate(ModelTest):
         update.update_bugs(bugs)
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 4321
-        eq_(model.DBSession.query(model.Bug).filter_by(bug_id=1234).first(), None)
+        eq_(model.DBSession.query(model.Bug)
+                .filter_by(bug_id=1234).first(), None)
 
     def test_set_request_unpush(self):
         eq_(self.obj.status, UpdateStatus.pending)
@@ -309,12 +316,14 @@ class TestUpdate(ModelTest):
         self.obj.status_comment()
         eq_(len(self.obj.comments), 1)
         eq_(self.obj.comments[0].user.name, u'bodhi')
-        eq_(self.obj.comments[0].text, u'This update has been pushed to testing')
+        eq_(self.obj.comments[0].text,
+                u'This update has been pushed to testing')
         self.obj.status = UpdateStatus.stable
         self.obj.status_comment()
         eq_(len(self.obj.comments), 2)
         eq_(self.obj.comments[1].user.name, u'bodhi')
-        eq_(self.obj.comments[1].text, u'This update has been pushed to stable')
+        eq_(self.obj.comments[1].text,
+                u'This update has been pushed to stable')
 
     def test_get_url(self):
         eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')

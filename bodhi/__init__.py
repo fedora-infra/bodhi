@@ -43,7 +43,8 @@ def main(global_config, **settings):
     config.add_static_view('static', 'bodhi:static')
 
     # Save method
-    config.add_route('save', '/save', view='bodhi.views.save',
+    config.add_route('save', '/save',
+                     view='bodhi.views.save',
                      request_method='POST')
 
     config.add_route('latest_candidates', '/latest_candidates',
@@ -51,7 +52,8 @@ def main(global_config, **settings):
                      renderer='json')
 
     # Auto-completion search
-    config.add_route('search_pkgs', '/search_pkgs', view='bodhi.views.search_pkgs',
+    config.add_route('search_pkgs', '/search_pkgs',
+                     view='bodhi.views.search_pkgs',
                      renderer='json', request_method='GET')
 
     # JSON views

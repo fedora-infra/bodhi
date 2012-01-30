@@ -19,20 +19,26 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from bodhi import buildsys, mail
-from bodhi.util import header, build_evr, authorized_user, rpm_fileheader, get_nvr, flash_log, get_age
-from bodhi.util import get_age_in_days # TODO: move these methods into the model
+from bodhi.util import (
+    header, build_evr, authorized_user,
+    rpm_fileheader, get_nvr, flash_log, get_age,
+)
+
+# TODO: move these methods into the model
+from bodhi.util import get_age_in_days
 from bodhi.models.enum import DeclEnum
 from bodhi.exceptions import InvalidRequest, RPMNotFound
 
 log = logging.getLogger(__name__)
 
-config = {} # FIXME!
+config = {}  # FIXME!
 from bunch import Bunch
 identity = Bunch(current=Bunch(user_name=u'Bob'))
 
+
 class BodhiBase(object):
     """ Our custom model base class """
-    __exclude_columns___ = ('id',) # List of columns to exclude from JSON
+    __exclude_columns___ = ('id',)  # List of columns to exclude from JSON
 
     def __init__(self, **kw):
         """ Automatically mapping attributes """
@@ -86,11 +92,13 @@ class UpdateStatus(DeclEnum):
     unpushed = 'unpushed', 'unpushed'
     obsolete = 'obsolete', 'obsolete'
 
+
 class UpdateType(DeclEnum):
     bugfix = 'bugfix', 'bugfix'
     security = 'security', 'security'
     newpackage = 'newpackage', 'new package'
     enhancement = 'enhancement', 'enhancement'
+
 
 class UpdateRequest(DeclEnum):
     testing = 'testing', 'testing'
@@ -150,7 +158,7 @@ class Release(Base):
         if self._stable_tag:
             return self._stable_tag
         else:
-            if self.name.startswith('EL'): # EPEL Hack.
+            if self.name.startswith('EL'):  # EPEL Hack.
                 return '%s-testing-candidate' % self.dist_tag
             else:
                 return '%s-updates-candidate' % self.dist_tag
@@ -171,7 +179,7 @@ class Release(Base):
         if self._candidate_tag:
             return self._candidate_tag
         else:
-            if self.name.startswith('EL'): # EPEL Hack.
+            if self.name.startswith('EL'):  # EPEL Hack.
                 return '%s-testing-candidate' % self.dist_tag
             else:
                 return '%s-updates-candidate' % self.dist_tag
@@ -195,7 +203,8 @@ class Release(Base):
         name = self.name.lower().replace('-', '')
         status = config.get('%s.status' % name, None)
         if status:
-            days = config.get('%s.%s.mandatory_days_in_testing' % (name, status))
+            days = config.get(
+                '%s.%s.mandatory_days_in_testing' % (name, status))
             if days:
                 return days
         return config.get('%s.mandatory_days_in_testing' %
@@ -215,11 +224,12 @@ class Package(Base):
 
     def __str__(self):
         x = header(self.name)
-        states = { 'pending' : [], 'testing' : [], 'stable' : [] }
+        states = {'pending': [], 'testing': [], 'stable': []}
         if len(self.builds):
             for build in self.builds:
                 if build.update and build.update.status.description in states:
-                    states[build.update.status.description].append(build.update)
+                    states[build.update.status.description].append(
+                        build.update)
         for state in states.keys():
             if len(states[state]):
                 x += "\n %s Updates (%d)\n" % (state.title(),
@@ -247,16 +257,18 @@ class Build(Base):
         latest_srpm = None
         koji_session = buildsys.get_session()
 
-        # Grab a list of builds tagged with ``Release.stable_tag`` release tags, and find
-        # the most recent update for this package, other than this one.  If
-        # nothing is tagged for -updates, then grab the first thing in
-        # ``Release.dist_tag``.  We aren't checking ``Release.candidate_tag`` first,
-        # because there could potentially be packages that never make their way over
-        # stable, so we don't want to generate ChangeLogs against those.
+        # Grab a list of builds tagged with ``Release.stable_tag`` release
+        # tags, and find the most recent update for this package, other than
+        # this one.  If nothing is tagged for -updates, then grab the first
+        # thing in ``Release.dist_tag``.  We aren't checking
+        # ``Release.candidate_tag`` first, because there could potentially be
+        # packages that never make their way over stable, so we don't want to
+        # generate ChangeLogs against those.
         evr = build_evr(koji_session.getBuild(self.nvr))
         latest = None
         for tag in [self.release.stable_tag, self.release.dist_tag]:
-            builds = koji_session.getLatestBuilds(tag, package=self.package.name)
+            builds = koji_session.getLatestBuilds(
+                tag, package=self.package.name)
 
             # Find the first build that is older than us
             for build in builds:
@@ -298,13 +310,15 @@ class Build(Base):
         """
         rpm_header = self.get_rpm_header()
         descrip = rpm_header[rpm.RPMTAG_CHANGELOGTEXT]
-        if not descrip: return ""
+        if not descrip:
+            return ""
 
         who = rpm_header[rpm.RPMTAG_CHANGELOGNAME]
         when = rpm_header[rpm.RPMTAG_CHANGELOGTIME]
 
         num = len(descrip)
-        if num == 1: when = [when]
+        if num == 1:
+            when = [when]
 
         str = ""
         i = 0
@@ -320,7 +334,8 @@ class Build(Base):
         """ Return the path to the SRPM for this update """
         src_path = self.get_source_path()
         path = src_path.split('/')
-        srpm = os.path.join(src_path, "src", "%s.src.rpm" % ('-'.join(path[-3:])))
+        srpm = os.path.join(
+            src_path, "src", "%s.src.rpm" % ('-'.join(path[-3:])))
         if not os.path.isfile(srpm):
             log.debug("Cannot find SRPM: %s" % srpm)
             raise RPMNotFound
@@ -338,7 +353,7 @@ class Update(Base):
     _title = Column('title', UnicodeText)
     # TODO: more flexible karma schema
     karma = Column(Integer, default=0)
-    notes = Column(UnicodeText, nullable=False) # Mandatory notes
+    notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
     # Enumerated types
     type = Column(UpdateType.db_type(), nullable=False)
@@ -420,8 +435,9 @@ class Update(Base):
             for bug in self.bugs:
                 bugstr = u'%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
                                           bug.bug_id, bug.title)
-                val += u'\n'.join(wrap(bugstr, width=67,
-                                      subsequent_indent=' ' * 11 + ': ')) + '\n'
+                val += u'\n'.join(wrap(
+                    bugstr, width=67,
+                    subsequent_indent=' ' * 11 + ': ')) + '\n'
                 i += 1
             val = val[:-1]
         else:
@@ -464,7 +480,7 @@ class Update(Base):
             split = update.alias.split('-')
             year, id = split[-2:]
             prefix = '-'.join(split[:-2])
-            if int(year) != time.localtime()[0]: # new year
+            if int(year) != time.localtime()[0]:  # new year
                 id = 0
             id = int(id) + 1
 
@@ -506,9 +522,10 @@ class Update(Base):
             flash_log("%s has been obsoleted" % self.title)
             return
         # TODO:
-        # Make it so that we can optionally configure bodhi to require mandatory
-        # signoff from a specific group before an update can hit stable:
-        #       eg: Security Team (for security updates) 
+        # Make it so that we can optionally configure bodhi to require
+        # mandatory signoff from a specific group before an update can hit
+        # stable:
+        #       eg: Security Team (for security updates)
         #                or
         #           AutoQA (for all updates)
         #elif self.type is UpdateType.security and not self.date_approved:
@@ -641,14 +658,14 @@ class Update(Base):
         Return a string representation of this update.
         """
         val = u"%s\n%s\n%s\n" % ('=' * 80, u'\n'.join(wrap(
-            self.title.replace(',', ', '), width=80, initial_indent=' '*5,
-            subsequent_indent=' '*5)), '=' * 80)
+            self.title.replace(',', ', '), width=80, initial_indent=' ' * 5,
+            subsequent_indent=' ' * 5)), '=' * 80)
         if self.alias:
             val += u"  Update ID: %s\n" % self.alias
         val += u"""    Release: %s
      Status: %s
        Type: %s
-      Karma: %d""" % (self.release.long_name, self.status.description, 
+      Karma: %d""" % (self.release.long_name, self.status.description,
                       self.type.description, self.karma)
         if self.request != None:
             val += u"\n    Request: %s" % self.request.description
@@ -658,7 +675,8 @@ class Update(Base):
         if len(self.cves):
             val += u"\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
-            notes = wrap(self.notes, width=67, subsequent_indent=' ' * 11 +': ')
+            notes = wrap(
+                self.notes, width=67, subsequent_indent=' ' * 11 + ': ')
             val += u"\n      Notes: %s" % '\n'.join(notes)
         val += u"""
   Submitter: %s
@@ -732,7 +750,7 @@ class Update(Base):
 
     def update_cves(self, cves):
         """
-        Create any new CVES, and remove any missing ones.  Destroy removed CVES 
+        Create any new CVES, and remove any missing ones.  Destroy removed CVES
         that are no longer referenced anymore.
         """
         Session = DBSession()
@@ -745,7 +763,7 @@ class Update(Base):
                 cve = CVE.query.filter_by(cve_id=cve_id).one()
                 if cve not in self.cves:
                     self.cves.append(cve)
-            except: # TODO: catch sqlalchemy's not found exception!
+            except:  # TODO: catch sqlalchemy's not found exception!
                 log.debug("Creating new CVE: %s" % cve_id)
                 cve = CVE(cve_id=cve_id)
                 Session.save(cve)
@@ -761,13 +779,13 @@ class Update(Base):
     def get_pushed_color(self):
         age = get_age_in_days(self.date_pushed)
         if age == 0 or self.karma < 0:
-            color = '#ff0000' # red
+            color = '#ff0000'  # red
         elif age < 4:
-            color = '#ff6600' # orange
+            color = '#ff6600'  # orange
         elif age < 7:
-            color = '#ffff00' # yellow
+            color = '#ffff00'  # yellow
         else:
-            color = '#00ff00' # green
+            color = '#00ff00'  # green
         return color
 
     def comment(self, text, karma=0, author=None, anonymous=False):
@@ -783,7 +801,8 @@ class Update(Base):
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.user.name == author and c.karma == karma,
                       self.comments):
-            mycomments = [c.karma for c in self.comments if c.user.name == author]
+            mycomments = [
+                c.karma for c in self.comments if c.user.name == author]
             if karma == 1 and -1 in mycomments:
                 self.karma += 2
             elif karma == -1 and 1 in mycomments:
@@ -844,7 +863,8 @@ class Update(Base):
                 log.debug("Removing %s tag from %s" % (curtag, build.nvr))
                 koji.untagBuild(curtag, build.nvr, force=True)
             else:
-                log.debug("Moving %s from %s to %s" % (build.nvr, curtag, newtag))
+                log.debug("Moving %s from %s to %s" % (
+                    build.nvr, curtag, newtag))
                 koji.moveBuild(curtag, newtag, build.nvr, force=True)
         self.pushed = False
         self.status = UpdateStatus.unpushed
@@ -929,7 +949,8 @@ class CVE(Base):
 
     @property
     def url(self):
-        return "http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s" % self.cve_id
+        return "http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s" % \
+                self.cve_id
 
 
 class Bug(Base):
@@ -992,14 +1013,14 @@ class Bug(Base):
         DBSession.flush()
 
     def _default_message(self, update):
-        message = self.default_msg % (update.get_title(delim=', '), "%s %s" % 
+        message = self.default_msg % (update.get_title(delim=', '), "%s %s" %
                                    (update.release.long_name,
                                     update.status.description))
         if update.status is UpdateStatus.testing:
             message += ("\n If you want to test the update, you can install " +
                        "it with \n su -c 'yum --enablerepo=updates-testing " +
                        "update %s'.  You can provide feedback for this " +
-                       "update here: %s") % (' '.join([build.package.name for 
+                       "update here: %s") % (' '.join([build.package.name for
                            build in update.builds]),
                            config.get('base_address') + url(update.get_url()))
 
@@ -1044,7 +1065,8 @@ class Bug(Base):
             log.error("Unable to close bug #%d: %s" % (self.bug_id, str(f)))
 
     def get_url(self):
-        return "%s/show_bug.cgi?id=%s" % (config.get('bz_baseurl'), self.bug_id)
+        return "%s/show_bug.cgi?id=%s" % (
+            config.get('bz_baseurl'), self.bug_id)
 
 
 class User(Base):
@@ -1072,13 +1094,17 @@ def populate():
     session = DBSession()
     user = User(name=u'bodhi')
     session.add(user)
-    release = Release(name=u'F15', long_name=u'Fedora 15', id_prefix=u'FEDORA', dist_tag=u'dist-f15')
+    release = Release(
+        name=u'F15', long_name=u'Fedora 15',
+        id_prefix=u'FEDORA', dist_tag=u'dist-f15')
     session.add(release)
     pkg = Package(name=u'bodhi')
     session.add(pkg)
     build = Build(nvr=u'bodhi-2.0-1.fc15', release=release)
     session.add(build)
-    update = Update(builds=[build], user=user, notes=u'Useful details!', release=release)
+    update = Update(
+        builds=[build], user=user,
+        notes=u'Useful details!', release=release)
     update.type = UpdateType.bugfix
     bug = Bug(bug_id=12345)
     session.add(bug)
@@ -1087,6 +1113,7 @@ def populate():
     session.commit()
     #session.flush()
     #transaction.commit()
+
 
 def initialize_sql(engine):
     DBSession.configure(bind=engine)

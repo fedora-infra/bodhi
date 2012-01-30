@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 resources = {}
 
+
 class BodhiRoot(object):
     __name__ = None
     __parent__ = None
@@ -19,6 +20,7 @@ class BodhiRoot(object):
         resource.__parent__ = self
         resource.__name__ = key
         return resource
+
 
 class BodhiResource(object):
     __name__ = None
@@ -40,30 +42,37 @@ class BodhiResource(object):
         except NoResultFound:
             raise KeyError(key)
 
+
 class PackageResource(BodhiResource):
     __model__ = Package
     __column__ = u'name'
+
 
 class BuildResource(BodhiResource):
     __model__ = Build
     __column__ = u'nvr'
 
+
 class UpdateResource(BodhiResource):
     __model__ = Update
     __column__ = u'title'
+
 
 class ReleaseResource(BodhiResource):
     __model__ = Release
     __column__ = u'name'
 
+
 class UserResource(BodhiResource):
     __model__ = User
     __column__ = u'name'
+
 
 class BugResource(BodhiResource):
     __model__ = Bug
     __column__ = u'bug_id'
     __filter__ = int
+
 
 class CommentResource(BodhiResource):
     __model__ = Comment
@@ -71,6 +80,7 @@ class CommentResource(BodhiResource):
     __filter__ = int
 
 root = BodhiRoot()
+
 
 def default_get_root(request):
     global resources
@@ -85,6 +95,7 @@ def default_get_root(request):
         u'new': lambda: NewUpdateForm.req(),
         })
     return root
+
 
 def appmaker(engine):
     initialize_sql(engine)

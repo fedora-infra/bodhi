@@ -12,26 +12,34 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
 class BodhiException(Exception):
     pass
+
 
 class MashTaskException(Exception):
     pass
 
+
 class RepodataException(Exception):
     pass
+
 
 class RPMNotFound(BodhiException):
     pass
 
+
 class RepositoryLocked(BodhiException):
     pass
+
 
 class RepositoryNotFound(BodhiException):
     pass
 
+
 class InvalidRequest(BodhiException):
     pass
+
 
 class InvalidUpdateException(BodhiException):
     pass
@@ -40,7 +48,8 @@ try:
     from sqlobject.dberrors import DuplicateEntryError
 except ImportError:
     # Handle pre-DuplicateEntryError versions of SQLObject
-    class DuplicateEntryError(Exception): pass
+    class DuplicateEntryError(Exception):
+        pass
 
 from psycopg2 import IntegrityError as PostgresIntegrityError
 try:

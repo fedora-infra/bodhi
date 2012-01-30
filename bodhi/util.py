@@ -49,11 +49,12 @@ header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
+
 def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)
     is_oldrpm = hasattr(rpm, 'opendb')
     try:
-        fd = os.open(pkgpath,0)
+        fd = os.open(pkgpath, 0)
         if is_oldrpm:
             h = rpm.headerFromPackage(fd)[0]
         else:
@@ -65,6 +66,7 @@ def rpm_fileheader(pkgpath):
     os.close(fd)
     return h
 
+
 def excluded_arch(rpmheader, arch):
     """
     Determine if an RPM should be excluded from a given architecture, either
@@ -75,6 +77,7 @@ def excluded_arch(rpmheader, arch):
     return (excluded and arch in excluded) or \
            (exclusive and arch not in exclusive)
 
+
 def sha1sum(file):
     import sha
     fd = open(file)
@@ -82,10 +85,12 @@ def sha1sum(file):
     fd.close()
     return hash.hexdigest()
 
+
 def get_nvr(nvr):
     """ Return the [ name, version, release ] a given name-ver-rel. """
     x = nvr.split('-')
     return ['-'.join(x[:-2]), x[-2], x[-1]]
+
 
 def mkmetadatadir(dir):
     """
@@ -112,6 +117,7 @@ def mkmetadatadir(dir):
         import genpkgmetadata
         genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
 
+
 def synchronized(lock):
     """ Synchronization decorator """
     def wrap(f):
@@ -124,6 +130,7 @@ def synchronized(lock):
         return new
     return wrap
 
+
 def authorized_user(update, identity):
     # FIXME: port to pyramid auth
     return True
@@ -133,14 +140,15 @@ def authorized_user(update, identity):
            identity.current.user_name == update.submitter or \
            identity.current.user_name in update.get_maintainers()
 
+
 def make_update_link(obj):
     """ Return a link Element for a given PackageUpdate or PackageBuild """
     update = None
-    if hasattr(obj, 'updates'):   # Package or PackageBuild
+    if hasattr(obj, 'updates'):    # Package or PackageBuild
         update = obj.updates[0]
-    elif hasattr(obj, 'get_url'): # PackageUpdate
+    elif hasattr(obj, 'get_url'):  # PackageUpdate
         update = obj
-    elif hasattr(obj, 'update'):  # Comment
+    elif hasattr(obj, 'update'):   # Comment
         update = obj.update
     else:
         log.error("Unknown parameter make_update_link(%s)" % obj)
@@ -149,13 +157,16 @@ def make_update_link(obj):
     link.text = update.get_title(', ')
     return link
 
+
 def make_type_icon(update):
     return Element('img', src=url('/static/images/%s.png' % update.type),
                    title=update.type)
 
+
 def make_request_icon(update):
     return Element('img', src=url('/static/images/%s-large.png' %
                    update.request), title=str(update.request))
+
 
 def make_karma_icon(update):
     if update.karma < 0:
@@ -166,6 +177,7 @@ def make_karma_icon(update):
         karma = 0
     return Element('img', src=url('/static/images/karma%d.png' % karma))
 
+
 def get_age(date):
     age = datetime.utcnow() - date
     if age.days == 0:
@@ -173,10 +185,11 @@ def get_age(date):
             return "%d %s" % (age.seconds, pluralize(age.seconds, "second"))
         minutes = int(age.seconds / 60)
         if minutes >= 60:
-            hours = int(minutes/60)
+            hours = int(minutes / 60)
             return "%d %s" % (hours, pluralize(hours, "hour"))
         return "%d %s" % (minutes, pluralize(minutes, "minute"))
     return "%d %s" % (age.days, pluralize(age.days, "day"))
+
 
 def get_age_in_days(date):
     if date:
@@ -185,15 +198,18 @@ def get_age_in_days(date):
     else:
         return 0
 
+
 def flash_log(msg):
     """ Flash and log a given message """
     # FIXME: request.session.flash()
     #flash(msg)
     log.debug(msg)
 
+
 def get_release_names():
     from bodhi.tools.init import releases
     return [release['long_name'] for release in releases]
+
 
 def get_release_tuples():
     from bodhi.tools.init import releases
@@ -203,9 +219,11 @@ def get_release_tuples():
         names.append(release['long_name'])
     return names
 
+
 def get_repo_tag(repo):
     """ Pull the koji tag from the given mash repo """
-    mashconfig = join(dirname(config.get('mash_conf')), basename(repo)+'.mash')
+    mashconfig = join(dirname(config.get('mash_conf')),
+                      basename(repo) + '.mash')
     if isfile(mashconfig):
         mashconfig = file(mashconfig, 'r')
         lines = mashconfig.readlines()
@@ -215,7 +233,9 @@ def get_repo_tag(repo):
         log.error("Cannot find mash configuration for %s: %s" % (repo,
                                                                  mashconfig))
 
-def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel'):
+
+def get_pkg_pushers(pkgName, collectionName='Fedora',
+                    collectionVersion='devel'):
     """ Pull users who can commit and are watching a package
 
     Return two two-tuples of lists:
@@ -282,13 +302,16 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
 
     return ((pAllowed, pNotify), (gAllowed, gNotify))
 
+
 def build_evr(build):
     if not build['epoch']:
         build['epoch'] = 0
     return (str(build['epoch']), build['version'], build['release'])
 
+
 def link(text, href):
     return '<a href="%s">%s</a>' % (url(href), text)
+
 
 def load_config(configfile=None):
     """ Load bodhi's configuration """
@@ -311,6 +334,7 @@ def load_config(configfile=None):
     log.debug("Loading configuration: %s" % configfile)
     turbogears.update_config(configfile=configfile, modulename="bodhi.config")
 
+
 class Singleton(object):
 
     def __new__(cls, *args, **kw):
@@ -328,12 +352,16 @@ class ProgressBar(object):
         self.max = maxValue
         self.span = maxValue - minValue
         self.width = totalWidth
-        self.amount = 0       # When amount == max, we are 100% done 
+        self.amount = 0       # When amount == max, we are 100% done
         self.updateAmount(0)  # Build progress bar string
 
     def updateAmount(self, newAmount=0):
-        if newAmount < self.min: newAmount = self.min
-        if newAmount > self.max: newAmount = self.max
+        if newAmount < self.min:
+            newAmount = self.min
+
+        if newAmount > self.max:
+            newAmount = self.max
+
         self.amount = newAmount
 
         # Figure out the new percent done, round to an integer
@@ -349,20 +377,21 @@ class ProgressBar(object):
         # Build a progress bar with an arrow of equal signs; special cases for
         # empty and full
         if numHashes == 0:
-            self.progBar = "[>%s]" % (' '*(allFull-1))
+            self.progBar = "[>%s]" % (' ' * (allFull - 1))
         elif numHashes == allFull:
-            self.progBar = "[%s]" % ('='*allFull)
+            self.progBar = "[%s]" % ('=' * allFull)
         else:
-            self.progBar = "[%s>%s]" % ('='*(numHashes-1),
-                                        ' '*(allFull-numHashes))
+            self.progBar = "[%s>%s]" % ('=' * (numHashes - 1),
+                                        ' ' * (allFull - numHashes))
 
         # figure out where to put the percentage, roughly centered
-        percentPlace = (len(self.progBar) / 2) - len(str(percentDone)) 
+        percentPlace = (len(self.progBar) / 2) - len(str(percentDone))
         percentString = str(percentDone) + "%"
 
         # slice the percentage into the bar
-        self.progBar = ''.join([self.progBar[0:percentPlace], percentString,
-                                self.progBar[percentPlace+len(percentString):]])
+        self.progBar = ''.join(
+            [self.progBar[0:percentPlace], percentString,
+             self.progBar[percentPlace + len(percentString):]])
 
     def __str__(self):
         return str(self.progBar)
@@ -404,14 +433,15 @@ def sanity_check_repodata(myurl):
                 loc = baseurl + href
 
             destfn = tempdir + '/' + os.path.basename(href)
-            dest =  urlgrabber.urlgrab(loc, destfn)
+            dest = urlgrabber.urlgrab(loc, destfn)
             ctype, known_csum = data.checksum
             csum = checksum(ctype, dest)
             if csum != known_csum:
                 errorstrings.append("checksum: %s" % t)
 
             if href.find('xml') != -1:
-                retcode = subprocess.call(['/usr/bin/xmllint', '--noout', dest])
+                retcode = subprocess.call(
+                    ['/usr/bin/xmllint', '--noout', dest])
                 if retcode != 0:
                     errorstrings.append("failed xml read: %s" % t)
 
@@ -434,6 +464,7 @@ def to_unicode(obj, encoding='utf-8'):
             obj = unicode(obj, encoding, 'replace')
     return obj
 
+
 @decorator
 def json_redirect(f, *args, **kw):
     try:
@@ -449,6 +480,7 @@ def json_redirect(f, *args, **kw):
 Misc iPython hacks that I've had to write at one point or another
 """
 
+
 def reset_date_pushed(status='testing'):
     """
     Reset the date_pushed on all testing updates with the most recent bodhi
@@ -459,8 +491,8 @@ def reset_date_pushed(status='testing'):
     """
     from bodhi.model import PackageUpdate
     from sqlobject import AND
-    for update in PackageUpdate.select(AND(PackageUpdate.q.date_pushed==None,
-                                           PackageUpdate.q.status==status)):
+    for update in PackageUpdate.select(AND(PackageUpdate.q.date_pushed == None,
+                                           PackageUpdate.q.status == status)):
         date = None
         for comment in update.comments:
             if comment.author == 'bodhi':
