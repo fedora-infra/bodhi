@@ -88,15 +88,15 @@ $(document).ready(function() {
                 </ul>
             </div>
             <ul id="fedora-side-nav">
-                <li py:if="tg.identity.anonymous and not tg.identity.only_token">
+                <li py:if="tg.identity.anonymous and not getattr(tg.identity, 'only_token', None)">
                   <a href="${tg.url('/login')}">Login</a>
                 </li>
-                <li py:if="tg.identity.anonymous and tg.identity.only_token">
+                <li py:if="tg.identity.anonymous and getattr(tg.identity, 'only_token', None)">
                 <a href="${tg.url(tg.request.path_info)}">
                   CSRF protected<br />
                   Verify Login</a>
                 </li>
-                <li py:if="not tg.identity.anonymous or tg.identity.only_token">
+                <li py:if="not tg.identity.anonymous or getattr(tg.identity, 'only_token', None)">
                   <a href="${tg.url('/logout')}">Logout</a>
                 </li>
                 <li><a href="${tg.url('/')}">${tg.identity.anonymous and ' ' or "%s's " % tg.identity.user_name}Home</a></li>
