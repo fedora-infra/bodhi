@@ -655,18 +655,19 @@ class Root(controllers.RootController):
                     raise InvalidUpdateException(params)
 
         # Make sure this update doesn't already exist
-        for build in builds:
-            try:
-                b = PackageBuild.byNvr(build)
-                if request_format() == 'json':
-                    flash_log("%s update already exists!" % build)
-                    return dict()
-                else:
-                    flash_log("%s update already exists!" % 
-                              link(build, b.get_url()))
-                    raise redirect('/new', **params)
-            except SQLObjectNotFound:
-                pass
+        if not edited:
+            for build in builds:
+                try:
+                    b = PackageBuild.byNvr(build)
+                    if request_format() == 'json':
+                        flash_log("%s update already exists!" % build)
+                        return dict()
+                    else:
+                        flash_log("%s update already exists!" % 
+                                  link(build, b.get_url()))
+                        raise redirect('/new', **params)
+                except SQLObjectNotFound:
+                    pass
 
         # Make sure the submitter has commit access to these builds
         for build in builds:
