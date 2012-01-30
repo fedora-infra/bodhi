@@ -9,3 +9,4 @@ virtenv
 build
 bodhi-pickledb*
 *.egg*
+bodhi.db
