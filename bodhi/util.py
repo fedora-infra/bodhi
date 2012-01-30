@@ -259,7 +259,8 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
     PackageDB (for instance, no such package)
     """
     if config.get('acl_system') == 'dummy':
-        return (['guest'], ['guest']), (['guest'], ['guest'])
+        return ((['guest', 'admin'], ['guest', 'admin']),
+                (['guest', 'admin'], ['guest', 'admin']))
 
 
     # Note if AppError is raised (for no pkgNamme or other server errors) we
