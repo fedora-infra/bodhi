@@ -200,7 +200,7 @@ class TestPackageUpdate(testutil.DBTest):
         update.assign_id()
         #assert update.get_url() == '/%s/%s' % (update.release.name,
         #                                       update.updateid)
-        assert update.get_url() == '/%s' % update.updateid
+        assert update.get_url() == '/%s/%s' % (update.updateid, update.title)
 
     def test_multibuild(self):
         builds = ['yum-3.2.1-1.fc7', 'httpd-2.2.4-4.1.fc7']
