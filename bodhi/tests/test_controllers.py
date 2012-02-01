@@ -2205,6 +2205,68 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request != 'stable', update.request
 
+    def test_critpath_without_proventesters(self):
+        """
+        Ensure critpath updates can still go to stable without proventesters.
+        https://fedorahosted.org/bodhi/ticket/653
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+                'autokarma': True
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.request == None
+
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=session)
+        assert "Push to Stable" not in cherrypy.response.body[0]
+        assert "Push to Testing" in cherrypy.response.body[0]
+
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                                method='GET', headers=session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.karma == 0
+
+        # We're no longer allowing devs to request critpath updates to stable
+        # without a karma prerequisite for non-pending releases.
+        # This feature can be disabled by setting
+        #`critpath.num_admin_approvals = 0` in your configuration
+        assert update.request == 'testing', update.request
+
+        # Have a user +1 the update
+        developer = login(username='bob')
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' %
+                                params['builds'], method='POST', headers=session)
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=developer)
+        assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
+        testutil.create_request('/updates/request/stable/%s' % params['builds'],
+                                method='GET', headers=session)
+
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.karma == 1
+        assert update.request == 'testing', update.request
+
+        # Have a developer +1 the update
+        developer = login(username='bob')
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' %
+                                params['builds'], method='POST', headers=developer)
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=developer)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.karma == 2
+        assert update.request == 'stable'
+
     def test_created_since(self):
         session = login()
         create_release()
