@@ -730,6 +730,7 @@ class Root(controllers.RootController):
         # If we're editing an update, unpush it first so we can assume all
         # of the builds are tagged as update candidates
         edited_testing_update = False
+        removed_builds = []
         if edited:
             try:
                 edited = PackageUpdate.byTitle(edited)
@@ -765,7 +766,6 @@ class Root(controllers.RootController):
             # Determine which builds have been added or removed
             edited_builds = [build.nvr for build in edited.builds]
             new_builds = []
-            removed_builds = []
             for build in builds:
                 if build not in edited_builds:
                     new_builds.append(build)
@@ -808,13 +808,6 @@ class Root(controllers.RootController):
                 # Make sure all builds are tagged as updates-candidate
                 # and bring the update back to a pending state
                 edited.unpush()
-
-                # Remove the appropriate builds
-                for build in removed_builds:
-                    b = PackageBuild.byNvr(build)
-                    edited.removePackageBuild(b)
-                    if len(b.updates) == 0:
-                        b.destroySelf()
 
                 # Refresh the tags for these builds
                 for build in edited.builds:
@@ -903,6 +896,13 @@ class Root(controllers.RootController):
             #                          "than %s in %s" % (kojiBuild['nvr'],
             #                          oldBuild['nvr'], tag))
             #                raise InvalidUpdateException(params)
+
+        # Remove the appropriate builds
+        for build in removed_builds:
+            b = PackageBuild.byNvr(build)
+            edited.removePackageBuild(b)
+            if len(b.updates) == 0:
+                b.destroySelf()
 
         # Create all of the PackageBuild objects, obsoleting any older updates
         for build in builds:
