@@ -460,6 +460,13 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         logs = testutil.get_log()
         assert 'Cannot add a F8 build to a F7 update. Please create a new update for python-sqlobject-0.8.2-1.fc8' in logs, logs
+        up = PackageUpdate.byTitle(params['edited'])
+        assert len(up.builds) == 1
+        try:
+            PackageBuild.byNvr('python-sqlobject-0.8.2-1.fc8')
+            assert False, "Bad update created"
+        except SQLObjectNotFound:
+            pass
 
     def test_remove_build_and_add_different_release_to_update(self):
         """
@@ -477,6 +484,8 @@ class TestControllers(testutil.DBTest):
             'notes'   : 'foo'
         }
         self.save_update(orig_params, session)
+        up = PackageUpdate.byTitle(orig_params['builds'])
+        assert len(up.builds) == 1
 
         # Add another build, for a different release
         params = {
@@ -506,6 +515,14 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         logs = testutil.get_log()
         assert 'Cannot add a F8 build to a F7 update.' in '\n'.join(logs), logs
+
+        up = PackageUpdate.byTitle('TurboGears-1.0.2.2-2.fc7')
+        assert len(up.builds) == 1, up.builds
+        b = PackageBuild.byNvr('TurboGears-1.0.2.2-2.fc7')
+        assert len(b.updates) == 1
+        b = PackageBuild.byNvr('python-sqlalchemy-1.0.2.2-2.fc7')
+        assert len(b.updates) == 1
+        assert len(b.updates[0].builds) == 1
 
     def test_edit(self):
         session = login()
