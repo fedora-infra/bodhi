@@ -28,6 +28,7 @@ from sqlobject import SQLObjectNotFound
 from sqlobject.sqlbuilder import AND
 
 from bodhi import mail
+from bodhi.buildsys import get_session
 from bodhi.util import get_age_in_days
 from bodhi.model import Release, PackageUpdate, BuildRootOverride, PackageBuild
 
@@ -226,6 +227,44 @@ def expire_buildroot_overrides():
 
     log.info('expire_buildroot_overrides job complete!')
 
+def clean_pending_tags():
+    """ Clean up any stray pending tags """
+    koji = get_session()
+    for release in Release.select():
+        log.info("Finding all stray pending-testing builds...")
+        if release.name.startswith('EL'):
+            continue
+
+        tag = release.pending_testing_tag
+        tagged = [build['nvr'] for build in koji.listTagged(tag)]
+        for nvr in tagged:
+            try:
+                build = PackageBuild.byNvr(nvr)
+                for update in build.updates:
+                    if update.status in ('testing', 'stable', 'obsolete'):
+                        log.info("%s %s" % (nvr, update.status))
+                        log.info("Untagging %s" % nvr)
+                        koji.untagBuild(tag, nvr, force=True)
+            except SQLObjectNotFound:
+                log.info("Can't find build for %s" % nvr)
+                log.info("Untagging %s" % nvr)
+                koji.untagBuild(tag, nvr, force=True)
+
+        log.info("Finding all stray pending-stable builds...")
+        tag = release.pending_stable_tag
+        tagged = [build['nvr'] for build in koji.listTagged(tag)]
+        for nvr in tagged:
+            try:
+                build = PackageBuild.byNvr(nvr)
+                for update in build.updates:
+                    if update.status in ('pending', 'obsolete', 'stable'):
+                        log.info("%s %s" % (nvr, update.status))
+                        log.info("Untagging %s" % nvr)
+                        koji.untagBuild(tag, nvr, force=True)
+            except SQLObjectNotFound:
+                log.info("Untagging %s" % nvr)
+                koji.untagBuild(tag, nvr, force=True)
+
 
 def schedule():
     """ Schedule our periodic tasks """
@@ -285,8 +324,16 @@ def schedule():
     if 'expire_buildroot_overrides' in jobs:
         log.debug("Scheduling expire_buildroot_overrides job")
         scheduler.add_interval_task(action=expire_buildroot_overrides,
-                                   # Run every 6 hours
+                                   # Run every hour
                                    initialdelay=3600,
                                    interval=3600)
                                    #weekdays=range(1,8),
                                    #timeonday=(0,0))
+
+    # Automatically clean up stray pending tags
+    if 'clean_pending_tags' in jobs:
+        log.debug("Scheduling clean_pending_tags job")
+        scheduler.add_interval_task(action=clean_pending_tags,
+                                   # Run every 6 hours
+                                   initialdelay=21600,
+                                   interval=21600)
