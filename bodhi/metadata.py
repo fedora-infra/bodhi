@@ -16,13 +16,13 @@
 __version__ = '1.4'
 
 import os
-import urllib
 import logging
 
 from xml.dom import minidom
 from os.path import join, exists
 from sqlobject import SQLObjectNotFound
 from turbogears import config
+from urlgrabber.grabber import URLGrabError, urlgrab
 
 from bodhi.util import get_repo_tag
 from bodhi.model import PackageBuild, PackageUpdate
@@ -307,10 +307,12 @@ class ExtendedMetadata(object):
 
                     tags_url = config.get('pkgtags_url') + filename
                     log.info('Downloading %s' % tags_url)
-                    f = urllib.urlretrieve(tags_url, filename='/tmp/pkgtags.sqlite')
-
-                    repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
-                    repomd.add('/tmp/pkgtags.sqlite')
+                    try:
+                        urlgrab(tags_url, filename='/tmp/pkgtags.sqlite')
+                        repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
+                        repomd.add('/tmp/pkgtags.sqlite')
+                    except URLGrabError, e:
+                        log.error("Unable to fetch tags from the pkgdb: %s" % e)
 
             except Exception, e:
                 log.exception(e)
