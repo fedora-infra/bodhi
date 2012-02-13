@@ -2,3 +2,5 @@ TurboGears >= 1.0
 TurboMail
 python_fedora
 CherryPy<3.0
+kitchen
+python-fedora
