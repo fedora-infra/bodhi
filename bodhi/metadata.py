@@ -308,7 +308,7 @@ class ExtendedMetadata(object):
                     tags_url = config.get('pkgtags_url') + filename
                     log.info('Downloading %s' % tags_url)
                     try:
-                        urlgrab(tags_url, filename='/tmp/pkgtags.sqlite')
+                        urlgrab(str(tags_url), filename='/tmp/pkgtags.sqlite')
                         repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
                         repomd.add('/tmp/pkgtags.sqlite')
                     except URLGrabError, e:
