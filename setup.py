@@ -26,6 +26,9 @@ requires = [
     'WebError',
     'webhelpers',
 
+    # Fedora Messaging
+    'fedmsg',
+
     # Useful tools
     'kitchen',
     'python-fedora',
