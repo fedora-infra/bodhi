@@ -64,13 +64,43 @@ def import_rebootpkgs():
         Package(name=pkg, suggest_reboot=True)
 
 def clean_tables():
-    from bodhi.model import Release, Package
+    from bodhi.model import (Release, Package, PackageBuild, PackageUpdate,
+                             Comment, CVE, Bugzilla, BuildRootOverride)
+    from bodhi.identity.tables import (Visit, VisitIdentity, Group, User,
+                                       Permission)
+
     print "Cleaning out tables"
     Release.dropTable(ifExists=True, cascade=True)
     Package.dropTable(ifExists=True, cascade=True)
+    PackageBuild.dropTable(ifExists=True, cascade=True)
+    PackageUpdate.dropTable(ifExists=True, cascade=True)
+    Comment.dropTable(ifExists=True, cascade=True)
+    CVE.dropTable(ifExists=True, cascade=True)
+    Bugzilla.dropTable(ifExists=True, cascade=True)
+    BuildRootOverride.dropTable(ifExists=True, cascade=True)
+
+    Visit.dropTable(ifExists=True, cascade=True)
+    VisitIdentity.dropTable(ifExists=True, cascade=True)
+    Group.dropTable(ifExists=True, cascade=True)
+    User.dropTable(ifExists=True, cascade=True)
+    Permission.dropTable(ifExists=True, cascade=True)
+
     hub.commit()
+
     Release.createTable(ifNotExists=True)
     Package.createTable(ifNotExists=True)
+    PackageBuild.createTable(ifNotExists=True)
+    PackageUpdate.createTable(ifNotExists=True)
+    Comment.createTable(ifNotExists=True)
+    CVE.createTable(ifNotExists=True)
+    Bugzilla.createTable(ifNotExists=True)
+    BuildRootOverride.createTable(ifNotExists=True)
+
+    Visit.createTable(ifNotExists=True)
+    VisitIdentity.createTable(ifNotExists=True)
+    Group.createTable(ifNotExists=True)
+    User.createTable(ifNotExists=True)
+    Permission.createTable(ifNotExists=True)
 
 def main():
     """ Initialize the package/release/multilib tables """
