@@ -41,6 +41,9 @@ try:
 except ImportError:
     from fedora.tg.util import tg_url
 
+import fedmsg
+import fedmsg.schema
+
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
 from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
@@ -441,14 +444,21 @@ class PackageUpdate(SQLObject):
             log.warning('%r was passed to set_request' % action)
             return
 
+        fedmsg_topic = 'update.request.' + action
         if action == 'unpush':
             self.unpush()
             self.comment('This update has been unpushed',
                          author=identity.current.user_name)
+            fedmsg.send_message(topic=fedmsg_topic, msg={
+                fedmsg.schema.UPDATE: self,
+            })
             flash_log("%s has been unpushed" % self.title)
             return
         elif action == 'obsolete':
             self.obsolete()
+            fedmsg.send_message(topic=fedmsg_topic, msg={
+                fedmsg.schema.UPDATE: self,
+            })
             flash_log("%s has been obsoleted" % self.title)
             return
         #elif self.type == 'security' and not self.approved:
@@ -478,6 +488,9 @@ class PackageUpdate(SQLObject):
                                                           mybuild['nvr']))
         elif action == 'revoke':
             if self.request:
+                fedmsg.send_message(topic=fedmsg_topic, msg={
+                    fedmsg.schema.UPDATE: self,
+                })
                 flash_log('%s %s request revoked' % (self.title, self.request))
                 self.request = None
                 self.comment('%s request revoked' % action,
@@ -560,6 +573,9 @@ class PackageUpdate(SQLObject):
             action, notes, flash_notes))
         self.comment('This update has been submitted for %s by %s. %s' % (
             action, identity.current.user_name, notes), author='bodhi')
+        fedmsg.send_message(topic='update.request.' + action, msg={
+            fedmsg.schema.UPDATE: self,
+        })
         mail.send_admin(action, self)
 
     def request_complete(self):
@@ -578,6 +594,9 @@ class PackageUpdate(SQLObject):
             self.status = 'stable'
             self.assign_id()
         self.request = None
+        fedmsg.send_message(topic='update.complete', msg={
+            fedmsg.schema.UPDATE: self
+        })
         hub.commit()
 
     def modify_bugs(self):
@@ -854,6 +873,10 @@ class PackageUpdate(SQLObject):
 
         Comment(text=text, karma=karma, update=self, author=author,
                 anonymous=anonymous)
+
+        fedmsg.send_message(topic='update.comment', msg={
+            fedmsg.schema.UPDATE: self,
+        })
 
         if self.critpath:
             min_karma = config.get('critpath.min_karma')

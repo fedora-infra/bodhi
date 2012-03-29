@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.8.7
+Version:        0.8.8
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -21,6 +21,7 @@ BuildRequires: TurboGears python-bugzilla
 BuildRequires: python-fedora python-TurboMail TurboGears yum koji
 BuildRequires: python-turboflot python-tgcaptcha
 BuildRequires: python-fedora-turbogears
+BuildRequires: python-fedmsg
 
 %description
 Bodhi is a web application that facilitates the process of publishing
@@ -122,6 +123,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Thu Mar 29 2012 Ralph Bean <rbean@redhat.com> - 0.8.8-1
+- Sending messages with fedmsg
+
 * Tue Jan 31 2012 Luke Macken <lmacken@redhat.com> - 0.8.6-1
 - Latest upstream release
 

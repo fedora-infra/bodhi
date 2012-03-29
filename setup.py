@@ -170,6 +170,7 @@ setup(
         "kitchen",
         "python-fedora",
         #"hashlib",
+        "fedmsg",
     ],
     scripts = [],
     data_files = data_files,
