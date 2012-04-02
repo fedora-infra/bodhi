@@ -42,7 +42,6 @@ except ImportError:
     from fedora.tg.util import tg_url
 
 import fedmsg
-import fedmsg.schema
 
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
@@ -450,14 +449,14 @@ class PackageUpdate(SQLObject):
             self.comment('This update has been unpushed',
                          author=identity.current.user_name)
             fedmsg.send_message(topic=fedmsg_topic, msg={
-                fedmsg.schema.UPDATE: self,
+                'update': self,
             })
             flash_log("%s has been unpushed" % self.title)
             return
         elif action == 'obsolete':
             self.obsolete()
             fedmsg.send_message(topic=fedmsg_topic, msg={
-                fedmsg.schema.UPDATE: self,
+                'update': self,
             })
             flash_log("%s has been obsoleted" % self.title)
             return
@@ -489,7 +488,7 @@ class PackageUpdate(SQLObject):
         elif action == 'revoke':
             if self.request:
                 fedmsg.send_message(topic=fedmsg_topic, msg={
-                    fedmsg.schema.UPDATE: self,
+                    'update': self,
                 })
                 flash_log('%s %s request revoked' % (self.title, self.request))
                 self.request = None
@@ -574,7 +573,7 @@ class PackageUpdate(SQLObject):
         self.comment('This update has been submitted for %s by %s. %s' % (
             action, identity.current.user_name, notes), author='bodhi')
         fedmsg.send_message(topic='update.request.' + action, msg={
-            fedmsg.schema.UPDATE: self,
+            'update': self,
         })
         mail.send_admin(action, self)
 
@@ -595,7 +594,7 @@ class PackageUpdate(SQLObject):
             self.assign_id()
         self.request = None
         fedmsg.send_message(topic='update.complete', msg={
-            fedmsg.schema.UPDATE: self
+            'update': self
         })
         hub.commit()
 
@@ -875,7 +874,7 @@ class PackageUpdate(SQLObject):
                 anonymous=anonymous)
 
         fedmsg.send_message(topic='update.comment', msg={
-            fedmsg.schema.UPDATE: self,
+            'update': self,
         })
 
         if self.critpath:
