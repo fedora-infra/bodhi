@@ -27,7 +27,7 @@ requires = [
     'webhelpers',
 
     # Fedora Messaging
-    'fedmsg',
+    'fedmsg>=0.0.8',
 
     # Useful tools
     'kitchen',

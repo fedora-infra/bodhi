@@ -19,7 +19,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 import fedmsg
-import fedmsg.schema
 
 from bodhi import buildsys, mail
 from bodhi.util import (
@@ -520,14 +519,14 @@ class Update(Base):
             self.comment(u'This update has been unpushed',
                          author=identity.current.user_name)
             fedmsg.send_message(topic='update.request.' + action, msg={
-                fedmsg.schema.UPDATE: self.__json__(),
+                'update': self.__json__(),
             })
             flash_log("%s has been unpushed" % self.title)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete()
             fedmsg.send_message(topic='update.request.' + action, msg={
-                fedmsg.schema.UPDATE: self.__json__(),
+                'update': self.__json__(),
             })
             flash_log("%s has been obsoleted" % self.title)
             return
@@ -551,7 +550,7 @@ class Update(Base):
         self.comment(u'This update has been submitted for %s' %
                 action.description, author=identity.current.user_name)
         fedmsg.send_message(topic='update.request.' + action, msg={
-            fedmsg.schema.UPDATE: self.__json__(),
+            'update': self.__json__(),
         })
         mail.send_admin(action.description, self)
 
@@ -568,7 +567,7 @@ class Update(Base):
         self.date_pushed = datetime.utcnow()
         self.assign_alias()
         fedmsg.send_message(topic='update.complete.' + action, msg={
-            fedmsg.schema.UPDATE: self.__json__(),
+            'update': self.__json__(),
         })
 
     def modify_bugs(self):
