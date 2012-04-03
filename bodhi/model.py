@@ -593,9 +593,12 @@ class PackageUpdate(SQLObject):
             self.status = 'stable'
             self.assign_id()
         self.request = None
-        fedmsg.send_message(topic='update.complete', msg={
+
+        fedmsg_topic = 'update.complete.' + self.status
+        fedmsg.send_message(topic=fedmsg_topic, msg={
             'update': self
         })
+
         hub.commit()
 
     def modify_bugs(self):
