@@ -513,21 +513,17 @@ class Update(Base):
         if action is self.request:
             raise InvalidRequest("%s has already been submitted to %s" % (
                                  self.title, self.request.description))
-
+        fedmsg_topic = 'update.request.' + action
         if action is UpdateRequest.unpush:
             self.unpush()
             self.comment(u'This update has been unpushed',
                          author=identity.current.user_name)
-            fedmsg.send_message(topic='update.request.' + action, msg={
-                'update': self.__json__(),
-            })
+            fedmsg.send_message(topic=fedmsg_topic, msg=dict(update=self))
             flash_log("%s has been unpushed" % self.title)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete()
-            fedmsg.send_message(topic='update.request.' + action, msg={
-                'update': self.__json__(),
-            })
+            fedmsg.send_message(topic=fedmsg_topic, msg=dict(update=self))
             flash_log("%s has been obsoleted" % self.title)
             return
         # TODO:
@@ -549,9 +545,7 @@ class Update(Base):
             self.title, action.description))
         self.comment(u'This update has been submitted for %s' %
                 action.description, author=identity.current.user_name)
-        fedmsg.send_message(topic='update.request.' + action, msg={
-            'update': self.__json__(),
-        })
+        fedmsg.send_message(topic=fedmsg_topic, msg=dict(update=self))
         mail.send_admin(action.description, self)
 
     def request_complete(self):
@@ -566,9 +560,9 @@ class Update(Base):
         self.pushed = True
         self.date_pushed = datetime.utcnow()
         self.assign_alias()
-        fedmsg.send_message(topic='update.complete.' + action, msg={
-            'update': self.__json__(),
-        })
+
+        fedmsg_topic = 'update.complete.' + self.status
+        fedmsg.send_message(topic=fedmsg_topic, msg=dict(update=self))
 
     def modify_bugs(self):
         """
@@ -840,6 +834,8 @@ class Update(Base):
                 mail.send(self.get_maintainers(), 'unstable', self)
 
         comment = Comment(text=text, karma=karma, anonymous=anonymous)
+
+        fedmsg.send_message(topic='update.comment', msg=dict(update=self))
 
         if anonymous:
             author = u'anonymous'
