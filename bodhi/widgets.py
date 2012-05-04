@@ -31,7 +31,7 @@ class NewUpdateForm(tw2.sqla.DbFormPage):
             package = tw2.jqplugins.ui.AutocompleteWidget(options={
                 'source': '/search_pkgs',
                 'minLength': 2,
-                'select': tw2.core.JSSymbol(src="""
+                'select': tw2.core.js_symbol(src="""
                     function (event, ui) {
                         $.ajax({
                             url: 'latest_candidates',
