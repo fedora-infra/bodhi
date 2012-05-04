@@ -31,8 +31,7 @@ from os.path import isfile
 
 #from bodhi.util import ProgressBar, load_config
 from bodhi.util import ProgressBar
-from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
-                              PostgresIntegrityError)
+from bodhi.exceptions import DuplicateEntryError, IntegrityError
 #from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
 #                         Package, PackageBuild)
 #

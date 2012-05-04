@@ -51,8 +51,13 @@ except ImportError:
     class DuplicateEntryError(Exception):
         pass
 
-from psycopg2 import IntegrityError as PostgresIntegrityError
 try:
-    from pysqlite2.dbapi2 import IntegrityError as SQLiteIntegrityError
-except:
-    from sqlite import IntegrityError as SQLiteIntegrityError
+    from psycopg2 import IntegrityError
+except ImportError:
+    try:
+        from pysqlite2.dbapi2 import IntegrityError
+    except:
+        try:
+            from sqlite import IntegrityError
+        except ImportError:
+            print("Unable to import either psycopg2, pysqlite2, or sqlite")
