@@ -25,7 +25,6 @@ import subprocess
 import urlgrabber
 #import turbogears
 
-from kid import Element
 from yum import repoMDObject
 from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
@@ -143,6 +142,7 @@ def authorized_user(update, identity):
 
 def make_update_link(obj):
     """ Return a link Element for a given PackageUpdate or PackageBuild """
+    from kid import Element
     update = None
     if hasattr(obj, 'updates'):    # Package or PackageBuild
         update = obj.updates[0]
@@ -159,11 +159,13 @@ def make_update_link(obj):
 
 
 def make_type_icon(update):
+    from kid import Element
     return Element('img', src=url('/static/images/%s.png' % update.type),
                    title=update.type)
 
 
 def make_request_icon(update):
+    from kid import Element
     return Element('img', src=url('/static/images/%s-large.png' %
                    update.request), title=str(update.request))
 
@@ -175,6 +177,7 @@ def make_karma_icon(update):
         karma = 1
     else:
         karma = 0
+    from kid import Element
     return Element('img', src=url('/static/images/karma%d.png' % karma))
 
 
