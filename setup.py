@@ -69,7 +69,7 @@ setup(name='bodhi',
       include_package_data=True,
       zip_safe=False,
       install_requires = requires,
-      tests_require = ['nose', 'nose-cov',],
+      tests_require = ['nose', 'nose-cov', 'webtest'],
       test_suite="nose.collector",
       message_extractors = { '.': [
           ('**.py', 'lingua_python', None),
