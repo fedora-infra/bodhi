@@ -1,1 +1,1 @@
-${widget.display()}
+${widget.display() | n}
