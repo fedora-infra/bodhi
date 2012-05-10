@@ -347,6 +347,9 @@ class Build(Base):
         """ Return the path of this built update """
         return os.path.join(config.get('build_dir'), *get_nvr(self.nvr))
 
+    def __repr__(self):
+        return "<Build %s>" % self.nvr
+
 
 class Update(Base):
     __tablename__ = 'updates'
