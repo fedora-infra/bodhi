@@ -3,7 +3,6 @@ import json
 import tw2.core as twc
 
 from nose.tools import eq_
-from bodhi.models import DBSession
 
 app = None
 
@@ -64,3 +63,7 @@ class FunctionalTests(unittest.TestCase):
     def test_invalid_tag(self):
         res = app.post('/save', self.get_update('bodhi-1.0-1'))
         assert 'Invalid tag' in res, res
+
+    def test_old_build(self):
+        res = app.post('/save', self.get_update('bodhi-1.9-1'))
+        assert 'Invalid build: bodhi-1.9-1 is older than bodhi-2.0-1' in res, res
