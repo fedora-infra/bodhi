@@ -69,3 +69,20 @@ class BuildValidator(twc.Validator):
                     raise twc.ValidationError(
                             "Multiple %s builds specified: %s & %s" % (
                                 nvr[0], build, other_build))
+
+
+class UpdateValidator(twc.Validator):
+
+    def validate_python(self, value, state=None):
+        super(UpdateValidator, self).validate_python(value, state)
+
+        # If we are not editing an update, check if it is a duplicate
+        if not value['id']:
+            if value['packages'] is not twc.validation.Invalid:
+                session = DBSession()
+                for pkg in value['packages']:
+                    build = pkg['package']
+                    exists = session.query(Build).filter_by(nvr=build).first()
+                    if exists:
+                        raise twc.ValidationError(
+                                "Update for %s already exists" % build, self)
