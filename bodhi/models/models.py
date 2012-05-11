@@ -1103,7 +1103,7 @@ def populate():
     session.add(release)
     pkg = Package(name=u'bodhi')
     session.add(pkg)
-    build = Build(nvr=u'bodhi-2.0-1', release=release)
+    build = Build(nvr=u'bodhi-2.0-1', release=release, package=pkg)
     session.add(build)
     update = Update(
         builds=[build], user=user,
