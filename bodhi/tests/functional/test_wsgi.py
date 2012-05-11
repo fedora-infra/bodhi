@@ -2,6 +2,7 @@ import unittest
 import json
 import tw2.core as twc
 
+from kitchen.iterutils import iterate
 from nose.tools import eq_
 
 app = None
@@ -20,9 +21,8 @@ class FunctionalTests(unittest.TestCase):
 
     def get_update(self, builds=None):
         if not builds:
-            builds = ['bodhi-2.0-1']
-        return {
-            'newupdateform:packages:0:package': builds,
+            builds = 'bodhi-2.0-1'
+        data = {
             'newupdateform:bugs:bugs': u'',
             'newupdateform:notes': u'this is a test update',
             'newupdateform:type_': u'bugfix',
@@ -30,6 +30,9 @@ class FunctionalTests(unittest.TestCase):
             'newupdateform:karma:unstablekarma': u'-3',
             'newupdateform:id': u'',
             }
+        for i, build in enumerate(iterate(builds)):
+            data['newupdateform:packages:%d:package' % i] = build
+        return data
 
     def test_release_view_json(self):
         res = app.get('/releases/F17', status=200)
