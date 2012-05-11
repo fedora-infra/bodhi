@@ -31,6 +31,8 @@ class BuildValidator(twc.Validator):
         koji = buildsys.get_session()
 
         for build in builds:
+            nvr = get_nvr(build)
+
             # Ensure everything is tagged properly.
             tags = koji.listTags(build)
             valid = False
@@ -43,7 +45,6 @@ class BuildValidator(twc.Validator):
                         (build, candidate_tags), self)
 
             # Ensure no builds are older than any that we know of
-            nvr = get_nvr(build)
             pkg = session.query(Package).filter_by(name=nvr[0]).first()
             if pkg:
                 last = session.query(Build).filter_by(package=pkg) \
@@ -53,3 +54,18 @@ class BuildValidator(twc.Validator):
                         raise twc.ValidationError(
                                 'Invalid build: %s is older than %s' %
                                 (build, last.nvr))
+
+            # Check for multiple builds from the same package
+            seen_build = 0
+            for other_build in builds:
+                other_build_nvr = get_nvr(other_build)
+                if build == other_build:
+                    seen_build += 1
+                    if seen_build > 1:
+                        raise twc.ValidationError(
+                                'Duplicate builds: %s' % build, self)
+                    continue
+                if nvr[0] == other_build_nvr[0]:
+                    raise twc.ValidationError(
+                            "Multiple %s builds specified: %s & %s" % (
+                                nvr[0], build, other_build))
