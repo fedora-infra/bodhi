@@ -1,7 +1,9 @@
 import unittest
 import json
+import tw2.core as twc
 
 from nose.tools import eq_
+from bodhi.models import DBSession
 
 app = None
 
@@ -12,7 +14,7 @@ def setup():
     global app
     app = main({}, **{'sqlalchemy.url': 'sqlite://',
                       'mako.directories': 'bodhi:templates'})
-    app = TestApp(app)
+    app = TestApp(twc.make_middleware(app))
 
 
 class FunctionalTests(unittest.TestCase):
