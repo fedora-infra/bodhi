@@ -1109,12 +1109,12 @@ def populate():
     user = User(name=u'bodhi')
     session.add(user)
     release = Release(
-        name=u'F15', long_name=u'Fedora 15',
-        id_prefix=u'FEDORA', dist_tag=u'dist-f15')
+        name=u'F17', long_name=u'Fedora 17',
+        id_prefix=u'FEDORA', dist_tag=u'f17')
     session.add(release)
     pkg = Package(name=u'bodhi')
     session.add(pkg)
-    build = Build(nvr=u'bodhi-2.0-1.fc15', release=release)
+    build = Build(nvr=u'bodhi-2.0-1', release=release)
     session.add(build)
     update = Update(
         builds=[build], user=user,

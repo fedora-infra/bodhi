@@ -18,9 +18,9 @@ def setup():
 class FunctionalTests(unittest.TestCase):
 
     def test_release_view_json(self):
-        res = app.get('/releases/F15', status=200)
+        res = app.get('/releases/F17', status=200)
         data = json.loads(res.body)
-        eq_(data['context']['name'], 'F15')
+        eq_(data['context']['name'], 'F17')
 
     def test_invalid_release(self):
         app.get('/releases/F16', status=404)
