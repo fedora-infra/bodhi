@@ -1,14 +1,18 @@
+import rpm
 import logging
 import tw2.core
 
+from pprint import pprint
 from beaker.cache import cache_region
 from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
+from pyramid.response import Response
+from pyramid.httpexceptions import HTTPFound
 
 from bodhi import buildsys
-from bodhi.models import DBSession, Release
+from bodhi.models import DBSession, Release, Build, Package
 from bodhi.widgets import NewUpdateForm
-from bodhi.util import _
+from bodhi.util import _, get_nvr
 
 log = logging.getLogger(__name__)
 
@@ -74,21 +78,15 @@ def save(request):
 
     # Validate parameters
     try:
-        validated = NewUpdateForm.validate(request.POST)
-    except tw2.core.ValidationError, ve:
-        # TODO
-        print ve
-        raise
+        data = NewUpdateForm.validate(request.POST)
+    except tw2.core.ValidationError, e:
+        return Response(e.widget.display())
 
-    from pprint import pprint
-    pprint(validated)
+    pprint(data)
+    session = DBSession()
 
-    ## Sanity checks
-    # Check for conflicting builds
-    # Make sure update doesn't exist
     # Make sure submitter has commit access
     # Editing magic
-    # Make sure builds are tagged properly
     # Create model instances
     # Obsolete any older updates, inherit data
     # Bugzilla interactions
@@ -97,6 +95,7 @@ def save(request):
     # Send out email notifications
     # Set request, w/ critpath checks
 
+    return Response("Hi There!")
 
 @cache_region('long_term', 'package_list')
 def get_all_packages():
