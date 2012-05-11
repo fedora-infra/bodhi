@@ -30,31 +30,31 @@ class Buildsystem:
     us to create a development subclass of this object to use during
     development so we don't alter any production data.
     """
-    def getBuild(self):
+    def getBuild(self, *args, **kw):
         raise NotImplementedError
 
-    def getLatestBuilds(self):
+    def getLatestBuilds(self, *args, **kw):
         raise NotImplementedError
 
-    def moveBuild(self):
+    def moveBuild(self, *args, **kw):
         raise NotImplementedError
 
-    def ssl_login(self):
+    def ssl_login(self, *args, **kw):
         raise NotImplementedError
 
-    def listBuildRPMs(self):
+    def listBuildRPMs(self, *args, **kw):
         raise NotImplementedError
 
-    def listTags(self):
+    def listTags(self, *args, **kw):
         raise NotImplementedError
 
-    def listTagged(self):
+    def listTagged(self, *args, **kw):
         raise NotImplementedError
 
-    def taskFinished(self):
+    def taskFinished(self, *args, **kw):
         raise NotImplementedError
 
-    def untagBuild(self):
+    def untagBuild(self, *args, **kw):
         raise NotImplementedError
 
 
@@ -116,35 +116,21 @@ class DevBuildsys(Buildsystem):
             ]
 
     def listTags(self, build, *args, **kw):
-        if 'fc7' in build:
+        if build == 'bodhi-1.0-1': # return a testing update
             return [{
                 'arches': 'i386 x86_64 ppc ppc64',
-                'name': 'dist-fc7-updates-candidate',
                 'id': 10,
                 'locked': True,
-                'perm': None,
-                'perm_id': None
-            }, {
-                'arches': 'i386 x86_64 ppc ppc64',
-                'name': 'dist-fc7',
-                'id': 5,
-                'locked': True,
+                'name': 'f17-updates-testing',
                 'perm': None,
                 'perm_id': None
             }]
         else:
             return [{
                 'arches': 'i386 x86_64 ppc ppc64',
+                'name': 'f17-updates-candidate',
                 'id': 10,
                 'locked': True,
-                'name': 'dist-f8-updates-candidate',
-                'perm': None,
-                'perm_id': None
-            }, {
-                'arches': 'i386 x86_64 ppc ppc64',
-                'id': 5,
-                'locked': True,
-                'name': 'dist-f8',
                 'perm': None,
                 'perm_id': None
             }]
