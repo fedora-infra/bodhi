@@ -70,3 +70,11 @@ class FunctionalTests(unittest.TestCase):
     def test_old_build(self):
         res = app.post('/save', self.get_update('bodhi-1.9-1'))
         assert 'Invalid build: bodhi-1.9-1 is older than bodhi-2.0-1' in res, res
+
+    def test_duplicate_build(self):
+        res = app.post('/save', self.get_update(['bodhi-2.0-2', 'bodhi-2.0-2']))
+        assert 'Duplicate builds' in res, res
+
+    def test_multiple_builds_of_same_package(self):
+        res = app.post('/save', self.get_update(['bodhi-2.0-2', 'bodhi-2.0-3']))
+        assert 'Multiple bodhi builds specified' in res, res
