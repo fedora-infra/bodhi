@@ -6,7 +6,7 @@ import tw2.jqplugins.jqgrid
 import tw2.jqplugins.ui
 
 import bodhi.models
-from bodhi.validators import BuildValidator
+from bodhi.validators import BuildValidator, UpdateValidator
 
 
 class NewUpdateForm(tw2.forms.FormPage):
@@ -17,6 +17,7 @@ class NewUpdateForm(tw2.forms.FormPage):
     class child(tw2.dynforms.CustomisedTableForm):
         action = '/save'
         id = tw2.forms.HiddenField()
+        validator = UpdateValidator
 
         class packages(tw2.dynforms.GrowingGridLayout):
             validator = BuildValidator

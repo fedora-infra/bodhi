@@ -84,3 +84,7 @@ class FunctionalTests(unittest.TestCase):
         assert 'Must be at least 1' in res, res
         res = app.post('/save', self.get_update(unstablekarma=1))
         assert 'Cannot be more than -1' in res, res
+
+    def test_duplicate_update(self):
+        res = app.post('/save', self.get_update('bodhi-2.0-1'))
+        assert 'Update for bodhi-2.0-1 already exists' in res, res
