@@ -19,15 +19,15 @@ def setup():
 
 class FunctionalTests(unittest.TestCase):
 
-    def get_update(self, builds=None):
+    def get_update(self, builds=None, stablekarma=3, unstablekarma=-3):
         if not builds:
             builds = 'bodhi-2.0-1'
         data = {
             'newupdateform:bugs:bugs': u'',
             'newupdateform:notes': u'this is a test update',
             'newupdateform:type_': u'bugfix',
-            'newupdateform:karma:stablekarma': u'3',
-            'newupdateform:karma:unstablekarma': u'-3',
+            'newupdateform:karma:stablekarma': stablekarma,
+            'newupdateform:karma:unstablekarma': unstablekarma,
             'newupdateform:id': u'',
             }
         for i, build in enumerate(iterate(builds)):
@@ -78,3 +78,9 @@ class FunctionalTests(unittest.TestCase):
     def test_multiple_builds_of_same_package(self):
         res = app.post('/save', self.get_update(['bodhi-2.0-2', 'bodhi-2.0-3']))
         assert 'Multiple bodhi builds specified' in res, res
+
+    def test_invalid_autokarma(self):
+        res = app.post('/save', self.get_update(stablekarma=-1))
+        assert 'Must be at least 1' in res, res
+        res = app.post('/save', self.get_update(unstablekarma=1))
+        assert 'Cannot be more than -1' in res, res
