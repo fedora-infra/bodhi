@@ -6,19 +6,10 @@ import tw2.jqplugins.jqgrid
 import tw2.jqplugins.ui
 
 import bodhi.models
+from bodhi.validators import BuildValidator, UpdateValidator
 
 
-class UpdateList(tw2.sqla.DbListPage):
-    entity = bodhi.models.Update
-    title = 'Updates'
-    newlink = tw2.forms.LinkField(link='/new', text='New', value=1)
-
-    class child(tw2.forms.GridLayout):
-        title = tw2.forms.LabelField()
-        id = tw2.forms.LinkField(link='/edit?id=$', text='Edit', label=None)
-
-
-class NewUpdateForm(tw2.sqla.DbFormPage):
+class NewUpdateForm(tw2.forms.FormPage):
     entity = bodhi.models.Update
     redirect = '/updates'
     title = 'Submit a new update'
@@ -26,8 +17,10 @@ class NewUpdateForm(tw2.sqla.DbFormPage):
     class child(tw2.dynforms.CustomisedTableForm):
         action = '/save'
         id = tw2.forms.HiddenField()
+        validator = UpdateValidator
 
         class packages(tw2.dynforms.GrowingGridLayout):
+            validator = BuildValidator
             package = tw2.jqplugins.ui.AutocompleteWidget(options={
                 'source': '/search_pkgs',
                 'minLength': 2,
@@ -70,7 +63,7 @@ class NewUpdateForm(tw2.sqla.DbFormPage):
                     }"""),
                 })
 
-        builds = tw2.forms.CheckBoxList(options=[])
+        #builds = tw2.forms.CheckBoxList(options=[])
 
         type_ = tw2.forms.SingleSelectField(
                 options=bodhi.models.UpdateType.values(),
