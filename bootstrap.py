@@ -1,13 +1,28 @@
 #!/usr/bin/env python
+""" This script can bootstrap either a python2 or a python3 environment.
+
+The environments it generates are named by the python version they are built
+against.  i.e.:  bodhi-python2.7 or bodhi-python3.2.
+To generate one or the other, just use the relevant python binary.  For a
+python2 env, run::
+
+    python2 bootstrap.py
+
+And for a python3 env, run::
+
+    python3 bootstrap.py
+"""
 
 import subprocess
-import commands
 import shutil
 import sys
 import os
 
 ENVS = os.path.expanduser('~/.virtualenvs')
-VENV = 'bodhi'
+VENV = 'bodhi-python{major}.{minor}'.format(
+    major=sys.version_info.major,
+    minor=sys.version_info.minor,
+)
 
 
 def _link_system_lib(lib):
@@ -27,8 +42,13 @@ def _link_system_lib(lib):
         cmd = template.format(
             location=location, venv=VENV, lib=lib,
             workon=os.getenv("WORKON_HOME"))
-        status, output = commands.getstatusoutput(cmd)
-        return status == 0 or status == 256  # File already linked.
+        try:
+            subprocess.check_output(cmd.split())
+            return True
+        except subprocess.CalledProcessError as e:
+            # File already linked.
+            return e.returncode == 256
+
     print("Cannot find global module %s" % lib)
 
 
@@ -43,13 +63,13 @@ def _do_virtualenvwrapper_command(cmd):
     actually bash functions, so we can't call them like we would
     other executables.
     """
-    print "Trying '%s'" % cmd
+    print("Trying '%s'" % cmd)
     out, err = subprocess.Popen(
         ['bash', '-c', '. /usr/bin/virtualenvwrapper.sh; %s' % cmd],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     ).communicate()
-    print out
-    print err
+    print(out)
+    print(err)
 
 
 def rebuild():
@@ -57,9 +77,14 @@ def rebuild():
     try:
         _do_virtualenvwrapper_command('rmvirtualenv %s' % VENV)
     except Exception as e:
-        print str(e)
+        print(unicode(e))
 
-    cmd = 'mkvirtualenv --no-site-packages %s' % VENV
+    cmd = 'mkvirtualenv --no-site-packages -p python{major}.{minor} {v}'\
+            .format(
+                major=sys.version_info.major,
+                minor=sys.version_info.minor,
+                v=VENV,
+            )
     _do_virtualenvwrapper_command(cmd)
 
     # Do two things here:
