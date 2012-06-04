@@ -13,20 +13,8 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from bodhi.resources import appmaker
 import bodhi.buildsys
 
-#class BodhiRequest(Request):
-#    @reify
-#    def user(self):
-#        # <your database connection, however you get it, the below line
-#        # is just an example>
-#        dbconn = self.registry.settings['dbconn']
-#        userid = unauthenticated_userid(self)
-#        if userid is not None:
-#            # this should return None if the user doesn't exist
-#            # in the database
-#            return dbconn['users'].query({'id':userid})
 
-
-def main(global_config, **settings):
+def main(global_config, testing=False, **settings):
     """ This function returns a WSGI application """
     engine = engine_from_config(settings, 'sqlalchemy.')
     get_root = appmaker(engine)
@@ -38,16 +26,18 @@ def main(global_config, **settings):
     session_factory = session_factory_from_settings(settings)
     set_cache_regions_from_settings(settings)
 
-    # Authentication & Authorization
-    authentication_policy = AuthTktAuthenticationPolicy('seekrit')
-    authorization_policy = ACLAuthorizationPolicy()
-
     config = Configurator(settings=settings, root_factory=get_root,
-                          session_factory=session_factory,
-                          authentication_policy=authentication_policy,
-                          authorization_policy=authorization_policy)
+                          session_factory=session_factory)
 
-    #config.set_request_factory(BodhiRequest)
+    # Authentication & Authorization
+    if testing:
+        # use a permissive security policy while running unit tests
+        config.testing_securitypolicy(userid='bodhi', permissive=True)
+    else:
+        config.set_authentication_policy(AuthTktAuthenticationPolicy(
+                settings['authtkt.secret']))
+        config.set_authorization_policy(ACLAuthorizationPolicy())
+
     config.add_static_view('static', 'bodhi:static')
     config.add_translation_dirs('bodhi:locale/')
 
