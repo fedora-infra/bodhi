@@ -1,12 +1,14 @@
 from sqlalchemy import engine_from_config
 
-from pyramid.exceptions import NotFound
+from pyramid.exceptions import NotFound, Forbidden
 from pyramid.decorator import reify
 from pyramid.request import Request
 from pyramid.security import unauthenticated_userid
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
 from pyramid_beaker import set_cache_regions_from_settings
+from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
 
 from bodhi.resources import appmaker
 import bodhi.buildsys
@@ -36,8 +38,14 @@ def main(global_config, **settings):
     session_factory = session_factory_from_settings(settings)
     set_cache_regions_from_settings(settings)
 
+    # Authentication & Authorization
+    authentication_policy = AuthTktAuthenticationPolicy('seekrit')
+    authorization_policy = ACLAuthorizationPolicy()
+
     config = Configurator(settings=settings, root_factory=get_root,
-                          session_factory=session_factory)
+                          session_factory=session_factory,
+                          authentication_policy=authentication_policy,
+                          authorization_policy=authorization_policy)
 
     #config.set_request_factory(BodhiRequest)
     config.add_static_view('static', 'bodhi:static')
@@ -87,5 +95,15 @@ def main(global_config, **settings):
     config.add_view('bodhi.views.notfound_view',
                     renderer='bodhi:templates/404.mak',
                     context=NotFound)
+
+    # pyramid.openid
+    config.add_route('login', '/login',
+                     view='bodhi.views.login',
+                     view_renderer='bodhi:templates/login.mak')
+    config.add_view('bodhi.views.login', context=Forbidden,
+                    renderer='bodhi:templates/login.mak')
+    config.add_route('logout', '/logout', view='bodhi.views.logout')
+    config.add_route('verify_openid', pattern='/dologin.html',
+                     view='pyramid_openid.verify_openid')
 
     return config.make_wsgi_app()
