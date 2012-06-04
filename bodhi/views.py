@@ -7,6 +7,7 @@ from beaker.cache import cache_region
 from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
 from pyramid.response import Response
+from pyramid.security import remember, authenticated_userid, forget
 from pyramid.httpexceptions import HTTPFound
 
 from bodhi import buildsys
@@ -132,3 +133,33 @@ def latest_candidates(request):
                 result.append(build[0][0]['nvr'])
     log.debug(result)
     return result
+
+
+def login(request):
+    login_url = route_url('login', request)
+    referrer = request.url
+    if referrer == login_url: referrer = '/'
+    came_from = request.params.get('came_from', referrer)
+    request.session['came_from'] = came_from
+    return dict(url = request.application_url + '/dologin.html')
+
+
+def logout(request):
+    headers = forget(request)
+    return HTTPFound(location=request.application_url, headers=headers)
+
+
+def remember_me(context, request, *args, **kw):
+    print(request.params)
+    identity = request.params['openid.identity']
+    if not identity.startswith(request.registry.settings['openid.provider']):
+        request.session.flash('Invalid OpenID provider. You can only use: %s' %
+                request.registry.settings['openid.provider'])
+        return HTTPFound(location=request.aplication_url + '/login')
+    username = identity.split('/')[-1]
+    headers = remember(request, username)
+    came_from = request.session['came_from']
+    del(request.session['came_from'])
+    response = HTTPFound(location=came_from)
+    response.headerlist.extend(headers)
+    return response
