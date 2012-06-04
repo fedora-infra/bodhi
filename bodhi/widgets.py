@@ -5,11 +5,15 @@ import tw2.dynforms
 import tw2.jqplugins.jqgrid
 import tw2.jqplugins.ui
 
+from pyramid.security import Allow, Authenticated, ALL_PERMISSIONS
+
 import bodhi.models
 from bodhi.validators import BuildValidator, UpdateValidator
 
 
 class NewUpdateForm(tw2.forms.FormPage):
+    __acl__ = [(Allow, Authenticated, ALL_PERMISSIONS)]
+
     entity = bodhi.models.Update
     redirect = '/updates'
     title = 'Submit a new update'
