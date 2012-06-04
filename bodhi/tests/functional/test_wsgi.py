@@ -12,7 +12,7 @@ def setup():
     from bodhi import main
     from webtest import TestApp
     global app
-    app = main({}, **{'sqlalchemy.url': 'sqlite://',
+    app = main({}, testing=True, **{'sqlalchemy.url': 'sqlite://',
                       'mako.directories': 'bodhi:templates'})
     app = TestApp(twc.make_middleware(app))
 
