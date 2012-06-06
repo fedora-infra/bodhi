@@ -2141,10 +2141,16 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, releng)
         update = PackageUpdate.byTitle(params['builds'])
-        testutil.create_request('/updates/%s' % params['builds'],
-                                method='GET', headers=releng)
+        assert update.critpath
+        assert not update.critpath_approved
+        #
+        # Give some positive karma
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                            params['builds'], method='POST', headers=releng)
 
         # Ensure releng/QA can't push critpath updates alone
+        testutil.create_request('/updates/%s' % params['builds'],
+                                method='GET', headers=releng)
         assert "Push to Testing" in cherrypy.response.body[0]
         assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
         testutil.create_request('/updates/request/stable/%s' %
@@ -2153,12 +2159,18 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing', update.request
 
+        assert not update.critpath_approved
+        assert not update.meets_testing_requirements
+
         # Time travel
         update.pushed = True
         update.request = None
         update.status = 'testing'
         update.status_comment()
         update.comments[-1].timestamp -= timedelta(days=14)
+
+        assert update.meets_testing_requirements
+        assert update.critpath_approved
 
         # Ensure it can now be pushed
         testutil.create_request('/updates/%s' % params['builds'],

@@ -437,6 +437,29 @@ div.comment-text {
 /*http://www.w3.org/TR/CSS21/text.html#white-space-prop*/
 }
 
+/* login box alignment for fas2*/
+
+.panel {
+    margin-left: 50px;
+}
+
+div.login * {
+    padding: 0;
+}
+
+#login-box form .field {
+    margin: 0 0 1ex;
+}
+
+#login-box .field label {
+    float:left;
+    width: 12ex;
+}
+
+.login ul {
+    list-style-position: inside;
+}
+
 /*
 ** Login CSS (login.kid)
 */

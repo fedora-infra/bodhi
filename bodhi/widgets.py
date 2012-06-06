@@ -91,7 +91,8 @@ class NewUpdateForm(Form):
                               validator=validators.OneOf(update_types)),
             SingleSelectField('request', options=request_types,
                               validator=validators.OneOf(request_types +
-                                  [r.lower() for r in request_types if r])),
+                                  [r.lower() for r in request_types if r]),
+                              default='testing'),
             TextField('bugs', validator=BugValidator(),
                       attrs={'title' : 'Bug Numbers - A space or comma '
                                        'delimited list of bug numbers or '

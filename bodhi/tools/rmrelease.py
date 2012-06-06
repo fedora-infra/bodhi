@@ -11,7 +11,7 @@ from sqlobject import SQLObjectNotFound
 from turbogears.database import PackageHub
 
 from bodhi.util import load_config, ProgressBar
-from bodhi.model import Release, PackageUpdate, PackageBuild
+from bodhi.model import Release, PackageUpdate, PackageBuild, BuildRootOverride
 from bodhi.buildsys import get_session
 
 def main():
@@ -40,6 +40,12 @@ def main():
                 bug.destroySelf()
         update.destroySelf()
         progress()
+
+    overrides = BuildRootOverride.select(BuildRootOverride.releaseID==release.id)
+    progress = ProgressBar(maxValue=overrides.count())
+    print "Destroying all buildroot overrides associated with %s" % release.name
+    for override in overrides:
+        override.destroySelf()
 
     release.destroySelf()
     hub.commit()

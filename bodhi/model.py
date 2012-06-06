@@ -1126,6 +1126,9 @@ class PackageUpdate(SQLObject):
     @property
     def critpath_approved(self):
         """ Return whether or not this critpath update has been approved """
+        # https://fedorahosted.org/bodhi/ticket/642
+        if self.meets_testing_requirements:
+            return True
         release_name = self.release.name.lower().replace('-', '')
         status = config.get('%s.status' % release_name, None)
         if status:
@@ -1136,9 +1139,6 @@ class PackageUpdate(SQLObject):
             if num_admin_approvals is not None and min_karma:
                 return self.num_admin_approvals >= num_admin_approvals and \
                         self.karma >= min_karma
-        # https://fedorahosted.org/bodhi/ticket/642
-        if self.meets_testing_requirements:
-            return True
         return self.num_admin_approvals >= config.get(
                 'critpath.num_admin_approvals', 2) and \
                self.karma >= config.get('critpath.min_karma', 2)
