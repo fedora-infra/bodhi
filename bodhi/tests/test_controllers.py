@@ -3005,7 +3005,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing', update.request
 
-        update.comments[-2].timestamp -= timedelta(days=1)
+        update.comments[-3].timestamp -= timedelta(days=1)
         assert update.days_in_testing == 14, update.days_in_testing
 
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
