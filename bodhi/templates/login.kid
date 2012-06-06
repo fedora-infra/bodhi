@@ -16,7 +16,7 @@
         <p>${message}</p>
         <p>Hint: Use your Fedora username, not your e-mail address.</p> 
     </div>
-    <form action="${tg.url(previous_url)}" method="POST" name="login">
+    <form action="${previous_url}" method="POST" name="login">
         <table class="login">
             <tr>
                 <td class="title">Username:</td>
