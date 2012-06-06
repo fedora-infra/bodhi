@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.8.8
+Version:        0.9.0a
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -21,7 +21,7 @@ BuildRequires: TurboGears python-bugzilla
 BuildRequires: python-fedora python-TurboMail TurboGears yum koji
 BuildRequires: python-turboflot python-tgcaptcha
 BuildRequires: python-fedora-turbogears
-BuildRequires: python-fedmsg
+BuildRequires: fedmsg
 
 %description
 Bodhi is a web application that facilitates the process of publishing
@@ -66,6 +66,7 @@ Requires: python-markdown
 Requires: python-hashlib
 Requires: python-kitchen
 Requires: python-simplemediawiki
+Requires: fedmsg
 
 
 %description server
