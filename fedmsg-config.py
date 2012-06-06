@@ -1,5 +1,3 @@
-import random
-
 import socket
 hostname = socket.gethostname()
 
@@ -7,9 +5,18 @@ config = dict(
     endpoints={
         "relay_outbound": ["tcp://*:4001"],
         "bodhi.%s" % hostname: [
-            # Here we use a random port number just so the test suite can run in
-            # parallel
-            "tcp://*:%i" % random.randint(4000, 9000)
+            # Here we list 10 endpoints so bodhi's test suite can run in
+            # parallel.
+            "tcp://*:3001",
+            "tcp://*:3002",
+            "tcp://*:3003",
+            "tcp://*:3004",
+            "tcp://*:3005",
+            "tcp://*:3006",
+            "tcp://*:3007",
+            "tcp://*:3008",
+            "tcp://*:3009",
+            "tcp://*:3010",
         ],
     },
 
