@@ -46,4 +46,7 @@ from psycopg2 import IntegrityError as PostgresIntegrityError
 try:
     from pysqlite2.dbapi2 import IntegrityError as SQLiteIntegrityError
 except:
-    from sqlite import IntegrityError as SQLiteIntegrityError
+    try:
+        from sqlite import IntegrityError as SQLiteIntegrityError
+    except:
+        from sqlite3 import IntegrityError as SQLiteIntegrityError
