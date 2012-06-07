@@ -864,10 +864,10 @@ class PackageUpdate(SQLObject):
             self.karma += karma
             log.info("Updated %s karma to %d" % (self.title, self.karma))
 
-        Comment(text=text, karma=karma, update=self, author=author,
+        c = Comment(text=text, karma=karma, update=self, author=author,
                 anonymous=anonymous)
 
-        fedmsg.send_message(topic='update.comment', msg=dict(update=self))
+        fedmsg.send_message(topic='update.comment', msg=dict(comment=c))
 
         if self.critpath:
             min_karma = config.get('critpath.min_karma')
