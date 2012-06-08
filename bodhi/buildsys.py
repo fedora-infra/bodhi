@@ -203,7 +203,8 @@ def get_session():
 
 def setup_buildsystem(settings):
     global _buildsystem
-    assert not _buildsystem, "Buildsystem already configured?"
+    if _buildsystem:
+        return
     buildsys = settings.get('buildsystem')
     if buildsys == 'koji':
         log.debug('Using Koji Buildsystem')
