@@ -14,7 +14,7 @@ from bodhi.resources import appmaker
 import bodhi.buildsys
 
 
-def main(global_config, testing=False, **settings):
+def main(global_config, testing=None, **settings):
     """ This function returns a WSGI application """
     engine = engine_from_config(settings, 'sqlalchemy.')
     get_root = appmaker(engine)
@@ -32,7 +32,7 @@ def main(global_config, testing=False, **settings):
     # Authentication & Authorization
     if testing:
         # use a permissive security policy while running unit tests
-        config.testing_securitypolicy(userid='bodhi', permissive=True)
+        config.testing_securitypolicy(userid=testing, permissive=True)
     else:
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
                 settings['authtkt.secret']))
