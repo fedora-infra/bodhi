@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import logging
 import bugzilla
@@ -211,6 +212,15 @@ class Release(Base):
                 return days
         return config.get('%s.mandatory_days_in_testing' %
                           self.id_prefix.lower().replace('-', '_'))
+
+    @property
+    def collection_name(self):
+        """ Return the collection name of this release.  (eg: Fedora EPEL) """
+        return ' '.join(self.long_name.split()[:-1])
+
+    def get_version(self):
+        regex = re.compile('\D+(\d+)$')
+        return int(regex.match(self.name).groups()[0])
 
 
 class Package(Base):
