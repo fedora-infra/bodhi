@@ -1,10 +1,16 @@
 import rpm
+import urllib2
+import logging
 import tw2.core as twc
 
+from pyramid.threadlocal import get_current_request
+from pyramid.security import authenticated_userid
+
 from bodhi.models import DBSession, Release, Package, Build, Update
-from bodhi.util import get_nvr
+from bodhi.util import get_nvr, get_pkg_pushers
 from bodhi import buildsys
 
+log = logging.getLogger(__name__)
 
 class BuildValidator(twc.Validator):
     required = True
@@ -26,14 +32,15 @@ class BuildValidator(twc.Validator):
                 raise twc.ValidationError('badbuild', self)
 
         # TODO: if we're editing and update, allow testing tags
-        session = DBSession()
-        candidate_tags = [r.candidate_tag for r in session.query(Release).all()]
+        tag_types, tag_rels = Release.get_tags()
+        candidate_tags = tag_types['candidate']
+        request = get_current_request()
+        userid = authenticated_userid(request)
         koji = buildsys.get_session()
 
+        # Ensure everything is tagged properly.
         for build in builds:
             nvr = get_nvr(build)
-
-            # Ensure everything is tagged properly.
             tags = koji.listTags(build)
             valid = False
             for tag in tags:
@@ -45,6 +52,7 @@ class BuildValidator(twc.Validator):
                         (build, candidate_tags), self)
 
             # Ensure no builds are older than any that we know of
+            session = DBSession()
             pkg = session.query(Package).filter_by(name=nvr[0]).first()
             if pkg:
                 last = session.query(Build).filter_by(package=pkg) \
@@ -69,6 +77,42 @@ class BuildValidator(twc.Validator):
                     raise twc.ValidationError(
                             "Multiple %s builds specified: %s & %s" % (
                                 nvr[0], build, other_build))
+
+            # Ensure this user has commit privs to these builds
+            pkgdb_args = {
+                'collectionName': 'Fedora',
+                'collectionVersion': 'devel',
+            }
+            for tag in tags:
+                release = DBSession.query(Release) \
+                        .filter_by(name=tag_rels[tag['name']]).one()
+                pkgdb_args['collectionName'] = release.collection_name
+                pkgdb_args['collectionVersion'] = str(release.get_version())
+                break
+
+            try:
+                people, groups = get_pkg_pushers(nvr[0], **pkgdb_args)
+                committers, watchers = people
+                groups, notify_groups = groups
+            except urllib2.URLError:
+                request.session.flash("Unable to access the package database. "
+                        "Please try again later.")
+                raise twc.ValidationError()
+            except Exception, e:
+                log.exception(e)
+                if 'dbname' in str(e):
+                    request.session.flash('Error: PackageDB database '
+                            'connection limit reached. Please try again later')
+                    raise twc.ValidationError()
+                else:
+                    request.session.flash(str(e))
+                    raise twc.ValidationError()
+
+            if userid not in committers:
+                # TODO: take into account groups
+                raise twc.ValidationError(
+                        "%s does not have commit access to %s" % (
+                            userid, pkg.name))
 
 
 class UpdateValidator(twc.Validator):
