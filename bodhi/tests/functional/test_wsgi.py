@@ -4,16 +4,27 @@ import tw2.core as twc
 
 from kitchen.iterutils import iterate
 from nose.tools import eq_
+from webtest import TestApp
+
+from bodhi import main
 
 app = None
 
+app_settings = {
+    'sqlalchemy.url': 'sqlite://',
+    'mako.directories': 'bodhi:templates',
+    'cache.regions': 'default_term, second, short_term, long_term',
+    'cache.type': 'memory',
+    'cache.second.expire': '1',
+    'cache.short_term.expire': '60',
+    'cache.default_term.expire': '300',
+    'cache.long_term.expire': '3600',
+    'acl_system': 'dummy',
+}
 
 def setup():
-    from bodhi import main
-    from webtest import TestApp
     global app
-    app = main({}, testing=True, **{'sqlalchemy.url': 'sqlite://',
-                      'mako.directories': 'bodhi:templates'})
+    app = main({}, testing='guest', **app_settings)
     app = TestApp(twc.make_middleware(app))
 
 
@@ -88,3 +99,9 @@ class FunctionalTests(unittest.TestCase):
     def test_duplicate_update(self):
         res = app.post('/save', self.get_update('bodhi-2.0-1'))
         assert 'Update for bodhi-2.0-1 already exists' in res, res
+
+    def test_no_privs(self):
+        app = main({}, testing='bodhi', **app_settings)
+        app = TestApp(twc.make_middleware(app))
+        res = app.post('/save', self.get_update('bodhi-2.1-1'))
+        assert 'bodhi does not have commit access to bodhi' in res, res
