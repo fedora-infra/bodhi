@@ -15,6 +15,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'pyramid',
     'pyramid_beaker',
+    'pyramid_openid',
     'WebError',
 
     # not needed until we need need multiphase commits.
