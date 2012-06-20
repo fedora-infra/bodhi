@@ -283,8 +283,6 @@ class Build(Base):
     release = relation('Release', backref='builds', lazy=False)
 
     def get_latest(self):
-        """ Return the path to the last released srpm of this package """
-        latest_srpm = None
         koji_session = buildsys.get_session()
 
         # Grab a list of builds tagged with ``Release.stable_tag`` release
@@ -294,22 +292,21 @@ class Build(Base):
         # ``Release.candidate_tag`` first, because there could potentially be
         # packages that never make their way over stable, so we don't want to
         # generate ChangeLogs against those.
-        evr = build_evr(koji_session.getBuild(self.nvr))
         latest = None
+        evr = build_evr(koji_session.getBuild(self.nvr))
         for tag in [self.release.stable_tag, self.release.dist_tag]:
             builds = koji_session.getLatestBuilds(
-                tag, package=self.package.name)
+                    tag, package=self.package.name)
 
             # Find the first build that is older than us
             for build in builds:
                 new_evr = build_evr(build)
                 if rpm.labelCompare(evr, new_evr) < 0:
-                    latest = get_nvr(build['nvr'])
+                    latest = build['nvr']
                     break
             if latest:
                 break
-        if latest:
-            return '-'.join(latest)
+        return latest
 
     def get_latest_srpm(self):
         latest = get_nvr(self.get_latest())
