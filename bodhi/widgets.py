@@ -73,6 +73,10 @@ class NewUpdateForm(tw2.forms.FormPage):
                 options=bodhi.models.UpdateType.values(),
                 validator=tw2.core.OneOfValidator(
                     values=bodhi.models.UpdateType.values()))
+        severity = tw2.forms.SingleSelectField(
+                options=bodhi.models.UpdateSeverity.values(),
+                validator=tw2.core.OneOfValidator(
+                    values=bodhi.models.UpdateSeverity.values()))
         notes = tw2.forms.TextArea(rows=5, cols=50,
                 validator=tw2.core.StringLengthValidator(min=10))
 

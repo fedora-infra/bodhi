@@ -8,7 +8,7 @@ from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 
 from bodhi import models as model
-from bodhi.models import UpdateStatus, UpdateType, UpdateRequest
+from bodhi.models import UpdateStatus, UpdateType, UpdateRequest, UpdateSeverity
 from bodhi.tests.models import ModelTest
 from bodhi.exceptions import InvalidRequest
 
@@ -104,6 +104,7 @@ class TestUpdate(ModelTest):
         type=UpdateType.security,
         status=UpdateStatus.pending,
         request=UpdateRequest.testing,
+        severity=UpdateSeverity.moderate,
         close_bugs=True,
         notes=u'foobar',
         karma=0,

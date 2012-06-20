@@ -108,6 +108,12 @@ class UpdateRequest(DeclEnum):
     obsolete = 'obsolete', 'obsolete'
     unpush = 'unpush', 'unpush'
 
+
+class UpdateSeverity(DeclEnum):
+    moderate = 'moderate', 'moderate'
+    critical = 'critical', 'critical'
+
+
 ##
 ## Association tables
 ##
@@ -388,6 +394,7 @@ class Update(Base):
                     default=UpdateStatus.pending,
                     nullable=False)
     request = Column(UpdateRequest.db_type())
+    severity = Column(UpdateSeverity.db_type(), nullable=True)
 
     # Flags
     pushed = Column(Boolean, default=False)
