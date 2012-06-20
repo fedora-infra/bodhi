@@ -398,7 +398,6 @@ class Update(Base):
     severity = Column(UpdateSeverity.db_type(), nullable=True)
 
     # Flags
-    pushed = Column(Boolean, default=False)
     locked = Column(Boolean, default=False)
 
     # Bug settings
@@ -569,7 +568,6 @@ class Update(Base):
         #    self.request = action
         #    return
         self.request = action
-        self.pushed = False
         self.date_pushed = None
         flash_log("%s has been submitted for %s" % (
             self.title, action.description))
@@ -586,7 +584,6 @@ class Update(Base):
         elif self.request is UpdateRequest.stable:
             self.status = UpdateStatus.stable
         self.request = None
-        self.pushed = True
         self.date_pushed = datetime.utcnow()
         self.assign_alias()
 
@@ -848,7 +845,6 @@ class Update(Base):
             if self.stable_karma != 0 and self.stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = UpdateRequest.stable
-                self.pushed = False
                 self.date_pushed = None
                 mail.send(self.get_maintainers(), 'stablekarma', self)
                 mail.send_admin('stablekarma', self)

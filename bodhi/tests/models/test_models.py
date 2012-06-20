@@ -308,7 +308,6 @@ class TestUpdate(ModelTest):
         eq_(self.obj.date_pushed, None)
         self.obj.set_request('testing')
         self.obj.request_complete()
-        eq_(self.obj.pushed, True)
         assert self.obj.date_pushed
         eq_(self.obj.status, UpdateStatus.testing)
 
