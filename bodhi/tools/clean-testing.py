@@ -3,6 +3,8 @@
 """
 A tool that untags testing builds that have a newer build tagged as stable.
 """
+__requires__ = 'bodhi'
+import pkg_resources
 
 import os
 import sys

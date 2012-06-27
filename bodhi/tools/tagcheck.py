@@ -1,9 +1,10 @@
 #!/usr/bin/python -tt
-
 """
 Verify that all builds that are tagged as updates in koji have the
 correct status within bodhi
 """
+__requires__ = 'bodhi'
+import pkg_resources
 
 import sys
 
