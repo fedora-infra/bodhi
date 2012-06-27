@@ -43,10 +43,13 @@ def main():
         progress()
 
     overrides = BuildRootOverride.select(BuildRootOverride.releaseID==release.id)
-    progress = ProgressBar(maxValue=overrides.count())
-    print "Destroying all buildroot overrides associated with %s" % release.name
-    for override in overrides:
-        override.destroySelf()
+    num_overrides = overrides.count()
+    if num_overrides:
+        progress = ProgressBar(maxValue=overrides.count())
+        print "Destroying all buildroot overrides associated with %s" % release.name
+        for override in overrides:
+            override.destroySelf()
+            progress()
 
     release.destroySelf()
     hub.commit()
