@@ -860,6 +860,9 @@ class PackageUpdate(SQLObject):
 
         Comment(text=text, karma=karma, update=self, author=author,
                 anonymous=anonymous)
+        # Send a notification to everyone that has commented on this update
+        if email:
+            mail.send(self.people_to_notify(), 'comment', self)
 
         if self.critpath:
             min_karma = config.get('critpath.min_karma')
@@ -920,9 +923,6 @@ class PackageUpdate(SQLObject):
                               'being unpushed and marked as unstable' % self.karma)
             mail.send(self.submitter, 'unstable', self)
 
-        # Send a notification to everyone that has commented on this update
-        if email:
-            mail.send(self.people_to_notify(), 'comment', self)
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """
