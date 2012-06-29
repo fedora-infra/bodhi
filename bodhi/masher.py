@@ -817,15 +817,22 @@ class MashTask(Thread):
                 orderBy=PackageUpdate.q.date_submitted).reversed():
             if update.critpath and not update.critpath_approved:
                 updates.append(update)
+        self.sort_by_days_in_testing(updates)
         return updates
 
     def get_security_updates(self, release):
         release = Release.select(Release.q.long_name==release)[0]
-        return PackageUpdate.select(
+        updates = PackageUpdate.select(
                 AND(PackageUpdate.q.releaseID == release.id,
                     PackageUpdate.q.type == 'security',
                     PackageUpdate.q.status == 'testing',
                     PackageUpdate.q.request == None))
+        self.sort_by_days_in_testing(updates)
+        return updates
+
+    def sort_by_days_in_testing(self, updates):
+        updates.sort(key=lambda update: update.days_in_testing, reverse=True)
+        return updates
 
     def send_digest_mail(self):
         '''
@@ -837,16 +844,16 @@ class MashTask(Thread):
             try:
                 security_updates = self.get_security_updates(prefix)
                 if security_updates:
-                    maildata += u'The following %s Security updates need testing:\n\n' % prefix
+                    maildata += u'The following %s Security updates need testing:\n Age  URL\n' % prefix
                     for update in security_updates:
-                        maildata += u'    %s\n' % (config.get('base_address') + url(update.get_url()))
+                        maildata += u' %3i  %s\n' % (update.days_in_testing, config.get('base_address') + url(update.get_url()))
                     maildata += '\n\n'
 
                 critpath_updates = self.get_unapproved_critpath_updates(prefix)
                 if critpath_updates:
-                    maildata += u'The following %s Critical Path updates have yet to be approved:\n\n' % prefix
+                    maildata += u'The following %s Critical Path updates have yet to be approved:\n Age URL\n' % prefix
                     for update in self.get_unapproved_critpath_updates(prefix):
-                        maildata += u'    %s\n' % (config.get('base_address') + url(update.get_url()))
+                        maildata += u' %3i  %s\n' % (update.days_in_testing, config.get('base_address') + url(update.get_url()))
                     maildata += '\n\n'
             except Exception, e:
                 log.exception(e)
