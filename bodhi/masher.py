@@ -846,14 +846,14 @@ class MashTask(Thread):
                 if security_updates:
                     maildata += u'The following %s Security updates need testing:\n Age  URL\n' % prefix
                     for update in security_updates:
-                        maildata += u' %3i  %s\n' % (update.days_in_testing, config.get('base_address') + url(update.get_url()))
+                        maildata += u' %3i  %s%s\n' % (update.days_in_testing, config.get('base_address'), url(update.get_url()))
                     maildata += '\n\n'
 
                 critpath_updates = self.get_unapproved_critpath_updates(prefix)
                 if critpath_updates:
                     maildata += u'The following %s Critical Path updates have yet to be approved:\n Age URL\n' % prefix
                     for update in self.get_unapproved_critpath_updates(prefix):
-                        maildata += u' %3i  %s\n' % (update.days_in_testing, config.get('base_address') + url(update.get_url()))
+                        maildata += u' %3i  %s%s\n' % (update.days_in_testing, config.get('base_address'), url(update.get_url()))
                     maildata += '\n\n'
             except Exception, e:
                 log.exception(e)
