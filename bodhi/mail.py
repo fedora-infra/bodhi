@@ -433,7 +433,7 @@ def get_template(update, use_template='fedora_errata_template'):
 
     return templates
 
-def send_mail(sender, to, subject, body):
+def send_mail(sender, to, subject, body, headers=None):
     from turbomail import MailNotEnabledException
     if to in config.get('exclude_mail').split():
         return
@@ -441,6 +441,8 @@ def send_mail(sender, to, subject, body):
         to = '%s@%s' % (to, config.get('default_email_domain'))
     message = turbomail.Message(sender, to, subject)
     message.plain = body
+    if headers:
+        message.headers = headers
     try:
         log.debug("Sending mail: %r" % message.plain)
         turbomail.enqueue(message)
@@ -461,11 +463,21 @@ def send(to, msg_type, update, sender=None):
         to = [to]
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
     title = getattr(update, 'title', getattr(update, 'build', ''))
+    headers = {"X-Bodhi-Update-Type", update.type,
+               "X-Bodhi-Update-Release", update.release,
+               "X-Bodhi-Update-Status", update.status,
+               "X-Bodhi-Update-Builds", update.builds,
+               "X-Bodhi-Update-Title", update.title,
+               "X-Bodhi-Update-Pushed", update.pushed,
+               "X-Bodhi-Update-Request", update.request,
+              }
     for person in to:
         send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (
                   critpath, msg_type, title),
                   messages[msg_type]['body'] %
-                  messages[msg_type]['fields'](update))
+                  messages[msg_type]['fields'](update),
+                  headers=headers
+                 )
 
 def send_releng(subject, body):
     """ Send the Release Engineering team a message """
