@@ -588,7 +588,7 @@ class MashTask(Thread):
 
             # move the new repo to our mash stage
             stage_dir = config.get('mashed_stage_dir')
-            if mashed_dir != mashed_dir:
+            if mashed_dir != stage_dir:
                 log.debug("Moving %s => %s" % (mashdir, stage_dir))
                 shutil.move(mashdir, config.get('mashed_stage_dir'))
             else:
