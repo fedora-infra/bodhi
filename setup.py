@@ -162,7 +162,7 @@ setup(
         'install_data': InstallData,
     },
     install_requires = [
-        "TurboGears >= 1.0",
+        "TurboGears >= 1.0, < 1.5",
         "TurboMail",
         "python_fedora",
         #"markdown",
