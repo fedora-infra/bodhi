@@ -590,7 +590,7 @@ class MashTask(Thread):
             stage_dir = config.get('mashed_stage_dir')
             if mashed_dir != stage_dir:
                 log.debug("Moving %s => %s" % (mashdir, stage_dir))
-                shutil.move(mashdir, config.get('mashed_stage_dir'))
+                shutil.move(mashdir, stage_dir)
             else:
                 log.debug("mashed_dir and mashed_stage_dir are the same.")
 
