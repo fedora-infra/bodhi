@@ -2,7 +2,7 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.9.0a
+Version:        0.9.1
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -102,6 +102,10 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %clean
 %{__rm} -rf %{buildroot}
 
+%pre
+%{_sbindir}/groupadd -r %{name} &>/dev/null || :
+%{_sbindir}/useradd  -r -s /sbin/nologin -d %{_datadir}/%{name} -M \
+                     -c 'Bodhi Server' -g %{name} %{name} &>/dev/null || :
 
 %files server
 %defattr(-,root,root,-)
@@ -124,6 +128,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Thu Jul 26 2012 Ralph Bean <rbean@redhat.com> - 0.9.1-1
+- Creating a 'bodhi' user for mod_wsgi
+
 * Thu Mar 29 2012 Ralph Bean <rbean@redhat.com> - 0.8.8-1
 - Sending messages with fedmsg
 
