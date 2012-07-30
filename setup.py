@@ -164,6 +164,10 @@ setup(
     install_requires = [
         "TurboGears >= 1.0, < 1.5",
         "TurboMail",
+        "TurboFlot",
+        "TGCaptcha",
+        "SQLObject",
+        "psycopg2",
         "python_fedora",
         #"markdown",
         "CherryPy<3.0",
@@ -171,6 +175,15 @@ setup(
         "python-fedora",
         #"hashlib",
         "fedmsg>=0.0.8",
+        "decorator",
+        "PIL",
+        # The following are not available as eggs so we can't uncomment them.
+        # That means you can't run Bodhi in a virtualenv created with the
+        # --no-site-packages option, as you will have to use the system
+        # version of these modules
+        # "koji",
+        # "rpm",
+        # "yum",
     ],
     scripts = [],
     data_files = data_files,
@@ -190,6 +203,7 @@ setup(
         'License :: OSI Approved :: GNU General Public License (GPL)',
     ],
     test_suite = 'nose.collector',
+    tests_require = ["Nose", "WebTest"],
     entry_points = {
             'console_scripts': (
                 'start-bodhi = bodhi.commands:start',
