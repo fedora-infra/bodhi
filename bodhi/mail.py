@@ -464,7 +464,7 @@ def send(to, msg_type, update, sender=None):
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
     title = getattr(update, 'title', getattr(update, 'build', ''))
     headers = {"X-Bodhi-Update-Type", update.type,
-               "X-Bodhi-Update-Release", update.release,
+               "X-Bodhi-Update-Release", update.release.name,
                "X-Bodhi-Update-Status", update.status,
                "X-Bodhi-Update-Builds", update.builds,
                "X-Bodhi-Update-Title", update.title,
