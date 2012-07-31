@@ -212,6 +212,7 @@ class TestControllers(testutil.DBTest):
 
     def test_comment(self):
         session = login()
+        other_session = login('otherguy', 'otherguy')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -227,28 +228,36 @@ class TestControllers(testutil.DBTest):
                                    params['builds'], method='POST',
                                    headers=session)
         assert len(update.comments) == 2, cherrypy.response.body[0]
-        assert update.karma == 1
+        assert update.karma == 0  # Submitters cannot alter karma
         assert update.comments[1].author == 'guest'
         assert update.comments[1].text == 'foobar'
+
+        x = testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
+                                   params['builds'], method='POST',
+                                   headers=other_session)
+        assert len(update.comments) == 3, cherrypy.response.body[0]
+        assert update.karma == 1
+        assert update.comments[2].author == 'otherguy'
+        assert update.comments[2].text == 'foobar'
 
         # Allow users to negate their original comment
         x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=-1' %
                                    params['builds'], method='POST',
-                                   headers=session)
+                                   headers=other_session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == -1
 
         # but don't let them do it again
         x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=-1' %
                                    params['builds'], method='POST',
-                                   headers=session)
+                                   headers=other_session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == -1
 
         # let them change their -1 to a +1
         x = testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=1' %
                                    params['builds'], method='POST',
-                                   headers=session)
+                                   headers=other_session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 1, update.karma
 
@@ -256,9 +265,9 @@ class TestControllers(testutil.DBTest):
         # proper order
         x = testutil.create_request('/updates/comment?text=woopdywoop&title=%s' %
                                    params['builds'], method='POST',
-                                   headers=session)
+                                   headers=other_session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert len(update.get_comments()) == 6
+        assert len(update.get_comments()) == 7
         assert update.get_comments()[-1].text == 'woopdywoop', update.get_comments()
         assert update.get_comments()[1].text == 'foobar'
 
@@ -1836,7 +1845,8 @@ class TestControllers(testutil.DBTest):
         # Have a developer +1 the update
         developer = login(username='bob')
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
-                                params['builds'], method='POST', headers=developer)
+                                params['builds'], method='POST',
+                                headers=developer)
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=developer)
         assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
@@ -1868,7 +1878,7 @@ class TestControllers(testutil.DBTest):
 
         # Have releng try again, and ensure it can be pushed to stable
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
-                                params['builds'], method='POST', headers=releng)
+                                params['builds'], method='POST', headers=login('otherguy'))
         update = PackageUpdate.byTitle(params['builds'])
         print update.stable_karma, update.unstable_karma
         assert update.request == 'stable', update.request
@@ -1959,7 +1969,7 @@ class TestControllers(testutil.DBTest):
         # Have releng try again, and ensure it can be pushed to stable
         #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
-                                params['builds'], method='POST', headers=releng)
+                                params['builds'], method='POST', headers=login('otherguy'))
         update = PackageUpdate.byTitle(params['builds'])
         print update.stable_karma, update.unstable_karma
 
@@ -2073,7 +2083,7 @@ class TestControllers(testutil.DBTest):
         assert "Mark Critical Path update as Stable" not in cherrypy.response.body[0]
 
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
-                                params['builds'], method='POST', headers=session)
+                                params['builds'], method='POST', headers=login('otherguy'))
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
@@ -2225,7 +2235,8 @@ class TestControllers(testutil.DBTest):
 
         # Give some negative karma
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=-1' % 
-                                params['builds'], method='POST', headers=releng)
+                                params['builds'], method='POST',
+                                headers=login('otherguy'))
 
         # Ensure it cannot now be pushed
         testutil.create_request('/updates/request/stable/%s' %
@@ -2275,7 +2286,8 @@ class TestControllers(testutil.DBTest):
         # Have a user +1 the update
         developer = login(username='bob')
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' %
-                                params['builds'], method='POST', headers=session)
+                                params['builds'], method='POST',
+                                headers=login('otherguy'))
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=developer)
         assert "Push Critical Path update to Stable" not in cherrypy.response.body[0]
@@ -2512,10 +2524,11 @@ class TestControllers(testutil.DBTest):
 
     def test_karma_change(self):
         """
-        Ensure that a developer can give negative karma, and then proceed to later
-        give positive karma.
+        Ensure that a developer can give negative karma, and then proceed to
+        later give positive karma.
         """
         session = login()
+        other_session = login('otherguy')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.8-1.fc7',
@@ -2543,7 +2556,8 @@ class TestControllers(testutil.DBTest):
         assert PackageUpdate.byTitle(params['builds']).karma == 2
 
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=-1' % 
-                                params['builds'], method='POST', headers=session)
+                                params['builds'], method='POST',
+                                headers=other_session)
         assert PackageUpdate.byTitle(params['builds']).karma == 1
 
         # Give a bunch of +0's
@@ -2551,16 +2565,17 @@ class TestControllers(testutil.DBTest):
                                 params['builds'], method='POST', headers=dev1)
         assert PackageUpdate.byTitle(params['builds']).karma == 1
         testutil.create_request('/updates/comment?text=blah&title=%s&karma=0' % 
-                                params['builds'], method='POST', headers=session)
+                                params['builds'], method='POST',
+                                headers=other_session)
         assert PackageUpdate.byTitle(params['builds']).karma == 1
         testutil.create_request('/updates/comment?text=blah&title=%s&karma=0' % 
                                 params['builds'], method='POST', headers=dev2)
         assert PackageUpdate.byTitle(params['builds']).karma == 1
 
-        # have the submitter +1 the update
         #testutil.capture_log(['bodhi.controller', 'bodhi.util'])
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
-                                params['builds'], method='POST', headers=session)
+                                params['builds'], method='POST',
+                                headers=other_session)
         up = PackageUpdate.byTitle(params['builds'])
         #assert False, testutil.get_log()
         assert up.karma == 3, up.karma
@@ -2815,7 +2830,8 @@ class TestControllers(testutil.DBTest):
 
         # proventester +1
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' % 
-                                params['builds'], method='POST', headers=session)
+                                params['builds'], method='POST',
+                                headers=login('otherguy', group='proventesters'))
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 1
         assert update.request != 'stable'

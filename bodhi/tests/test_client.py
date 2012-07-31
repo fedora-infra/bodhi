@@ -131,11 +131,12 @@ class TestClient(testutil.DBTest):
         update = PackageUpdate.byTitle(self.build)
         assert len(update.comments) == 2, update.comments
         assert update.comments[1].text == opts.comment
-        assert update.karma == int(opts.karma)
+        assert update.karma == 0  # Submitter cannot alter karma
+        #assert update.karma == int(opts.karma), update.karma
         bodhi.comment(update=self.build, comment=opts.comment, karma=1)
         update = PackageUpdate.byTitle(self.build)
         assert len(update.comments) == 3, update.comments
-        assert update.karma == int(opts.karma) + 2
+        #assert update.karma == int(opts.karma) + 2
 
     def test_request(self):
         bodhi = self.__get_bodhi_client()
