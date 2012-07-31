@@ -1024,11 +1024,10 @@ class Root(controllers.RootController):
             try:
                 original_bugs = [bug.bz_id for bug in update.bugs]
                 update.update_bugs(bugs)
-            except xmlrpclib.Fault, f:
-                log.exception(f)
-                note.insert(0, "Unable to access one or more bugs: %s" % f.faultString)
+            except ValueError, e:
+                note.insert(0, "Unable to access one or more bugs: %s" % e)
             except Exception, e:
-                log.error("Unknown exception thrown from python-bugzilla!")
+                log.error("Unknown exception thrown while updating bug list!")
                 note.insert(0, "Unable to access one or more bugs.  Exception: %s" % e)
 
             # If there are any security bugs, make sure this update is

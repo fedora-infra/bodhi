@@ -758,25 +758,35 @@ class PackageUpdate(SQLObject):
                 if len(bug.updates) == 0:
                     log.debug("Destroying stray Bugzilla #%d" % bug.bz_id)
                     bug.destroySelf()
+
+        errors = []
         for bug in bugs:
             try:
-                bug = int(bug)
-            except ValueError: # bug alias
-                bugzilla = Bugzilla.get_bz()
-                bug = bugzilla.getbug(bug).bug_id
-            try:
-                bz = Bugzilla.byBz_id(bug)
-            except SQLObjectNotFound:
-                if fetchdetails:
+                try:
+                    bug = int(bug)
+                except ValueError: # bug alias
                     bugzilla = Bugzilla.get_bz()
-                    newbug = bugzilla.getbug(bug)
-                    bz = Bugzilla(bz_id=newbug.bug_id)
-                    bz.fetch_details(newbug)
-                    bz.modified()
-                else:
-                    bz = Bugzilla(bz_id=int(bug))
-            if bz not in self.bugs:
-                self.addBugzilla(bz)
+                    bug = bugzilla.getbug(bug).bug_id
+                try:
+                    bz = Bugzilla.byBz_id(bug)
+                except SQLObjectNotFound:
+                    if fetchdetails:
+                        bugzilla = Bugzilla.get_bz()
+                        newbug = bugzilla.getbug(bug)
+                        bz = Bugzilla(bz_id=newbug.bug_id)
+                        bz.fetch_details(newbug)
+                        bz.modified()
+                    else:
+                        bz = Bugzilla(bz_id=int(bug))
+                if bz not in self.bugs:
+                    self.addBugzilla(bz)
+            except xmlrpclib.Fault, f:
+                # Try to keep going if we failed to lookup a bz
+                log.exception(f)
+                errors.append(f.faultString)
+
+        if errors:
+            raise ValueError(" ".join(errors))
 
     def update_cves(self, cves):
         """
