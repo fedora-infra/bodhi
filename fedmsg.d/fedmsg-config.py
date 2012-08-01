@@ -27,4 +27,7 @@ config = dict(
     irc=[],
     zmq_enabled=True,
     zmq_strict=False,
+
+    sign_messages=False,
+    validate_messages=False,
 )
