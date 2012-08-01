@@ -2,13 +2,13 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.8.7
-Release:        1%{?dist}
+Version:        0.9.1
+Release:        3%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
 URL:            https://fedorahosted.org/bodhi
-Source0:        bodhi-%{version}.tar.bz2
+Source0:        bodhi-%{version}.tar.gz
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
@@ -21,6 +21,7 @@ BuildRequires: TurboGears python-bugzilla
 BuildRequires: python-fedora python-TurboMail TurboGears yum koji
 BuildRequires: python-turboflot python-tgcaptcha
 BuildRequires: python-fedora-turbogears
+BuildRequires: fedmsg
 
 %description
 Bodhi is a web application that facilitates the process of publishing
@@ -65,6 +66,7 @@ Requires: python-markdown
 Requires: python-hashlib
 Requires: python-kitchen
 Requires: python-simplemediawiki
+Requires: fedmsg
 
 
 %description server
@@ -89,7 +91,7 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{__mkdir_p} %{buildroot}%{_datadir}/%{name}
 %{__mkdir_p} -m 0755 %{buildroot}/%{_localstatedir}/log/bodhi
 
-%{__install} -m 640 apache/%{name}.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/%{name}.conf
+%{__install} -m 644 apache/%{name}.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/%{name}.conf
 %{__install} -m 640 %{name}.cfg %{buildroot}%{_sysconfdir}/%{name}/
 %{__install} -m 640 %{name}/config/*mash* %{buildroot}%{_sysconfdir}/%{name}/
 %{__install} apache/%{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
@@ -100,6 +102,10 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %clean
 %{__rm} -rf %{buildroot}
 
+%pre server
+%{_sbindir}/groupadd -r %{name} &>/dev/null || :
+%{_sbindir}/useradd  -r -s /sbin/nologin -d %{_datadir}/%{name} -M \
+                     -c 'Bodhi Server' -g %{name} %{name} &>/dev/null || :
 
 %files server
 %defattr(-,root,root,-)
@@ -109,9 +115,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{_bindir}/%{name}-*
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %dir %{_sysconfdir}/bodhi/
-%attr(-,apache,root) %{_datadir}/%{name}
-%attr(-,apache,root) %config(noreplace) %{_sysconfdir}/bodhi/*
-%attr(-,apache,root) %{_localstatedir}/log/bodhi
+%attr(-,bodhi,root) %{_datadir}/%{name}
+%attr(-,bodhi,root) %config(noreplace) %{_sysconfdir}/bodhi/*
+%attr(-,bodhi,root) %{_localstatedir}/log/bodhi
 %{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
 
 
@@ -122,6 +128,18 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Thu Jul 26 2012 Ralph Bean <rbean@redhat.com> - 0.9.1-3
+- "bodhi" now owns datadir, bodhi.cfg, and var/log/bodhi
+
+* Thu Jul 26 2012 Ralph Bean <rbean@redhat.com> - 0.9.1-2
+- Fix to "bodhi" user creation.
+
+* Thu Jul 26 2012 Ralph Bean <rbean@redhat.com> - 0.9.1-1
+- Creating a 'bodhi' user for mod_wsgi
+
+* Thu Mar 29 2012 Ralph Bean <rbean@redhat.com> - 0.8.8-1
+- Sending messages with fedmsg
+
 * Tue Jan 31 2012 Luke Macken <lmacken@redhat.com> - 0.8.6-1
 - Latest upstream release
 

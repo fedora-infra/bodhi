@@ -4,3 +4,4 @@ python_fedora
 CherryPy<3.0
 kitchen
 python-fedora
+fedmsg>=0.0.8

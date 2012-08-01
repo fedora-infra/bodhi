@@ -171,9 +171,11 @@ bodhi/tests/test_model.py
 bodhi/tests/test_util.py
 bodhi/tools/0day.py
 bodhi/tools/__init__.py
+bodhi/tools/clean-stable.py
 bodhi/tools/clean-testing.py
 bodhi/tools/client.py
 bodhi/tools/dev_init.py
+bodhi/tools/fedmsg-watch.py
 bodhi/tools/fix_dupe_ids.py
 bodhi/tools/init.py
 bodhi/tools/log_stats.py
