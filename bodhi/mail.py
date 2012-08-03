@@ -463,13 +463,13 @@ def send(to, msg_type, update, sender=None):
         to = [to]
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
     title = getattr(update, 'title', getattr(update, 'build', ''))
-    headers = {"X-Bodhi-Update-Type", update.type,
-               "X-Bodhi-Update-Release", update.release.name,
-               "X-Bodhi-Update-Status", update.status,
-               "X-Bodhi-Update-Builds", update.builds,
-               "X-Bodhi-Update-Title", update.title,
-               "X-Bodhi-Update-Pushed", update.pushed,
-               "X-Bodhi-Update-Request", update.request,
+    headers = {"X-Bodhi-Update-Type": update.type,
+               "X-Bodhi-Update-Release": update.release.name,
+               "X-Bodhi-Update-Status": update.status,
+               "X-Bodhi-Update-Builds": update.builds,
+               "X-Bodhi-Update-Title": update.title,
+               "X-Bodhi-Update-Pushed": update.pushed,
+               "X-Bodhi-Update-Request": update.request,
               }
     initial_message_id = "<bodhi-update-%s-%s-%s-%s@%s>" % (update.id, update.submitter, update.date_submitted, update.release, config.get('message_id_email_domain'))
     if msg_type == 'new':
