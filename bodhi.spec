@@ -8,7 +8,7 @@ Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
 URL:            https://fedorahosted.org/bodhi
-Source0:        bodhi-%{version}.tar.gz
+Source0:        bodhi-%{version}.tar.bz2
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
