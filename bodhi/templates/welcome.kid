@@ -6,23 +6,6 @@
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
     <title>Fedora Update System</title>
     <link media="all" href="${tg.url('/tg_widgets/turbogears.widgets/grid.css')}" type="text/css" rel="stylesheet"/>
-    <script src="${tg.url('/static/js/jquery.dimensions.js')}" type="text/javascript"></script>
-    <script src="${tg.url('/static/js/jquery.tooltip.js')}" type="text/javascript"></script>
-    <script src="${tg.url('/static/js/chili-1.7.pack.js')}" type="text/javascript"></script>
-    <script src="${tg.url('/static/js/jquery.bgiframe.js')}" type="text/javascript"></script>
-
-    <script language="javascript">
-        $(document).ready(function(){
-            $('#testingtip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
-            $('#wikitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
-            $('#bodhitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
-            $('#wftip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
-            $('#clitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
-            $('#kojitip').Tooltip( { delay: 0, track: true, opacity: 0.85,  } );
-            $('#mugtip').Tooltip( { delay: 0, track: true, opacity: 0.85, } );
-            $('#bugtip').Tooltip( { delay: 0, track: true, opacity: 0.85, } );
-        });
-    </script>
 
 </head>
 <?python
@@ -32,48 +15,22 @@ koji_url = config.get('koji_url')
 <body>
     <table width="90%" align="center" valign="top">
             <tr>
-                <td align="left" valign="bottom"><b><font size="4">Welcome to bodhi v${version}<span py:if="not tg.identity.anonymous">, ${hasattr(tg.identity.user, 'human_name') and tg.identity.user.human_name.split()[0] or tg.identity.user.display_name}</span></font></b></td>
-                <td align="right">
-                    <table>
-                        <tr>
-                            <td>
-                                <span id="wikitip" title="Bodhi Guide">
-                                    <a href="https://fedoraproject.org/wiki/Bodhi"><img src="${tg.url('/static/images/info.png')}" border="0" height="36" width="36"/></a>
-                                </span>
-                            </td>
-                            <td>
-                                <span id="testingtip" title="Proven Testers Guide">
-                                    <a href="https://fedoraproject.org/wiki/Proventester"><img src="${tg.url('/static/images/hardhat.png')}" border="0" height="36" width="36"/></a>
-                                </span>
-                            </td>
-                            <td>
-                                <span id="wftip" title="Updating Packages HowTo">
-                                    <a href="http://fedoraproject.org/wiki/PackageMaintainers/UpdatingPackageHowTo"><img src="${tg.url('/static/images/header-faq.png')}" border="0" height="36" width="36"/></a>
-                                </span>
-                            </td>
-                            <td>
-                                <span id="clitip" title="Using the bodhi command-line client">
-                                    <a href="https://fedorahosted.org/bodhi/wiki/CLI"><img src="${tg.url('/static/images/terminal.png')}" border="0" height="36" width="36"/></a>
-                                </span>
-                            </td>
- 
-                            <td>
-                                <span id="bugtip" title="File a bug or feature request against bodhi">
-                                    <a href="https://fedorahosted.org/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" border="0" /></a>
-                                </span>
-                            </td>
-                            <td>
-                                <span id="bodhitip" title="Bodhi Project Homepage">
-                                    <a href="https://fedorahosted.org/bodhi"><img src="${tg.url('/static/images/bodhi-icon-36.png')}" border="0" height="36" width="36"/></a>
-                                </span>
-                            </td>
-                            <td>
-                                <span id="kojitip" title="Koji Buildsystem">
-                                    <a href="${koji_url}/koji/" class="list"><font size="6">麹</font></a>
-                                </span>
-                            </td>
-                        </tr>
-                    </table>
+                <td align="left" valign="top"><b><font size="4">Welcome to bodhi v${version}<span py:if="not tg.identity.anonymous">, ${hasattr(tg.identity.user, 'human_name') and tg.identity.user.human_name.split()[0] or tg.identity.user.display_name}</span></font></b></td>
+            </tr>
+            <tr>
+                <td align="left">
+                    <ul style="list-style:none;">
+                        <li><a href="https://fedoraproject.org/wiki/QA:Update_feedback_guidelines"><img src="${tg.url('/static/images/hardhat.png')}" border="0" height="18" width="18"/> Update feedback guidelines</a></li>
+                        <li><a href="https://fedoraproject.org/wiki/Bodhi"><img src="${tg.url('/static/images/info.png')}" border="0" height="18" width="18"/> Bodhi guide</a></li>
+                        <li><a href="http://fedoraproject.org/wiki/PackageMaintainers/UpdatingPackageHowTo"><img src="${tg.url('/static/images/header-faq.png')}" border="0" height="18" width="18"/> Updating packages howto</a></li>
+                    </ul>
+                </td>
+                <td align="left">
+                    <ul style="list-style:none">
+                        <li><a href="https://fedorahosted.org/bodhi/wiki/CLI"><img src="${tg.url('/static/images/terminal.png')}" border="0" height="18" width="18"/> Using the bodhi command-line client</a></li>
+                        <li><a href="https://fedorahosted.org/bodhi/newticket"><img src="${tg.url('/static/images/header-projects.png')}" width="18" border="0" /> File a bug or feature request against bodhi</a></li>
+                        <li><a href="${koji_url}/koji/"><font size="4">麹</font></a> <a href="${koji_url}/koji/">Koji buildsystem</a></li>
+                    </ul>
                 </td>
             </tr>
             <tr>

@@ -88,7 +88,11 @@ def save_db():
     # Save all buildroot overrides
     overrides = []
     for override in BuildRootOverride.select():
-        overrides.append(override.__json__())
+        try:
+            overrides.append(override.__json__())
+        except:
+            print("Removing stray override: %s" % override)
+            override.destroySelf()
 
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
     pickle.dump({'updates': updates, 'releases': releases, 'overrides': overrides}, dump)

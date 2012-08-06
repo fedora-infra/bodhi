@@ -9,4 +9,6 @@ virtenv
 build
 bodhi-pickledb*
 bodhi.db
+bodhi.egg-info
+*.egg
 MASHING-FEDORA
