@@ -1,5 +1,5 @@
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?pyver: %global pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
 Version:        0.9.2
@@ -13,15 +13,16 @@ Source0:        bodhi-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
-BuildRequires: python-setuptools 
+BuildRequires: python-setuptools
 BuildRequires: python-setuptools-devel
 BuildRequires: python-devel
-
-BuildRequires: TurboGears python-bugzilla
-BuildRequires: python-fedora python-TurboMail TurboGears yum koji
-BuildRequires: python-turboflot python-tgcaptcha
-BuildRequires: python-fedora-turbogears
-BuildRequires: fedmsg
+BuildRequires: TurboGears
+BuildRequires: python-TurboMail
+BuildRequires: python-bugzilla
+BuildRequires: python-fedora
+BuildRequires: yum koji
+BuildRequires: python-tgcaptcha
+BuildRequires: python-turboflot
 
 %description
 Bodhi is a web application that facilitates the process of publishing
@@ -53,7 +54,6 @@ Requires: intltool
 Requires: mash
 Requires: cvs
 Requires: koji
-Requires: python-fedora
 Requires: python-bugzilla
 Requires: python-imaging
 Requires: python-crypto
@@ -63,10 +63,11 @@ Requires: python-decorator
 Requires: mod_wsgi
 Requires: httpd
 Requires: python-markdown
-Requires: python-hashlib
 Requires: python-kitchen
 Requires: python-simplemediawiki
 Requires: fedmsg
+Requires: python-fedora
+Requires: python-fedora-turbogears
 
 
 %description server
@@ -75,6 +76,7 @@ updates for a software distribution.
 
 %prep
 %setup -q
+
 rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 %build
@@ -82,7 +84,7 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 %install
 %{__rm} -rf %{buildroot}
-%{__python} setup.py install -O1 --skip-build \
+%{__python} setup.py install --skip-build \
     --install-data=%{_datadir} --root %{buildroot}
 
 %{__mkdir_p} %{buildroot}/var/lib/bodhi
@@ -106,6 +108,7 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 %{_sbindir}/groupadd -r %{name} &>/dev/null || :
 %{_sbindir}/useradd  -r -s /sbin/nologin -d %{_datadir}/%{name} -M \
                      -c 'Bodhi Server' -g %{name} %{name} &>/dev/null || :
+
 
 %files server
 %defattr(-,root,root,-)
@@ -143,33 +146,72 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 * Thu Mar 29 2012 Ralph Bean <rbean@redhat.com> - 0.8.8-1
 - Sending messages with fedmsg
 
-* Tue Jan 31 2012 Luke Macken <lmacken@redhat.com> - 0.8.6-1
-- Latest upstream release
+* Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.8.5-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
-* Fri Oct 21 2011 Luke Macken <lmacken@redhat.com> - 0.8.3-1
-- 0.8.3 release
+* Thu Jan 12 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.8.5-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 
-* Mon Feb 28 2011 Luke Macken <lmacken@redhat.com> - 0.7.12
-- 0.7.12 release
+* Tue Nov 22 2011 Luke Macken <lmacken@redhat.com> - 0.8.5-1
+- Update to the latest upstream release
 
-* Mon Jan 31 2011 Luke Macken <lmacken@redhat.com> - 0.7.11
-- Require python-simplemediawiki for our test case integration
+* Wed Nov 16 2011 Luke Macken <lmacken@redhat.com> - 0.8.4-1
+- Update to the latest upstream release
+
+* Mon Oct 24 2011 Luke Macken <lmacken@redhat.com> - 0.8.3-1
+- Update to 0.8.3
+
+* Fri Aug 12 2011 Luke Macken <lmacken@redhat.com> - 0.8.1-1
+- Update our build requirements to make the test suite happy.
+- Pull in the new python-fedora-turbogears subpackage
+
+* Thu Jun 09 2011 Luke Macken <lmacken@redhat.com> - 0.8.0-1
+- Update to 0.8.0
+
+* Thu Mar 24 2011 Luke Macken <lmacken@redhat.com> - 0.7.15-1
+- Update to 0.7.15
+
+* Fri Mar 11 2011 Luke Macken <lmacken@redhat.com> - 0.7.14-1
+- Update to 0.7.14
+
+* Fri Mar 04 2011 Luke Macken <lmacken@redhat.com> - 0.7.13-1
+- Update to 0.7.13
+
+* Mon Feb 28 2011 Luke Macken <lmacken@redhat.com> - 0.7.12-1
+- Update to 0.7.12
+
+* Thu Feb 24 2011 Luke Macken <lmacken@redhat.com> - 0.7.11-1
+- Update to 0.7.11
+
+* Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.7.10-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
 * Mon Jan 10 2011 Luke Macken <lmacken@redhat.com> - 0.7.10-1
 - 0.7.10 release
 
-* Fri Sep 10 2010 Luke Macken <lmacken@redhat.com> - 0.7.9-1
+* Mon Sep 20 2010 Luke Macken <lmacken@redhat.com> - 0.7.9-1
 - 0.7.9 release
 
 * Thu Aug 12 2010 Luke Macken <lmacken@redhat.com> - 0.7.8-1
 - 0.7.8 release
-- Have the bodhi-client subpackage require python-kitchen
+- Require python-kitchen
+
+* Wed Aug 04 2010 Orcan Ogetbil <oget[dot]fedora[at]gmail[dot]com> - 0.7.7-2
+- Reenable the TurboGears bits
 
 * Tue Aug 03 2010 Luke Macken <lmacken@redhat.com> - 0.7.7-1
 - 0.7.7 release
 
-* Mon Jul 12 2010 Luke Macken <lmacken@redhat.com> - 0.7.6-1
-- 0.7.6 release
+* Sat Jul 31 2010 Toshio Kuratomi <toshio@fedoraproject.org> - 0.7.5-4
+- A little strange, the tarball changed on us....
+
+* Tue Jul 27 2010 Toshio Kuratomi <toshio@fedoraproject.org> - 0.7.5-3
+- Disable Requirements that are necessary for operation of hte server.  This is
+  a temporary change to get the package building on python-2.7.  Need to revert
+  this once the TG stack is rebuilt
+
+* Wed Jul 21 2010 David Malcolm <dmalcolm@redhat.com> - 0.7.5-2
+- Rebuilt for https://fedoraproject.org/wiki/Features/Python_2.7/MassRebuild
 
 * Tue Jun 29 2010 Luke Macken <lmacken@redhat.com> - 0.7.5-1
 - 0.7.5 release
@@ -186,6 +228,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 * Tue Feb 16 2010 Luke Macken <lmacken@redhat.com> - 0.7.1-1
 - Fix a regression in our metrics controller, and unvail a new
   metrics JSON API
+
+* Tue Feb 16 2010 Luke Macken <lmacken@redhat.com> - 0.7.0-2
+- Add the F13 updates-testing mash configuration
 
 * Mon Jan 18 2010 Luke Macken <lmacken@redhat.com> - 0.7.0-1
 - 0.7.0 release, prepping for the F13 release
