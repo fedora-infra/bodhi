@@ -143,11 +143,11 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 * Thu Jul 26 2012 Ralph Bean <rbean@redhat.com> - 0.9.1-1
 - Creating a 'bodhi' user for mod_wsgi
 
-* Thu Mar 29 2012 Ralph Bean <rbean@redhat.com> - 0.8.8-1
-- Sending messages with fedmsg
-
 * Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.8.5-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Thu Mar 29 2012 Ralph Bean <rbean@redhat.com> - 0.8.8-1
+- Sending messages with fedmsg
 
 * Thu Jan 12 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.8.5-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
