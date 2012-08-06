@@ -2,13 +2,13 @@
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.9.1
-Release:        3%{?dist}
+Version:        0.9.2
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
 URL:            https://fedorahosted.org/bodhi
-Source0:        bodhi-%{version}.tar.gz
+Source0:        bodhi-%{version}.tar.bz2
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
@@ -128,6 +128,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Sat Aug 04 2012 Luke Macken <lmacken@redhat.com> - 0.9.2-1
+- 0.9.2 bugfix release
+
 * Thu Jul 26 2012 Ralph Bean <rbean@redhat.com> - 0.9.1-3
 - "bodhi" now owns datadir, bodhi.cfg, and var/log/bodhi
 
