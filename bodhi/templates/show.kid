@@ -7,7 +7,6 @@
     <meta content="text/html; charset=UTF-8" http-equiv="content-type"
             py:replace="''"/>
         <title>${update.title}</title>
-    <link rel="stylesheet" href="${tg.url('/static/css/jquery.tooltip.css')}" />
     <script src="${tg.url('/static/js/jquery.dimensions.js')}" type="text/javascript"></script>
     <script src="${tg.url('/static/js/jquery.tooltip.js')}" type="text/javascript"></script>
     <script src="${tg.url('/static/js/chili-1.7.pack.js')}" type="text/javascript"></script>
