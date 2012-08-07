@@ -9,7 +9,6 @@
     <script src="${tg.url('/static/js/jquery.tooltip.js')}" type="text/javascript"></script>
     <script src="${tg.url('/static/js/chili-1.7.pack.js')}" type="text/javascript"></script>
     <script src="${tg.url('/static/js/jquery.bgiframe.js')}" type="text/javascript"></script>
-    <script src="${tg.url('/static/js/MochiKit.js')}" type="text/javascript"></script>
 
     <script type="text/javascript">
     $(document).ready(function() {
