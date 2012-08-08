@@ -21,7 +21,7 @@ BuildRequires: python-TurboMail
 BuildRequires: python-bugzilla
 BuildRequires: python-fedora
 BuildRequires: yum koji
-BuildRequires: python-tgcaptcha
+BuildRequires: python-tgcaptcha2
 BuildRequires: python-turboflot
 
 %description
@@ -58,7 +58,7 @@ Requires: python-bugzilla
 Requires: python-imaging
 Requires: python-crypto
 Requires: python-turboflot
-Requires: python-tgcaptcha
+Requires: python-tgcaptcha2
 Requires: python-decorator
 Requires: mod_wsgi
 Requires: httpd
@@ -131,6 +131,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Wed Aug 08 2012 Luke Macken <lmacken@redhat.com> - 0.9.2-2
+- Require python-tgcaptcha2
+
 * Sat Aug 04 2012 Luke Macken <lmacken@redhat.com> - 0.9.2-1
 - 0.9.2 bugfix release
 
