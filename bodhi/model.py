@@ -448,12 +448,12 @@ class PackageUpdate(SQLObject):
             self.unpush()
             self.comment('This update has been unpushed',
                          author=identity.current.user_name)
-            fedmsg.send_message(topic=fedmsg_topic, msg=dict(update=self))
+            fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
             flash_log("%s has been unpushed" % self.title)
             return
         elif action == 'obsolete':
             self.obsolete()
-            fedmsg.send_message(topic=fedmsg_topic, msg=dict(update=self))
+            fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
             flash_log("%s has been obsoleted" % self.title)
             return
         #elif self.type == 'security' and not self.approved:
@@ -483,7 +483,7 @@ class PackageUpdate(SQLObject):
                                                           mybuild['nvr']))
         elif action == 'revoke':
             if self.request:
-                fedmsg.send_message(topic=fedmsg_topic, msg=dict(update=self))
+                fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
                 flash_log('%s %s request revoked' % (self.title, self.request))
                 self.request = None
                 self.comment('%s request revoked' % action,
@@ -566,7 +566,7 @@ class PackageUpdate(SQLObject):
             action, notes, flash_notes))
         self.comment('This update has been submitted for %s by %s. %s' % (
             action, identity.current.user_name, notes), author='bodhi')
-        fedmsg.send_message(topic='update.request.' + action,
+        fedmsg.publish(topic='update.request.' + action,
                             msg=dict(update=self))
         mail.send_admin(action, self)
 
@@ -588,7 +588,7 @@ class PackageUpdate(SQLObject):
         self.request = None
 
         fedmsg_topic = 'update.complete.' + self.status
-        fedmsg.send_message(topic=fedmsg_topic, msg=dict(update=self))
+        fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
 
         hub.commit()
 
@@ -886,7 +886,7 @@ class PackageUpdate(SQLObject):
         if email:
             mail.send(self.people_to_notify(), 'comment', self)
 
-        fedmsg.send_message(topic='update.comment', msg=dict(comment=c))
+        fedmsg.publish(topic='update.comment', msg=dict(comment=c))
 
         if self.critpath:
             min_karma = config.get('critpath.min_karma')
