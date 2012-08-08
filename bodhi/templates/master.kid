@@ -29,6 +29,7 @@ from bodhi.model import Release, PackageUpdate, Releases
 from bodhi import version, hostname
 from bodhi.search import search_form
 from sqlobject.sqlbuilder import AND
+from turbogears import config
 ?>
 
 <!-- Make any form submission change the bodhi logo into a spinner -->
@@ -51,6 +52,12 @@ $(document).ready(function() {
     <div id="fedora-header">
         <div id="fedora-header-logo">
             <a href="${tg.url('/')}"><img src="${tg.url('/static/images/header-fedora_logo.png')}" /></a>
+            <span py:if="config.get('deployment_type', 'dev')=='dev'">
+                <b>DEVELOPMENT INSTANCE</b>
+            </span>
+            <span py:if="config.get('deployment_type', 'dev')=='stg'">
+                <b>STAGING INSTANCE</b>
+            </span>
         </div>
 
         <div id="fedora-header-items">
