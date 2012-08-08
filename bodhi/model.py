@@ -886,7 +886,8 @@ class PackageUpdate(SQLObject):
         if email:
             mail.send(self.people_to_notify(), 'comment', self)
 
-        fedmsg.publish(topic='update.comment', msg=dict(comment=c))
+        if author != 'bodhi':
+            fedmsg.publish(topic='update.comment', msg=dict(comment=c))
 
         if self.critpath:
             min_karma = config.get('critpath.min_karma')
