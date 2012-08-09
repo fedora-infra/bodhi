@@ -1537,6 +1537,10 @@ class BuildRootOverride(SQLObject):
             self.release.override_tag))
         koji.tagBuild(self.release.override_tag, self.build, force=True)
         mail.send_admin('buildroot_override', self)
+        fedmsg.publish(
+            topic='buildroot_override.tag',
+            msg=dict(override=self),
+        )
 
     def untag(self):
         koji = buildsys.get_session()
@@ -1544,6 +1548,10 @@ class BuildRootOverride(SQLObject):
             self.release.override_tag))
         try:
             koji.untagBuild(self.release.override_tag, self.build, force=True)
+            fedmsg.publish(
+                topic='buildroot_override.untag',
+                msg=dict(override=self),
+            )
         except Exception, e:
             log.exception(e)
             log.error('There was non-fatal problem expiring the override')
