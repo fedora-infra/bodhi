@@ -49,12 +49,12 @@ $(document).ready(function() {
     <div id="fedora-header">
         <div id="fedora-header-logo">
             <a href="${tg.url('/')}"><img src="${tg.url('/static/images/header-fedora_logo.png')}" /></a>
-            <h2 py:if="config.get('deployment_type', 'dev')=='dev'">
-                DEVELOPMENT INSTANCE
-            </h2>
-            <h2 py:if="config.get('deployment_type', 'dev')=='stg'">
-                STAGING INSTANCE
-            </h2>
+            <span py:if="config.get('deployment_type', 'dev')=='dev'">
+                <b>DEVELOPMENT INSTANCE</b>
+            </span>
+            <span py:if="config.get('deployment_type', 'dev')=='stg'">
+                <b>STAGING INSTANCE</b>
+            </span>
         </div>
 
         <div id="fedora-header-items">
