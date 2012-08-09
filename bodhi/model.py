@@ -886,7 +886,7 @@ class PackageUpdate(SQLObject):
         if email:
             mail.send(self.people_to_notify(), 'comment', self)
 
-        if author != 'bodhi':
+        if author not in ('bodhi', 'autoqa'):
             fedmsg.publish(topic='update.comment', msg=dict(comment=c))
 
         if self.critpath:
