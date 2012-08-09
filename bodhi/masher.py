@@ -92,6 +92,9 @@ class Masher(object):
         self.last_log = thread.log
         mail.send_releng('Bodhi Masher Report %s' % 
                          time.strftime("%y%m%d.%H%M"), thread.report())
+        fedmsg.publish(topic="mashtask.complete", msg=dict(
+            success=self.success,
+        ))
         if thread in self._threads:
             self._threads.remove(thread)
         del thread
@@ -101,6 +104,7 @@ class Masher(object):
 
     def _mash(self, task):
         """ Dispatch a given MashTask """
+        fedmsg.publish(topic="mashtask.mashing", msg=dict())
         thread = MashTask(task[0], task[1], task[2], task[3])
         self._threads.append(thread)
         thread.start()
@@ -632,8 +636,6 @@ class MashTask(Thread):
                 self.mashed_repos[repo] = finished_repos[repo]
                 continue
 
-            fedmsg.publish(topic="mashtask.mashing", msg=dict(repo=repo))
-
             mashdir = join(config.get('mashed_dir'), repo + '-' + \
                            time.strftime("%y%m%d.%H%M"))
             self.mashed_repos[repo] = mashdir
@@ -678,7 +680,7 @@ class MashTask(Thread):
         anything fails, undo any tag moves.
         """
 
-        fedmsg.publish(topic="mashtask.start", msg=dict())
+        #fedmsg.publish(topic="mashtask.start", msg=dict())
         self.success = True
         try:
             if self.resume:
@@ -750,9 +752,9 @@ class MashTask(Thread):
             self.cache_repodata()
 
             # Poll our master mirror and block until our updates hit
-            fedmsg.publish(topic="mashtask.sync.waiting", msg=dict())
+            #fedmsg.publish(topic="mashtask.sync.waiting", msg=dict())
             self.wait_for_sync()
-            fedmsg.publish(topic="mashtask.sync.done", msg=dict())
+            #fedmsg.publish(topic="mashtask.sync.done", msg=dict())
 
             # Send out our notices/digest, update all bugs, and add comments
             log.debug("Sending stable update notices and closing bugs")
@@ -793,10 +795,6 @@ class MashTask(Thread):
             # repos that we were able to compose during this push
             log.debug("Mash unsuccessful, updating state lock")
             self._update_lock()
-
-        fedmsg.publish(topic="mashtask.complete", msg=dict(
-            success=self.success,
-        ))
 
         log.debug("MashTask done")
         masher.done(self)
