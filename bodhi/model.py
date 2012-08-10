@@ -1342,7 +1342,8 @@ class Comment(SQLObject):
     def __json__(self):
         return dict(author=self.author_name, group=self.author_group,
                     text=self.text, anonymous=self.anonymous,
-                    karma=self.karma, timestamp=self.timestamp)
+                    karma=self.karma, timestamp=self.timestamp,
+                    update=self.update)
 
 
 class CVE(SQLObject):
