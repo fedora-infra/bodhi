@@ -65,9 +65,11 @@ Requires: httpd
 Requires: python-markdown
 Requires: python-kitchen
 Requires: python-simplemediawiki
-Requires: fedmsg
 Requires: python-fedora
 Requires: python-fedora-turbogears
+
+# 0.3.3+ for thread safety
+Requires: fedmsg > 0.3.3
 
 
 %description server
