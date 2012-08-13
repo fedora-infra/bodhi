@@ -839,6 +839,7 @@ class MashTask(Thread):
         return updates
 
     def sort_by_days_in_testing(self, updates):
+        updates = list(updates)
         updates.sort(key=lambda update: update.days_in_testing, reverse=True)
         return updates
 
