@@ -22,6 +22,7 @@ import urllib2
 import logging
 import subprocess
 import cPickle as pickle
+import fedmsg
 
 from operator import attrgetter
 from sqlobject import SQLObjectNotFound, AND
