@@ -468,7 +468,7 @@ def send(to, msg_type, update, sender=None):
         headers = {"X-Bodhi-Update-Type": update.type,
                    "X-Bodhi-Update-Release": update.release.name,
                    "X-Bodhi-Update-Status": update.status,
-                   "X-Bodhi-Update-Builds": update.builds,
+                   "X-Bodhi-Update-Builds": ",".join([b.nvr for b in update.builds]),
                    "X-Bodhi-Update-Title": update.title,
                    "X-Bodhi-Update-Pushed": update.pushed,
                    "X-Bodhi-Update-Request": update.request,
