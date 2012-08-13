@@ -69,7 +69,7 @@ Requires: python-fedora
 Requires: python-fedora-turbogears
 
 # 0.3.3+ for thread safety
-Requires: fedmsg > 0.3.3
+Requires: fedmsg >= 0.3.3
 
 
 %description server
