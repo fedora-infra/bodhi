@@ -473,7 +473,7 @@ def send(to, msg_type, update, sender=None):
                    "X-Bodhi-Update-Pushed": update.pushed,
                    "X-Bodhi-Update-Request": update.request,
                   }
-        initial_message_id = "<bodhi-update-%s-%s-%s-%s@%s>" % (update.id, update.submitter, update.date_submitted, update.release, config.get('message_id_email_domain'))
+        initial_message_id = "<bodhi-update-%s-%s-%s@%s>" % (update.id, update.submitter, update.release.name, config.get('message_id_email_domain'))
         if msg_type == 'new':
              headers["Message-ID"] = initial_message_id
         else:
