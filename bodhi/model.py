@@ -587,9 +587,8 @@ class PackageUpdate(SQLObject):
             self.assign_id()
         self.request = None
 
-        # Until fedmsg is threadsafe
-        #fedmsg_topic = 'update.complete.' + self.status
-        #fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
+        fedmsg_topic = 'update.complete.' + self.status
+        fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
 
         hub.commit()
 
