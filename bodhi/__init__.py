@@ -1,30 +1,20 @@
 from sqlalchemy import engine_from_config
 
-from pyramid.exceptions import NotFound
+from pyramid.exceptions import NotFound, Forbidden
 from pyramid.decorator import reify
 from pyramid.request import Request
 from pyramid.security import unauthenticated_userid
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
 from pyramid_beaker import set_cache_regions_from_settings
+from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
 
 from bodhi.resources import appmaker
 import bodhi.buildsys
 
-#class BodhiRequest(Request):
-#    @reify
-#    def user(self):
-#        # <your database connection, however you get it, the below line
-#        # is just an example>
-#        dbconn = self.registry.settings['dbconn']
-#        userid = unauthenticated_userid(self)
-#        if userid is not None:
-#            # this should return None if the user doesn't exist
-#            # in the database
-#            return dbconn['users'].query({'id':userid})
 
-
-def main(global_config, **settings):
+def main(global_config, testing=None, **settings):
     """ This function returns a WSGI application """
     engine = engine_from_config(settings, 'sqlalchemy.')
     get_root = appmaker(engine)
@@ -39,13 +29,23 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, root_factory=get_root,
                           session_factory=session_factory)
 
-    #config.set_request_factory(BodhiRequest)
+    # Authentication & Authorization
+    if testing:
+        # use a permissive security policy while running unit tests
+        config.testing_securitypolicy(userid=testing, permissive=True)
+    else:
+        config.set_authentication_policy(AuthTktAuthenticationPolicy(
+                settings['authtkt.secret']))
+        config.set_authorization_policy(ACLAuthorizationPolicy())
+
     config.add_static_view('static', 'bodhi:static')
+    config.add_translation_dirs('bodhi:locale/')
 
     # Save method
     config.add_route('save', '/save',
                      view='bodhi.views.save',
-                     request_method='POST')
+                     request_method='POST',
+                     permission='add')
 
     config.add_route('latest_candidates', '/latest_candidates',
                      view='bodhi.views.latest_candidates',
@@ -79,13 +79,22 @@ def main(global_config, **settings):
     # Widgets
     config.add_view('bodhi.views.view_widget',
                     context='bodhi.widgets.NewUpdateForm',
-                    renderer="bodhi:templates/widget.mak")
-
-    config.add_translation_dirs('bodhi:locale/')
+                    renderer="bodhi:templates/widget.mak",
+                    permission='add')
 
     # 404
     config.add_view('bodhi.views.notfound_view',
                     renderer='bodhi:templates/404.mak',
                     context=NotFound)
+
+    # pyramid.openid
+    config.add_route('login', '/login',
+                     view='bodhi.views.login',
+                     view_renderer='bodhi:templates/login.mak')
+    config.add_view('bodhi.views.login', context=Forbidden,
+                    renderer='bodhi:templates/login.mak')
+    config.add_route('logout', '/logout', view='bodhi.views.logout')
+    config.add_route('verify_openid', pattern='/dologin.html',
+                     view='pyramid_openid.verify_openid')
 
     return config.make_wsgi_app()

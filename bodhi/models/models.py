@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import logging
 import bugzilla
@@ -8,6 +9,7 @@ import transaction
 from textwrap import wrap
 from datetime import datetime
 
+from beaker.cache import cache_region
 from sqlalchemy import create_engine
 from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
 from sqlalchemy import DateTime
@@ -105,6 +107,12 @@ class UpdateRequest(DeclEnum):
     stable = 'stable', 'stable'
     obsolete = 'obsolete', 'obsolete'
     unpush = 'unpush', 'unpush'
+
+
+class UpdateSeverity(DeclEnum):
+    moderate = 'moderate', 'moderate'
+    critical = 'critical', 'critical'
+
 
 ##
 ## Association tables
@@ -210,6 +218,28 @@ class Release(Base):
         return config.get('%s.mandatory_days_in_testing' %
                           self.id_prefix.lower().replace('-', '_'))
 
+    @property
+    def collection_name(self):
+        """ Return the collection name of this release.  (eg: Fedora EPEL) """
+        return ' '.join(self.long_name.split()[:-1])
+
+    def get_version(self):
+        regex = re.compile('\D+(\d+)$')
+        return int(regex.match(self.name).groups()[0])
+
+    @classmethod
+    @cache_region('long_term', 'release_tags')
+    def get_tags(cls):
+        data = {'candidate': [], 'testing': [], 'stable': [], 'override': [],
+                'pending_testing': [], 'pending_stable': []}
+        tags = {}  # tag -> release lookup
+        for release in DBSession.query(cls).all():
+            for key in data:
+                tag = getattr(release, '%s_tag' % key)
+                data[key].append(tag)
+                tags[tag] = release.name
+        return data, tags
+
 
 class Package(Base):
     __tablename__ = 'packages'
@@ -253,8 +283,6 @@ class Build(Base):
     release = relation('Release', backref='builds', lazy=False)
 
     def get_latest(self):
-        """ Return the path to the last released srpm of this package """
-        latest_srpm = None
         koji_session = buildsys.get_session()
 
         # Grab a list of builds tagged with ``Release.stable_tag`` release
@@ -264,22 +292,21 @@ class Build(Base):
         # ``Release.candidate_tag`` first, because there could potentially be
         # packages that never make their way over stable, so we don't want to
         # generate ChangeLogs against those.
-        evr = build_evr(koji_session.getBuild(self.nvr))
         latest = None
+        evr = build_evr(koji_session.getBuild(self.nvr))
         for tag in [self.release.stable_tag, self.release.dist_tag]:
             builds = koji_session.getLatestBuilds(
-                tag, package=self.package.name)
+                    tag, package=self.package.name)
 
             # Find the first build that is older than us
             for build in builds:
                 new_evr = build_evr(build)
                 if rpm.labelCompare(evr, new_evr) < 0:
-                    latest = get_nvr(build['nvr'])
+                    latest = build['nvr']
                     break
             if latest:
                 break
-        if latest:
-            return '-'.join(latest)
+        return latest
 
     def get_latest_srpm(self):
         latest = get_nvr(self.get_latest())
@@ -345,6 +372,10 @@ class Build(Base):
         """ Return the path of this built update """
         return os.path.join(config.get('build_dir'), *get_nvr(self.nvr))
 
+    def get_tags(self):
+        koji = buildsys.get_session()
+        return [tag['name'] for tag in koji.listTags(self.nvr)]
+
     def __repr__(self):
         return "<Build %s>" % self.nvr
 
@@ -364,9 +395,9 @@ class Update(Base):
                     default=UpdateStatus.pending,
                     nullable=False)
     request = Column(UpdateRequest.db_type())
+    severity = Column(UpdateSeverity.db_type(), nullable=True)
 
     # Flags
-    pushed = Column(Boolean, default=False)
     locked = Column(Boolean, default=False)
 
     # Bug settings
@@ -537,7 +568,6 @@ class Update(Base):
         #    self.request = action
         #    return
         self.request = action
-        self.pushed = False
         self.date_pushed = None
         flash_log("%s has been submitted for %s" % (
             self.title, action.description))
@@ -554,7 +584,6 @@ class Update(Base):
         elif self.request is UpdateRequest.stable:
             self.status = UpdateStatus.stable
         self.request = None
-        self.pushed = True
         self.date_pushed = datetime.utcnow()
         self.assign_alias()
 
@@ -816,7 +845,6 @@ class Update(Base):
             if self.stable_karma != 0 and self.stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = UpdateRequest.stable
-                self.pushed = False
                 self.date_pushed = None
                 mail.send(self.get_maintainers(), 'stablekarma', self)
                 mail.send_admin('stablekarma', self)
