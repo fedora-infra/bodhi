@@ -448,12 +448,18 @@ class PackageUpdate(SQLObject):
             self.unpush()
             self.comment('This update has been unpushed',
                          author=identity.current.user_name)
-            fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
+            fedmsg.publish(topic=fedmsg_topic, msg=dict(
+                update=self,
+                agent=identity.current.user_name,
+            ))
             flash_log("%s has been unpushed" % self.title)
             return
         elif action == 'obsolete':
             self.obsolete()
-            fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
+            fedmsg.publish(topic=fedmsg_topic, msg=dict(
+                update=self,
+                agent=identity.current.user_name,
+            ))
             flash_log("%s has been obsoleted" % self.title)
             return
         #elif self.type == 'security' and not self.approved:
@@ -483,7 +489,10 @@ class PackageUpdate(SQLObject):
                                                           mybuild['nvr']))
         elif action == 'revoke':
             if self.request:
-                fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
+                fedmsg.publish(topic=fedmsg_topic, msg=dict(
+                    update=self,
+                    agent=identity.current.user_name,
+                ))
                 flash_log('%s %s request revoked' % (self.title, self.request))
                 self.request = None
                 self.comment('%s request revoked' % action,
@@ -566,8 +575,10 @@ class PackageUpdate(SQLObject):
             action, notes, flash_notes))
         self.comment('This update has been submitted for %s by %s. %s' % (
             action, identity.current.user_name, notes), author='bodhi')
-        fedmsg.publish(topic='update.request.' + action,
-                            msg=dict(update=self))
+        fedmsg.publish(topic='update.request.' + action, msg=dict(
+            update=self,
+            agent=identity.current.user_name,
+        ))
         mail.send_admin(action, self)
 
     def request_complete(self):
@@ -588,7 +599,10 @@ class PackageUpdate(SQLObject):
         self.request = None
 
         fedmsg_topic = 'update.complete.' + self.status
-        fedmsg.publish(topic=fedmsg_topic, msg=dict(update=self))
+        fedmsg.publish(topic=fedmsg_topic, msg=dict(
+            update=self,
+            agent=identity.current.user_name,
+        ))
 
         hub.commit()
 
@@ -887,7 +901,10 @@ class PackageUpdate(SQLObject):
             mail.send(self.people_to_notify(), 'comment', self)
 
         if author not in ('bodhi', 'autoqa'):
-            fedmsg.publish(topic='update.comment', msg=dict(comment=c))
+            fedmsg.publish(topic='update.comment', msg=dict(
+                comment=c,
+                agent=identity.current.user_name
+            ))
 
         if self.critpath:
             min_karma = config.get('critpath.min_karma')
@@ -1540,7 +1557,7 @@ class BuildRootOverride(SQLObject):
         mail.send_admin('buildroot_override', self)
         fedmsg.publish(
             topic='buildroot_override.tag',
-            msg=dict(override=self),
+            msg=dict(override=self, agent=identity.current.user_name),
         )
 
     def untag(self):
@@ -1551,7 +1568,8 @@ class BuildRootOverride(SQLObject):
             koji.untagBuild(self.release.override_tag, self.build, force=True)
             fedmsg.publish(
                 topic='buildroot_override.untag',
-                msg=dict(override=self),
+                msg=dict(override=self, agent=identity.current.user_name),
+            ))
             )
         except Exception, e:
             log.exception(e)
