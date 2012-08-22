@@ -808,6 +808,7 @@ class Root(controllers.RootController):
                 # Make sure all builds are tagged as updates-candidate
                 # and bring the update back to a pending state
                 edited.unpush()
+                request = 'testing'
 
                 # Refresh the tags for these builds
                 for build in edited.builds:
