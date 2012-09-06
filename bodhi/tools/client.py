@@ -155,6 +155,9 @@ def get_parser():
     parser.add_option("-U", "--unstablekarma", action="store", type="int",
                       dest="unstablekarma", help="Unstable karma threshold",
                       default=-3)
+    parser.add_option("-B", "--close-bugs", action="store_true",
+                      dest="close_bugs", help="Automatically comment on RHBZ",
+                      default=False)
 
     ## Output
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
@@ -232,6 +235,7 @@ def main():
                         'stable_karma': opts.stablekarma,
                         'unstable_karma': opts.unstablekarma,
                         'autokarma': not opts.disable_autokarma,
+                        'close_bugs': opts.close_bugs,
                     }
                     if not extra_args['type_']:
                         log.error("Error: No update type specified (ie: -t bugfix)")
