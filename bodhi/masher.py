@@ -753,7 +753,7 @@ class MashTask(Thread):
             # Poll our master mirror and block until our updates hit
             fedmsg.publish(topic="mashtask.sync.waiting", msg=dict())
             self.wait_for_sync()
-            fedmsg.publish(topic="mashtask.sync.done", msg=dict())
+            fedmsg.publish(topic="mashtask.sync.complete", msg=dict())
 
             # Send out our notices/digest, update all bugs, and add comments
             log.debug("Sending stable update notices and closing bugs")
