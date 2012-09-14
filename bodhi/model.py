@@ -1569,7 +1569,6 @@ class BuildRootOverride(SQLObject):
             fedmsg.publish(
                 topic='buildroot_override.untag',
                 msg=dict(override=self, agent=identity.current.user_name),
-            ))
             )
         except Exception, e:
             log.exception(e)
