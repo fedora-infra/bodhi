@@ -193,7 +193,7 @@ class BuildRootOverrideController(Controller):
                         notes=notes, submitter=identity.current.user_name,
                         expiration=expiration, releaseID=release.id)
             except (DuplicateEntryError, PostgresIntegrityError):
-                flash('Error: buildroot override for %r already exists' % build)
+                flash('Error: buildroot override for %s already exists' % build)
                 if request_format() == 'json': return dict()
                 raise redirect('/override/new')
 
