@@ -203,7 +203,8 @@ class BuildRootOverrideController(Controller):
         flash('Your buildroot override has been successfully tagged. '
               'It may take up to 20 minutes for the buildroot to regenerate. '
               'You can wait for the new buildroot by running '
-              '`koji wait-repo %s-build`' % last_release.dist_tag)
+              '`koji wait-repo %s-build --build=%s`' % (last_release.dist_tag,
+                                                        build))
 
         if request_format() == 'json': return override.__json__()
         raise redirect('/override')
