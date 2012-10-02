@@ -12,6 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+import os
 import re
 import rpm
 import time
@@ -19,6 +20,7 @@ import logging
 import bugzilla
 import turbomail
 import xmlrpclib
+import cookielib
 
 from kid import XML
 from kid.element import encode_entity
@@ -1414,10 +1416,15 @@ class Bugzilla(SQLObject):
         password = config.get('bodhi_password', None)
         cookie = config.get('bz_cookie')
         if me and password:
-            bz = bugzilla.Bugzilla(url=config.get("bz_server"), user=me,
-                                   password=password, cookiefile=cookie)
+            options = dict(url=config.get("bz_server"), user=me,
+                           password=password, cookiefile=cookie)
         else:
-            bz = bugzilla.Bugzilla(url=config.get("bz_server"), cookiefile=cookie)
+            options = dict(url=config.get("bz_server"), cookiefile=cookie)
+        try:
+            bz = bugzilla.Bugzilla(**options)
+        except cookielib.LoadError:
+            os.unlink(cookie)
+            bz = bugzilla.Bugzilla(**options)
         return bz
 
     def fetch_details(self, bug=None):
