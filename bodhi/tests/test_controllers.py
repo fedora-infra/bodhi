@@ -2586,6 +2586,7 @@ class TestControllers(testutil.DBTest):
         later give positive karma.
         """
         session = login()
+        other_session = login('otherguy')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.8-1.fc7',
@@ -2603,17 +2604,17 @@ class TestControllers(testutil.DBTest):
 
         testutil.create_request('/updates/comment?text=bar&title=%s&karma=1' % 
                                 params['builds'], method='POST',
-                                headers=session)
+                                headers=other_session)
         assert PackageUpdate.byTitle(params['builds']).karma == 1
 
         testutil.create_request('/updates/comment?text=bar&title=%s&karma=-1' % 
                                 params['builds'], method='POST',
-                                headers=session)
+                                headers=other_session)
         assert PackageUpdate.byTitle(params['builds']).karma == -1
 
         testutil.create_request('/updates/comment?text=bar&title=%s&karma=1' % 
                                 params['builds'], method='POST',
-                                headers=session)
+                                headers=other_session)
         assert PackageUpdate.byTitle(params['builds']).karma == 1, PackageUpdate.byTitle(params['builds']).karma
 
     def test_suggest_reboot(self):
