@@ -536,7 +536,6 @@ class Root(controllers.RootController):
             raise redirect(update.get_url())
         values = {
                 'builds'    : {'text':update.title, 'hidden':update.title},
-                'release'   : update.release.long_name,
                 'testing'   : update.status == 'testing',
                 'request'   : str(update.request).title(),
                 'type_'     : update.type,
