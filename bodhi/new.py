@@ -84,7 +84,7 @@ class NewUpdateController(controllers.Controller):
         koji = get_session()
         koji.multicall = True
         for tag in [r.candidate_tag for r in Release.select()]:
-            koji.getLatestBuilds(tag, package=pkg)
+            koji.listTagged(tag, package=pkg)
         results = koji.multiCall()
         for result in results:
             for entries in result:
