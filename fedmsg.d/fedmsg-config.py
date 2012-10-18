@@ -3,20 +3,20 @@ hostname = socket.gethostname()
 
 config = dict(
     endpoints={
-        "relay_outbound": ["tcp://*:4001"],
+        "relay_outbound": ["tcp://127.0.0.1:4001"],
         "bodhi.%s" % hostname: [
             # Here we list 10 endpoints so bodhi's test suite can run in
             # parallel.
-            "tcp://*:3001",
-            "tcp://*:3002",
-            "tcp://*:3003",
-            "tcp://*:3004",
-            "tcp://*:3005",
-            "tcp://*:3006",
-            "tcp://*:3007",
-            "tcp://*:3008",
-            "tcp://*:3009",
-            "tcp://*:3010",
+            "tcp://127.0.0.1:3001",
+            "tcp://127.0.0.1:3002",
+            "tcp://127.0.0.1:3003",
+            "tcp://127.0.0.1:3004",
+            "tcp://127.0.0.1:3005",
+            "tcp://127.0.0.1:3006",
+            "tcp://127.0.0.1:3007",
+            "tcp://127.0.0.1:3008",
+            "tcp://127.0.0.1:3009",
+            "tcp://127.0.0.1:3010",
         ],
     },
 
@@ -24,6 +24,7 @@ config = dict(
     environment="dev",
     high_water_mark=0,
     io_threads=1,
+    post_init_sleep=0.2,
     irc=[],
     zmq_enabled=True,
     zmq_strict=False,
