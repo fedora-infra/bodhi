@@ -41,7 +41,7 @@ koji_url = config.get('koji_url')
         </li>
         <li>
             <img src="https://fedoraproject.org/static/css/../images/icons/fedora-infra-icon_source-control.png"/>
-            <a href="http://pkgs.fedoraproject.org/gitweb/?p=${pkg.name}.git">Package Source</a>
+            <a href="http://pkgs.fedoraproject.org/cgit/${pkg.name}.git">Package Source</a>
         </li>
     </ul>
 </blockquote>
