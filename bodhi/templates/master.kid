@@ -80,7 +80,7 @@ $(document).ready(function() {
         <div id="fedora-side-nav-label">Site Navigation:</div>
             <div py:if="not tg.identity.anonymous and 'releng' in tg.identity.groups">
                 <ul id="fedora-side-nav">
-                    <li><a id="administration" href="#">Administration</a></li>
+                    <li><a id="administration" href="${tg.url('/admin')}">Administration</a></li>
                     <div id="adminlist">
                         <ul>
                             <li><a href="${tg.url('/admin/push')}">Requests</a></li>
