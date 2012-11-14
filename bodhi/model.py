@@ -603,7 +603,7 @@ class PackageUpdate(SQLObject):
         fedmsg_topic = 'update.complete.' + self.status
         fedmsg.publish(topic=fedmsg_topic, msg=dict(
             update=self,
-            agent=identity.current.user_name,
+            agent=os.getlogin(),  # Should almost always be "masher"
         ))
 
         hub.commit()
