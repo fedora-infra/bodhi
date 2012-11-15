@@ -1539,7 +1539,7 @@ class Bugzilla(SQLObject):
             if bug.product not in config.get('bz_products', '').split(','):
                 log.warning("Not closing %r bug" % bug.product)
                 return
-            bz._update_bug(self.bz_id, {'status': 'CLOSED', 'resolution': 'CURRENTRELEASE', 'fixedin': update.builds[0].nvr, 'comment': comment})
+            bz._update_bug(self.bz_id, {'status': 'CLOSED', 'resolution': 'ERRATA', 'fixedin': update.builds[0].nvr, 'comment': comment})
         except xmlrpclib.Fault, f:
             log.error("Unable to close bug #%d: %s" % (self.bz_id, str(f)))
 
