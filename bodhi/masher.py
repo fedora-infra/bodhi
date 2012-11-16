@@ -828,7 +828,7 @@ class MashTask(Thread):
                 orderBy=PackageUpdate.q.date_submitted).reversed():
             if update.critpath and not update.critpath_approved:
                 updates.append(update)
-        self.sort_by_days_in_testing(updates)
+        updates = self.sort_by_days_in_testing(updates)
         return updates
 
     def get_security_updates(self, release):
@@ -838,7 +838,7 @@ class MashTask(Thread):
                     PackageUpdate.q.type == 'security',
                     PackageUpdate.q.status == 'testing',
                     PackageUpdate.q.request == None))
-        self.sort_by_days_in_testing(updates)
+        updates = self.sort_by_days_in_testing(updates)
         return updates
 
     def sort_by_days_in_testing(self, updates):
