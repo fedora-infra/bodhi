@@ -98,6 +98,12 @@ class BuildRootOverrideController(Controller):
     def expire(self, build, *args, **kw):
         """ Expire a given override """
         override = BuildRootOverride.byBuild(build)
+        if identity.current.user_name != override.submitter and \
+           'releng' not in identity.current.groups:
+            flash('Only the submitter or a releng memeber can ' +
+                  'expire this buildroot override')
+            if request_format() == 'json': return dict()
+            raise redirect('/override')
         if override.date_expired:
             flash('Override %s already expired!' % build)
             if request_format() == 'json': return dict()
