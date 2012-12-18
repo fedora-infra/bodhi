@@ -58,6 +58,7 @@ class BuildRootOverrideController(Controller):
         query = []
         title = '%d Buildroot Overrides'
         if mine:
+            show_expired = True
             query.append(
                 BuildRootOverride.q.submitter == identity.current.user_name)
             title += ' submitted by %s' % identity.current.user_name
