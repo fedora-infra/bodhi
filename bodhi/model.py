@@ -243,7 +243,7 @@ class PackageBuild(SQLObject):
         when = rpm_header[rpm.RPMTAG_CHANGELOGTIME]
 
         num = len(descrip)
-        if num == 1: when = [when]
+        if not isinstance(when, list): when = [when]
 
         str = ""
         i = 0
