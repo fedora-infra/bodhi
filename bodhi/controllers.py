@@ -509,12 +509,12 @@ class Root(controllers.RootController):
                 self.remove_tag(self.release.pending_stable_tag)
             if not update.pushed:
                 msg = "Deleted %s" % update.title
+                update.expire_buildroot_overrides()
+                update.untag()
                 map(lambda x: x.destroySelf(), update.comments)
                 for build in update.builds:
                     if len(build.updates) == 1:
                         build.destroySelf()
-                update.expire_buildroot_overrides()
-                update.untag()
                 update.destroySelf()
                 flash_log(msg)
                 mail.send_admin('deleted', update)
