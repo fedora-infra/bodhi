@@ -40,11 +40,13 @@ from bodhi.exceptions import MashTaskException
 log = logging.getLogger(__name__)
 lock = Lock()
 
+
 def get_masher():
     global masher
     if not masher:
         log.error("Masher doesn't exist?")
     return masher
+
 
 def get_mash_conf():
     conf = config.get('mash_conf')
@@ -55,6 +57,7 @@ def get_mash_conf():
     else:
         log.error("No mash configuration found!")
         return None
+
 
 class Masher(object):
     """ The Masher.
@@ -91,7 +94,7 @@ class Masher(object):
         log.info("MashTask %d done!" % thread.id)
         self.mashing = False
         self.last_log = thread.log
-        mail.send_releng('Bodhi Masher Report %s' % 
+        mail.send_releng('Bodhi Masher Report %s' %
                          time.strftime("%y%m%d.%H%M"), thread.report())
         if thread in self._threads:
             self._threads.remove(thread)
@@ -153,6 +156,7 @@ class Masher(object):
 
         return val
 
+
 class MashTask(Thread):
 
     def __init__(self, id, updates, repos=None, resume=False):
@@ -177,7 +181,7 @@ class MashTask(Thread):
                 log.warning("Skipping obsolete update %s" % update.title)
                 continue
             if not update.request:
-                log.warning('Skipping update without request: %s' %update.title)
+                log.warning('Skipping update without request: %s' % update.title)
                 continue
             self.updates.add(update)
             if not resume:
@@ -195,22 +199,22 @@ class MashTask(Thread):
         self.repos = repos
         self.success = False
         self.cmd = 'mash -o %s -c ' + config.get('mash_conf') + ' -f %s '
-        self.actions = [] # [(title, current_tag, new_tag), ...]
-        self.mashing = False # are we currently mashing?
-        self.moving = False # are we currently moving build tags?
-        self.log = None # filename that we wrote mash output to
-        self.mashed_repos = {} # { repo: mashed_dir }
+        self.actions = []  # [(title, current_tag, new_tag), ...]
+        self.mashing = False  # are we currently mashing?
+        self.moving = False  # are we currently moving build tags?
+        self.log = None  # filename that we wrote mash output to
+        self.mashed_repos = {}  # { repo: mashed_dir }
         self.errors = []
         self.safe = True
         self.genmd = False
         self.resume = resume
         self.testing_digest = {}
-        self.composed_repos = [] # previously mashed repos from our MASHING lock
+        self.composed_repos = []  # previously mashed repos from our MASHING lock
         self._lock()
         self._find_repos()
 
     def _lock(self):
-        """ Write out what updates we are pushing and any successfully mashed 
+        """ Write out what updates we are pushing and any successfully mashed
         repositories to our MASHING lock """
         mashed_dir = config.get('mashed_dir')
         mash_stage = config.get('mashed_stage_dir')
@@ -268,7 +272,7 @@ class MashTask(Thread):
             pickle.dump({
                 'updates': [update.title for update in self.updates],
                 'composed_repos': self.composed_repos,
-                }, lock)
+            }, lock)
             lock.close()
 
     def _unlock(self):
@@ -313,13 +317,16 @@ class MashTask(Thread):
 
         # For each release, populate the lists of pending/testing/stable builds
         for update in self.updates:
-            if not pending_nvrs.has_key(update.release.name):
-                pending_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged(update.release.candidate_tag)]
-                testing_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged(update.release.testing_tag)]
-                stable_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged(update.release.stable_tag)]
+            if not update.release.name in pending_nvrs:
+                pending_nvrs[update.release.name] = [
+                    build['nvr'] for build in
+                    self.koji.listTagged(update.release.candidate_tag)]
+                testing_nvrs[update.release.name] = [
+                    build['nvr'] for build in
+                    self.koji.listTagged(update.release.testing_tag)]
+                stable_nvrs[update.release.name] = [
+                    build['nvr'] for build in
+                    self.koji.listTagged(update.release.stable_tag)]
 
         for update in self.updates:
             for build in update.builds:
@@ -377,11 +384,13 @@ class MashTask(Thread):
 
         # For each release, populate the lists of pending/testing/stable builds
         for update in self.updates:
-            if not testing_nvrs.has_key(update.release.name):
-                testing_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged(update.release.testing_tag)]
-                stable_nvrs[update.release.name] = [build['nvr'] for build in
-                        self.koji.listTagged(update.release.stable_tag)]
+            if not update.release.name in testing_nvrs:
+                testing_nvrs[update.release.name] = [
+                    build['nvr'] for build in
+                    self.koji.listTagged(update.release.testing_tag)]
+                stable_nvrs[update.release.name] = [
+                    build['nvr'] for build in
+                    self.koji.listTagged(update.release.stable_tag)]
 
         for update in self.updates:
             for build in update.builds:
@@ -505,7 +514,7 @@ class MashTask(Thread):
 
     def update_comps(self):
         """
-        Update our comps module, so we can pass it to mash to stuff into 
+        Update our comps module, so we can pass it to mash to stuff into
         our repositories
         """
         log.debug("Updating comps...")
@@ -521,7 +530,8 @@ class MashTask(Thread):
         if comps_url.startswith('git://'):
             log.debug('Running git pull')
             p = subprocess.Popen('git pull', shell=True, cwd=comps_dir,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
             out, err = p.communicate()
             log.debug(out)
             if err:
@@ -531,7 +541,7 @@ class MashTask(Thread):
 
         log.info('Merging translations')
         p = subprocess.Popen('make', shell=True, cwd=comps_dir,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         log.debug(out)
         if err:
@@ -558,7 +568,7 @@ class MashTask(Thread):
 
             # make sure the new repository has our arches
             for arch in config.get('arches').split():
-                if '/' in arch: # 'ppc/ppc64'
+                if '/' in arch:  # 'ppc/ppc64'
                     one, other = arch.split('/')
                     if one not in arches and other not in arches:
                         self.error_log("Cannot find arch %s OR %s in %s" % (one, other, newrepo))
@@ -572,7 +582,7 @@ class MashTask(Thread):
                     self.error_log("Cannot find arch %s in %s" % (arch, newrepo))
                     raise MashTaskException
 
-                # sanity check our repodata 
+                # sanity check our repodata
                 try:
                     sanity_check_repodata(join(newrepo, arch, 'repodata'))
                 except Exception, e:
@@ -635,7 +645,7 @@ class MashTask(Thread):
 
             fedmsg.publish(topic="mashtask.mashing", msg=dict(repo=repo))
 
-            mashdir = join(config.get('mashed_dir'), repo + '-' + \
+            mashdir = join(config.get('mashed_dir'), repo + '-' +
                            time.strftime("%y%m%d.%H%M"))
             self.mashed_repos[repo] = mashdir
             comps = join(config.get('comps_dir'), 'comps-%s.xml' %
@@ -711,7 +721,7 @@ class MashTask(Thread):
 
             # Remove all pending tags
             # TODO: Once AutoQA is Good To Go, then we'll want to prevent
-            # updates from being pushed if they have not gotten the appropriate 
+            # updates from being pushed if they have not gotten the appropriate
             # karma from AutoQA.  For now, bodhi is simply handling the pending tags.
             if not self.resume:
                 self.remove_pending_tags()
@@ -730,7 +740,7 @@ class MashTask(Thread):
                             self.add_to_digest(update)
                         else:
                             update.request_complete()
-                    else: # request_complete() has already been run on update
+                    else:  # request_complete() has already been run on update
                         if update.status == 'testing':
                             self.add_to_digest(update)
                 else:
@@ -802,7 +812,7 @@ class MashTask(Thread):
         log.debug("MashTask done")
         masher.done(self)
 
-    def add_to_digest(self,update):
+    def add_to_digest(self, update):
         """
         Add an package to the digest dictionary
         { 'release-id':
@@ -812,13 +822,14 @@ class MashTask(Thread):
         }
         """
         prefix = update.release.long_name
-        if not self.testing_digest.has_key(prefix):
+        if not prefix in self.testing_digest:
             self.testing_digest[prefix] = {}
-        for i, subbody in enumerate(mail.get_template(update,use_template='maillist_template')):
+        for i, subbody in enumerate(mail.get_template(
+                update, use_template='maillist_template')):
             self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
     def get_unapproved_critpath_updates(self, release):
-        release = Release.select(Release.q.long_name==release)[0]
+        release = Release.select(Release.q.long_name == release)[0]
         updates = []
         for update in PackageUpdate.select(
                 AND(PackageUpdate.q.releaseID == release.id,
@@ -832,12 +843,12 @@ class MashTask(Thread):
         return updates
 
     def get_security_updates(self, release):
-        release = Release.select(Release.q.long_name==release)[0]
+        release = Release.select(Release.q.long_name == release)[0]
         updates = PackageUpdate.select(
-                AND(PackageUpdate.q.releaseID == release.id,
-                    PackageUpdate.q.type == 'security',
-                    PackageUpdate.q.status == 'testing',
-                    PackageUpdate.q.request == None))
+            AND(PackageUpdate.q.releaseID == release.id,
+                PackageUpdate.q.type == 'security',
+                PackageUpdate.q.status == 'testing',
+                PackageUpdate.q.request == None))
         updates = self.sort_by_days_in_testing(updates)
         return updates
 
@@ -883,12 +894,13 @@ class MashTask(Thread):
             # Add the detail of each build
             for nvr in updlist:
                 maildata += u"\n" + self.testing_digest[prefix][nvr]
-            release = Release.select(Release.q.long_name==prefix)[0]
+            release = Release.select(Release.q.long_name == prefix)[0]
             mail.send_mail(config.get('bodhi_email'),
-                      config.get('%s_test_announce_list' %
-                          release.id_prefix.lower().replace('-', '_')),
-                      '%s updates-testing report' % prefix,
-                      maildata)
+                           config.get('%s_test_announce_list' %
+                                      release.id_prefix.lower()
+                                             .replace('-', '_')),
+                           '%s updates-testing report' % prefix,
+                           maildata)
 
     def wait_for_sync(self):
         """
@@ -904,7 +916,7 @@ class MashTask(Thread):
         mashdir = config.get('mashed_dir')
         repo = release.stable_repo
         master_repomd = config.get('%s_master_repomd' %
-                release.id_prefix.lower().replace('-', '_'))
+                                   release.id_prefix.lower().replace('-', '_'))
         repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
         if not exists(repomd):
             log.error("Cannot find local repomd: %s" % repomd)
@@ -944,7 +956,7 @@ class MashTask(Thread):
             uinfo.insert_updateinfo()
             uinfo.insert_pkgtags()
 
-        log.debug("Updateinfo generation took: %s secs" % (time.time()-t0))
+        log.debug("Updateinfo generation took: %s secs" % (time.time() - t0))
         self.genmd = False
 
     def __str__(self):
@@ -966,7 +978,7 @@ class MashTask(Thread):
     def report(self):
         val = '[ Mash Task #%d ]\n' % self.id
         val += 'The following actions were %ssuccessful.' % (self.success and
-                                                             [''] or 
+                                                             [''] or
                                                              ['*NOT* '])[0]
         if len(self.errors):
             val += '\n The following errors occured:\n'

@@ -84,7 +84,7 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.welcome')
     def index(self):
         """
-        The main dashboard.  Here we generate the DataGrids for My Updates and 
+        The main dashboard.  Here we generate the DataGrids for My Updates and
         the latest comments.
         """
         RESULTS, FIELDS, GRID = range(3)
@@ -592,7 +592,7 @@ class Root(controllers.RootController):
         log.debug('save(%s)' % locals())
 
         note = []      # Messages to flash to the user
-        updates = []   # PackageUpdate objects 
+        updates = []   # PackageUpdate objects
         releases = {}  # { Release : [build, ...] }
         buildinfo = {} # { nvr : { 'nvr' : (n, v, r), 'people' : [person, ...],
                        #           'releases' : set(Release, ...),
@@ -626,7 +626,7 @@ class Root(controllers.RootController):
                       type_, config.get('update_types')))
             raise InvalidUpdateException(params)
         if request not in ('testing', 'stable', None):
-            flash_log('Unknown request: %s.  Valid requests are: testing, ' 
+            flash_log('Unknown request: %s.  Valid requests are: testing, '
                       'stable, None' % request)
         if autokarma:
             if stable_karma < 1:
@@ -662,7 +662,7 @@ class Root(controllers.RootController):
                         flash_log("%s update already exists!" % build)
                         return dict()
                     else:
-                        flash_log("%s update already exists!" % 
+                        flash_log("%s update already exists!" %
                                   link(build, b.get_url()))
                         raise redirect('/new', **params)
                 except SQLObjectNotFound:
@@ -854,7 +854,7 @@ class Root(controllers.RootController):
                     log.debug("%s not a candidate tag" % tag)
 
             # if we're using build inheritance, iterate over each release
-            # looking to see if the latest build in its candidate tag 
+            # looking to see if the latest build in its candidate tag
             # matches the user-specified build
             if inheritance:
                 log.info("Following build inheritance")
@@ -1278,7 +1278,7 @@ class Root(controllers.RootController):
                 pass
         elif single and num_updates == 0:
             # A single update was specified, but not found.  Be nice and
-            # attempt to find the update that the user is looking for and 
+            # attempt to find the update that the user is looking for and
             # redirect them to it.  (Bug #426941)
             try:
                 update = PackageUpdate.byTitle(single)
@@ -1328,7 +1328,7 @@ class Root(controllers.RootController):
                     flash_log("Problem with captcha: %s" % tg_errors)
             else:
                 flash_log(tg_errors)
-            return dict(update=update, updates=[], 
+            return dict(update=update, updates=[],
                         values={'title':update.title, 'karma' : karma},
                         comment_form=self.comment_captcha_form)
         elif karma not in (0, 1, -1):

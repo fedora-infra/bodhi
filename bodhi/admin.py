@@ -116,7 +116,7 @@ class AdminController(Controller, SecureResource):
                 # unapproved security updates, or for a locked release
                 requests = PackageUpdate.select(PackageUpdate.q.request != None)
 
-                # Come F13+, bodhi will not have locked releases.  It will 
+                # Come F13+, bodhi will not have locked releases.  It will
                 # implement the 'No Frozen Rawhide' proposal, and treat 'locked'
                 # releases as pending.
                 #requests = filter(lambda update: not update.release.locked,
