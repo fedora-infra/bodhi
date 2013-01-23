@@ -24,6 +24,7 @@ import subprocess
 import cPickle as pickle
 import fedmsg
 
+from collections import defaultdict
 from operator import attrgetter
 from sqlobject import SQLObjectNotFound, AND
 from threading import Thread, Lock
@@ -32,7 +33,7 @@ from os.path import exists, join, islink, isdir, basename
 from time import sleep
 
 from bodhi import buildsys, mail
-from bodhi.util import synchronized, sanity_check_repodata
+from bodhi.util import synchronized, sanity_check_repodata, get_nvr, sorted_builds
 from bodhi.model import PackageUpdate, Release
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import MashTaskException
@@ -176,7 +177,8 @@ class MashTask(Thread):
         self.updates = set()
         if updates and isinstance(updates[0], basestring):
             updates = map(PackageUpdate.byTitle, updates)
-        for update in updates:
+
+        for update in self.sort_updates(updates):
             if update.status == 'obsolete':
                 log.warning("Skipping obsolete update %s" % update.title)
                 continue
@@ -212,6 +214,30 @@ class MashTask(Thread):
         self.composed_repos = []  # previously mashed repos from our MASHING lock
         self._lock()
         self._find_repos()
+
+    def sort_updates(self, updates):
+        """
+        Order our updates so that the highest version gets tagged last so that
+        it appears as the 'latest' in koji.
+        """
+        builds = defaultdict(set)
+        build_to_update = {}
+        ordered_updates = []
+        for update in updates:
+            for build in update.builds:
+                n, v, r = get_nvr(build.nvr)
+                builds[n].add(build.nvr)
+                build_to_update[build.nvr] = update
+        for package in builds:
+            if len(builds[package]) > 1:
+                log.info('Found multiple %s packages' % package)
+                log.debug(builds[package])
+                for build in sorted_builds(builds[package]):
+                    ordered_updates.append(build_to_update[build])
+            else:
+                ordered_updates.append(build_to_update[builds[package][0]])
+        log.debug('ordered_updates = %s' % ordered_updates)
+        return ordered_updates
 
     def _lock(self):
         """ Write out what updates we are pushing and any successfully mashed

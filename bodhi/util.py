@@ -499,6 +499,13 @@ def json_redirect(f, *args, **kw):
             raise redirect('/new', **e.args[0])
 
 
+# TODO: move to kitchen
+def sorted_builds(builds):
+    return sorted(builds,
+            cmp=lambda x, y: rpm.labelCompare(get_nvr(x), get_nvr(y)),
+            reverse=True)
+
+
 """
 Misc iPython hacks that I've had to write at one point or another
 """
