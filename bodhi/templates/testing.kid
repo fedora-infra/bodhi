@@ -9,7 +9,7 @@
 
 <body>
     &nbsp;&nbsp;<b>${title}</b>
-    <ul>
+    <ul py:if="len(updates) > 0">
         <li><a href="${tg.url('/critpath?unapproved=True&amp;release=' + updates[0].release.name)}">Show unapproved ${updates[0].release.name} Critical Path updates</a>&nbsp;<a href="${tg.url('/rss/rss2.0?critpath=True&amp;release=' + updates[0].release.name)}"><img src="${tg.url('/static/images/rss.png')}" border="0"/></a></li>
     </ul>
     <div class="list">
