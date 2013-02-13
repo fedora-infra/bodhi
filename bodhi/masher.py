@@ -22,7 +22,7 @@ import urllib2
 import logging
 import subprocess
 import cPickle as pickle
-import fedmsg
+#import fedmsg
 
 from collections import defaultdict
 from operator import attrgetter
@@ -646,7 +646,7 @@ class MashTask(Thread):
                 self.mashed_repos[repo] = finished_repos[repo]
                 continue
 
-            fedmsg.publish(topic="mashtask.mashing", msg=dict(repo=repo))
+            #fedmsg.publish(topic="mashtask.mashing", msg=dict(repo=repo))
 
             mashdir = join(config.get('mashed_dir'), repo + '-' +
                            time.strftime("%y%m%d.%H%M"))
@@ -692,7 +692,7 @@ class MashTask(Thread):
         anything fails, undo any tag moves.
         """
 
-        fedmsg.publish(topic="mashtask.start", msg=dict())
+        #fedmsg.publish(topic="mashtask.start", msg=dict())
         self.success = True
         try:
             if self.resume:
@@ -764,9 +764,9 @@ class MashTask(Thread):
             self.cache_repodata()
 
             # Poll our master mirror and block until our updates hit
-            fedmsg.publish(topic="mashtask.sync.waiting", msg=dict())
+            #fedmsg.publish(topic="mashtask.sync.waiting", msg=dict())
             self.wait_for_sync()
-            fedmsg.publish(topic="mashtask.sync.complete", msg=dict())
+            #fedmsg.publish(topic="mashtask.sync.complete", msg=dict())
 
             # Send out our notices/digest, update all bugs, and add comments
             log.debug("Sending stable update notices and closing bugs")
@@ -808,9 +808,9 @@ class MashTask(Thread):
             log.debug("Mash unsuccessful, updating state lock")
             self._update_lock()
 
-        fedmsg.publish(topic="mashtask.complete", msg=dict(
-            success=self.success,
-        ))
+        #fedmsg.publish(topic="mashtask.complete", msg=dict(
+        #    success=self.success,
+        #))
 
         log.debug("MashTask done")
         masher.done(self)

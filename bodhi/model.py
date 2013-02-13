@@ -600,11 +600,11 @@ class PackageUpdate(SQLObject):
             self.assign_id()
         self.request = None
 
-        fedmsg_topic = 'update.complete.' + self.status
-        fedmsg.publish(topic=fedmsg_topic, msg=dict(
-            update=self,
-            agent=os.getlogin(),  # Should almost always be "masher"
-        ))
+        #fedmsg_topic = 'update.complete.' + self.status
+        #fedmsg.publish(topic=fedmsg_topic, msg=dict(
+        #    update=self,
+        #    agent=os.getlogin(),  # Should almost always be "masher"
+        #))
 
         hub.commit()
 
@@ -1573,10 +1573,10 @@ class BuildRootOverride(SQLObject):
             self.release.override_tag))
         try:
             koji.untagBuild(self.release.override_tag, self.build, force=True)
-            fedmsg.publish(
-                topic='buildroot_override.untag',
-                msg=dict(override=self, agent=identity.current.user_name),
-            )
+            #fedmsg.publish(
+            #    topic='buildroot_override.untag',
+            #    msg=dict(override=self, agent=identity.current.user_name),
+            #)
         except Exception, e:
             log.exception(e)
             log.error('There was non-fatal problem expiring the override')
