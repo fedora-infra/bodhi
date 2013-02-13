@@ -179,7 +179,7 @@ class MashTask(Thread):
         if updates and isinstance(updates[0], basestring):
             updates = map(PackageUpdate.byTitle, updates)
 
-        for update in sort_updates(updates):
+        for update in updates:
             if update.status == 'obsolete':
                 log.warning("Skipping obsolete update %s" % update.title)
                 continue
@@ -445,7 +445,7 @@ class MashTask(Thread):
         self.moving = True
         log.debug("Setting up koji multicall for moving builds")
         self.koji.multicall = True
-        for update in sorted(self.updates, key=attrgetter('date_submitted')):
+        for update in sort_updates(self.updates):
             if update.request == 'stable':
                 self.tag = update.release.stable_tag
                 # [No Frozen Rawhide] Move stable builds going to a pending
