@@ -3097,7 +3097,7 @@ class TestControllers(testutil.DBTest):
         session = login()
         create_release()
         updates = []
-        for rev in range(1, 10):
+        for rev in range(1, 10)[::-1]:
             params = {
                     'builds'         : 'TurboGears-1.0.8-%d.fc7' % rev,
                     'release'        : 'Fedora 7',
@@ -3114,7 +3114,7 @@ class TestControllers(testutil.DBTest):
             up = PackageUpdate.byTitle(params['builds'])
             updates.append(up)
         n, v, r = get_nvr(updates[0].builds[0].nvr)
-        assert r == '1.fc7', r
+        assert r == '9.fc7', r
         sorted_updates = sort_updates(updates)
         n, v, r = get_nvr(sorted_updates[0].builds[0].nvr)
-        assert r == '9.fc7', r
+        assert r == '1.fc7', r

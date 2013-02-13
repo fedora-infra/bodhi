@@ -76,7 +76,7 @@ def sort_updates(updates):
         else:
             ordered_updates.append(build_to_update[builds[package][0]])
     log.debug('ordered_updates = %s' % ordered_updates)
-    return ordered_updates
+    return ordered_updates[::-1]
 
 
 def rpm_fileheader(pkgpath):
