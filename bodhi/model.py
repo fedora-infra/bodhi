@@ -156,8 +156,6 @@ class Package(SQLObject):
     builds          = MultipleJoin('PackageBuild', joinColumn='package_id')
     suggest_reboot  = BoolCol(default=False)
     committers      = PickleCol(default=[])
-    stable_karma    = IntCol(default=3)
-    unstable_karma  = IntCol(default=-3)
 
     def updates(self):
         updates = set()
@@ -346,8 +344,8 @@ class PackageUpdate(SQLObject):
     nagged           = PickleCol(default=None) # { nagmail_name : datetime, ... }
     approved         = DateTimeCol(default=None)
 
-    stable_karma     = property(lambda self: self.builds[0].package.stable_karma)
-    unstable_karma   = property(lambda self: self.builds[0].package.unstable_karma)
+    stable_karma    = IntCol(default=3)
+    unstable_karma  = IntCol(default=-3)
 
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
