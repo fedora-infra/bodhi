@@ -33,7 +33,9 @@ from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime, timedelta
 from decorator import decorator
+from collections import defaultdict
 from turbogears import config, flash, redirect
+
 from fedora.client import PackageDB
 from kitchen.text.converters import to_unicode, to_bytes
 
@@ -51,6 +53,31 @@ log = logging.getLogger(__name__)
 header = lambda x: "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
+
+def sort_updates(updates):
+    """
+    Order our updates so that the highest version gets tagged last so that
+    it appears as the 'latest' in koji.
+    """
+    builds = defaultdict(set)
+    build_to_update = {}
+    ordered_updates = []
+    for update in updates:
+        for build in update.builds:
+            n, v, r = get_nvr(build.nvr)
+            builds[n].add(build.nvr)
+            build_to_update[build.nvr] = update
+    for package in builds:
+        if len(builds[package]) > 1:
+            log.info('Found multiple %s packages' % package)
+            log.debug(builds[package])
+            for build in sorted_builds(builds[package]):
+                ordered_updates.append(build_to_update[build])
+        else:
+            ordered_updates.append(build_to_update[builds[package][0]])
+    log.debug('ordered_updates = %s' % ordered_updates)
+    return ordered_updates
+
 
 def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)

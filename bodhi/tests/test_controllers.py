@@ -19,6 +19,7 @@ from bodhi.model import Release, PackageUpdate, User, PackageBuild, Bugzilla, \
 from bodhi.controllers import Root
 from bodhi.exceptions import DuplicateEntryError
 from bodhi.jobs import refresh_metrics
+from bodhi.util import sort_updates, get_nvr
 
 import cherrypy
 cherrypy.root = Root()
@@ -3091,3 +3092,29 @@ class TestControllers(testutil.DBTest):
         assert 'notes go here' in cherrypy.response.body[0]
         testutil.create_request('/updates/%s/%s' % (up.updateid, up.title))
         assert 'notes go here' in cherrypy.response.body[0]
+
+    def test_sort_updates(self):
+        session = login()
+        create_release()
+        updates = []
+        for rev in range(1, 10):
+            params = {
+                    'builds'         : 'TurboGears-1.0.8-%d.fc7' % rev,
+                    'release'        : 'Fedora 7',
+                    'type_'          : 'bugfix',
+                    'bugs'           : '',
+                    'notes'          : 'foobar',
+                    'request'        : 'testing',
+                    'suggest_reboot' : True,
+                    'autokarma'      : True,
+                    'stable_karma'   : 5,
+                    'unstable_karma' : -5
+            }
+            self.save_update(params, session)
+            up = PackageUpdate.byTitle(params['builds'])
+            updates.append(up)
+        n, v, r = get_nvr(updates[0].builds[0].nvr)
+        assert r == '1.fc7', r
+        sorted_updates = sort_updates(updates)
+        n, v, r = get_nvr(sorted_updates[0].builds[0].nvr)
+        assert r == '9.fc7', r
