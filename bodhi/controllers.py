@@ -543,8 +543,8 @@ class Root(controllers.RootController):
                 'bugs'      : update.get_bugstring(),
                 'edited'    : update.title,
                 'close_bugs': update.close_bugs,
-                'stable_karma' : update.builds[0].package.stable_karma,
-                'unstable_karma' : update.builds[0].package.unstable_karma,
+                'stable_karma' : update.stable_karma,
+                'unstable_karma' : update.unstable_karma,
                 'suggest_reboot' : update.builds[0].package.suggest_reboot,
                 'autokarma' : update.stable_karma != 0 and update.unstable_karma != 0,
         }
@@ -921,10 +921,6 @@ class Root(controllers.RootController):
             # If new karma thresholds are specified, save them
             if not autokarma:
                 stable_karma = unstable_karma = 0
-            if package.stable_karma != stable_karma:
-                package.stable_karma = stable_karma
-            if package.unstable_karma != stable_karma:
-                package.unstable_karma = unstable_karma
 
             # Create or fetch the PackageBuild object for this build
             try:
@@ -993,6 +989,7 @@ class Root(controllers.RootController):
                 log.debug("Editing update %s" % edited.title)
                 update.set(release=release, date_modified=datetime.utcnow(),
                            notes=notes, type=type_, title=','.join(builds),
+                           stable_karma=stable_karma, unstable_karma=unstable_karma,
                            close_bugs=close_bugs)
 
                 # Remove any unnecessary builds
@@ -1008,7 +1005,9 @@ class Root(controllers.RootController):
                                            release=release,
                                            submitter=identity.current.user_name,
                                            notes=notes, type=type_,
-                                           close_bugs=close_bugs)
+                                           close_bugs=close_bugs,
+                                           stable_karma=stable_karma,
+                                           unstable_karma=unstable_karma)
                 except Exception, e:
                     log.exception(e)
                     raise
