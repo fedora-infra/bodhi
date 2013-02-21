@@ -48,6 +48,7 @@ pyflakes:
 	find . -name '*.py' | xargs pyflakes
 
 init:
+	python setup.py egg_info
 	wget -N https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
 	tar -jxvf bodhi-pickledb.tar.bz2
 	PYTHONPATH=$(pwd) tg-admin --config=bodhi.cfg sql create && PYTHONPATH=$(pwd) bodhi/tools/init.py && PYTHONPATH=$(pwd) bodhi/tools/dev_init.py && PYTHONPATH=$(pwd) bodhi/tools/pickledb.py load bodhi-pickledb-*
