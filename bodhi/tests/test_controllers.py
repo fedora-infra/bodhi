@@ -116,8 +116,8 @@ class TestControllers(testutil.DBTest):
         assert update.release.long_name == params['release']
         assert update.bugs[0].bz_id == int(params['bugs'])
         assert update.notes == params['notes']
-        assert update.builds[0].package.stable_karma == 3
-        assert update.builds[0].package.unstable_karma == -3
+        assert update.stable_karma == 3
+        assert update.unstable_karma == -3
 
     def test_multibuild_update(self):
         session = login()
