@@ -1245,8 +1245,8 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.builds[0].package.stable_karma == 5
-        assert update.builds[0].package.unstable_karma == -5
+        assert update.stable_karma == 5, update.stable_karma
+        assert update.unstable_karma == -5, update.unstable_karma
 
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7 python-sqlobject-1.2-3.fc7',
@@ -1264,10 +1264,25 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         #print testutil.get_log()
         update = PackageUpdate.byTitle(params['builds'].replace(' ', ','))
-        assert update.builds[0].package.stable_karma == params['stable_karma']
-        assert update.builds[0].package.unstable_karma == params['unstable_karma']
-        assert update.builds[1].package.stable_karma == params['stable_karma']
-        assert update.builds[1].package.unstable_karma == params['unstable_karma']
+        assert update.stable_karma == params['stable_karma'], update.stable_karma
+        assert update.unstable_karma == params['unstable_karma'], update.unstable_karma
+
+        # Create a different update to ensure we have unique thresholds
+        params = {
+                'builds'  : 'TurboGears-3.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'autokarma' : True,
+                'stable_karma' : 7,
+                'unstable_karma' : -7
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.stable_karma == 7, update.stable_karma
+        assert update.unstable_karma == -7, update.unstable_karma
 
     def test_bad_karma_thresholds(self):
         session = login()
