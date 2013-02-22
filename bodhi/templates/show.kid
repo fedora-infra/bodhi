@@ -196,8 +196,8 @@ statusinfo = {
         ['Date Modified',   update.date_modified],
         ['Submitter',       XML(submitter)],
         ['Karma',           XML(karma)],
-        ['Stable karma',    update.builds[0].package.stable_karma],
-        ['Unstable karma',  update.builds[0].package.unstable_karma],
+        ['Stable karma',    update.stable_karma],
+        ['Unstable karma',  update.unstable_karma],
         )">
       <div py:if="field[1] != None and field[1] != ''">
           <td class="title"><b>${field[0]}:</b></td>
