@@ -74,7 +74,7 @@ def sort_updates(updates):
             for build in sorted_builds(builds[package]):
                 ordered_updates.append(build_to_update[build])
         else:
-            ordered_updates.append(build_to_update[builds[package][0]])
+            ordered_updates.append(build_to_update[builds[package].pop()])
     log.debug('ordered_updates = %s' % ordered_updates)
     return ordered_updates[::-1]
 
