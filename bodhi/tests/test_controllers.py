@@ -3128,10 +3128,28 @@ class TestControllers(testutil.DBTest):
             self.save_update(params, session)
             up = PackageUpdate.byTitle(params['builds'])
             updates.append(up)
+        params = {
+                'builds'         : 'python-3.0-10.fc7',
+                'release'        : 'Fedora 7',
+                'type_'          : 'bugfix',
+                'bugs'           : '',
+                'notes'          : 'foobar',
+                'request'        : 'testing',
+                'suggest_reboot' : True,
+                'autokarma'      : True,
+                'stable_karma'   : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        up = PackageUpdate.byTitle(params['builds'])
+        updates.append(up)
+
         n, v, r = get_nvr(updates[0].builds[0].nvr)
         assert r == '9.fc7', r
         sorted_updates = sort_updates(updates)
         n, v, r = get_nvr(sorted_updates[0].builds[0].nvr)
         assert r == '1.fc7', r
         n, v, r = get_nvr(sorted_updates[-1].builds[0].nvr)
+        assert r == '10.fc7', r
+        n, v, r = get_nvr(sorted_updates[-2].builds[0].nvr)
         assert r == '9.fc7', r
