@@ -414,7 +414,7 @@ class ProgressBar(object):
         self.max = maxValue
         self.span = maxValue - minValue
         self.width = totalWidth
-        self.amount = 0       # When amount == max, we are 100% done 
+        self.amount = 0       # When amount == max, we are 100% done
         self.updateAmount(0)  # Build progress bar string
 
     def updateAmount(self, newAmount=0):
@@ -443,7 +443,7 @@ class ProgressBar(object):
                                         ' '*(allFull-numHashes))
 
         # figure out where to put the percentage, roughly centered
-        percentPlace = (len(self.progBar) / 2) - len(str(percentDone)) 
+        percentPlace = (len(self.progBar) / 2) - len(str(percentDone))
         percentString = str(percentDone) + "%"
 
         # slice the percentage into the bar
