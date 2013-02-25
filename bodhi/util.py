@@ -72,9 +72,13 @@ def sort_updates(updates):
             log.info('Found multiple %s packages' % package)
             log.debug(builds[package])
             for build in sorted_builds(builds[package]):
-                ordered_updates.append(build_to_update[build])
+                update = build_to_update[build]
+                if update not in ordered_updates:
+                    ordered_updates.append(update)
         else:
-            ordered_updates.append(build_to_update[builds[package].pop()])
+            update = build_to_update[builds[package].pop()]
+            if update not in ordered_updates:
+                ordered_updates.append(update)
     log.debug('ordered_updates = %s' % ordered_updates)
     return ordered_updates[::-1]
 
