@@ -3153,3 +3153,4 @@ class TestControllers(testutil.DBTest):
         assert r == '10.fc7', r
         n, v, r = get_nvr(sorted_updates[-2].builds[0].nvr)
         assert r == '9.fc7', r
+        assert len(sorted_updates) == 10, len(sorted_updates)
