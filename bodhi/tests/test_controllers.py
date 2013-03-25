@@ -2374,6 +2374,61 @@ class TestControllers(testutil.DBTest):
         json = simplejson.loads(cherrypy.response.body[0])
         assert json['num_items'] == 0
 
+    def test_modified_since(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'kernel-2.6.31-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'stable_karma' : 1,
+                'request': None,
+                'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        ## Test web UI and make sure it doesn't show up
+        testutil.create_request('/updates/list?%s' %
+                urlencode({'modified_since': str(update.date_submitted)}),
+                method='GET', headers=session)
+
+        assert '1 update found' not in cherrypy.response.body[0], cherrypy.response.body[0]
+
+        # Pretend it has been modified
+        update.date_modified = update.date_submitted + timedelta(days=1)
+
+        ## Test web UI to make sure it's there now
+        testutil.create_request('/updates/list?%s' %
+                urlencode({'modified_since': str(update.date_submitted)}),
+                method='GET', headers=session)
+
+        assert '1 update found' in cherrypy.response.body[0], cherrypy.response.body[0]
+        assert 'kernel-2.6.31-1.fc7' in cherrypy.response.body[0]
+
+        ## Test JSON API
+        testutil.create_request('/updates/list?%s' %
+                urlencode({'modified_since': str(update.date_submitted),
+                           'tg_format': 'json'}),
+                method='GET', headers=session)
+
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert json['num_items'] == 1
+        assert json['updates'][0]['title'] == params['builds']
+
+        testutil.create_request('/updates/list?%s' %
+                urlencode({
+                    'tg_format': 'json',
+                    'modified_since': str(update.date_submitted +
+                                          timedelta(days=2)),
+                    }),
+                method='GET', headers=session)
+
+        json = simplejson.loads(cherrypy.response.body[0])
+        assert json['num_items'] == 0
+
     def test_pushed_since(self):
         session = login()
         create_release()
