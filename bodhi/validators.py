@@ -18,8 +18,8 @@ class BuildValidator(twc.Validator):
         'badbuild': "Invalid build. Must be in name-version-release format.",
     }
 
-    def validate_python(self, value, state=None):
-        super(BuildValidator, self).validate_python(value, state)
+    def _validate_python(self, value, state=None):
+        super(BuildValidator, self)._validate_python(value, state)
 
         builds = [pkg['package'] for pkg in value if pkg['package']]
         tag_types, tag_rels = Release.get_tags()
@@ -119,8 +119,8 @@ class BuildValidator(twc.Validator):
 
 class UpdateValidator(twc.Validator):
 
-    def validate_python(self, value, state=None):
-        super(UpdateValidator, self).validate_python(value, state)
+    def _validate_python(self, value, state=None):
+        super(UpdateValidator, self)._validate_python(value, state)
 
         # If we are not editing an update, check if it is a duplicate
         if not value['id']:
