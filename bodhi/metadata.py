@@ -10,7 +10,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-# 
+#
 # Authors: Luke Macken <lmacken@fedoraproject.org>
 
 __version__ = '1.4'
@@ -281,39 +281,17 @@ class ExtendedMetadata(object):
                 log.error("Cannot find repomd.xml in %s" % self.repo)
 
     def insert_pkgtags(self):
-        """ Download and inject the pkgtags sqlite from the pkgdb """
+        """ Download and inject the pkgtags sqlite from fedora-tagger """
+
         if config.get('pkgtags_url') not in [None, ""]:
             try:
+                tags_url = config.get('pkgtags_url')
+                local_tags = '/tmp/pkgtags.sqlite'
+                log.info('Downloading %s' % tags_url)
+                urlgrab(tags_url, filename=local_tags)
                 for arch in os.listdir(self.repo):
-                    if arch == 'SRPMS':
-                        continue
-                    filename = ''
-                    reponame = os.path.basename(self.repo)
-                    if reponame.startswith('f'):
-                        release = reponame[1:].split('-')[0]
-                        filename = 'F-%s-%s-' % (release, arch)
-                        if 'testing' in reponame:
-                            filename += 'tu'
-                        else:
-                            filename += 'u'
-                    elif reponame.startswith('el'):
-                        release = reponame[2:].split('-')[0]
-                        filename = 'E-%s-%s' % (release, arch)
-                        if 'testing' in reponame:
-                            filename += '-t'
-                    else:
-                        log.error('Unknown repo %s' % reponame)
-                        return
-
-                    tags_url = config.get('pkgtags_url') + filename
-                    log.info('Downloading %s' % tags_url)
-                    try:
-                        urlgrab(str(tags_url), filename='/tmp/pkgtags.sqlite')
-                        repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
-                        repomd.add('/tmp/pkgtags.sqlite')
-                    except URLGrabError, e:
-                        log.error("Unable to fetch tags from the pkgdb: %s" % e)
-
+                    repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
+                    repomd.add(local_tags)
             except Exception, e:
                 log.exception(e)
                 log.error("There was a problem injecting pkgtags")
