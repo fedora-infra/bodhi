@@ -6,6 +6,7 @@ from pprint import pprint
 from beaker.cache import cache_region
 from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
+from pyramid.url import route_url
 from pyramid.response import Response
 from pyramid.security import remember, authenticated_userid, forget
 from pyramid.httpexceptions import HTTPFound
@@ -98,6 +99,7 @@ def save(request):
 
     return Response("Hi There!")
 
+
 @cache_region('long_term', 'package_list')
 def get_all_packages():
     """ Get a list of all packages in Koji """
@@ -138,10 +140,11 @@ def latest_candidates(request):
 def login(request):
     login_url = route_url('login', request)
     referrer = request.url
-    if referrer == login_url: referrer = '/'
+    if referrer == login_url:
+        referrer = '/'
     came_from = request.params.get('came_from', referrer)
     request.session['came_from'] = came_from
-    return dict(url = request.application_url + '/dologin.html')
+    return dict(url=request.application_url + '/dologin.html')
 
 
 def logout(request):
@@ -154,7 +157,7 @@ def remember_me(context, request, *args, **kw):
     identity = request.params['openid.identity']
     if not identity.startswith(request.registry.settings['openid.provider']):
         request.session.flash('Invalid OpenID provider. You can only use: %s' %
-                request.registry.settings['openid.provider'])
+                              request.registry.settings['openid.provider'])
         return HTTPFound(location=request.aplication_url + '/login')
     username = identity.split('/')[-1]
     headers = remember(request, username)

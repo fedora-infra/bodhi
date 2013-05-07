@@ -113,10 +113,10 @@ class DevBuildsys(Buildsystem):
                  'release': '2.fc7',
                  'size': 1993385,
                  'version': '1.0.2.2'},
-            ]
+                ]
 
     def listTags(self, build, *args, **kw):
-        if build == 'bodhi-1.0-1': # return a testing update
+        if build == 'bodhi-1.0-1':  # return a testing update
             return [{
                 'arches': 'i386 x86_64 ppc ppc64',
                 'id': 10,
