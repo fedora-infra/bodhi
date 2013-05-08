@@ -1441,7 +1441,11 @@ class Bugzilla(SQLObject):
         except Exception, e:
             log.error("Unable to decode bug title: %s" % e)
             self.title = 'Unable to decode bug title'
-        if 'security' in bug.keywords.lower():
+        if isinstance(bug.keywords, basestring):
+            keywords = bug.keywords.split()
+        else:  # python-bugzilla 0.8.0+
+            keywords = bug.keywords
+        if 'security' in [keyword.lower() for keyword in keywords]:
             self.security = True
 
     def _default_message(self, update):
