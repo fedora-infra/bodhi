@@ -241,7 +241,7 @@ class Root(controllers.RootController):
     def list(self, release=None, bugs=None, cves=None, status=None, type_=None,
              package=None, mine=False, get_auth=False, username=None,
              start_date=None, end_date=None, count_only=False,
-             created_since=None, pushed_since=None, request=None, **kw):
+             created_since=None, pushed_since=None, modified_since=None, request=None, **kw):
         """ Return a list of updates based on given parameters """
         log.debug('list(%s)' % locals())
         query = []
@@ -256,7 +256,8 @@ class Root(controllers.RootController):
         # If no arguments are specified, return the most recent updates
         if not release and not bugs and not cves and not status and not type_ \
            and not package and not mine and not username and not created_since \
-           and not pushed_since and not request and not start_date and not end_date:
+           and not pushed_since and not modified_since and not request \
+           and not start_date and not end_date:
             log.debug("No arguments, returning latest")
             updates = PackageUpdate.select(orderBy=orderBy).reversed()
             num_items = updates.count()
@@ -292,8 +293,8 @@ class Root(controllers.RootController):
         # If we're looking for bugs specifically (#610)
         if bugs and not status and not type_ and not package \
                 and not mine and not username and not created_since \
-                and not pushed_since and not request and not start_date \
-                and not end_date:
+                and not pushed_since and not modified_since \
+                and not request and not start_date and not end_date:
             updates = []
             bugs = bugs.replace('#', '').split(',')
             for bug in bugs:
@@ -333,6 +334,10 @@ class Root(controllers.RootController):
                 created_since = datetime(*time.strptime(created_since,
                        '%Y-%m-%d %H:%M:%S')[:-2])
                 query.append(PackageUpdate.q.date_submitted >= created_since)
+            if modified_since:
+                modified_since = datetime(*time.strptime(modified_since,
+                       '%Y-%m-%d %H:%M:%S')[:-2])
+                query.append(PackageUpdate.q.date_modified >= modified_since)
             if pushed_since:
                 pushed_since = datetime(*time.strptime(pushed_since,
                        '%Y-%m-%d %H:%M:%S')[:-2])

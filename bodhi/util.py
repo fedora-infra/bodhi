@@ -72,9 +72,13 @@ def sort_updates(updates):
             log.info('Found multiple %s packages' % package)
             log.debug(builds[package])
             for build in sorted_builds(builds[package]):
-                ordered_updates.append(build_to_update[build])
+                update = build_to_update[build]
+                if update not in ordered_updates:
+                    ordered_updates.append(update)
         else:
-            ordered_updates.append(build_to_update[builds[package][0]])
+            update = build_to_update[builds[package].pop()]
+            if update not in ordered_updates:
+                ordered_updates.append(update)
     log.debug('ordered_updates = %s' % ordered_updates)
     return ordered_updates[::-1]
 
@@ -414,7 +418,7 @@ class ProgressBar(object):
         self.max = maxValue
         self.span = maxValue - minValue
         self.width = totalWidth
-        self.amount = 0       # When amount == max, we are 100% done 
+        self.amount = 0       # When amount == max, we are 100% done
         self.updateAmount(0)  # Build progress bar string
 
     def updateAmount(self, newAmount=0):
@@ -443,7 +447,7 @@ class ProgressBar(object):
                                         ' '*(allFull-numHashes))
 
         # figure out where to put the percentage, roughly centered
-        percentPlace = (len(self.progBar) / 2) - len(str(percentDone)) 
+        percentPlace = (len(self.progBar) / 2) - len(str(percentDone))
         percentString = str(percentDone) + "%"
 
         # slice the percentage into the bar
