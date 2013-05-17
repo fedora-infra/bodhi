@@ -144,7 +144,7 @@ def login(request):
         referrer = '/'
     came_from = request.params.get('came_from', referrer)
     request.session['came_from'] = came_from
-    return dict(url=request.application_url + '/dologin.html')
+    return dict(url=request.route_url('verify_openid'))
 
 
 def logout(request):
