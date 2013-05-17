@@ -95,6 +95,6 @@ def main(global_config, testing=None, **settings):
                     renderer='bodhi:templates/login.mak')
     config.add_route('logout', '/logout', view='bodhi.views.logout')
     config.add_route('verify_openid', pattern='/dologin.html',
-                     view='pyramid_openid.verify_openid')
+                     view='pyramid_fas_openid.verify_openid')
 
     return config.make_wsgi_app()
