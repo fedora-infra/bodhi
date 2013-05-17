@@ -7,6 +7,7 @@ from beaker.cache import cache_region
 from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
 from pyramid.url import route_url
+from pyramid.view import view_config
 from pyramid.response import Response
 from pyramid.security import remember, authenticated_userid, forget
 from pyramid.httpexceptions import HTTPFound
@@ -68,6 +69,11 @@ def view_widget(context, request):
     mw = tw2.core.core.request_local()['middleware']
     mw.controllers.register(context, 'update_submit')
     return {'widget': context}
+
+
+@view_config(route_name='home', renderer='bodhi:templates/home.mak')
+def home(request):
+    return {}
 
 
 def save(request):

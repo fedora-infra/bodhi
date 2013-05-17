@@ -41,6 +41,9 @@ def main(global_config, testing=None, **settings):
     config.add_static_view('static', 'bodhi:static')
     config.add_translation_dirs('bodhi:locale/')
 
+    # Frontpage
+    config.add_route('home', '/')
+
     # Save method
     config.add_route('save', '/save',
                      view='bodhi.views.save',
