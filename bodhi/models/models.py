@@ -83,7 +83,7 @@ Base.query = DBSession.query_property()
 
 ##
 ## Enumerated type declarations
-## Note: We're using single-letter names at the moment for compatiblity with
+## Note: We're using single-letter names at the moment for compatibility with
 ## sqlite dbs
 ##
 
