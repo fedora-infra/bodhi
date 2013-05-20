@@ -16,15 +16,11 @@ requires = [
     'pyramid',
     'pyramid_beaker',
     'pyramid_openid',
-    'WebError',
-
-    # not needed until we need need multiphase commits.
-    # we may want to enable this for the pyramid_mailer.
-    #'repoze.tm2>=1.0b1', # default_commit_veto
+    'pyramid_debugtoolbar',
 
     'sqlalchemy',
     #'zope.sqlalchemy',
-    'WebError',
+
     'webhelpers',
 
     # Useful tools
