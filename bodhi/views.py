@@ -6,7 +6,6 @@ from pprint import pprint
 from beaker.cache import cache_region
 from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
-from pyramid.url import route_url
 from pyramid.view import view_config
 from pyramid.response import Response
 from pyramid.security import remember, authenticated_userid, forget
@@ -144,7 +143,7 @@ def latest_candidates(request):
 
 
 def login(request):
-    login_url = route_url('login', request)
+    login_url = request.route_url('login')
     referrer = request.url
     if referrer == login_url:
         referrer = '/'
