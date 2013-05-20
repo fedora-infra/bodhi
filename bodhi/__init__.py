@@ -10,13 +10,16 @@ from pyramid_beaker import set_cache_regions_from_settings
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
-from bodhi.resources import appmaker
+from .models import DBSession, Base
+from .resources import appmaker
 import bodhi.buildsys
 
 
 def main(global_config, testing=None, **settings):
     """ This function returns a WSGI application """
     engine = engine_from_config(settings, 'sqlalchemy.')
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
     get_root = appmaker(engine)
 
     # Setup our buildsystem
