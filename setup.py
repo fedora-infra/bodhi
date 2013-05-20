@@ -73,6 +73,8 @@ setup(name='bodhi',
       entry_points = """\
       [paste.app_factory]
       main = bodhi:main
+      [console_scripts]
+      initialize_bodhi_db = bodhi.scripts.initializedb:main
       """,
       paster_plugins=['pyramid'],
       )
