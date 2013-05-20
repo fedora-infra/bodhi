@@ -155,7 +155,7 @@ def login(request):
 
 def logout(request):
     headers = forget(request)
-    return HTTPFound(location=request.application_url, headers=headers)
+    return HTTPFound(location=request.route_url('home'), headers=headers)
 
 
 def remember_me(context, request, *args, **kw):
