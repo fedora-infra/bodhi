@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy.orm.exc import NoResultFound
 
-from bodhi.models import initialize_sql, DBSession
+from bodhi.models import DBSession
 from bodhi.models import Update, Package, Build, Release, User, Bug, Comment
 from bodhi.widgets import NewUpdateForm
 
@@ -98,5 +98,4 @@ def default_get_root(request):
 
 
 def appmaker(engine):
-    initialize_sql(engine)
     return default_get_root

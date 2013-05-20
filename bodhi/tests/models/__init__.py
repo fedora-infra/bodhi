@@ -6,19 +6,6 @@ import json
 from nose.tools import assert_equals, eq_
 
 from bodhi.models import DBSession
-from bodhi.tests import setup_db, teardown_db
-
-
-def setup():
-    """Function called by nose on module load"""
-    # Doesn't appear to be necessary as long as our functional test suite
-    # runs first (which sets up the DBSession)
-    #setup_db()
-
-
-def teardown():
-    """Function called by nose after all tests in this module ran"""
-    teardown_db()
 
 
 class ModelTest(object):

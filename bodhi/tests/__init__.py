@@ -1,18 +1,25 @@
-# -*- coding: utf-8 -*-
-"""Unit and functional test suite for bodhi."""
+from bodhi.models import (
+    Base, DBSession, Release, Update, User, Package, Build, Bug, UpdateType,
+)
 
-from sqlalchemy import create_engine
-
-from bodhi.models import initialize_sql
-
-
-def setup_db():
-    """Method used to build a database"""
-    engine = create_engine('sqlite:///:memory:')
-    initialize_sql(engine)
-
-
-def teardown_db():
-    """Method used to destroy a database"""
-    #engine = config['pylons.app_globals'].sa_engine
-    #model.metadata.drop_all(engine)
+def populate():
+    session = DBSession()
+    user = User(name=u'bodhi')
+    session.add(user)
+    release = Release(
+        name=u'F17', long_name=u'Fedora 17',
+        id_prefix=u'FEDORA', dist_tag=u'f17')
+    session.add(release)
+    pkg = Package(name=u'bodhi')
+    session.add(pkg)
+    build = Build(nvr=u'bodhi-2.0-1', release=release, package=pkg)
+    session.add(build)
+    update = Update(
+        builds=[build], user=user,
+        notes=u'Useful details!', release=release)
+    update.type = UpdateType.bugfix
+    bug = Bug(bug_id=12345)
+    session.add(bug)
+    update.bugs.append(bug)
+    session.add(update)
+    session.flush()

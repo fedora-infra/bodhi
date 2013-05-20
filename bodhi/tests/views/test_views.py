@@ -1,16 +1,26 @@
 import unittest
+import transaction
 
 from pyramid import testing
+from sqlalchemy import create_engine
 
-from bodhi.models import DBSession, Release
+from bodhi.models import (
+    Base, DBSession, Release, Update, User, Package
+)
+from bodhi.tests import populate
 
 
-class ViewTests(unittest.TestCase):
+class TestViews(unittest.TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
+        engine = create_engine('sqlite://')
+        DBSession.configure(bind=engine)
+        Base.metadata.create_all(engine)
+        populate()
 
     def tearDown(self):
+        DBSession.remove()
         testing.tearDown()
 
     def test_view_model_instance_json(self):
@@ -25,7 +35,7 @@ class ViewTests(unittest.TestCase):
         from bodhi.views import view_model_json
         request = testing.DummyRequest()
         info = view_model_json(ReleaseResource, request)
-        self.assertEqual(len(info['entries']), 2)
+        self.assertEqual(len(info['entries']), 1)
 
     def test_view_model_instance(self):
         from bodhi.views import view_model_instance
@@ -39,5 +49,5 @@ class ViewTests(unittest.TestCase):
         from bodhi.views import view_model
         request = testing.DummyRequest()
         info = view_model(ReleaseResource, request)
-        self.assertEqual(len(info['page']), 2)
+        self.assertEqual(len(info['page']), 1)
         self.assertEqual(info['caption'], 'Releases')

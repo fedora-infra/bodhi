@@ -5,8 +5,11 @@ import tw2.core as twc
 from kitchen.iterutils import iterate
 from nose.tools import eq_
 from webtest import TestApp
+from sqlalchemy import create_engine
 
 from bodhi import main
+from bodhi.models import DBSession, Base
+from bodhi.tests import populate
 
 app = None
 
@@ -22,6 +25,7 @@ app_settings = {
     'acl_system': 'dummy',
 }
 
+
 def setup():
     global app
     app = main({}, testing='guest', **app_settings)
@@ -29,6 +33,15 @@ def setup():
 
 
 class FunctionalTests(unittest.TestCase):
+
+    def setUp(self):
+        engine = create_engine('sqlite://')
+        DBSession.configure(bind=engine)
+        Base.metadata.create_all(engine)
+        populate()
+
+    def tearDown(self):
+        DBSession.remove()
 
     def get_update(self, builds=None, stablekarma=3, unstablekarma=-3):
         if not builds:
