@@ -4,8 +4,9 @@
 import json
 
 from nose.tools import assert_equals, eq_
+from sqlalchemy import create_engine
 
-from bodhi.models import DBSession
+from bodhi.models import DBSession, Base
 
 
 class ModelTest(object):
@@ -15,6 +16,9 @@ class ModelTest(object):
     attrs = {}
 
     def setup(self):
+        engine = create_engine('sqlite://')
+        DBSession.configure(bind=engine)
+        Base.metadata.create_all(engine)
         try:
             new_attrs = {}
             new_attrs.update(self.attrs)
@@ -28,7 +32,7 @@ class ModelTest(object):
             raise
 
     def tearDown(self):
-        DBSession.rollback()
+        DBSession.remove()
 
     def do_get_dependencies(self):
         """ Use this method to pull in other objects that need to be
