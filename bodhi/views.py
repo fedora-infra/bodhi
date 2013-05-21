@@ -146,10 +146,12 @@ def login(request):
     login_url = request.route_url('login')
     referrer = request.url
     if referrer == login_url:
-        referrer = '/'
+        referrer = request.route_url('home')
     came_from = request.params.get('came_from', referrer)
     request.session['came_from'] = came_from
-    return dict(url=request.route_url('verify_openid'))
+    oid_url = request.registry.settings['openid.provider']
+    return HTTPFound(location=request.route_url('verify_openid',
+                                                _query=dict(openid=oid_url)))
 
 
 def logout(request):
