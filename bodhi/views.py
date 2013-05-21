@@ -159,14 +159,18 @@ def logout(request):
     return HTTPFound(location=request.route_url('home'), headers=headers)
 
 
-def remember_me(context, request, *args, **kw):
-    print(request.params)
-    identity = request.params['openid.identity']
-    if not identity.startswith(request.registry.settings['openid.provider']):
+def remember_me(context, request, info, *args, **kw):
+    log.debug('remember_me(%s)' % locals())
+    log.debug('request.params = %r' % request.params)
+    endpoint = request.params['openid.op_endpoint']
+    if not endpoint == request.registry.settings['openid.provider']:
+        log.warn('Invalid OpenID provider: %s' % endpoint)
         request.session.flash('Invalid OpenID provider. You can only use: %s' %
                               request.registry.settings['openid.provider'])
-        return HTTPFound(location=request.aplication_url + '/login')
-    username = identity.split('/')[-1]
+        return HTTPFound(location=request.route_url('home'))
+    username = info['identity_url'].split('http://')[1].split('.')[0]
+    log.debug('%s successfully logged in' % username)
+    log.debug('groups = %s' % info['groups'])
     headers = remember(request, username)
     came_from = request.session['came_from']
     del(request.session['came_from'])
