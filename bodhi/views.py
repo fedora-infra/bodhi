@@ -163,7 +163,7 @@ def remember_me(context, request, info, *args, **kw):
     log.debug('remember_me(%s)' % locals())
     log.debug('request.params = %r' % request.params)
     endpoint = request.params['openid.op_endpoint']
-    if not endpoint == request.registry.settings['openid.provider']:
+    if endpoint != request.registry.settings['openid.provider']:
         log.warn('Invalid OpenID provider: %s' % endpoint)
         request.session.flash('Invalid OpenID provider. You can only use: %s' %
                               request.registry.settings['openid.provider'])
