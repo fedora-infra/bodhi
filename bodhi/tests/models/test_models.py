@@ -341,3 +341,17 @@ class TestUpdate(ModelTest):
 class TestUser(ModelTest):
     klass = model.User
     attrs = dict(name=u'Bob Vila')
+
+    def do_get_dependencies(self):
+        group = model.Group(name=u'proventesters')
+        return dict(groups=[group])
+
+
+class TestGroup(ModelTest):
+    klass = model.Group
+    attrs = dict(name=u'proventesters')
+
+    def do_get_dependencies(self):
+        user = model.User(name=u'bob')
+        return dict(users=[user])
+

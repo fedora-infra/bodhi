@@ -1100,6 +1100,11 @@ class Bug(Base):
             config.get('bz_baseurl'), self.bug_id)
 
 
+user_group_table = Table('user_group_table', Base.metadata,
+                         Column('user_id', Integer, ForeignKey('users.id')),
+                         Column('group_id', Integer, ForeignKey('groups.id')))
+
+
 class User(Base):
     __tablename__ = 'users'
 
@@ -1109,6 +1114,18 @@ class User(Base):
     # One-to-many relationships
     comments = relation(Comment, backref='user', lazy=False)
     updates = relation(Update, backref='user', lazy=False)
+
+    # Many-to-many relationships
+    groups = relationship("Group", secondary=user_group_table, backref='users')
+
+
+class Group(Base):
+    __tablename__ = 'groups'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(64), unique=True, nullable=False)
+
+    # users backref
 
 
 #class Stack(Base):
