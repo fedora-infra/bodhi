@@ -525,8 +525,6 @@ class Update(Base):
         # FIXME: don't do this here:
         self.date_pushed = datetime.utcnow()
 
-        DBSession.flush()
-
     def set_request(self, action):
         """ Attempt to request an action for this update.
 
@@ -750,7 +748,7 @@ class Update(Base):
         that are no longer referenced anymore
         """
         fetchdetails = True
-        Session = DBSession()
+        session = DBSession()
         if not config.get('bodhi_email'):
             log.warning("No bodhi_email defined; not fetching bug details")
             fetchdetails = False
@@ -763,10 +761,10 @@ class Update(Base):
                 self.bugs.remove(bug)
                 if len(bug.updates) == 0:
                     log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
-                    Session.delete(bug)
-            Session.flush()
+                    session.delete(bug)
+            session.flush()
         for bug in bugs:
-            bz = Session.query(Bug).filter_by(bug_id=bug).first()
+            bz = session.query(Bug).filter_by(bug_id=bug).first()
             if not bz:
                 if fetchdetails:
                     bugzilla = Bug.get_bz()
@@ -776,20 +774,20 @@ class Update(Base):
                 else:
                     bz = Bug(bug_id=int(bug))
             if bz not in self.bugs:
-                Session.add(bz)
+                session.add(bz)
                 self.bugs.append(bz)
-        Session.flush()
+        session.flush()
 
     def update_cves(self, cves):
         """
         Create any new CVES, and remove any missing ones.  Destroy removed CVES
         that are no longer referenced anymore.
         """
-        Session = DBSession()
+        session = DBSession()
         for cve in self.cves:
             if cve.cve_id not in cves and len(cve.updates) == 0:
                 log.debug("Destroying stray CVE #%s" % cve.cve_id)
-                Session.delete(cve)
+                session.delete(cve)
         for cve_id in cves:
             try:
                 cve = CVE.query.filter_by(cve_id=cve_id).one()
@@ -798,9 +796,9 @@ class Update(Base):
             except:  # TODO: catch sqlalchemy's not found exception!
                 log.debug("Creating new CVE: %s" % cve_id)
                 cve = CVE(cve_id=cve_id)
-                Session.save(cve)
+                session.save(cve)
                 self.cves.append(cve)
-        Session.flush()
+        session.flush()
 
     def get_pushed_age(self):
         return get_age(self.date_pushed)
@@ -903,7 +901,6 @@ class Update(Base):
         self.pushed = False
         self.status = UpdateStatus.unpushed
         mail.send_admin('unpushed', self)
-        #DBSession.flush()
 
     def untag(self):
         """ Untag all of the builds in this update """
@@ -913,7 +910,6 @@ class Update(Base):
         for build in self.builds:
             koji.untagBuild(tag, build.nvr, force=True)
         self.pushed = False
-        DBSession.flush()
 
     def obsolete(self, newer=None):
         """
@@ -930,7 +926,6 @@ class Update(Base):
                          author=u'bodhi')
         else:
             self.comment(u"This update has been obsoleted", author=u'bodhi')
-        DBSession.flush()
 
     def get_maintainers(self):
         """
@@ -1044,7 +1039,6 @@ class Bug(Base):
         self.title = str(bug.short_desc)
         if 'security' in bug.keywords.lower():
             self.security = True
-        DBSession.flush()
 
     def _default_message(self, update):
         message = self.default_msg % (update.get_title(delim=', '), "%s %s" %
