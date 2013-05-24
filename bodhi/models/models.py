@@ -428,14 +428,14 @@ class Update(Base):
     release = relation('Release')
 
     # One-to-many relationships
-    comments = relation('Comment', backref='update', lazy=False)
-    builds = relation('Build', backref='update', lazy=False)
+    comments = relation('Comment', backref='update')
+    builds = relation('Build', backref='update')
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table,
-                        backref='updates', lazy=False)
+                        backref='updates')
     cves = relation('CVE', secondary=update_cve_table,
-                    backref='updates', lazy=False)
+                    backref='updates')
 
     # We may or may not need this, since we can determine the releases from the
     # builds
@@ -1112,8 +1112,8 @@ class User(Base):
     name = Column(Unicode(64), unique=True, nullable=False)
 
     # One-to-many relationships
-    comments = relation(Comment, backref='user', lazy=False)
-    updates = relation(Update, backref='user', lazy=False)
+    comments = relation(Comment, backref='user')
+    updates = relation(Update, backref='user')
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
