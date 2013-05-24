@@ -70,7 +70,7 @@ def view_widget(context, request):
     return {'widget': context}
 
 
-@view_config(route_name='home', renderer='bodhi:templates/home.mak')
+@view_config(route_name='home', renderer='home.html')
 def home(request):
     return {}
 

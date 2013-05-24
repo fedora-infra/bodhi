@@ -40,6 +40,9 @@ def main(global_config, testing=None, **settings):
                           session_factory=session_factory)
 
     config.add_request_method(get_user, 'user', reify=True)
+    config.add_static_view('static', 'bodhi:static')
+    config.add_translation_dirs('bodhi:locale/')
+    config.add_renderer(".html", "pyramid.mako_templating.renderer_factory")
 
     # Authentication & Authorization
     if testing:
@@ -49,9 +52,6 @@ def main(global_config, testing=None, **settings):
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
                 settings['authtkt.secret']))
         config.set_authorization_policy(ACLAuthorizationPolicy())
-
-    config.add_static_view('static', 'bodhi:static')
-    config.add_translation_dirs('bodhi:locale/')
 
     # Frontpage
     config.add_route('home', '/')
@@ -85,21 +85,21 @@ def main(global_config, testing=None, **settings):
     config.add_view('bodhi.views.view_model_instance',
                     context='bodhi.models.Base',
                     accept='text/html',
-                    renderer='bodhi:templates/instance.mak')
+                    renderer='instance.html')
     config.add_view('bodhi.views.view_model',
                     accept='text/html',
                     context='bodhi.resources.BodhiResource',
-                    renderer='bodhi:templates/model.mak')
+                    renderer='model.html')
 
     # Widgets
     config.add_view('bodhi.views.view_widget',
                     context='bodhi.widgets.NewUpdateForm',
-                    renderer="bodhi:templates/widget.mak",
+                    renderer='widget.html',
                     permission='add')
 
     # 404
     config.add_view('bodhi.views.notfound_view',
-                    renderer='bodhi:templates/404.mak',
+                    renderer='404.html',
                     context=NotFound)
 
     # pyramid.openid
