@@ -12,7 +12,7 @@ from pyramid.security import remember, authenticated_userid, forget
 from pyramid.httpexceptions import HTTPFound
 
 from bodhi import buildsys
-from bodhi.models import DBSession, Release, Build, Package
+from bodhi.models import DBSession, Release, Build, Package, User, Group
 from bodhi.widgets import NewUpdateForm
 from bodhi.util import _, get_nvr
 
@@ -171,6 +171,25 @@ def remember_me(context, request, info, *args, **kw):
     username = info['identity_url'].split('http://')[1].split('.')[0]
     log.debug('%s successfully logged in' % username)
     log.debug('groups = %s' % info['groups'])
+
+    # Find the user in our database. Create it if it doesn't exist.
+    session = DBSession()
+    user = session.query(User).filter_by(name=username).first()
+    if not user:
+        user = User(name=username)
+        session.add(user)
+
+    # See if they are a member of any important groups
+    important_groups = request.registry.settings['important_groups'].split()
+    for important_group in important_groups:
+        if important_group in info['groups']:
+            group = session.query(Group).filter_by(name=important_group).first()
+            if not group:
+                group = Group(name=important_group)
+                session.add(group)
+            user.groups.append(group)
+    session.flush()
+
     headers = remember(request, username)
     came_from = request.session['came_from']
     del(request.session['came_from'])
