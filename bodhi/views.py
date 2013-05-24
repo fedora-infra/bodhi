@@ -178,6 +178,7 @@ def remember_me(context, request, info, *args, **kw):
     if not user:
         user = User(name=username)
         session.add(user)
+        session.flush()
 
     # See if they are a member of any important groups
     important_groups = request.registry.settings['important_groups'].split()
@@ -187,8 +188,8 @@ def remember_me(context, request, info, *args, **kw):
             if not group:
                 group = Group(name=important_group)
                 session.add(group)
+                session.flush()
             user.groups.append(group)
-    session.flush()
 
     headers = remember(request, username)
     came_from = request.session['came_from']

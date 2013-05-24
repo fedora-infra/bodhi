@@ -19,6 +19,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker, relation, relationship
 from sqlalchemy.ext.declarative import declarative_base, synonym_for
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+from zope.sqlalchemy import ZopeTransactionExtension
 
 from bodhi import buildsys, mail
 from bodhi.util import (
@@ -77,7 +78,7 @@ class BodhiBase(object):
 
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
-DBSession = scoped_session(sessionmaker())
+DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 
 ##
@@ -777,7 +778,7 @@ class Update(Base):
             if bz not in self.bugs:
                 Session.add(bz)
                 self.bugs.append(bz)
-        Session.commit()
+        Session.flush()
 
     def update_cves(self, cves):
         """
@@ -799,7 +800,7 @@ class Update(Base):
                 cve = CVE(cve_id=cve_id)
                 Session.save(cve)
                 self.cves.append(cve)
-        Session.commit()
+        Session.flush()
 
     def get_pushed_age(self):
         return get_age(self.date_pushed)
@@ -854,20 +855,23 @@ class Update(Base):
                 self.obsolete()
                 mail.send(self.get_maintainers(), 'unstable', self)
 
+        session = DBSession()
         comment = Comment(text=text, karma=karma, anonymous=anonymous)
+        session.add(comment)
+        session.flush()
 
         if anonymous:
             author = u'anonymous'
         try:
-            user = User.query.filter_by(name=author).one()
+            user = session.query(User).filter_by(name=author).one()
         except NoResultFound:
             user = User(name=author)
-            DBSession.add(user)
-        user.comments.append(comment)
+            session.add(user)
+            session.flush()
 
-        DBSession.add(comment)
+        user.comments.append(comment)
         self.comments.append(comment)
-        DBSession.flush()
+        session.flush()
 
         # Send a notification to everyone that has commented on this update
         people = set()

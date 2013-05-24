@@ -17,6 +17,7 @@ requires = [
     'pyramid_beaker',
     'pyramid_openid',
     'pyramid_debugtoolbar',
+    'pyramid_tm',
     'waitress',
 
     'sqlalchemy',
