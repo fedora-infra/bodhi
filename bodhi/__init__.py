@@ -10,9 +10,16 @@ from pyramid_beaker import set_cache_regions_from_settings
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
-from .models import DBSession, Base
-from .resources import appmaker
 import bodhi.buildsys
+from .models import DBSession, Base, User
+from .resources import appmaker
+
+
+def get_user(request):
+    userid = unauthenticated_userid(request)
+    if userid is not None:
+        session = DBSession()
+        return session.query(User).filter_by(name=userid).one()
 
 
 def main(global_config, testing=None, **settings):
@@ -31,6 +38,8 @@ def main(global_config, testing=None, **settings):
 
     config = Configurator(settings=settings, root_factory=get_root,
                           session_factory=session_factory)
+
+    config.add_request_method(get_user, 'user', reify=True)
 
     # Authentication & Authorization
     if testing:
