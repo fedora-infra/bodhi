@@ -110,11 +110,17 @@ class BuildValidator(twc.Validator):
                     "Please try again later.")
 
         request = get_current_request()
-        userid = authenticated_userid(request)
-        if userid not in committers:
-            # TODO: take into account groups
-            raise twc.ValidationError(
-                    "%s does not have commit access to %s" % (userid, nvr[0]))
+        user = request.user
+        if user.name not in committers:
+            # Allow certain groups to push updates for any package
+            admin_groups = request.registry.settings['admin_packager_groups'].split()
+            groups = [group.name for group in request.user.groups]
+            for group in admin_groups:
+                if group in groups:
+                    break
+            else:
+                raise twc.ValidationError(
+                    "%s does not have commit access to %s" % (user.name, nvr[0]))
 
 
 class UpdateValidator(twc.Validator):
