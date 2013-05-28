@@ -1,11 +1,13 @@
 from bodhi.models import (
-    Base, DBSession, Release, Update, User, Package, Build, Bug, UpdateType,
+    Base, DBSession, Release, Update, User, Package, Build, Bug, UpdateType, Group,
 )
 
 def populate():
     session = DBSession()
     user = User(name=u'guest')
     session.add(user)
+    group = Group(name=u'provenpackager')
+    session.add(group)
     release = Release(
         name=u'F17', long_name=u'Fedora 17',
         id_prefix=u'FEDORA', dist_tag=u'f17')
