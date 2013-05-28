@@ -38,7 +38,7 @@ class BuildValidator(twc.Validator):
 
     def validate_builds(self, builds):
         if not builds:
-            raise twc.Validator('badbuild', self)
+            raise twc.ValidationError('badbuild', self)
         for build in builds:
             try:
                 name, version, release = get_nvr(build)

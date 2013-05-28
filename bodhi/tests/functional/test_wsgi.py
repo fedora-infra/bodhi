@@ -83,6 +83,10 @@ class FunctionalTests(unittest.TestCase):
         res = app.post('/save', self.get_update('invalidbuild-1.0'))
         assert 'Invalid build' in res, res
 
+    def test_empty_build_name(self):
+        res = app.post('/save', self.get_update(['']))
+        assert 'Invalid build' in res, res
+
     def test_valid_tag(self):
         res = app.post('/save', self.get_update())
         assert 'Invalid tag' not in res, res
