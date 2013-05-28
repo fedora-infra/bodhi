@@ -4,7 +4,7 @@ from bodhi.models import (
 
 def populate():
     session = DBSession()
-    user = User(name=u'bodhi')
+    user = User(name=u'guest')
     session.add(user)
     release = Release(
         name=u'F17', long_name=u'Fedora 17',

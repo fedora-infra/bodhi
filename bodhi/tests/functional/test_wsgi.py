@@ -118,3 +118,7 @@ class FunctionalTests(unittest.TestCase):
         app = TestApp(twc.make_middleware(app))
         res = app.post('/save', self.get_update('bodhi-2.1-1'))
         assert 'bodhi does not have commit access to bodhi' in res, res
+
+    def test_home(self):
+        res = app.get('/', status=200)
+        assert 'Logout' in res, res
