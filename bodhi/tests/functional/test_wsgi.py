@@ -8,7 +8,7 @@ from webtest import TestApp
 from sqlalchemy import create_engine
 
 from bodhi import main
-from bodhi.models import DBSession, Base
+from bodhi.models import DBSession, Base, User, Group, Build
 from bodhi.tests import populate
 
 app = None
@@ -23,6 +23,8 @@ app_settings = {
     'cache.default_term.expire': '300',
     'cache.long_term.expire': '3600',
     'acl_system': 'dummy',
+    'important_groups': 'proventesters provenpackager releng',
+    'admin_packager_groups': 'provenpackager',
 }
 
 
@@ -118,10 +120,31 @@ class FunctionalTests(unittest.TestCase):
         assert 'Update for bodhi-2.0-1 already exists' in res, res
 
     def test_no_privs(self):
+        session = DBSession()
+        user = User(name=u'bodhi')
+        session.add(user)
+        session.flush()
         app = main({}, testing='bodhi', **app_settings)
         app = TestApp(twc.make_middleware(app))
         res = app.post('/save', self.get_update('bodhi-2.1-1'))
         assert 'bodhi does not have commit access to bodhi' in res, res
+
+    def test_provenpackager_privs(self):
+        "Ensure provenpackagers can push updates for any package"
+        session = DBSession()
+        user = User(name=u'bodhi')
+        session.add(user)
+        session.flush()
+        group = session.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+
+        app = main({}, testing='bodhi', **app_settings)
+        app = TestApp(twc.make_middleware(app))
+        res = app.post('/save', self.get_update('bodhi-2.1-1'))
+        assert 'bodhi does not have commit access to bodhi' not in res, res
+        # TODO; uncomment once we're actually creating updates properly
+        #build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1').one()
+        #assert len(build.updates) == 1
 
     def test_home(self):
         res = app.get('/', status=200)
