@@ -22,6 +22,12 @@ def get_user(request):
         return session.query(User).filter_by(name=userid).one()
 
 
+def groupfinder(userid, request):
+    user = request.user
+    if user:
+        return [group.name for group in user.groups]
+
+
 def main(global_config, testing=None, **settings):
     """ This function returns a WSGI application """
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -50,7 +56,8 @@ def main(global_config, testing=None, **settings):
         config.testing_securitypolicy(userid=testing, permissive=True)
     else:
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
-                settings['authtkt.secret']))
+                settings['authtkt.secret'],
+                callback=groupfinder))
         config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # Frontpage
