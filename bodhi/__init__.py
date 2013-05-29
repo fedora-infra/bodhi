@@ -57,50 +57,11 @@ def main(global_config, testing=None, **settings):
     config.add_route('home', '/')
 
     # Save method
-    config.add_route('save', '/save',
-                     view='bodhi.views.save',
-                     request_method='POST',
-                     permission='add')
-
-    config.add_route('latest_candidates', '/latest_candidates',
-                     view='bodhi.views.latest_candidates',
-                     renderer='json')
+    config.add_route('save', '/save')
 
     # Auto-completion search
-    config.add_route('search_pkgs', '/search_pkgs',
-                     view='bodhi.views.search_pkgs',
-                     renderer='json', request_method='GET')
-
-    # JSON views
-    config.add_view('bodhi.views.view_model_instance_json',
-                    context='bodhi.models.Base',
-                    accept='application/json',
-                    renderer='json')
-    config.add_view('bodhi.views.view_model_json',
-                    context='bodhi.resources.BodhiResource',
-                    accept='application/json',
-                    renderer='json')
-
-    # Mako template views
-    config.add_view('bodhi.views.view_model_instance',
-                    context='bodhi.models.Base',
-                    accept='text/html',
-                    renderer='instance.html')
-    config.add_view('bodhi.views.view_model',
-                    accept='text/html',
-                    context='bodhi.resources.BodhiResource',
-                    renderer='model.html')
-
-    # Widgets
-    config.add_view('bodhi.views.view_widget',
-                    context='bodhi.widgets.NewUpdateForm',
-                    renderer='widget.html',
-                    permission='add')
-
-    # 404
-    config.add_view('bodhi.views.notfound_view',
-                    renderer='404.html',
-                    context=NotFound)
+    config.add_route('search_pkgs', '/search_pkgs')
+    config.add_route('latest_candidates', '/latest_candidates')
 
     # pyramid.openid
     config.add_route('login', '/login', view='bodhi.views.login')
@@ -109,6 +70,8 @@ def main(global_config, testing=None, **settings):
     config.add_route('logout', '/logout', view='bodhi.views.logout')
     config.add_route('verify_openid', pattern='/dologin.html',
                      view='pyramid_fas_openid.verify_openid')
+
     config.scan()
+
 
     return config.make_wsgi_app()

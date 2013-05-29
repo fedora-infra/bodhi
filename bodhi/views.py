@@ -9,6 +9,7 @@ from webhelpers.paginate import Page, PageURL_WebOb
 from pyramid.view import view_config
 from pyramid.response import Response
 from pyramid.security import remember, authenticated_userid, forget
+from pyramid.exceptions import NotFound, Forbidden
 from pyramid.httpexceptions import HTTPFound
 
 from bodhi import buildsys
@@ -18,13 +19,17 @@ from bodhi.util import _, get_nvr
 
 log = logging.getLogger(__name__)
 
+
 ## JSON views
 
-
+@view_config(context='bodhi.models.Base', accept='application/json',
+             renderer='json')
 def view_model_instance_json(context, request):
     return {'context': context.__json__()}
 
 
+@view_config(context='bodhi.resources.BodhiResource',
+             accept='application/json', renderer='json')
 def view_model_json(context, request):
     session = DBSession()
     entries = session.query(context.__model__)
@@ -33,13 +38,17 @@ def view_model_json(context, request):
     page = Page(entries, page=current_page, items_per_page=items_per_page)
     return {'entries': [entry.__json__() for entry in page]}
 
+
 ## Mako templated views
 
-
+@view_config(context='bodhi.models.Base', accept='text/html',
+             renderer='instance.html')
 def view_model_instance(context, request):
     return {'context': context}
 
 
+@view_config(context='bodhi.resources.BodhiResource', renderer='model.html',
+             accept='text/html')
 def view_model(context, request):
     session = DBSession()
     entries = session.query(context.__model__)
@@ -56,13 +65,16 @@ def view_model(context, request):
 
 ## 404
 
+@view_config(name='notfound_view', renderer='404.html', context=NotFound)
 def notfound_view(context, request):
     request.response_status = 404
     return dict()
 
+
 ## Widgets
 
-
+@view_config(context='bodhi.widgets.NewUpdateForm', renderer='widget.html',
+             permission='add')
 def view_widget(context, request):
     context.fetch_data(request)
     mw = tw2.core.core.request_local()['middleware']
@@ -75,6 +87,7 @@ def home(request):
     return {}
 
 
+@view_config(route_name='save', request_method='POST', permission='add')
 def save(request):
     print request.params
 
@@ -113,6 +126,7 @@ def get_all_packages():
     return [pkg['package_name'] for pkg in koji.listPackages()]
 
 
+@view_config(route_name='search_pkgs', renderer='json', request_method='GET')
 def search_pkgs(request):
     """ Called by the NewUpdateForm.builds AutocompleteWidget """
     packages = get_all_packages()
@@ -120,6 +134,7 @@ def search_pkgs(request):
             if request.GET['term'] in p]
 
 
+@view_config(route_name='latest_candidates', renderer='json')
 def latest_candidates(request):
     """
     For a given `package`, this method returns the most recent builds tagged
