@@ -146,6 +146,16 @@ class FunctionalTests(unittest.TestCase):
         #build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1').one()
         #assert len(build.updates) == 1
 
+    def test_pkgdb_outage(self):
+        "Test the case where our call to the pkgdb throws an exception"
+        settings = app_settings.copy()
+        settings['acl_system'] = 'pkgdb'
+        settings['pkgdb_url'] = 'invalidurl'
+        app = main({}, testing='bodhi', **settings)
+        app = TestApp(twc.make_middleware(app))
+        res = app.post('/save', self.get_update('bodhi-2.0-1'))
+        assert "Unable to access the Package Database. Please try again later." in res, res
+
     def test_home(self):
         res = app.get('/', status=200)
         assert 'Logout' in res, res
