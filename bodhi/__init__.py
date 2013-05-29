@@ -59,7 +59,8 @@ def main(global_config, testing=None, **settings):
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
                 settings['authtkt.secret'],
                 callback=groupfinder,
-                secure=asbool(settings['authtkt.secure'])))
+                secure=asbool(settings['authtkt.secure']),
+                hashalg='sha512'))
         config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # Frontpage
