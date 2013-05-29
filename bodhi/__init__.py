@@ -1,5 +1,6 @@
 from sqlalchemy import engine_from_config
 
+from pyramid.settings import asbool
 from pyramid.exceptions import NotFound, Forbidden
 from pyramid.decorator import reify
 from pyramid.request import Request
@@ -57,7 +58,8 @@ def main(global_config, testing=None, **settings):
     else:
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
                 settings['authtkt.secret'],
-                callback=groupfinder))
+                callback=groupfinder,
+                secure=asbool(settings['authtkt.secure'])))
         config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # Frontpage
