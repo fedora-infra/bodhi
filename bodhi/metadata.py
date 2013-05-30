@@ -52,6 +52,7 @@ class ExtendedMetadata(object):
             log.debug("Loading cached updateinfo.xml.gz")
             umd = UpdateMetadata()
             umd.add(cacheduinfo)
+            existing_ids = set()
 
             # Generate metadata for any new builds
             for update in self.updates:
@@ -62,11 +63,15 @@ class ExtendedMetadata(object):
                             break
                         else:
                             missing_ids.append(update.title)
+                    else:
+                        # This update notice already exists in the metadata
+                        updateid = update.updateid
+                        if updateid:
+                            existing_ids.add(updateid)
 
             # Add all relevant notices from the metadata to this document
-            ids = [update.updateid for update in self.updates if update.updateid]
             for notice in umd.get_notices():
-                if notice['update_id'] in ids or notice['type'] == 'security':
+                if notice['update_id'] in existing_ids or notice['type'] == 'security':
                     self._add_notice(notice)
                 else:
                     log.debug("Removing %s from updateinfo" % notice['title'])
