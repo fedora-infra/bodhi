@@ -200,3 +200,86 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Clean up
         shutil.rmtree(temprepo)
+
+    def test_extended_metadata_updating_with_edited_updates(self):
+        # grab the name of a build in updates-testing, and create it in our db
+        koji = get_session()
+        builds = koji.listTagged('dist-f13-updates-testing', latest=True)
+
+        # Create all of the necessary database entries
+        release = Release(name='F13', long_name='Fedora 13', id_prefix='FEDORA',
+                          dist_tag='dist-f13')
+        package = Package(name=builds[0]['package_name'])
+        update = PackageUpdate(title=builds[0]['nvr'],
+                               release=release,
+                               submitter=builds[0]['owner_name'],
+                               status='testing',
+                               notes='foobar',
+                               type='bugfix')
+        build = PackageBuild(nvr=builds[0]['nvr'], package=package)
+        update.addPackageBuild(build)
+        update.assign_id()
+
+        ## Initialize our temporary repo
+        temprepo = join(tempfile.mkdtemp('bodhi'), 'f13-updates-testing')
+        print "Inserting updateinfo into temprepo: %s" % temprepo
+        mkmetadatadir(join(temprepo, 'i386'))
+        repodata = join(temprepo, 'i386', 'repodata')
+        assert exists(join(repodata, 'repomd.xml'))
+
+        ## Generate the XML
+        md = ExtendedMetadata(temprepo)
+
+        ## Insert the updateinfo.xml into the repository
+        md.insert_updateinfo()
+        updateinfo = join(repodata, 'updateinfo.xml.gz')
+        assert exists(updateinfo)
+
+        ## Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
+        assert not notice
+        notice = uinfo.get_notice(get_nvr(update.title))
+        assert notice
+        assert notice['status'] == update.status
+        assert notice['updated'] == update.date_modified
+        assert notice['from'] == str(config.get('bodhi_email'))
+        assert notice['description'] == update.notes
+        assert notice['issued'] != None
+        assert notice['update_id'] == update.updateid
+        assert notice['title'] == update.title
+        assert notice['release'] == update.release.long_name
+
+        ## Edit the update and bump the build revision
+        nvr = 'TurboGears-1.0.2.2-3.fc7'
+        newbuild = PackageBuild(nvr=nvr, package=package)
+        update.removePackageBuild(build)
+        update.addPackageBuild(newbuild)
+        update.title = nvr
+
+        testutil.capture_log(['bodhi.metadata'])
+
+        ## Test out updateinfo.xml updating via our ExtendedMetadata
+        md = ExtendedMetadata(temprepo, updateinfo)
+        md.insert_updateinfo()
+        updateinfo = join(repodata, 'updateinfo.xml.gz')
+        assert exists(updateinfo)
+
+        ## Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+
+        print(testutil.get_log())
+
+        notice = uinfo.get_notice(('TurboGears', '1.0.2.2', '2.fc7'))
+        assert not notice, "Old TG notice did not get pruned: %s" % notice
+        notice = uinfo.get_notice(('TurboGears', '1.0.2.2', '3.fc7'))
+        assert notice, uinfo
+        assert notice['title'] == update.title
+
+        num_notices = len(uinfo.get_notices())
+        assert num_notices == 1, num_notices
+
+        ## Clean up
+        shutil.rmtree(temprepo)
