@@ -70,9 +70,9 @@ class DevBuildsys(Buildsystem):
     def getTaskInfo(self, task):
         return { 'state' : koji.TASK_STATES['CLOSED'] }
 
-    def getBuild(self, build='fc7'):
+    def getBuild(self, build='fc7', other=False):
         if 'fc7' in build:
-            return {'build_id': 16058,
+            data = {'build_id': 16058,
                     'completion_time': '2007-08-24 23:26:10.890319',
                     'creation_event_id': 151517,
                     'creation_time': '2007-08-24 19:38:29.422344',
@@ -90,6 +90,11 @@ class DevBuildsys(Buildsystem):
                     'tag_name': 'dist-fc7-updates-testing',
                     'task_id': 127621,
                     'version': '1.0.2.2'}
+            if other:
+                data['id'] = 16059
+                data['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
+                data['release'] = '3.fc7'
+            return data
 
         elif 'el5' in build:
             return {'build_id': 16058,
@@ -132,8 +137,8 @@ class DevBuildsys(Buildsystem):
                     'task_id': 127621,
                     'version': '1.0.2.2'}
 
-    def listBuildRPMs(self, *args, **kw):
-        return [{'arch': 'src',
+    def listBuildRPMs(self, id, *args, **kw):
+        rpms = [{'arch': 'src',
                  'build_id': 6475,
                  'buildroot_id': 1883,
                  'buildtime': 1178868422,
@@ -157,6 +162,10 @@ class DevBuildsys(Buildsystem):
                  'release': '2.fc7',
                  'size': 1993385,
                  'version': '1.0.2.2'},]
+        if id == 16059:  # for updateinfo.xml tests
+            rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
+            rpms[0]['release'] = rpms[1]['release'] = '3.fc7'
+        return rpms
 
     def listTags(self, build, *args, **kw):
         if 'fc7' in build:
@@ -183,7 +192,7 @@ class DevBuildsys(Buildsystem):
                      'name': 'dist-%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
-        return [self.getBuild(),]
+        return [self.getBuild(), self.getBuild(other=True)]
 
     def getLatestBuilds(self, *args, **kw):
         return [self.getBuild(),]

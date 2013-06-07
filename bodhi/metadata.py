@@ -52,21 +52,20 @@ class ExtendedMetadata(object):
             log.debug("Loading cached updateinfo.xml.gz")
             umd = UpdateMetadata()
             umd.add(cacheduinfo)
+            existing_ids = set([up['update_id'] for up in umd.get_notices()])
 
             # Generate metadata for any new builds
             for update in self.updates:
-                for build in update.builds:
-                    if not umd.get_notice(build.nvr):
-                        if update.updateid:
-                            self.add_update(update)
-                            break
-                        else:
-                            missing_ids.append(update.title)
+                if update.updateid:
+                    self.add_update(update)
+                    if update.updateid in existing_ids:
+                        existing_ids.remove(update.updateid)
+                else:
+                    missing_ids.append(update.title)
 
             # Add all relevant notices from the metadata to this document
-            ids = [update.updateid for update in self.updates if update.updateid]
             for notice in umd.get_notices():
-                if notice['update_id'] in ids or notice['type'] == 'security':
+                if notice['update_id'] in existing_ids or notice['type'] == 'security':
                     self._add_notice(notice)
                 else:
                     log.debug("Removing %s from updateinfo" % notice['title'])
