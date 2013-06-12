@@ -13,7 +13,6 @@ from pyramid.authorization import ACLAuthorizationPolicy
 
 import bodhi.buildsys
 from .models import DBSession, Base, User
-from .resources import appmaker
 
 
 def get_user(request):
@@ -34,7 +33,6 @@ def main(global_config, testing=None, **settings):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
-    get_root = appmaker(engine)
 
     # Setup our buildsystem
     bodhi.buildsys.setup_buildsystem(settings)
@@ -43,7 +41,7 @@ def main(global_config, testing=None, **settings):
     session_factory = session_factory_from_settings(settings)
     set_cache_regions_from_settings(settings)
 
-    config = Configurator(settings=settings, root_factory=get_root,
+    config = Configurator(settings=settings,
                           session_factory=session_factory)
 
     config.add_request_method(get_user, 'user', reify=True)
