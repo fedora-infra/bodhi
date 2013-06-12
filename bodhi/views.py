@@ -1,6 +1,6 @@
 import rpm
 import logging
-import tw2.core
+import colander
 
 from pprint import pprint
 from beaker.cache import cache_region
@@ -14,8 +14,9 @@ from pyramid.httpexceptions import HTTPFound
 
 from bodhi import buildsys
 from bodhi.models import DBSession, Release, Build, Package, User, Group
-from bodhi.widgets import NewUpdateForm
+#from bodhi.widgets import NewUpdateForm
 from bodhi.util import _, get_nvr
+from bodhi.validators import UpdateSchema
 
 log = logging.getLogger(__name__)
 
@@ -87,25 +88,32 @@ def home(request):
     return {}
 
 
-@view_config(route_name='save', request_method='POST', permission='add')
+@view_config(route_name='save', request_method='POST', permission='add',
+             renderer='json')
 def save(request):
-    print request.params
-
-    # Validate the CSRF token
-    #token = request.session.get_csrf_token()
-    #if token != request.POST['csrf_token']:
-    #    raise ValueError('CSRF token did not match')
+    log.debug('request.POST = %r' % request.POST)
+    session = DBSession()
+    koji = buildsys.get_session()
+    tag_types, tag_rels = Release.get_tags()
 
     # Validate parameters
+    schema = UpdateSchema().bind(
+            session=session,
+            user=request.user,
+            settings=request.registry.settings,
+            tag_types=tag_types,
+            tag_rels=tag_rels,
+            koji=koji,
+            )
     try:
-        data = NewUpdateForm.validate(request.POST)
-    except tw2.core.ValidationError, e:
-        return Response(e.widget.display())
+        deserialized = schema.deserialize(request.POST)
+        log.debug('deserialized: {}'.format(deserialized))
+    except colander.Invalid, e:
+        errors = e.asdict()
+        log.error(errors)
+        return errors
 
-    pprint(data)
-    session = DBSession()
-
-    # Make sure submitter has commit access
+    # TODO:
     # Editing magic
     # Create model instances
     # Obsolete any older updates, inherit data
