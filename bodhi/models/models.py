@@ -117,6 +117,12 @@ class UpdateSeverity(DeclEnum):
     low = 'low', 'low'
 
 
+class UpdateSuggestion(DeclEnum):
+    unspecified = 'unspecified', 'unspecified'
+    reboot = 'reboot', 'reboot'
+    logout = 'logout', 'logout'
+
+
 ##
 ## Association tables
 ##
@@ -399,6 +405,7 @@ class Update(Base):
                     nullable=False)
     request = Column(UpdateRequest.db_type())
     severity = Column(UpdateSeverity.db_type(), nullable=True)
+    suggest = Column(UpdateSuggestion.db_type(), nullable=True)
 
     # Flags
     locked = Column(Boolean, default=False)

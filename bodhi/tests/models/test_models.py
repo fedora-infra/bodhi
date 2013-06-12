@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 
 from bodhi import models as model
 from bodhi.models import (UpdateStatus, UpdateType, UpdateRequest,
-                          UpdateSeverity)
+                          UpdateSeverity, UpdateSuggestion)
 from bodhi.tests.models import ModelTest
 from bodhi.exceptions import InvalidRequest
 
@@ -106,6 +106,7 @@ class TestUpdate(ModelTest):
         status=UpdateStatus.pending,
         request=UpdateRequest.testing,
         severity=UpdateSeverity.medium,
+        suggest=UpdateSuggestion.reboot,
         close_bugs=True,
         notes=u'foobar',
         karma=0,
