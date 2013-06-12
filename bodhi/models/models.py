@@ -9,7 +9,6 @@ import transaction
 from textwrap import wrap
 from datetime import datetime
 
-from beaker.cache import cache_region
 from sqlalchemy import create_engine
 from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
 from sqlalchemy import DateTime
@@ -237,8 +236,9 @@ class Release(Base):
         return int(regex.match(self.name).groups()[0])
 
     @classmethod
-    @cache_region('long_term', 'release_tags')
     def get_tags(cls):
+        if cls._tag_cache:
+            return cls._tag_cache
         data = {'candidate': [], 'testing': [], 'stable': [], 'override': [],
                 'pending_testing': [], 'pending_stable': []}
         tags = {}  # tag -> release lookup
@@ -247,7 +247,9 @@ class Release(Base):
                 tag = getattr(release, '%s_tag' % key)
                 data[key].append(tag)
                 tags[tag] = release.name
-        return data, tags
+        cls._tag_cache = (data, tags)
+        return cls._tag_cache
+    _tag_cache = None
 
 
 class Package(Base):
