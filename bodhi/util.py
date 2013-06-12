@@ -270,11 +270,6 @@ def get_pkg_pushers(pkgName, collectionName='Fedora',
     This may raise: fedora.client.AppError if there's an error talking to the
     PackageDB (for instance, no such package)
     """
-    request = get_current_request()
-    settings = request.registry.settings
-    if request.registry.settings['acl_system'] == 'dummy':
-        return (['guest'], ['guest']), (['guest'], ['guest'])
-
     pkgdb = PackageDB(settings['pkgdb_url'])
     # Note if AppError is raised (for no pkgNamme or other server errors) we
     # do not catch the exception here.

@@ -8,33 +8,61 @@ from webtest import TestApp
 from sqlalchemy import create_engine
 
 from bodhi import main
-from bodhi.models import DBSession, Base, User, Group, Build
-from bodhi.tests import populate
-
-app = None
+from bodhi.models import (
+    Base, DBSession, Release, Update, User, Package, Build, Bug, UpdateType, Group,
+)
 
 app_settings = {
     'sqlalchemy.url': 'sqlite://',
     'mako.directories': 'bodhi:templates',
-    'cache.regions': 'default_term, second, short_term, long_term',
+    'session.type': 'memory',
+    'session.key': 'testing',
     'cache.type': 'memory',
+    'cache.regions': 'default_term, second, short_term, long_term',
     'cache.second.expire': '1',
     'cache.short_term.expire': '60',
     'cache.default_term.expire': '300',
     'cache.long_term.expire': '3600',
     'acl_system': 'dummy',
+    'buildsystem': 'dummy',
     'important_groups': 'proventesters provenpackager releng',
     'admin_packager_groups': 'provenpackager',
 }
 
 
+def populate():
+    session = DBSession()
+    user = User(name=u'guest')
+    session.add(user)
+    group = Group(name=u'provenpackager')
+    session.add(group)
+    release = Release(
+        name=u'F17', long_name=u'Fedora 17',
+        id_prefix=u'FEDORA', dist_tag=u'f17')
+    session.add(release)
+    pkg = Package(name=u'bodhi')
+    session.add(pkg)
+    build = Build(nvr=u'bodhi-2.0-1', release=release, package=pkg)
+    session.add(build)
+    update = Update(
+        builds=[build], user=user,
+        notes=u'Useful details!', release=release)
+    update.type = UpdateType.bugfix
+    bug = Bug(bug_id=12345)
+    session.add(bug)
+    update.bugs.append(bug)
+    session.add(update)
+    session.flush()
+
+
+app = None
+
 def setup():
     global app
-    app = main({}, testing='guest', **app_settings)
-    app = TestApp(twc.make_middleware(app))
+    app = TestApp(main({}, testing=u'guest', **app_settings))
 
 
-class FunctionalTests(unittest.TestCase):
+class TestWSGIApp(unittest.TestCase):
 
     def setUp(self):
         engine = create_engine('sqlite://')
@@ -45,78 +73,63 @@ class FunctionalTests(unittest.TestCase):
     def tearDown(self):
         DBSession.remove()
 
-    def get_update(self, builds=None, stablekarma=3, unstablekarma=-3):
-        if not builds:
-            builds = 'bodhi-2.0-1'
-        data = {
-            'newupdateform:bugs:bugs': u'',
-            'newupdateform:notes': u'this is a test update',
-            'newupdateform:type_': u'bugfix',
-            'newupdateform:karma:stablekarma': stablekarma,
-            'newupdateform:karma:unstablekarma': unstablekarma,
-            'newupdateform:id': u'',
-            }
-        for i, build in enumerate(iterate(builds)):
-            data['newupdateform:packages:%d:package' % i] = build
-        return data
+    def get_update(self, builds=u'bodhi-2.0-1', stablekarma=3, unstablekarma=-3):
+        if isinstance(builds, list):
+            builds = u','.join(builds)
+        return {
+            'builds': builds,
+            'bugs': u'',
+            'notes': u'this is a test update',
+            'type': u'bugfix',
+            'stablekarma': stablekarma,
+            'unstablekarma': unstablekarma,
+        }
 
-    def test_release_view_json(self):
-        res = app.get('/releases/F17', status=200)
-        data = json.loads(res.body)
-        eq_(data['context']['name'], 'F17')
-
-    def test_invalid_release(self):
-        app.get('/releases/F16', status=404)
-
-    def test_releases_view_json(self):
-        res = app.get('/releases', status=200)
-        data = json.loads(res.body)
-        eq_(data[u'entries'][0][u'name'], 'F17')
-
-    def test_releases_view_invalid_bug(self):
-        app.get('/bugs/abc', status=404)
-
-    def test_releases_view_bug(self):
-        res = app.get('/bugs/12345', status=200)
-        data = json.loads(res.body)
-        eq_(data[u'context'][u'bug_id'], 12345)
+    def test_home(self):
+        res = app.get('/', status=200)
+        assert 'Logout' in res, res
 
     def test_invalid_build_name(self):
-        res = app.post('/save', self.get_update('invalidbuild-1.0'))
+        res = app.post('/save', self.get_update(u'bodhi-2.0-1,invalidbuild-1.0'))
         assert 'Invalid build' in res, res
 
     def test_empty_build_name(self):
-        res = app.post('/save', self.get_update(['']))
-        assert 'Invalid build' in res, res
+        res = app.post('/save', self.get_update([u'']))
+        assert '{"builds.0": "Required"}' in res, res
 
     def test_valid_tag(self):
         res = app.post('/save', self.get_update())
         assert 'Invalid tag' not in res, res
 
     def test_invalid_tag(self):
-        res = app.post('/save', self.get_update('bodhi-1.0-1'))
+        session = DBSession()
+        map(session.delete, session.query(Update).all())
+        map(session.delete, session.query(Build).all())
+        num = session.query(Update).count()
+        assert num == 0, num
+        res = app.post('/save', self.get_update(u'bodhi-1.0-1'))
         assert 'Invalid tag' in res, res
 
     def test_old_build(self):
-        res = app.post('/save', self.get_update('bodhi-1.9-1'))
+        res = app.post('/save', self.get_update(u'bodhi-1.9-1'))
         assert 'Invalid build: bodhi-1.9-1 is older than bodhi-2.0-1' in res, res
 
     def test_duplicate_build(self):
-        res = app.post('/save', self.get_update(['bodhi-2.0-2', 'bodhi-2.0-2']))
+        res = app.post('/save', self.get_update([u'bodhi-2.0-2', u'bodhi-2.0-2']))
         assert 'Duplicate builds' in res, res
 
     def test_multiple_builds_of_same_package(self):
-        res = app.post('/save', self.get_update(['bodhi-2.0-2', 'bodhi-2.0-3']))
+        res = app.post('/save', self.get_update([u'bodhi-2.0-2', u'bodhi-2.0-3']))
         assert 'Multiple bodhi builds specified' in res, res
 
     def test_invalid_autokarma(self):
         res = app.post('/save', self.get_update(stablekarma=-1))
-        assert 'Must be at least 1' in res, res
+        assert '-1 is less than minimum value 1' in res, res
         res = app.post('/save', self.get_update(unstablekarma=1))
-        assert 'Cannot be more than -1' in res, res
+        assert '1 is greater than maximum value -1' in res, res
 
     def test_duplicate_update(self):
-        res = app.post('/save', self.get_update('bodhi-2.0-1'))
+        res = app.post('/save', self.get_update(u'bodhi-2.0-1'))
         assert 'Update for bodhi-2.0-1 already exists' in res, res
 
     def test_no_privs(self):
@@ -124,9 +137,8 @@ class FunctionalTests(unittest.TestCase):
         user = User(name=u'bodhi')
         session.add(user)
         session.flush()
-        app = main({}, testing='bodhi', **app_settings)
-        app = TestApp(twc.make_middleware(app))
-        res = app.post('/save', self.get_update('bodhi-2.1-1'))
+        app = TestApp(main({}, testing=u'bodhi', **app_settings))
+        res = app.post('/save', self.get_update(u'bodhi-2.1-1'))
         assert 'bodhi does not have commit access to bodhi' in res, res
 
     def test_provenpackager_privs(self):
@@ -138,9 +150,9 @@ class FunctionalTests(unittest.TestCase):
         group = session.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
 
-        app = main({}, testing='bodhi', **app_settings)
+        app = main({}, testing=u'bodhi', **app_settings)
         app = TestApp(twc.make_middleware(app))
-        res = app.post('/save', self.get_update('bodhi-2.1-1'))
+        res = app.post('/save', self.get_update(u'bodhi-2.1-1'))
         assert 'bodhi does not have commit access to bodhi' not in res, res
         # TODO; uncomment once we're actually creating updates properly
         #build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1').one()
@@ -151,11 +163,13 @@ class FunctionalTests(unittest.TestCase):
         settings = app_settings.copy()
         settings['acl_system'] = 'pkgdb'
         settings['pkgdb_url'] = 'invalidurl'
-        app = main({}, testing='bodhi', **settings)
-        app = TestApp(twc.make_middleware(app))
-        res = app.post('/save', self.get_update('bodhi-2.0-1'))
+        app = TestApp(main({}, testing=u'guest', **settings))
+        res = app.post('/save', self.get_update(u'bodhi-2.0-2'))
         assert "Unable to access the Package Database. Please try again later." in res, res
 
-    def test_home(self):
-        res = app.get('/', status=200)
-        assert 'Logout' in res, res
+    def test_invalid_acl_system(self):
+        settings = app_settings.copy()
+        settings['acl_system'] = 'null'
+        app = TestApp(main({}, testing=u'guest', **settings))
+        res = app.post('/save', self.get_update(u'bodhi-2.0-2'))
+        assert "guest does not have commit access to bodhi" in res, res
