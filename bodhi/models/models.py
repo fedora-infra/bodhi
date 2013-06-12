@@ -110,8 +110,11 @@ class UpdateRequest(DeclEnum):
 
 
 class UpdateSeverity(DeclEnum):
-    moderate = 'moderate', 'moderate'
-    critical = 'critical', 'critical'
+    unspecified = 'unspecified', 'unspecified'
+    urgent = 'urgent', 'urgent'
+    high = 'high', 'high'
+    medium = 'medium', 'medium'
+    low = 'low', 'low'
 
 
 ##
