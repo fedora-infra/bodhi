@@ -82,8 +82,6 @@ DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 ##
 ## Enumerated type declarations
-## Note: We're using single-letter names at the moment for compatibility with
-## sqlite dbs
 ##
 
 class UpdateStatus(DeclEnum):
