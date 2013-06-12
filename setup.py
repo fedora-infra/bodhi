@@ -30,13 +30,6 @@ requires = [
     'kitchen',
     'python-fedora',
 
-    # tw2
-    'tw2.core',
-    'tw2.dynforms',
-    'tw2.forms',
-    'tw2.sqla',
-    'tw2.jqplugins.jqgrid',
-
     # i18n
     'Babel',
     'lingua',

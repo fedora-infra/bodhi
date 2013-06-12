@@ -72,17 +72,6 @@ def notfound_view(context, request):
     return dict()
 
 
-## Widgets
-
-@view_config(context='bodhi.widgets.NewUpdateForm', renderer='widget.html',
-             permission='add')
-def view_widget(context, request):
-    context.fetch_data(request)
-    mw = tw2.core.core.request_local()['middleware']
-    mw.controllers.register(context, 'update_submit')
-    return {'widget': context}
-
-
 @view_config(route_name='home', renderer='home.html')
 def home(request):
     return {}
