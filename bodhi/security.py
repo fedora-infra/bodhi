@@ -60,22 +60,22 @@ def remember_me(context, request, info, *args, **kw):
     log.debug('groups = %s' % info['groups'])
 
     # Find the user in our database. Create it if it doesn't exist.
-    session = DBSession()
-    user = session.query(User).filter_by(name=username).first()
+    db = request.db
+    user = db.query(User).filter_by(name=username).first()
     if not user:
         user = User(name=username)
-        session.add(user)
-        session.flush()
+        db.add(user)
+        db.flush()
 
     # See if they are a member of any important groups
     important_groups = request.registry.settings['important_groups'].split()
     for important_group in important_groups:
         if important_group in info['groups']:
-            group = session.query(Group).filter_by(name=important_group).first()
+            group = db.query(Group).filter_by(name=important_group).first()
             if not group:
                 group = Group(name=important_group)
-                session.add(group)
-                session.flush()
+                db.add(group)
+                db.flush()
             user.groups.append(group)
 
     headers = remember(request, username)

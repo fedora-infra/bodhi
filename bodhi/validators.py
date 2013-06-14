@@ -28,7 +28,7 @@ def validate_builds(request):
         log.debug('Editing update; skipping validate_builds')
         return
     for build in request.validated.get('builds', []):
-        if DBSession.query(Build).filter_by(nvr=build).first():
+        if request.db.query(Build).filter_by(nvr=build).first():
             request.errors.add('body', 'builds',
                             "Update for {} already exists".format(build))
             return
@@ -48,13 +48,13 @@ def validate_tags(request):
                 break
         if not valid:
             request.errors.add('body', 'builds', 'Invalid tag: {} tagged with '
-                            '{}'.format(build, candidate_tags))
+                               '{}'.format(build, candidate_tags))
 
 
 def validate_acls(request):
     """Ensure this user has commit privs to these builds or is an admin"""
     tag_types, tag_rels = Release.get_tags()
-    session = DBSession() # FIXME: bind?
+    db = request.db
     user = request.user
     settings = request.registry.settings
     acl_system = settings['acl_system']
@@ -73,8 +73,8 @@ def validate_acls(request):
                 'collectionVersion': 'devel'
             }
             for tag in tags:
-                release = session.query(Release) \
-                        .filter_by(name=tag_rels[tag['name']]).one()
+                release = db.query(Release) \
+                            .filter_by(name=tag_rels[tag['name']]).one()
                 pkgdb_args['collectionName'] = release.collection_name
                 pkgdb_args['collectionVersion'] = str(release.get_version())
                 break
@@ -122,12 +122,13 @@ def validate_acls(request):
 
 def validate_version(request):
     """ Ensure no builds are older than any that we know of """
+    db = request.db
     for build in request.validated.get('builds', []):
         nvr = get_nvr(build)
-        pkg = DBSession.query(Package).filter_by(name=nvr[0]).first()
+        pkg = db.query(Package).filter_by(name=nvr[0]).first()
         if pkg:
-            last = DBSession.query(Build).filter_by(package=pkg) \
-                        .order_by(Build.id.desc()).limit(1).first()
+            last = db.query(Build).filter_by(package=pkg) \
+                     .order_by(Build.id.desc()).limit(1).first()
             if last:
                 if rpm.labelCompare(nvr, get_nvr(last.nvr)) < 0:
                     request.errors.add('body', 'builds', 'Invalid build: '

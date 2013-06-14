@@ -21,6 +21,14 @@ import logging
 log = logging.getLogger(__name__)
 
 
+#
+# Request methods
+#
+
+def get_dbsession(request):
+    return DBSession()
+
+
 def get_user(request):
     userid = unauthenticated_userid(request)
     if userid is not None:
@@ -69,6 +77,7 @@ def main(global_config, testing=None, **settings):
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
     config.add_request_method(get_pkgdb, 'pkgdb', reify=True)
+    config.add_request_method(get_dbsession, 'db', reify=True)
 
     config.add_static_view('static', 'bodhi:static')
     config.add_translation_dirs('bodhi:locale/')

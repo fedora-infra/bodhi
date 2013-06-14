@@ -8,7 +8,7 @@ from pyramid.exceptions import NotFound, Forbidden
 from cornice import Service
 
 from . import log, buildsys
-from .models import DBSession, Release, Build, Package, User, Group, Update
+from .models import Release, Build, Package, User, Group, Update
 from .util import _, get_nvr
 from .schemas import UpdateSchema
 from .security import admin_only_acl, packagers_allowed_acl
@@ -24,8 +24,8 @@ updates = Service(name='updates', path='/updates',
 @updates.get()
 def query_updates(request):
     # TODO: flexible querying api.
-    session = DBSession()
-    return dict(updates=[u.__json__() for u in session.query(Update).all()])
+    db = request.db
+    return dict(updates=[u.__json__() for u in db.query(Update).all()])
 
 
 @updates.post(schema=UpdateSchema, permission='create',
@@ -81,13 +81,13 @@ def latest_candidates(request):
     into the Release.candidate_tag for all Releases.
     """
     result = []
-    koji = buildsys.get_session()
+    koji = request.koji
+    db = request.db
     pkg = request.params.get('package')
     log.debug('latest_candidate(%r)' % pkg)
     if pkg:
-        session = DBSession()
         koji.multicall = True
-        for release in session.query(Release).all():
+        for release in db.query(Release).all():
             koji.listTagged(release.candidate_tag, package=pkg, latest=True)
         results = koji.multiCall()
         for build in results:
@@ -95,5 +95,3 @@ def latest_candidates(request):
                 result.append(build[0][0]['nvr'])
     log.debug(result)
     return result
-
-
