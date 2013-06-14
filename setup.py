@@ -20,6 +20,7 @@ requires = [
     'pyramid_tm',
     'waitress',
     'colander',
+    'cornice',
 
     'sqlalchemy',
     #'zope.sqlalchemy',

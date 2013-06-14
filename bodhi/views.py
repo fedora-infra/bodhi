@@ -8,60 +8,69 @@ from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
 from pyramid.view import view_config
 from pyramid.response import Response
-from pyramid.security import remember, authenticated_userid, forget
 from pyramid.exceptions import NotFound, Forbidden
 from pyramid.httpexceptions import HTTPFound
+from pyramid.security import remember, authenticated_userid, forget
+from pyramid.security import Allow, Deny, Everyone, Authenticated, ALL_PERMISSIONS, DENY_ALL
 
 from bodhi import buildsys
-from bodhi.models import DBSession, Release, Build, Package, User, Group
+from bodhi.models import DBSession, Release, Build, Package, User, Group, Update
 #from bodhi.widgets import NewUpdateForm
 from bodhi.util import _, get_nvr
-from bodhi.validators import UpdateSchema
+from bodhi.schemas import UpdateSchema
+from bodhi.validators import (validate_nvrs, validate_version,
+        validate_uniqueness, validate_tags, validate_acls,
+        validate_builds)
 
 log = logging.getLogger(__name__)
 
 
-## JSON views
-
-@view_config(context='bodhi.models.Base', accept='application/json',
-             renderer='json')
-def view_model_instance_json(context, request):
-    return {'context': context.__json__()}
+from cornice import Service
+from cornice.resource import resource, view
 
 
-@view_config(context='bodhi.resources.BodhiResource',
-             accept='application/json', renderer='json')
-def view_model_json(context, request):
+def admin_only_acl(request):
+    """Generate our admin-only ACL"""
+    return  [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
+             request.registry.settings['admin_packager_groups'].split()]
+
+
+def packagers_allowed_acl(request):
+    """Generate an ACL for update submission"""
+    return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
+            request.registry.settings['mandatory_packager_groups'].split()] + \
+           [DENY_ALL]
+
+
+updates = Service(name='updates', path='/updates',
+                  description='Update submission service',
+                  acl=packagers_allowed_acl)
+
+
+@updates.get()
+def query_updates(request):
+    # TODO: flexible querying api.
     session = DBSession()
-    entries = session.query(context.__model__)
-    current_page = int(request.params.get('page', 1))
-    items_per_page = int(request.params.get('items_per_page', 20))
-    page = Page(entries, page=current_page, items_per_page=items_per_page)
-    return {'entries': [entry.__json__() for entry in page]}
+    return dict(updates=[u.__json__() for u in session.query(Update).all()])
 
 
-## Mako templated views
 
-@view_config(context='bodhi.models.Base', accept='text/html',
-             renderer='instance.html')
-def view_model_instance(context, request):
-    return {'context': context}
-
-
-@view_config(context='bodhi.resources.BodhiResource', renderer='model.html',
-             accept='text/html')
-def view_model(context, request):
-    session = DBSession()
-    entries = session.query(context.__model__)
-    current_page = int(request.params.get('page', 1))
-    items_per_page = int(request.params.get('items_per_page', 20))
-    page_url = PageURL_WebOb(request)
-    page = Page(entries, page=current_page, url=page_url,
-                items_per_page=items_per_page)
-    grid = Grid([entry.__json__() for entry in page],
-                context.__model__.grid_columns())
-    return {'caption': context.__model__.__name__ + 's',
-            'grid': grid, 'page': page}
+@updates.post(schema=UpdateSchema, permission='create',
+        validators=(validate_nvrs, validate_version, validate_builds,
+                    validate_uniqueness, validate_tags, validate_acls))
+def new_update(request):
+    log.debug('validated = %s' % request.validated)
+    # TODO:
+    # Editing magic
+    # Create model instances
+    # Obsolete any older updates, inherit data
+    # Bugzilla interactions
+    # Security checks
+    # Critpath checks
+    # Look for test cases on the wiki
+    # Set request
+    # Send out email notifications
+    return {}
 
 
 ## 404
@@ -77,45 +86,6 @@ def home(request):
     return {}
 
 
-@view_config(route_name='save', request_method='POST', permission='add',
-             renderer='json')
-def save(request):
-    log.debug('request.POST = %r' % request.POST)
-    session = DBSession()
-    koji = buildsys.get_session()
-    tag_types, tag_rels = Release.get_tags()
-
-    # Validate parameters
-    schema = UpdateSchema().bind(
-            session=session,
-            user=request.user,
-            settings=request.registry.settings,
-            tag_types=tag_types,
-            tag_rels=tag_rels,
-            koji=koji,
-            )
-    try:
-        deserialized = schema.deserialize(request.POST)
-        log.debug('deserialized: {}'.format(deserialized))
-    except colander.Invalid, e:
-        errors = e.asdict()
-        log.error(errors)
-        return errors
-
-    # TODO:
-    # Editing magic
-    # Create model instances
-    # Obsolete any older updates, inherit data
-    # Bugzilla interactions
-    # Security checks
-    # Look for unit tests
-    # Send out email notifications
-    # Set request, w/ critpath checks
-
-    return Response("Hi There!")
-
-
-@cache_region('long_term', 'package_list')
 def get_all_packages():
     """ Get a list of all packages in Koji """
     log.debug('Fetching list of all packages...')
