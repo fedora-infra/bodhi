@@ -13,6 +13,7 @@
 
 import time
 import koji
+import atexit
 import logging
 
 from os.path import join, expanduser
@@ -76,6 +77,9 @@ class DevBuildsys(Buildsystem):
 
     def ssl_login(self, *args, **kw):
         log.debug("ssl_login(%s, %s)" % (args, kw))
+
+    def logout(self, *args, **kw):
+        pass
 
     def taskFinished(self, task):
         return True
@@ -208,6 +212,13 @@ def get_session():
         log.warning('No buildsystem configured; assuming testing')
         return DevBuildsys()
     return _buildsystem()
+
+
+def close_session():
+    koji = get_session()
+    koji.logout()
+
+atexit.register(close_session)
 
 
 def setup_buildsystem(settings):
