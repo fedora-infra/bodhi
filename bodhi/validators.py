@@ -13,20 +13,18 @@ def validate_nvrs(request):
                 raise ValueError
         except:
             request.errors.add('body', 'builds', 'Build not in '
-                            'name-version-release format: %s' % build)
+                               'name-version-release format: %s' % build)
             return
 
 
-
 def validate_builds(request):
-    # If we're editing an update, don't check for duplicate builds
     if request.validated.get('edited'):
         log.debug('Editing update; skipping validate_builds')
         return
     for build in request.validated.get('builds', []):
         if request.db.query(Build).filter_by(nvr=build).first():
             request.errors.add('body', 'builds',
-                            "Update for {} already exists".format(build))
+                               "Update for {} already exists".format(build))
             return
 
 
@@ -89,7 +87,7 @@ def validate_acls(request):
             except Exception, e:
                 log.exception(e)
                 request.errors.add('body', 'builds', "Unable to access the Package "
-                                "Database. " "Please try again later.")
+                                   "Database. " "Please try again later.")
                 return
         elif acl_system == 'dummy':
             people, groups = (['guest'], ['guest']), (['guest'], ['guest'])
@@ -104,7 +102,7 @@ def validate_acls(request):
             # Check if this user is in a group that has access to this package
             for group in user_groups:
                 if group in groups:
-                    log.debug('{} is in {} group for {}'.format(user.name, group, package) )
+                    log.debug('{} is in {} group for {}'.format(user.name, group, package))
                     has_access = True
                     break
 
@@ -118,7 +116,7 @@ def validate_acls(request):
 
             if not has_access:
                 request.errors.add('body', 'builds', "{} does not have commit "
-                                   "access to {}".format(user.name, package))
+                                   "access to {}".format(user.name, package.name))
 
 
 def validate_version(request):
@@ -133,8 +131,8 @@ def validate_version(request):
             if last:
                 if rpm.labelCompare(nvr, get_nvr(last.nvr)) < 0:
                     request.errors.add('body', 'builds', 'Invalid build: '
-                                    '{} is older than ' '{}'.format(
-                                        '-'.join(nvr), last.nvr))
+                                       '{} is older than ' '{}'.format(
+                                           '-'.join(nvr), last.nvr))
                     return
 
 
@@ -150,11 +148,11 @@ def validate_uniqueness(request):
                 seen_build += 1
                 if seen_build > 1:
                     request.errors.add('body', 'builds', 'Duplicate builds: '
-                                    '{}'.format(build))
+                                       '{}'.format(build))
                     return
                 continue
             if nvr[0] == other_build_nvr[0]:
                 request.errors.add('body', 'builds', "Multiple {} builds "
-                                "specified: {} & {}".format(nvr[0], build,
-                                other_build))
+                                   "specified: {} & {}".format(nvr[0], build,
+                                   other_build))
                 return
