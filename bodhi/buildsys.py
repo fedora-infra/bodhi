@@ -13,6 +13,7 @@
 
 import time
 import koji
+import atexit
 import logging
 
 from os.path import join, expanduser
@@ -21,6 +22,12 @@ from bodhi.util import get_nvr
 log = logging.getLogger(__name__)
 
 _buildsystem = None
+
+# Cached koji session info
+_koji_session = None
+
+# URL of the koji hub
+_koji_hub = None
 
 
 class Buildsystem:
@@ -70,6 +77,9 @@ class DevBuildsys(Buildsystem):
 
     def ssl_login(self, *args, **kw):
         log.debug("ssl_login(%s, %s)" % (args, kw))
+
+    def logout(self, *args, **kw):
+        pass
 
     def taskFinished(self, task):
         return True
@@ -174,6 +184,7 @@ def koji_login(config, client=None, clientca=None, serverca=None):
     """
     Login to Koji and return the session
     """
+    global _koji_hub, _koji_session
     if not client:
         client = config.get('client_cert')
         if not client:
@@ -187,9 +198,11 @@ def koji_login(config, client=None, clientca=None, serverca=None):
         if not serverca:
             serverca = join(expanduser('~'), '.fedora-server-ca.cert')
 
-    koji_session = koji.ClientSession(config.get('koji_hub'), {})
-    koji_session.ssl_login(client, clientca, serverca)
-    return koji_session
+    _koji_hub = config.get('koji_hub')
+    koji_client = koji.ClientSession(_koji_hub, {})
+    koji_client.ssl_login(client, clientca, serverca)
+    _koji_session = koji_client.sinfo
+    return _koji_session
 
 
 def get_session():
@@ -201,14 +214,22 @@ def get_session():
     return _buildsystem()
 
 
+def close_session():
+    koji = get_session()
+    koji.logout()
+
+atexit.register(close_session)
+
+
 def setup_buildsystem(settings):
-    global _buildsystem
+    global _buildsystem, _koji_session, _koji_hub
     if _buildsystem:
         return
     buildsys = settings.get('buildsystem')
     if buildsys == 'koji':
         log.debug('Using Koji Buildsystem')
-        _buildsystem = lambda: koji_login(config=settings)
+        koji_login(config=settings)
+        _buildsystem = lambda: koji.ClientSession(_koji_hub, sinfo=_koji_session)
     elif buildsys in ('dev', 'dummy', None):
         log.debug('Using DevBuildsys')
         _buildsystem = DevBuildsys
