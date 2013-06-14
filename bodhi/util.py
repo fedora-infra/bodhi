@@ -32,7 +32,6 @@ from datetime import datetime
 from decorator import decorator
 #from turbogears import config, flash, redirect, url as tg_url
 #from fedora.tg.util import request_format
-from fedora.client import PackageDB
 #from fedora.tg.util import url as csrf_url
 
 from bodhi.exceptions import (RPMNotFound, RepodataException,
@@ -236,72 +235,6 @@ def get_repo_tag(repo):
     else:
         log.error("Cannot find mash configuration for %s: %s" % (repo,
                                                                  mashconfig))
-
-
-def get_pkg_pushers(pkgName, collectionName='Fedora',
-                    collectionVersion='devel'):
-    """ Pull users who can commit and are watching a package
-
-    Return two two-tuples of lists:
-    * The first tuple is for usernames.  The second tuple is for groups.
-    * The first list of the tuple is for committers.  The second is for
-      watchers.
-
-    An example::
-      >>> people, groups = get_pkg_pushers('foo', 'Fedora', 'devel')
-      >>> print people
-      (['toshio', 'lmacken'], ['wtogami', 'toshio', 'lmacken'])
-      >>> print groups
-      (['cvsextras'], [])
-
-    Note: The interface to the pkgdb could undergo the following changes:
-      FAS2 related:
-      * pkg['packageListings'][0]['owneruser'] =>
-        pkg['packageListings'][0]['owner']
-      * pkg['packageListings'][0]['people'][0..n]['user'] =>
-        pkg['packageListings'][0]['people'][0..n]['userid']
-
-    * We may want to create a 'push' acl specifically for bodhi instead of
-      reusing 'commit'.
-    * ['status']['translations'] may one day contain more than the 'C'
-      translation.  The pkgdb will have to figure out how to deal with that
-      if so.
-
-    This may raise: fedora.client.AppError if there's an error talking to the
-    PackageDB (for instance, no such package)
-    """
-    pkgdb = PackageDB(settings['pkgdb_url'])
-    # Note if AppError is raised (for no pkgNamme or other server errors) we
-    # do not catch the exception here.
-    pkg = pkgdb.get_owners(pkgName, collectionName, collectionVersion)
-
-    # Owner is allowed to commit and gets notified of pushes
-    # This will always be the 0th element as we'll retrieve at most one
-    # value for any given Package-Collection-Version
-    pNotify = [pkg.packageListings[0]['owner']]
-    pAllowed = [pNotify[0]]
-
-    # Find other people in the acl
-    for person in pkg['packageListings'][0]['people']:
-        if person['aclOrder']['watchcommits'] and \
-           pkg['statusMap'][str(person['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-            pNotify.append(person['username'])
-        if person['aclOrder']['commit'] and \
-           pkg['statusMap'][str(person['aclOrder']['commit']['statuscode'])] == 'Approved':
-            pAllowed.append(person['username'])
-
-    # Find groups that can push
-    gNotify = []
-    gAllowed = []
-    for group in pkg['packageListings'][0]['groups']:
-        if group['aclOrder']['watchcommits'] and \
-           pkg['statusMap'][str(group['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-            gNotify.append(group['groupname'])
-        if group['aclOrder']['commit'] and \
-           pkg['statusMap'][str(group['aclOrder']['commit']['statuscode'])] == 'Approved':
-            gAllowed.append(group['groupname'])
-
-    return ((pAllowed, pNotify), (gAllowed, gNotify))
 
 
 def build_evr(build):

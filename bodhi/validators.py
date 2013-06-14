@@ -1,12 +1,8 @@
 import rpm
-import logging
-import colander
 
-from bodhi import buildsys
-from bodhi.models import Release, Package, Build, DBSession
-from bodhi.util import get_nvr, get_pkg_pushers
-
-log = logging.getLogger(__name__)
+from . import log
+from .models import Release, Package, Build
+from .util import get_nvr
 
 
 def validate_nvrs(request):
@@ -64,7 +60,12 @@ def validate_acls(request):
     notify_groups = []
 
     for build in request.validated.get('builds', []):
-        package = get_nvr(build)[0]
+        package_name = get_nvr(build)[0]
+        package = db.query(Package).filter_by(name=package_name).first()
+        if not package:
+            package = Package(name=package_name)
+            db.add(package)
+            db.flush()
 
         if acl_system == 'pkgdb':
             tags = request.koji.listTags(build)
@@ -82,7 +83,7 @@ def validate_acls(request):
                 log.debug('Cannot find release associated with {} tags {}; '
                           'defaulting to devel'.format(build))
             try:
-                people, groups = get_pkg_pushers(package, **pkgdb_args)
+                people, groups = package.get_pkg_pushers()
                 committers, watchers = people
                 groups, notify_groups = groups
             except Exception, e:
