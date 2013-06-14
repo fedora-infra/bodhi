@@ -1,67 +1,49 @@
-import rpm
-import logging
-import colander
-
 from pprint import pprint
 from beaker.cache import cache_region
 from webhelpers.html.grid import Grid
 from webhelpers.paginate import Page, PageURL_WebOb
 from pyramid.view import view_config
 from pyramid.response import Response
-from pyramid.security import remember, authenticated_userid, forget
 from pyramid.exceptions import NotFound, Forbidden
-from pyramid.httpexceptions import HTTPFound
+from cornice import Service
 
-from bodhi import buildsys
-from bodhi.models import DBSession, Release, Build, Package, User, Group
-#from bodhi.widgets import NewUpdateForm
-from bodhi.util import _, get_nvr
-from bodhi.validators import UpdateSchema
-
-log = logging.getLogger(__name__)
-
-
-## JSON views
-
-@view_config(context='bodhi.models.Base', accept='application/json',
-             renderer='json')
-def view_model_instance_json(context, request):
-    return {'context': context.__json__()}
+from . import log, buildsys
+from .models import DBSession, Release, Build, Package, User, Group, Update
+from .util import _, get_nvr
+from .schemas import UpdateSchema
+from .security import admin_only_acl, packagers_allowed_acl
+from .validators import (validate_nvrs, validate_version, validate_uniqueness,
+        validate_tags, validate_acls, validate_builds)
 
 
-@view_config(context='bodhi.resources.BodhiResource',
-             accept='application/json', renderer='json')
-def view_model_json(context, request):
+updates = Service(name='updates', path='/updates',
+                  description='Update submission service',
+                  acl=packagers_allowed_acl)
+
+
+@updates.get()
+def query_updates(request):
+    # TODO: flexible querying api.
     session = DBSession()
-    entries = session.query(context.__model__)
-    current_page = int(request.params.get('page', 1))
-    items_per_page = int(request.params.get('items_per_page', 20))
-    page = Page(entries, page=current_page, items_per_page=items_per_page)
-    return {'entries': [entry.__json__() for entry in page]}
+    return dict(updates=[u.__json__() for u in session.query(Update).all()])
 
 
-## Mako templated views
-
-@view_config(context='bodhi.models.Base', accept='text/html',
-             renderer='instance.html')
-def view_model_instance(context, request):
-    return {'context': context}
-
-
-@view_config(context='bodhi.resources.BodhiResource', renderer='model.html',
-             accept='text/html')
-def view_model(context, request):
-    session = DBSession()
-    entries = session.query(context.__model__)
-    current_page = int(request.params.get('page', 1))
-    items_per_page = int(request.params.get('items_per_page', 20))
-    page_url = PageURL_WebOb(request)
-    page = Page(entries, page=current_page, url=page_url,
-                items_per_page=items_per_page)
-    grid = Grid([entry.__json__() for entry in page],
-                context.__model__.grid_columns())
-    return {'caption': context.__model__.__name__ + 's',
-            'grid': grid, 'page': page}
+@updates.post(schema=UpdateSchema, permission='create',
+        validators=(validate_nvrs, validate_version, validate_builds,
+                    validate_uniqueness, validate_tags, validate_acls))
+def new_update(request):
+    log.debug('validated = %s' % request.validated)
+    # TODO:
+    # Editing magic
+    # Create model instances
+    # Obsolete any older updates, inherit data
+    # Bugzilla interactions
+    # Security checks
+    # Critpath checks
+    # Look for test cases on the wiki
+    # Set request
+    # Send out email notifications
+    return {}
 
 
 ## 404
@@ -77,45 +59,6 @@ def home(request):
     return {}
 
 
-@view_config(route_name='save', request_method='POST', permission='add',
-             renderer='json')
-def save(request):
-    log.debug('request.POST = %r' % request.POST)
-    session = DBSession()
-    koji = buildsys.get_session()
-    tag_types, tag_rels = Release.get_tags()
-
-    # Validate parameters
-    schema = UpdateSchema().bind(
-            session=session,
-            user=request.user,
-            settings=request.registry.settings,
-            tag_types=tag_types,
-            tag_rels=tag_rels,
-            koji=koji,
-            )
-    try:
-        deserialized = schema.deserialize(request.POST)
-        log.debug('deserialized: {}'.format(deserialized))
-    except colander.Invalid, e:
-        errors = e.asdict()
-        log.error(errors)
-        return errors
-
-    # TODO:
-    # Editing magic
-    # Create model instances
-    # Obsolete any older updates, inherit data
-    # Bugzilla interactions
-    # Security checks
-    # Look for unit tests
-    # Send out email notifications
-    # Set request, w/ critpath checks
-
-    return Response("Hi There!")
-
-
-@cache_region('long_term', 'package_list')
 def get_all_packages():
     """ Get a list of all packages in Koji """
     log.debug('Fetching list of all packages...')
@@ -154,58 +97,3 @@ def latest_candidates(request):
     return result
 
 
-def login(request):
-    login_url = request.route_url('login')
-    referrer = request.url
-    if referrer == login_url:
-        referrer = request.route_url('home')
-    came_from = request.params.get('came_from', referrer)
-    request.session['came_from'] = came_from
-    oid_url = request.registry.settings['openid.provider']
-    return HTTPFound(location=request.route_url('verify_openid',
-                                                _query=dict(openid=oid_url)))
-
-
-def logout(request):
-    headers = forget(request)
-    return HTTPFound(location=request.route_url('home'), headers=headers)
-
-
-def remember_me(context, request, info, *args, **kw):
-    log.debug('remember_me(%s)' % locals())
-    log.debug('request.params = %r' % request.params)
-    endpoint = request.params['openid.op_endpoint']
-    if endpoint != request.registry.settings['openid.provider']:
-        log.warn('Invalid OpenID provider: %s' % endpoint)
-        request.session.flash('Invalid OpenID provider. You can only use: %s' %
-                              request.registry.settings['openid.provider'])
-        return HTTPFound(location=request.route_url('home'))
-    username = info['identity_url'].split('http://')[1].split('.')[0]
-    log.debug('%s successfully logged in' % username)
-    log.debug('groups = %s' % info['groups'])
-
-    # Find the user in our database. Create it if it doesn't exist.
-    session = DBSession()
-    user = session.query(User).filter_by(name=username).first()
-    if not user:
-        user = User(name=username)
-        session.add(user)
-        session.flush()
-
-    # See if they are a member of any important groups
-    important_groups = request.registry.settings['important_groups'].split()
-    for important_group in important_groups:
-        if important_group in info['groups']:
-            group = session.query(Group).filter_by(name=important_group).first()
-            if not group:
-                group = Group(name=important_group)
-                session.add(group)
-                session.flush()
-            user.groups.append(group)
-
-    headers = remember(request, username)
-    came_from = request.session['came_from']
-    del(request.session['came_from'])
-    response = HTTPFound(location=came_from)
-    response.headerlist.extend(headers)
-    return response

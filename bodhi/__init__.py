@@ -53,6 +53,8 @@ def main(global_config, testing=None, **settings):
     config = Configurator(settings=settings,
                           session_factory=session_factory)
 
+    config.include('cornice')
+
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
 
@@ -75,22 +77,18 @@ def main(global_config, testing=None, **settings):
     # Frontpage
     config.add_route('home', '/')
 
-    # Save method
-    config.add_route('save', '/save')
-
     # Auto-completion search
     config.add_route('search_pkgs', '/search_pkgs')
     config.add_route('latest_candidates', '/latest_candidates')
 
     # pyramid.openid
-    config.add_route('login', '/login', view='bodhi.views.login')
+    config.add_route('login', '/login', view='bodhi.security.login')
     #config.add_view('bodhi.views.login', context=Forbidden,
     #                renderer='bodhi:templates/login.mak')
-    config.add_route('logout', '/logout', view='bodhi.views.logout')
+    config.add_route('logout', '/logout', view='bodhi.security.logout')
     config.add_route('verify_openid', pattern='/dologin.html',
                      view='pyramid_fas_openid.verify_openid')
 
     config.scan()
-
 
     return config.make_wsgi_app()
