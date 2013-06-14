@@ -11,7 +11,9 @@ from pyramid_beaker import set_cache_regions_from_settings
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
-import bodhi.buildsys
+from fedora.client.pkgdb import PackageDB
+
+from . import buildsys, pkgdb
 from .models import DBSession, Base, User
 
 import logging
@@ -37,6 +39,15 @@ def get_koji(request):
     return buildsys.get_session()
 
 
+def get_pkgdb(request):
+    log.debug('get_pkgdb()')
+    return PackageDB(request.registry.settings['pkgdb_url'])
+
+
+#
+# Bodhi initialization
+#
+
 def main(global_config, testing=None, **settings):
     """ This function returns a WSGI application """
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -44,7 +55,7 @@ def main(global_config, testing=None, **settings):
     Base.metadata.bind = engine
 
     # Setup our buildsystem
-    bodhi.buildsys.setup_buildsystem(settings)
+    buildsys.setup_buildsystem(settings)
 
     # Beaker Sessions & Caching
     session_factory = session_factory_from_settings(settings)
@@ -57,6 +68,7 @@ def main(global_config, testing=None, **settings):
 
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
+    config.add_request_method(get_pkgdb, 'pkgdb', reify=True)
 
     config.add_static_view('static', 'bodhi:static')
     config.add_translation_dirs('bodhi:locale/')
