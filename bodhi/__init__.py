@@ -1,9 +1,7 @@
 from sqlalchemy import engine_from_config
 
 from pyramid.settings import asbool
-from pyramid.exceptions import NotFound, Forbidden
 from pyramid.decorator import reify
-from pyramid.request import Request
 from pyramid.security import unauthenticated_userid
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
@@ -13,7 +11,7 @@ from pyramid.authorization import ACLAuthorizationPolicy
 
 from fedora.client.pkgdb import PackageDB
 
-from . import buildsys, pkgdb
+from . import buildsys
 from .models import DBSession, Base, User
 
 import logging
