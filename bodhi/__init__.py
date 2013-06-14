@@ -81,5 +81,4 @@ def main(global_config, testing=None, **settings):
 
     config.scan()
 
-
     return config.make_wsgi_app()
