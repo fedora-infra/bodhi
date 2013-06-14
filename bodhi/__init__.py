@@ -82,10 +82,10 @@ def main(global_config, testing=None, **settings):
     config.add_route('latest_candidates', '/latest_candidates')
 
     # pyramid.openid
-    config.add_route('login', '/login', view='bodhi.views.login')
+    config.add_route('login', '/login', view='bodhi.security.login')
     #config.add_view('bodhi.views.login', context=Forbidden,
     #                renderer='bodhi:templates/login.mak')
-    config.add_route('logout', '/logout', view='bodhi.views.logout')
+    config.add_route('logout', '/logout', view='bodhi.security.logout')
     config.add_route('verify_openid', pattern='/dologin.html',
                      view='pyramid_fas_openid.verify_openid')
 
