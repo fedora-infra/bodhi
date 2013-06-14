@@ -14,6 +14,10 @@ from pyramid.authorization import ACLAuthorizationPolicy
 import bodhi.buildsys
 from .models import DBSession, Base, User
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def get_user(request):
     userid = unauthenticated_userid(request)
@@ -26,6 +30,11 @@ def groupfinder(userid, request):
     user = request.user
     if user:
         return [group.name for group in user.groups]
+
+
+def get_koji(request):
+    log.debug('get_koji()')
+    return buildsys.get_session()
 
 
 def main(global_config, testing=None, **settings):
@@ -45,6 +54,8 @@ def main(global_config, testing=None, **settings):
                           session_factory=session_factory)
 
     config.add_request_method(get_user, 'user', reify=True)
+    config.add_request_method(get_koji, 'koji', reify=True)
+
     config.add_static_view('static', 'bodhi:static')
     config.add_translation_dirs('bodhi:locale/')
     config.add_renderer(".html", "pyramid.mako_templating.renderer_factory")
