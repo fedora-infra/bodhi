@@ -27,6 +27,11 @@ class TestRelease(ModelTest):
         metrics={'test_metric': [0, 1, 2, 3, 4]}
         )
 
+    def test_tags(self):
+        eq_(self.obj.stable_tag, 'dist-f11-updates')
+        eq_(self.obj.testing_tag, 'dist-f11-updates-testing')
+        eq_(self.obj.candidate_tag, 'dist-f11-updates-candidate')
+
 
 class TestEPELRelease(ModelTest):
     """Unit test case for the ``Release`` model."""
@@ -41,6 +46,11 @@ class TestEPELRelease(ModelTest):
         _stable_tag=u"dist-5E-epel",
         version=5,
         )
+
+    def test_tags(self):
+        eq_(self.obj.stable_tag, 'dist-5E-epel')
+        eq_(self.obj.testing_tag, 'dist-5E-epel-testing')
+        eq_(self.obj.candidate_tag, 'dist-5E-epel-testing-candidate')
 
 
 class TestPackage(ModelTest):
