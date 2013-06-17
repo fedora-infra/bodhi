@@ -173,9 +173,9 @@ class Release(Base):
             return self._stable_tag
         else:
             if self.name.startswith('EL'):  # EPEL Hack.
-                return '%s-testing-candidate' % self.dist_tag
+                return self.dist_tag
             else:
-                return '%s-updates-candidate' % self.dist_tag
+                return '%s-updates' % self.dist_tag
 
     @synonym_for('_testing_tag')
     @property
