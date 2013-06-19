@@ -495,7 +495,7 @@ class Update(Base):
     status = Column(UpdateStatus.db_type(),
                     default=UpdateStatus.pending,
                     nullable=False)
-    request = Column(UpdateRequest.db_type())
+    request = Column(UpdateRequest.db_type(), default=UpdateRequest.testing)
     severity = Column(UpdateSeverity.db_type(), nullable=True)
     suggest = Column(UpdateSuggestion.db_type(), nullable=True)
 
