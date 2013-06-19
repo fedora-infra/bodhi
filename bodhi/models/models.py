@@ -553,7 +553,8 @@ class Update(Base):
         return title + ' %s update' % self.type.description
 
     def get_title(self, delim=' '):
-        return delim.join([build.nvr for build in self.builds])
+        nvrs = [build.nvr for build in self.builds]
+        return delim.join(sorted(nvrs))
 
     @property
     def stable_karma(self):
