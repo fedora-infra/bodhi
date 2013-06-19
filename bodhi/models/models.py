@@ -42,7 +42,7 @@ identity = Bunch(current=Bunch(user_name=u'Bob'))
 
 class BodhiBase(object):
     """ Our custom model base class """
-    __exclude_columns___ = ('id',)  # List of columns to exclude from JSON
+    __exclude_columns__ = ('id',)  # List of columns to exclude from JSON
 
     def __init__(self, **kw):
         """ Automatically mapping attributes """
@@ -174,7 +174,7 @@ bug_cve_table = Table('bug_cve_table', metadata,
 
 class Release(Base):
     __tablename__ = 'releases'
-    __exclude_columns__ = ('id', 'metrics')
+    __exclude_columns__ = ('id', 'metrics', 'builds')
 
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(10), unique=True, nullable=False)
@@ -369,6 +369,8 @@ class Package(Base):
 
 class Build(Base):
     __tablename__ = 'builds'
+    __exclude_columns__ = ('id', 'package', 'package_id', 'release',
+                           'release_id', 'update_id', 'update', 'inherited')
 
     id = Column(Integer, primary_key=True)
     nvr = Column(Unicode(100), unique=True, nullable=False)
@@ -479,9 +481,11 @@ class Build(Base):
 
 class Update(Base):
     __tablename__ = 'updates'
+    __exclude_columns__ = ('id', 'user_id', 'release_id')
 
     id = Column(Integer, primary_key=True)
     _title = Column('title', UnicodeText)
+
     # TODO: more flexible karma schema
     karma = Column(Integer, default=0)
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
@@ -1070,6 +1074,7 @@ class Comment(Base):
 
 class CVE(Base):
     __tablename__ = 'cves'
+    __exclude_columns__ = ('id', 'updates', 'bugs')
 
     id = Column(Integer, primary_key=True)
     cve_id = Column(Unicode(13), unique=True, nullable=False)
@@ -1082,6 +1087,7 @@ class CVE(Base):
 
 class Bug(Base):
     __tablename__ = 'bugs'
+    __exclude_columns__ = ('id', 'cves', 'updates')
 
     id = Column(Integer, primary_key=True)
 
@@ -1202,6 +1208,7 @@ user_group_table = Table('user_group_table', Base.metadata,
 
 class User(Base):
     __tablename__ = 'users'
+    __exclude_columns__ = ('id', 'comments', 'updates', 'groups')
 
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(64), unique=True, nullable=False)
