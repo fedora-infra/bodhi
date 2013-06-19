@@ -15,6 +15,8 @@ from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import scoped_session, sessionmaker, relation, relationship
+from sqlalchemy.orm import class_mapper
+from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.ext.declarative import declarative_base, synonym_for
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
@@ -28,7 +30,7 @@ from bodhi.util import (
 
 # TODO: move these methods into the model
 from bodhi.util import get_age_in_days
-from bodhi.models.enum import DeclEnum
+from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import InvalidRequest, RPMNotFound
 
 log = logging.getLogger(__name__)
@@ -48,21 +50,43 @@ class BodhiBase(object):
             setattr(self, key, value)
 
     def __json__(self):
-        items = []
-        exclude = getattr(self, '__exclude_columns__', [])
-        for col in self.__table__.columns:
-            if col.name in exclude:
+        return self._to_json(self)
+
+    def _to_json(self, obj, seen=None):
+        if not seen:
+            seen = []
+        if not obj:
+            return
+
+        exclude = getattr(obj, '__exclude_columns__', [])
+        properties = list(class_mapper(type(obj)).iterate_properties)
+        rels = [p.key for p in properties if type(p) is RelationshipProperty]
+        attrs = [p.key for p in properties if p.key not in rels]
+        d = dict([(attr, getattr(obj, attr)) for attr in attrs
+                  if attr not in exclude and not attr.startswith('_')])
+
+        for attr in rels:
+            if attr in exclude:
                 continue
-            prop = getattr(self, col.name)
-            if isinstance(prop, list):
-                prop = [child.__json__() for child in prop
-                        if hasattr(child, '__json__')]
-            elif hasattr(prop, '__json__'):
-                prop = prop.__json__()
-            elif isinstance(prop, datetime):
-                prop = prop.strftime('%Y-%m-%d %H:%M:%S')
-            items.append((col.name, prop))
-        return dict(items)
+            d[attr] = self._expand(obj, getattr(obj, attr), seen)
+        for key, value in d.iteritems():
+            if isinstance(value, datetime):
+                d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
+            if isinstance(value, EnumSymbol):
+                d[key] = unicode(value)
+
+        return d
+
+    def _expand(self, obj, relation, seen):
+        """ Return the to_json or id of a sqlalchemy relationship. """
+        if hasattr(relation, 'all'):
+            relation = relation.all()
+        if hasattr(relation, '__iter__'):
+            return [self._expand(obj, item, seen) for item in relation]
+        if type(relation) not in seen:
+            return self._to_json(relation, seen + [type(obj)])
+        else:
+            return relation.id
 
     @classmethod
     def grid_columns(cls):

@@ -198,12 +198,11 @@ class TestWSGIApp(unittest.TestCase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
         up = body['updates'][0]
-        self.assertEquals(up['id'], 1)
-        # TODO:
-        #self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
         self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['user_id'], 1)
-        self.assertEquals(up['release_id'], 1)  # FIXME: serialize foreign keys relationships!
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
         self.assertEquals(up['severity'], None)
         self.assertEquals(up['suggest'], None)
@@ -219,7 +218,6 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['security_approval_date'], None)
         self.assertEquals(up['releng_approval_date'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['request'], None)
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
 
