@@ -216,7 +216,10 @@ def get_session():
 
 def close_session():
     koji = get_session()
-    koji.logout()
+    try:
+        koji.logout()
+    except Exception, e:
+        log.debug('Exception while closing koji session: %s' % e)
 
 atexit.register(close_session)
 
