@@ -153,7 +153,7 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].package.name, u'TurboGears')
 
     def test_title(self):
-        eq_(self.obj.title, u'TurboGears-1.0.8-3.fc11 security update')
+        eq_(self.obj.title, u'TurboGears-1.0.8-3.fc11')
 
     def test_pkg_str(self):
         """ Ensure str(pkg) is correct """

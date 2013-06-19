@@ -548,9 +548,10 @@ class Update(Base):
 
     @synonym_for('_title')
     @property
-    def title(self, show_nvrs=True, delim=' '):
-        title = ', '.join([build.nvr for build in self.builds])
-        return title + ' %s update' % self.type.description
+    def title(self):
+        if self._title:
+            return self._title
+        return self.get_title()
 
     def get_title(self, delim=' '):
         nvrs = [build.nvr for build in self.builds]
