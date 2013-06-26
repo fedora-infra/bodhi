@@ -221,8 +221,6 @@ def close_session():
     except Exception, e:
         log.debug('Exception while closing koji session: %s' % e)
 
-atexit.register(close_session)
-
 
 def setup_buildsystem(settings):
     global _buildsystem, _koji_session, _koji_hub
@@ -233,6 +231,7 @@ def setup_buildsystem(settings):
         log.debug('Using Koji Buildsystem')
         koji_login(config=settings)
         _buildsystem = lambda: koji.ClientSession(_koji_hub, sinfo=_koji_session)
+        atexit.register(close_session)
     elif buildsys in ('dev', 'dummy', None):
         log.debug('Using DevBuildsys')
         _buildsystem = DevBuildsys
