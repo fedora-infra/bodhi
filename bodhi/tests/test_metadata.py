@@ -70,9 +70,9 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['updated'] == update.date_modified
         assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
-        assert notice['issued'] != None
+        assert notice['issued'] is not None
         assert notice['update_id'] == update.updateid
-        assert notice['epoch'] == None
+        assert notice['epoch'] is None
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
         assert cve['href'] == update.cves[0].get_url()
@@ -87,7 +87,7 @@ class TestExtendedMetadata(testutil.DBTest):
         if __version__ >= '3.0.6':
             assert notice['title'] == update.title
             assert notice['release'] == update.release.long_name
-            assert cve['title'] == None
+            assert cve['title'] is None
 
         ## Clean up
         shutil.rmtree(temprepo)
@@ -143,7 +143,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['updated'] == update.date_modified
         assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
-        assert notice['issued'] != None
+        assert notice['issued'] is not None
         assert notice['update_id'] == update.updateid
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
@@ -160,7 +160,7 @@ class TestExtendedMetadata(testutil.DBTest):
         if __version__ >= '3.0.6':
             assert notice['title'] == update.title
             assert notice['release'] == update.release.long_name
-            assert cve['title'] == None
+            assert cve['title'] is None
 
         ## Test out updateinfo.xml updating via our ExtendedMetadata
         md = ExtendedMetadata(temprepo, updateinfo)
@@ -179,7 +179,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['updated'] == update.date_modified
         assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
-        assert notice['issued'] != None
+        assert notice['issued'] is not None
         assert notice['update_id'] == update.updateid
         cve = notice['references'][0]
         assert cve['type'] == 'cve'
@@ -196,7 +196,7 @@ class TestExtendedMetadata(testutil.DBTest):
         if __version__ >= '3.0.6':
             assert notice['title'] == update.title
             assert notice['release'] == update.release.long_name
-            assert cve['title'] == None
+            assert cve['title'] is None
 
         ## Clean up
         shutil.rmtree(temprepo)
@@ -246,7 +246,7 @@ class TestExtendedMetadata(testutil.DBTest):
         assert notice['updated'] == update.date_modified
         assert notice['from'] == str(config.get('bodhi_email'))
         assert notice['description'] == update.notes
-        assert notice['issued'] != None
+        assert notice['issued'] is not None
         assert notice['update_id'] == update.updateid
         assert notice['title'] == update.title
         assert notice['release'] == update.release.long_name
