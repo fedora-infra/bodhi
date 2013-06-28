@@ -35,7 +35,7 @@ class TestExtendedMetadata(testutil.DBTest):
                                notes='foobar',
                                type='bugfix')
         build = PackageBuild(nvr=builds[0]['nvr'], package=package)
-        update.addPackageBuild(update)
+        update.addPackageBuild(build)
 
         bug = Bugzilla(bz_id=1)
         update.addBugzilla(bug)
