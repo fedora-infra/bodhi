@@ -56,12 +56,12 @@ class UpdateSchema(colander.MappingSchema):
         colander.Boolean(),
         missing=True,
     )
-    stablekarma = colander.SchemaNode(
+    stable_karma = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=1),
         missing=3,
     )
-    unstablekarma = colander.SchemaNode(
+    unstable_karma = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(max=-1),
         missing=-3,

@@ -80,7 +80,7 @@ class TestWSGIApp(unittest.TestCase):
     def tearDown(self):
         DBSession.remove()
 
-    def get_update(self, builds=u'bodhi-2.0-1', stablekarma=3, unstablekarma=-3):
+    def get_update(self, builds=u'bodhi-2.0-1', stable_karma=3, unstable_karma=-3):
         if isinstance(builds, list):
             builds = u','.join(builds)
         return {
@@ -88,8 +88,8 @@ class TestWSGIApp(unittest.TestCase):
             'bugs': u'',
             'notes': u'this is a test update',
             'type': u'bugfix',
-            'stablekarma': stablekarma,
-            'unstablekarma': unstablekarma,
+            'stable_karma': stable_karma,
+            'unstable_karma': unstable_karma,
         }
 
     def test_home(self):
@@ -134,10 +134,10 @@ class TestWSGIApp(unittest.TestCase):
         assert 'Multiple bodhi builds specified' in res, res
 
     def test_invalid_autokarma(self):
-        res = self.app.post_json('/updates', self.get_update(stablekarma=-1),
+        res = self.app.post_json('/updates', self.get_update(stable_karma=-1),
                                  status=400)
         assert '-1 is less than minimum value 1' in res, res
-        res = self.app.post_json('/updates', self.get_update(unstablekarma=1),
+        res = self.app.post_json('/updates', self.get_update(unstable_karma=1),
                                  status=400)
         assert '1 is greater than maximum value -1' in res, res
 

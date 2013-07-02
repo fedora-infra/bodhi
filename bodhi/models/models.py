@@ -280,8 +280,6 @@ class Package(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Unicode(50), unique=True, nullable=False)
     committers = Column(PickleType, default=None)
-    stable_karma = Column(Integer, default=3)
-    unstable_karma = Column(Integer, default=-3)
 
     builds = relation('Build', backref='package')
 
@@ -488,6 +486,9 @@ class Update(Base):
 
     # TODO: more flexible karma schema
     karma = Column(Integer, default=0)
+    stable_karma = Column(Integer, nullable=True)
+    unstable_karma = Column(Integer, nullable=True)
+
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
     # Enumerated types
@@ -556,14 +557,6 @@ class Update(Base):
     def get_title(self, delim=' '):
         nvrs = [build.nvr for build in self.builds]
         return delim.join(sorted(nvrs))
-
-    @property
-    def stable_karma(self):
-        return self.builds[0].package.stable_karma
-
-    @property
-    def unstable_karma(self):
-        return self.builds[0].package.unstable_karma
 
     def get_bugstring(self, show_titles=False):
         """Return a space-delimited string of bug numbers for this update """

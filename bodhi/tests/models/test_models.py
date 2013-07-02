@@ -59,8 +59,6 @@ class TestPackage(ModelTest):
     attrs = dict(
         name=u"TurboGears",
         committers=['lmacken'],
-        stable_karma=3,
-        unstable_karma=-3,
         )
 
 
@@ -117,6 +115,8 @@ class TestUpdate(ModelTest):
         request=UpdateRequest.testing,
         severity=UpdateSeverity.medium,
         suggest=UpdateSuggestion.reboot,
+        stable_karma=3,
+        unstable_karma=-3,
         close_bugs=True,
         notes=u'foobar',
         karma=0,
