@@ -44,6 +44,8 @@ class BodhiBase(object):
     """ Our custom model base class """
     __exclude_columns__ = ('id',)  # List of columns to exclude from JSON
 
+    id =  Column(Integer, primary_key=True)
+
     def __init__(self, **kw):
         """ Automatically mapping attributes """
         for key, value in kw.iteritems():
@@ -176,7 +178,6 @@ class Release(Base):
     __tablename__ = 'releases'
     __exclude_columns__ = ('id', 'metrics', 'builds')
 
-    id = Column(Integer, primary_key=True)
     name = Column(Unicode(10), unique=True, nullable=False)
     long_name = Column(Unicode(25), unique=True, nullable=False)
     version = Column(Integer)
@@ -277,7 +278,6 @@ class Release(Base):
 class Package(Base):
     __tablename__ = 'packages'
 
-    id = Column(Integer, primary_key=True)
     name = Column(Unicode(50), unique=True, nullable=False)
     committers = Column(PickleType, default=None)
 
@@ -370,7 +370,6 @@ class Build(Base):
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
                            'release_id', 'update_id', 'update', 'inherited')
 
-    id = Column(Integer, primary_key=True)
     nvr = Column(Unicode(100), unique=True, nullable=False)
     inherited = Column(Boolean, default=False)
     package_id = Column(Integer, ForeignKey('packages.id'))
@@ -481,7 +480,6 @@ class Update(Base):
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
 
-    id = Column(Integer, primary_key=True)
     _title = Column('title', UnicodeText)
 
     # TODO: more flexible karma schema
@@ -1046,7 +1044,6 @@ class Update(Base):
 class Comment(Base):
     __tablename__ = 'comments'
 
-    id = Column(Integer, primary_key=True)
     karma = Column(Integer, default=0)
     text = Column(UnicodeText)
     anonymous = Column(Boolean, default=False)
@@ -1071,7 +1068,6 @@ class CVE(Base):
     __tablename__ = 'cves'
     __exclude_columns__ = ('id', 'updates', 'bugs')
 
-    id = Column(Integer, primary_key=True)
     cve_id = Column(Unicode(13), unique=True, nullable=False)
 
     @property
@@ -1083,8 +1079,6 @@ class CVE(Base):
 class Bug(Base):
     __tablename__ = 'bugs'
     __exclude_columns__ = ('id', 'cves', 'updates')
-
-    id = Column(Integer, primary_key=True)
 
     # Bug number. If None, assume ``url`` points to an external bug tracker
     bug_id = Column(Integer, unique=True)
@@ -1205,7 +1199,6 @@ class User(Base):
     __tablename__ = 'users'
     __exclude_columns__ = ('id', 'comments', 'updates', 'groups')
 
-    id = Column(Integer, primary_key=True)
     name = Column(Unicode(64), unique=True, nullable=False)
 
     # One-to-many relationships
@@ -1219,7 +1212,6 @@ class User(Base):
 class Group(Base):
     __tablename__ = 'groups'
 
-    id = Column(Integer, primary_key=True)
     name = Column(Unicode(64), unique=True, nullable=False)
 
     # users backref
