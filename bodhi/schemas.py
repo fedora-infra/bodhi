@@ -30,7 +30,7 @@ class UpdateSchema(colander.MappingSchema):
         colander.String(),
         missing='',
     )
-    closebugs = colander.SchemaNode(
+    close_bugs = colander.SchemaNode(
         colander.Boolean(),
         missing=True,
     )
