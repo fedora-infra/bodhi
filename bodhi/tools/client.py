@@ -18,6 +18,7 @@
 __version__ = '0.9.6'
 __description__ = 'Command line tool for interacting with Bodhi'
 
+import os
 import sys
 import logging
 import urllib2
@@ -43,6 +44,9 @@ update_types = ['bugfix', 'security', 'enhancement', 'newpackage']
 update_requests = ['stable', 'testing', 'obsolete', 'unpush']
 
 log = logging.getLogger(__name__)
+
+def get_default_user():
+    return os.getenv('FAS_USERNAME', getuser())
 
 def get_parser():
     usage = "usage: %prog [options] [build...|package]"
@@ -141,7 +145,7 @@ def get_parser():
                       help="Update type [%s]" % '|'.join(update_types),
                       dest="type_", metavar="TYPE")
     parser.add_option("-u", "--username", action="store", type="string",
-                      dest="username", default=getuser(),
+                      dest="username", default=get_default_user(),
                       help="Login username for bodhi")
     parser.add_option("-L", "--latest", action="store", type="string",
                       dest="latest", help="List the latest builds of a "
