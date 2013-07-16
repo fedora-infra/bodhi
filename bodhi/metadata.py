@@ -58,6 +58,7 @@ class ExtendedMetadata(object):
             for update in self.updates:
                 if update.updateid:
                     self.add_update(update)
+                    log.debug('Adding new update notice: %s' % update.title)
                     if update.updateid in existing_ids:
                         existing_ids.remove(update.updateid)
                 else:
@@ -65,10 +66,17 @@ class ExtendedMetadata(object):
 
             # Add all relevant notices from the metadata to this document
             for notice in umd.get_notices():
-                if notice['update_id'] in existing_ids or notice['type'] == 'security':
+                if notice['update_id'] in existing_ids:
+                    log.debug("Adding existing notice: %s" % notice['title'])
                     self._add_notice(notice)
+                    existing_ids.remove(notice['update_id'])
                 else:
-                    log.debug("Removing %s from updateinfo" % notice['title'])
+                    if notice['type'] == 'security':
+                        log.debug("Adding existing security notice: %s" %
+                                  notice['title'])
+                        self._add_notice(notice)
+                    else:
+                        log.debug("Removing %s from updateinfo" % notice['title'])
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:
