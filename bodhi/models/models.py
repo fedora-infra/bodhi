@@ -481,7 +481,7 @@ class Update(Base):
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
 
-    _title = Column('title', UnicodeText)
+    title = Column(UnicodeText, default=None)
 
     # TODO: more flexible karma schema
     karma = Column(Integer, default=0)
@@ -545,13 +545,6 @@ class Update(Base):
     #                    backref='updates', lazy=False)
 
     user_id = Column(Integer, ForeignKey('users.id'))
-
-    @synonym_for('_title')
-    @property
-    def title(self):
-        if self._title:
-            return self._title
-        return self.get_title()
 
     def get_title(self, delim=' '):
         nvrs = [build.nvr for build in self.builds]

@@ -57,6 +57,7 @@ def populate():
     build = Build(nvr=u'bodhi-2.0-1', release=release, package=pkg)
     session.add(build)
     update = Update(
+        title=u'bodhi-2.0-1',
         builds=[build], user=user,
         notes=u'Useful details!', release=release,
         date_submitted=datetime(1984, 11, 02))

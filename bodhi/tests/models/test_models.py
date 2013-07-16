@@ -110,6 +110,7 @@ class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update
     attrs = dict(
+        title=u'TurboGears-1.0.8-3.fc11',
         type=UpdateType.security,
         status=UpdateStatus.pending,
         request=UpdateRequest.testing,
