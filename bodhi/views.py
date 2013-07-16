@@ -33,9 +33,22 @@ def query_updates(request):
                     validate_uniqueness, validate_tags, validate_acls))
 def new_update(request):
     log.debug('validated = %s' % request.validated)
-    # TODO:
+
+    data = request.validated
+
     # Editing magic
-    # Create model instances
+    if data.get('edited'):
+        log.debug('Editing update: %s' % data['edited'])
+        del(data['edited'])
+        raise NotImplementedError
+
+    try:
+        up = Update.new(db=request.db, **data)
+    except:
+        log.exception('Unexpected exception while creating update')
+        request.errors.add('body', 'builds', 'Unable to create update')
+        return
+
     # Obsolete any older updates, inherit data
     # Bugzilla interactions
     # Security checks

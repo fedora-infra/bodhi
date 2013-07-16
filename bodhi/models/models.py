@@ -24,8 +24,8 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 from bodhi import buildsys, mail
 from bodhi.util import (
-    header, build_evr, authorized_user,
-    rpm_fileheader, get_nvr, flash_log, get_age,
+    header, build_evr, authorized_user, rpm_fileheader, get_nvr, flash_log,
+    get_age, get_nvr
 )
 
 # TODO: move these methods into the model
@@ -545,6 +545,50 @@ class Update(Base):
     #                    backref='updates', lazy=False)
 
     user_id = Column(Integer, ForeignKey('users.id'))
+
+    @classmethod
+    def new(self, db=None, **kw):
+        """ Create a new update """
+        kw['title'] = ' '.join(kw['builds'])
+
+        # Convert from strings to our enumerated types
+        kw['request'] = UpdateRequest.from_string(kw['request'])
+        kw['type'] = UpdateType.from_string(kw['type'])
+        kw['severity'] = UpdateSeverity.from_string(kw['severity'])
+        kw['suggest'] = UpdateSuggestion.from_string(kw['suggest'])
+
+        builds = []
+        for build in kw['builds']:
+            name, version, release = get_nvr(build)
+            package = db.query(Package).filter_by(name=name).first()
+            if not package:
+                package = Package(name=name)
+                db.add(package)
+            build = Build(nvr=build, package=package)
+            builds.append(build)
+        kw['builds'] = builds
+
+        bugs = []
+        for bug_num in kw['bugs'].replace(',', ' ').split():
+            bug = db.query(Bug).filter_by(bug_id=bug_num).first()
+            if not bug:
+                bug = Bug(bug_id=bug_num)
+                db.add(bug)
+            bugs.append(bug)
+        kw['bugs'] = bugs
+
+        if not kw['autokarma']:
+            del(kw['stable_karma'])
+            del(kw['unstable_karma'])
+        del(kw['autokarma'])
+
+        log.debug('kw = %r' % kw)
+
+        up = Update(**kw)
+        db.add(up)
+        db.flush()
+
+        return up
 
     def get_title(self, delim=' '):
         nvrs = [build.nvr for build in self.builds]
