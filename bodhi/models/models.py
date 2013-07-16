@@ -116,6 +116,7 @@ class UpdateStatus(DeclEnum):
     stable = 'stable', 'stable'
     unpushed = 'unpushed', 'unpushed'
     obsolete = 'obsolete', 'obsolete'
+    processing = 'processing', 'processing'
 
 
 class UpdateType(DeclEnum):
