@@ -640,7 +640,7 @@ class Root(controllers.RootController):
             if stable_karma <= unstable_karma:
                 flash_log("Stable karma must be higher than unstable karma.")
                 raise InvalidUpdateException(params)
-        if not notes:
+        if not notes or notes == "Here is where you give an explanation of your update.":
             flash_log('Error: You must supply details for this update')
             raise InvalidUpdateException(params)
 

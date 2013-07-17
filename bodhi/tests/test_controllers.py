@@ -3144,6 +3144,22 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         logs = testutil.get_log()
         assert 'Error: You must supply details for this update' in logs
+        
+    def test_placeholder_notes(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '1234',
+                'notes'   : 'Here is where you give an explanation of your update.',
+                'autokarma' : True
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params, session)
+        logs = testutil.get_log()
+        assert 'Error: You must supply details for this update' in logs
 
     def test_new_updateid_url(self):
         session = login()
