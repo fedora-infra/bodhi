@@ -547,8 +547,9 @@ class Update(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
 
     @classmethod
-    def new(self, db=None, **kw):
+    def new(self, db=None, user=None, **kw):
         """ Create a new update """
+        kw['user'] = user
         kw['title'] = ' '.join(kw['builds'])
 
         # Convert from strings to our enumerated types

@@ -43,7 +43,7 @@ def new_update(request):
         raise NotImplementedError
 
     try:
-        up = Update.new(db=request.db, **data)
+        up = Update.new(db=request.db, user=request.user, **data)
     except:
         log.exception('Unexpected exception while creating update')
         request.errors.add('body', 'builds', 'Unable to create update')
