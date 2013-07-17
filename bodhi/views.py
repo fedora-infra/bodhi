@@ -56,7 +56,8 @@ def new_update(request):
     # Look for test cases on the wiki
     # Set request
     # Send out email notifications
-    return {}
+
+    return up.__json__()
 
 
 ## 404
