@@ -1,3 +1,4 @@
+from collections import defaultdict
 from sqlalchemy import engine_from_config
 
 from pyramid.settings import asbool
@@ -50,6 +51,10 @@ def get_pkgdb(request):
     return PackageDB(request.registry.settings['pkgdb_url'])
 
 
+def get_buildinfo(request):
+    return defaultdict(dict)
+
+
 #
 # Bodhi initialization
 #
@@ -76,6 +81,7 @@ def main(global_config, testing=None, **settings):
     config.add_request_method(get_koji, 'koji', reify=True)
     config.add_request_method(get_pkgdb, 'pkgdb', reify=True)
     config.add_request_method(get_dbsession, 'db', reify=True)
+    config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
 
     config.add_static_view('static', 'bodhi:static')
     config.add_translation_dirs('bodhi:locale/')
