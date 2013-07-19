@@ -9,6 +9,7 @@ def validate_nvrs(request):
     for build in request.validated.get('builds', []):
         try:
             name, version, release = get_nvr(build)
+            request.buildinfo[build]['nvr'] = name, version, release
             if '' in (name, version, release):
                 raise ValueError
         except:
@@ -58,7 +59,7 @@ def validate_acls(request):
     notify_groups = []
 
     for build in request.validated.get('builds', []):
-        package_name = get_nvr(build)[0]
+        package_name = request.buildinfo[build]['nvr'][0]
         package = db.query(Package).filter_by(name=package_name).first()
         if not package:
             package = Package(name=package_name)
@@ -67,6 +68,7 @@ def validate_acls(request):
 
         if acl_system == 'pkgdb':
             tags = request.koji.listTags(build)
+            request.buildinfo[build]['tags'] = [tag['name'] for tag in tags]
             pkgdb_args = {
                 'collectionName': 'Fedora',
                 'collectionVersion': 'devel'
@@ -123,7 +125,7 @@ def validate_version(request):
     """ Ensure no builds are older than any that we know of """
     db = request.db
     for build in request.validated.get('builds', []):
-        nvr = get_nvr(build)
+        nvr = request.buildinfo[build]['nvr']
         pkg = db.query(Package).filter_by(name=nvr[0]).first()
         if pkg:
             last = db.query(Build).filter_by(package=pkg) \
@@ -140,10 +142,10 @@ def validate_uniqueness(request):
     """ Check for multiple builds from the same package """
     builds = request.validated.get('builds', [])
     for build in builds:
-        nvr = get_nvr(build)
+        nvr = request.buildinfo[build]['nvr']
         seen_build = 0
         for other_build in builds:
-            other_build_nvr = get_nvr(other_build)
+            other_build_nvr = request.buildinfo[other_build]['nvr']
             if build == other_build:
                 seen_build += 1
                 if seen_build > 1:
