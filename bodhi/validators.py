@@ -99,6 +99,9 @@ def validate_acls(request):
             committers, watchers = people
         else:
             log.warn('No bodhi acl_system configured')
+            people = None
+
+        buildinfo['people'] = people
 
         if user.name not in committers:
             has_access = False
