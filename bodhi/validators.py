@@ -36,8 +36,9 @@ def validate_tags(request):
     candidate_tags = tag_types['candidate']
     for build in request.validated.get('builds', []):
         valid = False
-        tags = request.koji.listTags(build)
-        request.buildinfo[build]['tags'] = [tag['name'] for tag in tags]
+        tags = request.buildinfo[build]['tags'] = [
+            tag['name'] for tag in request.koji.listTags(build)
+        ]
         for tag in tags:
             if tag in candidate_tags:
                 valid = True
@@ -60,7 +61,8 @@ def validate_acls(request):
     notify_groups = []
 
     for build in request.validated.get('builds', []):
-        package_name = request.buildinfo[build]['nvr'][0]
+        buildinfo = request.buildinfo[build]
+        package_name = buildinfo['nvr'][0]
         package = db.query(Package).filter_by(name=package_name).first()
         if not package:
             package = Package(name=package_name)
@@ -68,7 +70,6 @@ def validate_acls(request):
             db.flush()
 
         if acl_system == 'pkgdb':
-            buildinfo = request.buildinfo[build]
             tags = buildinfo['tags']
             pkgdb_args = {
                 'collectionName': 'Fedora',
@@ -76,7 +77,7 @@ def validate_acls(request):
             }
             for tag in tags:
                 release = db.query(Release) \
-                            .filter_by(name=tag_rels[tag['name']]).one()
+                            .filter_by(name=tag_rels[tag]).one()
                 pkgdb_args['collectionName'] = release.collection_name
                 pkgdb_args['collectionVersion'] = str(release.get_version())
                 buildinfo['release'] = release
