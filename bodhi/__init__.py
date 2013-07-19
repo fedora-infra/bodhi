@@ -75,17 +75,22 @@ def main(global_config, testing=None, **settings):
     config = Configurator(settings=settings,
                           session_factory=session_factory)
 
+    # Plugins
     config.include('cornice')
 
+    # Lazy-loaded memoized request properties
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
     config.add_request_method(get_pkgdb, 'pkgdb', reify=True)
     config.add_request_method(get_dbsession, 'db', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
 
-    config.add_static_view('static', 'bodhi:static')
-    config.add_translation_dirs('bodhi:locale/')
+    # Templating
     config.add_renderer(".html", "pyramid.mako_templating.renderer_factory")
+    config.add_static_view('static', 'bodhi:static')
+
+    # i18n
+    config.add_translation_dirs('bodhi:locale/')
 
     # Authentication & Authorization
     if testing:
