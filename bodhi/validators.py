@@ -37,8 +37,9 @@ def validate_tags(request):
     for build in request.validated.get('builds', []):
         valid = False
         tags = request.koji.listTags(build)
+        request.buildinfo[build]['tags'] = [tag['name'] for tag in tags]
         for tag in tags:
-            if tag['name'] in candidate_tags:
+            if tag in candidate_tags:
                 valid = True
                 break
         if not valid:
@@ -67,8 +68,7 @@ def validate_acls(request):
             db.flush()
 
         if acl_system == 'pkgdb':
-            tags = request.koji.listTags(build)
-            request.buildinfo[build]['tags'] = [tag['name'] for tag in tags]
+            tags = request.buildinfo[build]['tags']
             pkgdb_args = {
                 'collectionName': 'Fedora',
                 'collectionVersion': 'devel'
