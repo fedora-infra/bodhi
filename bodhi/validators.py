@@ -68,7 +68,8 @@ def validate_acls(request):
             db.flush()
 
         if acl_system == 'pkgdb':
-            tags = request.buildinfo[build]['tags']
+            buildinfo = request.buildinfo[build]
+            tags = buildinfo['tags']
             pkgdb_args = {
                 'collectionName': 'Fedora',
                 'collectionVersion': 'devel'
@@ -78,6 +79,7 @@ def validate_acls(request):
                             .filter_by(name=tag_rels[tag['name']]).one()
                 pkgdb_args['collectionName'] = release.collection_name
                 pkgdb_args['collectionVersion'] = str(release.get_version())
+                buildinfo['release'] = release
                 break
             else:
                 log.debug('Cannot find release associated with {} tags {}; '
