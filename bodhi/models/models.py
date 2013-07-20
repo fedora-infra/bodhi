@@ -279,6 +279,15 @@ class Release(Base):
     _tag_cache = None
 
 
+    @classmethod
+    def from_tags(cls, tags, db):
+        tag_types, tag_rels = cls.get_tags()
+        for tag in tags:
+            release = db.query(cls).filter_by(name=tag_rels[tag]).first()
+            if release:
+                return release
+
+
 class Package(Base):
     __tablename__ = 'packages'
 
