@@ -50,7 +50,6 @@ def validate_tags(request):
 
 def validate_acls(request):
     """Ensure this user has commit privs to these builds or is an admin"""
-    tag_types, tag_rels = Release.get_tags()
     db = request.db
     user = request.user
     settings = request.registry.settings
@@ -62,6 +61,8 @@ def validate_acls(request):
 
     for build in request.validated.get('builds', []):
         buildinfo = request.buildinfo[build]
+
+        # Get the Package object
         package_name = buildinfo['nvr'][0]
         package = db.query(Package).filter_by(name=package_name).first()
         if not package:
@@ -69,22 +70,21 @@ def validate_acls(request):
             db.add(package)
             db.flush()
 
+        # Determine the release associated with this build
+        tags = buildinfo['tags']
+        release = Release.from_tags(tags, db)
+        buildinfo['release'] = release
+        if not release:
+            msg = 'Cannot find release associated with tags: {}'.format(tags)
+            log.warn(msg)
+            request.errors.add('body', 'builds', msg)
+            return
+
         if acl_system == 'pkgdb':
-            tags = buildinfo['tags']
             pkgdb_args = {
-                'collectionName': 'Fedora',
-                'collectionVersion': 'devel'
+                'collectionName': release.collection_name,
+                'collectionVersion': str(release.get_version()),
             }
-            for tag in tags:
-                release = db.query(Release) \
-                            .filter_by(name=tag_rels[tag]).one()
-                pkgdb_args['collectionName'] = release.collection_name
-                pkgdb_args['collectionVersion'] = str(release.get_version())
-                buildinfo['release'] = release
-                break
-            else:
-                log.debug('Cannot find release associated with {} tags {}; '
-                          'defaulting to devel'.format(build))
             try:
                 people, groups = package.get_pkg_pushers()
                 committers, watchers = people
