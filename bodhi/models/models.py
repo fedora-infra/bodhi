@@ -51,6 +51,9 @@ class BodhiBase(object):
         for key, value in kw.iteritems():
             setattr(self, key, value)
 
+    def __repr__(self):
+        return '<{} {}>'.format(self.__class__.__name__, self.__json__())
+
     def __json__(self):
         return self._to_json(self)
 
