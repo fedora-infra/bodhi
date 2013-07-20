@@ -570,7 +570,9 @@ class Update(Base):
         kw['severity'] = UpdateSeverity.from_string(kw['severity'])
         kw['suggest'] = UpdateSuggestion.from_string(kw['suggest'])
 
+        releases = set()
         builds = []
+
         for build in kw['builds']:
             name, version, release = buildinfo[build]['nvr']
             package = db.query(Package).filter_by(name=name).first()
@@ -579,7 +581,12 @@ class Update(Base):
                 db.add(package)
             build = Build(nvr=build, package=package)
             builds.append(build)
+            releases.add(buildinfo[build.nvr]['release'])
+
         kw['builds'] = builds
+
+        assert len(releases) == 1, "TODO: multi-release updates"
+        kw['release'] = list(releases)[0]
 
         bugs = []
         for bug_num in kw['bugs'].replace(',', ' ').split():
