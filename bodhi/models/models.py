@@ -572,7 +572,7 @@ class Update(Base):
 
         builds = []
         for build in kw['builds']:
-            name, version, release = get_nvr(build)
+            name, version, release = buildinfo[build]['nvr']
             package = db.query(Package).filter_by(name=name).first()
             if not package:
                 package = Package(name=name)
