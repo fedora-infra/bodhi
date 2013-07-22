@@ -31,21 +31,22 @@ def validate_builds(request):
 
 def validate_tags(request):
     """ Ensure that all of the builds are tagged as candidates """
-    # TODO: if we're editing and update, allow testing tags
     tag_types, tag_rels = Release.get_tags()
-    candidate_tags = tag_types['candidate']
+    valid_tags = tag_types['candidate']
+    if request.validated.get('edited'):
+        valid_tags += tag_types['testing']
     for build in request.validated.get('builds', []):
         valid = False
         tags = request.buildinfo[build]['tags'] = [
             tag['name'] for tag in request.koji.listTags(build)
         ]
         for tag in tags:
-            if tag in candidate_tags:
+            if tag in valid_tags:
                 valid = True
                 break
         if not valid:
             request.errors.add('body', 'builds', 'Invalid tag: {} tagged with '
-                               '{}'.format(build, candidate_tags))
+                               '{}'.format(build, valid_tags))
 
 
 def validate_acls(request):
