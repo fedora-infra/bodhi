@@ -19,8 +19,16 @@ def validate_nvrs(request):
 
 
 def validate_builds(request):
-    if request.validated.get('edited'):
+    edited = request.validated.get('edited')
+    if edited:
         log.debug('Editing update; skipping validate_builds')
+        user_groups = set([group.name for group in user.groups])
+        admin_groups = set(settings['admin_packager_groups'].split())
+        if not user_groups & admin_groups:
+            up = request.db.query(Update).get(int(edited))
+            if up.status is UpdateStatus.stable:
+                request.errors.add('body', 'builds',
+                                   'Cannot edit stable updates')
         return
     for build in request.validated.get('builds', []):
         if request.db.query(Build).filter_by(nvr=build).first():
