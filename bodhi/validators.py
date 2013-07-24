@@ -1,7 +1,7 @@
 import rpm
 
 from . import log
-from .models import Release, Package, Build
+from .models import Release, Package, Build, Update, UpdateStatus
 from .util import get_nvr
 
 
@@ -20,6 +20,8 @@ def validate_nvrs(request):
 
 def validate_builds(request):
     edited = request.validated.get('edited')
+    settings = request.registry.settings
+    user = request.user
     if edited:
         log.debug('Editing update; skipping validate_builds')
         user_groups = set([group.name for group in user.groups])
