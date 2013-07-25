@@ -564,12 +564,6 @@ class Update(Base):
         kw['user'] = user
         kw['title'] = ' '.join(kw['builds'])
 
-        # Convert from strings to our enumerated types
-        kw['request'] = UpdateRequest.from_string(kw['request'])
-        kw['type'] = UpdateType.from_string(kw['type'])
-        kw['severity'] = UpdateSeverity.from_string(kw['severity'])
-        kw['suggest'] = UpdateSuggestion.from_string(kw['suggest'])
-
         releases = set()
         builds = []
 

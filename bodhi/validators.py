@@ -1,7 +1,9 @@
 import rpm
 
 from . import log
-from .models import Release, Package, Build, Update, UpdateStatus
+from .models import (Release, Package, Build, Update, UpdateStatus,
+                     UpdateRequest, UpdateSeverity, UpdateType,
+                     UpdateSuggestion)
 from .util import get_nvr
 
 
@@ -175,3 +177,11 @@ def validate_uniqueness(request):
                                    "specified: {} & {}".format(nvr[0], build,
                                    other_build))
                 return
+
+def validate_enums(request):
+    """Convert from strings to our enumerated types"""
+    data = request.validated
+    data['request'] = UpdateRequest.from_string(data['request'])
+    data['type'] = UpdateType.from_string(data['type'])
+    data['severity'] = UpdateSeverity.from_string(data['severity'])
+    data['suggest'] = UpdateSuggestion.from_string(data['suggest'])

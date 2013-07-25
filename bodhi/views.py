@@ -9,11 +9,12 @@ from cornice import Service
 
 from . import log, buildsys
 from .models import Release, Build, Package, User, Group, Update
+from .models import UpdateRequest, UpdateSeverity, UpdateType, UpdateSuggestion
 from .util import _, get_nvr
 from .schemas import UpdateSchema
 from .security import admin_only_acl, packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
-        validate_tags, validate_acls, validate_builds)
+        validate_tags, validate_acls, validate_builds, validate_enums)
 
 
 updates = Service(name='updates', path='/updates',
@@ -30,7 +31,8 @@ def query_updates(request):
 
 @updates.post(schema=UpdateSchema, permission='create',
         validators=(validate_nvrs, validate_version, validate_builds,
-                    validate_uniqueness, validate_tags, validate_acls))
+                    validate_uniqueness, validate_tags, validate_acls,
+                    validate_enums))
 def new_update(request):
     log.debug('validated = %s' % request.validated)
 
