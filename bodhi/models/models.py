@@ -616,6 +616,7 @@ class Update(Base):
         db = request.db
         buildinfo = request.buildinfo
         user = request.user
+        koji = request.koji
         up = db.query(Update).filter_by(title=data['edited']).first()
         del(data['edited'])
 
@@ -633,8 +634,7 @@ class Update(Base):
                     db.add(package)
                 b = Build(nvr=build, package=package)
                 b.release = up.release
-                b.add_pending_testing_tag(koji=request.koji)
-                koji.tagBuild(up.release.pending_testing_tag, self.nvr)
+                koji.tagBuild(up.release.pending_testing_tag, build)
                 up.builds.append(b)
 
         # Determine which builds have been removed
