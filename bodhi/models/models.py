@@ -4,12 +4,10 @@ import time
 import logging
 import bugzilla
 import xmlrpclib
-import transaction
 
 from textwrap import wrap
 from datetime import datetime
 
-from sqlalchemy import create_engine
 from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
@@ -18,14 +16,13 @@ from sqlalchemy.orm import scoped_session, sessionmaker, relation, relationship
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.ext.declarative import declarative_base, synonym_for
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from zope.sqlalchemy import ZopeTransactionExtension
 
 from bodhi import buildsys, mail
 from bodhi.util import (
     header, build_evr, authorized_user, rpm_fileheader, get_nvr, flash_log,
-    get_age, get_nvr
+    get_age,
 )
 
 # TODO: move these methods into the model
@@ -44,7 +41,7 @@ class BodhiBase(object):
     """ Our custom model base class """
     __exclude_columns__ = ('id',)  # List of columns to exclude from JSON
 
-    id =  Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     def __init__(self, **kw):
         """ Automatically mapping attributes """
@@ -277,7 +274,6 @@ class Release(Base):
         cls._tag_cache = (data, tags)
         return cls._tag_cache
     _tag_cache = None
-
 
     @classmethod
     def from_tags(cls, tags, db):
