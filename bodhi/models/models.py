@@ -563,15 +563,18 @@ class Update(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
 
     @classmethod
-    def new(self, buildinfo=None, db=None, user=None, **kw):
+    def new(self, request, data):
         """ Create a new update """
-        kw['user'] = user
-        kw['title'] = ' '.join(kw['builds'])
+        db = request.db
+        buildinfo = request.buildinfo
+        user = request.user
+        data['user'] = user
+        data['title'] = ' '.join(data['builds'])
 
         releases = set()
         builds = []
 
-        for build in kw['builds']:
+        for build in data['builds']:
             name, version, release = buildinfo[build]['nvr']
             package = db.query(Package).filter_by(name=name).first()
             if not package:
@@ -581,28 +584,28 @@ class Update(Base):
             builds.append(build)
             releases.add(buildinfo[build.nvr]['release'])
 
-        kw['builds'] = builds
+        data['builds'] = builds
 
         assert len(releases) == 1, "TODO: multi-release updates"
-        kw['release'] = list(releases)[0]
+        data['release'] = list(releases)[0]
 
         bugs = []
-        for bug_num in kw['bugs'].replace(',', ' ').split():
+        for bug_num in data['bugs'].replace(',', ' ').split():
             bug = db.query(Bug).filter_by(bug_id=bug_num).first()
             if not bug:
                 bug = Bug(bug_id=bug_num)
                 db.add(bug)
             bugs.append(bug)
-        kw['bugs'] = bugs
+        data['bugs'] = bugs
 
-        if not kw['autokarma']:
-            del(kw['stable_karma'])
-            del(kw['unstable_karma'])
-        del(kw['autokarma'])
+        if not data['autokarma']:
+            del(data['stable_karma'])
+            del(data['unstable_karma'])
+        del(data['autokarma'])
 
-        log.debug('kw = %r' % kw)
+        del(data['edited'])
 
-        up = Update(**kw)
+        up = Update(**data)
         db.add(up)
         db.flush()
 
