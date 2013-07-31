@@ -198,6 +198,7 @@ class TestWSGIApp(unittest.TestCase):
         res = self.app.get('/updates')
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
+
         up = body['updates'][0]
         self.assertEquals(up['title'], u'bodhi-2.0-1')
         self.assertEquals(up['status'], u'pending')
@@ -287,3 +288,5 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['comments'][0]['text'],
                           u'guest edited this update. New build(s): ' +
                           u'bodhi-2.0.0-3. Removed build(s): bodhi-2.0.0-2.')
+        self.assertEquals(len(up['builds']), 1)
+        self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3')
