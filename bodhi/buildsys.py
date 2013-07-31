@@ -61,6 +61,9 @@ class Buildsystem:
     def taskFinished(self, *args, **kw):
         raise NotImplementedError
 
+    def tagBuild(self, *args, **kw):
+        raise NotImplementedError
+
     def untagBuild(self, *args, **kw):
         raise NotImplementedError
 
@@ -178,6 +181,9 @@ class DevBuildsys(Buildsystem):
             'id': 127983,
             'nvr': 'TurboGears-1.0.8-7.fc11'
         }]
+
+    def tagBuild(self, *args, **kw):
+        pass
 
 
 def koji_login(config, client=None, clientca=None, serverca=None):
