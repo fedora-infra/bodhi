@@ -481,6 +481,14 @@ class Build(Base):
         koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
 
+    def untag(self, koji):
+        """Remove all known tags from this build"""
+        tag_types, tag_rels = Release.get_tags()
+        for tag in self.get_tags():
+            if tag in tag_rels:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+
     def __repr__(self):
         return "<Build %s>" % self.nvr
 
