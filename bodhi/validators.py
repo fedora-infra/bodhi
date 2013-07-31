@@ -44,9 +44,10 @@ def validate_builds(request):
 def validate_tags(request):
     """ Ensure that all of the builds are tagged as candidates """
     tag_types, tag_rels = Release.get_tags()
-    valid_tags = tag_types['candidate']
     if request.validated.get('edited'):
-        valid_tags += tag_types['testing']
+        valid_tags = tag_types['candidate'] + tag_types['testing']
+    else:
+        valid_tags = tag_types['candidate']
     for build in request.validated.get('builds', []):
         valid = False
         tags = request.buildinfo[build]['tags'] = [
