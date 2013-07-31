@@ -608,6 +608,68 @@ class Update(Base):
 
         return up
 
+    @classmethod
+    def edit(cls, request, data):
+        db = request.db
+        buildinfo = request.buildinfo
+        user = request.user
+        up = db.query(Update).filter_by(title=data['edited']).first()
+        del(data['edited'])
+
+        edited_builds = [build.nvr for build in up.builds]
+
+        # Determine which builds have been added
+        new_builds = []
+        for build in data['builds']:
+            if build not in edited_builds:
+                new_builds.append(build)
+                name, version, release = buildinfo[build]['nvr']
+                package = db.query(Package).filter_by(name=name).first()
+                if not package:
+                    package = Package(name=name)
+                    db.add(package)
+                b = Build(nvr=build, package=package)
+                b.release = up.release
+                b.add_pending_testing_tag(koji=request.koji)
+                koji.tagBuild(up.release.pending_testing_tag, self.nvr)
+                up.builds.append(b)
+
+        # Determine which builds have been removed
+        removed_builds = []
+        for build in edited_builds:
+            if build not in data['builds']:
+                removed_builds.append(build)
+                b = None
+                for b in up.builds:
+                    if b.nvr == build:
+                        break
+                b.untag(koji=request.koji)
+                up.builds.remove(b)
+                db.delete(b)
+
+        del(data['builds'])
+
+        # Comment on the update with details of added/removed builds
+        comment = '%s edited this update. ' % user.name
+        if new_builds:
+            comment += 'New build(s): %s. ' % ', '.join(new_builds)
+        if removed_builds:
+            comment += 'Removed build(s): %s.' % ', '.join(removed_builds)
+        up.comment(comment, karma=0, author=u'bodhi')
+
+        # Updates with new or removed builds always go back to testing
+        data['request'] = UpdateRequest.testing
+
+        up.update_bugs(data['bugs'].replace(',', ' ').split())
+        del(data['bugs'])
+
+        data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))
+
+        for key, value in data.items():
+            setattr(up, key, value)
+
+        return up
+
     def get_title(self, delim=' '):
         nvrs = [build.nvr for build in self.builds]
         return delim.join(sorted(nvrs))

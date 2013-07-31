@@ -34,21 +34,43 @@ def query_updates(request):
                     validate_uniqueness, validate_tags, validate_acls,
                     validate_enums))
 def new_update(request):
+    """ Save an update.
+
+    This entails either creating a new update, or editing an existing one.
+    To edit an existing update, you must specify the update's original
+    title in the ``edited`` keyword argument.
+
+    Arguments:
+    :builds: A list of koji builds for this update.
+    :release: The release that this update is for.
+    :type: The type of this update: ``security``, ``bugfix``,
+        ``enhancement``, and ``newpackage``.
+    :bugs: A list of Red Hat Bugzilla ID's associated with this update.
+    :notes: Details as to why this update exists.
+    :request: Request for this update to change state, either to
+        ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
+    :suggest_reboot: Suggest that the user reboot after update.
+    :autokarma: Allow bodhi to automatically change the state of this
+        update based on the ``karma`` from user feedback.  It will
+        push your update to ``stable`` once it reaches the ``stable_karma``
+        and unpush your update when reaching ``unstable_karma``.
+    :stable_karma: The upper threshold for marking an update as ``stable``.
+    :unstable_karma: The lower threshold for unpushing an update.
+    :edited: The update title of the existing update that we are editing.
+
+    """
+    data = request.validated
     log.debug('validated = %s' % request.validated)
 
-    data = request.validated
-
-    # Editing magic
-    if data.get('edited'):
-        log.debug('Editing update: %s' % data['edited'])
-        del(data['edited'])
-        raise NotImplementedError
-
     try:
-        up = Update.new(db=request.db, user=request.user,
-                        buildinfo=request.buildinfo, **data)
+        if data.get('edited'):
+            log.info('Editing update: %s' % data['edited'])
+            up = Update.edit(request, data)
+        else:
+            log.info('Creating new update: %s' % ' '.join(data['builds']))
+            up = Update.new(request, data)
     except:
-        log.exception('Unexpected exception while creating update')
+        log.exception('An unexpected exception has occured')
         request.errors.add('body', 'builds', 'Unable to create update')
         return
 

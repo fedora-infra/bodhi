@@ -71,3 +71,7 @@ class UpdateSchema(colander.MappingSchema):
         validator=colander.OneOf(UpdateSuggestion.values()),
         missing='unspecified',
     )
+    edited = colander.SchemaNode(
+        colander.String(),
+        missing='',
+    )

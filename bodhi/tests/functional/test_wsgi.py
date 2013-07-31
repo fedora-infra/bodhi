@@ -254,3 +254,36 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
+
+    def test_edit_update(self):
+        args = self.get_update('bodhi-2.0.0-2')
+        r = self.app.post_json('/updates', args)
+        args['edited'] = args['builds']
+        args['builds'] = 'bodhi-2.0.0-3'
+        r = self.app.post_json('/updates', args)
+        up = r.json_body
+        self.assertEquals(up['title'], u'bodhi-2.0.0-3')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'this is a test update')
+        self.assertIsNotNone(up['date_submitted'])
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['comments'][0]['text'],
+                          u'guest edited this update. New build(s): ' +
+                          u'bodhi-2.0.0-3. Removed build(s): bodhi-2.0.0-2.')

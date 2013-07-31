@@ -24,16 +24,23 @@ def validate_builds(request):
     edited = request.validated.get('edited')
     settings = request.registry.settings
     user = request.user
+
     if edited:
-        log.debug('Editing update; skipping validate_builds')
+        up = request.db.query(Update).filter_by(title=edited).first()
+        if not up:
+            request.errors.add('body', 'builds',
+                               'Cannot find update to edit: %s' % edited)
+            return
+
+        # Allow admins to edit stable updates
         user_groups = set([group.name for group in user.groups])
         admin_groups = set(settings['admin_packager_groups'].split())
         if not user_groups & admin_groups:
-            up = request.db.query(Update).get(int(edited))
             if up.status is UpdateStatus.stable:
                 request.errors.add('body', 'builds',
                                    'Cannot edit stable updates')
         return
+
     for build in request.validated.get('builds', []):
         if request.db.query(Build).filter_by(nvr=build).first():
             request.errors.add('body', 'builds',
