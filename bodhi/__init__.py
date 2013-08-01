@@ -119,6 +119,6 @@ def main(global_config, testing=None, **settings):
     config.add_route('verify_openid', pattern='/dologin.html',
                      view='pyramid_fas_openid.verify_openid')
 
-    config.scan()
+    config.scan('bodhi.views')
 
     return config.make_wsgi_app()
