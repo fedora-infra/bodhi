@@ -208,6 +208,12 @@ def load_sqlalchemy_db():
 
     db = DBSession()
 
+    # Allow filtering of releases to load
+    whitelist = []
+    if '--release' in sys.argv:
+        for r in sys.argv[sys.argv.index('--release') + 1].split(','):
+            whitelist.append(r)
+
     # Legacy format was just a list of update dictionaries
     # Now we'll pull things out into an organized dictionary:
     # {'updates': [], 'releases': []}
@@ -234,6 +240,9 @@ def load_sqlalchemy_db():
                                   dist_tag=u['release'][3])
                 db.add(release)
             releases[u['release'][0]] = release
+
+        if whitelist and release.name not in whitelist:
+            continue
 
         ## Backwards compatbility
         request = u['request']
@@ -393,7 +402,7 @@ def load_sqlalchemy_db():
     print(" * %d CVEs" % db.query(CVE).count())
 
 def usage():
-    print "Usage: ./pickledb.py [ save | load <file> ]"
+    print "Usage: ./pickledb.py [ save | load <file> ] [--release <r1,r2>]"
     sys.exit(-1)
 
 def main():
@@ -409,7 +418,7 @@ def main():
             load_db()
         finally:
             hub.commit()
-    elif sys.argv[1] == 'migrate' and len(sys.argv) == 3:
+    elif sys.argv[1] == 'migrate' and len(sys.argv) >= 3:
         load_sqlalchemy_db()
     else:
         usage()
