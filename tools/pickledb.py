@@ -196,7 +196,12 @@ def load_sqlalchemy_db():
     packages = {}
     users = {}
 
-    engine = create_engine('sqlite:///bodhi.db')
+    import ConfigParser
+    config = ConfigParser.ConfigParser()
+    config.read('development.ini')
+    db_url = config.get('app:main', 'sqlalchemy.url')
+    print('Using %s' % db_url)
+    engine = create_engine(db_url)
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
