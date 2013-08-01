@@ -23,7 +23,7 @@ requires = [
     'pyramid_fas_openid',
 
     'sqlalchemy',
-    #'zope.sqlalchemy',
+    'zope.sqlalchemy',
 
     'webhelpers',
 
