@@ -29,8 +29,8 @@ from os.path import isfile
 #from sqlobject import SQLObjectNotFound
 #from turbogears.database import PackageHub
 
-#from bodhi.util import ProgressBar, load_config
-from bodhi.util import ProgressBar
+from progressbar import ProgressBar
+
 from bodhi.exceptions import DuplicateEntryError, IntegrityError
 #from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
 #                         Package, PackageBuild)
@@ -213,9 +213,9 @@ def load_sqlalchemy_db():
                 DBSession.add(r)
         data = data['updates']
 
-    progress = ProgressBar(maxValue=len(data))
+    progress = ProgressBar()
 
-    for u in data:
+    for u in progress(data):
         try:
             release = releases[u['release'][0]]
         except KeyError:

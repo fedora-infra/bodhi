@@ -26,6 +26,7 @@ requires = [
     'zope.sqlalchemy',
 
     'webhelpers',
+    'progressbar',
 
     # Useful tools
     'kitchen',
