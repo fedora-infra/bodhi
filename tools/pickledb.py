@@ -186,7 +186,8 @@ def load_sqlalchemy_db():
     db = file(sys.argv[2], 'r')
     data = pickle.load(db)
 
-    from bodhi.models import initialize_sql, DBSession
+    import transaction
+    from bodhi.models import DBSession, Base
     from bodhi.models import Release, Update, Build, Comment, User, Bug, CVE
     from bodhi.models import Package
     from bodhi.models import UpdateType, UpdateStatus, UpdateRequest
@@ -199,7 +200,11 @@ def load_sqlalchemy_db():
     users = {}
 
     engine = create_engine('sqlite:///bodhi.db')
-    initialize_sql(engine)
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
+    Base.metadata.create_all(engine)
+
+    db = DBSession()
 
     # Legacy format was just a list of update dictionaries
     # Now we'll pull things out into an organized dictionary:
@@ -207,10 +212,10 @@ def load_sqlalchemy_db():
     if isinstance(data, dict):
         for release in data['releases']:
             try:
-                Release.query.filter_by(name=release['name']).one()
+                db.query(Release).filter_by(name=release['name']).one()
             except NoResultFound:
                 r = Release(**release)
-                DBSession.add(r)
+                db.add(r)
         data = data['updates']
 
     progress = ProgressBar()
@@ -220,12 +225,12 @@ def load_sqlalchemy_db():
             release = releases[u['release'][0]]
         except KeyError:
             try:
-                release = Release.query.filter_by(name=u['release'][0]).one()
+                release = db.query(Release).filter_by(name=u['release'][0]).one()
             except NoResultFound:
                 release = Release(name=u['release'][0], long_name=u['release'][1],
                                   id_prefix=u['release'][2],
                                   dist_tag=u['release'][3])
-                DBSession.add(release)
+                db.add(release)
             releases[u['release'][0]] = release
 
         ## Backwards compatbility
@@ -277,10 +282,10 @@ def load_sqlalchemy_db():
             raise Exception("Unknown status: %r" % u['status'])
 
         try:
-            update = Update.query.filter_by(title=u['title']).one()
+            update = db.query(Update).filter_by(title=u['title']).one()
             continue
         except NoResultFound:
-            update = Update(_title=u['title'],
+            update = Update(title=u['title'],
                             date_submitted=u['date_submitted'],
                             date_pushed=u['date_pushed'],
                             date_modified=u['date_modified'],
@@ -294,16 +299,16 @@ def load_sqlalchemy_db():
                             request=u['request'],
                             )
                             #approved=u['approved'])
-            DBSession.add(update)
+            db.add(update)
 
             try:
                 user = users[u['submitter']]
             except KeyError:
                 try:
-                    user = User.query.filter_by(name=u['submitter']).one()
+                    user = db.query(User).filter_by(name=u['submitter']).one()
                 except NoResultFound:
                     user = User(name=u['submitter'])
-                    DBSession.add(user)
+                    db.add(user)
                     user.updates.append(update)
                 users[u['submitter']] = user
 
@@ -313,36 +318,36 @@ def load_sqlalchemy_db():
                 package = packages[pkg]
             except KeyError:
                 try:
-                    package = Package.query.filter_by(name=pkg).one()
+                    package = db.query(Package).filter_by(name=pkg).one()
                 except NoResultFound:
                     package = Package(name=pkg)
-                    DBSession.add(package)
+                    db.add(package)
                 packages[pkg] = package
 
             try:
-                build = Build.query.filter_by(nvr=nvr).one()
+                build = db.query(Build).filter_by(nvr=nvr).one()
             except NoResultFound:
                 build = Build(nvr=nvr, package=package)
-                DBSession.add(build)
+                db.add(build)
                 update.builds.append(build)
 
         ## Create all Bugzilla objects for this update
         for bug_num, bug_title, security, parent in u['bugs']:
             try:
-                bug = Bug.query.filter_by(bug_id=bug_num).one()
+                bug = db.query(Bug).filter_by(bug_id=bug_num).one()
             except NoResultFound:
                 bug = Bug(bug_id=bug_num, security=security, parent=parent,
                           title=bug_title)
-                DBSession.add(bug)
+                db.add(bug)
             update.bugs.append(bug)
 
         ## Create all CVE objects for this update
         for cve_id in u['cves']:
             try:
-                cve = CVE.query.filter_by(cve_id=cve_id).one()
+                cve = db.query(CVE).filter_by(cve_id=cve_id).one()
             except NoResultFound:
                 cve = CVE(cve_id=cve_id)
-                DBSession.add(cve)
+                db.add(cve)
             update.cves.append(cve)
 
         ## Create all Comments for this update
@@ -355,7 +360,7 @@ def load_sqlalchemy_db():
 
             comment = Comment(timestamp=timestamp, text=text,
                               karma=karma, anonymous=anonymous)
-            DBSession.add(comment)
+            db.add(comment)
             update.comments.append(comment)
             if anonymous:
                 name = 'anonymous'
@@ -365,27 +370,25 @@ def load_sqlalchemy_db():
                 user = users[name]
             except KeyError:
                 try:
-                    user = User.query.filter_by(name=name).one()
+                    user = db.query(User).filter_by(name=name).one()
                 except NoResultFound:
                     user = User(name=name)
-                    DBSession.add(user)
+                    db.add(user)
                     user.comments.append(comment)
                     user.updates.append(update)
                 users[name] = user
 
-        DBSession.flush()
+        db.flush()
 
-        progress()
-
-    DBSession.commit()
+    transaction.commit()
 
     print("\n\nDatabase migration complete!")
-    print(" * %d updates" % Update.query.count())
-    print(" * %d builds" % Build.query.count())
-    print(" * %d comments" % Comment.query.count())
-    print(" * %d users" % User.query.count())
-    print(" * %d bugs" % Bug.query.count())
-    print(" * %d CVEs" % CVE.query.count())
+    print(" * %d updates" % db.query(Update).count())
+    print(" * %d builds" % db.query(Build).count())
+    print(" * %d comments" % db.query(Comment).count())
+    print(" * %d users" % db.query(User).count())
+    print(" * %d bugs" % db.query(Bug).count())
+    print(" * %d CVEs" % db.query(CVE).count())
 
 def usage():
     print "Usage: ./pickledb.py [ save | load <file> ]"
