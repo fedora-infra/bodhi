@@ -290,3 +290,4 @@ class TestWSGIApp(unittest.TestCase):
                           u'bodhi-2.0.0-3. Removed build(s): bodhi-2.0.0-2.')
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3')
+        self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2').first(), None)
