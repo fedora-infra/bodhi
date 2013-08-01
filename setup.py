@@ -15,12 +15,12 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'pyramid',
     'pyramid_beaker',
-    'pyramid_openid',
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'waitress',
     'colander',
     'cornice',
+    'pyramid_fas_openid',
 
     'sqlalchemy',
     #'zope.sqlalchemy',
