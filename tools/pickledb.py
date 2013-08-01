@@ -29,8 +29,7 @@ from os.path import isfile
 #from sqlobject import SQLObjectNotFound
 #from turbogears.database import PackageHub
 
-from progressbar import ProgressBar
-
+from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
 from bodhi.exceptions import DuplicateEntryError, IntegrityError
 #from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
 #                         Package, PackageBuild)
@@ -49,9 +48,9 @@ def save_db():
 
     updates = []
     all_updates = PackageUpdate.select()
-    progress = ProgressBar(maxValue=all_updates.count())
+    progress = ProgressBar(maxval=all_updates.count())
 
-    for update in all_updates:
+    for update in progress(all_updates):
         data = {}
         data['title'] = update.title
         data['builds'] = [(build.package.name, build.nvr) for build in update.builds]
@@ -83,7 +82,6 @@ def save_db():
             data['approved'] = None
 
         updates.append(data)
-        progress()
 
     dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
     pickle.dump({'updates': updates, 'releases': releases}, dump)
@@ -105,9 +103,9 @@ def load_db():
                 Release(**release)
         data = data['updates']
 
-    progress = ProgressBar(maxValue=len(data))
+    progress = ProgressBar()
 
-    for u in data:
+    for u in progress(data):
         try:
             release = Release.byName(u['release'][0])
         except SQLObjectNotFound:
@@ -179,7 +177,6 @@ def load_db():
             comment = Comment(timestamp=timestamp, author=author, text=text,
                               karma=karma, update=update, anonymous=anonymous)
 
-        progress()
 
 def load_sqlalchemy_db():
     print "\nLoading pickled database %s" % sys.argv[2]
@@ -218,7 +215,7 @@ def load_sqlalchemy_db():
                 db.add(r)
         data = data['updates']
 
-    progress = ProgressBar()
+    progress = ProgressBar(widgets=[SimpleProgress(), Percentage(), Bar()])
 
     for u in progress(data):
         try:
