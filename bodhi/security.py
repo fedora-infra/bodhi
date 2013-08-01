@@ -3,6 +3,7 @@ from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound
 
 from . import log
+from .models import User, Group
 
 #
 # Pyramid ACL factories
