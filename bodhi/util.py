@@ -277,9 +277,13 @@ def load_config(configfile=None):
     return data
 
 
-def get_db_from_config():
+def get_db_from_config(dev=False):
+    from .models import DBSession, Base
     config = load_config()
-    db_url = config.get('app:main', 'sqlalchemy.url')
+    if dev:
+        db_url = 'sqlite:///:memory:'
+    else:
+        db_url = config['sqlalchemy.url']
     engine = create_engine(db_url)
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
