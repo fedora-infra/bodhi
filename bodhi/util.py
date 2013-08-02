@@ -76,14 +76,6 @@ def excluded_arch(rpmheader, arch):
            (exclusive and arch not in exclusive)
 
 
-def sha1sum(file):
-    import sha
-    fd = open(file)
-    hash = sha.new(fd.read())
-    fd.close()
-    return hash.hexdigest()
-
-
 def get_nvr(nvr):
     """ Return the [ name, version, release ] a given name-ver-rel. """
     x = nvr.split('-')
