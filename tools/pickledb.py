@@ -26,15 +26,12 @@ import time
 import cPickle as pickle
 
 from os.path import isfile
-#from sqlobject import SQLObjectNotFound
-#from turbogears.database import PackageHub
 
 from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
-from bodhi.exceptions import DuplicateEntryError, IntegrityError
-#from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
-#                         Package, PackageBuild)
-#
-#hub = __connection__ = PackageHub("bodhi")
+
+from .util import get_db_from_config
+from .exceptions import DuplicateEntryError, IntegrityError
+
 
 def save_db():
     ## Save each release and it's metrics
@@ -196,17 +193,7 @@ def load_sqlalchemy_db():
     packages = {}
     users = {}
 
-    import ConfigParser
-    config = ConfigParser.ConfigParser()
-    config.read('development.ini')
-    db_url = config.get('app:main', 'sqlalchemy.url')
-    print('Using %s' % db_url)
-    engine = create_engine(db_url)
-    DBSession.configure(bind=engine)
-    Base.metadata.bind = engine
-    Base.metadata.create_all(engine)
-
-    db = DBSession()
+    db = get_db_from_config()
 
     # Allow filtering of releases to load
     whitelist = []

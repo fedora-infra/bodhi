@@ -23,21 +23,21 @@ import logging
 import tempfile
 import subprocess
 import urlgrabber
-#import turbogears
+import ConfigParser
 
 from yum import repoMDObject
 from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
-#from turbogears import config, flash, redirect, url as tg_url
-#from fedora.tg.util import request_format
-#from fedora.tg.util import url as csrf_url
 
-from bodhi.exceptions import (RPMNotFound, RepodataException,
-                              InvalidUpdateException)
 
+from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
 from pyramid.threadlocal import get_current_request
+
+from .exceptions import (RPMNotFound, RepodataException,
+                         InvalidUpdateException)
+
 
 _ = TranslationStringFactory('bodhi')
 log = logging.getLogger(__name__)
@@ -238,26 +238,53 @@ def link(text, href):
     return '<a href="%s">%s</a>' % (url(href), text)
 
 
-def load_config(configfile=None):
-    """ Load bodhi's configuration """
+def get_configfile():
+    configfile = None
     setupdir = os.path.dirname(os.path.dirname(__file__))
     curdir = os.getcwd()
-    if configfile and os.path.exists(configfile):
-        pass
-    elif os.path.exists(os.path.join(setupdir, 'setup.py')) \
-            and os.path.exists(os.path.join(setupdir, 'dev.cfg')):
-        configfile = os.path.join(setupdir, 'dev.cfg')
-    elif os.path.exists(os.path.join(curdir, 'bodhi.cfg')):
-        configfile = os.path.join(curdir, 'bodhi.cfg')
-    elif os.path.exists('/etc/bodhi.cfg'):
-        configfile = '/etc/bodhi.cfg'
-    elif os.path.exists('/etc/bodhi/bodhi.cfg'):
-        configfile = '/etc/bodhi/bodhi.cfg'
+    if configfile:
+        if not os.path.exists(configfile):
+            log.error("Cannot find config: %s" % configfile)
+            return
     else:
-        log.error("Unable to find configuration to load!")
-        return
+        for cfg in ('/etc/bodhi/production.ini',
+                    os.path.join(setupdir, 'development.ini')):
+            if os.path.exists(cfg):
+                configfile = cfg
+                break
+        else:
+            log.error("Unable to find configuration to load!")
+    return configfile
+
+
+def load_config(configfile=None):
+    """ Load bodhi's configuration.
+
+    Defaults to `/etc/bodhi/production.ini` or `development.ini` in the
+    directory above the bodhi module.
+    """
+    if not configfile:
+        configfile = get_configfile()
+
     log.debug("Loading configuration: %s" % configfile)
-    turbogears.update_config(configfile=configfile, modulename="bodhi.config")
+    config = ConfigParser.ConfigParser(dict(here=os.getcwd()))
+    config.read(configfile)
+
+    data = {}
+    for key, value in config.items('app:main'):
+        data[key] = value
+
+    return data
+
+
+def get_db_from_config():
+    config = load_config()
+    db_url = config.get('app:main', 'sqlalchemy.url')
+    engine = create_engine(db_url)
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
+    Base.metadata.create_all(engine)
+    return DBSession()
 
 
 class Singleton(object):
