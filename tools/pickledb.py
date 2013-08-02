@@ -361,7 +361,7 @@ def load_sqlalchemy_db():
             db.add(comment)
             update.comments.append(comment)
             if anonymous:
-                name = 'anonymous'
+                name = u'anonymous'
             else:
                 name = author
             try:
