@@ -366,7 +366,7 @@ def load_sqlalchemy_db():
             else:
                 name = author
             group = None
-            if not anonymous and ' ' in name:
+            if not anonymous and ' (' in name:
                 split = name.split(' (')
                 name = split[0]
                 group = split[1][:-1]
