@@ -183,7 +183,7 @@ def load_sqlalchemy_db():
     import transaction
     from bodhi.models import DBSession, Base
     from bodhi.models import Release, Update, Build, Comment, User, Bug, CVE
-    from bodhi.models import Package
+    from bodhi.models import Package, Group
     from bodhi.models import UpdateType, UpdateStatus, UpdateRequest
     from sqlalchemy import create_engine
     from sqlalchemy.orm.exc import NoResultFound
@@ -359,11 +359,18 @@ def load_sqlalchemy_db():
             comment = Comment(timestamp=timestamp, text=text,
                               karma=karma, anonymous=anonymous)
             db.add(comment)
+            db.flush()
             update.comments.append(comment)
             if anonymous:
                 name = u'anonymous'
             else:
                 name = author
+            group = None
+            if not anonymous and ' ' in name:
+                split = name.split(' (')
+                name = split[0]
+                group = split[1][:-1]
+                assert group, name
             try:
                 user = users[name]
             except KeyError:
@@ -372,9 +379,20 @@ def load_sqlalchemy_db():
                 except NoResultFound:
                     user = User(name=name)
                     db.add(user)
-                    user.comments.append(comment)
+                    db.flush()
                     user.updates.append(update)
                 users[name] = user
+
+            comment.user = user
+
+            if group:
+                try:
+                    group = db.query(Group).filter_by(name=group).one()
+                except NoResultFound:
+                    group = Group(name=group)
+                    db.add(group)
+                    db.flush()
+                user.groups.append(group)
 
         db.flush()
 
