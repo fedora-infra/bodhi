@@ -937,7 +937,7 @@ class Update(Base):
                 else:
                     anonymous = ""
                 comments.append(u"%s%s%s - %s (karma %s)" % (' ' * 13,
-                                comment.author, anonymous, comment.timestamp,
+                                comment.user.name, anonymous, comment.timestamp,
                                 comment.karma))
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,

@@ -159,7 +159,7 @@ def main():
                 negative_proventesters = 0
                 for comment in update.comments:
                     if 'proventesters' in [g.name for g in comment.user.groups]:
-                        proventester_karma[comment.author_name] += comment.karma
+                        proventester_karma[comment.user.name] += comment.karma
                 for _karma in proventester_karma.values():
                     if _karma > 0:
                         positive_proventesters += 1
