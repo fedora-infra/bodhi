@@ -34,6 +34,7 @@ from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 
 
+from fedora.client import PackageDB
 from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
 from pyramid.threadlocal import get_current_request
@@ -324,6 +325,24 @@ class memoized(object):
     def __get__(self, obj, objtype):
         '''Support instance methods.'''
         return functools.partial(self.__call__, obj)
+
+
+@memoized
+def get_critpath_pkgs(collection='devel'):
+    """Return a list of critical path packages for a given collection"""
+    config = load_config()
+    critpath_type = config.get('critpath.type', 'pkgdb')
+    if critpath_type == 'pkgdb':
+        pkgdb = PackageDB(config.get('pkgdb_url'))
+        critpath_pkgs = pkgdb.get_critpath_pkgs([collection])
+        critpath_pkgs = getattr(critpath_pkgs, collection, [])
+        # Fallback to rawhide's critpath list
+        if not critpath_pkgs:
+            critpath_pkgs = pkgdb.get_critpath_pkgs(['devel'])
+            critpath_pkgs = getattr(critpath_pkgs, 'devel', [])
+    else:
+        critpath_pkgs = config.get('critpath_pkgs', [])
+    return critpath_pkgs
 
 
 class Singleton(object):

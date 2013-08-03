@@ -1,4 +1,4 @@
-from bodhi.util import load_config, get_db_from_config
+from bodhi.util import load_config, get_db_from_config, get_critpath_pkgs
 
 class TestUtils(object):
 
@@ -11,3 +11,8 @@ class TestUtils(object):
         db = get_db_from_config(dev=True)
         num = db.query(Update).count()
         assert num == 0, num
+
+    def test_get_critpath_pkgs(self):
+        """Ensure the pkgdb's critpath API works"""
+        pkgs = get_critpath_pkgs()
+        assert 'kernel' in pkgs, pkgs
