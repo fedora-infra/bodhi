@@ -547,7 +547,8 @@ class Update(Base):
     release = relation('Release')
 
     # One-to-many relationships
-    comments = relation('Comment', backref='update')
+    comments = relation('Comment', backref='update',
+                        order_by='Comment.timestamp')
     builds = relation('Build', backref='update')
 
     # Many-to-many relationships
@@ -1155,12 +1156,6 @@ class Update(Base):
                 for committer in build.package.committers:
                     people.add(committer)
         return list(people)
-
-    def get_comments(self):
-        sorted = []
-        sorted.extend(self.comments)
-        sorted.sort(lambda x, y: cmp(x.timestamp, y.timestamp))
-        return sorted
 
 
 class Comment(Base):
