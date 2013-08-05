@@ -406,13 +406,6 @@ def sanity_check_repodata(myurl):
             raise RepodataException('updateinfo.xml.gz contains empty ID tags')
 
 
-def to_unicode(obj, encoding='utf-8'):
-    if isinstance(obj, basestring):
-        if not isinstance(obj, unicode):
-            obj = unicode(obj, encoding, 'replace')
-    return obj
-
-
 """
 Misc iPython hacks that I've had to write at one point or another
 """

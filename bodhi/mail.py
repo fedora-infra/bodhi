@@ -14,13 +14,11 @@
 
 import rpm
 import logging
-#import turbomail
 
 from textwrap import wrap
-#from turbomail import MailNotEnabledException
-#from turbogears import config, identity
+from kitchen.text.converters import to_unicode
 
-from bodhi.util import rpm_fileheader, to_unicode
+from bodhi.util import rpm_fileheader
 from bodhi.exceptions import RPMNotFound
 
 log = logging.getLogger(__name__)
