@@ -7,6 +7,7 @@ import xmlrpclib
 
 from textwrap import wrap
 from datetime import datetime
+from collections import defaultdict
 
 from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
 from sqlalchemy import DateTime
@@ -22,7 +23,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 from bodhi import buildsys, mail
 from bodhi.util import (
     header, build_evr, authorized_user, rpm_fileheader, get_nvr, flash_log,
-    get_age,
+    get_age, get_critpath_pkgs, load_config,
 )
 
 # TODO: move these methods into the model
@@ -1156,6 +1157,128 @@ class Update(Base):
                 for committer in build.package.committers:
                     people.add(committer)
         return list(people)
+
+    @property
+    def critpath(self):
+        """ Return whether or not this update is in the critical path """
+        critical = False
+        critpath_pkgs = get_critpath_pkgs(self.release.name.lower())
+        if not critpath_pkgs:
+            # Optimize case where there's no critpath packages
+            return False
+        for build in self.builds:
+            if build.package.name in critpath_pkgs:
+                critical = True
+                break
+        return critical
+
+    @property
+    def critpath_approved(self):
+        """ Return whether or not this critpath update has been approved """
+        # https://fedorahosted.org/bodhi/ticket/642
+        if self.meets_testing_requirements:
+            return True
+        release_name = self.release.name.lower().replace('-', '')
+        config = load_config()
+        status = config.get('%s.status' % release_name, None)
+        if status:
+            num_admin_approvals = config.get('%s.%s.critpath.num_admin_approvals' % (
+                    release_name, status), None)
+            min_karma = config.get('%s.%s.critpath.min_karma' % (
+                    release_name, status), None)
+            if num_admin_approvals is not None and min_karma:
+                return self.num_admin_approvals >= num_admin_approvals and \
+                        self.karma >= min_karma
+        return self.num_admin_approvals >= config.get(
+                'critpath.num_admin_approvals', 2) and \
+               self.karma >= config.get('critpath.min_karma', 2)
+
+    @property
+    def meets_testing_requirements(self):
+        """
+        Return whether or not this update meets the testing requirements
+        for this specific release.
+
+        If this release does not have a mandatory testing requirement, then
+        simply return True.
+        """
+        if self.critpath:
+            # Ensure there is no negative karma. We're looking at the sum of
+            # each users karma for this update, which takes into account
+            # changed votes.
+            feedback = defaultdict(int)
+            for comment in self.comments:
+                if not comment.anonymous:
+                    feedback[comment.user.name] += comment.karma
+            for karma in feedback.values():
+                if karma < 0:
+                    return False
+            config = load_config()
+            num_days = config.get('critpath.stable_after_days_without_negative_karma')
+            return self.days_in_testing >= num_days
+        num_days = self.release.mandatory_days_in_testing
+        if not num_days:
+            return True
+        return self.days_in_testing >= num_days
+
+    @property
+    def met_testing_requirements(self):
+        """
+        Return whether or not this update has already met the testing
+        requirements.
+
+        If this release does not have a mandatory testing requirement, then
+        simply return True.
+        """
+        min_num_days = self.release.mandatory_days_in_testing
+        num_days = self.days_in_testing
+        if min_num_days:
+            if num_days < min_num_days:
+                return False
+        else:
+            return True
+        for comment in self.comments:
+            if comment.user.name == 'bodhi' and \
+               comment.text.startswith('This update has reached') and \
+               comment.text.endswith('days in testing and can be pushed to'
+                                     ' stable now if the maintainer wishes'):
+                return True
+        return False
+
+    @property
+    def days_in_testing(self):
+        """ Return the number of days that this update has been in testing """
+        timestamp = None
+        for comment in self.comments[::-1]:
+            if comment.text == 'This update has been pushed to testing' and \
+                    comment.user.name == 'bodhi':
+                timestamp = comment.timestamp
+                if self.status == UpdateStatus.testing:
+                    return (datetime.utcnow() - timestamp).days
+                else:
+                    break
+        if not timestamp:
+            return
+        for comment in self.comments:
+            if comment.text == 'This update has been pushed to stable' and \
+                    comment.user.name == 'bodhi':
+                return (comment.timestamp - timestamp).days
+        return (datetime.utcnow() - timestamp).days
+
+    @property
+    def num_admin_approvals(self):
+        """ Return the number of Releng/QA approvals of this update """
+        approvals = 0
+        config = load_config()
+        for comment in self.comments:
+            if comment.karma != 1:
+                continue
+            admin_groups = config.get('admin_groups').split()
+            for group in comment.user.groups:
+                if group.name in admin_groups:
+                    approvals += 1
+                    break
+        return approvals
 
 
 class Comment(Base):
