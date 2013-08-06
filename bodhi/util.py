@@ -23,7 +23,6 @@ import logging
 import tempfile
 import subprocess
 import urlgrabber
-import ConfigParser
 import collections
 import functools
 
@@ -36,6 +35,7 @@ from datetime import datetime
 
 from fedora.client import PackageDB
 from sqlalchemy import create_engine
+from pyramid.paster import get_appsettings
 from pyramid.i18n import TranslationStringFactory
 from pyramid.threadlocal import get_current_request
 
@@ -302,16 +302,8 @@ def load_config(configfile=None):
     """
     if not configfile:
         configfile = get_configfile()
-
     log.debug("Loading configuration: %s" % configfile)
-    config = ConfigParser.ConfigParser(dict(here=os.getcwd()))
-    config.read(configfile)
-
-    data = {}
-    for key, value in config.items('app:main'):
-        data[key] = value
-
-    return data
+    return get_appsettings(configfile)
 
 
 def get_db_from_config(dev=False):
