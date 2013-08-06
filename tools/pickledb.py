@@ -29,8 +29,8 @@ from os.path import isfile
 
 from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
 
-from .util import get_db_from_config
-from .exceptions import DuplicateEntryError, IntegrityError
+from bodhi.util import get_db_from_config
+from bodhi.exceptions import DuplicateEntryError, IntegrityError
 
 
 def save_db():
@@ -398,7 +398,7 @@ def load_sqlalchemy_db():
 
     transaction.commit()
 
-    print("\n\nDatabase migration complete!")
+    print("\nDatabase migration complete!")
     print(" * %d updates" % db.query(Update).count())
     print(" * %d builds" % db.query(Build).count())
     print(" * %d comments" % db.query(Comment).count())
