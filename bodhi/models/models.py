@@ -1,5 +1,6 @@
 import os
 import re
+import rpm
 import time
 import logging
 import bugzilla
@@ -613,6 +614,8 @@ class Update(Base):
         db.add(up)
         db.flush()
 
+        up.obsolete_older_updates(request)
+
         return up
 
     @classmethod
@@ -676,6 +679,56 @@ class Update(Base):
             setattr(up, key, value)
 
         return up
+
+    def obsolete_older_updates(self, request):
+        """Obsolete any older pending/testing updates.
+
+        If a build is associated with multiple updates, make sure that
+        all updates are safe to obsolete, or else just skip it.
+        """
+        db = request.db
+        buildinfo = request.buildinfo
+        for build in self.builds:
+            for oldBuild in db.query(Build).join(Update.builds).filter(
+                Build.nvr != build.nvr,
+                Update.request == None,
+                Update.release == self.release,
+                or_(Update.status == UpdateStatus.testing,
+                    Update.status == UpdateStatus.pending),
+            ).all():
+                obsoletable = False
+                nvr = buildinfo[build.nvr]['nvr']
+                if rpm.labelCompare(get_nvr(oldBuild.nvr), nvr) < 0:
+                    log.debug("%s is newer than %s" % (nvr, oldBuild.nvr))
+                    obsoletable = True
+
+                # Ensure the same number of builds are present
+                if len(oldBuild.update.builds) != len(self.builds):
+                    obsoletable = False
+                    break
+
+                # Ensure that all of the packages in the old update are
+                # present in the new one.
+                pkgs = [b.package.name for b in self.builds]
+                for _build in oldBuild.update.builds:
+                    if _build.package.name not in pkgs:
+                        obsoletable = False
+                        break
+
+                if obsoletable:
+                    log.info('%s is obsoletable' % oldBuild.nvr)
+
+                    # Have the newer update inherit the older updates bugs
+                    oldbugs = [bug.bug_id for bug in oldBuild.update.bugs]
+                    bugs = [bug.bug_id for bug in self.bugs]
+                    self.update_bugs(bugs + oldbugs)
+
+                    # Also inherit the older updates notes as well
+                    self.notes += '\n' + oldBuild.update.notes
+                    oldBuild.update.obsolete(newer=build.nvr)
+                    self.comment('This update has obsoleted %s, and has '
+                                 'inherited its bugs and notes.' % oldBuild.nvr,
+                                 author='bodhi')
 
     def get_title(self, delim=' '):
         nvrs = [build.nvr for build in self.builds]

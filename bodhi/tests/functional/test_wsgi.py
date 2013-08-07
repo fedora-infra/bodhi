@@ -16,6 +16,8 @@ from bodhi.models import (
     Update,
     UpdateType,
     User,
+    UpdateStatus,
+    UpdateRequest,
 )
 
 
@@ -301,3 +303,36 @@ class TestWSGIApp(unittest.TestCase):
         args['request'] = 'stable'
         up = self.app.post_json('/updates', args).json_body
         self.assertEquals(up['request'], 'testing')
+
+    def test_obsoletion(self):
+        nvr = 'bodhi-2.0.0-2'
+        args = self.get_update(nvr)
+        self.app.post_json('/updates', args)
+        up = DBSession.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+
+        args = self.get_update('bodhi-2.0.0-3')
+        r = self.app.post_json('/updates', args).json_body
+        self.assertEquals(r['request'], 'testing')
+        self.assertEquals(r['comments'][-1]['text'],
+                          u'This update has obsoleted bodhi-2.0.0-2, '
+                          'and has inherited its bugs and notes.')
+
+        up = DBSession.query(Update).filter_by(title=nvr).one()
+        self.assertEquals(up.status, UpdateStatus.obsolete)
+        self.assertEquals(up.comments[-1].text,
+                          u'This update has been obsoleted by bodhi-2.0.0-3')
+
+    def test_obsoletion_with_open_request(self):
+        nvr = 'bodhi-2.0.0-2'
+        args = self.get_update(nvr)
+        self.app.post_json('/updates', args)
+
+        args = self.get_update('bodhi-2.0.0-3')
+        r = self.app.post_json('/updates', args).json_body
+        self.assertEquals(r['request'], 'testing')
+
+        up = DBSession.query(Update).filter_by(title=nvr).one()
+        self.assertEquals(up.status, UpdateStatus.pending)
+        self.assertEquals(up.request, UpdateRequest.testing)
