@@ -291,3 +291,13 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3')
         self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2').first(), None)
+
+    def test_push_untested_critpath_to_release(self):
+        """
+        Ensure that we cannot push an untested critpath update directly to
+        stable.
+        """
+        args = self.get_update('bodhi-2.0.0-2')
+        args['request'] = 'stable'
+        up = self.app.post_json('/updates', args).json_body
+        self.assertEquals(up['request'], 'testing')
