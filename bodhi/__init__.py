@@ -31,8 +31,7 @@ def get_dbsession(request):
 def get_user(request):
     userid = unauthenticated_userid(request)
     if userid is not None:
-        session = DBSession()
-        return session.query(User).filter_by(name=userid).one()
+        return request.db.query(User).filter_by(name=userid).one()
 
 
 def groupfinder(userid, request):
@@ -42,12 +41,10 @@ def groupfinder(userid, request):
 
 
 def get_koji(request):
-    log.debug('get_koji()')
     return buildsys.get_session()
 
 
 def get_pkgdb(request):
-    log.debug('get_pkgdb()')
     return PackageDB(request.registry.settings['pkgdb_url'])
 
 
