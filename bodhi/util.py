@@ -135,47 +135,6 @@ def authorized_user(update, identity):
            identity.current.user_name in update.get_maintainers()
 
 
-def make_update_link(obj):
-    """ Return a link Element for a given PackageUpdate or PackageBuild """
-    from kid import Element
-    update = None
-    if hasattr(obj, 'updates'):    # Package or PackageBuild
-        update = obj.updates[0]
-    elif hasattr(obj, 'get_url'):  # PackageUpdate
-        update = obj
-    elif hasattr(obj, 'update'):   # Comment
-        update = obj.update
-    else:
-        log.error("Unknown parameter make_update_link(%s)" % obj)
-        return None
-    link = Element('a', href=url(update.get_url()))
-    link.text = update.get_title(', ')
-    return link
-
-
-def make_type_icon(update):
-    from kid import Element
-    return Element('img', src=url('/static/images/%s.png' % update.type),
-                   title=update.type)
-
-
-def make_request_icon(update):
-    from kid import Element
-    return Element('img', src=url('/static/images/%s-large.png' %
-                   update.request), title=str(update.request))
-
-
-def make_karma_icon(update):
-    if update.karma < 0:
-        karma = -1
-    elif update.karma > 0:
-        karma = 1
-    else:
-        karma = 0
-    from kid import Element
-    return Element('img', src=url('/static/images/karma%d.png' % karma))
-
-
 def get_age(date):
     age = datetime.utcnow() - date
     if age.days == 0:
