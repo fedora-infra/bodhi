@@ -32,15 +32,15 @@ from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 
-
 from fedora.client import PackageDB
 from sqlalchemy import create_engine
-from pyramid.paster import get_appsettings
 from pyramid.i18n import TranslationStringFactory
 from pyramid.threadlocal import get_current_request
 
 from .exceptions import (RPMNotFound, RepodataException,
                          InvalidUpdateException)
+
+from bodhi.config import config
 
 
 _ = TranslationStringFactory('bodhi')
@@ -274,41 +274,8 @@ class memoized(object):
         return functools.partial(self.__call__, obj)
 
 
-def get_configfile():
-    configfile = None
-    setupdir = os.path.dirname(os.path.dirname(__file__))
-    curdir = os.getcwd()
-    if configfile:
-        if not os.path.exists(configfile):
-            log.error("Cannot find config: %s" % configfile)
-            return
-    else:
-        for cfg in ('/etc/bodhi/production.ini',
-                    os.path.join(setupdir, 'development.ini')):
-            if os.path.exists(cfg):
-                configfile = cfg
-                break
-        else:
-            log.error("Unable to find configuration to load!")
-    return configfile
-
-
-@memoized
-def load_config(configfile=None):
-    """ Load bodhi's configuration.
-
-    Defaults to `/etc/bodhi/production.ini` or `development.ini` in the
-    directory above the bodhi module.
-    """
-    if not configfile:
-        configfile = get_configfile()
-    log.debug("Loading configuration: %s" % configfile)
-    return get_appsettings(configfile)
-
-
 def get_db_from_config(dev=False):
     from .models import DBSession, Base
-    config = load_config()
     if dev:
         db_url = 'sqlite:///:memory:'
     else:
@@ -323,7 +290,6 @@ def get_db_from_config(dev=False):
 @memoized
 def get_critpath_pkgs(collection='devel'):
     """Return a list of critical path packages for a given collection"""
-    config = load_config()
     critpath_type = config.get('critpath.type', 'pkgdb')
     if critpath_type == 'pkgdb':
         pkgdb = PackageDB(config.get('pkgdb_url'))

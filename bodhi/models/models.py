@@ -23,7 +23,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 from bodhi import buildsys, mail
 from bodhi.util import (
     header, build_evr, authorized_user, rpm_fileheader, get_nvr, flash_log,
-    get_age, get_critpath_pkgs, load_config,
+    get_age, get_critpath_pkgs,
 )
 
 # TODO: move these methods into the model
@@ -31,9 +31,10 @@ from bodhi.util import get_age_in_days
 from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import InvalidRequest, RPMNotFound
 
+from bodhi.config import config
+
 log = logging.getLogger(__name__)
 
-config = {}  # FIXME!
 from bunch import Bunch
 identity = Bunch(current=Bunch(user_name=u'Bob'))
 
@@ -1179,7 +1180,6 @@ class Update(Base):
         if self.meets_testing_requirements:
             return True
         release_name = self.release.name.lower().replace('-', '')
-        config = load_config()
         status = config.get('%s.status' % release_name, None)
         if status:
             num_admin_approvals = config.get('%s.%s.critpath.num_admin_approvals' % (
@@ -1213,7 +1213,6 @@ class Update(Base):
             for karma in feedback.values():
                 if karma < 0:
                     return False
-            config = load_config()
             num_days = config.get('critpath.stable_after_days_without_negative_karma')
             return self.days_in_testing >= num_days
         num_days = self.release.mandatory_days_in_testing
@@ -1269,7 +1268,6 @@ class Update(Base):
     def num_admin_approvals(self):
         """ Return the number of Releng/QA approvals of this update """
         approvals = 0
-        config = load_config()
         for comment in self.comments:
             if comment.karma != 1:
                 continue
