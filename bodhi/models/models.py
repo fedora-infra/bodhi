@@ -1368,7 +1368,11 @@ class Bug(Base):
         if bug.product == 'Security Response':
             self.parent = True
         self.title = str(bug.short_desc)
-        if 'security' in bug.keywords.lower():
+        if isinstance(bug.keywords, basestring):
+            keywords = bug.keywords.split()
+        else:  # python-bugzilla 0.8.0+
+            keywords = bug.keywords
+        if 'security' in [keyword.lower() for keyword in keywords]:
             self.security = True
 
     def _default_message(self, update):
