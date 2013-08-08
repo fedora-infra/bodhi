@@ -295,7 +295,7 @@ class Package(Base):
 
     builds = relation('Build', backref='package')
 
-    def get_pkg_pushers(self, collectionName='Fedora', collectionVersion='devel'):
+    def get_pkg_pushers(self, pkgdb, collectionName='Fedora', collectionVersion='devel'):
         """ Pull users who can commit and are watching a package
 
         Return two two-tuples of lists:
@@ -328,7 +328,7 @@ class Package(Base):
         """
         # Note if AppError is raised (for no pkgNamme or other server errors) we
         # do not catch the exception here.
-        pkg = request.pkgdb.get_owners(self.name, collectionName, collectionVersion)
+        pkg = pkgdb.get_owners(self.name, collectionName, collectionVersion)
 
         # Owner is allowed to commit and gets notified of pushes
         # This will always be the 0th element as we'll retrieve at most one

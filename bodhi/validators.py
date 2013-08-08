@@ -107,7 +107,7 @@ def validate_acls(request):
                 'collectionVersion': str(release.get_version()),
             }
             try:
-                people, groups = package.get_pkg_pushers()
+                people, groups = package.get_pkg_pushers(request.pkgdb)
                 committers, watchers = people
                 groups, notify_groups = groups
             except Exception, e:
