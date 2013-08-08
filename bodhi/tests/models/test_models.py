@@ -12,6 +12,7 @@ from bodhi.models import (UpdateStatus, UpdateType, UpdateRequest,
                           UpdateSeverity, UpdateSuggestion)
 from bodhi.tests.models import ModelTest
 from bodhi.exceptions import InvalidRequest
+from bodhi.config import config
 
 
 class TestRelease(ModelTest):
@@ -60,6 +61,13 @@ class TestPackage(ModelTest):
         name=u"TurboGears",
         committers=['lmacken'],
         )
+
+    def test_wiki_test_cases(self):
+        """Test querying the wiki for test cases"""
+        config['query_wiki_test_cases'] = True
+        pkg = model.Package(name=u'gnome-shell')
+        pkg.fetch_test_cases()
+        assert pkg.test_cases
 
 
 class TestBuild(ModelTest):

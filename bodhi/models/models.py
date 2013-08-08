@@ -292,6 +292,7 @@ class Package(Base):
 
     name = Column(Unicode(50), unique=True, nullable=False)
     committers = Column(PickleType, default=None)
+    test_cases = Column(UnicodeText, nullable=True)
 
     builds = relation('Build', backref='package')
 
@@ -358,6 +359,39 @@ class Package(Base):
 
         return ((pAllowed, pNotify), (gAllowed, gNotify))
 
+    def fetch_test_cases(self):
+        """ Get a list of test cases from the wiki """
+        if not config.get('query_wiki_test_cases'):
+            return
+
+        from simplemediawiki import MediaWiki
+        wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
+        cat_page = 'Category:Package %s test cases' % self.name
+        limit = 10
+
+        def list_categorymembers(wiki, cat_page, limit=10):
+            # Build query arguments and call wiki
+            query = dict(action='query', list='categorymembers', cmtitle=cat_page)
+            response = wiki.call(query)
+            members = [entry.get('title') for entry in
+                       response.get('query',{}).get('categorymembers',{})
+                       if entry.has_key('title')]
+
+            # Determine whether we need to recurse
+            idx = 0
+            while True:
+                if idx >= len(members) or limit <= 0:
+                    break
+                # Recurse?
+                if members[idx].startswith('Category:') and limit > 0:
+                    members.extend(list_categorymembers(wiki, members[idx], limit-1))
+                    members.remove(members[idx]) # remove Category from list
+                else:
+                    idx += 1
+
+            return members
+
+        self.test_cases = ';'.join(list_categorymembers(wiki, cat_page))
 
     def __str__(self):
         x = header(self.name)
@@ -585,6 +619,7 @@ class Update(Base):
             if not package:
                 package = Package(name=name)
                 db.add(package)
+            package.fetch_test_cases()
             build = Build(nvr=build, package=package)
             builds.append(build)
             releases.add(buildinfo[build.nvr]['release'])
