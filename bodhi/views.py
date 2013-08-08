@@ -1,3 +1,5 @@
+import json
+
 from pprint import pprint
 from beaker.cache import cache_region
 from webhelpers.html.grid import Grid
@@ -8,7 +10,7 @@ from pyramid.exceptions import NotFound, Forbidden
 from cornice import Service
 
 from . import log, buildsys
-from .models import Release, Build, Package, User, Group, Update
+from .models import Release, Build, Package, User, Group, Update, UpdateStatus
 from .models import UpdateRequest, UpdateSeverity, UpdateType, UpdateSuggestion
 from .util import _, get_nvr
 from .schemas import UpdateSchema
@@ -96,6 +98,29 @@ def notfound_view(context, request):
 @view_config(route_name='home', renderer='home.html')
 def home(request):
     return {}
+
+
+@view_config(route_name='metrics', renderer='metrics.html')
+def metrics(request):
+    db = request.db
+    data = []
+    ticks = []
+    update_types = {
+        'bugfix': 'Bug fixes', 'enhancement': 'Enhancements',
+        'security': 'Security patches', 'newpackage': 'New packages'
+    }
+    releases = db.query(Release).filter(Release.name.like('F%')).all()
+    for i, release in enumerate(releases):
+        ticks.append([i, release.name])
+    for update_type, label in update_types.items():
+        d = []
+        type = UpdateType.from_string(update_type)
+        for i, release in enumerate(releases):
+            num = db.query(Update).filter_by(release=release, type=type,
+                                             status=UpdateStatus.stable).count()
+            d.append([i, num])
+        data.append(dict(data=d, label=label))
+    return {'data': json.dumps(data), 'ticks': json.dumps(ticks)}
 
 
 def get_all_packages():

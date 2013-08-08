@@ -104,6 +104,9 @@ def main(global_config, testing=None, **settings):
     # Frontpage
     config.add_route('home', '/')
 
+    # Metrics
+    config.add_route('metrics', '/metrics')
+
     # Auto-completion search
     config.add_route('search_pkgs', '/search_pkgs')
     config.add_route('latest_candidates', '/latest_candidates')
