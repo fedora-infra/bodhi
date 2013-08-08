@@ -599,7 +599,10 @@ class Update(Base):
             bug = db.query(Bug).filter_by(bug_id=bug_num).first()
             if not bug:
                 bug = Bug(bug_id=bug_num)
+                bug.fetch_details()
                 db.add(bug)
+                if bug.security:
+                    data['type'] = UpdateType.security
             bugs.append(bug)
         data['bugs'] = bugs
 
@@ -1046,9 +1049,11 @@ class Update(Base):
                     bz.fetch_details(newbug)
                 else:
                     bz = Bug(bug_id=int(bug))
-            if bz not in self.bugs:
                 session.add(bz)
+            if bz not in self.bugs:
                 self.bugs.append(bz)
+            if bz.security and self.type != UpdateType.security:
+                self.type = UpdateType.security
         session.flush()
 
     def update_cves(self, cves):
