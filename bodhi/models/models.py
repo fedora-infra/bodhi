@@ -287,14 +287,24 @@ class Release(Base):
                 return release
 
 
+class TestCase(Base):
+    """Test cases from the wiki"""
+    __tablename__ = 'testcases'
+
+    name = Column(UnicodeText, nullable=False)
+
+    package_id = Column(Integer, ForeignKey('packages.id'))
+    # package backref
+
+
 class Package(Base):
     __tablename__ = 'packages'
 
     name = Column(Unicode(50), unique=True, nullable=False)
     committers = Column(PickleType, default=None)
-    test_cases = Column(UnicodeText, nullable=True)
 
     builds = relation('Build', backref='package')
+    test_cases = relation('TestCase', backref='package')
 
     def get_pkg_pushers(self, pkgdb, collectionName='Fedora', collectionVersion='devel'):
         """ Pull users who can commit and are watching a package
@@ -359,7 +369,7 @@ class Package(Base):
 
         return ((pAllowed, pNotify), (gAllowed, gNotify))
 
-    def fetch_test_cases(self):
+    def fetch_test_cases(self, db):
         """ Get a list of test cases from the wiki """
         if not config.get('query_wiki_test_cases'):
             return
@@ -391,7 +401,12 @@ class Package(Base):
 
             return members
 
-        self.test_cases = ';'.join(list_categorymembers(wiki, cat_page))
+        for test in list_categorymembers(wiki, cat_page):
+            case = db.query(TestCase).filter_by(name=test).first()
+            if not case:
+                case = TestCase(name=test, package=self)
+                db.add(case)
+
 
     def __str__(self):
         x = header(self.name)
@@ -619,7 +634,10 @@ class Update(Base):
             if not package:
                 package = Package(name=name)
                 db.add(package)
-            package.fetch_test_cases()
+
+            # Fetch test cases from the wiki
+            package.fetch_test_cases(db)
+
             build = Build(nvr=build, package=package)
             builds.append(build)
             releases.add(buildinfo[build.nvr]['release'])

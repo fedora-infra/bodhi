@@ -66,7 +66,7 @@ class TestPackage(ModelTest):
         """Test querying the wiki for test cases"""
         config['query_wiki_test_cases'] = True
         pkg = model.Package(name=u'gnome-shell')
-        pkg.fetch_test_cases()
+        pkg.fetch_test_cases(model.DBSession())
         assert pkg.test_cases
 
 
