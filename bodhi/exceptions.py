@@ -58,6 +58,6 @@ except ImportError:
         from pysqlite2.dbapi2 import IntegrityError
     except:
         try:
-            from sqlite import IntegrityError
+            from sqlite3 import IntegrityError
         except ImportError:
-            print("Unable to import either psycopg2, pysqlite2, or sqlite")
+            print("Unable to import either psycopg2, pysqlite2, or sqlite3")
