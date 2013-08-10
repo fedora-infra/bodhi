@@ -23,11 +23,15 @@ python setup.py test
 
 Initialize the database
 -----------------------
-pserve development.ini
+initialize_bodhi_db
 
 Migrating Bodhi from v1.0 to v2.0
 ---------------------------------
-wget https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
-tar -jxvf https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
+curl -O https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
+tar -jxvf bodhi-pickledb.tar.bz2
 rm bodhi-pickledb.tar.bz2
 PYTHONPATH=$(pwd) python tools/pickledb.py migrate bodhi-pickledb*
+
+Run the web app
+---------------
+pserve development.ini
