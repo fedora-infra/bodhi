@@ -294,6 +294,20 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3')
         self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2').first(), None)
 
+    def test_edit_stable_update(self):
+        """Make sure we can't edit stable updates"""
+        nvr = 'bodhi-2.0.0-2'
+        args = self.get_update(nvr)
+        r = self.app.post_json('/updates', args)
+        up = DBSession.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.stable
+        args['edited'] = args['builds']
+        args['builds'] = 'bodhi-2.0.0-3'
+        r = self.app.post_json('/updates', args, status=400)
+        up = r.json_body
+        self.assertEquals(up['status'], 'error')
+        self.assertEquals(up['errors'][0]['description'], "Cannot edit stable updates")
+
     def test_push_untested_critpath_to_release(self):
         """
         Ensure that we cannot push an untested critpath update directly to
