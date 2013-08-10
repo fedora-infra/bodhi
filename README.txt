@@ -5,7 +5,7 @@ Bootstrap the virtualenv
 ------------------------
 sudo yum -y install python-virtualenvwrapper
 ./bootstrap.py
-workon bodhi
+workon bodhi-python2.7
 pip install kitchen
 python setup.py develop
 
