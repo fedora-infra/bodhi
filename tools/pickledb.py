@@ -30,7 +30,6 @@ from os.path import isfile
 from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
 
 from bodhi.util import get_db_from_config
-from bodhi.exceptions import DuplicateEntryError, IntegrityError
 
 
 def save_db():
