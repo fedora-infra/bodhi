@@ -27,4 +27,7 @@ pserve development.ini
 
 Migrating Bodhi from v1.0 to v2.0
 ---------------------------------
-PYTHONPATH=$(pwd) python tools/pickledb.py migrate bodhi-pickledb
+wget https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
+tar -jxvf https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
+rm bodhi-pickledb.tar.bz2
+PYTHONPATH=$(pwd) python tools/pickledb.py migrate bodhi-pickledb*
