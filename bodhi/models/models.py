@@ -177,6 +177,10 @@ bug_cve_table = Table('bug_cve_table', metadata,
         Column('bug_id', Integer, ForeignKey('bugs.id')),
         Column('cve_id', Integer, ForeignKey('cves.id')))
 
+user_package_table = Table('user_package_table', metadata,
+        Column('user_id', Integer, ForeignKey('users.id')),
+        Column('package_id', Integer, ForeignKey('packages.id')))
+
 
 class Release(Base):
     __tablename__ = 'releases'
@@ -301,10 +305,11 @@ class Package(Base):
     __tablename__ = 'packages'
 
     name = Column(Unicode(50), unique=True, nullable=False)
-    committers = Column(PickleType, default=None)
 
     builds = relationship('Build', backref='package')
     test_cases = relationship('TestCase', backref='package')
+    committers = relationship('User', secondary=user_package_table,
+                              backref='packages')
 
     def get_pkg_pushers(self, pkgdb, collectionName='Fedora', collectionVersion='devel'):
         """ Pull users who can commit and are watching a package
@@ -1267,7 +1272,7 @@ class Update(Base):
         for build in self.builds:
             if build.package.committers:
                 for committer in build.package.committers:
-                    people.add(committer)
+                    people.add(committer.name)
         return list(people)
 
     @property

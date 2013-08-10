@@ -57,9 +57,11 @@ class TestEPELRelease(ModelTest):
 class TestPackage(ModelTest):
     """Unit test case for the ``Package`` model."""
     klass = model.Package
-    attrs = dict(
-        name=u"TurboGears",
-        committers=['lmacken'],
+    attrs = dict(name=u"TurboGears")
+
+    def do_get_dependencies(self):
+        return dict(
+            committers=[model.User(name=u'lmacken')]
         )
 
     def test_wiki_test_cases(self):
@@ -68,6 +70,9 @@ class TestPackage(ModelTest):
         pkg = model.Package(name=u'gnome-shell')
         pkg.fetch_test_cases(model.DBSession())
         assert pkg.test_cases
+
+    def test_committers(self):
+        assert self.obj.committers[0].name == u'lmacken'
 
 
 class TestBuild(ModelTest):
