@@ -80,7 +80,7 @@ def rebuild():
     except Exception as e:
         print(unicode(e))
 
-    cmd = 'mkvirtualenv --distribute --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
+    cmd = 'mkvirtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
             .format(
                 major=sys.version_info.major,
                 minor=sys.version_info.minor,
