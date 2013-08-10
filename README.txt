@@ -1,9 +1,17 @@
 bodhi v2.0
 ==========
 
+Setup virtualenvwrapper
+-----------------------
+sudo yum -y install python-virtualenvwrapper
+
+Add the following to your `~/.bashrc`::
+
+    export WORKON_HOME=$HOME/.virtualenvs
+    source /usr/bin/virtualenvwrapper.sh
+
 Bootstrap the virtualenv
 ------------------------
-sudo yum -y install python-virtualenvwrapper
 ./bootstrap.py
 workon bodhi-python2.7
 pip install kitchen
