@@ -14,7 +14,7 @@ from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
-from sqlalchemy.orm import scoped_session, sessionmaker, relation, relationship
+from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.ext.declarative import declarative_base, synonym_for
@@ -303,8 +303,8 @@ class Package(Base):
     name = Column(Unicode(50), unique=True, nullable=False)
     committers = Column(PickleType, default=None)
 
-    builds = relation('Build', backref='package')
-    test_cases = relation('TestCase', backref='package')
+    builds = relationship('Build', backref='package')
+    test_cases = relationship('TestCase', backref='package')
 
     def get_pkg_pushers(self, pkgdb, collectionName='Fedora', collectionVersion='devel'):
         """ Pull users who can commit and are watching a package
@@ -437,7 +437,7 @@ class Build(Base):
     release_id = Column(Integer, ForeignKey('releases.id'))
     update_id = Column(Integer, ForeignKey('updates.id'))
 
-    release = relation('Release', backref='builds', lazy=False)
+    release = relationship('Release', backref='builds', lazy=False)
 
     def get_latest(self):
         koji_session = buildsys.get_session()
@@ -596,23 +596,23 @@ class Update(Base):
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'))
-    release = relation('Release')
+    release = relationship('Release')
 
     # One-to-many relationships
-    comments = relation('Comment', backref='update',
+    comments = relationship('Comment', backref='update',
                         order_by='Comment.timestamp')
-    builds = relation('Build', backref='update')
+    builds = relationship('Build', backref='update')
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table,
                         backref='updates')
-    cves = relation('CVE', secondary=update_cve_table,
-                    backref='updates')
+    cves = relationship('CVE', secondary=update_cve_table,
+                        backref='updates')
 
     # We may or may not need this, since we can determine the releases from the
     # builds
-    #releases = relation('Release', secondary=update_release_table,
-    #                    backref='updates', lazy=False)
+    #releases = relationship('Release', secondary=update_release_table,
+    #                        backref='updates', lazy=False)
 
     user_id = Column(Integer, ForeignKey('users.id'))
 
@@ -1445,7 +1445,7 @@ class Bug(Base):
     parent = Column(Boolean, default=False)
 
     # List of Mitre CVE's associated with this bug
-    cves = relation(CVE, secondary=bug_cve_table, backref='bugs')
+    cves = relationship(CVE, secondary=bug_cve_table, backref='bugs')
 
     # Foreign Keys used by other relations
     #update_id = Column(Integer, ForeignKey('updates.id'))
@@ -1555,8 +1555,8 @@ class User(Base):
     name = Column(Unicode(64), unique=True, nullable=False)
 
     # One-to-many relationships
-    comments = relation(Comment, backref='user')
-    updates = relation(Update, backref='user')
+    comments = relationship(Comment, backref='user')
+    updates = relationship(Update, backref='user')
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
