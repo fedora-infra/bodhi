@@ -1,5 +1,7 @@
 import rpm
 
+from sqlalchemy.sql import or_
+
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
@@ -193,3 +195,31 @@ def validate_enums(request):
     data['type'] = UpdateType.from_string(data['type'])
     data['severity'] = UpdateSeverity.from_string(data['severity'])
     data['suggest'] = UpdateSuggestion.from_string(data['suggest'])
+
+def validate_releases(request):
+    """Make sure those releases exist"""
+    releases = request.GET.get("releases", '')
+    if not releases:
+        return
+
+    releases = releases.split(',')
+    db = request.db
+    bad_releases = []
+    validated_releases = []
+
+    for r in releases:
+        release = db.query(Release).filter(or_(Release.name==r,
+                                               Release.version==r)).first()
+
+        if not release:
+            bad_releases.append(r)
+
+        validated_releases.append(release)
+
+    if bad_releases:
+        request.errors.add('querystring', 'releases',
+                           "Invalid releases specified: {}".format(
+                               ", ".join(bad_releases)))
+
+    else:
+        request.validated["releases"] = validated_releases
