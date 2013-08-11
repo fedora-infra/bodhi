@@ -234,7 +234,6 @@ class TestWSGIApp(unittest.TestCase):
     def test_new_update(self):
         r = self.app.post_json('/updates', self.get_update('bodhi-2.0.0-2'))
         up = r.json_body
-        print(up)
         self.assertEquals(up['title'], u'bodhi-2.0.0-2')
         self.assertEquals(up['status'], u'pending')
         self.assertEquals(up['request'], u'testing')

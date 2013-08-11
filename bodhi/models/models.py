@@ -262,10 +262,6 @@ class Release(Base):
         """ Return the collection name of this release.  (eg: Fedora EPEL) """
         return ' '.join(self.long_name.split()[:-1])
 
-    def get_version(self):
-        regex = re.compile('\D+(\d+)$')
-        return int(regex.match(self.name).groups()[0])
-
     @classmethod
     def get_tags(cls):
         if cls._tag_cache:
