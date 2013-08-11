@@ -18,7 +18,7 @@ from .schemas import UpdateSchema
 from .security import admin_only_acl, packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
-        validate_releases, validate_type)
+        validate_releases, validate_status, validate_type)
 
 
 updates = Service(name='updates', path='/updates',
@@ -26,7 +26,7 @@ updates = Service(name='updates', path='/updates',
                   acl=packagers_allowed_acl)
 
 
-@updates.get(validators=(validate_releases, validate_type))
+@updates.get(validators=(validate_releases, validate_status, validate_type))
 def query_updates(request):
     # TODO: flexible querying api.
     db = request.db
@@ -36,6 +36,10 @@ def query_updates(request):
     releases = data.get('releases')
     if releases:
         query = query.filter(or_(*[Update.release==r for r in releases]))
+
+    status = data.get('status')
+    if status:
+        query = query.filter_by(status=status)
 
     type = data.get('type')
     if type:
