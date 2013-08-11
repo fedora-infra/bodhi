@@ -249,3 +249,16 @@ def validate_status(request):
     else:
         request.errors.add('querystring', 'status',
                            "Invalid status specified: {}".format(status))
+
+def validate_request(request):
+    """Refuse invalid update requests"""
+    req = request.GET.get("request", "")
+    if not req:
+        return
+
+    if req in UpdateRequest.values():
+        request.validated["request"] = UpdateRequest.from_string(req)
+
+    else:
+        request.errors.add("querystring", "request",
+                           "Invalid request specified: {}".format(req))
