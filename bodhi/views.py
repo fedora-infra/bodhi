@@ -76,12 +76,9 @@ def new_update(request):
         request.errors.add('body', 'builds', 'Unable to create update')
         return
 
-    # Critpath checks
-    # Obsolete any older updates, inherit data
     # Bugzilla interactions
-    # Security checks
-    # Look for test cases on the wiki
     # Set request
+    # Critpath checks
     # Send out email notifications
 
     return up.__json__()
