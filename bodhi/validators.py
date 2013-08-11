@@ -278,3 +278,20 @@ def validate_username(request):
     else:
         request.errors.add("querystring", "username",
                            "Invalid username specified: {}".format(username))
+
+def validate_critpath(request):
+    """Ensure a proper value for the critpath filter"""
+    critpath = request.GET.get("critpath", "")
+    if critpath == "":
+        return
+
+    if critpath.lower() == "true":
+        request.validated["critpath"] = True
+
+    elif critpath.lower() == "false":
+        request.validated["critpath"] = False
+
+    else:
+        request.errors.add("querystring", "critpath",
+                           "Invalid boolean specified for critpath: {}".format(
+                               critpath))
