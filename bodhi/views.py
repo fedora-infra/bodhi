@@ -8,6 +8,7 @@ from pyramid.view import view_config
 from pyramid.response import Response
 from pyramid.exceptions import NotFound, Forbidden
 from cornice import Service
+from sqlalchemy.sql import or_
 
 from . import log, buildsys
 from .models import Release, Build, Package, User, Group, Update, UpdateStatus
@@ -16,7 +17,8 @@ from .util import _, get_nvr
 from .schemas import UpdateSchema
 from .security import admin_only_acl, packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
-        validate_tags, validate_acls, validate_builds, validate_enums)
+        validate_tags, validate_acls, validate_builds, validate_enums,
+        validate_releases)
 
 
 updates = Service(name='updates', path='/updates',
@@ -24,11 +26,18 @@ updates = Service(name='updates', path='/updates',
                   acl=packagers_allowed_acl)
 
 
-@updates.get()
+@updates.get(validators=(validate_releases,))
 def query_updates(request):
     # TODO: flexible querying api.
     db = request.db
-    return dict(updates=[u.__json__() for u in db.query(Update).all()])
+    data = request.validated
+    query = db.query(Update)
+
+    releases = data.get('releases')
+    if releases:
+        query = query.filter(or_(*[Update.release==r for r in releases]))
+
+    return dict(updates=[u.__json__() for u in query.all()])
 
 
 @updates.post(schema=UpdateSchema, permission='create',
