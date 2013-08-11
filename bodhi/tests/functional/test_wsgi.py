@@ -52,7 +52,7 @@ def populate():
     user.groups.append(packager)
     release = Release(
         name=u'F17', long_name=u'Fedora 17',
-        id_prefix=u'FEDORA', dist_tag=u'f17')
+        id_prefix=u'FEDORA', dist_tag=u'f17', version='17')
     session.add(release)
     pkg = Package(name=u'bodhi')
     session.add(pkg)

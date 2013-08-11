@@ -104,7 +104,7 @@ def validate_acls(request):
         if acl_system == 'pkgdb':
             pkgdb_args = {
                 'collectionName': release.collection_name,
-                'collectionVersion': str(release.version),
+                'collectionVersion': release.version,
             }
             try:
                 people, groups = package.get_pkg_pushers(request.pkgdb)
