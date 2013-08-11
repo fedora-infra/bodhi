@@ -5,7 +5,7 @@ from sqlalchemy.sql import or_
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
-                     UpdateSuggestion)
+                     UpdateSuggestion, User)
 from .util import get_nvr
 
 
@@ -262,3 +262,19 @@ def validate_request(request):
     else:
         request.errors.add("querystring", "request",
                            "Invalid request specified: {}".format(req))
+
+def validate_username(request):
+    """Make sure this user exists"""
+    username = request.GET.get("username", "")
+    if not username:
+        return
+
+    db = request.db
+    user = db.query(User).filter_by(name=username).first()
+
+    if user:
+        request.validated["user"] = user
+
+    else:
+        request.errors.add("querystring", "username",
+                           "Invalid username specified: {}".format(username))
