@@ -18,7 +18,8 @@ from .schemas import UpdateSchema
 from .security import admin_only_acl, packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
-        validate_releases, validate_request, validate_status, validate_type)
+        validate_releases, validate_request, validate_status, validate_type,
+        validate_username)
 
 
 updates = Service(name='updates', path='/updates',
@@ -27,7 +28,7 @@ updates = Service(name='updates', path='/updates',
 
 
 @updates.get(validators=(validate_releases, validate_request, validate_status,
-                         validate_type))
+                         validate_type, validate_username))
 def query_updates(request):
     # TODO: flexible querying api.
     db = request.db
@@ -49,6 +50,10 @@ def query_updates(request):
     type = data.get('type')
     if type:
         query = query.filter_by(type=type)
+
+    user = data.get('user')
+    if user:
+        query = query.filter(Update.user==user)
 
     return dict(updates=[u.__json__() for u in query.all()])
 
