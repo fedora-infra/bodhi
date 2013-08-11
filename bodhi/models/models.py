@@ -633,6 +633,7 @@ class Update(Base):
         releases = set()
         builds = []
 
+        # Create the Package and Build entities
         for build in data['builds']:
             name, version, release = buildinfo[build]['nvr']
             package = db.query(Package).filter_by(name=name).first()
@@ -652,6 +653,7 @@ class Update(Base):
         assert len(releases) == 1, "TODO: multi-release updates"
         data['release'] = list(releases)[0]
 
+        # Create the Bug entities
         bugs = []
         for bug_num in data['bugs'].replace(',', ' ').split():
             bug = db.query(Bug).filter_by(bug_id=bug_num).first()
@@ -675,6 +677,7 @@ class Update(Base):
         db.add(up)
         db.flush()
 
+        # Automatically obsolete older testing/pending updates
         up.obsolete_older_updates(request)
 
         return up
