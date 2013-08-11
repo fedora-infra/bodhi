@@ -236,3 +236,16 @@ def validate_type(request):
     else:
         request.errors.add('querystring', 'type',
                            "Invalid type specified: {}".format(type))
+
+def validate_status(request):
+    """Refuse invalid update statuses"""
+    status = request.GET.get("status", "")
+    if not status:
+        return
+
+    if status in UpdateStatus.values():
+        request.validated["status"] = UpdateStatus.from_string(status)
+
+    else:
+        request.errors.add('querystring', 'status',
+                           "Invalid status specified: {}".format(status))
