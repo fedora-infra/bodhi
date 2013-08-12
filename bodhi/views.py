@@ -1,4 +1,3 @@
-from itertools import ifilter
 import json
 
 from pyramid.view import view_config
@@ -52,8 +51,7 @@ def query_updates(request):
 
     critpath = data.get('critpath')
     if critpath is not None:
-        # TODO: Try using a view?
-        query = ifilter(lambda u: u.critpath == critpath, query)
+        query = query.filter_by(critpath=critpath)
 
     submitted_since = data.get('submitted_since')
     if submitted_since:
