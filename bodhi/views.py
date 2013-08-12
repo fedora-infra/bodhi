@@ -55,7 +55,7 @@ def query_updates(request):
     if user:
         query = query.filter(Update.user==user)
 
-    return dict(updates=[u.__json__() for u in query.all()])
+    return dict(updates=[u.__json__() for u in query])
 
 
 @updates.post(schema=UpdateSchema, permission='create',
