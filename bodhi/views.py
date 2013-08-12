@@ -1,22 +1,15 @@
 from itertools import ifilter
 import json
 
-from pprint import pprint
-from beaker.cache import cache_region
-from webhelpers.html.grid import Grid
-from webhelpers.paginate import Page, PageURL_WebOb
 from pyramid.view import view_config
-from pyramid.response import Response
-from pyramid.exceptions import NotFound, Forbidden
+from pyramid.exceptions import NotFound
 from cornice import Service
 from sqlalchemy.sql import or_
 
 from . import log, buildsys
-from .models import Release, Build, Package, User, Group, Update, UpdateStatus
-from .models import UpdateRequest, UpdateSeverity, UpdateType, UpdateSuggestion
-from .util import _, get_nvr
+from .models import Release, Update, UpdateType
 from .schemas import UpdateSchema
-from .security import admin_only_acl, packagers_allowed_acl
+from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
         validate_releases, validate_request, validate_status, validate_type,
