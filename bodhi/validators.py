@@ -1,9 +1,11 @@
 import rpm
 
+from sqlalchemy.sql import or_
+
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
-                     UpdateSuggestion)
+                     UpdateSuggestion, User)
 from .util import get_nvr
 
 
@@ -193,3 +195,103 @@ def validate_enums(request):
     data['type'] = UpdateType.from_string(data['type'])
     data['severity'] = UpdateSeverity.from_string(data['severity'])
     data['suggest'] = UpdateSuggestion.from_string(data['suggest'])
+
+def validate_releases(request):
+    """Make sure those releases exist"""
+    releases = request.GET.get("releases", '')
+    if not releases:
+        return
+
+    releases = releases.split(',')
+    db = request.db
+    bad_releases = []
+    validated_releases = []
+
+    for r in releases:
+        release = db.query(Release).filter(or_(Release.name==r,
+                                               Release.version==r)).first()
+
+        if not release:
+            bad_releases.append(r)
+
+        validated_releases.append(release)
+
+    if bad_releases:
+        request.errors.add('querystring', 'releases',
+                           "Invalid releases specified: {}".format(
+                               ", ".join(bad_releases)))
+
+    else:
+        request.validated["releases"] = validated_releases
+
+def validate_type(request):
+    """Refuse invalid update types"""
+    type = request.GET.get("type", '')
+    if not type:
+        return
+
+    if type in UpdateType.values():
+        request.validated["type"] = UpdateType.from_string(type)
+
+    else:
+        request.errors.add('querystring', 'type',
+                           "Invalid type specified: {}".format(type))
+
+def validate_status(request):
+    """Refuse invalid update statuses"""
+    status = request.GET.get("status", "")
+    if not status:
+        return
+
+    if status in UpdateStatus.values():
+        request.validated["status"] = UpdateStatus.from_string(status)
+
+    else:
+        request.errors.add('querystring', 'status',
+                           "Invalid status specified: {}".format(status))
+
+def validate_request(request):
+    """Refuse invalid update requests"""
+    req = request.GET.get("request", "")
+    if not req:
+        return
+
+    if req in UpdateRequest.values():
+        request.validated["request"] = UpdateRequest.from_string(req)
+
+    else:
+        request.errors.add("querystring", "request",
+                           "Invalid request specified: {}".format(req))
+
+def validate_username(request):
+    """Make sure this user exists"""
+    username = request.GET.get("username", "")
+    if not username:
+        return
+
+    db = request.db
+    user = db.query(User).filter_by(name=username).first()
+
+    if user:
+        request.validated["user"] = user
+
+    else:
+        request.errors.add("querystring", "username",
+                           "Invalid username specified: {}".format(username))
+
+def validate_critpath(request):
+    """Ensure a proper value for the critpath filter"""
+    critpath = request.GET.get("critpath", "")
+    if critpath == "":
+        return
+
+    if critpath.lower() == "true":
+        request.validated["critpath"] = True
+
+    elif critpath.lower() == "false":
+        request.validated["critpath"] = False
+
+    else:
+        request.errors.add("querystring", "critpath",
+                           "Invalid boolean specified for critpath: {}".format(
+                               critpath))
