@@ -571,6 +571,7 @@ class Update(Base):
     # Flags
     locked = Column(Boolean, default=False)
     pushed = Column(Boolean)
+    critpath = Column(Boolean)
 
     # Bug settings
     close_bugs = Column(Boolean, default=True)
@@ -649,6 +650,16 @@ class Update(Base):
         assert len(releases) == 1, "TODO: multi-release updates"
         data['release'] = list(releases)[0]
 
+        critical = False
+        critpath_pkgs = get_critpath_pkgs(data['release'].name.lower())
+        if critpath_pkgs:
+            for build in data['builds']:
+                if build.package.name in critpath_pkgs:
+                    critical = True
+                    break
+
+        data['critpath'] = critical
+
         # Create the Bug entities
         bugs = []
         for bug_num in data['bugs'].replace(',', ' ').split():
@@ -716,6 +727,16 @@ class Update(Base):
                 b.untag(koji=request.koji)
                 up.builds.remove(b)
                 db.delete(b)
+
+        critical = False
+        critpath_pkgs = get_critpath_pkgs(up.release.name.lower())
+        if critpath_pkgs:
+            for build in up.builds:
+                if build.package.name in critpath_pkgs:
+                    critical = True
+                    break
+
+        data['critpath'] = critical
 
         del(data['builds'])
 
@@ -1273,20 +1294,6 @@ class Update(Base):
                 for committer in build.package.committers:
                     people.add(committer.name)
         return list(people)
-
-    @property
-    def critpath(self):
-        """ Return whether or not this update is in the critical path """
-        critical = False
-        critpath_pkgs = get_critpath_pkgs(self.release.name.lower())
-        if not critpath_pkgs:
-            # Optimize case where there's no critpath packages
-            return False
-        for build in self.builds:
-            if build.package.name in critpath_pkgs:
-                critical = True
-                break
-        return critical
 
     @property
     def critpath_approved(self):
