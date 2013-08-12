@@ -8,6 +8,7 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateSuggestion, User)
 from .util import get_nvr
 
+from datetime import datetime
 
 def validate_nvrs(request):
     for build in request.validated.get('builds', []):
@@ -295,3 +296,23 @@ def validate_critpath(request):
         request.errors.add("querystring", "critpath",
                            "Invalid boolean specified for critpath: {}".format(
                                critpath))
+def validate_submitted_since(request):
+    """Ensure date is in the past"""
+    submitted_since = request.GET.get("submitted_since")
+    if not submitted_since:
+        return
+
+    # check if this is a valid ISO date YYYY-MM-DD
+    try:
+        submitted_since_valid = datetime.strptime(submitted_since, "%Y-%m-%d")
+    except ValueError:
+        request.errors.add("querystring", "submitted_since",
+                           "Invalid date specified: {}".format(submitted_since))
+        return
+
+    # check if date is in the past
+    if submitted_since_valid <= datetime.now():
+        request.validated["submitted_since"] = submitted_since_valid
+    else:
+        request.errors.add("querystring", "submitted_since",
+                           "Date in the future: {}".format(submitted_since))
