@@ -12,26 +12,30 @@ Add the following to your `~/.bashrc`::
 
 Bootstrap the virtualenv
 ------------------------
-./bootstrap.py
-workon bodhi-python2.7
-pip install kitchen
-python setup.py develop
+::
+
+    ./bootstrap.py
+    workon bodhi-python2.7
+    pip install kitchen
+    python setup.py develop
 
 Run the test suite
 ------------------
-python setup.py test
+``python setup.py test``
 
 Initialize the database
 -----------------------
-initialize_bodhi_db
+``initialize_bodhi_db``
 
 Migrating Bodhi from v1.0 to v2.0
 ---------------------------------
-curl -O https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
-tar -jxvf bodhi-pickledb.tar.bz2
-rm bodhi-pickledb.tar.bz2
-PYTHONPATH=$(pwd) python tools/pickledb.py migrate bodhi-pickledb*
+::
+
+    curl -O https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
+    tar -jxvf bodhi-pickledb.tar.bz2
+    rm bodhi-pickledb.tar.bz2
+    PYTHONPATH=$(pwd) python tools/pickledb.py migrate bodhi-pickledb*
 
 Run the web app
 ---------------
-pserve development.ini
+``pserve development.ini``
