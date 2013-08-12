@@ -618,7 +618,7 @@ class Update(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
 
     @classmethod
-    def new(self, request, data):
+    def new(cls, request, data):
         """ Create a new update """
         db = request.db
         buildinfo = request.buildinfo
