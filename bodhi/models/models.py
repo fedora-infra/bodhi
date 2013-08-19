@@ -571,7 +571,7 @@ class Update(Base):
     # Flags
     locked = Column(Boolean, default=False)
     pushed = Column(Boolean)
-    critpath = Column(Boolean)
+    critpath = Column(Boolean, default=False)
 
     # Bug settings
     close_bugs = Column(Boolean, default=True)
