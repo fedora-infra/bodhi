@@ -771,11 +771,11 @@ class Update(Base):
         buildinfo = request.buildinfo
         for build in self.builds:
             for oldBuild in db.query(Build).join(Update.builds).filter(
-                Build.nvr != build.nvr,
-                Update.request == None,
-                Update.release == self.release,
-                or_(Update.status == UpdateStatus.testing,
-                    Update.status == UpdateStatus.pending),
+                and_(Build.nvr != build.nvr,
+                     Update.request == None,
+                     Update.release == self.release,
+                     or_(Update.status == UpdateStatus.testing,
+                         Update.status == UpdateStatus.pending))
             ).all():
                 obsoletable = False
                 nvr = buildinfo[build.nvr]['nvr']
