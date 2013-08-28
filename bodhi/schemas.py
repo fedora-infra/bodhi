@@ -5,13 +5,13 @@ from kitchen.iterutils import iterate
 from bodhi.models import UpdateType, UpdateSeverity, UpdateSuggestion, UpdateRequest
 
 
-def build_splitter(value):
+def splitter(value):
     """Parse a string or list of comma or space delimited builds"""
-    builds = []
+    items = []
     for v in iterate(value):
-        for build in v.replace(',', ' ').split():
-            builds.append(build)
-    return builds
+        for item in v.replace(',', ' ').split():
+            items.append(item)
+    return items
 
 
 class Builds(colander.SequenceSchema):
@@ -20,7 +20,7 @@ class Builds(colander.SequenceSchema):
 
 class SaveUpdateSchema(colander.MappingSchema):
     builds = Builds(colander.Sequence(accept_scalar=True),
-                    preparer=[build_splitter])
+                    preparer=[splitter])
 
     bugs = colander.SchemaNode(
         colander.String(),
