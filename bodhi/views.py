@@ -7,7 +7,7 @@ from sqlalchemy.sql import or_
 
 from . import log, buildsys
 from .models import Release, Update, UpdateType
-from .schemas import UpdateSchema
+from .schemas import SaveUpdateSchema
 from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
@@ -60,7 +60,7 @@ def query_updates(request):
     return dict(updates=[u.__json__() for u in query])
 
 
-@updates.post(schema=UpdateSchema, permission='create',
+@updates.post(schema=SaveUpdateSchema, permission='create',
         validators=(validate_nvrs, validate_version, validate_builds,
                     validate_uniqueness, validate_tags, validate_acls,
                     validate_enums))

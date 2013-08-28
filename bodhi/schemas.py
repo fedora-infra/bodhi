@@ -14,7 +14,7 @@ def build_splitter(value):
     return builds
 
 
-class UpdateSchema(colander.MappingSchema):
+class SaveUpdateSchema(colander.MappingSchema):
 
     @colander.instantiate(
         colander.Sequence(accept_scalar=True),
