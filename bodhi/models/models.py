@@ -662,7 +662,7 @@ class Update(Base):
 
         # Create the Bug entities
         bugs = []
-        for bug_num in data['bugs'].replace(',', ' ').split():
+        for bug_num in data['bugs']:
             bug = db.query(Bug).filter_by(bug_id=bug_num).first()
             if not bug:
                 bug = Bug(bug_id=bug_num)
@@ -751,7 +751,7 @@ class Update(Base):
         # Updates with new or removed builds always go back to testing
         data['request'] = UpdateRequest.testing
 
-        up.update_bugs(data['bugs'].replace(',', ' ').split())
+        up.update_bugs(data['bugs'])
         del(data['bugs'])
 
         data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))

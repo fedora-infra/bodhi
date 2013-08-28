@@ -9,9 +9,18 @@ def splitter(value):
     """Parse a string or list of comma or space delimited builds"""
     items = []
     for v in iterate(value):
-        for item in v.replace(',', ' ').split():
-            items.append(item)
+        if isinstance(v, basestring):
+            for item in v.replace(',', ' ').split():
+                items.append(item)
+
+        elif v is not None:
+            items.append(v)
+
     return items
+
+
+class Bugs(colander.SequenceSchema):
+    bug = colander.SchemaNode(colander.Integer(), missing=None)
 
 
 class Builds(colander.SequenceSchema):
@@ -22,10 +31,9 @@ class SaveUpdateSchema(colander.MappingSchema):
     builds = Builds(colander.Sequence(accept_scalar=True),
                     preparer=[splitter])
 
-    bugs = colander.SchemaNode(
-        colander.String(),
-        missing='',
-    )
+    bugs = Bugs(colander.Sequence(accept_scalar=True),
+                preparer=[splitter])
+
     close_bugs = colander.SchemaNode(
         colander.Boolean(),
         missing=True,
