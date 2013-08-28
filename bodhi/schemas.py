@@ -14,17 +14,13 @@ def build_splitter(value):
     return builds
 
 
-class SaveUpdateSchema(colander.MappingSchema):
+class Builds(colander.SequenceSchema):
+    build = colander.SchemaNode(colander.String())
 
-    @colander.instantiate(
-        colander.Sequence(accept_scalar=True),
-        preparer=[build_splitter]
-    )
-    class builds(colander.SequenceSchema):
-        build = colander.SchemaNode(
-            colander.String(),
-            title='Build name-version-release',
-        )
+
+class SaveUpdateSchema(colander.MappingSchema):
+    builds = Builds(colander.Sequence(accept_scalar=True),
+                    preparer=[build_splitter])
 
     bugs = colander.SchemaNode(
         colander.String(),
