@@ -415,7 +415,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'request')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid request specified: impossible")
+                          '"impossible" is not one of unpush, testing, obsolete, stable')
 
     def test_list_updates_by_status(self):
         res = self.app.get('/updates', {"status": "pending"})

@@ -88,6 +88,13 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    request = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(UpdateRequest.values()),
+    )
+
     type = colander.SchemaNode(
         colander.String(),
         location="querystring",

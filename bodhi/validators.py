@@ -248,16 +248,11 @@ def validate_status(request):
 
 def validate_request(request):
     """Refuse invalid update requests"""
-    req = request.GET.get("request", "")
-    if not req:
+    req = request.validated.get("request")
+    if req is None:
         return
 
-    if req in UpdateRequest.values():
-        request.validated["request"] = UpdateRequest.from_string(req)
-
-    else:
-        request.errors.add("querystring", "request",
-                           "Invalid request specified: {}".format(req))
+    request.validated["request"] = UpdateRequest.from_string(req)
 
 def validate_username(request):
     """Make sure this user exists"""
