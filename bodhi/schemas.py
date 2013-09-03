@@ -8,6 +8,9 @@ from bodhi.models import (UpdateRequest, UpdateSeverity, UpdateStatus,
 
 def splitter(value):
     """Parse a string or list of comma or space delimited builds"""
+    if value == colander.null:
+        return
+
     items = []
     for v in iterate(value):
         if isinstance(v, basestring):
@@ -26,6 +29,10 @@ class Bugs(colander.SequenceSchema):
 
 class Builds(colander.SequenceSchema):
     build = colander.SchemaNode(colander.String())
+
+
+class Releases(colander.SequenceSchema):
+    release = colander.SchemaNode(colander.String())
 
 
 class SaveUpdateSchema(colander.MappingSchema):
@@ -87,6 +94,13 @@ class ListUpdateSchema(colander.MappingSchema):
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",
         missing=None,
+    )
+
+    releases = Releases(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
     )
 
     request = colander.SchemaNode(

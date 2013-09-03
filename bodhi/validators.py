@@ -203,11 +203,10 @@ def validate_enums(request):
 
 def validate_releases(request):
     """Make sure those releases exist"""
-    releases = request.GET.get("releases", '')
-    if not releases:
+    releases = request.validated.get("releases")
+    if releases is None:
         return
 
-    releases = releases.split(',')
     db = request.db
     bad_releases = []
     validated_releases = []

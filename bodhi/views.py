@@ -28,7 +28,7 @@ def query_updates(request):
     query = db.query(Update)
 
     releases = data.get('releases')
-    if releases:
+    if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))
 
     req = data.get('request')
