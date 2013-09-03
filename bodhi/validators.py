@@ -218,7 +218,8 @@ def validate_releases(request):
         if not release:
             bad_releases.append(r)
 
-        validated_releases.append(release)
+        else:
+            validated_releases.append(release)
 
     if bad_releases:
         request.errors.add('querystring', 'releases',
