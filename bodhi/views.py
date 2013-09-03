@@ -39,7 +39,7 @@ def query_updates(request):
         query = query.filter_by(request=req)
 
     status = data.get('status')
-    if status:
+    if status is not None:
         query = query.filter_by(status=status)
 
     type = data.get('type')

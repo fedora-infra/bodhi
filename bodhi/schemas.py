@@ -2,7 +2,8 @@ import colander
 
 from kitchen.iterutils import iterate
 
-from bodhi.models import UpdateType, UpdateSeverity, UpdateSuggestion, UpdateRequest
+from bodhi.models import (UpdateRequest, UpdateSeverity, UpdateStatus,
+                          UpdateSuggestion, UpdateType)
 
 
 def splitter(value):
@@ -93,6 +94,13 @@ class ListUpdateSchema(colander.MappingSchema):
         location="querystring",
         missing=None,
         validator=colander.OneOf(UpdateRequest.values()),
+    )
+
+    status = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(UpdateStatus.values()),
     )
 
     type = colander.SchemaNode(

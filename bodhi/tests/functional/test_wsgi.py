@@ -453,7 +453,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'status')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid status specified: single")
+                          '"single" is not one of testing, processing, obsolete, stable, unpushed, pending')
 
     def test_list_updates_by_type(self):
         res = self.app.get('/updates', {"type": "bugfix"})
