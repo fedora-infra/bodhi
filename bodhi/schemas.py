@@ -129,3 +129,9 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
         validator=colander.OneOf(UpdateType.values()),
     )
+
+    user = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )

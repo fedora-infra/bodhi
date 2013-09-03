@@ -493,7 +493,7 @@ class TestWSGIApp(unittest.TestCase):
                           '"not_my" is not one of newpackage, bugfix, security, enhancement')
 
     def test_list_updates_by_username(self):
-        res = self.app.get('/updates', {"username": "guest"})
+        res = self.app.get('/updates', {"user": "guest"})
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
 
@@ -522,13 +522,13 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['karma'], 0)
 
     def test_list_updates_by_unexisting_username(self):
-        res = self.app.get('/updates', {"username": "santa"},
+        res = self.app.get('/updates', {"user": "santa"},
                            status=400)
         body = res.json_body
         self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'username')
+        self.assertEquals(res.json_body['errors'][0]['name'], 'user')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid username specified: santa")
+                          "Invalid user specified: santa")
 
     def test_put_json_update(self):
         self.app.put_json('/updates', self.get_update(), status=405)

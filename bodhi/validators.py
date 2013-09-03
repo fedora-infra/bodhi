@@ -231,8 +231,8 @@ def validate_releases(request):
 
 def validate_username(request):
     """Make sure this user exists"""
-    username = request.GET.get("username", "")
-    if not username:
+    username = request.validated.get("user")
+    if username is None:
         return
 
     db = request.db
@@ -242,5 +242,5 @@ def validate_username(request):
         request.validated["user"] = user
 
     else:
-        request.errors.add("querystring", "username",
-                           "Invalid username specified: {}".format(username))
+        request.errors.add("querystring", "user",
+                           "Invalid user specified: {}".format(username))

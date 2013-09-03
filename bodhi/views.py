@@ -44,7 +44,7 @@ def query_updates(request):
         query = query.filter_by(type=type)
 
     user = data.get('user')
-    if user:
+    if user is not None:
         query = query.filter(Update.user==user)
 
     critpath = data.get('critpath')
