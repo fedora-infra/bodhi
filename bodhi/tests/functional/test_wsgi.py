@@ -261,7 +261,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'critpath')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid boolean specified for critpath: lalala")
+                          '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
     def test_list_updates_by_date_submitted_invalid_date(self):
         """test filtering by submitted date with an invalid date"""

@@ -7,12 +7,12 @@ from sqlalchemy.sql import or_
 
 from . import log, buildsys
 from .models import Release, Update, UpdateType
-from .schemas import SaveUpdateSchema
+from .schemas import ListUpdateSchema, SaveUpdateSchema
 from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
         validate_releases, validate_request, validate_status, validate_type,
-        validate_username, validate_critpath, validate_submitted_since)
+        validate_username, validate_submitted_since)
 
 
 updates = Service(name='updates', path='/updates',
@@ -20,8 +20,9 @@ updates = Service(name='updates', path='/updates',
                   acl=packagers_allowed_acl)
 
 
-@updates.get(validators=(validate_releases, validate_request, validate_status,
-                         validate_type, validate_username, validate_critpath,
+@updates.get(schema=ListUpdateSchema,
+             validators=(validate_releases, validate_request, validate_status,
+                         validate_type, validate_username,
                          validate_submitted_since))
 def query_updates(request):
     # TODO: flexible querying api.
