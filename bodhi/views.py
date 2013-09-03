@@ -27,6 +27,10 @@ def query_updates(request):
     data = request.validated
     query = db.query(Update)
 
+    critpath = data.get('critpath')
+    if critpath is not None:
+        query = query.filter_by(critpath=critpath)
+
     releases = data.get('releases')
     if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))
@@ -39,6 +43,10 @@ def query_updates(request):
     if status is not None:
         query = query.filter_by(status=status)
 
+    submitted_since = data.get('submitted_since')
+    if submitted_since is not None:
+        query = query.filter(Update.date_submitted >= submitted_since)
+
     type = data.get('type')
     if type is not None:
         query = query.filter_by(type=type)
@@ -46,14 +54,6 @@ def query_updates(request):
     user = data.get('user')
     if user is not None:
         query = query.filter(Update.user==user)
-
-    critpath = data.get('critpath')
-    if critpath is not None:
-        query = query.filter_by(critpath=critpath)
-
-    submitted_since = data.get('submitted_since')
-    if submitted_since is not None:
-        query = query.filter(Update.date_submitted >= submitted_since)
 
     return dict(updates=[u.__json__() for u in query])
 
