@@ -491,7 +491,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'type')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid type specified: not_my")
+                          '"not_my" is not one of newpackage, bugfix, security, enhancement')
 
     def test_list_updates_by_username(self):
         res = self.app.get('/updates', {"username": "guest"})

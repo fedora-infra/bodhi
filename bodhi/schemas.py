@@ -87,3 +87,10 @@ class ListUpdateSchema(colander.MappingSchema):
         location="querystring",
         missing=None,
     )
+
+    type = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(UpdateType.values()),
+    )

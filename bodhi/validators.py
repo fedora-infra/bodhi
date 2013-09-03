@@ -227,16 +227,11 @@ def validate_releases(request):
 
 def validate_type(request):
     """Refuse invalid update types"""
-    type = request.GET.get("type", '')
-    if not type:
+    type = request.validated.get("type")
+    if type is None:
         return
 
-    if type in UpdateType.values():
-        request.validated["type"] = UpdateType.from_string(type)
-
-    else:
-        request.errors.add('querystring', 'type',
-                           "Invalid type specified: {}".format(type))
+    request.validated["type"] = UpdateType.from_string(type)
 
 def validate_status(request):
     """Refuse invalid update statuses"""

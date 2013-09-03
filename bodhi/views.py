@@ -43,7 +43,7 @@ def query_updates(request):
         query = query.filter_by(status=status)
 
     type = data.get('type')
-    if type:
+    if type is not None:
         query = query.filter_by(type=type)
 
     user = data.get('user')
