@@ -11,8 +11,7 @@ from .schemas import ListUpdateSchema, SaveUpdateSchema
 from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
-        validate_releases, validate_request, validate_status, validate_type,
-        validate_username, validate_submitted_since)
+        validate_releases, validate_username, validate_submitted_since)
 
 
 updates = Service(name='updates', path='/updates',
@@ -21,8 +20,7 @@ updates = Service(name='updates', path='/updates',
 
 
 @updates.get(schema=ListUpdateSchema,
-             validators=(validate_releases, validate_request, validate_status,
-                         validate_type, validate_username,
+             validators=(validate_releases, validate_enums, validate_username,
                          validate_submitted_since))
 def query_updates(request):
     # TODO: flexible querying api.

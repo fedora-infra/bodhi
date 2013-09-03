@@ -191,11 +191,16 @@ def validate_uniqueness(request):
 
 def validate_enums(request):
     """Convert from strings to our enumerated types"""
-    data = request.validated
-    data['request'] = UpdateRequest.from_string(data['request'])
-    data['type'] = UpdateType.from_string(data['type'])
-    data['severity'] = UpdateSeverity.from_string(data['severity'])
-    data['suggest'] = UpdateSuggestion.from_string(data['suggest'])
+    for param, enum in (("request", UpdateRequest),
+                        ("severity", UpdateSeverity),
+                        ("status", UpdateStatus),
+                        ("suggest", UpdateSuggestion),
+                        ("type", UpdateType)):
+        value = request.validated.get(param)
+        if value is None:
+            continue
+
+        request.validated[param] = enum.from_string(value)
 
 def validate_releases(request):
     """Make sure those releases exist"""
@@ -224,30 +229,6 @@ def validate_releases(request):
 
     else:
         request.validated["releases"] = validated_releases
-
-def validate_type(request):
-    """Refuse invalid update types"""
-    type = request.validated.get("type")
-    if type is None:
-        return
-
-    request.validated["type"] = UpdateType.from_string(type)
-
-def validate_status(request):
-    """Refuse invalid update statuses"""
-    status = request.validated.get("status")
-    if status is None:
-        return
-
-    request.validated["status"] = UpdateStatus.from_string(status)
-
-def validate_request(request):
-    """Refuse invalid update requests"""
-    req = request.validated.get("request")
-    if req is None:
-        return
-
-    request.validated["request"] = UpdateRequest.from_string(req)
 
 def validate_username(request):
     """Make sure this user exists"""
