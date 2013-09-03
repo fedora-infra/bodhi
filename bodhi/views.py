@@ -6,7 +6,7 @@ from cornice import Service
 from sqlalchemy.sql import or_
 
 from . import log, buildsys
-from .models import Build, Package, Release, Update, UpdateType
+from .models import Bug, Build, Package, Release, Update, UpdateType
 from .schemas import ListUpdateSchema, SaveUpdateSchema
 from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
@@ -26,6 +26,11 @@ def query_updates(request):
     db = request.db
     data = request.validated
     query = db.query(Update)
+
+    bugs = data.get('bugs')
+    if bugs is not None:
+        query = query.join(Update.bugs)
+        query = query.filter(or_(*[Bug.bug_id==bug_id for bug_id in bugs]))
 
     critpath = data.get('critpath')
     if critpath is not None:

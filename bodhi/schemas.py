@@ -94,6 +94,13 @@ class SaveUpdateSchema(colander.MappingSchema):
 
 
 class ListUpdateSchema(colander.MappingSchema):
+    bugs = Bugs(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
     critpath = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",
