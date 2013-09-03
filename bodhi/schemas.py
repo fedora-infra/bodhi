@@ -79,3 +79,11 @@ class SaveUpdateSchema(colander.MappingSchema):
         colander.String(),
         missing='',
     )
+
+
+class ListUpdateSchema(colander.MappingSchema):
+    critpath = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
