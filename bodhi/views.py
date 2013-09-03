@@ -11,7 +11,7 @@ from .schemas import ListUpdateSchema, SaveUpdateSchema
 from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
-        validate_releases, validate_username, validate_submitted_since)
+        validate_releases, validate_username)
 
 
 updates = Service(name='updates', path='/updates',
@@ -20,8 +20,7 @@ updates = Service(name='updates', path='/updates',
 
 
 @updates.get(schema=ListUpdateSchema,
-             validators=(validate_releases, validate_enums, validate_username,
-                         validate_submitted_since))
+             validators=(validate_releases, validate_enums, validate_username))
 def query_updates(request):
     # TODO: flexible querying api.
     db = request.db
@@ -53,7 +52,7 @@ def query_updates(request):
         query = query.filter_by(critpath=critpath)
 
     submitted_since = data.get('submitted_since')
-    if submitted_since:
+    if submitted_since is not None:
         query = query.filter(Update.date_submitted >= submitted_since)
 
     return dict(updates=[u.__json__() for u in query])

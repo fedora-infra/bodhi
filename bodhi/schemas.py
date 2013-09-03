@@ -103,6 +103,12 @@ class ListUpdateSchema(colander.MappingSchema):
         validator=colander.OneOf(UpdateStatus.values()),
     )
 
+    submitted_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     type = colander.SchemaNode(
         colander.String(),
         location="querystring",

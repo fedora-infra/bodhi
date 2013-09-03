@@ -1,6 +1,6 @@
 import unittest
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from webtest import TestApp
 from sqlalchemy import create_engine
 
@@ -271,17 +271,13 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(body['errors'][0]['name'], 'submitted_since')
         self.assertEquals(body['errors'][0]['description'],
-                          'Invalid date specified: 11-01-1984')
+                          'Invalid date')
 
     def test_list_updates_by_date_submitted_future_date(self):
         """test filtering by submitted date with future date"""
-        res = self.app.get('/updates', {"submitted_since": "2099-01-01"},
-            status=400)
+        res = self.app.get('/updates', {"submitted_since": "2099-01-01"})
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(body['errors'][0]['name'], 'submitted_since')
-        self.assertEquals(body['errors'][0]['description'],
-                          'Date in the future: 2099-01-01')
+        self.assertEquals(len(body['updates']), 0)
 
     def test_list_updates_by_date_submitted_valid(self):
         """test filtering by submitted date with valid data"""
