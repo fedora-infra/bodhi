@@ -6,7 +6,7 @@ from cornice import Service
 from sqlalchemy.sql import or_
 
 from . import log, buildsys
-from .models import Release, Update, UpdateType
+from .models import Build, Package, Release, Update, UpdateType
 from .schemas import ListUpdateSchema, SaveUpdateSchema
 from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
@@ -30,6 +30,11 @@ def query_updates(request):
     critpath = data.get('critpath')
     if critpath is not None:
         query = query.filter_by(critpath=critpath)
+
+    packages = data.get('packages')
+    if packages is not None:
+        query = query.join(Update.builds).join(Build.package)
+        query = query.filter(or_(*[Package.name==pkg for pkg in packages]))
 
     releases = data.get('releases')
     if releases is not None:

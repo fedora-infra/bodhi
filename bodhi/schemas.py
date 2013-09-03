@@ -31,6 +31,10 @@ class Builds(colander.SequenceSchema):
     build = colander.SchemaNode(colander.String())
 
 
+class Packages(colander.SequenceSchema):
+    package = colander.SchemaNode(colander.String())
+
+
 class Releases(colander.SequenceSchema):
     release = colander.SchemaNode(colander.String())
 
@@ -94,6 +98,13 @@ class ListUpdateSchema(colander.MappingSchema):
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",
         missing=None,
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
     )
 
     releases = Releases(
