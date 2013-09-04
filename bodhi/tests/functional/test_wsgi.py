@@ -275,7 +275,10 @@ class TestWSGIApp(unittest.TestCase):
 
     def test_list_updates_by_date_submitted_future_date(self):
         """test filtering by submitted date with future date"""
-        res = self.app.get('/updates', {"submitted_since": "2099-01-01"})
+        tomorrow = datetime.now() + timedelta(days=1)
+        tomorrow = tomorrow.strftime("%Y-%m-%d")
+
+        res = self.app.get('/updates', {"submitted_since": tomorrow})
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
