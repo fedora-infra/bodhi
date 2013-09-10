@@ -472,6 +472,7 @@ def send(to, msg_type, update, sender=None):
                    "X-Bodhi-Update-Title": update.title,
                    "X-Bodhi-Update-Pushed": update.pushed,
                    "X-Bodhi-Update-Request": update.request,
+                   "X-Bodhi-Update-Submitter": update.submitter,
                   }
         initial_message_id = "<bodhi-update-%s-%s-%s@%s>" % (update.id, update.submitter, update.release.name, config.get('message_id_email_domain'))
         if msg_type == 'new':
