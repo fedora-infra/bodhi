@@ -283,3 +283,72 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Clean up
         shutil.rmtree(temprepo)
+
+    def test_extended_metadata_updating_with_old_security(self):
+        # grab the name of a build in updates-testing, and create it in our db
+        koji = get_session()
+        builds = koji.listTagged('dist-f13-updates-testing', latest=True)
+
+        # Create all of the necessary database entries
+        release = Release(name='F13', long_name='Fedora 13', id_prefix='FEDORA',
+                          dist_tag='dist-f13')
+        package = Package(name=builds[0]['package_name'])
+        update = PackageUpdate(title=builds[0]['nvr'],
+                               release=release,
+                               submitter=builds[0]['owner_name'],
+                               status='testing',
+                               notes='foobar',
+                               type='security')
+        build = PackageBuild(nvr=builds[0]['nvr'], package=package)
+        update.addPackageBuild(build)
+
+        update.assign_id()
+
+        ## Initialize our temporary repo
+        temprepo = join(tempfile.mkdtemp('bodhi'), 'f7-updates-testing')
+        print "Inserting updateinfo into temprepo: %s" % temprepo
+        mkmetadatadir(join(temprepo, 'i386'))
+        repodata = join(temprepo, 'i386', 'repodata')
+        assert exists(join(repodata, 'repomd.xml'))
+
+        ## Generate the XML
+        md = ExtendedMetadata(temprepo)
+
+        ## Insert the updateinfo.xml into the repository
+        md.insert_updateinfo()
+        updateinfo = join(repodata, 'updateinfo.xml.gz')
+        assert exists(updateinfo)
+
+        # Create a new non-security update for the same package
+        newbuild = 'TurboGears-1.0.2.2-3.fc7'
+        update = PackageUpdate(title=newbuild,
+                               release=release,
+                               submitter=builds[0]['owner_name'],
+                               status='testing',
+                               notes='foobar',
+                               type='enhancement')
+        build = PackageBuild(nvr=newbuild, package=package)
+        update.addPackageBuild(build)
+        update.assign_id()
+
+        ## Test out updateinfo.xml updating via our ExtendedMetadata
+        md = ExtendedMetadata(temprepo, updateinfo)
+        md.insert_updateinfo()
+        assert exists(updateinfo)
+
+        ## Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+        assert len(uinfo.get_notices()) == 2, len(uinfo.get_notices())
+        assert uinfo.get_notice(get_nvr('TurboGears-1.0.2.2-2.fc7'))
+        notice = uinfo.get_notice(get_nvr(update.title))
+        assert notice, 'Cannot find update for %r' % get_nvr(update.title)
+        assert notice['status'] == update.status
+        assert notice['updated'] == update.date_modified
+        assert notice['from'] == str(config.get('bodhi_email'))
+        assert notice['description'] == update.notes
+        assert notice['issued'] is not None
+        assert notice['update_id'] == update.updateid
+
+        ## Clean up
+        shutil.rmtree(temprepo)
