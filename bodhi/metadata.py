@@ -53,6 +53,7 @@ class ExtendedMetadata(object):
             umd = UpdateMetadata()
             umd.add(cacheduinfo)
             existing_ids = set([up['update_id'] for up in umd.get_notices()])
+            seen_ids = set()
 
             # Generate metadata for any new builds
             for update in self.updates:
@@ -61,6 +62,7 @@ class ExtendedMetadata(object):
                     log.debug('Adding new update notice: %s' % update.title)
                     if update.updateid in existing_ids:
                         existing_ids.remove(update.updateid)
+                    seen_ids.add(update.updateid)
                 else:
                     missing_ids.append(update.title)
 
@@ -70,8 +72,13 @@ class ExtendedMetadata(object):
                     log.debug("Adding existing notice: %s" % notice['title'])
                     self._add_notice(notice)
                     existing_ids.remove(notice['update_id'])
+                    seen_ids.add(notice['update_id'])
                 else:
                     if notice['type'] == 'security':
+                        if notice['update_id'] in seen_ids:
+                            log.debug('Skipping security update with ' +
+                                      'duplicate ID: %(update_id)s' % notice)
+                            continue
                         log.debug("Adding existing security notice: %s" %
                                   notice['title'])
                         self._add_notice(notice)
