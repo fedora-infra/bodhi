@@ -14,6 +14,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'pyramid',
+    'pyramid_mako',
     'pyramid_beaker',
     'pyramid_debugtoolbar',
     'pyramid_tm',

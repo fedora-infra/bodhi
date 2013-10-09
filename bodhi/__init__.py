@@ -73,6 +73,7 @@ def main(global_config, testing=None, **settings):
                           session_factory=session_factory)
 
     # Plugins
+    config.include('pyramid_mako')
     config.include('cornice')
 
     # Lazy-loaded memoized request properties
@@ -83,7 +84,7 @@ def main(global_config, testing=None, **settings):
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
 
     # Templating
-    config.add_renderer(".html", "pyramid.mako_templating.renderer_factory")
+    config.add_renderer(".html", "pyramid_mako.renderer_factory")
     config.add_static_view('static', 'bodhi:static')
 
     # i18n
