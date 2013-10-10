@@ -9,6 +9,7 @@ import shutil
 import tempfile
 
 from os.path import join, exists
+from datetime import datetime
 from bodhi.util import mkmetadatadir, get_nvr
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
                          PackageBuild)
@@ -202,6 +203,8 @@ class TestExtendedMetadata(testutil.DBTest):
         shutil.rmtree(temprepo)
 
     def test_extended_metadata_updating_with_edited_updates(self):
+        testutil.capture_log(['bodhi.metadata'])
+
         # grab the name of a build in updates-testing, and create it in our db
         koji = get_session()
         builds = koji.listTagged('dist-f13-updates-testing', latest=True)
@@ -257,8 +260,7 @@ class TestExtendedMetadata(testutil.DBTest):
         update.removePackageBuild(build)
         update.addPackageBuild(newbuild)
         update.title = nvr
-
-        testutil.capture_log(['bodhi.metadata'])
+        update.date_modified = datetime.utcnow()
 
         ## Test out updateinfo.xml updating via our ExtendedMetadata
         md = ExtendedMetadata(temprepo, updateinfo)
