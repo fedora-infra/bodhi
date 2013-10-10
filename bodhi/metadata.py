@@ -163,6 +163,8 @@ class ExtendedMetadata(object):
         self._insert(root, 'title', text=notice['title'])
         self._insert(root, 'release', text=notice['release'])
         self._insert(root, 'issued', attrs={ 'date' : notice['issued'] })
+        if notice['updated']:
+            self._insert(root, 'updated', attrs={ 'date' : notice['updated'] })
         self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
 
         ## Build the references
@@ -224,6 +226,10 @@ class ExtendedMetadata(object):
         self._insert(root, 'issued', attrs={
             'date' : update.date_pushed.strftime('%Y-%m-%d %H:%M:%S'),
         })
+        if update.date_modified:
+            self._insert(root, 'updated', attrs={
+                'date' : update.date_modified.strftime('%Y-%m-%d %H:%M:%S'),
+            })
 
         ## Build the references
         refs = self.doc.createElement('references')
