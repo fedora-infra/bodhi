@@ -91,6 +91,12 @@ class ExtendedMetadata(object):
                         self.add_update(update)
                 else:
                     missing_ids.append(update.title)
+
+            # Add older security updates (#259)
+            for update_id, notice in cached_notices.items():
+                if notice['type'] == 'security' and update_id not in seen_ids:
+                    log.debug('Adding older security update %r' % notice['title'])
+                    self._add_notice(notice)
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:
