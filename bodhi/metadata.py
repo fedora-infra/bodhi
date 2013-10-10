@@ -20,6 +20,7 @@ import logging
 
 from xml.dom import minidom
 from os.path import join, exists
+from datetime import datetime
 from sqlobject import SQLObjectNotFound
 from turbogears import config
 from urlgrabber.grabber import URLGrabError, urlgrab
@@ -52,42 +53,49 @@ class ExtendedMetadata(object):
             log.debug("Loading cached updateinfo.xml.gz")
             umd = UpdateMetadata()
             umd.add(cacheduinfo)
-            existing_ids = set([up['update_id'] for up in umd.get_notices()])
             seen_ids = set()
 
-            # Generate metadata for any new builds
+            cached_notices = {}
+            for up in umd.get_notices():
+                cached_notices[up['update_id']] = up
+
             for update in self.updates:
                 if update.updateid:
-                    self.add_update(update)
-                    log.debug('Adding new update notice: %s' % update.title)
-                    if update.updateid in existing_ids:
-                        existing_ids.remove(update.updateid)
+                    if update.updateid in seen_ids:
+                        log.debug('Skipping duplicate update: %s' % update.title)
+                        continue
                     seen_ids.add(update.updateid)
+                    if update.updateid in cached_notices:
+                        cached_notice = cached_notices[update.updateid]
+                        if not cached_notice:
+                            log.debug('Updating modified notice for %s' % update.title)
+                            self.add_update(update)
+                            continue
+                        updated = cached_notice['updated']
+                        if updated:
+                            updated = datetime.strptime(updated, '%Y-%m-%d %H:%M:%S')
+                            if update.date_modified > updated:
+                                log.debug('Updating old notice for %s' % update.title)
+                                self.add_update(update)
+                            else:
+                                log.debug('Adding cached notice for %s' % update.title)
+                                self._add_notice(cached_notice)
+                        elif update.date_modified:
+                            log.debug('Updating old notice for %s' % update.title)
+                            self.add_update(update)
+                        else:
+                            log.debug('Adding cached notice for %s' % update.title)
+                            self._add_notice(cached_notice)
+                    else:
+                        log.debug('Adding new update notice: %s' % update.title)
+                        self.add_update(update)
                 else:
                     missing_ids.append(update.title)
-
-            # Add all relevant notices from the metadata to this document
-            for notice in umd.get_notices():
-                if notice['update_id'] in existing_ids:
-                    log.debug("Adding existing notice: %s" % notice['title'])
-                    self._add_notice(notice)
-                    existing_ids.remove(notice['update_id'])
-                    seen_ids.add(notice['update_id'])
-                else:
-                    if notice['type'] == 'security':
-                        if notice['update_id'] in seen_ids:
-                            log.debug('Skipping security update with ' +
-                                      'duplicate ID: %(update_id)s' % notice)
-                            continue
-                        log.debug("Adding existing security notice: %s" %
-                                  notice['title'])
-                        self._add_notice(notice)
-                    else:
-                        log.debug("Removing %s from updateinfo" % notice['title'])
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:
                 if update.updateid:
+                    log.debug('New update: %r %r' % (update.updateid, update.title))
                     self.add_update(update)
                 else:
                     missing_ids.append(update.title)
