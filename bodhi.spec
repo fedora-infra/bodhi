@@ -2,7 +2,7 @@
 %{!?pyver: %global pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.9.6.1
+Version:        0.9.7.3
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -133,14 +133,32 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Fri Oct 11 2013 Luke Macken <lmacken@redhat.com> - 0.9.7.3-1
+- Update to 0.9.7.3
+
+* Tue Oct 08 2013 Luke Macken <lmacken@redhat.com> - 0.9.7.2-1
+- Update to 0.9.7.2
+
+* Tue Sep 24 2013 Luke Macken <lmacken@redhat.com> - 0.9.7.1-1
+- Update to 0.9.7.1
+
+* Tue Sep 10 2013 Luke Macken <lmacken@redhat.com> - 0.9.7-1
+- Update to 0.9.7
+
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.5-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
 * Wed May 29 2013 Luke Macken <lmacken@redhat.com> - 0.9.5-2
 - Update the man page
 
 * Mon May 13 2013 Luke Macken <lmacken@redhat.com> - 0.9.5-1
-- New bugfix release to work with python-bugzilla-0.8.0
+- New bugfix release to work with python-bugzilla 0.8.0
 
 * Fri Feb 22 2013 Luke Macken <lmacken@redhat.com> - 0.9.4-1
 - New bugfix release
+
+* Wed Feb 13 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.9.3-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
 * Tue Nov 13 2012 Luke Macken <lmacken@redhat.com> - 0.9.3-1
 - 0.9.3 bugfix release
