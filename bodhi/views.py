@@ -62,6 +62,10 @@ def query_updates(request):
     if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))
 
+    releng_approved = data.get('releng_approved')
+    if releng_approved is not None:
+        query = query.filter_by(releng_approved=releng_approved)
+
     req = data.get('request')
     if req is not None:
         query = query.filter_by(request=req)
