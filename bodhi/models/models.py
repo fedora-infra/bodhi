@@ -566,7 +566,7 @@ class Update(Base):
                     nullable=False)
     request = Column(UpdateRequest.db_type(), default=UpdateRequest.testing)
     severity = Column(UpdateSeverity.db_type(), default=UpdateSeverity.unspecified)
-    suggest = Column(UpdateSuggestion.db_type(), nullable=True)
+    suggest = Column(UpdateSuggestion.db_type(), default=UpdateSuggestion.unspecified)
 
     # Flags
     locked = Column(Boolean, default=False)
