@@ -113,6 +113,12 @@ class SaveUpdateSchema(colander.MappingSchema):
 
 
 class ListUpdateSchema(colander.MappingSchema):
+    approved_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     bugs = Bugs(
         colander.Sequence(accept_scalar=True),
         location="querystring",

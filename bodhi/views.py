@@ -26,6 +26,10 @@ def query_updates(request):
     data = request.validated
     query = db.query(Update)
 
+    approved_since = data.get('approved_since')
+    if approved_since is not None:
+        query = query.filter(Update.date_approved >= approved_since)
+
     bugs = data.get('bugs')
     if bugs is not None:
         query = query.join(Update.bugs)
