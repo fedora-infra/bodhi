@@ -1,9 +1,14 @@
+import re
+
 import colander
 
 from kitchen.iterutils import iterate
 
 from bodhi.models import (UpdateRequest, UpdateSeverity, UpdateStatus,
                           UpdateSuggestion, UpdateType)
+
+
+CVE_REGEX = re.compile(r"CVE-[0-9]{4,4}-[0-9]{4,}")
 
 
 def splitter(value):
@@ -29,6 +34,20 @@ class Bugs(colander.SequenceSchema):
 
 class Builds(colander.SequenceSchema):
     build = colander.SchemaNode(colander.String())
+
+
+class CVE(colander.String):
+    def deserialize(self, node, cstruct):
+        value = super(CVE, self).deserialize(node, cstruct)
+
+        if CVE_REGEX.match(value) is None:
+            raise colander.Invalid(node, '"%s" is not a valid CVE id' % value)
+
+        return value
+
+
+class CVEs(colander.SequenceSchema):
+    cve = colander.SchemaNode(CVE())
 
 
 class Packages(colander.SequenceSchema):
@@ -105,6 +124,13 @@ class ListUpdateSchema(colander.MappingSchema):
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",
         missing=None,
+    )
+
+    cves = CVEs(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
     )
 
     packages = Packages(
