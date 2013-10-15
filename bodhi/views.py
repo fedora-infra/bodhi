@@ -70,6 +70,10 @@ def query_updates(request):
     if req is not None:
         query = query.filter_by(request=req)
 
+    security_approved = data.get('security_approved')
+    if security_approved is not None:
+        query = query.filter_by(security_approved=security_approved)
+
     status = data.get('status')
     if status is not None:
         query = query.filter_by(status=status)

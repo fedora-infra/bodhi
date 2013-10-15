@@ -698,6 +698,45 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"impossible" is not one of unpush, testing, obsolete, stable')
 
+    def test_list_updates_by_security_approved(self):
+        res = self.app.get('/updates', {"security_approved": "false"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], None)
+        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['pushed'], False)
+
+    def test_list_updates_by_invalid_security_approved(self):
+        res = self.app.get('/updates', {"security_approved": "what's the CVE?"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'security_approved')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"what\'s the CVE?" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+
     def test_list_updates_by_status(self):
         res = self.app.get('/updates', {"status": "pending"})
         body = res.json_body

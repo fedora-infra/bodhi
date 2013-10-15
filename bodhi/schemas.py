@@ -178,6 +178,12 @@ class ListUpdateSchema(colander.MappingSchema):
         validator=colander.OneOf(UpdateRequest.values()),
     )
 
+    security_approved = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
     status = colander.SchemaNode(
         colander.String(),
         location="querystring",
