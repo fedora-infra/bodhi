@@ -184,6 +184,13 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    severity = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(UpdateSeverity.values()),
+    )
+
     status = colander.SchemaNode(
         colander.String(),
         location="querystring",

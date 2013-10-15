@@ -74,6 +74,10 @@ def query_updates(request):
     if security_approved is not None:
         query = query.filter_by(security_approved=security_approved)
 
+    severity = data.get('severity')
+    if severity is not None:
+        query = query.filter_by(severity=severity)
+
     status = data.get('status')
     if status is not None:
         query = query.filter_by(status=status)
