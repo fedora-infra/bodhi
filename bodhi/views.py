@@ -22,7 +22,6 @@ updates = Service(name='updates', path='/updates',
 @updates.get(schema=ListUpdateSchema,
              validators=(validate_releases, validate_enums, validate_username))
 def query_updates(request):
-    # TODO: flexible querying api.
     db = request.db
     data = request.validated
     query = db.query(Update)
