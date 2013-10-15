@@ -86,6 +86,10 @@ def query_updates(request):
     if submitted_since is not None:
         query = query.filter(Update.date_submitted >= submitted_since)
 
+    suggest = data.get('suggest')
+    if suggest is not None:
+        query = query.filter_by(suggest=suggest)
+
     type = data.get('type')
     if type is not None:
         query = query.filter_by(type=type)

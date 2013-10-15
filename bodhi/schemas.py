@@ -204,6 +204,13 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    suggest = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(UpdateSuggestion.values()),
+    )
+
     type = colander.SchemaNode(
         colander.String(),
         location="querystring",
