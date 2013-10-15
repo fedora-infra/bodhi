@@ -152,6 +152,12 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    qa_approved = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
     releases = Releases(
         colander.Sequence(accept_scalar=True),
         location="querystring",

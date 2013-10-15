@@ -54,6 +54,10 @@ def query_updates(request):
     if pushed is not None:
         query = query.filter_by(pushed=pushed)
 
+    qa_approved = data.get('qa_approved')
+    if qa_approved is not None:
+        query = query.filter_by(qa_approved=qa_approved)
+
     releases = data.get('releases')
     if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))
