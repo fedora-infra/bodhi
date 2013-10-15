@@ -145,6 +145,12 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    modified_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     packages = Packages(
         colander.Sequence(accept_scalar=True),
         location="querystring",

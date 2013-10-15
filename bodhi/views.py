@@ -48,6 +48,10 @@ def query_updates(request):
     if locked is not None:
         query = query.filter_by(locked=locked)
 
+    modified_since = data.get('modified_since')
+    if modified_since is not None:
+        query = query.filter(Update.date_modified >= modified_since)
+
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Update.builds).join(Build.package)
