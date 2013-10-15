@@ -69,6 +69,10 @@ def query_updates(request):
     if qa_approved is not None:
         query = query.filter_by(qa_approved=qa_approved)
 
+    qa_approved_since = data.get('qa_approved_since')
+    if qa_approved_since is not None:
+        query = query.filter(Update.qa_approval_date >= qa_approved_since)
+
     releases = data.get('releases')
     if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))

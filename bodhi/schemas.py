@@ -176,6 +176,12 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    qa_approved_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     releases = Releases(
         colander.Sequence(accept_scalar=True),
         location="querystring",
