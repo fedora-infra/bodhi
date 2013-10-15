@@ -41,6 +41,10 @@ def query_updates(request):
         query = query.join(Update.cves)
         query = query.filter(or_(*[CVE.cve_id==cve_id for cve_id in cves]))
 
+    locked = data.get('locked')
+    if locked is not None:
+        query = query.filter_by(locked=locked)
+
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Update.builds).join(Build.package)

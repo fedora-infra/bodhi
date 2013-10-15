@@ -133,6 +133,12 @@ class ListUpdateSchema(colander.MappingSchema):
         preparer=[splitter],
     )
 
+    locked = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
     packages = Packages(
         colander.Sequence(accept_scalar=True),
         location="querystring",
