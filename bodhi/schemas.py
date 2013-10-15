@@ -164,6 +164,12 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    pushed_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     qa_approved = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",

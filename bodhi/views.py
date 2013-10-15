@@ -61,6 +61,10 @@ def query_updates(request):
     if pushed is not None:
         query = query.filter_by(pushed=pushed)
 
+    pushed_since = data.get('pushed_since')
+    if pushed_since is not None:
+        query = query.filter(Update.date_pushed >= pushed_since)
+
     qa_approved = data.get('qa_approved')
     if qa_approved is not None:
         query = query.filter_by(qa_approved=qa_approved)
