@@ -9,6 +9,7 @@ from bodhi.models import (
     Base,
     Bug,
     Build,
+    CVE,
     DBSession,
     Group,
     Package,
@@ -67,6 +68,9 @@ def populate():
     bug = Bug(bug_id=12345)
     session.add(bug)
     update.bugs.append(bug)
+    cve = CVE(cve_id="CVE-1985-0110")
+    session.add(cve)
+    update.cves.append(cve)
     session.add(update)
     session.flush()
 
