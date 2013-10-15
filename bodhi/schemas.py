@@ -146,6 +146,12 @@ class ListUpdateSchema(colander.MappingSchema):
         preparer=[splitter],
     )
 
+    pushed = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
     releases = Releases(
         colander.Sequence(accept_scalar=True),
         location="querystring",

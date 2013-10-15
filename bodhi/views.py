@@ -50,6 +50,10 @@ def query_updates(request):
         query = query.join(Update.builds).join(Build.package)
         query = query.filter(or_(*[Package.name==pkg for pkg in packages]))
 
+    pushed = data.get('pushed')
+    if pushed is not None:
+        query = query.filter_by(pushed=pushed)
+
     releases = data.get('releases')
     if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))
