@@ -195,6 +195,12 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    releng_approved_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     request = colander.SchemaNode(
         colander.String(),
         location="querystring",

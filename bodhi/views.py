@@ -81,6 +81,10 @@ def query_updates(request):
     if releng_approved is not None:
         query = query.filter_by(releng_approved=releng_approved)
 
+    releng_approved_since = data.get('releng_approved_since')
+    if releng_approved_since is not None:
+        query = query.filter(Update.releng_approval_date >= releng_approved_since)
+
     req = data.get('request')
     if req is not None:
         query = query.filter_by(request=req)
