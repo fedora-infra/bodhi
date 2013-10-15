@@ -93,6 +93,10 @@ def query_updates(request):
     if security_approved is not None:
         query = query.filter_by(security_approved=security_approved)
 
+    security_approved_since = data.get('security_approved_since')
+    if security_approved_since is not None:
+        query = query.filter(Update.security_approval_date >= security_approved_since)
+
     severity = data.get('severity')
     if severity is not None:
         query = query.filter_by(severity=severity)

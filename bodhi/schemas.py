@@ -214,6 +214,12 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=None,
     )
 
+    security_approved_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     severity = colander.SchemaNode(
         colander.String(),
         location="querystring",
