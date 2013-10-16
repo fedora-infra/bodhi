@@ -1,9 +1,14 @@
+import re
+
 import colander
 
 from kitchen.iterutils import iterate
 
 from bodhi.models import (UpdateRequest, UpdateSeverity, UpdateStatus,
                           UpdateSuggestion, UpdateType)
+
+
+CVE_REGEX = re.compile(r"CVE-[0-9]{4,4}-[0-9]{4,}")
 
 
 def splitter(value):
@@ -29,6 +34,24 @@ class Bugs(colander.SequenceSchema):
 
 class Builds(colander.SequenceSchema):
     build = colander.SchemaNode(colander.String())
+
+
+class CVE(colander.String):
+    def deserialize(self, node, cstruct):
+        value = super(CVE, self).deserialize(node, cstruct)
+
+        if CVE_REGEX.match(value) is None:
+            raise colander.Invalid(node, '"%s" is not a valid CVE id' % value)
+
+        return value
+
+
+class CVEs(colander.SequenceSchema):
+    cve = colander.SchemaNode(CVE())
+
+
+class Packages(colander.SequenceSchema):
+    package = colander.SchemaNode(colander.String())
 
 
 class Releases(colander.SequenceSchema):
@@ -90,8 +113,71 @@ class SaveUpdateSchema(colander.MappingSchema):
 
 
 class ListUpdateSchema(colander.MappingSchema):
+    approved_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
+    bugs = Bugs(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
     critpath = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
+    cves = CVEs(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+    locked = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
+    modified_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+    pushed = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
+    pushed_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
+    qa_approved = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
+    qa_approved_since = colander.SchemaNode(
+        colander.DateTime(),
         location="querystring",
         missing=None,
     )
@@ -103,11 +189,42 @@ class ListUpdateSchema(colander.MappingSchema):
         preparer=[splitter],
     )
 
+    releng_approved = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
+    releng_approved_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     request = colander.SchemaNode(
         colander.String(),
         location="querystring",
         missing=None,
         validator=colander.OneOf(UpdateRequest.values()),
+    )
+
+    security_approved = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
+    security_approved_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
+    severity = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(UpdateSeverity.values()),
     )
 
     status = colander.SchemaNode(
@@ -121,6 +238,13 @@ class ListUpdateSchema(colander.MappingSchema):
         colander.DateTime(),
         location="querystring",
         missing=None,
+    )
+
+    suggest = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(UpdateSuggestion.values()),
     )
 
     type = colander.SchemaNode(

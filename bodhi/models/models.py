@@ -565,12 +565,12 @@ class Update(Base):
                     default=UpdateStatus.pending,
                     nullable=False)
     request = Column(UpdateRequest.db_type(), default=UpdateRequest.testing)
-    severity = Column(UpdateSeverity.db_type(), nullable=True)
-    suggest = Column(UpdateSuggestion.db_type(), nullable=True)
+    severity = Column(UpdateSeverity.db_type(), default=UpdateSeverity.unspecified)
+    suggest = Column(UpdateSuggestion.db_type(), default=UpdateSuggestion.unspecified)
 
     # Flags
     locked = Column(Boolean, default=False)
-    pushed = Column(Boolean)
+    pushed = Column(Boolean, default=False)
     critpath = Column(Boolean, default=False)
 
     # Bug settings

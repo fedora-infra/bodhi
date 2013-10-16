@@ -9,6 +9,7 @@ from bodhi.models import (
     Base,
     Bug,
     Build,
+    CVE,
     DBSession,
     Group,
     Package,
@@ -67,6 +68,9 @@ def populate():
     bug = Bug(bug_id=12345)
     session.add(bug)
     update.bugs.append(bug)
+    cve = CVE(cve_id="CVE-1985-0110")
+    session.add(cve)
+    update.cves.append(cve)
     session.add(update)
     session.flush()
 
@@ -208,8 +212,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
@@ -225,6 +229,104 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
 
+    def test_list_updates_by_approved_since(self):
+        now = datetime.now()
+
+        # Try with no approved updates first
+        res = self.app.get('/updates',
+                           {"approved_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now approve one
+        session = DBSession()
+        session.query(Update).first().date_approved = now
+        session.flush()
+
+        # And try again
+        res = self.app.get('/updates',
+                           {"approved_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_approved_since(self):
+        res = self.app.get('/updates', {"approved_since": "forever"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'approved_since')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
+    def test_list_updates_by_bugs(self):
+        res = self.app.get('/updates', {"bugs": '12345'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_bug(self):
+        res = self.app.get('/updates', {"bugs": "cockroaches"}, status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'bugs.0')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"cockroaches" is not a number')
+
+    def test_list_updates_by_unexisting_bug(self):
+        res = self.app.get('/updates', {"bugs": "19850110"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
     def test_list_updates_by_critpath(self):
         res = self.app.get('/updates', {"critpath": "false"})
         body = res.json_body
@@ -237,8 +339,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
@@ -262,6 +364,50 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(res.json_body['errors'][0]['name'], 'critpath')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+
+    def test_list_updates_by_cves(self):
+        res = self.app.get("/updates", {"cves": "CVE-1985-0110"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['cves'][0]['cve_id'], "CVE-1985-0110")
+
+    def test_list_updates_by_unexisting_cve(self):
+        res = self.app.get('/updates', {"cves": "CVE-2013-1015"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+    def test_list_updates_by_invalid_cve(self):
+        res = self.app.get('/updates', {"cves": "WTF-ZOMG-BBQ"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'cves.0')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"WTF-ZOMG-BBQ" is not a valid CVE id')
 
     def test_list_updates_by_date_submitted_invalid_date(self):
         """test filtering by submitted date with an invalid date"""
@@ -295,8 +441,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
@@ -312,6 +458,319 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
 
+    def test_list_updates_by_locked(self):
+        res = self.app.get('/updates', {"locked": "false"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+
+    def test_list_updates_by_invalid_locked(self):
+        res = self.app.get('/updates', {"locked": "maybe"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'locked')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"maybe" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+
+    def test_list_updates_by_modified_since(self):
+        now = datetime.now()
+
+        # Try with no modified updates first
+        res = self.app.get('/updates',
+                           {"modified_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now approve one
+        session = DBSession()
+        session.query(Update).first().date_modified = now
+        session.flush()
+
+        # And try again
+        res = self.app.get('/updates',
+                           {"modified_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_modified_since(self):
+        res = self.app.get('/updates', {"modified_since": "the dawn of time"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'modified_since')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
+    def test_list_updates_by_package(self):
+        res = self.app.get('/updates', {"packages": "bodhi"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+
+    def test_list_updates_by_unexisting_package(self):
+        res = self.app.get('/updates', {"packages": "flash-player"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+    def test_list_updates_by_pushed(self):
+        res = self.app.get('/updates', {"pushed": "false"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['pushed'], False)
+
+    def test_list_updates_by_invalid_pushed(self):
+        res = self.app.get('/updates', {"pushed": "who knows?"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'pushed')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"who knows?" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+
+    def test_list_updates_by_pushed_since(self):
+        now = datetime.now()
+
+        # Try with no pushed updates first
+        res = self.app.get('/updates',
+                           {"pushed_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now approve one
+        session = DBSession()
+        session.query(Update).first().date_pushed = now
+        session.flush()
+
+        # And try again
+        res = self.app.get('/updates',
+                           {"pushed_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_pushed_since(self):
+        res = self.app.get('/updates', {"pushed_since": "a while ago"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'pushed_since')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
+    def test_list_updates_by_qa_approved(self):
+        res = self.app.get('/updates', {"qa_approved": "false"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['pushed'], False)
+
+    def test_list_updates_by_invalid_qa_approved(self):
+        res = self.app.get('/updates', {"qa_approved": "ship it!"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'qa_approved')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"ship it!" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+
+    def test_list_updates_by_qa_approved_since(self):
+        now = datetime.now()
+
+        # Try with no qa_approved updates first
+        res = self.app.get('/updates',
+                           {"qa_approved_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now approve one
+        session = DBSession()
+        session.query(Update).first().qa_approval_date = now
+        session.flush()
+
+        # And try again
+        res = self.app.get('/updates',
+                           {"qa_approved_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_qa_approved_since(self):
+        res = self.app.get('/updates', {"qa_approved_since": "just ship it already!"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'qa_approved_since')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
     def test_list_updates_by_release_name(self):
         res = self.app.get('/updates', {"releases": "F17"})
         body = res.json_body
@@ -324,8 +783,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
@@ -353,8 +812,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
@@ -378,6 +837,101 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid releases specified: WinXP')
 
+    def test_list_updates_by_releng_approved(self):
+        res = self.app.get('/updates', {"releng_approved": "false"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approved'], False)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['pushed'], False)
+
+    def test_list_updates_by_invalid_releng_approved(self):
+        res = self.app.get('/updates', {"releng_approved": "sure..."},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'releng_approved')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"sure..." is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+
+    def test_list_updates_by_releng_approved_since(self):
+        now = datetime.now()
+
+        # Try with no releng_approved updates first
+        res = self.app.get('/updates',
+                           {"releng_approved_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now approve one
+        session = DBSession()
+        session.query(Update).first().releng_approval_date = now
+        session.flush()
+
+        # And try again
+        res = self.app.get('/updates',
+                           {"releng_approved_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_releng_approved_since(self):
+        res = self.app.get('/updates',
+                           {"releng_approved_since": "just ship it already!"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'releng_approved_since')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
     def test_list_updates_by_request(self):
         res = self.app.get('/updates', {'request': "testing"})
         body = res.json_body
@@ -390,8 +944,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
@@ -416,6 +970,138 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"impossible" is not one of unpush, testing, obsolete, stable')
 
+    def test_list_updates_by_security_approved(self):
+        res = self.app.get('/updates', {"security_approved": "false"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['pushed'], False)
+
+    def test_list_updates_by_invalid_security_approved(self):
+        res = self.app.get('/updates', {"security_approved": "what's the CVE?"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'security_approved')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"what\'s the CVE?" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+
+    def test_list_updates_by_security_approved_since(self):
+        now = datetime.now()
+
+        # Try with no security_approved updates first
+        res = self.app.get('/updates',
+                           {"security_approved_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now approve one
+        session = DBSession()
+        session.query(Update).first().security_approval_date = now
+        session.flush()
+
+        # And try again
+        res = self.app.get('/updates',
+                           {"security_approved_since": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_security_approved_since(self):
+        res = self.app.get('/updates',
+                           {"security_approved_since": "just ship it already!"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'security_approved_since')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
+    def test_list_updates_by_severity(self):
+        res = self.app.get('/updates', {"severity": "unspecified"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+
+    def test_list_updates_by_unexisting_severity(self):
+        res = self.app.get('/updates', {"severity": "schoolmaster"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'severity')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"schoolmaster" is not one of high, urgent, medium, low, unspecified')
+
     def test_list_updates_by_status(self):
         res = self.app.get('/updates', {"status": "pending"})
         body = res.json_body
@@ -428,8 +1114,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
@@ -454,6 +1140,44 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"single" is not one of testing, processing, obsolete, stable, unpushed, pending')
 
+    def test_list_updates_by_suggest(self):
+        res = self.app.get('/updates', {"suggest": "unspecified"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['qa_approved'], False)
+        self.assertEquals(up['qa_approval_date'], None)
+        self.assertEquals(up['security_approved'], False)
+        self.assertEquals(up['security_approval_date'], None)
+        self.assertEquals(up['releng_approval_date'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], None)
+        self.assertEquals(up['karma'], 0)
+
+    def test_list_updates_by_unexisting_suggest(self):
+        res = self.app.get('/updates', {"suggest": "no idea"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'suggest')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          '"no idea" is not one of logout, reboot, unspecified')
+
     def test_list_updates_by_type(self):
         res = self.app.get('/updates', {"type": "bugfix"})
         body = res.json_body
@@ -466,8 +1190,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
@@ -504,8 +1228,8 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['user']['name'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], None)
-        self.assertEquals(up['suggest'], None)
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'Useful details!')
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
