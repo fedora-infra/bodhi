@@ -565,12 +565,12 @@ class Update(Base):
                     default=UpdateStatus.pending,
                     nullable=False)
     request = Column(UpdateRequest.db_type(), default=UpdateRequest.testing)
-    severity = Column(UpdateSeverity.db_type(), nullable=True)
-    suggest = Column(UpdateSuggestion.db_type(), nullable=True)
+    severity = Column(UpdateSeverity.db_type(), default=UpdateSeverity.unspecified)
+    suggest = Column(UpdateSuggestion.db_type(), default=UpdateSuggestion.unspecified)
 
     # Flags
     locked = Column(Boolean, default=False)
-    pushed = Column(Boolean)
+    pushed = Column(Boolean, default=False)
     critpath = Column(Boolean, default=False)
 
     # Bug settings
@@ -662,7 +662,7 @@ class Update(Base):
 
         # Create the Bug entities
         bugs = []
-        for bug_num in data['bugs'].replace(',', ' ').split():
+        for bug_num in data['bugs']:
             bug = db.query(Bug).filter_by(bug_id=bug_num).first()
             if not bug:
                 bug = Bug(bug_id=bug_num)
@@ -751,7 +751,7 @@ class Update(Base):
         # Updates with new or removed builds always go back to testing
         data['request'] = UpdateRequest.testing
 
-        up.update_bugs(data['bugs'].replace(',', ' ').split())
+        up.update_bugs(data['bugs'])
         del(data['bugs'])
 
         data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))

@@ -73,6 +73,7 @@ def main(global_config, testing=None, **settings):
                           session_factory=session_factory)
 
     # Plugins
+    config.include('pyramid_mako')
     config.include('cornice')
 
     # Lazy-loaded memoized request properties
@@ -83,7 +84,7 @@ def main(global_config, testing=None, **settings):
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
 
     # Templating
-    config.add_renderer(".html", "pyramid.mako_templating.renderer_factory")
+    config.add_renderer(".html", "pyramid_mako.renderer_factory")
     config.add_static_view('static', 'bodhi:static')
 
     # i18n
@@ -112,12 +113,14 @@ def main(global_config, testing=None, **settings):
     config.add_route('latest_candidates', '/latest_candidates')
 
     # pyramid.openid
-    config.add_route('login', '/login', view='bodhi.security.login')
+    config.add_route('login', '/login')
+    config.add_view('bodhi.security.login', route_name='login')
     #config.add_view('bodhi.views.login', context=Forbidden,
     #                renderer='bodhi:templates/login.mak')
-    config.add_route('logout', '/logout', view='bodhi.security.logout')
-    config.add_route('verify_openid', pattern='/dologin.html',
-                     view='pyramid_fas_openid.verify_openid')
+    config.add_route('logout', '/logout')
+    config.add_view('bodhi.security.logout', route_name='logout')
+    config.add_route('verify_openid', pattern='/dologin.html')
+    config.add_view('pyramid_fas_openid.verify_openid', 'verify_openid')
 
     config.scan('bodhi.views')
 

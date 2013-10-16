@@ -8,7 +8,6 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateSuggestion, User)
 from .util import get_nvr
 
-from datetime import datetime
 
 def validate_nvrs(request):
     for build in request.validated.get('builds', []):
@@ -191,19 +190,23 @@ def validate_uniqueness(request):
 
 def validate_enums(request):
     """Convert from strings to our enumerated types"""
-    data = request.validated
-    data['request'] = UpdateRequest.from_string(data['request'])
-    data['type'] = UpdateType.from_string(data['type'])
-    data['severity'] = UpdateSeverity.from_string(data['severity'])
-    data['suggest'] = UpdateSuggestion.from_string(data['suggest'])
+    for param, enum in (("request", UpdateRequest),
+                        ("severity", UpdateSeverity),
+                        ("status", UpdateStatus),
+                        ("suggest", UpdateSuggestion),
+                        ("type", UpdateType)):
+        value = request.validated.get(param)
+        if value is None:
+            continue
+
+        request.validated[param] = enum.from_string(value)
 
 def validate_releases(request):
     """Make sure those releases exist"""
-    releases = request.GET.get("releases", '')
-    if not releases:
+    releases = request.validated.get("releases")
+    if releases is None:
         return
 
-    releases = releases.split(',')
     db = request.db
     bad_releases = []
     validated_releases = []
@@ -215,7 +218,8 @@ def validate_releases(request):
         if not release:
             bad_releases.append(r)
 
-        validated_releases.append(release)
+        else:
+            validated_releases.append(release)
 
     if bad_releases:
         request.errors.add('querystring', 'releases',
@@ -225,49 +229,10 @@ def validate_releases(request):
     else:
         request.validated["releases"] = validated_releases
 
-def validate_type(request):
-    """Refuse invalid update types"""
-    type = request.GET.get("type", '')
-    if not type:
-        return
-
-    if type in UpdateType.values():
-        request.validated["type"] = UpdateType.from_string(type)
-
-    else:
-        request.errors.add('querystring', 'type',
-                           "Invalid type specified: {}".format(type))
-
-def validate_status(request):
-    """Refuse invalid update statuses"""
-    status = request.GET.get("status", "")
-    if not status:
-        return
-
-    if status in UpdateStatus.values():
-        request.validated["status"] = UpdateStatus.from_string(status)
-
-    else:
-        request.errors.add('querystring', 'status',
-                           "Invalid status specified: {}".format(status))
-
-def validate_request(request):
-    """Refuse invalid update requests"""
-    req = request.GET.get("request", "")
-    if not req:
-        return
-
-    if req in UpdateRequest.values():
-        request.validated["request"] = UpdateRequest.from_string(req)
-
-    else:
-        request.errors.add("querystring", "request",
-                           "Invalid request specified: {}".format(req))
-
 def validate_username(request):
     """Make sure this user exists"""
-    username = request.GET.get("username", "")
-    if not username:
+    username = request.validated.get("user")
+    if username is None:
         return
 
     db = request.db
@@ -277,42 +242,5 @@ def validate_username(request):
         request.validated["user"] = user
 
     else:
-        request.errors.add("querystring", "username",
-                           "Invalid username specified: {}".format(username))
-
-def validate_critpath(request):
-    """Ensure a proper value for the critpath filter"""
-    critpath = request.GET.get("critpath", "")
-    if critpath == "":
-        return
-
-    if critpath.lower() == "true":
-        request.validated["critpath"] = True
-
-    elif critpath.lower() == "false":
-        request.validated["critpath"] = False
-
-    else:
-        request.errors.add("querystring", "critpath",
-                           "Invalid boolean specified for critpath: {}".format(
-                               critpath))
-def validate_submitted_since(request):
-    """Ensure date is in the past"""
-    submitted_since = request.GET.get("submitted_since")
-    if not submitted_since:
-        return
-
-    # check if this is a valid ISO date YYYY-MM-DD
-    try:
-        submitted_since_valid = datetime.strptime(submitted_since, "%Y-%m-%d")
-    except ValueError:
-        request.errors.add("querystring", "submitted_since",
-                           "Invalid date specified: {}".format(submitted_since))
-        return
-
-    # check if date is in the past
-    if submitted_since_valid <= datetime.now():
-        request.validated["submitted_since"] = submitted_since_valid
-    else:
-        request.errors.add("querystring", "submitted_since",
-                           "Date in the future: {}".format(submitted_since))
+        request.errors.add("querystring", "user",
+                           "Invalid user specified: {}".format(username))
