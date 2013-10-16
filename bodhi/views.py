@@ -7,12 +7,11 @@ from sqlalchemy.sql import or_
 
 from . import log, buildsys
 from .models import Release, Update, UpdateType
-from .schemas import UpdateSchema
+from .schemas import ListUpdateSchema, SaveUpdateSchema
 from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
-        validate_releases, validate_request, validate_status, validate_type,
-        validate_username, validate_critpath, validate_submitted_since)
+        validate_releases, validate_username)
 
 
 updates = Service(name='updates', path='/updates',
@@ -20,9 +19,8 @@ updates = Service(name='updates', path='/updates',
                   acl=packagers_allowed_acl)
 
 
-@updates.get(validators=(validate_releases, validate_request, validate_status,
-                         validate_type, validate_username, validate_critpath,
-                         validate_submitted_since))
+@updates.get(schema=ListUpdateSchema,
+             validators=(validate_releases, validate_enums, validate_username))
 def query_updates(request):
     # TODO: flexible querying api.
     db = request.db
@@ -30,23 +28,23 @@ def query_updates(request):
     query = db.query(Update)
 
     releases = data.get('releases')
-    if releases:
+    if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))
 
     req = data.get('request')
-    if req:
+    if req is not None:
         query = query.filter_by(request=req)
 
     status = data.get('status')
-    if status:
+    if status is not None:
         query = query.filter_by(status=status)
 
     type = data.get('type')
-    if type:
+    if type is not None:
         query = query.filter_by(type=type)
 
     user = data.get('user')
-    if user:
+    if user is not None:
         query = query.filter(Update.user==user)
 
     critpath = data.get('critpath')
@@ -54,13 +52,13 @@ def query_updates(request):
         query = query.filter_by(critpath=critpath)
 
     submitted_since = data.get('submitted_since')
-    if submitted_since:
+    if submitted_since is not None:
         query = query.filter(Update.date_submitted >= submitted_since)
 
     return dict(updates=[u.__json__() for u in query])
 
 
-@updates.post(schema=UpdateSchema, permission='create',
+@updates.post(schema=SaveUpdateSchema, permission='create',
         validators=(validate_nvrs, validate_version, validate_builds,
                     validate_uniqueness, validate_tags, validate_acls,
                     validate_enums))

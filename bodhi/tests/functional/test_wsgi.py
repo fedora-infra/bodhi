@@ -1,6 +1,6 @@
 import unittest
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from webtest import TestApp
 from sqlalchemy import create_engine
 
@@ -261,7 +261,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'critpath')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid boolean specified for critpath: lalala")
+                          '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
     def test_list_updates_by_date_submitted_invalid_date(self):
         """test filtering by submitted date with an invalid date"""
@@ -271,17 +271,16 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(body['errors'][0]['name'], 'submitted_since')
         self.assertEquals(body['errors'][0]['description'],
-                          'Invalid date specified: 11-01-1984')
+                          'Invalid date')
 
     def test_list_updates_by_date_submitted_future_date(self):
         """test filtering by submitted date with future date"""
-        res = self.app.get('/updates', {"submitted_since": "2099-01-01"},
-            status=400)
+        tomorrow = datetime.now() + timedelta(days=1)
+        tomorrow = tomorrow.strftime("%Y-%m-%d")
+
+        res = self.app.get('/updates', {"submitted_since": tomorrow})
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(body['errors'][0]['name'], 'submitted_since')
-        self.assertEquals(body['errors'][0]['description'],
-                          'Date in the future: 2099-01-01')
+        self.assertEquals(len(body['updates']), 0)
 
     def test_list_updates_by_date_submitted_valid(self):
         """test filtering by submitted date with valid data"""
@@ -415,7 +414,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'request')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid request specified: impossible")
+                          '"impossible" is not one of unpush, testing, obsolete, stable')
 
     def test_list_updates_by_status(self):
         res = self.app.get('/updates', {"status": "pending"})
@@ -453,7 +452,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'status')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid status specified: single")
+                          '"single" is not one of testing, processing, obsolete, stable, unpushed, pending')
 
     def test_list_updates_by_type(self):
         res = self.app.get('/updates', {"type": "bugfix"})
@@ -491,10 +490,10 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'type')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid type specified: not_my")
+                          '"not_my" is not one of newpackage, bugfix, security, enhancement')
 
     def test_list_updates_by_username(self):
-        res = self.app.get('/updates', {"username": "guest"})
+        res = self.app.get('/updates', {"user": "guest"})
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
 
@@ -523,13 +522,13 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['karma'], 0)
 
     def test_list_updates_by_unexisting_username(self):
-        res = self.app.get('/updates', {"username": "santa"},
+        res = self.app.get('/updates', {"user": "santa"},
                            status=400)
         body = res.json_body
         self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'username')
+        self.assertEquals(res.json_body['errors'][0]['name'], 'user')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid username specified: santa")
+                          "Invalid user specified: santa")
 
     def test_put_json_update(self):
         self.app.put_json('/updates', self.get_update(), status=405)
