@@ -943,6 +943,7 @@ class Update(Base):
         """
         Comment on and close this updates bugs as necessary
         """
+        from bodhi.bugs import bugtracker
         if self.status is UpdateStatus.testing:
             for bug in self.bugs:
                 bug.testing(self)
@@ -960,10 +961,9 @@ class Update(Base):
 
                     # Now, close our parents bugs as long as nothing else
                     # depends on them, and they are not in a NEW state
-                    bz = Bug.get_bz()
                     for bug in self.bugs:
                         if bug.parent:
-                            parent = bz.getbug(bug.bug_id)
+                            parent = bugtracker.getbug(bug.bug_id)
                             if parent.bug_status == "NEW":
                                 log.debug("Parent bug %d is still NEW; not "
                                           "closing.." % bug.bug_id)
@@ -971,7 +971,7 @@ class Update(Base):
                             depsclosed = True
                             for dep in parent.dependson:
                                 try:
-                                    tracker = bz.getbug(dep)
+                                    tracker = bugtracker.getbug(dep)
                                 except xmlrpclib.Fault, f:
                                     log.error("Can't access bug: %s" % str(f))
                                     depsclosed = False
@@ -1101,6 +1101,7 @@ class Update(Base):
         Create any new bugs, and remove any missing ones.  Destroy removed bugs
         that are no longer referenced anymore
         """
+        from bodhi.bugs import bugtracker
         fetchdetails = True
         session = DBSession()
         if not config.get('bodhi_email'):
@@ -1121,8 +1122,7 @@ class Update(Base):
             bz = session.query(Bug).filter_by(bug_id=bug).first()
             if not bz:
                 if fetchdetails:
-                    bugzilla = Bug.get_bz()
-                    newbug = bugzilla.getbug(bug)
+                    newbug = bugtracker.getbug(bug)
                     bz = Bug(bug_id=newbug.bug_id)
                     bz.fetch_details(newbug)
                 else:
@@ -1458,96 +1458,40 @@ class Bug(Base):
     # List of Mitre CVE's associated with this bug
     cves = relationship(CVE, secondary=bug_cve_table, backref='bugs')
 
-    # Foreign Keys used by other relations
-    #update_id = Column(Integer, ForeignKey('updates.id'))
-
-    #_bz_server = config.get("bz_server")
-
-    # TODO: put this in the config?
-    default_msg = "%s has been pushed to the %s repository.  If problems " + \
-                  "still persist, please make note of it in this bug report."
-
-    @staticmethod
-    def get_bz():
-        me = config.get('bodhi_email')
-        password = config.get('bodhi_password', None)
-        if me and password:
-            bz = bugzilla.Bugzilla(url=config.get("bz_server"), user=me,
-                                   password=password)
-        else:
-            bz = bugzilla.Bugzilla(url=config.get("bz_server"))
-        return bz
-
     def fetch_details(self, bug=None):
-        if not bug:
-            bz = Bug.get_bz()
-            try:
-                bug = bz.getbug(self.bug_id)
-            except xmlrpclib.Fault, f:
-                self.title = 'Invalid bug number'
-                log.warning("Got fault from Bugzilla: %s" % str(f))
-                return
-        if bug.product == 'Security Response':
-            self.parent = True
-        self.title = str(bug.short_desc)
-        if isinstance(bug.keywords, basestring):
-            keywords = bug.keywords.split()
-        else:  # python-bugzilla 0.8.0+
-            keywords = bug.keywords
-        if 'security' in [keyword.lower() for keyword in keywords]:
-            self.security = True
+        from bodhi.bugs import bugtracker
+        bugtracker.update_details(bug, self)
 
-    def _default_message(self, update):
-        message = self.default_msg % (update.get_title(delim=', '), "%s %s" %
-                                   (update.release.long_name,
-                                    update.status.description))
+    def default_message(self, update):
+        message = config['stable_bug_msg'] % (
+            update.get_title(delim=', '), "%s %s" % (
+                update.release.long_name, update.status.description))
         if update.status is UpdateStatus.testing:
-            message += ("\n If you want to test the update, you can install " +
-                       "it with \n su -c 'yum --enablerepo=updates-testing " +
-                       "update %s'.  You can provide feedback for this " +
-                       "update here: %s") % (' '.join([build.package.name for
-                           build in update.builds]),
-                           config.get('base_address') + url(update.get_url()))
-
+            message += config['testing_bug_msg'] % (
+                ' '.join([build.package.name for build in update.builds]),
+                config.get('base_address') + url(update.get_url()))
         return message
 
     def add_comment(self, update, comment=None):
-        if not config.get('bodhi_email'):
-            log.warning("No bodhi_email defined; skipping bug comment")
-            return
-        bz = Bug.get_bz()
+        from bodhi.bugs import bugtracker
         if not comment:
-            comment = self._default_message(update)
+            comment = self.default_message(update)
         log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
-        try:
-            bug = bz.getbug(self.bug_id)
-            bug.addcomment(comment)
-        except Exception, e:
-            log.error("Unable to add comment to bug #%d\n%s" % (self.bug_id,
-                                                                str(e)))
+        bugtracker.comment(self.bug_id, comment)
 
-    def testing(self, update):
+    def testing(self, bug_id):
         """
         Change the status of this bug to ON_QA, and comment on the bug with
         some details on how to test and provide feedback for this update.
         """
-        bz = Bug.get_bz()
-        comment = self._default_message(update)
-        log.debug("Setting Bug #%d to ON_QA" % self.bug_id)
-        try:
-            bug = bz.getbug(self.bug_id)
-            bug.setstatus('ON_QA', comment=comment)
-        except Exception, e:
-            log.error("Unable to alter bug #%d\n%s" % (self.bug_id, str(e)))
+        from bodhi.bugs import bugtracker
+        comment = self.default_message(update)
+        bugtracker.on_qa(self.bug_id, comment)
 
     def close_bug(self, update):
-        bz = Bug.get_bz()
-        try:
-            ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
-            bug = bz.getbug(self.bug_id)
-            bug.close('NEXTRELEASE', fixedin=ver)
-        except xmlrpclib.Fault, f:
-            log.error("Unable to close bug #%d: %s" % (self.bug_id, str(f)))
+        from bodhi.bugs import bugtracker
+        ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
+        bugtracker.close(self.bug_id, fixedin=ver)
 
     def get_url(self):
         return "%s/show_bug.cgi?id=%s" % (
