@@ -48,6 +48,7 @@ class DevBuildsys(Buildsystem):
     """
     A dummy buildsystem instance used during development and testing
     """
+    __untag__ = []
 
     def multiCall(self):
         pass
@@ -192,7 +193,14 @@ class DevBuildsys(Buildsystem):
                      'name': 'dist-%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
-        return [self.getBuild(), self.getBuild(other=True)]
+        builds = []
+        for build in [self.getBuild(), self.getBuild(other=True)]:
+            if build['nvr'] in self.__untag__:
+                print('Pruning koji build %s' % build['nvr'])
+                continue
+            else:
+                builds.append(build)
+        return builds
 
     def getLatestBuilds(self, *args, **kw):
         return [self.getBuild(),]
