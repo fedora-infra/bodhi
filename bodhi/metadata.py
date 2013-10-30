@@ -54,36 +54,58 @@ class ExtendedMetadata(object):
             umd.add(cacheduinfo)
             existing_ids = set([up['update_id'] for up in umd.get_notices()])
             seen_ids = set()
+            from_cache = set()
 
             # Generate metadata for any new builds
             for update in self.updates:
                 if update.updateid:
-                    self.add_update(update)
-                    log.debug('Adding new update notice: %s' % update.title)
-                    if update.updateid in existing_ids:
-                        existing_ids.remove(update.updateid)
                     seen_ids.add(update.updateid)
+                    if update.updateid in existing_ids:
+                        notice = umd.get_notice(update.title)
+                        if not notice:
+                            log.warn('%s ID in cache but notice cannot be found' % (update.title))
+                            self.add_update(update)
+                            continue
+                        if notice['updated']:
+                            if datetime.strptime(notice['updated'], '%Y-%m-%d %H:%M:%S') < update.date_modified:
+                                log.debug('Update modified, generating new notice: %s' % update.title)
+                                self.add_update(update)
+                            else:
+                                log.debug('Loading updated %s from cache' % update.title)
+                                from_cache.append(update.updateid)
+                        elif update.date_modified:
+                            log.debug('Update modified, generating new notice: %s' % update.title)
+                            self.add_update(update)
+                        else:
+                            log.debug('Loading %s from cache' % update.title)
+                            from_cache.add(update.updateid)
+                    else:
+                        log.debug('Adding new update notice: %s' % update.title)
+                        self.add_update(update)
                 else:
                     missing_ids.append(update.title)
 
-            # Add all relevant notices from the metadata to this document
+            # Add all relevant notices from the cache to this document
             for notice in umd.get_notices():
-                if notice['update_id'] in existing_ids:
-                    log.debug("Adding existing notice: %s" % notice['title'])
+                if notice['update_id'] in from_cache:
+                    log.debug("Keeping existing notice: %s" % notice['title'])
                     self._add_notice(notice)
-                    existing_ids.remove(notice['update_id'])
-                    seen_ids.add(notice['update_id'])
                 else:
-                    if notice['type'] == 'security':
-                        if notice['update_id'] in seen_ids:
-                            log.debug('Skipping security update with ' +
-                                      'duplicate ID: %(update_id)s' % notice)
-                            continue
-                        log.debug("Adding existing security notice: %s" %
-                                  notice['title'])
-                        self._add_notice(notice)
+                    # Keep all security notices in the stable repo
+                    if 'testing' not in self.repo:
+                        if notice['type'] == 'security':
+                            if notice['update_id'] not in seen_ids:
+                                log.debug("Keeping existing security notice: %s" %
+                                        notice['title'])
+                                self._add_notice(notice)
+                            else:
+                                log.debug('%s already added?' % notice['title'])
+                        else:
+                            log.debug('Purging cached stable notice %s' % notice['title'])
                     else:
-                        log.debug("Removing %s from updateinfo" % notice['title'])
+                        log.debug('Purging cached testing update %s' % notice['title'])
+
+        # Clean metadata generation
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:
