@@ -54,6 +54,7 @@ class ExtendedMetadata(object):
             umd = UpdateMetadata()
             umd.add(cacheduinfo)
             seen_ids = set()
+            from_cache = set()
 
             cached_notices = {}
             for up in umd.get_notices():
@@ -61,42 +62,53 @@ class ExtendedMetadata(object):
 
             for update in self.updates:
                 if update.updateid:
-                    if update.updateid in seen_ids:
-                        log.debug('Skipping duplicate update: %s' % update.title)
-                        continue
                     seen_ids.add(update.updateid)
-                    if update.updateid in cached_notices:
-                        cached_notice = cached_notices[update.updateid]
-                        if not cached_notice:
-                            log.debug('Updating modified notice for %s' % update.title)
+                    if update.updateid in existing_ids:
+                        notice = umd.get_notice(update.title)
+                        if not notice:
+                            log.warn('%s ID in cache but notice cannot be found' % (update.title))
                             self.add_update(update)
                             continue
-                        updated = cached_notice['updated']
-                        if updated:
-                            updated = datetime.strptime(updated, '%Y-%m-%d %H:%M:%S')
-                            if update.date_modified > updated:
-                                log.debug('Updating old notice for %s' % update.title)
+                        if notice['updated']:
+                            if datetime.strptime(notice['updated'], '%Y-%m-%d %H:%M:%S') < update.date_modified:
+                                log.debug('Update modified, generating new notice: %s' % update.title)
                                 self.add_update(update)
                             else:
-                                log.debug('Adding cached notice for %s' % update.title)
-                                self._add_notice(cached_notice)
+                                log.debug('Loading updated %s from cache' % update.title)
+                                from_cache.append(update.updateid)
                         elif update.date_modified:
-                            log.debug('Updating old notice for %s' % update.title)
+                            log.debug('Update modified, generating new notice: %s' % update.title)
                             self.add_update(update)
                         else:
-                            log.debug('Adding cached notice for %s' % update.title)
-                            self._add_notice(cached_notice)
+                            log.debug('Loading %s from cache' % update.title)
+                            from_cache.add(update.updateid)
                     else:
                         log.debug('Adding new update notice: %s' % update.title)
                         self.add_update(update)
                 else:
                     missing_ids.append(update.title)
 
-            # Add older security updates (#259)
-            for update_id, notice in cached_notices.items():
-                if notice['type'] == 'security' and update_id not in seen_ids:
-                    log.debug('Adding older security update %r' % notice['title'])
+            # Add all relevant notices from the cache to this document
+            for notice in umd.get_notices():
+                if notice['update_id'] in from_cache:
+                    log.debug("Keeping existing notice: %s" % notice['title'])
                     self._add_notice(notice)
+                else:
+                    # Keep all security notices in the stable repo
+                    if 'testing' not in self.repo:
+                        if notice['type'] == 'security':
+                            if notice['update_id'] not in seen_ids:
+                                log.debug("Keeping existing security notice: %s" %
+                                        notice['title'])
+                                self._add_notice(notice)
+                            else:
+                                log.debug('%s already added?' % notice['title'])
+                        else:
+                            log.debug('Purging cached stable notice %s' % notice['title'])
+                    else:
+                        log.debug('Purging cached testing update %s' % notice['title'])
+
+        # Clean metadata generation
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:

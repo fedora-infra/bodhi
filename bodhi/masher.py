@@ -172,7 +172,7 @@ class MashTask(Thread):
         """
         Thread.__init__(self)
         repos = repos and set(repos) or set()
-        log.debug("MashTask(%d, %s, %s, %s)" % (id, updates, repos, resume))
+        log.debug("MashTask(%d, [%d updates], %s, %s)" % (id, len(updates), repos, resume))
         self.id = id
         self.tag = None
         self.updates = set()
