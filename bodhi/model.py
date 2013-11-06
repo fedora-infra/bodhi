@@ -1502,7 +1502,7 @@ class Bugzilla(SQLObject):
             if bug.product not in config.get('bz_products', '').split(','):
                 log.warning("Skipping %r bug" % bug.product)
                 return
-            if bug.bug_status not in ('MODIFIED', 'VERIFIED'):
+            if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
                 bug.setstatus('MODIFIED')
         except Exception, e:
             log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))
