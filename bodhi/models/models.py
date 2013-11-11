@@ -1145,11 +1145,9 @@ class Update(Base):
                 log.debug("Destroying stray CVE #%s" % cve.cve_id)
                 session.delete(cve)
         for cve_id in cves:
-            try:
-                cve = CVE.query.filter_by(cve_id=cve_id).one()
-                if cve not in self.cves:
-                    self.cves.append(cve)
-            except:  # TODO: catch sqlalchemy's not found exception!
+            cve = CVE.query.filter_by(cve_id=cve_id).one()
+            if cve not in self.cves:
+                self.cves.append(cve)
                 log.debug("Creating new CVE: %s" % cve_id)
                 cve = CVE(cve_id=cve_id)
                 session.save(cve)
