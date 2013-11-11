@@ -38,6 +38,7 @@ app_settings = {
     'important_groups': 'proventesters provenpackager releng',
     'admin_packager_groups': 'provenpackager',
     'mandatory_packager_groups': 'packager',
+    'critpath_pkgs': 'kernel,'
 }
 
 
@@ -1341,9 +1342,10 @@ class TestWSGIApp(unittest.TestCase):
         Ensure that we cannot push an untested critpath update directly to
         stable.
         """
-        args = self.get_update('bodhi-2.0.0-2')
+        args = self.get_update('kernel-3.11.5-300.fc20')
         args['request'] = 'stable'
         up = self.app.post_json('/updates', args).json_body
+        self.assertTrue(up['critpath'])
         self.assertEquals(up['request'], 'testing')
 
     def test_obsoletion(self):
