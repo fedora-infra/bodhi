@@ -73,7 +73,7 @@ class ExtendedMetadata(object):
                                 self.add_update(update)
                             else:
                                 log.debug('Loading updated %s from cache' % update.title)
-                                from_cache.append(update.updateid)
+                                from_cache.add(update.updateid)
                         elif update.date_modified:
                             log.debug('Update modified, generating new notice: %s' % update.title)
                             self.add_update(update)
