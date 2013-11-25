@@ -176,7 +176,7 @@ setup(
         #"hashlib",
         "fedmsg>=0.0.8",
         "decorator",
-        "PIL",
+        "Pillow",
         # The following are not available as eggs so we can't uncomment them.
         # That means you can't run Bodhi in a virtualenv created with the
         # --no-site-packages option, as you will have to use the system
