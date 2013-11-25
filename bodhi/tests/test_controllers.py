@@ -1656,7 +1656,7 @@ class TestControllers(testutil.DBTest):
         # without a karma prerequisite for non-pending releases.
         # This feature can be disabled by setting
         #`critpath.num_admin_approvals = 0` in your configuration
-        assert update.request == 'testing', update.request
+        assert update.request != 'stable', update.request
         #assert update.karma == 1, update.karma
 
     def test_non_critpath_actions_in_normal_release(self):
@@ -1876,7 +1876,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                 method='GET', headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'testing'
+        assert update.request != 'stable', update.request
         assert update.karma == 1
         update.request = None
 
