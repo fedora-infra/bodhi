@@ -943,7 +943,7 @@ class Root(controllers.RootController):
                     continue
                 for update in oldBuild.updates:
                     if update.status not in ('pending', 'testing') or \
-                       update.request or \
+                       update.request == 'stable' or \
                        update.release not in buildinfo[build]['releases'] or \
                        update in pkgBuild.updates or \
                        (edited and oldBuild in edited.builds):
@@ -963,6 +963,11 @@ class Root(controllers.RootController):
                         if _build.package.name not in pkgs:
                             obsoletable = False
                             break
+                    if update.request == 'testing':
+                        # if the update has a testing request, but has yet to
+                        # be pushed, obsolete it
+                        if update.currently_pushing:
+                            obsoletable = False
                 if obsoletable:
                     log.info('%s is obsoletable' % oldBuild.nvr)
                     for update in oldBuild.updates:

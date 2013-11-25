@@ -3225,3 +3225,73 @@ class TestControllers(testutil.DBTest):
         n, v, r = get_nvr(sorted_updates[-2].builds[0].nvr)
         assert r == '9.fc7', r
         assert len(sorted_updates) == 10, len(sorted_updates)
+
+    def test_obsolete_unpushed_pending_update(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar',
+                'request' : 'testing',
+        }
+        self.save_update(params, session)
+        print cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert not update.currently_pushing, update.currently_pushing
+
+        # Throw a newer build in, which should obsolete the previous
+        newparams = {
+                'builds'  : 'TurboGears-1.0.2.2-3.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '4321',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'bizbaz'
+        }
+        self.save_update(newparams, session)
+        newupdate = PackageUpdate.byTitle(newparams['builds'])
+        assert newupdate.status == 'pending'
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'obsolete', update.status
+
+    def test_obsolete_currently_pushing_pending_update(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar',
+                'request' : 'testing',
+        }
+        self.save_update(params, session)
+        print cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+
+        update.comment('This update is currently being pushed to the %s %s updates repository.' % (update.release.long_name, update.request), author='bodhi', email=False)
+        assert update.currently_pushing, update.currently_pushing
+
+        # Throw a newer build in, which should obsolete the previous
+        newparams = {
+                'builds'  : 'TurboGears-1.0.2.2-3.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '4321',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'bizbaz'
+        }
+        self.save_update(newparams, session)
+        newupdate = PackageUpdate.byTitle(newparams['builds'])
+        assert newupdate.status == 'pending'
+        assert newupdate.request == 'testing'
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending', update.status

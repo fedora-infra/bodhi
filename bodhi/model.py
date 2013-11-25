@@ -1193,6 +1193,16 @@ class PackageUpdate(SQLObject):
         return people
 
     @property
+    def currently_pushing(self):
+        for c in self.comments[::-1]:
+            if c.author == 'bodhi':
+                if c.text.startswith('This update has been pushed to'):
+                    return False
+                elif c.text.startswith('This update is currently being pushed to the'):
+                    return True
+        return False
+
+    @property
     def pushable(self):
         """ Return whether or not this update is in a pushable state.
 
