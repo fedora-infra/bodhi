@@ -723,10 +723,9 @@ class Root(controllers.RootController):
             # Verify that the user is either in the committers list, or is
             # a member of a groups that has privileges to commit to this package
             if not identity.current.user_name in people and \
-               not filter(lambda x: x in identity.current.groups, groups[0]):
-               # Disallow admin_groups from pushing anything
-               #not filter(lambda group: group in identity.urrent.groups,
-               #           config.get('admin_groups').split()) and \
+               not filter(lambda x: x in identity.current.groups, groups[0]) and \
+               not filter(lambda group: group in identity.current.groups,
+                          config.get('admin_groups').split()):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, pkg))
                 raise InvalidUpdateException(params)
