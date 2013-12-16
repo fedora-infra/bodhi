@@ -486,6 +486,9 @@ def main():
                     print_query(data)
 
             elif opts.download:
+                if opts.download.startswith('https://') or \
+                   opts.download.startswith('http://'):
+                    opts.download = opts.download.split('/')[-1]
                 data = bodhi.query(release=opts.release, status=opts.status,
                                    type_=opts.type_, bugs=opts.bugs,
                                    request=opts.request, mine=opts.mine,
