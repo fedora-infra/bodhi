@@ -100,7 +100,16 @@ def rebuild():
             shutil.rmtree(base)
 
 
+def setup_develop():
+    """ `python setup.py develop` in our virtualenv """
+    cmd = '{workon}/{env}/bin/python setup.py develop'.format(
+        envs=ENVS, env=VENV, workon=os.getenv("WORKON_HOME"))
+    print(cmd)
+    subprocess.call(cmd.split())
+
+
 if __name__ == '__main__':
     print("Bootstrapping bodhi...")
     rebuild()
     link_system_libs()
+    setup_develop()
