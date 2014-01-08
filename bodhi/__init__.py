@@ -84,7 +84,7 @@ def main(global_config, testing=None, **settings):
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
 
     # Templating
-    config.add_renderer(".html", "pyramid_mako.renderer_factory")
+    config.add_mako_renderer('.html', settings_prefix='mako.')
     config.add_static_view('static', 'bodhi:static')
 
     # i18n
