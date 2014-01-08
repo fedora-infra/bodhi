@@ -16,7 +16,6 @@ Bootstrap the virtualenv
 
     ./bootstrap.py
     workon bodhi-python2.7
-    pip install kitchen
     python setup.py develop
 
 Run the test suite
