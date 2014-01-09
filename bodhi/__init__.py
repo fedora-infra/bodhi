@@ -120,7 +120,7 @@ def main(global_config, testing=None, **settings):
     config.add_route('logout', '/logout')
     config.add_view('bodhi.security.logout', route_name='logout')
     config.add_route('verify_openid', pattern='/dologin.html')
-    config.add_view('pyramid_fas_openid.verify_openid', 'verify_openid')
+    config.add_view('pyramid_fas_openid.verify_openid', route_name='verify_openid')
 
     config.scan('bodhi.views')
 
