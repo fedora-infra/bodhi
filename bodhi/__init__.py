@@ -5,8 +5,6 @@ from pyramid.settings import asbool
 from pyramid.decorator import reify
 from pyramid.security import unauthenticated_userid
 from pyramid.config import Configurator
-from pyramid_beaker import session_factory_from_settings
-from pyramid_beaker import set_cache_regions_from_settings
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
@@ -65,9 +63,9 @@ def main(global_config, testing=None, **settings):
     # Setup our buildsystem
     buildsys.setup_buildsystem(settings)
 
-    # Beaker Sessions & Caching
-    session_factory = session_factory_from_settings(settings)
-    set_cache_regions_from_settings(settings)
+    # Sessions & Caching
+    from pyramid.session import SignedCookieSessionFactory
+    session_factory = SignedCookieSessionFactory(settings['session.secret'])
 
     config = Configurator(settings=settings,
                           session_factory=session_factory)
