@@ -1327,7 +1327,7 @@ class Comment(SQLObject):
             elif token.startswith('#') and isint(token[1:]):
                 text.append('<a href="%s">%s</a>' % (
                     config.get('bz_buglink') + token[1:], token))
-            elif len(token) == 6 and isint(token):
+            elif len(token) in (6, 7) and isint(token):
                 text.append('<a href="%s">%s</a>' % (
                     config.get('bz_buglink') + token, token))
             elif token.startswith('rhbz#'):
