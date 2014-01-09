@@ -883,8 +883,15 @@ class PackageUpdate(SQLObject):
                 pass
 
         if not anonymous and karma != 0:
+            # Because we reset its global karma to 0 when editing an update,
+            # we can't "remove" the previous karmas if they were given before
+            # the last edit
+            last_date = (max(self.date_submitted, self.date_modified)
+                         if self.date_modified else self.date_submitted)
+
             my_karmas = [c.karma for c in self.comments if c.author == author
-                         and not c.anonymous and c.karma != 0]
+                         and not c.anonymous and c.karma != 0
+                         and c.timestamp >= last_date]
             if len(my_karmas) > 0:
                 # Remove the previous karma.
                 self.karma -= my_karmas[-1]
