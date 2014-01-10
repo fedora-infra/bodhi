@@ -474,9 +474,6 @@ class PackageUpdate(SQLObject):
             koji = buildsys.get_session()
             for build in self.builds:
                 mybuild = koji.getBuild(build.nvr)
-                mybuild['nvr'] = "%s-%s-%s" % (mybuild['name'],
-                                               mybuild['version'],
-                                               mybuild['release'])
                 kojiBuilds = koji.listTagged(self.release.stable_tag,
                                              package=build.package.name,
                                              latest=True)
