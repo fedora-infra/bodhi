@@ -71,72 +71,50 @@ class DevBuildsys(Buildsystem):
     def getTaskInfo(self, task):
         return { 'state' : koji.TASK_STATES['CLOSED'] }
 
-    def getBuild(self, build='fc7', other=False):
-        if 'fc7' in build:
-            data = {'build_id': 16058,
-                    'completion_time': '2007-08-24 23:26:10.890319',
-                    'creation_event_id': 151517,
-                    'creation_time': '2007-08-24 19:38:29.422344',
-                    'epoch': None,
-                    'id': 16058,
-                    'name': 'TurboGears',
-                    'nvr': 'TurboGears-1.0.2.2-2.fc7',
-                    'owner_id': 388,
-                    'owner_name': 'lmacken',
-                    'package_id': 8,
-                    'package_name': 'TurboGears',
-                    'release': '2.fc7',
-                    'state': 1,
-                    'tag_id': 19,
-                    'tag_name': 'dist-fc7-updates-testing',
-                    'task_id': 127621,
-                    'version': '1.0.2.2'}
-            if other:
-                data['id'] = 16059
-                data['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
-                data['release'] = '3.fc7'
-            return data
+    def getBuild(self, build='TurboGears-1.0.2.2-2.fc7', other=False):
+        data = {'build_id': 16058,
+                'completion_time': '2007-08-24 23:26:10.890319',
+                'creation_event_id': 151517,
+                'creation_time': '2007-08-24 19:38:29.422344',
+                'epoch': None,
+                'id': 16059 if other else 16058,
+                'owner_id': 388,
+                'owner_name': 'lmacken',
+                'package_id': 8,
+                'state': 1,
+                'tag_id': 19,
+                'task_id': 127621}
 
-        elif 'el5' in build:
-            return {'build_id': 16058,
-                    'completion_time': '2007-08-24 23:26:10.890319',
-                    'creation_event_id': 151517,
-                    'creation_time': '2007-08-24 19:38:29.422344',
-                    'epoch': None,
-                    'id': 16058,
-                    'name': 'kernel',
-                    'nvr': 'kernel-2.6.31-1.el5',
-                    'owner_id': 388,
-                    'owner_name': 'lmacken',
-                    'package_id': 8,
-                    'package_name': 'kernel',
-                    'release': '1.el5',
-                    'state': 1,
-                    'tag_id': 19,
-                    'tag_name': 'dist-5E-epel-testing-candidate',
-                    'task_id': 127621,
-                    'version': '2.6.31'}
+        name, version, release = build.rsplit("-", 2)
+        release_tokens = release.split(".")
+
+        for token in release_tokens:
+            if token.startswith("fc"):
+                dist = token
+                tag = "dist-f%s-updates-testing" % token.replace("fc", "")
+                break
+
+            if token.startswith("el"):
+                dist = token
+                tag = "dist-%sE-epel-testing-candidate" % token.replace("el", "")
+                break
+
         else:
-            f = build.split('.')[-1].replace('fc', 'f')
-            release = build.split('.')[-1]
-            return {'build_id': 16058,
-                    'completion_time': '2007-08-24 23:26:10.890319',
-                    'creation_event_id': 151517,
-                    'creation_time': '2007-08-24 19:38:29.422344',
-                    'epoch': None,
-                    'id': 16058,
-                    'name': 'TurboGears',
-                    'nvr': 'TurboGears-1.0.2.2-2.%s' % release,
-                    'owner_id': 388,
-                    'owner_name': 'lmacken',
-                    'package_id': 8,
-                    'package_name': 'TurboGears',
-                    'release': '2.%s' % release,
-                    'state': 1,
-                    'tag_id': 19,
-                    'tag_name': 'dist-%s-updates-testing' % f,
-                    'task_id': 127621,
-                    'version': '1.0.2.2'}
+            raise ValueError("Couldn't determine dist for build '%s'" % build)
+
+        if other:
+            release_tokens[0] = str(int(release_tokens[0]) + 1)
+            release = ".".join(release_tokens)
+            build = "%s-%s-%s" % (name, version, release)
+
+        data.update({'name': name,
+                     'nvr': build,
+                     'package_name': name,
+                     'release': release,
+                     'tag_name': tag,
+                     'version': version})
+
+        return data
 
     def listBuildRPMs(self, id, *args, **kw):
         rpms = [{'arch': 'src',
