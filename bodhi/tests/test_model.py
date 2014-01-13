@@ -10,6 +10,7 @@ database.set_db_uri("sqlite:///:memory:")
 
 from datetime import datetime, timedelta
 from sqlobject import SQLObjectNotFound
+from sqlobject.dberrors import IntegrityError
 from yum.update_md import UpdateMetadata
 from nose.tools import raises
 
@@ -79,7 +80,7 @@ class TestPackageUpdate(testutil.DBTest):
         try:
             update2 = self.get_update()
         except (DuplicateEntryError, PostgresIntegrityError,
-                SQLiteIntegrityError):
+                SQLiteIntegrityError, IntegrityError):
             return
         assert False
 

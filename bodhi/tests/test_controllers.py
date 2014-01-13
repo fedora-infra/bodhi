@@ -33,15 +33,15 @@ def create_release(num='7', dist='dist-fc', **kw):
 
 def login(username='guest', display_name='guest', group=None):
     try:
+        guest = User.by_user_name(username)
+    except SQLObjectNotFound:
         guest = User(user_name=username, display_name=display_name,
                      password='guest')
-    except DuplicateEntryError:
-        guest = User.by_user_name(username)
     if group:
         try:
-            group = Group(group_name=group, display_name=group)
-        except DuplicateEntryError:
             group = Group.by_group_name(group)
+        except SQLObjectNotFound:
+            group = Group(group_name=group, display_name=group)
         guest.addGroup(group)
     testutil.create_request('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
     assert cherrypy.response.status == '200 OK', cherrypy.response.body[0]
