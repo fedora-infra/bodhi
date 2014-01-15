@@ -199,6 +199,11 @@ class Release(Base):
     locked = Column(Boolean, default=False)
     metrics = Column(PickleType, default=None)
 
+    @property
+    def version_int(self):
+        regex = re.compile('\D+(\d+)$')
+        return int(regex.match(self.name).groups()[0])
+
     @synonym_for('_stable_tag')
     @property
     def stable_tag(self):
