@@ -200,7 +200,8 @@ def metrics(request):
         'security': 'Security patches', 'newpackage': 'New packages'
     }
     releases = db.query(Release).filter(Release.name.like('F%')).all()
-    for i, release in enumerate(releases):
+    for i, release in enumerate(sorted(releases, cmp=lambda x, y:
+            cmp(int(x.version_int), int(y.version_int)))):
         ticks.append([i, release.name])
     for update_type, label in update_types.items():
         d = []
