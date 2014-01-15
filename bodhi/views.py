@@ -6,7 +6,7 @@ from cornice import Service
 from sqlalchemy.sql import or_
 
 from . import log, buildsys
-from .models import Bug, Build, CVE, Package, Release, Update, UpdateType
+from .models import Bug, Build, CVE, Package, Release, Update, UpdateType, UpdateStatus
 from .schemas import ListUpdateSchema, SaveUpdateSchema
 from .security import packagers_allowed_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
