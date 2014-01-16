@@ -218,11 +218,11 @@ def main(releases=None):
         print "   * %d -1's from proventesters" % data['proventesters_-1']
         if data['num_critpath']:
             print " * %d critpath updates with conflicting proventesters (%0.2f%% of critpath)" % (len(data['conflicted_proventesters']), float(len(data['conflicted_proventesters'])) / data['num_critpath'] * 100)
-            for u in data['conflicted_proventesters']:
-                print "   * " + u
+            for u in sorted(data['conflicted_proventesters']):
+                print '   <li><a href="%s">%s</a></li>' % (u, u.split('/')[-1])
             print " * %d critpath updates with positive karma and negative proventester feedback (%0.2f%% of critpath)" % (len(data['critpath_positive_karma_negative_proventesters']), float(len(data['critpath_positive_karma_negative_proventesters'])) / data['num_critpath'] * 100)
-            for u in data['critpath_positive_karma_negative_proventesters']:
-                print "   * " + u
+            for u in sorted(data['critpath_positive_karma_negative_proventesters']):
+                print '   <li><a href="%s">%s</a></li>' % (u, u.split('/')[-1])
             print " * %d critpath updates with positive karma and positive proventester feedback (%0.2f%% of critpath)" % (len(data['critpath_positive_karma_including_proventesters']), float(len(data['critpath_positive_karma_including_proventesters'])) / data['num_critpath'] * 100)
         print " * %d anonymous users gave feedback (%0.2f%%)" % (
                 data['num_anon_feedback'], float(data['num_anon_feedback']) /
