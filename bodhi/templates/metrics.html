@@ -16,7 +16,11 @@
             steps = false;
 
         $.plot("#placeholder", ${data | n}, {
-            xaxis: {"ticks": ${ticks | n}},
+            xaxis: {
+                ticks: ${ticks | n},
+                mode: "categories",
+                tickLength: 0
+            },
             series: {
                 stack: stack,
                 lines: {
@@ -26,7 +30,8 @@
                 },
                 bars: {
                     show: bars,
-                    barWidth: 0.6
+                    barWidth: 0.6,
+                    align: "center"
                 }
             },
             legend: {
@@ -44,7 +49,7 @@
     </div>
 
     <div id="content">
-        <div id="placeholder" style="height: 500px; width: 900px;"></div>
+        <div id="placeholder" style="height: 350px; width: 650px;"></div>
     </div>
 
 </body>
