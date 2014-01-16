@@ -7,6 +7,8 @@ A tool for generating statistics for each release.
 
 __requires__ = 'bodhi'
 
+import sys
+
 from operator import itemgetter
 from datetime import timedelta
 from collections import defaultdict
@@ -24,7 +26,7 @@ def short_url(update):
     return 'https://admin.fedoraproject.org/updates/%s' % update.builds[0].nvr
 
 
-def main():
+def main(releases=None):
     db = get_db_from_config()
 
     stats = {}  # {release: {'stat': ...}}
@@ -34,6 +36,8 @@ def main():
     proventesters = set()
 
     for release in db.query(Release).all():
+        if releases and release.name not in releases:
+            continue
         updates = db.query(Update).filter_by(release=release)
         total = updates.count()
         if not total:
@@ -264,4 +268,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    releases = None
+    if len(sys.argv) > 1:
+        releases = sys.argv[1:]
+    main(releases)
