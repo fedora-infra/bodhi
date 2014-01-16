@@ -1366,7 +1366,8 @@ class Comment(SQLObject):
         return dict(author=self.author_name, group=self.author_group,
                     text=self.text, anonymous=self.anonymous,
                     karma=self.karma, timestamp=self.timestamp,
-                    update_title=self.update.title)
+                    update_title=self.update.title,
+                    update_submitter=self.update.submitter)
 
 
 class CVE(SQLObject):
