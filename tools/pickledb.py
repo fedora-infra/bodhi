@@ -29,7 +29,7 @@ from os.path import isfile
 
 from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
 
-from bodhi.util import get_db_from_config
+from bodhi.util import get_db_from_config, get_critpath_pkgs
 
 
 def save_db():
@@ -191,6 +191,7 @@ def load_sqlalchemy_db():
     releases = {}
     packages = {}
     users = {}
+    critpath = {}
 
     db = get_db_from_config()
 
@@ -226,6 +227,9 @@ def load_sqlalchemy_db():
                                   dist_tag=u['release'][3])
                 db.add(release)
             releases[u['release'][0]] = release
+            critpath[release.name] = get_critpath_pkgs(release.name.lower())
+            print('%s critpath packages for %s' % (len(critpath[release.name]),
+                                                   release.name))
 
         if whitelist and release.name not in whitelist:
             continue
@@ -320,7 +324,8 @@ def load_sqlalchemy_db():
                     package = Package(name=pkg)
                     db.add(package)
                 packages[pkg] = package
-
+            if package.name in critpath[update.release.name]:
+                update.critpath = True
             try:
                 build = db.query(Build).filter_by(nvr=nvr).one()
             except NoResultFound:
