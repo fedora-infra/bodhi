@@ -77,6 +77,7 @@ def main(releases=None):
             'proventesters_1': 0,
             'proventesters_0': 0,
             'proventesters_-1': 0,
+            'submitters': defaultdict(int),
             # for tracking number of types of karma
             '1': 0,
             '0': 0,
@@ -93,6 +94,8 @@ def main(releases=None):
                 Update.type == UpdateType.from_string(type)).count()
 
         for update in updates.all():
+            assert update.user, update.title
+            data['submitters'][update.user.name] += 1
             for build in update.builds:
                 data['packages'][build.package.name] += 1
                 if build.package.name in critpath_pkgs:
