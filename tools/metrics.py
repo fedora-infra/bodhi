@@ -23,7 +23,11 @@ types = ('bugfix', 'enhancement', 'security', 'newpackage')
 
 
 def short_url(update):
-    return 'https://admin.fedoraproject.org/updates/%s' % update.builds[0].nvr
+    if not update.builds:
+        print('%s missing builds' % update.title)
+        return ''
+    else:
+        return 'https://admin.fedoraproject.org/updates/%s' % update.builds[0].nvr
 
 
 def main(releases=None):
