@@ -312,8 +312,9 @@ def load_sqlalchemy_db():
                 except NoResultFound:
                     user = User(name=u['submitter'])
                     db.add(user)
-                    user.updates.append(update)
+                    db.flush()
                 users[u['submitter']] = user
+            user.updates.append(update)
 
         ## Create Package and Build objects
         for pkg, nvr in u['builds']:
