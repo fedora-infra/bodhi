@@ -15,7 +15,7 @@ from collections import defaultdict
 
 from sqlalchemy.sql import and_
 
-from bodhi.util import get_db_from_config, header
+from bodhi.util import get_db_from_config, header, get_critpath_pkgs
 from bodhi.models import Update, Release, UpdateStatus, UpdateType
 
 statuses = ('stable', 'testing', 'pending', 'obsolete')
@@ -39,6 +39,7 @@ def main(releases=None):
         if releases and release.name not in releases:
             continue
         updates = db.query(Update).filter_by(release=release)
+        critpath_pkgs = get_critpath_pkgs(release.name.lower())
         total = updates.count()
         if not total:
             continue
@@ -49,6 +50,7 @@ def main(releases=None):
             'num_tested_without_karma': 0,
             'num_feedback': 0,
             'num_anon_feedback': 0,
+            'critpath_pkgs': defaultdict(int),
             'num_critpath': 0,
             'num_critpath_approved': 0,
             'num_critpath_unapproved': 0,
@@ -88,7 +90,9 @@ def main(releases=None):
 
         for update in updates.all():
             for build in update.builds:
-                data['packages'][build.package] += 1
+                data['packages'][build.package.name] += 1
+                if build.package.name in critpath_pkgs:
+                    data['critpath_pkgs'][build.package.name] += 1
             for bug in update.bugs:
                 data['bugs'].add(bug.bug_id)
 
@@ -254,8 +258,31 @@ def main(releases=None):
                 data['deltas'][len(data['deltas']) / 2].days)
         print "   * mode = %d days" % (
                 sorted(data['occurrences'].items(), key=itemgetter(1))[-1][0])
-        #for package in sorted(data['packages'].items(), key=itemgetter(1), reverse=True):
-        #    print "    * %s: %d" % (package[0].name, package[1])
+
+        print "Out of %d packages updated, the top 50 were:" % (
+                len(data['packages']))
+        for package in sorted(data['packages'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
+            print " * %s (%d)" % (package[0], package[1])
+
+        print "Out of %d update submitters, the top 50 were:" % (
+                len(data['submitters']))
+        for submitter in sorted(data['submitters'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
+            print " * %s (%d)" % (submitter[0], submitter[1])
+
+        print "Out of %d critical path updates, the top 50 updated were:" % (
+                len(data['critpath_pkgs']))
+        for x in sorted(data['critpath_pkgs'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
+            print " * %s (%d)" % (x[0], x[1])
+
+        critpath_not_updated = set()
+        for pkg in critpath_pkgs:
+            if pkg not in data['critpath_pkgs']:
+                critpath_not_updated.add(pkg)
+        print "Out of %d critical path packages, %d were never updated:" % (
+                len(critpath_pkgs), len(critpath_not_updated))
+        for pkg in sorted(critpath_not_updated):
+            print(' * %s' % pkg)
+
         print
 
     print
