@@ -27,6 +27,7 @@ app_settings = {
     'mako.directories': 'bodhi:templates',
     'session.type': 'memory',
     'session.key': 'testing',
+    'session.secret': 'foo',
     'cache.type': 'memory',
     'cache.regions': 'default_term, second, short_term, long_term',
     'cache.second.expire': '1',
