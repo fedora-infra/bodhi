@@ -105,6 +105,7 @@ def main(releases=None):
 
             feedback_done = False
             testingtime_done = False
+            stablekarma_done = False
 
             for comment in update.comments:
                 if not comment.user:
@@ -120,10 +121,14 @@ def main(releases=None):
                     data['proventesters'].add(comment.user.name)
                     data['proventesters_%d' % comment.karma] += 1
 
-                if comment.text == 'This update has reached the stable karma threshold and will be pushed to the stable updates repository':
-                    data['num_stablekarma'] += 1
-                elif comment.text and comment.text.endswith('days in testing and can be pushed to stable now if the maintainer wishes'):
-                    data['num_testingtime'] += 1
+                if update.status == UpdateStatus.stable:
+                    if not stablekarma_done:
+                        if comment.text == 'This update has reached the stable karma threshold and will be pushed to the stable updates repository':
+                            data['num_stablekarma'] += 1
+                            stablekarma_done = True
+                        elif comment.text and comment.text.endswith('days in testing and can be pushed to stable now if the maintainer wishes'):
+                            data['num_testingtime'] += 1
+                            stablekarma_done = True
 
                 # For figuring out if an update has received feedback or not
                 if not feedback_done:
