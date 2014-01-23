@@ -247,10 +247,10 @@ def main(releases=None):
 #        print " * %d out of %d stable updates went through testing (%0.2f%%)" %(
 #                data['num_tested'], data['num_stable'],
 #                float(data['num_tested']) / data['num_stable'] * 100)
-        print " * %d updates reached the stable karma threshold (%0.2f%%)" %(
+        print " * %d stable updates reached the stable karma threshold (%0.2f%%)" %(
                 data['num_stablekarma'],
                 float(data['num_stablekarma']) / data['num_stable'] * 100)
-        print " * %d updates reached the minimum time in testing threshold (%0.2f%%)" % (
+        print " * %d stable updates reached the minimum time in testing threshold (%0.2f%%)" % (
                 data['num_testingtime'],
                 float(data['num_testingtime']) / data['num_stable'] * 100)
         print " * %d went from testing to stable *without* karma (%0.2f%%)" %(
@@ -300,7 +300,7 @@ def main(releases=None):
     print
     print "Out of %d total updates, %d received feedback (%0.2f%%)" % (
             num_updates, feedback, (float(feedback) / num_updates * 100))
-    print "Out of %d total unique commenters, the top 50 are:" % (
+    print "Out of %d total unique commenters, the top 50 were:" % (
             len(karma))
     for submitter in sorted(karma.iteritems(), key=itemgetter(1), reverse=True)[:50]:
         print " * %s (%d)" % (submitter[0], submitter[1])

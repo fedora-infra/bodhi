@@ -200,6 +200,7 @@ def load_sqlalchemy_db():
     if '--release' in sys.argv:
         for r in sys.argv[sys.argv.index('--release') + 1].split(','):
             whitelist.append(r)
+        print('whitelist = %r' % whitelist)
 
     # Legacy format was just a list of update dictionaries
     # Now we'll pull things out into an organized dictionary:
