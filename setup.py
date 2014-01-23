@@ -40,6 +40,7 @@ requires = [
     # External resources
     'python-bugzilla',
     'simplemediawiki',
+    'fedmsg',
 
     'Sphinx',
     ]
