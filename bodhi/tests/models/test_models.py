@@ -241,7 +241,7 @@ class TestUpdate(ModelTest):
         update.release = release
         update.assign_alias()
         eq_(update.alias, u'%s-%s-0002' % (release.id_prefix,
-                                          time.localtime()[0]))
+                                           time.localtime()[0]))
 
     @raises(IntegrityError)
     def test_dupe(self):

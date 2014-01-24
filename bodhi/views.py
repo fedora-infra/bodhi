@@ -197,7 +197,7 @@ def metrics(request):
     ticks = []
     update_types = {
         'bugfix': 'Bug fixes', 'enhancement': 'Enhancements',
-        'security': 'Security patches', 'newpackage': 'New packages'
+        'security': 'Security updates', 'newpackage': 'New packages'
     }
     releases = db.query(Release).filter(Release.name.like('F%')).all()
     for i, release in enumerate(sorted(releases, cmp=lambda x, y:
