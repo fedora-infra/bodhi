@@ -28,7 +28,7 @@ def get_dbsession(request):
 
 def get_user(request):
     from bodhi.models import User
-    userid = unauthenticated_userid(request)
+    userid = unicode(unauthenticated_userid(request))
     if userid is not None:
         return request.db.query(User).filter_by(name=userid).one()
 
