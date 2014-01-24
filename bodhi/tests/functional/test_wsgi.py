@@ -39,7 +39,8 @@ app_settings = {
     'important_groups': 'proventesters provenpackager releng',
     'admin_packager_groups': 'provenpackager',
     'mandatory_packager_groups': 'packager',
-    'critpath_pkgs': 'kernel,'
+    'critpath_pkgs': 'kernel',
+    'bugtracker': 'dummy',
 }
 
 

@@ -1,6 +1,7 @@
 import logging
 
 from kitchen.text.converters import to_unicode
+from bunch import Bunch
 from bodhi.config import config
 
 log = logging.getLogger('bodhi')
@@ -8,6 +9,15 @@ log = logging.getLogger('bodhi')
 
 class BugTracker(object):
     pass
+
+
+class FakeBugTracker(BugTracker):
+
+    def getbug(self, bug_id, *args, **kw):
+        return Bunch(bug_id=int(bug_id))
+
+    def update_details(self, *args, **kw):
+        pass
 
 
 class Bugzilla(object):
@@ -78,6 +88,8 @@ class Bugzilla(object):
 
 if config.get('bugtracker') == 'bugzilla':
     import bugzilla
+    log.debug('Using python-bugzilla')
     bugtracker = Bugzilla()
 else:
-    bugtracker = BugTracker()
+    log.debug('Using the dummy BugTracker')
+    bugtracker = FakeBugTracker()
