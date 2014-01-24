@@ -48,6 +48,10 @@ def get_pkgdb(request):
 
 
 def get_buildinfo(request):
+    """
+    A per-request cache populated by the validators and shared with the views
+    to store frequently used package-specific data, like build tags and ACLs.
+    """
     return defaultdict(dict)
 
 #
