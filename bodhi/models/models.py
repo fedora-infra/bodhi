@@ -31,8 +31,8 @@ from bodhi.util import (
 from bodhi.util import get_age_in_days
 from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import InvalidRequest, RPMNotFound
-
 from bodhi.config import config
+from bodhi.bugs import bugtracker
 
 log = logging.getLogger(__name__)
 
@@ -677,7 +677,7 @@ class Update(Base):
                 if bug.security:
                     data['type'] = UpdateType.security
             bugs.append(bug)
-            bz.comment(bug_num, config['initial_bug_msg'] % (
+            bugtracker.comment(bug_num, config['initial_bug_msg'] % (
                        data['title'], data['release'].long_name, bug.url))
         data['bugs'] = bugs
 
@@ -954,7 +954,6 @@ class Update(Base):
         """
         Comment on and close this updates bugs as necessary
         """
-        from bodhi.bugs import bugtracker
         if self.status is UpdateStatus.testing:
             for bug in self.bugs:
                 bug.testing(self)
@@ -1114,7 +1113,6 @@ class Update(Base):
 
         :returns: a list of new Bug instances.
         """
-        from bodhi.bugs import bugtracker
         fetchdetails = True
         new = []
         session = DBSession()
@@ -1477,7 +1475,6 @@ class Bug(Base):
         return config['buglink'] % self.bug_id
 
     def fetch_details(self, bug=None):
-        from bodhi.bugs import bugtracker
         bugtracker.update_details(bug, self)
 
     def default_message(self, update):
@@ -1491,7 +1488,6 @@ class Bug(Base):
         return message
 
     def add_comment(self, update, comment=None):
-        from bodhi.bugs import bugtracker
         if not comment:
             comment = self.default_message(update)
         log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
@@ -1502,12 +1498,10 @@ class Bug(Base):
         Change the status of this bug to ON_QA, and comment on the bug with
         some details on how to test and provide feedback for this update.
         """
-        from bodhi.bugs import bugtracker
         comment = self.default_message(update)
         bugtracker.on_qa(self.bug_id, comment)
 
     def close_bug(self, update):
-        from bodhi.bugs import bugtracker
         ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
         bugtracker.close(self.bug_id, fixedin=ver)
 

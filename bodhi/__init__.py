@@ -11,7 +11,6 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from fedora.client.pkgdb import PackageDB
 
 from . import buildsys
-from .models import DBSession, Base, User
 
 import logging
 
@@ -23,10 +22,12 @@ log = logging.getLogger(__name__)
 #
 
 def get_dbsession(request):
+    from bodhi.models import DBSession
     return DBSession()
 
 
 def get_user(request):
+    from bodhi.models import User
     userid = unauthenticated_userid(request)
     if userid is not None:
         return request.db.query(User).filter_by(name=userid).one()
@@ -49,13 +50,13 @@ def get_pkgdb(request):
 def get_buildinfo(request):
     return defaultdict(dict)
 
-
 #
 # Bodhi initialization
 #
 
 def main(global_config, testing=None, **settings):
     """ This function returns a WSGI application """
+    from bodhi.models import DBSession, Base
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
