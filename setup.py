@@ -21,6 +21,8 @@ requires = [
     'waitress',
     'colander',
     'cornice',
+
+    'python-openid',
     'pyramid_fas_openid',
 
     'sqlalchemy',
