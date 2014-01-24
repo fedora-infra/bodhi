@@ -170,8 +170,8 @@ def new_update(request):
         return
 
     # Bugzilla interactions
+
     # Set request
-    # Critpath checks
     # Send out email notifications
 
     return up.__json__()
