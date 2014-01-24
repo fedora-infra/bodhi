@@ -1472,6 +1472,10 @@ class Bug(Base):
     # List of Mitre CVE's associated with this bug
     cves = relationship(CVE, secondary=bug_cve_table, backref='bugs')
 
+    @property
+    def url(self):
+        return config['buglink'] % self.bug_id
+
     def fetch_details(self, bug=None):
         from bodhi.bugs import bugtracker
         bugtracker.update_details(bug, self)
@@ -1506,10 +1510,6 @@ class Bug(Base):
         from bodhi.bugs import bugtracker
         ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
         bugtracker.close(self.bug_id, fixedin=ver)
-
-    def get_url(self):
-        return "%s/show_bug.cgi?id=%s" % (
-            config.get('bz_baseurl'), self.bug_id)
 
 
 user_group_table = Table('user_group_table', Base.metadata,
