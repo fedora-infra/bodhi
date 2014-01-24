@@ -642,6 +642,7 @@ class Update(Base):
             if not package:
                 package = Package(name=name)
                 db.add(package)
+                db.flush()
 
             # Fetch test cases from the wiki
             package.fetch_test_cases(db)
