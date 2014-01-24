@@ -677,6 +677,8 @@ class Update(Base):
                 if bug.security:
                     data['type'] = UpdateType.security
             bugs.append(bug)
+            bz.comment(bug_num, config['initial_bug_msg'] % (
+                       data['title'], data['release'].long_name, bug.url))
         data['bugs'] = bugs
 
         if not data['autokarma']:
@@ -754,13 +756,16 @@ class Update(Base):
             comment += 'Removed build(s): %s.' % ', '.join(removed_builds)
         up.comment(comment, karma=0, author=u'bodhi')
 
+        data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))
+
         # Updates with new or removed builds always go back to testing
         data['request'] = UpdateRequest.testing
 
-        up.update_bugs(data['bugs'])
+        new_bugs = up.update_bugs(data['bugs'])
         del(data['bugs'])
-
-        data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))
+        for bug in new_bugs:
+            bug.add_comment(up, config['initial_bug_msg'] % (
+                data['title'], data['release'].long_name, up.url))
 
         for key, value in data.items():
             setattr(up, key, value)
