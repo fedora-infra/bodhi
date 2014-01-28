@@ -1137,6 +1137,7 @@ class Update(Base):
                     newbug = bugtracker.getbug(bug_id)
                     bug = Bug(bug_id=newbug.bug_id)
                     bug.fetch_details(newbug)
+                    bug.modified()
                 else:
                     bug = Bug(bug_id=int(bug_id))
                 session.add(bug)
@@ -1504,6 +1505,10 @@ class Bug(Base):
     def close_bug(self, update):
         ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
         bugtracker.close(self.bug_id, fixedin=ver)
+
+    def modified(self):
+        """ Change the status of this bug to MODIFIED """
+        bugtracker.modified(self.bug_id)
 
 
 user_group_table = Table('user_group_table', Base.metadata,

@@ -85,6 +85,18 @@ class Bugzilla(object):
         if 'security' in [keyword.lower() for keyword in keywords]:
             bug_entity.security = True
 
+    def modified(self, bug_id):
+        try:
+            bug = self.bz.getbug(bug_id)
+            if bug.product not in config.get('bz_products', '').split(','):
+                log.info("Skipping %r bug" % bug.product)
+                return
+            if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
+                log.info('Setting bug #%d status to MODIFIED' % bug_id)
+                bug.setstatus('MODIFIED')
+        except:
+            log.exception("Unable to alter bug #%d" % self.bug_id)
+
 
 if config.get('bugtracker') == 'bugzilla':
     import bugzilla
