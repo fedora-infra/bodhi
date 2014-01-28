@@ -20,7 +20,7 @@ class FakeBugTracker(BugTracker):
         pass
 
 
-class Bugzilla(object):
+class Bugzilla(BugTracker):
 
     def __init__(self):
         user = config.get('bodhi_email')
