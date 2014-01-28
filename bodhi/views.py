@@ -164,6 +164,7 @@ def new_update(request):
         else:
             log.info('Creating new update: %s' % ' '.join(data['builds']))
             up = Update.new(request, data)
+            log.debug(up)
     except:
         log.exception('An unexpected exception has occured')
         request.errors.add('body', 'builds', 'Unable to create update')
