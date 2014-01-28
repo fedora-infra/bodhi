@@ -1061,6 +1061,8 @@ class Update(Base):
        Type: %s
       Karma: %d""" % (self.release.long_name, self.status.description,
                       self.type.description, self.karma)
+        if self.critpath:
+            val += u"\n   Critpath: %s" % self.critpath
         if self.request != None:
             val += u"\n    Request: %s" % self.request.description
         if len(self.bugs):
