@@ -170,8 +170,6 @@ def new_update(request):
         request.errors.add('body', 'builds', 'Unable to create update')
         return
 
-    # Bugzilla interactions
-
     # Set request
     # Send out email notifications
 
