@@ -19,6 +19,9 @@ class FakeBugTracker(BugTracker):
     def update_details(self, *args, **kw):
         pass
 
+    def modified(self, *args, **kw):
+        pass
+
 
 class Bugzilla(BugTracker):
 
