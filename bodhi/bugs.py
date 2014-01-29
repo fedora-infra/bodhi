@@ -8,7 +8,9 @@ log = logging.getLogger('bodhi')
 
 
 class BugTracker(object):
-    pass
+    def _(self, *args, **kw):
+        raise NotImplementedError
+    getbug = update_details = modified = on_qa = close = update_details = _
 
 
 class FakeBugTracker(BugTracker):
