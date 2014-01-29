@@ -389,9 +389,9 @@ class Package(Base):
             # Build query arguments and call wiki
             query = dict(action='query', list='categorymembers', cmtitle=cat_page)
             response = wiki.call(query)
-            members = [entry.get('title') for entry in
+            members = [entry['title'] for entry in
                        response.get('query',{}).get('categorymembers',{})
-                       if entry.has_key('title')]
+                       if 'title' in entry]
 
             # Determine whether we need to recurse
             idx = 0
