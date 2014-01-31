@@ -22,7 +22,6 @@ import sys
 import logging
 import urllib2
 import tempfile
-import simplejson
 import subprocess
 import urlgrabber
 import turbogears

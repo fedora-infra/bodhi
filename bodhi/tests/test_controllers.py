@@ -3,7 +3,7 @@
 
 import os
 import urllib
-import simplejson
+import json
 import turbogears
 import cPickle as pickle
 
@@ -1555,10 +1555,10 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/get_updates_from_builds?builds=' +
                 'kernel-2.6.29.1-111.fc7.x86_64%20TurboGears-1.0.2.2-2.fc7',
                 method='POST')
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert 'kernel-2.6.29.1-111.fc7.x86_64' in json
-        assert 'TurboGears-1.0.2.2-2.fc7' in json
-        assert json['TurboGears-1.0.2.2-2.fc7']['notes'] == 'foobar'
+        data = json.loads(cherrypy.response.body[0])
+        assert 'kernel-2.6.29.1-111.fc7.x86_64' in data
+        assert 'TurboGears-1.0.2.2-2.fc7' in data
+        assert data['TurboGears-1.0.2.2-2.fc7']['notes'] == 'foobar'
 
     def test_updating_build_during_edit(self):
         session = login()
@@ -2359,9 +2359,9 @@ class TestControllers(testutil.DBTest):
                            'tg_format': 'json'}),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 1
-        assert json['updates'][0]['title'] == params['builds']
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 1
+        assert data['updates'][0]['title'] == params['builds']
 
         testutil.create_request('/updates/list?%s' %
                 urlencode({
@@ -2371,8 +2371,8 @@ class TestControllers(testutil.DBTest):
                     }),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 0
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 0
 
     def test_modified_since(self):
         session = login()
@@ -2414,9 +2414,9 @@ class TestControllers(testutil.DBTest):
                            'tg_format': 'json'}),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 1
-        assert json['updates'][0]['title'] == params['builds']
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 1
+        assert data['updates'][0]['title'] == params['builds']
 
         testutil.create_request('/updates/list?%s' %
                 urlencode({
@@ -2426,8 +2426,8 @@ class TestControllers(testutil.DBTest):
                     }),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 0
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 0
 
     def test_pushed_since(self):
         session = login()
@@ -2464,9 +2464,9 @@ class TestControllers(testutil.DBTest):
                            'tg_format': 'json'}),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 1
-        assert json['updates'][0]['title'] == params['builds']
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 1
+        assert data['updates'][0]['title'] == params['builds']
 
         testutil.create_request('/updates/list?%s' %
                 urlencode({
@@ -2475,8 +2475,8 @@ class TestControllers(testutil.DBTest):
                     }),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 0
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 0
 
     def test_query_limit(self):
         session = login()
@@ -2507,18 +2507,18 @@ class TestControllers(testutil.DBTest):
                                 headers=session)
 
         assert '100 updates found' in cherrypy.response.body[0], cherrypy.response.body[0]
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 100, json['num_items']
-        assert len(json['updates']) == 25, len(json['updates'])
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 100, data['num_items']
+        assert len(data['updates']) == 25, len(data['updates'])
 
         ## Try getting all 100
         testutil.create_request('/updates/list?tg_format=json&updates_tgp_limit=100',
                                 method='GET', headers=session)
 
         assert '100 updates found' in cherrypy.response.body[0], cherrypy.response.body[0]
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 100, json['num_items']
-        assert len(json['updates']) == 100, len(json['updates'])
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 100, data['num_items']
+        assert len(data['updates']) == 100, len(data['updates'])
 
     def test_add_bugs_to_update(self):
         session = login()
@@ -2552,7 +2552,7 @@ class TestControllers(testutil.DBTest):
         release = create_release()
         refresh_metrics()
         testutil.create_request('/updates/metrics/?tg_format=json', method='GET')
-        response = simplejson.loads(cherrypy.response.body[0])
+        response = json.loads(cherrypy.response.body[0])
         assert 'F7' in response
         print response
         assert response['F7']['TopTestersMetric']['data'] == [], response
@@ -3144,7 +3144,7 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         logs = testutil.get_log()
         assert 'Error: You must supply details for this update' in logs
-        
+
     def test_placeholder_notes(self):
         session = login()
         create_release()
