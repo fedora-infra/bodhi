@@ -47,8 +47,8 @@ import fedmsg
 
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
-from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
-from bodhi.util import link, isint, get_critpath_pkgs
+from bodhi.util import Singleton, authorized_user, flash_log, build_evr
+from bodhi.util import isint, get_critpath_pkgs
 from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 

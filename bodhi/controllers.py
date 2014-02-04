@@ -18,7 +18,6 @@ import urllib2
 import time
 import logging
 import cherrypy
-import xmlrpclib
 import textwrap
 
 from cgi import escape
@@ -53,9 +52,7 @@ from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
 from bodhi.search import SearchController
 from bodhi.overrides import BuildRootOverrideController
 from bodhi.widgets import CommentForm, OkCancelForm, CommentCaptchaForm
-from bodhi.exceptions import (DuplicateEntryError, InvalidRequest,
-                              PostgresIntegrityError, SQLiteIntegrityError,
-                              InvalidUpdateException)
+from bodhi.exceptions import InvalidRequest, InvalidUpdateException
 
 log = logging.getLogger(__name__)
 
