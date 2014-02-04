@@ -746,58 +746,61 @@ class Root(controllers.RootController):
                           config.get('release_team_address'))
                 raise InvalidUpdateException(params)
 
-            # Make sure the tag has not been moved, which indicates that we
-            # are in the middle of pushing this update
-            if edited.get_implied_build_tag() not in buildinfo[builds[0]]['tags']:
-                if edited.request:
-                    flash_log("Unable to edit update. %s is currently tagged "
-                              "with %s " "where bodhi expects it to be %s. "
-                              "This could mean that this update is currently "
-                              "being pushed." % (
-                                  builds[0], buildinfo[builds[0]]['tags'],
-                                  edited.get_implied_build_tag()))
-                    raise InvalidUpdateException(params)
-                else:
-
-                    # Ideally, this should never happen.
-                    log.warn('Mismatched tags for an update without a request?')
-                    log.debug(edited)
-                    log.debug('Implied tag: %s\nActual tags: %s' % (
-                        edited.get_implied_build_tag(),
-                        buildinfo[builds[0]]['tags']))
-
             # Determine which builds have been added or removed
             edited_builds = [build.nvr for build in edited.builds]
             new_builds = []
             for build in builds:
                 if build not in edited_builds:
                     new_builds.append(build)
-
-                    # Add the appropriate pending tags
-                    try:
-                        if edited.request == 'testing':
-                            koji.tagBuild(edited.release.pending_testing_tag,
-                                          build, force=True)
-                        elif edited.request == 'stable':
-                            koji.tagBuild(edited.release.pending_stable_tag,
-                                          build, force=True)
-                    except (TagError, GenericError),  e:
-                        log.exception(e)
-
             for build in edited_builds:
                 if build not in builds:
                     removed_builds.append(build)
 
-                    # Remove the appropriate pending tags
-                    try:
-                        if edited.request == 'stable':
-                            koji.untagBuild(edited.release.pending_stable_tag,
-                                            build, force=True)
-                        elif edited.request == 'testing':
-                            koji.untagBuild(edited.release.pending_testing_tag,
-                                            build, force=True)
-                    except (TagError, GenericError),e :
-                        log.debug(str(e))
+            # If we're adding/removing builds, ensure that they aren't
+            # currently being pushed
+            if edited.currently_pushing:
+                if new_builds or removed_builds:
+                    if edited.request == 'stable':
+                        flash_log('Unable to edit update that is currently '
+                                  'being pushed to the stable repository')
+                        raise InvalidUpdateException(params)
+                    elif edited.request == 'testing':
+                        flash_log('Unable to add or remove builds from an '
+                                  'update that is currently being pushed to the '
+                                  'testing repository')
+                        log.debug('%s tagged with %s but expecting %s' % (
+                            builds[0], buildinfo[builds[0]]['tags'],
+                            edited.get_build_tag()))
+                        raise InvalidUpdateException(params)
+            else:
+                if edited.get_build_tag() not in buildinfo[builds[0]]['tags'] and not edited.request:
+                    log.warn('Mismatched tags for an update without a request')
+                    log.debug('Implied tag: %s\nActual tags: %s' % (
+                        edited.get_implied_build_tag(),
+                        buildinfo[builds[0]]['tags']))
+
+            # Add the appropriate pending tags
+            for build in new_builds:
+                try:
+                    if edited.request == 'testing':
+                        koji.tagBuild(edited.release.pending_testing_tag,
+                                        build, force=True)
+                    elif edited.request == 'stable':
+                        koji.tagBuild(edited.release.pending_stable_tag,
+                                        build, force=True)
+                except (TagError, GenericError),  e:
+                    log.exception(e)
+
+            for build in removed_builds:
+                try:
+                    if edited.request == 'stable':
+                        koji.untagBuild(edited.release.pending_stable_tag,
+                                        build, force=True)
+                    elif edited.request == 'testing':
+                        koji.untagBuild(edited.release.pending_testing_tag,
+                                        build, force=True)
+                except (TagError, GenericError),e :
+                    log.debug(str(e))
 
             # Comment on the update with details of added/removed builds
             if new_builds or removed_builds:
