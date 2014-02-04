@@ -700,6 +700,139 @@ class TestControllers(testutil.DBTest):
         assert update.status == 'pending'
         assert update.request == 'testing'
 
+
+    def test_edit_testing_update_headed_to_stable(self):
+        """ Make sure we cannot edit updates that are headed to stable"""
+        session = login()
+        create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's being pushed to stable
+        update.request = 'stable'
+        update.status = 'testing'
+        update.comment('This update is currently being pushed to the %s %s updates repository.' % (update.release.long_name, update.request), author='bodhi', email=False)
+        assert update.currently_pushing
+
+        # Disallow adding or removing builds
+        newparams = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.1-1.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(newparams, session)
+        logs = testutil.get_log()
+        assert 'Unable to edit update that is currently being pushed to the stable repository' in logs, logs
+        try:
+            PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+            assert False, 'Update should not have been created!'
+        except SQLObjectNotFound:
+            pass
+
+        # Ensure the state of the existing update wasn't changed
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'testing'
+        assert update.request == 'stable'
+
+        # Allow for last-minute bugs/notes changes
+        newparams = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : 'bar',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(newparams, session)
+        logs = testutil.get_log()
+        assert 'Update successfully edited' in logs, logs
+        update = PackageUpdate.byTitle(params['builds'])
+        assert len(update.bugs) == 1
+        assert update.status == 'testing'
+        assert update.request == 'stable'
+        assert update.notes == 'bar'
+
+    def test_edit_pending_update_headed_to_testing(self):
+        """ Make sure we can edit updates that are headed to testing """
+        session = login()
+        create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's being pushed to testing
+        update.comment('This update is currently being pushed to the %s %s updates repository.' % (update.release.long_name, update.request), author='bodhi', email=False)
+        assert update.request == 'testing'
+        assert update.status == 'pending'
+        assert update.currently_pushing
+
+        # Disallow adding or removing builds while it's being pushed
+        newparams = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.1-1.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(newparams, session)
+        logs = testutil.get_log()
+        assert 'Unable to add or remove builds from an update that is currently being pushed to the testing repository' in logs, logs
+        try:
+            PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+            assert False, 'Update should not have been created!'
+        except SQLObjectNotFound:
+            pass
+
+        # Ensure the state of the existing update wasn't changed
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+
+        # Allow for bugs/notes changes
+        newparams = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : 'bar',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(newparams, session)
+        logs = testutil.get_log()
+        assert 'Update successfully edited' in logs, logs
+        update = PackageUpdate.byTitle(params['builds'])
+        assert len(update.bugs) == 1
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+        assert update.notes == 'bar'
+
     def test_delete(self):
         session = login()
         create_release()
