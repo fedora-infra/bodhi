@@ -526,7 +526,7 @@ class PackageUpdate(SQLObject):
                         action = 'testing'
 
         # Ensure this update meets the minimum testing requirements
-        flash_notes = '' 
+        flash_notes = ''
         if action == 'stable' and not self.critpath:
             # Check if we've met the karma requirements
             if (self.stable_karma != 0 and self.karma >= self.stable_karma) or \
@@ -813,7 +813,7 @@ class PackageUpdate(SQLObject):
 
     def update_cves(self, cves):
         """
-        Create any new CVES, and remove any missing ones.  Destroy removed CVES 
+        Create any new CVES, and remove any missing ones.  Destroy removed CVES
         that are no longer referenced anymore.
         """
         for cve in self.cves:
@@ -1375,7 +1375,7 @@ class CVE(SQLObject):
     """
     Table of CVEs fixed within updates that we know of.
 
-    This table has since been deprecated.  We are now tracking CVEs via 
+    This table has since been deprecated.  We are now tracking CVEs via
     Bugzilla.  See http://fedoraproject.org/wiki/Security/TrackingBugs
     for more information on our bug tracking policy.
 
