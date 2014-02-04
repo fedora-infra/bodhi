@@ -511,7 +511,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert u"Unable to edit update" in '\n'.join(logs), logs
+        assert u'Cannot add a F8 build to a F7 update. Please create a new update for python-sqlobject-0.8.2-1.fc8' in logs, logs
 
         # Try again without a request..
         new_build = 'python-sqlalchemy-1.0.2.2-2.fc7'
