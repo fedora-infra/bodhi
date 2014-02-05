@@ -192,6 +192,7 @@ def main():
     setup_logger(opts.verbose)
 
     bodhi = BodhiClient(opts.bodhi_url, username=opts.username, debug=opts.verbose)
+    bodhi.timeout = 300
 
     def verify_args(args):
         if not args and len(args) != 1:
