@@ -753,6 +753,15 @@ class Root(controllers.RootController):
                 if build not in builds:
                     removed_builds.append(build)
 
+            # Check to see if any of the new builds already exist (#682)
+            for build in new_builds:
+                try:
+                    if PackageBuild.byNvr(build).updates:
+                        flash_log("Error: %s is already in an existing update" % build)
+                        raise InvalidUpdateException(params)
+                except SQLObjectNotFound:
+                    pass
+
             # If we're adding/removing builds, ensure that they aren't
             # currently being pushed
             if edited.currently_pushing:
