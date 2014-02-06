@@ -3193,6 +3193,73 @@ class TestControllers(testutil.DBTest):
         except SQLObjectNotFound:
             pass
 
+    def test_edit_add_build_from_other_update(self):
+        """
+        Ensure that we disallow editing an update and adding a build that is
+        already a part of a different update. (#682)
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.8-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'autokarma' : True,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        params2 = {
+                'builds'  : 'python-2.7.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'testing',
+                'autokarma' : True,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params2, session)
+        up = PackageUpdate.byTitle(params2['builds'])
+        python = PackageBuild.byNvr('python-2.7.0-1.fc7')
+        assert len(python.updates) == 1
+
+        # Try to add a build from an existing update to another one
+        params3 = {
+            'builds'  : 'TurboGears-1.0.8-1.fc7,python-2.7.0-1.fc7',
+            'release' : 'Fedora 7',
+            'type_'   : 'bugfix',
+            'cves'    : '',
+            'bugs'    : '',
+            'notes'   : 'foo',
+            'edited'  : 'TurboGears-1.0.8-1.fc7',
+        }
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params3, session)
+        logs = testutil.get_log()
+
+        assert 'Error: python-2.7.0-1.fc7 is already in an existing update' in logs, logs
+
+        python = PackageBuild.byNvr('python-2.7.0-1.fc7')
+        assert len(python.updates) == 1, python.updates
+
+        # this shouldn't have gone through properly
+        try:
+            up = PackageUpdate.byTitle(params3['builds'])
+            assert False, up
+        except SQLObjectNotFound:
+            pass
+
+        # make sure the single python update did not get obsoleted
+        up = PackageUpdate.byTitle(params2['builds'])
+        assert up.status == 'pending'
+        assert up.request == 'testing'
+
     def test_push_EPEL_critpath_before_tested(self):
         """
         Try pushing an epel package to stable after 13 days in testing, which
