@@ -1127,7 +1127,7 @@ class Root(controllers.RootController):
 
             # If a request is specified, make it.  By default we're submitting
             # new updates directly into testing
-            if request and request != update.request:
+            if request and request != update.request and update.status != request:
                 try:
                     update.set_request(request, pathcheck=False)
                 except InvalidRequest, e:
