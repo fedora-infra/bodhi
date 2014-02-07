@@ -9,7 +9,7 @@ database.set_db_uri("sqlite:///:memory:")
 
 import urllib
 import cherrypy
-import simplejson
+import json
 
 from sqlobject import SQLObjectNotFound
 from bodhi.model import PackageUpdate, Bugzilla
@@ -41,7 +41,7 @@ class BodhiTestClient(BodhiClient):
         print "url =", url
         testutil.create_request(url, headers=self.cookie, method='POST')
         print cherrypy.response.body[0]
-        return simplejson.loads(cherrypy.response.body[0])
+        return json.loads(cherrypy.response.body[0])
 
 class Opts(object):
     """ To represent our OptionParser """

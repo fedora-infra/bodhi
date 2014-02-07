@@ -15,7 +15,7 @@
 # Copyright 2007-2010  Red Hat, Inc
 # Authors: Luke Macken <lmacken@redhat.com>
 
-__version__ = '0.9.7.4'
+__version__ = '0.9.8'
 __description__ = 'Command line tool for interacting with Bodhi'
 
 import os
@@ -192,6 +192,7 @@ def main():
     setup_logger(opts.verbose)
 
     bodhi = BodhiClient(opts.bodhi_url, username=opts.username, debug=opts.verbose)
+    bodhi.timeout = 300
 
     def verify_args(args):
         if not args and len(args) != 1:
@@ -306,7 +307,6 @@ def main():
                     data['updates'] = filter(lambda x: x['title'].split(',')[0] in
                                              opts.push_build, data['updates'])
 
-                log.info("[ %d Pending Requests ]" % len(data['updates']))
                 for status in ('testing', 'stable', 'obsolete'):
                     updates = filter(lambda x: x['request'] == status,
                                      data['updates'])
@@ -329,6 +329,8 @@ def main():
                             log.info('')
                             f.write('')
                             f.close()
+
+                log.info("[ %d Pending Requests ]" % len(data['updates']))
 
                 ## Confirm that we actually want to push these updates
                 sys.stdout.write("\nPush these updates? [n]")
@@ -485,6 +487,9 @@ def main():
                     print_query(data)
 
             elif opts.download:
+                if opts.download.startswith('https://') or \
+                   opts.download.startswith('http://'):
+                    opts.download = opts.download.split('/')[-1]
                 data = bodhi.query(release=opts.release, status=opts.status,
                                    type_=opts.type_, bugs=opts.bugs,
                                    request=opts.request, mine=opts.mine,

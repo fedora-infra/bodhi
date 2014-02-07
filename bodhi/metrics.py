@@ -122,19 +122,25 @@ class AllMetric(Metric):
             },
             {
                 'data'   : data['timeline']['enhancement'],
-                'label'  : 'Enhancement',
+                'label'  : 'Enhancements',
                 'lines'  : {'show': 'true'},
                 'points' : {'show': 'true'}
             },
             {
                 'data'   : data['timeline']['security'],
-                'label'  : 'Security',
+                'label'  : 'Security updates',
                 'lines'  : {'show': 'true'},
                 'points' : {'show': 'true'}
             },
             {
                 'data'   : data['timeline']['bugfix'],
-                'label'  : 'Bugfix',
+                'label'  : 'Bug fixes',
+                'lines'  : {'show': 'true'},
+                'points' : {'show': 'true'}
+            },
+            {
+                'data'   : data['timeline']['newpackage'],
+                'label'  : 'New packages',
                 'lines'  : {'show': 'true'},
                 'points' : {'show': 'true'}
             }],

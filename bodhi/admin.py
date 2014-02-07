@@ -16,7 +16,7 @@
 
 import logging
 import cherrypy
-import simplejson
+import json
 import cPickle as pickle
 
 from os.path import join, exists
@@ -144,9 +144,9 @@ class AdminController(Controller, SecureResource):
             updates = []
         if not isinstance(updates, list):
             if isinstance(updates, basestring):
-                log.debug("Doing simplejson hack")
+                log.debug("Doing json hack")
                 try:
-                    updates = simplejson.loads(updates.replace("u'", "\"").replace("'", "\""))
+                    updates = json.loads(updates.replace("u'", "\"").replace("'", "\""))
                 except:
                     log.debug("Didn't work, assuming it's a single update...")
                     updates = [updates]

@@ -45,7 +45,7 @@ def main():
     overrides = BuildRootOverride.select(BuildRootOverride.releaseID==release.id)
     num_overrides = overrides.count()
     if num_overrides:
-        progress = ProgressBar(maxValue=overrides.count())
+        progress = ProgressBar(maxValue=num_overrides)
         print "Destroying all buildroot overrides associated with %s" % release.name
         for override in overrides:
             override.destroySelf()

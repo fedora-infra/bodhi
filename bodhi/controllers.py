@@ -18,7 +18,6 @@ import urllib2
 import time
 import logging
 import cherrypy
-import xmlrpclib
 import textwrap
 
 from cgi import escape
@@ -53,9 +52,7 @@ from bodhi.model import (Package, PackageBuild, PackageUpdate, Release,
 from bodhi.search import SearchController
 from bodhi.overrides import BuildRootOverrideController
 from bodhi.widgets import CommentForm, OkCancelForm, CommentCaptchaForm
-from bodhi.exceptions import (DuplicateEntryError, InvalidRequest,
-                              PostgresIntegrityError, SQLiteIntegrityError,
-                              InvalidUpdateException)
+from bodhi.exceptions import InvalidRequest, InvalidUpdateException
 
 log = logging.getLogger(__name__)
 
@@ -723,10 +720,9 @@ class Root(controllers.RootController):
             # Verify that the user is either in the committers list, or is
             # a member of a groups that has privileges to commit to this package
             if not identity.current.user_name in people and \
-               not filter(lambda x: x in identity.current.groups, groups[0]):
-               # Disallow admin_groups from pushing anything
-               #not filter(lambda group: group in identity.urrent.groups,
-               #           config.get('admin_groups').split()) and \
+               not filter(lambda x: x in identity.current.groups, groups[0]) and \
+               not filter(lambda group: group in identity.current.groups,
+                          config.get('admin_groups').split()):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, pkg))
                 raise InvalidUpdateException(params)
@@ -747,58 +743,70 @@ class Root(controllers.RootController):
                           config.get('release_team_address'))
                 raise InvalidUpdateException(params)
 
-            # Make sure the tag has not been moved, which indicates that we
-            # are in the middle of pushing this update
-            if edited.get_implied_build_tag() not in buildinfo[builds[0]]['tags']:
-                if edited.request:
-                    flash_log("Unable to edit update. %s is currently tagged "
-                              "with %s " "where bodhi expects it to be %s. "
-                              "This could mean that this update is currently "
-                              "being pushed." % (
-                                  builds[0], buildinfo[builds[0]]['tags'],
-                                  edited.get_implied_build_tag()))
-                    raise InvalidUpdateException(params)
-                else:
-
-                    # Ideally, this should never happen.
-                    log.warn('Mismatched tags for an update without a request?')
-                    log.debug(edited)
-                    log.debug('Implied tag: %s\nActual tags: %s' % (
-                        edited.get_implied_build_tag(),
-                        buildinfo[builds[0]]['tags']))
-
             # Determine which builds have been added or removed
             edited_builds = [build.nvr for build in edited.builds]
             new_builds = []
             for build in builds:
                 if build not in edited_builds:
                     new_builds.append(build)
-
-                    # Add the appropriate pending tags
-                    try:
-                        if edited.request == 'testing':
-                            koji.tagBuild(edited.release.pending_testing_tag,
-                                          build, force=True)
-                        elif edited.request == 'stable':
-                            koji.tagBuild(edited.release.pending_stable_tag,
-                                          build, force=True)
-                    except (TagError, GenericError),  e:
-                        log.exception(e)
-
             for build in edited_builds:
                 if build not in builds:
                     removed_builds.append(build)
 
-                    # Remove the appropriate pending tags
-                    try:
-                        if edited.request == 'stable':
-                            koji.untagBuild(edited.release.pending_stable_tag,
-                                            build, force=True)
-                        elif edited.request == 'testing':
-                            koji.untagBuild(edited.release.pending_testing_tag,
-                                            build, force=True)
-                    except (TagError, GenericError),e :
-                        log.debug(str(e))
+            # Check to see if any of the new builds already exist (#682)
+            for build in new_builds:
+                try:
+                    if PackageBuild.byNvr(build).updates:
+                        flash_log("Error: %s is already in an existing update" % build)
+                        raise InvalidUpdateException(params)
+                except SQLObjectNotFound:
+                    pass
+
+            # If we're adding/removing builds, ensure that they aren't
+            # currently being pushed
+            if edited.currently_pushing:
+                if new_builds or removed_builds:
+                    if edited.request == 'stable':
+                        flash_log('Unable to edit update that is currently '
+                                  'being pushed to the stable repository')
+                        raise InvalidUpdateException(params)
+                    elif edited.request == 'testing':
+                        flash_log('Unable to add or remove builds from an '
+                                  'update that is currently being pushed to the '
+                                  'testing repository')
+                        log.debug('%s tagged with %s but expecting %s' % (
+                            builds[0], buildinfo[builds[0]]['tags'],
+                            edited.get_build_tag()))
+                        raise InvalidUpdateException(params)
+            else:
+                if edited.get_build_tag() not in buildinfo[builds[0]]['tags'] and not edited.request:
+                    log.warn('Mismatched tags for an update without a request')
+                    log.debug('Implied tag: %s\nActual tags: %s' % (
+                        edited.get_implied_build_tag(),
+                        buildinfo[builds[0]]['tags']))
+
+            # Add the appropriate pending tags
+            for build in new_builds:
+                try:
+                    if edited.request == 'testing':
+                        koji.tagBuild(edited.release.pending_testing_tag,
+                                        build, force=True)
+                    elif edited.request == 'stable':
+                        koji.tagBuild(edited.release.pending_stable_tag,
+                                        build, force=True)
+                except (TagError, GenericError),  e:
+                    log.exception(e)
+
+            for build in removed_builds:
+                try:
+                    if edited.request == 'stable':
+                        koji.untagBuild(edited.release.pending_stable_tag,
+                                        build, force=True)
+                    elif edited.request == 'testing':
+                        koji.untagBuild(edited.release.pending_testing_tag,
+                                        build, force=True)
+                except (TagError, GenericError),e :
+                    log.debug(str(e))
 
             # Comment on the update with details of added/removed builds
             if new_builds or removed_builds:
@@ -943,7 +951,7 @@ class Root(controllers.RootController):
                     continue
                 for update in oldBuild.updates:
                     if update.status not in ('pending', 'testing') or \
-                       update.request or \
+                       update.request == 'stable' or \
                        update.release not in buildinfo[build]['releases'] or \
                        update in pkgBuild.updates or \
                        (edited and oldBuild in edited.builds):
@@ -963,6 +971,11 @@ class Root(controllers.RootController):
                         if _build.package.name not in pkgs:
                             obsoletable = False
                             break
+                    if update.request == 'testing':
+                        # if the update has a testing request, but has yet to
+                        # be pushed, obsolete it
+                        if update.currently_pushing:
+                            obsoletable = False
                 if obsoletable:
                     log.info('%s is obsoletable' % oldBuild.nvr)
                     for update in oldBuild.updates:
@@ -1114,7 +1127,7 @@ class Root(controllers.RootController):
 
             # If a request is specified, make it.  By default we're submitting
             # new updates directly into testing
-            if request and request != update.request:
+            if request and request != update.request and update.status != request:
                 try:
                     update.set_request(request, pathcheck=False)
                 except InvalidRequest, e:

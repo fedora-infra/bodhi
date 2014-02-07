@@ -3,7 +3,7 @@
 
 import os
 import urllib
-import simplejson
+import json
 import turbogears
 import cPickle as pickle
 
@@ -33,15 +33,15 @@ def create_release(num='7', dist='dist-fc', **kw):
 
 def login(username='guest', display_name='guest', group=None):
     try:
+        guest = User.by_user_name(username)
+    except SQLObjectNotFound:
         guest = User(user_name=username, display_name=display_name,
                      password='guest')
-    except DuplicateEntryError:
-        guest = User.by_user_name(username)
     if group:
         try:
-            group = Group(group_name=group, display_name=group)
-        except DuplicateEntryError:
             group = Group.by_group_name(group)
+        except SQLObjectNotFound:
+            group = Group(group_name=group, display_name=group)
         guest.addGroup(group)
     testutil.create_request('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
     assert cherrypy.response.status == '200 OK', cherrypy.response.body[0]
@@ -511,7 +511,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert u"Unable to edit update" in '\n'.join(logs), logs
+        assert u'Cannot add a F8 build to a F7 update. Please create a new update for python-sqlobject-0.8.2-1.fc8' in logs, logs
 
         # Try again without a request..
         new_build = 'python-sqlalchemy-1.0.2.2-2.fc7'
@@ -699,6 +699,139 @@ class TestControllers(testutil.DBTest):
 
         assert update.status == 'pending'
         assert update.request == 'testing'
+
+
+    def test_edit_testing_update_headed_to_stable(self):
+        """ Make sure we cannot edit updates that are headed to stable"""
+        session = login()
+        create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's being pushed to stable
+        update.request = 'stable'
+        update.status = 'testing'
+        update.comment('This update is currently being pushed to the %s %s updates repository.' % (update.release.long_name, update.request), author='bodhi', email=False)
+        assert update.currently_pushing
+
+        # Disallow adding or removing builds
+        newparams = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.1-1.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(newparams, session)
+        logs = testutil.get_log()
+        assert 'Unable to edit update that is currently being pushed to the stable repository' in logs, logs
+        try:
+            PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+            assert False, 'Update should not have been created!'
+        except SQLObjectNotFound:
+            pass
+
+        # Ensure the state of the existing update wasn't changed
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'testing'
+        assert update.request == 'stable'
+
+        # Allow for last-minute bugs/notes changes
+        newparams = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : 'bar',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(newparams, session)
+        logs = testutil.get_log()
+        assert 'Update successfully edited' in logs, logs
+        update = PackageUpdate.byTitle(params['builds'])
+        assert len(update.bugs) == 1
+        assert update.status == 'testing'
+        assert update.request == 'stable'
+        assert update.notes == 'bar'
+
+    def test_edit_pending_update_headed_to_testing(self):
+        """ Make sure we can edit updates that are headed to testing """
+        session = login()
+        create_release()
+        params = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo'
+        }
+        self.save_update(params, session)
+        update = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's being pushed to testing
+        update.comment('This update is currently being pushed to the %s %s updates repository.' % (update.release.long_name, update.request), author='bodhi', email=False)
+        assert update.request == 'testing'
+        assert update.status == 'pending'
+        assert update.currently_pushing
+
+        # Disallow adding or removing builds while it's being pushed
+        newparams = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.1-1.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '',
+            'cves'    : '',
+            'notes'   : 'foo',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(newparams, session)
+        logs = testutil.get_log()
+        assert 'Unable to add or remove builds from an update that is currently being pushed to the testing repository' in logs, logs
+        try:
+            PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+            assert False, 'Update should not have been created!'
+        except SQLObjectNotFound:
+            pass
+
+        # Ensure the state of the existing update wasn't changed
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+
+        # Allow for bugs/notes changes
+        newparams = {
+            'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+            'release' : 'Fedora 7',
+            'type_'    : 'bugfix',
+            'bugs'    : '1',
+            'cves'    : '',
+            'notes'   : 'bar',
+            'edited'  : 'TurboGears-1.0.2.2-2.fc7'
+        }
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(newparams, session)
+        logs = testutil.get_log()
+        assert 'Update successfully edited' in logs, logs
+        update = PackageUpdate.byTitle(params['builds'])
+        assert len(update.bugs) == 1
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+        assert update.notes == 'bar'
 
     def test_delete(self):
         session = login()
@@ -1555,10 +1688,10 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/get_updates_from_builds?builds=' +
                 'kernel-2.6.29.1-111.fc7.x86_64%20TurboGears-1.0.2.2-2.fc7',
                 method='POST')
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert 'kernel-2.6.29.1-111.fc7.x86_64' in json
-        assert 'TurboGears-1.0.2.2-2.fc7' in json
-        assert json['TurboGears-1.0.2.2-2.fc7']['notes'] == 'foobar'
+        data = json.loads(cherrypy.response.body[0])
+        assert 'kernel-2.6.29.1-111.fc7.x86_64' in data
+        assert 'TurboGears-1.0.2.2-2.fc7' in data
+        assert data['TurboGears-1.0.2.2-2.fc7']['notes'] == 'foobar'
 
     def test_updating_build_during_edit(self):
         session = login()
@@ -1656,7 +1789,7 @@ class TestControllers(testutil.DBTest):
         # without a karma prerequisite for non-pending releases.
         # This feature can be disabled by setting
         #`critpath.num_admin_approvals = 0` in your configuration
-        assert update.request == 'testing', update.request
+        assert update.request != 'stable', update.request
         #assert update.karma == 1, update.karma
 
     def test_non_critpath_actions_in_normal_release(self):
@@ -1876,7 +2009,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                 method='GET', headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'testing'
+        assert update.request != 'stable', update.request
         assert update.karma == 1
         update.request = None
 
@@ -2359,9 +2492,9 @@ class TestControllers(testutil.DBTest):
                            'tg_format': 'json'}),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 1
-        assert json['updates'][0]['title'] == params['builds']
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 1
+        assert data['updates'][0]['title'] == params['builds']
 
         testutil.create_request('/updates/list?%s' %
                 urlencode({
@@ -2371,8 +2504,8 @@ class TestControllers(testutil.DBTest):
                     }),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 0
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 0
 
     def test_modified_since(self):
         session = login()
@@ -2414,9 +2547,9 @@ class TestControllers(testutil.DBTest):
                            'tg_format': 'json'}),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 1
-        assert json['updates'][0]['title'] == params['builds']
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 1
+        assert data['updates'][0]['title'] == params['builds']
 
         testutil.create_request('/updates/list?%s' %
                 urlencode({
@@ -2426,8 +2559,8 @@ class TestControllers(testutil.DBTest):
                     }),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 0
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 0
 
     def test_pushed_since(self):
         session = login()
@@ -2464,9 +2597,9 @@ class TestControllers(testutil.DBTest):
                            'tg_format': 'json'}),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 1
-        assert json['updates'][0]['title'] == params['builds']
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 1
+        assert data['updates'][0]['title'] == params['builds']
 
         testutil.create_request('/updates/list?%s' %
                 urlencode({
@@ -2475,8 +2608,8 @@ class TestControllers(testutil.DBTest):
                     }),
                 method='GET', headers=session)
 
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 0
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 0
 
     def test_query_limit(self):
         session = login()
@@ -2507,18 +2640,18 @@ class TestControllers(testutil.DBTest):
                                 headers=session)
 
         assert '100 updates found' in cherrypy.response.body[0], cherrypy.response.body[0]
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 100, json['num_items']
-        assert len(json['updates']) == 25, len(json['updates'])
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 100, data['num_items']
+        assert len(data['updates']) == 25, len(data['updates'])
 
         ## Try getting all 100
         testutil.create_request('/updates/list?tg_format=json&updates_tgp_limit=100',
                                 method='GET', headers=session)
 
         assert '100 updates found' in cherrypy.response.body[0], cherrypy.response.body[0]
-        json = simplejson.loads(cherrypy.response.body[0])
-        assert json['num_items'] == 100, json['num_items']
-        assert len(json['updates']) == 100, len(json['updates'])
+        data = json.loads(cherrypy.response.body[0])
+        assert data['num_items'] == 100, data['num_items']
+        assert len(data['updates']) == 100, len(data['updates'])
 
     def test_add_bugs_to_update(self):
         session = login()
@@ -2552,7 +2685,7 @@ class TestControllers(testutil.DBTest):
         release = create_release()
         refresh_metrics()
         testutil.create_request('/updates/metrics/?tg_format=json', method='GET')
-        response = simplejson.loads(cherrypy.response.body[0])
+        response = json.loads(cherrypy.response.body[0])
         assert 'F7' in response
         print response
         assert response['F7']['TopTestersMetric']['data'] == [], response
@@ -3060,6 +3193,73 @@ class TestControllers(testutil.DBTest):
         except SQLObjectNotFound:
             pass
 
+    def test_edit_add_build_from_other_update(self):
+        """
+        Ensure that we disallow editing an update and adding a build that is
+        already a part of a different update. (#682)
+        """
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.8-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'security',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'Stable',
+                'autokarma' : True,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params, session)
+        params2 = {
+                'builds'  : 'python-2.7.0-1.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'bugfix',
+                'bugs'    : '',
+                'notes'   : 'foobar',
+                'request' : 'testing',
+                'autokarma' : True,
+                'stable_karma' : 5,
+                'unstable_karma' : -5
+        }
+        self.save_update(params2, session)
+        up = PackageUpdate.byTitle(params2['builds'])
+        python = PackageBuild.byNvr('python-2.7.0-1.fc7')
+        assert len(python.updates) == 1
+
+        # Try to add a build from an existing update to another one
+        params3 = {
+            'builds'  : 'TurboGears-1.0.8-1.fc7,python-2.7.0-1.fc7',
+            'release' : 'Fedora 7',
+            'type_'   : 'bugfix',
+            'cves'    : '',
+            'bugs'    : '',
+            'notes'   : 'foo',
+            'edited'  : 'TurboGears-1.0.8-1.fc7',
+        }
+
+        testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
+        self.save_update(params3, session)
+        logs = testutil.get_log()
+
+        assert 'Error: python-2.7.0-1.fc7 is already in an existing update' in logs, logs
+
+        python = PackageBuild.byNvr('python-2.7.0-1.fc7')
+        assert len(python.updates) == 1, python.updates
+
+        # this shouldn't have gone through properly
+        try:
+            up = PackageUpdate.byTitle(params3['builds'])
+            assert False, up
+        except SQLObjectNotFound:
+            pass
+
+        # make sure the single python update did not get obsoleted
+        up = PackageUpdate.byTitle(params2['builds'])
+        assert up.status == 'pending'
+        assert up.request == 'testing'
+
     def test_push_EPEL_critpath_before_tested(self):
         """
         Try pushing an epel package to stable after 13 days in testing, which
@@ -3144,7 +3344,7 @@ class TestControllers(testutil.DBTest):
         self.save_update(params, session)
         logs = testutil.get_log()
         assert 'Error: You must supply details for this update' in logs
-        
+
     def test_placeholder_notes(self):
         session = login()
         create_release()
@@ -3225,3 +3425,73 @@ class TestControllers(testutil.DBTest):
         n, v, r = get_nvr(sorted_updates[-2].builds[0].nvr)
         assert r == '9.fc7', r
         assert len(sorted_updates) == 10, len(sorted_updates)
+
+    def test_obsolete_unpushed_pending_update(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar',
+                'request' : 'testing',
+        }
+        self.save_update(params, session)
+        print cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert not update.currently_pushing, update.currently_pushing
+
+        # Throw a newer build in, which should obsolete the previous
+        newparams = {
+                'builds'  : 'TurboGears-1.0.2.2-3.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '4321',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'bizbaz'
+        }
+        self.save_update(newparams, session)
+        newupdate = PackageUpdate.byTitle(newparams['builds'])
+        assert newupdate.status == 'pending'
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'obsolete', update.status
+
+    def test_obsolete_currently_pushing_pending_update(self):
+        session = login()
+        create_release()
+        params = {
+                'builds'  : 'TurboGears-1.0.2.2-2.fc7',
+                'release' : 'Fedora 7',
+                'type_'   : 'enhancement',
+                'bugs'    : '1234',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'foobar',
+                'request' : 'testing',
+        }
+        self.save_update(params, session)
+        print cherrypy.response.body[0]
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending'
+        assert update.request == 'testing'
+
+        update.comment('This update is currently being pushed to the %s %s updates repository.' % (update.release.long_name, update.request), author='bodhi', email=False)
+        assert update.currently_pushing, update.currently_pushing
+
+        # Throw a newer build in, which should obsolete the previous
+        newparams = {
+                'builds'  : 'TurboGears-1.0.2.2-3.fc7',
+                'release' : 'Fedora 7',
+                'type_'    : 'enhancement',
+                'bugs'    : '4321',
+                'cves'    : 'CVE-2020-0001',
+                'notes'   : 'bizbaz'
+        }
+        self.save_update(newparams, session)
+        newupdate = PackageUpdate.byTitle(newparams['builds'])
+        assert newupdate.status == 'pending'
+        assert newupdate.request == 'testing'
+        update = PackageUpdate.byTitle(params['builds'])
+        assert update.status == 'pending', update.status

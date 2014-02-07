@@ -47,8 +47,8 @@ import fedmsg
 
 from bodhi import buildsys, mail
 from bodhi.util import get_nvr, rpm_fileheader, header, get_age, get_age_in_days
-from bodhi.util import Singleton, authorized_user, flash_log, build_evr, url
-from bodhi.util import link, isint, get_critpath_pkgs
+from bodhi.util import Singleton, authorized_user, flash_log, build_evr
+from bodhi.util import isint, get_critpath_pkgs
 from bodhi.exceptions import RPMNotFound, InvalidRequest
 from bodhi.identity.tables import *
 
@@ -474,9 +474,6 @@ class PackageUpdate(SQLObject):
             koji = buildsys.get_session()
             for build in self.builds:
                 mybuild = koji.getBuild(build.nvr)
-                mybuild['nvr'] = "%s-%s-%s" % (mybuild['name'],
-                                               mybuild['version'],
-                                               mybuild['release'])
                 kojiBuilds = koji.listTagged(self.release.stable_tag,
                                              package=build.package.name,
                                              latest=True)
@@ -529,7 +526,7 @@ class PackageUpdate(SQLObject):
                         action = 'testing'
 
         # Ensure this update meets the minimum testing requirements
-        flash_notes = '' 
+        flash_notes = ''
         if action == 'stable' and not self.critpath:
             # Check if we've met the karma requirements
             if (self.stable_karma != 0 and self.karma >= self.stable_karma) or \
@@ -816,7 +813,7 @@ class PackageUpdate(SQLObject):
 
     def update_cves(self, cves):
         """
-        Create any new CVES, and remove any missing ones.  Destroy removed CVES 
+        Create any new CVES, and remove any missing ones.  Destroy removed CVES
         that are no longer referenced anymore.
         """
         for cve in self.cves:
@@ -1193,6 +1190,16 @@ class PackageUpdate(SQLObject):
         return people
 
     @property
+    def currently_pushing(self):
+        for c in self.comments[::-1]:
+            if c.author == 'bodhi':
+                if c.text.startswith('This update has been pushed to'):
+                    return False
+                elif c.text.startswith('This update is currently being pushed to the'):
+                    return True
+        return False
+
+    @property
     def pushable(self):
         """ Return whether or not this update is in a pushable state.
 
@@ -1317,7 +1324,7 @@ class Comment(SQLObject):
             elif token.startswith('#') and isint(token[1:]):
                 text.append('<a href="%s">%s</a>' % (
                     config.get('bz_buglink') + token[1:], token))
-            elif len(token) == 6 and isint(token):
+            elif len(token) in (6, 7) and isint(token):
                 text.append('<a href="%s">%s</a>' % (
                     config.get('bz_buglink') + token, token))
             elif token.startswith('rhbz#'):
@@ -1359,14 +1366,16 @@ class Comment(SQLObject):
         return dict(author=self.author_name, group=self.author_group,
                     text=self.text, anonymous=self.anonymous,
                     karma=self.karma, timestamp=self.timestamp,
-                    update_title=self.update.title)
+                    update_title=self.update.title,
+                    update_submitter=self.update.submitter,
+                    update_status=self.update.status)
 
 
 class CVE(SQLObject):
     """
     Table of CVEs fixed within updates that we know of.
 
-    This table has since been deprecated.  We are now tracking CVEs via 
+    This table has since been deprecated.  We are now tracking CVEs via
     Bugzilla.  See http://fedoraproject.org/wiki/Security/TrackingBugs
     for more information on our bug tracking policy.
 
@@ -1502,7 +1511,7 @@ class Bugzilla(SQLObject):
             if bug.product not in config.get('bz_products', '').split(','):
                 log.warning("Skipping %r bug" % bug.product)
                 return
-            if bug.bug_status not in ('MODIFIED', 'VERIFIED'):
+            if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
                 bug.setstatus('MODIFIED')
         except Exception, e:
             log.error("Unable to alter bug #%d\n%s" % (self.bz_id, str(e)))

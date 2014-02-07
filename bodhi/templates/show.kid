@@ -254,7 +254,11 @@ statusinfo = {
     </ul>
   </div>
 
-  <div class="show">Feedback</div>
+  <div class="show">Feedback 
+    <a href="https://fedoraproject.org/wiki/QA:Update_feedback_guidelines">
+        <img src="${tg.url('/static/images/header-faq.png')}" width="28" title="Update feedback guidelines" style="vertical-align:text-bottom"/>
+    </a>
+  </div>
   <blockquote>
     <div py:if="update.comments">
       <div py:for="comment in update.get_comments()">
