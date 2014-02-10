@@ -136,7 +136,7 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
-* Fri Feb  7 2013 Luke Macken <lmacken@redhat.com> - 0.9.8-1
+* Fri Feb  7 2014 Luke Macken <lmacken@redhat.com> - 0.9.8-1
 - Update to 0.9.8
 
 * Mon Nov 25 2013 Luke Macken <lmacken@redhat.com> - 0.9.7.4-2
