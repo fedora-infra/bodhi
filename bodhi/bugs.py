@@ -66,7 +66,6 @@ class Bugzilla(BugTracker):
         if fixedin:
             args['fixedin'] = fixedin
         try:
-            ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
             bug = self.bz.getbug(self.bug_id)
             bug.close('NEXTRELEASE', **args)
         except xmlrpclib.Fault, f:
