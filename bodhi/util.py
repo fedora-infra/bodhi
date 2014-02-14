@@ -112,19 +112,6 @@ def mkmetadatadir(dir):
         genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
 
 
-def synchronized(lock):
-    """ Synchronization decorator """
-    def wrap(f):
-        def new(*args, **kw):
-            lock.acquire()
-            try:
-                return f(*args, **kw)
-            finally:
-                lock.release()
-        return new
-    return wrap
-
-
 def authorized_user(update, identity):
     # FIXME: port to pyramid auth
     return True
