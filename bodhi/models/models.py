@@ -20,6 +20,7 @@ from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.ext.declarative import declarative_base, synonym_for
 from sqlalchemy.orm.exc import NoResultFound
 from zope.sqlalchemy import ZopeTransactionExtension
+from pyramid.settings import asbool
 
 from bodhi import buildsys, mail
 from bodhi.util import (
@@ -377,7 +378,7 @@ class Package(Base):
 
     def fetch_test_cases(self, db):
         """ Get a list of test cases from the wiki """
-        if not config.get('query_wiki_test_cases'):
+        if not asbool(config.get('query_wiki_test_cases')):
             return
 
         from simplemediawiki import MediaWiki
