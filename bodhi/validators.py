@@ -202,6 +202,7 @@ def validate_enums(request):
 
         request.validated[param] = enum.from_string(value)
 
+
 def validate_releases(request):
     """Make sure those releases exist"""
     releases = request.validated.get("releases")
@@ -213,8 +214,8 @@ def validate_releases(request):
     validated_releases = []
 
     for r in releases:
-        release = db.query(Release).filter(or_(Release.name==r,
-                                               Release.version==r)).first()
+        release = db.query(Release).filter(or_(Release.name == r,
+                                               Release.version == r)).first()
 
         if not release:
             bad_releases.append(r)

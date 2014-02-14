@@ -1,4 +1,5 @@
 import logging
+import xmlrpclib
 
 from kitchen.text.converters import to_unicode
 from bunch import Bunch
@@ -46,7 +47,7 @@ class Bugzilla(BugTracker):
         try:
             bug = self.bz.getbug(bug_id)
             bug.addcomment(comment)
-        except Exception, e:
+        except:
             log.exception("Unable to add comment to bug #%d" % bug_id)
 
     def on_qa(self, bug_id, comment):
@@ -58,7 +59,7 @@ class Bugzilla(BugTracker):
         try:
             bug = self.bz.getbug(bug_id)
             bug.setstatus('ON_QA', comment=comment)
-        except Exception, e:
+        except:
             log.exception("Unable to alter bug #%d" % bug_id)
 
     def close(self, bug_id, fixedin=None):
@@ -68,17 +69,19 @@ class Bugzilla(BugTracker):
         try:
             bug = self.bz.getbug(self.bug_id)
             bug.close('NEXTRELEASE', **args)
-        except xmlrpclib.Fault, f:
+        except xmlrpclib.Fault:
             log.exception("Unable to close bug #%d" % self.bug_id)
 
     def update_details(self, bug, bug_entity):
         if not bug:
             try:
                 bug = self.bz.getbug(bug_entity.bug_id)
-            except xmlrpclib.Fault, f:
+            except xmlrpclib.Fault:
                 bug_entity.title = 'Invalid bug number'
                 log.exception("Got fault from Bugzilla")
                 return
+            except:
+                log.exception("Unknown exception from Bugzilla")
         if bug.product == 'Security Response':
             bug_entity.parent = True
         bug_entity.title = to_unicode(bug.short_desc)
