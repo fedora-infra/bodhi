@@ -902,13 +902,13 @@ class Update(Base):
         if not authorized_user(self, identity):
             raise InvalidRequest("Unauthorized to perform action on %s" %
                                  self.title)
-        action = UpdateRequest.from_string(action)
         if action is self.status:
-            raise InvalidRequest("%s already %s" % (self.title,
-                                                    action.description))
+            log.info("%s already %s" % (self.title, action))
+            return
         if action is self.request:
-            raise InvalidRequest("%s has already been submitted to %s" % (
-                                 self.title, self.request.description))
+            log.debug("%s has already been submitted to %s" % (self.title,
+                                                               self.request.description))
+            return
         if action is UpdateRequest.unpush:
             self.unpush()
             self.comment(u'This update has been unpushed',
