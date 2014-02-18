@@ -28,9 +28,9 @@ def get_dbsession(request):
 
 def get_user(request):
     from bodhi.models import User
-    userid = unicode(unauthenticated_userid(request))
+    userid = unauthenticated_userid(request)
     if userid is not None:
-        return request.db.query(User).filter_by(name=userid).one()
+        return request.db.query(User).filter_by(name=unicode(userid)).one()
 
 
 def groupfinder(userid, request):
