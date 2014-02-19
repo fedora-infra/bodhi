@@ -3,7 +3,7 @@
 
 Name:           bodhi
 Version:        0.9.8
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -21,7 +21,7 @@ BuildRequires: python-TurboMail
 BuildRequires: python-bugzilla
 BuildRequires: python-fedora
 BuildRequires: yum koji
-BuildRequires: python-tgcaptcha2
+BuildRequires: python-tgcaptcha
 BuildRequires: python-turboflot
 
 %description
@@ -58,7 +58,7 @@ Requires: python-bugzilla
 Requires: python-imaging
 Requires: python-crypto
 Requires: python-turboflot
-Requires: python-tgcaptcha2
+Requires: python-tgcaptcha
 Requires: python-decorator
 Requires: mod_wsgi
 Requires: httpd
@@ -136,6 +136,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Wed Feb 19 2014 Luke Macken <lmacken@redhat.com> - 0.9.8-2
+- Require python-tgcaptcha, not python-tgcaptcha2
+
 * Fri Feb  7 2014 Luke Macken <lmacken@redhat.com> - 0.9.8-1
 - Update to 0.9.8
 
