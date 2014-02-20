@@ -1312,8 +1312,10 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.show')
     #@validate(validators={'karma': validators.Int()})
     @validate(form=comment_captcha_form)
-    def captcha_comment(self, text, title, author, karma, captcha=None,
-                        tg_errors=None):
+    def captcha_comment(self, text=None, title=None, author=None, karma=None,
+                        captcha=None, tg_errors=None):
+        if None in (text, title, author, karma):
+            raise redirect('/')
         if not captcha:
             captcha = {}
         try:
