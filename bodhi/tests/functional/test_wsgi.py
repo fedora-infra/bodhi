@@ -1307,7 +1307,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['close_bugs'], True)
         self.assertEquals(up['notes'], u'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
-        self.assertEquals(up['date_modified'], None)
+        self.assertIsNotNone(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['qa_approved'], False)
