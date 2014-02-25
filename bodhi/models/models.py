@@ -570,7 +570,7 @@ class Update(Base):
     status = Column(UpdateStatus.db_type(),
                     default=UpdateStatus.pending,
                     nullable=False)
-    request = Column(UpdateRequest.db_type(), default=UpdateRequest.testing)
+    request = Column(UpdateRequest.db_type())
     severity = Column(UpdateSeverity.db_type(), default=UpdateSeverity.unspecified)
     suggest = Column(UpdateSuggestion.db_type(), default=UpdateSuggestion.unspecified)
 
@@ -689,12 +689,15 @@ class Update(Base):
 
         del(data['edited'])
 
+        up_req = data['request']
+        del(data['request'])
+
+        # Create the update
         up = Update(**data)
         db.add(up)
         db.flush()
 
-        # Automatically obsolete older testing/pending updates
-        up.obsolete_older_updates(request)
+        up.set_request(up_req)
 
         return up
 
