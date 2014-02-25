@@ -589,7 +589,7 @@ class Update(Base):
 
     # Timestamps
     date_submitted = Column(DateTime, default=datetime.now)
-    date_modified = Column(DateTime, onupdate=datetime.now)
+    date_modified = Column(DateTime)
     date_approved = Column(DateTime)
     date_pushed = Column(DateTime)
     security_approval_date = Column(DateTime)
@@ -770,6 +770,8 @@ class Update(Base):
 
         for key, value in data.items():
             setattr(up, key, value)
+
+        up.date_modified = datetime.utcnow()
 
         return up
 
