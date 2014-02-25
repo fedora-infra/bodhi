@@ -236,7 +236,7 @@ def get_db_from_config(dev=False):
 @memoized
 def get_critpath_pkgs(collection='devel'):
     """Return a list of critical path packages for a given collection"""
-    critpath_type = config.get('critpath.type', 'pkgdb')
+    critpath_type = config.get('critpath.type')
     if critpath_type == 'pkgdb':
         pkgdb = PackageDB(config.get('pkgdb_url'))
         critpath_pkgs = pkgdb.get_critpath_pkgs([collection])
