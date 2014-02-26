@@ -2,13 +2,14 @@ import json
 
 from pyramid.view import view_config
 from pyramid.exceptions import NotFound
+from pyramid.security import effective_principals
 from cornice import Service
 from sqlalchemy.sql import or_
 
 from . import log, buildsys
 from .models import Bug, Build, CVE, Package, Release, Update, UpdateType, UpdateStatus
 from .schemas import ListUpdateSchema, SaveUpdateSchema
-from .security import packagers_allowed_acl
+from .security import packagers_allowed_acl, admin_only_acl
 from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_tags, validate_acls, validate_builds, validate_enums,
         validate_releases, validate_username)
@@ -249,3 +250,15 @@ def latest_candidates(request):
                 result.append(build[0][0]['nvr'])
     log.debug(result)
     return result
+
+
+admin_service = Service(name='admin', path='/admin/',
+                        description='Administrator view',
+                        acl=admin_only_acl)
+
+@admin_service.get(permission='admin')
+def admin(request):
+    user = request.user
+    log.info('%s logged into admin panel' % user.name)
+    principals = effective_principals(request)
+    return {'user': user.name, 'principals': principals}
