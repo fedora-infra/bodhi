@@ -311,7 +311,7 @@ class TestUpdate(ModelTest):
     def test_set_request_unpush(self):
         eq_(self.obj.status, UpdateStatus.pending)
         self.obj.status = UpdateStatus.testing
-        self.obj.set_request('unpush')
+        self.obj.set_request(UpdateRequest.testing)
         eq_(self.obj.status, UpdateStatus.unpushed)
 
     @raises(InvalidRequest)
@@ -320,19 +320,20 @@ class TestUpdate(ModelTest):
 
     def test_set_request_stable(self):
         eq_(self.obj.status, UpdateStatus.pending)
-        self.obj.set_request('stable')
+        self.obj.set_request(UpdateRequest.stable)
+        eq_(self.obj.request, UpdateRequest.stable)
         eq_(self.obj.status, UpdateStatus.pending)
         # TODO: verify results (via session flash?)
 
     def test_set_request_obsolete(self):
         eq_(self.obj.status, UpdateStatus.pending)
-        self.obj.set_request('obsolete')
+        self.obj.set_request(UpdateRequest.obsolete)
         eq_(self.obj.status, UpdateStatus.obsolete)
 
     def test_request_complete(self):
         self.obj.request = None
         eq_(self.obj.date_pushed, None)
-        self.obj.set_request('testing')
+        self.obj.set_request(UpdateRequest.testing)
         self.obj.request_complete()
         assert self.obj.date_pushed
         eq_(self.obj.status, UpdateStatus.testing)
