@@ -36,7 +36,7 @@ def get_user(request):
 def groupfinder(userid, request):
     user = request.user
     if user:
-        return [group.name for group in user.groups]
+        return ['group:' + group.name for group in user.groups]
 
 
 def get_koji(request):
