@@ -1,6 +1,6 @@
 import json
 
-from pyramid.view import view_config
+from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import NotFound
 from pyramid.security import effective_principals
 from cornice import Service
@@ -15,7 +15,7 @@ from .validators import (validate_nvrs, validate_version, validate_uniqueness,
         validate_releases, validate_username)
 
 
-updates = Service(name='updates', path='/updates',
+updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   acl=packagers_allowed_acl)
 
@@ -177,9 +177,7 @@ def new_update(request):
     return up.__json__()
 
 
-## 404
-
-@view_config(name='notfound_view', renderer='404.html', context=NotFound)
+@notfound_view_config(renderer='404.html', append_slash=True)
 def notfound_view(context, request):
     request.response_status = 404
     return dict()
