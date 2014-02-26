@@ -1319,7 +1319,7 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
-        self.assertEquals(up['comments'][0]['text'],
+        self.assertEquals(up['comments'][-1]['text'],
                           u'guest edited this update. New build(s): ' +
                           u'bodhi-2.0.0-3. Removed build(s): bodhi-2.0.0-2.')
         self.assertEquals(len(up['builds']), 1)
