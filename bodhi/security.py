@@ -12,7 +12,8 @@ from .models import User, Group
 def admin_only_acl(request):
     """Generate our admin-only ACL"""
     return  [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
-             request.registry.settings['admin_packager_groups'].split()]
+             request.registry.settings['admin_groups'].split()] + \
+            [DENY_ALL]
 
 
 def packagers_allowed_acl(request):
