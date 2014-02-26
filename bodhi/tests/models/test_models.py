@@ -314,10 +314,6 @@ class TestUpdate(ModelTest):
         self.obj.set_request(UpdateRequest.testing)
         eq_(self.obj.status, UpdateStatus.unpushed)
 
-    @raises(InvalidRequest)
-    def test_set_request_testing(self):
-        self.obj.set_request('testing')
-
     def test_set_request_stable(self):
         eq_(self.obj.status, UpdateStatus.pending)
         self.obj.set_request(UpdateRequest.stable)
