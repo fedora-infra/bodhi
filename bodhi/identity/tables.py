@@ -40,7 +40,7 @@ class Group(SQLObject):
     created = DateTimeCol(default=datetime.utcnow)
     users = RelatedJoin("User", intermediateTable="user_group",
                         joinColumn="group_id", otherColumn="user_id")
-    permissions = RelatedJoin("Permission", joinColumn="group_id", 
+    permissions = RelatedJoin("Permission", joinColumn="group_id",
                               intermediateTable="group_permission",
                               otherColumn="permission_id")
 
@@ -78,5 +78,5 @@ class Permission(SQLObject):
 
     groups = RelatedJoin("Group",
                          intermediateTable="group_permission",
-                         joinColumn="permission_id", 
+                         joinColumn="permission_id",
                          otherColumn="group_id")

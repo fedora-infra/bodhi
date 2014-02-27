@@ -168,7 +168,7 @@ class TestRepoClosure(object):
                 log.debug("Checking closure on %s-%s-%s" % (release.name,
                           arch.name, testing and 'testing' or 'final'))
                 if not self.testing and testing:
-                    log.debug("Skipping updates-testing check for %s - %s" % 
+                    log.debug("Skipping updates-testing check for %s - %s" %
                               (release.name, arch.name))
                     continue
                 conf = self.generate_config(release, arch, testing)

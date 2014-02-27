@@ -51,9 +51,9 @@ class BuildRootOverrideController(Controller):
         'release': validators.UnicodeString(),
         'show_expired': validators.StringBool()
     })
-    @paginate('overrides', default_order='-date_submitted', 
+    @paginate('overrides', default_order='-date_submitted',
               limit=20, max_limit=1000)
-    def list(self, build=None, tg_errors=None, mine=False, release=None, 
+    def list(self, build=None, tg_errors=None, mine=False, release=None,
              show_expired=False, **kw):
         query = []
         title = '%d Buildroot Overrides'

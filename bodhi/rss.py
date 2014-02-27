@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 class Feed(FeedController):
 
     def get_feed_data(self, release=None, type=None, status=None,
-                      comments=False, submitter=None, builds=None, 
+                      comments=False, submitter=None, builds=None,
                       user=None, package=None, critpath=False,
                       unapproved=None, *args, **kw):
         query = []

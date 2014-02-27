@@ -30,7 +30,7 @@ from sqlobject import SQLObjectNotFound
 from turbogears.database import PackageHub
 
 from bodhi.util import ProgressBar, load_config
-from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
+from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
                               PostgresIntegrityError)
 from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
                          Package, PackageBuild, BuildRootOverride)

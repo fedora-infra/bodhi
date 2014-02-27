@@ -21,7 +21,7 @@
 # Luke Macken <lmacken@redhat.com>
 
 """
-    This tool is in CVS HEAD of createrepo 
+    This tool is in CVS HEAD of createrepo
 """
 
 import os
@@ -93,7 +93,7 @@ class RepoMetadata(object):
         ## Remove any stale metadata
         for elem in self.doc.getElementsByTagName('data'):
             if elem.attributes['type'].value == mdtype:
-                self.doc.firstChild.removeChild(elem) 
+                self.doc.firstChild.removeChild(elem)
         ## Build the metadata
         root = self.doc.firstChild
         data = self._insert_element(root, 'data', attrs={ 'type' : mdtype })
@@ -106,7 +106,7 @@ class RepoMetadata(object):
         self._insert_element(data, 'open-checksum', attrs={ 'type' : 'sha' },
                              text=sha(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
 
-        #print "           type =", mdtype 
+        #print "           type =", mdtype
         #print "       location =", 'repodata/' + mdname
         #print "       checksum =", sha(newmd).hexdigest()
         #print "      timestamp =", str(os.stat(destmd).st_mtime)

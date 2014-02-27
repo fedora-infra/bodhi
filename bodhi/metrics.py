@@ -62,7 +62,7 @@ class AllMetric(Metric):
     def __init__(self, release):
         self.all = {}       # { month : num }
         self.months = {}    # { month_num : month_name }
-        self.timeline = {}  # { type : { month : num } } 
+        self.timeline = {}  # { type : { month : num } }
         self.earliest = datetime.now()
         self.release = release
         for update_type in config.get('update_types').split():
@@ -289,7 +289,7 @@ class KarmaMetric(Metric):
 
 class TopTestersMetric(Metric):
     """
-    A metric that calculates the people that have provided the most 
+    A metric that calculates the people that have provided the most
     testing feedback for updates
     """
     def __init__(self, release):

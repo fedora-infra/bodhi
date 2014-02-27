@@ -149,7 +149,7 @@ marked as stable.\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'karma'     : x.karma,
-                        'updatestr' : unicode(x) 
+                        'updatestr' : unicode(x)
                     }
     },
 
@@ -160,7 +160,7 @@ marked as unstable.  This update will be unpushed from the repository.\n\n%(upda
 """,
         'fields'  : lambda x: {
                         'karma'     : x.karma,
-                        'updatestr' : unicode(x) 
+                        'updatestr' : unicode(x)
                     }
     },
 
@@ -227,7 +227,7 @@ The critical path update for %(package)s has been in 'testing' status for over
 
 %(updatestr)s
 
-To approve this update and request that it be pushed to stable, you can use 
+To approve this update and request that it be pushed to stable, you can use
 the link below:
 
     https://admin.fedoraproject.org/updates/approve/%(package)s
@@ -288,7 +288,7 @@ Description :
 
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
-This update can be installed with the "yum" update program.  Use 
+This update can be installed with the "yum" update program.  Use
 su -c 'yum%(yum_repository)s update %(name)s' at the command line.
 For more information, refer to "Managing Software with yum",
 available at http://docs.fedoraproject.org/yum/.
