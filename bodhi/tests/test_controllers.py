@@ -3495,3 +3495,69 @@ class TestControllers(testutil.DBTest):
         assert newupdate.request == 'testing'
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending', update.status
+
+    def test_reset_karma_on_changed_builds(self):
+        """Make sure the karma is reset when changing the builds (#388)"""
+        session = login()
+        create_release()
+        params = {'builds': 'TurboGears-1.0.8-1.fc7', 'type_': 'bugfix',
+                  'notes': 'foobar', 'bugs': '', 'release': 'Fedora 7'}
+        self.save_update(params, session)
+
+        # Have a developer +1 the update
+        dev1 = login(username='bob')
+        testutil.create_request('/updates/comment?text=works&title=%s&karma=1' %
+                                params['builds'], method='POST', headers=dev1)
+        up = PackageUpdate.byTitle(params['builds'])
+        assert up.karma == 1, up.karma
+
+        # We have to sleep here, or else all the timestamps are identical and
+        # things get confused :(
+        import time
+        time.sleep(1)
+
+        # Edit the builds
+        params.update({'builds': 'TurboGears-1.0.8-2.fc7',
+                       'edited': 'TurboGears-1.0.8-1.fc7'})
+        self.save_update(params, session)
+
+        # Verify the karma was reset to 0
+        assert up.karma == 0, up.karma
+
+        # Verify we kept the karma given before the changes
+        all_karma = sum([c.karma for c in up.comments])
+        assert all_karma == 1, all_karma
+
+        # Verify the same developer can +1 the update again
+        testutil.create_request('/updates/comment?text=still_works&title=%s&karma=1' %
+                                params['builds'], method='POST', headers=dev1)
+        up = PackageUpdate.byTitle(params['builds'])
+        assert up.karma == 1, up.karma
+
+    def test_noreset_karma_on_unchanged_builds(self):
+        """Make sure the karma is not reset when editing without changing builds (#388)"""
+        session = login()
+        create_release()
+        params = {'builds': 'TurboGears-1.0.8-1.fc7', 'type_': 'bugfix',
+                  'notes': 'foobar', 'bugs': '', 'release': 'Fedora 7'}
+        self.save_update(params, session)
+
+        # Have a developer +1 the update
+        dev1 = login(username='bob')
+        testutil.create_request('/updates/comment?text=bar&title=%s&karma=1' %
+                                params['builds'], method='POST', headers=dev1)
+        up = PackageUpdate.byTitle(params['builds'])
+        assert up.karma == 1, up.karma
+
+        # We have to sleep here, or else all the timestamps are identical and
+        # things get confused :(
+        import time
+        time.sleep(1)
+
+        # Edit the update, but not the builds
+        params.update({'notes': 'Foobar', 'edited': 'TurboGears-1.0.8-1.fc7'})
+        self.save_update(params, session)
+        assert up.notes == "Foobar", up.notes
+
+        # Verify the karma was not reset to 0
+        assert up.karma == 1, up.karma
