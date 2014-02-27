@@ -173,19 +173,19 @@ class Root(controllers.RootController):
                 return dict(user=identity.current.user)
             raise redirect(forward_url)
 
-        forward_url=None
-        previous_url= cherrypy.request.path
+        forward_url = None
+        previous_url = cherrypy.request.path
 
         if identity.was_login_attempted():
-            msg="The credentials you supplied were not correct or did not grant access to this resource."
+            msg = "The credentials you supplied were not correct or did not grant access to this resource."
         elif identity.get_identity_errors():
-            msg="You must provide your credentials before accessing this resource."
+            msg = "You must provide your credentials before accessing this resource."
         else:
-            msg="Please log in."
-            forward_url= cherrypy.request.headers.get("Referer", "/")
+            msg = "Please log in."
+            forward_url = cherrypy.request.headers.get("Referer", "/")
 
         # This seems to be the cause of some bodhi-client errors
-        cherrypy.response.status=403
+        cherrypy.response.status = 403
         return dict(message=msg, previous_url=previous_url, logging_in=True,
                     original_parameters=cherrypy.request.params,
                     forward_url=forward_url)
@@ -247,7 +247,7 @@ class Root(controllers.RootController):
 
         # Check the identity first of all
         if mine and identity.current.anonymous:
-            cherrypy.response.status=401
+            cherrypy.response.status = 401
             return dict(updates=[], num_items=0, title='0 updates found')
 
         # If no arguments are specified, return the most recent updates

@@ -223,13 +223,13 @@ def main():
 #        print " * %d out of %d stable updates went through testing (%0.2f%%)" %(
 #                data['num_tested'], data['num_stable'],
 #                float(data['num_tested']) / data['num_stable'] * 100)
-        print " * %d updates reached the stable karma threshold (%0.2f%%)" %(
+        print " * %d updates reached the stable karma threshold (%0.2f%%)" % (
                 data['num_stablekarma'],
                 float(data['num_stablekarma']) / data['num_stable'] * 100)
         print " * %d updates reached the minimum time in testing threshold (%0.2f%%)" % (
                 data['num_testingtime'],
                 float(data['num_testingtime']) / data['num_stable'] * 100)
-        print " * %d went from testing to stable *without* karma (%0.2f%%)" %(
+        print " * %d went from testing to stable *without* karma (%0.2f%%)" % (
                 data['num_tested_without_karma'],
                 float(data['num_tested_without_karma']) /
                 data['num_tested'] * 100)

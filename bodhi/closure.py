@@ -109,7 +109,7 @@ class TestRepoClosure(object):
             self._test_closure(release)
 
         log.debug("Dependency checking complete in %f seconds" % (
-                  time.time()- start))
+                  time.time() - start))
 
     def _copy_to_repo(self):
         """

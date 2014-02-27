@@ -56,8 +56,9 @@ log = logging.getLogger(__name__)
 hub = PackageHub("bodhi")
 __connection__ = hub
 
-soClasses=('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
-           'Bugzilla', 'Comment', 'User', 'Group', 'Visit', 'BuildRootOverride')
+soClasses = ('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
+             'Bugzilla', 'Comment', 'User', 'Group', 'Visit',
+             'BuildRootOverride')
 
 
 class Release(SQLObject):
@@ -726,7 +727,7 @@ class PackageUpdate(SQLObject):
         if len(self.cves):
             val += u"\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
-            notes = wrap(self.notes, width=67, subsequent_indent=' ' * 11 +': ')
+            notes = wrap(self.notes, width=67, subsequent_indent=' ' * 11 + ': ')
             val += u"\n      Notes: %s" % '\n'.join(notes)
         val += u"""
   Submitter: %s
