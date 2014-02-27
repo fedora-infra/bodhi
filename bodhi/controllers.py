@@ -1014,6 +1014,7 @@ class Root(controllers.RootController):
                 for build in update.builds:
                     if build.nvr not in edited.title:
                         log.debug("Removing unnecessary build: %s" % build.nvr)
+                        update.set(karma=0)
                         update.removePackageBuild(build)
                         if len(build.updates) == 0:
                             build.destroySelf()
@@ -1035,6 +1036,7 @@ class Root(controllers.RootController):
             # Add the PackageBuilds to our PackageUpdate
             for build in [buildinfo[build]['build'] for build in builds]:
                 if build not in update.builds:
+                    update.set(karma=0)
                     update.addPackageBuild(build)
 
             # Add/remove the necessary Bugzillas
