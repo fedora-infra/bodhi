@@ -897,7 +897,7 @@ class TestControllers(testutil.DBTest):
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
-        assert update.pushed == False
+        assert update.pushed is False
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
