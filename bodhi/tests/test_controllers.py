@@ -24,6 +24,15 @@ from bodhi.util import sort_updates, get_nvr
 import cherrypy
 cherrypy.root = Root()
 
+
+def setUp():
+    turbogears.startup.startTurboGears()
+
+
+def tearDown():
+    turbogears.startup.stopTurboGears()
+
+
 def create_release(num='7', dist='dist-fc', **kw):
     rel = Release(name='F'+num, long_name='Fedora '+num, id_prefix='FEDORA',
                   dist_tag=dist+num, **kw)
@@ -50,15 +59,14 @@ def login(username='guest', display_name='guest', group=None):
     cookiehdr = cookies[0][1].strip()
     return { 'Cookie' : cookiehdr }
 
+
 class TestControllers(testutil.DBTest):
 
     def setUp(self):
         testutil.DBTest.setUp(self)
-        turbogears.startup.startTurboGears()
 
     def tearDown(self):
         testutil.DBTest.tearDown(self)
-        turbogears.startup.stopTurboGears()
 
     def save_update(self, params, session=None):
         if not session: session = {}
