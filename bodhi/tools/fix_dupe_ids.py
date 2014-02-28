@@ -84,7 +84,6 @@ def main():
 
     #hub.commit()
 
-
     for dupe in dupes:
         up = PackageUpdate.byTitle(dupe)
         up.assign_id()

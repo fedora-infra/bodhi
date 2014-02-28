@@ -292,7 +292,6 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
         return ((['guest', 'admin'], ['guest', 'admin']),
                 (['guest', 'admin'], ['guest', 'admin']))
 
-
     # Note if AppError is raised (for no pkgNamme or other server errors) we
     # do not catch the exception here.
     pkgdb = PackageDB(config.get('pkgdb_url'))

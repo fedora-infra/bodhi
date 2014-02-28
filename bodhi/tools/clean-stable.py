@@ -60,7 +60,6 @@ def clean_stable_builds(untag=False):
                 compare_builds(latest_build, build, untag, release.stable_tag)
 
 
-
 if __name__ == '__main__':
     load_config()
     #turbomail.start_extension()

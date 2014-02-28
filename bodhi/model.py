@@ -970,7 +970,6 @@ class PackageUpdate(SQLObject):
                               'being unpushed and marked as unstable' % self.karma)
             mail.send(self.submitter, 'unstable', self)
 
-
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """
         log.debug("Unpushing %s" % self.title)

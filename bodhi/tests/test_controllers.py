@@ -664,7 +664,6 @@ class TestControllers(testutil.DBTest):
         assert update.status == 'testing'
         assert update.request == None
 
-
     def test_edit_builds(self):
         """ Make sure we can edit builds in an update """
         session = login()
@@ -699,7 +698,6 @@ class TestControllers(testutil.DBTest):
 
         assert update.status == 'pending'
         assert update.request == 'testing'
-
 
     def test_edit_testing_update_headed_to_stable(self):
         """ Make sure we cannot edit updates that are headed to stable"""
