@@ -3561,3 +3561,50 @@ class TestControllers(testutil.DBTest):
 
         # Verify the karma was not reset to 0
         assert up.karma == 1, up.karma
+
+    def test_autokarma_push_race(self):
+        """
+        Test the race condition when an update is in the process of being
+        pushed to testing and in that time someone gives it enough karma to
+        reach the stable threshold.
+        """
+        session = login()
+        create_release()
+        params = {
+            'builds': 'TurboGears-1.0.8-1.fc7', 'type_': 'bugfix',
+            'notes': 'foobar', 'bugs': '', 'release': 'Fedora 7',
+            'autokarma': True, 'stable_karma' : 1, 'unstable_karma' : -1,
+        }
+        self.save_update(params, session)
+        up = PackageUpdate.byTitle(params['builds'])
+
+        # Pretend it's being pushed to testing
+        up.request = 'testing'
+        up.status = 'pending'
+        up.comment('This update is currently being pushed to the %s %s '
+                   'updates repository.' % (up.release.long_name,
+                    up.request), author='bodhi', email=False)
+        assert up.currently_pushing
+
+        # Have a developer +1 the update
+        dev1 = login(username='bob')
+        testutil.create_request('/updates/comment?text=bar&title=%s&karma=1' %
+                                params['builds'], method='POST', headers=dev1)
+        up = PackageUpdate.byTitle(params['builds'])
+
+        # This should not trigger the stablekarma threshold
+        assert up.karma == 1, up.karma
+        assert up.comments[-1].text != 'This update has reached the stable karma threshold and will be pushed to the stable updates repository', up.comments[-1]
+        assert up.request == 'testing'
+
+        # Okay, it's pushed.
+        up.status = 'testing'
+        up.request = None
+
+        # If the update reaches the stablekarma threshold while it is being
+        # pushed, bodhi's comment upon completion should automatically trigger
+        # the threshold.
+        up.comment('This update has been pushed to testing', author='bodhi')
+        assert not up.currently_pushing
+        assert up.comments[-1].text == 'This update has reached the stable karma threshold and will be pushed to the stable updates repository', up.comments[-1]
+        assert up.request == 'stable'
