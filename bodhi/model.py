@@ -923,7 +923,7 @@ class PackageUpdate(SQLObject):
                 # than the critpath.min_karma, then automatically push it to
                 # stable once it has met the requirements.
                 if (self.stable_karma < min_karma and self.critpath_approved and
-                    self.karma >= min_karma and self.pushable):
+                        self.karma >= min_karma and self.pushable):
                     if self.request == 'testing':
                         self.remove_tag(self.release.pending_testing_tag)
                     if self.request != 'stable':
@@ -935,8 +935,8 @@ class PackageUpdate(SQLObject):
                 # If we're approved and meet the minimum requirements, then
                 # automatically push this update to the stable repository
                 if (self.critpath_approved and self.pushable and
-                    self.karma >= self.stable_karma and
-                    self.karma >= min_karma):
+                        self.karma >= self.stable_karma and
+                        self.karma >= min_karma):
                     if self.request == 'testing':
                         self.remove_tag(self.release.pending_testing_tag)
                     if self.request != 'stable':

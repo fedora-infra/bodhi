@@ -107,9 +107,8 @@ def main():
 
                 # For figuring out if an update has received feedback or not
                 if not feedback_done:
-                    if (not comment.author.startswith('bodhi')
-                        and comment.karma != 0
-                        and not comment.anonymous):
+                    if (not comment.author.startswith('bodhi') and
+                            comment.karma != 0 and not comment.anonymous):
                         data['num_feedback'] += 1 # per-release tracking of feedback
                         feedback += 1 # total number of updates that have received feedback
                         feedback_done = True # so we don't run this for each comment
@@ -126,7 +125,7 @@ def main():
                         karma[author] += 1
 
                 if (not testingtime_done and
-                    comment.text == 'This update has been pushed to testing'):
+                        comment.text == 'This update has been pushed to testing'):
                     for othercomment in update.comments:
                         if othercomment.text == 'This update has been pushed to stable':
                             delta = othercomment.timestamp - comment.timestamp

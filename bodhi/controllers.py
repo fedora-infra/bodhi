@@ -649,7 +649,7 @@ class Root(controllers.RootController):
                 if build == other_build:
                     continue
                 if (build_nvr[0] == other_build_nvr[0] and
-                    build_nvr[2].split('.')[-1] == other_build_nvr[2].split('.')[-1]):
+                        build_nvr[2].split('.')[-1] == other_build_nvr[2].split('.')[-1]):
                     flash_log("Unable to save update with conflicting builds of "
                               "the same package: %s and %s. Please remove one "
                               "and try again." % (build, other_build))
@@ -1142,7 +1142,7 @@ class Root(controllers.RootController):
             # release to see if this gets hit.
             if config.get('critpath.num_admin_approvals'):
                 if (update.request == 'stable' and update.critpath and
-                    not update.critpath_approved):
+                        not update.critpath_approved):
                     update.request = 'testing'
                     log.error("Unapproved critpath request is 'stable'.  "
                               "This shouldn't happen!")
