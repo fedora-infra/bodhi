@@ -137,7 +137,7 @@ class NewUpdateForm(Form):
                          '}',
                     'title': 'Karma Automatism - Enable update request '
                              'automation based on user feedback',
-            }),
+                            }),
             TextField('stable_karma', label='Threshold for pushing to stable',
                       validator=validators.Int(), default='3',
                       attrs={'title' : 'Stable Karma - The threshold for '

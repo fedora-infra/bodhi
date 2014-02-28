@@ -1552,7 +1552,7 @@ class TestControllers(testutil.DBTest):
                 'type_'    : 'newpackage',
                 'bugs'    : '',
                 'notes'   : 'Initial release of new package!',
-        }
+                  }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
