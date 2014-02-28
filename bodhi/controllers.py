@@ -1151,11 +1151,11 @@ class Root(controllers.RootController):
                                 'repository.  It must first reach a karma '
                                 'of %d, consisting of %d positive karma from '
                                 'proventesters, along with %d additional '
-                                'karma from the community.' % (
-                        config.get('critpath.min_karma'),
-                        config.get('critpath.num_admin_approvals'),
-                        config.get('critpath.min_karma') -
-                        config.get('critpath.num_admin_approvals')))
+                                'karma from the community.'
+                                % (config.get('critpath.min_karma'),
+                                   config.get('critpath.num_admin_approvals'),
+                                   config.get('critpath.min_karma') -
+                                           config.get('critpath.num_admin_approvals')))
 
         flash_log('. '.join(note))
 

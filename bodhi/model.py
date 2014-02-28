@@ -512,12 +512,12 @@ class PackageUpdate(SQLObject):
                                  'proventesters, along with %d additional '
                                  'karma from the community. Or, it must '
                                  'spend %d days in testing without any '
-                                 'negative feedback' % (
-                        config.get('critpath.min_karma'),
-                        config.get('critpath.num_admin_approvals'),
-                        config.get('critpath.min_karma') -
-                        config.get('critpath.num_admin_approvals'),
-                        config.get('critpath.stable_after_days_without_negative_karma')))
+                                 'negative feedback'
+                                 % (config.get('critpath.min_karma'),
+                                    config.get('critpath.num_admin_approvals'),
+                                    config.get('critpath.min_karma') -
+                                            config.get('critpath.num_admin_approvals'),
+                                    config.get('critpath.stable_after_days_without_negative_karma')))
                     if self.status == 'testing':
                         self.request = None
                         flash_log('. '.join(notes))

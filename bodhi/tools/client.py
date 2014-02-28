@@ -213,12 +213,12 @@ def main():
                                       "type=bugfix), skipping.")
                             continue
                         if update_args['type_'] not in update_types:
-                            log.error('Error: Invalid update type %r. Must be one of %r' % (
-                            update_args['type_'], update_types))
+                            log.error('Error: Invalid update type %r. Must be one of %r'
+                                      % (update_args['type_'], update_types))
                             continue
                         if update_args['request'] not in update_requests:
-                            log.error('Error: Invalid update request %r. Must be one of %r' % (
-                            update_args['request'], update_requests))
+                            log.error('Error: Invalid update request %r. Must be one of %r'
+                                      % (update_args['request'], update_requests))
                             continue
                         log.info("Creating a new update for %s" %
                                  update_args['builds'])
