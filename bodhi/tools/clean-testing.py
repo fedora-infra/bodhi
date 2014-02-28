@@ -40,7 +40,7 @@ def compare_builds(testing_build, stable_build, untag, tag):
                             print "Obsoleting via bodhi"
                             update.obsolete(newer=stable_build['nvr'])
                         else:
-                             print "Need to obsolete via bodhi"
+                            print "Need to obsolete via bodhi"
             except SQLObjectNotFound:
                 if untag:
                     print "Untagging via koji"

@@ -476,7 +476,7 @@ def send(to, msg_type, update, sender=None):
                   }
         initial_message_id = "<bodhi-update-%s-%s-%s@%s>" % (update.id, update.submitter, update.release.name, config.get('message_id_email_domain'))
         if msg_type == 'new':
-             headers["Message-ID"] = initial_message_id
+            headers["Message-ID"] = initial_message_id
         else:
             headers["References"] = initial_message_id
             headers["In-Reply-To"] = initial_message_id
