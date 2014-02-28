@@ -41,7 +41,7 @@ class RepoMetadata(object):
         self.repodir = os.path.abspath(repo)
         self.repomdxml = os.path.join(self.repodir, 'repomd.xml')
         if not os.path.exists(self.repomdxml):
-            raise RepositoryNotFound, self.repomdxml
+            raise RepositoryNotFound(self.repomdxml)
         self.doc = minidom.parse(self.repomdxml)
 
     def _insert_element(self, parent, name, attrs={}, text=None):
