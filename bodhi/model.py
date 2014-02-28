@@ -873,7 +873,7 @@ class PackageUpdate(SQLObject):
         if not anonymous and author != 'bodhi':
             admin_groups = config.get('admin_groups', '').split()
             try:
-                groups =  list(identity.current.groups)
+                groups = list(identity.current.groups)
                 for admin_group in admin_groups:
                     if admin_group in groups:
                         author += ' (%s)' % admin_group

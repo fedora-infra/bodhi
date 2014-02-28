@@ -494,7 +494,7 @@ def sanity_check_repodata(myurl):
                 loc = baseurl + href
 
             destfn = tempdir + '/' + os.path.basename(href)
-            dest =  urlgrabber.urlgrab(loc, destfn)
+            dest = urlgrabber.urlgrab(loc, destfn)
             ctype, known_csum = data.checksum
             csum = checksum(ctype, dest)
             if csum != known_csum:
