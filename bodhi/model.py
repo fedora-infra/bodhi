@@ -170,7 +170,7 @@ class Package(SQLObject):
 
     def __str__(self):
         x = header(self.name)
-        states = { 'pending' : [], 'testing' : [], 'stable' : [] }
+        states = {'pending' : [], 'testing' : [], 'stable' : []}
         if len(self.builds):
             for build in self.builds:
                 for state in states.keys():

@@ -57,7 +57,7 @@ class SearchForm(Form):
     template = "bodhi.templates.searchform"
     fields = [
             TextField("search", default="  Package | Bug # | CVE  ",
-                      attrs={ 'size' : 25 }),
+                      attrs={'size' : 25}),
     ]
 
 class LocalJSLink(JSLink):

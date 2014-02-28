@@ -48,7 +48,7 @@ def login(username='guest', display_name='guest', group=None):
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
                      cherrypy.response.header_list)
     cookiehdr = cookies[0][1].strip()
-    return { 'Cookie' : cookiehdr }
+    return {'Cookie' : cookiehdr}
 
 class TestControllers(testutil.DBTest):
 
@@ -1194,7 +1194,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
 
-        url = '/updates/list?' + urllib.urlencode({ 'release' : 'F7' })
+        url = '/updates/list?' + urllib.urlencode({'release' : 'F7'})
         testutil.create_request(url, method='GET')
         assert "1 update found" in cherrypy.response.body[0], cherrypy.response.body[0]
 
@@ -1545,7 +1545,7 @@ class TestControllers(testutil.DBTest):
         """ Make sure that setting requests also adds comments """
         session = login()
         create_release()
-        params = { 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+        params = {'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
                 'type_'    : 'newpackage',
                 'bugs'    : '',

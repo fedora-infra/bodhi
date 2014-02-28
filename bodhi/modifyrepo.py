@@ -96,14 +96,14 @@ class RepoMetadata(object):
                 self.doc.firstChild.removeChild(elem)
         ## Build the metadata
         root = self.doc.firstChild
-        data = self._insert_element(root, 'data', attrs={ 'type' : mdtype })
+        data = self._insert_element(root, 'data', attrs={'type' : mdtype})
         self._insert_element(data, 'location',
-                             attrs={ 'href' : 'repodata/' + mdname })
-        self._insert_element(data, 'checksum', attrs={ 'type' : 'sha' },
+                             attrs={'href' : 'repodata/' + mdname})
+        self._insert_element(data, 'checksum', attrs={'type' : 'sha'},
                              text=sha(newmd).hexdigest())
         self._insert_element(data, 'timestamp',
                              text=str(os.stat(destmd).st_mtime))
-        self._insert_element(data, 'open-checksum', attrs={ 'type' : 'sha' },
+        self._insert_element(data, 'open-checksum', attrs={'type' : 'sha'},
                              text=sha(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
 
         #print "           type =", mdtype

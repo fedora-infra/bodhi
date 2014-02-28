@@ -69,7 +69,7 @@ class DevBuildsys(Buildsystem):
         return True
 
     def getTaskInfo(self, task):
-        return { 'state' : koji.TASK_STATES['CLOSED'] }
+        return {'state' : koji.TASK_STATES['CLOSED']}
 
     def getBuild(self, build='TurboGears-1.0.2.2-2.fc7', other=False):
         data = {'build_id': 16058,

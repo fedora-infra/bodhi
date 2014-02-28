@@ -185,9 +185,9 @@ class ExtendedMetadata(object):
         self._insert(root, 'id', text=notice['update_id'])
         self._insert(root, 'title', text=notice['title'])
         self._insert(root, 'release', text=notice['release'])
-        self._insert(root, 'issued', attrs={ 'date' : notice['issued'] })
+        self._insert(root, 'issued', attrs={'date' : notice['issued']})
         if notice['updated']:
-            self._insert(root, 'updated', attrs={ 'date' : notice['updated'] })
+            self._insert(root, 'updated', attrs={'date' : notice['updated']})
         self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
 
         ## Build the references

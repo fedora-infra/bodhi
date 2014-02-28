@@ -39,7 +39,7 @@ class SearchController(Controller):
                     title='Search Updates')
 
     @expose(template="bodhi.templates.search")
-    @validate(validators={ "search" : validators.UnicodeString() })
+    @validate(validators={"search" : validators.UnicodeString()})
     @error_handler(index)
     @paginate('updates', default_order='-date_submitted',
               limit=20, max_limit=1000)
