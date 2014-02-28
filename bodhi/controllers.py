@@ -447,8 +447,8 @@ class Root(controllers.RootController):
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
-                       PackageUpdate.q.submitter == identity.current.user_name,
-                    orderBy=PackageUpdate.q.date_submitted).reversed()
+                PackageUpdate.q.submitter == identity.current.user_name,
+                orderBy=PackageUpdate.q.date_submitted).reversed()
         return dict(updates=updates, title='%s\'s updates' %
                     identity.current.user_name, num_items=updates.count())
 

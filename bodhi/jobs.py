@@ -141,8 +141,8 @@ def fix_bug_titles():
     from sqlobject.sqlbuilder import OR
     log.debug("Running fix_bug_titles job")
     for bug in Bugzilla.select(
-                 OR(Bugzilla.q.title == 'Invalid bug number',
-                    Bugzilla.q.title == 'Unable to fetch bug title')):
+            OR(Bugzilla.q.title == 'Invalid bug number',
+               Bugzilla.q.title == 'Unable to fetch bug title')):
         bug.fetch_details()
 
 

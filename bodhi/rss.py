@@ -129,9 +129,8 @@ class Feed(FeedController):
                 'published' : comment.timestamp,
                 'link'      : config.get('base_address') +
                               url(comment.update.get_url()),
-                              'title'     : "[%s] [%s] [%d]" % (
-                                  comment.update.title, comment.author,
-                                  comment.karma)
+                'title'     : "[%s] [%s] [%d]" % (comment.update.title,
+                                                  comment.author, comment.karma)
             })
         return dict(
                 title = 'Latest Comments',
