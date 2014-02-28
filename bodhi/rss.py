@@ -123,11 +123,11 @@ class Feed(FeedController):
                     break
 
             entries.append({
-                'id'        : config.get('base_address') + \
+                'id'        : config.get('base_address') +
                               url(comment.update.get_url()),
                 'summary'   : comment.text,
                 'published' : comment.timestamp,
-                'link'      : config.get('base_address') + \
+                'link'      : config.get('base_address') +
                               url(comment.update.get_url()),
                               'title'     : "[%s] [%s] [%d]" % (
                                   comment.update.title, comment.author,
