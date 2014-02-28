@@ -917,7 +917,7 @@ class PackageUpdate(SQLObject):
                 self.comment('Critical path update approved', author='bodhi')
                 mail.send_admin('critpath_approved', self)
             # Karma automatism enabled
-            if self.stable_karma != 0:
+            if self.stable_karma != 0 and not self.currently_pushing:
                 # If this update has a stable karma threshold that is lower
                 # than the critpath.min_karma, then automatically push it to
                 # stable once it has met the requirements.
@@ -949,7 +949,7 @@ class PackageUpdate(SQLObject):
             if self.pushable:
                 if self.critpath and not self.critpath_approved:
                     pass
-                else:
+                elif not self.currently_pushing:
                     log.info("Automatically marking %s as stable" % self.title)
                     if self.request == 'testing':
                         self.remove_tag(self.release.pending_testing_tag)
