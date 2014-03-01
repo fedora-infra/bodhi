@@ -1177,7 +1177,7 @@ class TestControllers(testutil.DBTest):
         update.pushed = True
         update.date_pushed = datetime.now()
 
-        # Throw a newer build in, which should *NOT* obsolete the previous
+        # Throw a newer build in, which should obsolete the previous
         newparams = {
                 'builds'  : 'TurboGears-1.0.3.2-2.fc7 python-sqlalchemy-0.6.0-1.fc7 kernel-3.0-1.fc7',
                 'release' : 'Fedora 7',
@@ -1186,16 +1186,20 @@ class TestControllers(testutil.DBTest):
                 'cves'    : '',
                 'notes'   : 'foo'
         }
-        #testutil.capture_log(['bodhi.model', 'bodhi.controllers', 'bodhi.admin', 'bodhi.masher', 'bodhi.util'])
         self.save_update(newparams, session)
-        #assert False, testutil.get_log()
-        newupdate = PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+        try:
+            newupdate = PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+            assert False, 'Builds not inherited'
+        except SQLObjectNotFound:
+            pass
+        newupdate = PackageUpdate.byTitle(','.join(newparams['builds'].split()) + ',nethack-1.0-1.fc7')
         assert newupdate.status == 'pending'
-        assert newupdate.notes == 'foo', newupdate.notes
+        assert newupdate.notes == 'foo\nfoobar', newupdate.notes
 
-        # Ensure the original update is still in tact
-        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
-        assert update.status == 'testing', update.status
+        # Ensure the original update is obsolete
+        update = PackageUpdate.byTitle('TurboGears-1.0.2.2-2.fc7,python-sqlalchemy-0.5.0-1.fc7')
+        assert update.status == 'obsolete', update.status
+        assert len(update.builds) == 2
 
     def test_list(self):
         """
@@ -1418,6 +1422,10 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'].replace(' ', ','))
         assert update.stable_karma == params['stable_karma'], update.stable_karma
         assert update.unstable_karma == params['unstable_karma'], update.unstable_karma
+
+        # Pretend it's stable so we don't obsolete it
+        update.status = 'stable'
+        update.request = None
 
         # Create a different update to ensure we have unique thresholds
         params = {
