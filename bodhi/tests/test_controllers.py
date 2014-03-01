@@ -3087,7 +3087,7 @@ class TestControllers(testutil.DBTest):
 
     def test_obsoleting_different_batches_of_updates(self):
         """
-        Make sure a batch of builds can't obsolete an update that only has a
+        Make sure a batch of builds can obsolete an update that only has a
         single build
         """
         session = login()
@@ -3125,9 +3125,9 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(new_params, session)
 
-        # Make sure it doesn't obsolete the older one
+        # Make sure it obsoletes the older one
         assert PackageUpdate.byTitle(new_params['builds']).status == 'pending'
-        assert PackageUpdate.byTitle(params['builds']).status == 'testing'
+        assert PackageUpdate.byTitle(params['builds']).status == 'obsolete'
 
     def test_push_EPEL_before_tested(self):
         """
