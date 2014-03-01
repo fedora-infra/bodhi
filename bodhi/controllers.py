@@ -989,6 +989,10 @@ class Root(controllers.RootController):
                         # Remove inherited builds from the old update and add
                         # them to this new one
                         if not_obsolete:
+                            # If we're inheriting builds from a security
+                            # update, change the type of this update
+                            if update.type == 'security':
+                                type_ = 'security'
                             for _build in not_obsolete:
                                 log.debug('Removing %s from %s' % (_build, update))
                                 update.removePackageBuild(_build)
