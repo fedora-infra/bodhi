@@ -384,7 +384,7 @@ class TestControllers(testutil.DBTest):
         assert f7up.builds[0].package.name == 'TurboGears'
 
     def test_add_older_build_to_update(self):
-        """ Try adding a newer build an update (#385) """
+        """ Try adding an older build an update (#385) """
         session = login()
         f7 = create_release()
         params = {
