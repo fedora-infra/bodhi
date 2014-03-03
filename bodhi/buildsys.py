@@ -150,15 +150,15 @@ class DevBuildsys(Buildsystem):
         if 'fc7' in build:
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
-                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                      'name': 'dist-fc7-updates-testing', 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': 'dist-fc7-updates-testing', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
         elif 'el5' in build:
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
-                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': 'dist-5E-epel', 'perm': None, 'perm_id': None}]
         else:

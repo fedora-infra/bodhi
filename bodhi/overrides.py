@@ -169,7 +169,7 @@ class BuildRootOverrideController(Controller):
 
             if not release:
                 flash('Error: Could not determine release for %s with tags %s' %
-                        (build, map(str, tags)))
+                      (build, map(str, tags)))
                 if request_format() == 'json': return dict()
                 raise redirect('/override/new')
 

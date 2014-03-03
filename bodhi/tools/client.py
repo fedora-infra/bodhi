@@ -63,18 +63,18 @@ def get_parser():
     parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates (releng only)")
     parser.add_option("--push-type", action="append", type="string",
-                       dest="push_type",
-                       help="Types of updates to push (releng only)")
+                      dest="push_type",
+                      help="Types of updates to push (releng only)")
     parser.add_option("--push-release", action="append", type="string",
-                       dest="push_release",
-                       help="Types of updates to push (releng only)")
+                      dest="push_release",
+                      help="Types of updates to push (releng only)")
     parser.add_option("--push-request", action="append", type="string",
-                       dest="push_request",
-                       help="Requests of updates to push (stable or testing) (releng only)")
+                      dest="push_request",
+                      help="Requests of updates to push (stable or testing) (releng only)")
     parser.add_option("--push-build", action="append", type="string",
                       dest="push_build", help="Push a specific builds (releng only)")
     parser.add_option("--resume-push", action="store_true", dest="resume_push",
-                       help="Resume an unfinished push (releng only)")
+                      help="Resume an unfinished push (releng only)")
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",

@@ -790,10 +790,10 @@ class Root(controllers.RootController):
                 try:
                     if edited.request == 'testing':
                         koji.tagBuild(edited.release.pending_testing_tag,
-                                        build, force=True)
+                                      build, force=True)
                     elif edited.request == 'stable':
                         koji.tagBuild(edited.release.pending_stable_tag,
-                                        build, force=True)
+                                      build, force=True)
                 except (TagError, GenericError),  e:
                     log.exception(e)
 

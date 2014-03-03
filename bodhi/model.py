@@ -1408,17 +1408,14 @@ class Bugzilla(SQLObject):
     _bz_server = config.get("bz_server")
 
     newpackage_msg = "%s has been pushed to the %s repository."
-    stable_msg = "%s has been pushed to the %s repository.  If problems " + \
-                  "still persist, please make note of it in this bug report."
-    testing_msg = "Package %s:\n" + \
-            "* should fix your issue,\n" + \
-            "* was pushed to the %s testing repository,\n" + \
-            "* should be available at your local mirror within two days.\n" + \
-            "Update it with:\n" + \
-            "# su -c 'yum update --enablerepo=%s %s'\n" + \
-            "as soon as you are able to%s.\n" + \
-            "Please go to the following url:\n%s\n" + \
-            "then log in and leave karma (feedback)."
+    stable_msg = ("%s has been pushed to the %s repository.  If problems "
+                  "still persist, please make note of it in this bug report.")
+    testing_msg = ("Package %s:\n* should fix your issue,\n* was pushed to "
+                   "the %s testing repository,\n* should be available at your"
+                   " local mirror within two days.\nUpdate it with:\n"
+                   "# su -c 'yum update --enablerepo=%s %s'\n"
+                   "as soon as you are able to%s.\nPlease go to the following"
+                   " url:\n%s\nthen log in and leave karma (feedback).")
 
     def __json__(self):
         return dict(bz_id=self.bz_id, title=self.title, security=self.security,
