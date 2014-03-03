@@ -283,8 +283,8 @@ def schedule():
     if 'nagmail' in jobs:
         log.debug("Scheduling nagmail job")
         scheduler.add_weekday_task(action=nagmail,
-                                   weekdays=range(1,8),
-                                   timeonday=(0,0))
+                                   weekdays=range(1, 8),
+                                   timeonday=(0, 0))
 
     # Fix invalid bug titles
     if 'fix_bug_titles' in jobs:

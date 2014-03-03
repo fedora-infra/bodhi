@@ -45,7 +45,7 @@ def get_pkg(name='TurboGears'):
 
 def get_build(self, nvr='TurboGears-1.0.2.2-2.fc7'):
     package = get_pkg('-'.join(nvr.split('-')[:-2]))
-    package.committers = ['bobvila',]
+    package.committers = ['bobvila']
     try:
         build = PackageBuild.byNvr(nvr)
     except SQLObjectNotFound:

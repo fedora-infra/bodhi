@@ -324,7 +324,7 @@ def main():
                             for update in releases[release]:
                                 log.info("%s" % update['title'])
                                 s = "%s" % update['title']
-                                s = s.replace(',','\n')
+                                s = s.replace(',', '\n')
                                 f.write(s + "\n")
                             log.info('')
                             f.write('')
@@ -381,8 +381,8 @@ def main():
                         log.info(data['tg_flash'])
                     del(data['tg_flash'])
                 data = data.items()
-                data.sort(cmp=lambda x, y: cmp(x[0].replace('dist-','').split('-')[0],
-                                               y[0].replace('dist-','').split('-')[0]))
+                data.sort(cmp=lambda x, y: cmp(x[0].replace('dist-', '').split('-')[0],
+                                               y[0].replace('dist-', '').split('-')[0]))
                 for dist, build in data:
                     print('%26s  %s' % (dist, build))
 

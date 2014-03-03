@@ -56,7 +56,7 @@ class AdminController(Controller, SecureResource):
         if config.get('masher'):
             data = self._masher_request('/admin/masher')
             if not data:
-                data = {'masher_str': 'Unable to contact the masher','tags': []}
+                data = {'masher_str': 'Unable to contact the masher', 'tags': []}
             return dict(masher_str=data['masher_str'], tags=data['tags'])
         else:
             from bodhi.masher import masher

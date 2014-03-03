@@ -201,7 +201,7 @@ class Package(SQLObject):
             query = dict(action='query', list='categorymembers', cmtitle=cat_page)
             response = wiki.call(query)
             members = [entry.get('title') for entry in
-                       response.get('query',{}).get('categorymembers',{})
+                       response.get('query', {}).get('categorymembers', {})
                        if 'title' in entry]
 
             # Determine whether we need to recurse
@@ -413,7 +413,7 @@ class PackageUpdate(SQLObject):
             id = 1  # First update
 
         self.updateid = u'%s-%s-%0.4d' % (self.release.id_prefix,
-                                          time.localtime()[0],id)
+                                          time.localtime()[0], id)
         log.debug("Setting updateid for %s to %s" % (self.title,
                                                      self.updateid))
         self.date_pushed = datetime.utcnow()
@@ -718,7 +718,7 @@ class PackageUpdate(SQLObject):
         val += u"""    Release: %s
      Status: %s
        Type: %s
-      Karma: %d""" % (self.release.long_name,self.status,self.type,self.karma)
+      Karma: %d""" % (self.release.long_name, self.status, self.type, self.karma)
         if self.request is not None:
             val += u"\n    Request: %s" % self.request
         if len(self.bugs):
@@ -995,7 +995,7 @@ class PackageUpdate(SQLObject):
                     pass
             else:
                 # Build is untagged
-                task = koji.tagBuild(self.release.candidate_tag,build.nvr,force=True)
+                task = koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
                 tasks.append(task)
         if tasks:
             if buildsys.wait_for_tasks(tasks, sleep=1):

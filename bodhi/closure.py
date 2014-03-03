@@ -154,7 +154,7 @@ class TestRepoClosure(object):
                 if release == 'testing': continue
                 for arch in os.listdir(join(self.testrepo_dir, tf, release)):
                     fullpath = normpath(join(self.testrepo_dir, tf,
-                                             release,arch))
+                                             release, arch))
                     log.debug("Generating metadata for %s" % fullpath)
                     genpkgmetadata.main(['-c', str(self.cache_dir), '-q',
                                          str(fullpath)])

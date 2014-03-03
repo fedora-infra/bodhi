@@ -86,7 +86,7 @@ def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)
     is_oldrpm = hasattr(rpm, 'opendb')
     try:
-        fd = os.open(pkgpath,0)
+        fd = os.open(pkgpath, 0)
         if is_oldrpm:
             h = rpm.headerFromPackage(fd)[0]
         else:

@@ -36,7 +36,7 @@ class Buildsystem(object):
     def getLatestBuilds(self): raise NotImplementedError
     def moveBuild(self): raise NotImplementedError
     def ssl_login(self): raise NotImplementedError
-    def listBuildRPMs(self):raise NotImplementedError
+    def listBuildRPMs(self): raise NotImplementedError
     def listTags(self): raise NotImplementedError
     def listTagged(self): raise NotImplementedError
     def taskFinished(self): raise NotImplementedError
@@ -140,7 +140,8 @@ class DevBuildsys(Buildsystem):
                  'payloadhash': 'f3ec9bdce453816f94283a15a47cb952',
                  'release': '2.fc7',
                  'size': 1993385,
-                 'version': '1.0.2.2'},]
+                 'version': '1.0.2.2'},
+                ]
         if id == 16059:  # for updateinfo.xml tests
             rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
             rpms[0]['release'] = rpms[1]['release'] = '3.fc7'
@@ -181,7 +182,7 @@ class DevBuildsys(Buildsystem):
         return builds
 
     def getLatestBuilds(self, *args, **kw):
-        return [self.getBuild(),]
+        return [self.getBuild()]
 
 
 def koji_login(client=None, clientca=None, serverca=None):

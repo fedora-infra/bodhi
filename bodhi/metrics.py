@@ -186,8 +186,8 @@ class MostUpdatedMetric(Metric):
     def get_widget(self, data):
         return TurboFlot([
             # Hack, to get the color we want :)
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
             {
                 'data': data['packages'],
                 'bars': {'show': 'true'}
@@ -228,7 +228,7 @@ class ActiveDevsMetric(Metric):
 
     def get_widget(self, data):
         return TurboFlot([
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
             {
                 'data': data['data'],
                 'bars': {'show': 'true'}
@@ -319,9 +319,9 @@ class TopTestersMetric(Metric):
 
     def get_widget(self, data):
         return TurboFlot([
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-            {'data': [[0,0]]}, {'data': [[0,0]]},
-            {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]},
             {
                 'data': data['data'],
                 'bars': {'show': True}
@@ -363,8 +363,8 @@ class MostTestedMetric(Metric):
 
     def get_widget(self, data):
         return TurboFlot([
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-            {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]},
             {
                 'data': data['data'],
                 'bars': {'show': True}
@@ -420,7 +420,7 @@ class UpdateTypeMetric(Metric):
 ## All of the metrics that we are going to generate
 ##
 metrics = [AllMetric, MostUpdatedMetric, ActiveDevsMetric, KarmaMetric,
-           TopTestersMetric, MostTestedMetric, UpdateTypeMetric,]
+           TopTestersMetric, MostTestedMetric, UpdateTypeMetric]
 
 
 class MetricData(Singleton):

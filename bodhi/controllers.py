@@ -537,7 +537,7 @@ class Root(controllers.RootController):
             flash_log("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
         values = {
-                'builds'    : {'text':update.title, 'hidden':update.title},
+                'builds'    : {'text': update.title, 'hidden': update.title},
                 'testing'   : update.status == 'testing',
                 'request'   : str(update.request).title(),
                 'type_'     : update.type,
@@ -805,7 +805,7 @@ class Root(controllers.RootController):
                     elif edited.request == 'testing':
                         koji.untagBuild(edited.release.pending_testing_tag,
                                         build, force=True)
-                except (TagError, GenericError),e :
+                except (TagError, GenericError), e :
                     log.debug(str(e))
 
             # Comment on the update with details of added/removed builds
@@ -1344,7 +1344,7 @@ class Root(controllers.RootController):
             else:
                 flash_log(tg_errors)
             return dict(update=update, updates=[],
-                        values={'title':update.title, 'karma' : karma},
+                        values={'title': update.title, 'karma' : karma},
                         comment_form=self.comment_captcha_form)
         elif karma not in (0, 1, -1):
             flash_log("Karma must be one of (1, 0, -1)")
