@@ -348,13 +348,13 @@ class TestPackageUpdate(testutil.DBTest):
     def test_stable_karma(self):
         update = self.get_update()
         assert update.karma == 0
-        assert update.request == None
+        assert update.request is None
         update.comment("foo", 1, 'foo')
         assert update.karma == 1
-        assert update.request == None
+        assert update.request is None
         update.comment("foo", 1, 'bar')
         assert update.karma == 2
-        assert update.request == None
+        assert update.request is None
         update.comment("foo", 1, 'biz')
         assert update.karma == 3
         assert update.request == 'stable'

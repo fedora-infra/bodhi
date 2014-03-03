@@ -378,7 +378,7 @@ class PackageUpdate(SQLObject):
         prefixes it with the id_prefix of the release and the year
         (ie FEDORA-2007-0001)
         """
-        if self.updateid != None and self.updateid != u'None':
+        if self.updateid is not None and self.updateid != u'None':
             log.debug("Keeping current update id %s" % self.updateid)
             return
 
@@ -719,7 +719,7 @@ class PackageUpdate(SQLObject):
      Status: %s
        Type: %s
       Karma: %d""" % (self.release.long_name,self.status,self.type,self.karma)
-        if self.request != None:
+        if self.request is not None:
             val += u"\n    Request: %s" % self.request
         if len(self.bugs):
             bugs = self.get_bugstring(show_titles=True)

@@ -662,7 +662,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
 
         assert update.status == 'testing'
-        assert update.request == None
+        assert update.request is None
 
     def test_edit_builds(self):
         """ Make sure we can edit builds in an update """
@@ -1273,7 +1273,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
         params = {
                 'builds'  : 'xprobe2-1.4.6-1.fc7',
                 'release' : 'Fedora 7',
@@ -1643,7 +1643,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/revoke/%s' % params['builds'],
                                 headers=session, method='POST')
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
 
     def test_unicode_fail(self):
         session = login()
@@ -1772,7 +1772,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
@@ -1805,7 +1805,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
@@ -1959,7 +1959,7 @@ class TestControllers(testutil.DBTest):
                                 params['builds'], method='POST', headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
         print update.stable_karma, update.unstable_karma
-        assert update.request == None
+        assert update.request is None
 
     def test_critpath_num_approved_comments_with_autokarma(self):
         """
@@ -2120,7 +2120,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         print update.stable_karma, update.unstable_karma
 
-        assert update.request == None, "Auto-karma kicked in even though it didn't reach the stable threshold yet!"
+        assert update.request is None, "Auto-karma kicked in even though it didn't reach the stable threshold yet!"
 
         assert update.critpath
         assert update.critpath_approved
@@ -2412,7 +2412,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
