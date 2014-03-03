@@ -94,7 +94,7 @@ def nagmail():
         for update in query:
             if date(update) > 14:
                 if update.nagged:
-                    if update.nagged.has_key(name) and update.nagged[name]:
+                    if name in update.nagged and update.nagged[name]:
                         if (datetime.utcnow() - update.nagged[name]).days < 7:
                             continue # Only nag once a week at most
                     nagged = update.nagged

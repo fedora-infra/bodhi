@@ -857,7 +857,7 @@ class Root(controllers.RootController):
                                       rel.name, edited.release.name, build))
                             raise InvalidUpdateException(params)
 
-                    if not releases.has_key(rel):
+                    if not rel in releases:
                         releases[rel] = []
                     if build not in releases[rel]:
                         releases[rel].append(build)
@@ -877,7 +877,7 @@ class Root(controllers.RootController):
                                         package=buildinfo[build]['nvr'][0])[0]
                     if b['nvr'] == build:
                         log.info("Adding %s for inheritance" % rel.name)
-                        if not releases.has_key(rel):
+                        if not rel in releases:
                             releases[rel] = []
                         if build not in releases[rel]:
                             releases[rel].append(build)
@@ -1329,13 +1329,13 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             flash_log("The specified update does not exist")
         if tg_errors:
-            if tg_errors.has_key('text'):
+            if 'text' in tg_errors:
                 flash_log("Please fill in all comment fields")
-            elif tg_errors.has_key('author'):
+            elif 'author' in tg_errors:
                 flash_log(tg_errors['author'])
             elif 'captcha' in tg_errors:
                 if isinstance(tg_errors['captcha'], dict) and \
-                        tg_errors['captcha'].has_key('captchainput'):
+                        'captchainput' in tg_errors['captcha']:
                     flash_log("Problem with captcha: %s" %
                               tg_errors['captcha']['captchainput'])
                 else:

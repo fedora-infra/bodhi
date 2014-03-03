@@ -477,7 +477,7 @@ class TestPackageUpdate(testutil.DBTest):
         log = testutil.get_log()
         assert "[old_testing] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log, log
         assert update.nagged, update.nagged
-        assert update.nagged.has_key('old_testing')
+        assert 'old_testing' in update.nagged
 
         # Make sure it doesn't happen again
         testutil.capture_log('bodhi.jobs')
@@ -515,7 +515,7 @@ class TestPackageUpdate(testutil.DBTest):
         log = testutil.get_log()
         assert "[old_pending] Nagging foo@bar.com about TurboGears-1.0.2.2-2.fc7" in log
         assert update.nagged, update.nagged
-        assert update.nagged.has_key('old_pending')
+        assert 'old_pending' in update.nagged
 
         # Make sure it doesn't happen again
         testutil.capture_log('bodhi.jobs')

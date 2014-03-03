@@ -202,7 +202,7 @@ class Package(SQLObject):
             response = wiki.call(query)
             members = [entry.get('title') for entry in
                        response.get('query',{}).get('categorymembers',{})
-                       if entry.has_key('title')]
+                       if 'title' in entry]
 
             # Determine whether we need to recurse
             idx = 0

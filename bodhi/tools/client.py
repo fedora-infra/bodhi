@@ -260,14 +260,14 @@ def main():
                                   bugs=opts.bugs, notes=opts.notes,
                                   request=opts.request)
                 log.info(data['tg_flash'])
-                if data.has_key('update'):
+                if 'update' in data:
                     print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.request:
                 verify_args(args)
                 data = bodhi.request(update=args[0], request=opts.request)
                 log.info(data['tg_flash'])
-                if data.has_key('update'):
+                if 'update' in data:
                     print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.delete:
@@ -371,7 +371,7 @@ def main():
                                      karma=opts.karma)
                 if data['tg_flash']:
                     log.info(data['tg_flash'])
-                if data.has_key('update'):
+                if 'update' in data:
                     print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.latest:
@@ -461,7 +461,7 @@ def main():
             elif opts.status or opts.bugs or opts.release or opts.type_ or \
                  opts.mine or args:
                 def print_query(data):
-                    if data.has_key('tg_flash') and data['tg_flash']:
+                    if 'tg_flash' in data and data['tg_flash']:
                         log.error(data['tg_flash'])
                         sys.exit(-1)
                     if data['num_items'] > 1:
