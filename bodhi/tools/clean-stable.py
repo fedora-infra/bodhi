@@ -32,7 +32,7 @@ def compare_builds(testing_build, stable_build, untag, tag):
                         print "%s not stable in bodhi!" % update.title
                         raise SQLObjectNotFound
                     else:
-                        pass # TODO: do the untagging?
+                        pass  # TODO: do the untagging?
             except SQLObjectNotFound:
                 if untag:
                     print "Untagging via koji"

@@ -205,7 +205,7 @@ class ActiveDevsMetric(Metric):
     """
     def __init__(self, release):
         self.release = release
-        self.users = {} # { user : # updates }
+        self.users = {}  # { user : # updates }
         self.data = {}
 
     def update(self, update):
@@ -246,7 +246,7 @@ class KarmaMetric(Metric):
     feedback.
     """
     def __init__(self, release):
-        self.data = {} # { pkg : karma }
+        self.data = {}  # { pkg : karma }
         self.release = release
         self.bestpkgs = {}
         self.bestdata = []
@@ -339,7 +339,7 @@ class MostTestedMetric(Metric):
     """
     def __init__(self, release):
         self.release = release
-        self.data = {} # {pkg: # of +1/-1's}
+        self.data = {}  # {pkg: # of +1/-1's}
         self.tested_data = []
         self.tested_pkgs = {}
 
@@ -425,7 +425,7 @@ metrics = [AllMetric, MostUpdatedMetric, ActiveDevsMetric, KarmaMetric,
 
 class MetricData(Singleton):
 
-    widgets = {} # { release : { type : TurboFlot } }
+    widgets = {}  # { release : { type : TurboFlot } }
     metrics = []
     age = None
 
@@ -471,7 +471,7 @@ class MetricData(Singleton):
         """
         log.info("Doing a hard refresh of our metrics data")
         metrics = {}
-        updates = {} # {release: [updates,]}
+        updates = {}  # {release: [updates,]}
         all_updates = list(PackageUpdate.select())
         releases = list(Release.select())
         for release in releases:

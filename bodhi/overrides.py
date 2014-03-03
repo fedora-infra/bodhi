@@ -128,7 +128,7 @@ class BuildRootOverrideController(Controller):
     @error_handler(new)
     def save(self, builds, notes, expiration=None, *args, **kw):
         log.debug(repr(locals()))
-        last_release = None # for our koji wait-repo example
+        last_release = None  # for our koji wait-repo example
 
         if expiration:
             if datetime.utcnow() > expiration:

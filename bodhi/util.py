@@ -167,11 +167,11 @@ def authorized_user(update, identity):
 def make_update_link(obj):
     """ Return a link Element for a given PackageUpdate or PackageBuild """
     update = None
-    if hasattr(obj, 'updates'):   # Package or PackageBuild
+    if hasattr(obj, 'updates'):    # Package or PackageBuild
         update = obj.updates[0]
-    elif hasattr(obj, 'get_url'): # PackageUpdate
+    elif hasattr(obj, 'get_url'):  # PackageUpdate
         update = obj
-    elif hasattr(obj, 'update'):  # Comment
+    elif hasattr(obj, 'update'):   # Comment
         update = obj.update
     else:
         log.error("Unknown parameter make_update_link(%s)" % obj)

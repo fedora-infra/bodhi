@@ -54,7 +54,7 @@ def clean_repo():
         for repo in [release + '-updates', release + '-updates-testing']:
             liverepos.append(dirname(realpath(join(repos, repo))))
     for repo in [join(repos, repo) for repo in os.listdir(repos)]:
-        if 'repodata' in repo: # skip our repodata caches
+        if 'repodata' in repo:  # skip our repodata caches
             continue
         if not islink(repo) and isdir(repo):
             fullpath = realpath(repo)
@@ -96,7 +96,7 @@ def nagmail():
                 if update.nagged:
                     if name in update.nagged and update.nagged[name]:
                         if (datetime.utcnow() - update.nagged[name]).days < 7:
-                            continue # Only nag once a week at most
+                            continue  # Only nag once a week at most
                     nagged = update.nagged
                 else:
                     nagged = {}

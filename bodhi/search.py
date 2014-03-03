@@ -56,7 +56,7 @@ class SearchController(Controller):
         try:
             map(lambda bug: map(results.add, bug.updates),
                 Bugzilla.select(Bugzilla.q.bz_id==int(search)))
-        except ValueError: # can't convert search search to integer
+        except ValueError:  # can't convert search search to integer
             pass
 
         # Search CVEs

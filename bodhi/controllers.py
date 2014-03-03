@@ -369,7 +369,7 @@ class Root(controllers.RootController):
                         updates = [update]
                     else:
                         if update in updates:
-                            updates = [update] # There can be only one
+                            updates = [update]  # There can be only one
                         else:
                             updates = []
                 except SQLObjectNotFound:
@@ -593,12 +593,12 @@ class Root(controllers.RootController):
         """
         log.debug('save(%s)' % locals())
 
-        note = []      # Messages to flash to the user
-        updates = []   # PackageUpdate objects
-        releases = {}  # { Release : [build, ...] }
-        buildinfo = {} # { nvr : { 'nvr' : (n, v, r), 'people' : [person, ...],
-                       #           'releases' : set(Release, ...),
-                       #           'build' : PackageBuild } }
+        note = []       # Messages to flash to the user
+        updates = []    # PackageUpdate objects
+        releases = {}   # { Release : [build, ...] }
+        buildinfo = {}  # { nvr : { 'nvr' : (n, v, r), 'people' : [person, ...],
+                        #           'releases' : set(Release, ...),
+                        #           'build' : PackageBuild } }
 
         if not bugs: bugs = []
         if request == 'None': request = None
@@ -703,7 +703,7 @@ class Root(controllers.RootController):
                         break
 
                 people, groups = get_pkg_pushers(pkg, **pkgdb_args)
-                people = people[0] # we only care about committers, not watchers
+                people = people[0]  # we only care about committers, not watchers
                 buildinfo[build]['people'] = people
             except urllib2.URLError:
                 flash_log("Unable to access the package database.  Please "
@@ -1084,7 +1084,7 @@ class Root(controllers.RootController):
                 for bug in bugs:
                     try:
                         bug = int(bug)
-                    except ValueError: # bug alias
+                    except ValueError:  # bug alias
                         bugzilla = Bugzilla.get_bz()
                         bug = bugzilla.getbug(bug).bug_id
                     if bug not in original_bugs:
@@ -1354,11 +1354,11 @@ class Root(controllers.RootController):
         if text == 'None':
             text = None
         else:
-            try: # Python 2.6+
+            try:  # Python 2.6+
                 text = textwrap.TextWrapper(width=80,
                     break_long_words=False,
                     break_on_hyphens=False).fill(text)
-            except TypeError: # Python 2.4
+            except TypeError:  # Python 2.4
                 text = textwrap.TextWrapper(width=80,
                     break_long_words=False).fill(text)
         update.comment(text, karma, author=author, anonymous=True)
@@ -1403,11 +1403,11 @@ class Root(controllers.RootController):
                 if text == 'None':
                     text = None
                 else:
-                    try: # Python 2.6+
+                    try:  # Python 2.6+
                         text = textwrap.TextWrapper(width=80,
                             break_long_words=False,
                             break_on_hyphens=False).fill(text)
-                    except TypeError: # Python 2.4
+                    except TypeError:  # Python 2.4
                         text = textwrap.TextWrapper(width=80,
                             break_long_words=False).fill(text)
                 update.comment(text, karma, email=email)

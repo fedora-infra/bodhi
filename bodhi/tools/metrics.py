@@ -24,9 +24,9 @@ def short_url(update):
 
 def main():
     load_config()
-    stats = {} # {release: {'stat': ...}}
-    feedback = 0 # total number of updates that received feedback
-    karma = defaultdict(int) # {username: # of karma submissions}
+    stats = {}  # {release: {'stat': ...}}
+    feedback = 0  # total number of updates that received feedback
+    karma = defaultdict(int)  # {username: # of karma submissions}
     num_updates = PackageUpdate.select().count()
     proventesters = set()
 
@@ -109,9 +109,9 @@ def main():
                 if not feedback_done:
                     if (not comment.author.startswith('bodhi') and
                             comment.karma != 0 and not comment.anonymous):
-                        data['num_feedback'] += 1 # per-release tracking of feedback
-                        feedback += 1 # total number of updates that have received feedback
-                        feedback_done = True # so we don't run this for each comment
+                        data['num_feedback'] += 1  # per-release tracking of feedback
+                        feedback += 1  # total number of updates that have received feedback
+                        feedback_done = True  # so we don't run this for each comment
 
                 # Tracking per-author karma & anonymous feedback
                 if not comment.author.startswith('bodhi'):
@@ -149,7 +149,7 @@ def main():
                     data['critpath_without_karma'].add(update)
 
                 # Proventester metrics
-                proventester_karma = defaultdict(int) # {username: karma}
+                proventester_karma = defaultdict(int)  # {username: karma}
                 positive_proventesters = 0
                 negative_proventesters = 0
                 for comment in update.comments:

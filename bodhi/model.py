@@ -67,8 +67,8 @@ class Release(SQLObject):
     long_name   = UnicodeCol(notNone=True)
     updates     = MultipleJoin('PackageUpdate', joinColumn='release_id')
     id_prefix   = UnicodeCol(notNone=True)
-    dist_tag    = UnicodeCol(notNone=True) # ie dist-fc7
-    metrics     = PickleCol(default=None) # {metric: {data}}
+    dist_tag    = UnicodeCol(notNone=True)  # ie dist-fc7
+    metrics     = PickleCol(default=None)  # {metric: {data}}
 
     # [No Frozen Rawhide] We're going to re-use this column to flag 'pending'
     # releases, since we'll no longer need to lock releases in this case.
@@ -85,7 +85,7 @@ class Release(SQLObject):
 
     @property
     def candidate_tag(self):
-        if self.name.startswith('EL'): # EPEL Hack.
+        if self.name.startswith('EL'):  # EPEL Hack.
             return '%s-testing-candidate' % self.dist_tag
         else:
             return '%s-updates-candidate' % self.dist_tag
@@ -100,7 +100,7 @@ class Release(SQLObject):
     def stable_tag(self):
         if self.locked:
             return self.dist_tag
-        if self.name.startswith('EL'): # EPEL Hack.
+        if self.name.startswith('EL'):  # EPEL Hack.
             return self.dist_tag
         else:
             return '%s-updates' % self.dist_tag
@@ -122,7 +122,7 @@ class Release(SQLObject):
     @property
     def stable_repo(self):
         id = self.name.replace('-', '').lower()
-        if self.name.startswith('EL'): # EPEL Hack.
+        if self.name.startswith('EL'):  # EPEL Hack.
             return '%s-epel' % id
         else:
             return '%s-updates' % id
@@ -212,7 +212,7 @@ class Package(SQLObject):
                 # Recurse?
                 if members[idx].startswith('Category:') and limit > 0:
                     members.extend(list_categorymembers(wiki, members[idx], limit-1))
-                    members.remove(members[idx]) # remove Category from list
+                    members.remove(members[idx])  # remove Category from list
                 else:
                     idx += 1
 
@@ -342,7 +342,7 @@ class PackageUpdate(SQLObject):
     comments         = MultipleJoin('Comment', joinColumn='update_id', orderBy='timestamp')
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
-    nagged           = PickleCol(default=None) # { nagmail_name : datetime, ... }
+    nagged           = PickleCol(default=None)  # { nagmail_name : datetime, ... }
     approved         = DateTimeCol(default=None)
 
     stable_karma    = IntCol(default=3)
@@ -406,11 +406,11 @@ class PackageUpdate(SQLObject):
             split = update.updateid.split('-')
             year, id = split[-2:]
             prefix = '-'.join(split[:-2])
-            if int(year) != time.localtime()[0]: # new year
+            if int(year) != time.localtime()[0]:  # new year
                 id = 0
             id = int(id) + 1
         except IndexError:
-            id = 1 # First update
+            id = 1  # First update
 
         self.updateid = u'%s-%s-%0.4d' % (self.release.id_prefix,
                                           time.localtime()[0],id)
@@ -788,7 +788,7 @@ class PackageUpdate(SQLObject):
             try:
                 try:
                     bug = int(bug)
-                except ValueError: # bug alias
+                except ValueError:  # bug alias
                     bugzilla = Bugzilla.get_bz()
                     bug = bugzilla.getbug(bug).bug_id
                 try:
@@ -843,13 +843,13 @@ class PackageUpdate(SQLObject):
     def get_pushed_color(self):
         age = get_age_in_days(self.date_pushed)
         if age == 0 or self.karma < 0:
-            color = '#ff0000' # red
+            color = '#ff0000'  # red
         elif age < 4:
-            color = '#ff6600' # orange
+            color = '#ff6600'  # orange
         elif age < 7:
-            color = '#ffff00' # yellow
+            color = '#ffff00'  # yellow
         else:
-            color = '#00ff00' # green
+            color = '#00ff00'  # green
         return color
 
     def comment(self, text, karma=0, author=None, anonymous=False, email=True):
