@@ -28,7 +28,7 @@ session = None
 class Buildsystem(object):
     """
     The parent for our buildsystem.  Not only does this help us keep track of
-    the functionality that we expect from our buildsystem, but it also alows
+    the functionality that we expect from our buildsystem, but it also allows
     us to create a development subclass of this object to use during development
     so we don't alter any production data.
     """
