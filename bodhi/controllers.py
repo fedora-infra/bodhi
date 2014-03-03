@@ -1333,20 +1333,17 @@ class Root(controllers.RootController):
                 flash_log("Please fill in all comment fields")
             elif tg_errors.has_key('author'):
                 flash_log(tg_errors['author'])
-            elif tg_errors.has_key('captcha'):
-                if 'captcha' in tg_errors:
-                    if 'author' in tg_errors:
-                        flash_log('%s %s' % (tg_errors['captcha'],
-                                             tg_errors['author']))
-                    elif isinstance(tg_errors['captcha'], dict) and \
-                            tg_errors['captcha'].has_key('captchainput'):
-                        flash_log("Problem with captcha: %s" %
-                                  tg_errors['captcha']['captchainput'])
-                    else:
-                        flash_log("Problem with captcha: %s" %
-                                  tg_errors['captcha'])
+            elif 'captcha' in tg_errors:
+                if 'author' in tg_errors:
+                    flash_log('%s %s' % (tg_errors['captcha'],
+                                         tg_errors['author']))
+                elif isinstance(tg_errors['captcha'], dict) and \
+                        tg_errors['captcha'].has_key('captchainput'):
+                    flash_log("Problem with captcha: %s" %
+                              tg_errors['captcha']['captchainput'])
                 else:
-                    flash_log("Problem with captcha: %s" % tg_errors)
+                    flash_log("Problem with captcha: %s" %
+                              tg_errors['captcha'])
             else:
                 flash_log(tg_errors)
             return dict(update=update, updates=[],
