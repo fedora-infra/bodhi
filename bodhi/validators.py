@@ -33,7 +33,7 @@ class PackageValidator(validators.FancyValidator):
 
 class AutoCompleteValidator(validators.Schema):
 
-    messages = { 'empty_build' : 'Please specify a build' }
+    messages = {'empty_build' : 'Please specify a build'}
 
     def _to_python(self, value, state):
         tokens = []

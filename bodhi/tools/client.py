@@ -63,18 +63,18 @@ def get_parser():
     parser.add_option("-P", "--push", action="store_true", dest="push",
                       help="Display and push any pending updates (releng only)")
     parser.add_option("--push-type", action="append", type="string",
-                       dest="push_type",
-                       help="Types of updates to push (releng only)")
+                      dest="push_type",
+                      help="Types of updates to push (releng only)")
     parser.add_option("--push-release", action="append", type="string",
-                       dest="push_release",
-                       help="Types of updates to push (releng only)")
+                      dest="push_release",
+                      help="Types of updates to push (releng only)")
     parser.add_option("--push-request", action="append", type="string",
-                       dest="push_request",
-                       help="Requests of updates to push (stable or testing) (releng only)")
+                      dest="push_request",
+                      help="Requests of updates to push (stable or testing) (releng only)")
     parser.add_option("--push-build", action="append", type="string",
                       dest="push_build", help="Push a specific builds (releng only)")
     parser.add_option("--resume-push", action="store_true", dest="resume_push",
-                       help="Resume an unfinished push (releng only)")
+                      help="Resume an unfinished push (releng only)")
     parser.add_option("-d", "--delete", action="store_true", dest="delete",
                       help="Delete an update")
     parser.add_option("", "--file", action="store", type="string",
@@ -213,12 +213,12 @@ def main():
                                       "type=bugfix), skipping.")
                             continue
                         if update_args['type_'] not in update_types:
-                            log.error('Error: Invalid update type %r. Must be one of %r' % (
-                            update_args['type_'], update_types))
+                            log.error('Error: Invalid update type %r. Must be one of %r'
+                                      % (update_args['type_'], update_types))
                             continue
                         if update_args['request'] not in update_requests:
-                            log.error('Error: Invalid update request %r. Must be one of %r' % (
-                            update_args['request'], update_requests))
+                            log.error('Error: Invalid update request %r. Must be one of %r'
+                                      % (update_args['request'], update_requests))
                             continue
                         log.info("Creating a new update for %s" %
                                  update_args['builds'])
@@ -260,14 +260,14 @@ def main():
                                   bugs=opts.bugs, notes=opts.notes,
                                   request=opts.request)
                 log.info(data['tg_flash'])
-                if data.has_key('update'):
+                if 'update' in data:
                     print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.request:
                 verify_args(args)
                 data = bodhi.request(update=args[0], request=opts.request)
                 log.info(data['tg_flash'])
-                if data.has_key('update'):
+                if 'update' in data:
                     print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.delete:
@@ -324,7 +324,7 @@ def main():
                             for update in releases[release]:
                                 log.info("%s" % update['title'])
                                 s = "%s" % update['title']
-                                s = s.replace(',','\n')
+                                s = s.replace(',', '\n')
                                 f.write(s + "\n")
                             log.info('')
                             f.write('')
@@ -371,7 +371,7 @@ def main():
                                      karma=opts.karma)
                 if data['tg_flash']:
                     log.info(data['tg_flash'])
-                if data.has_key('update'):
+                if 'update' in data:
                     print(bodhi.update_str(data['update']).encode("UTF-8"))
 
             elif opts.latest:
@@ -381,8 +381,8 @@ def main():
                         log.info(data['tg_flash'])
                     del(data['tg_flash'])
                 data = data.items()
-                data.sort(cmp=lambda x, y: cmp(x[0].replace('dist-','').split('-')[0],
-                                               y[0].replace('dist-','').split('-')[0]))
+                data.sort(cmp=lambda x, y: cmp(x[0].replace('dist-', '').split('-')[0],
+                                               y[0].replace('dist-', '').split('-')[0]))
                 for dist, build in data:
                     print('%26s  %s' % (dist, build))
 
@@ -461,7 +461,7 @@ def main():
             elif opts.status or opts.bugs or opts.release or opts.type_ or \
                  opts.mine or args:
                 def print_query(data):
-                    if data.has_key('tg_flash') and data['tg_flash']:
+                    if 'tg_flash' in data and data['tg_flash']:
                         log.error(data['tg_flash'])
                         sys.exit(-1)
                     if data['num_items'] > 1:

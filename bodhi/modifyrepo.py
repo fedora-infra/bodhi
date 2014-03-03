@@ -21,7 +21,7 @@
 # Luke Macken <lmacken@redhat.com>
 
 """
-    This tool is in CVS HEAD of createrepo 
+    This tool is in CVS HEAD of createrepo
 """
 
 import os
@@ -41,7 +41,7 @@ class RepoMetadata(object):
         self.repodir = os.path.abspath(repo)
         self.repomdxml = os.path.join(self.repodir, 'repomd.xml')
         if not os.path.exists(self.repomdxml):
-            raise RepositoryNotFound, self.repomdxml
+            raise RepositoryNotFound(self.repomdxml)
         self.doc = minidom.parse(self.repomdxml)
 
     def _insert_element(self, parent, name, attrs={}, text=None):
@@ -93,20 +93,20 @@ class RepoMetadata(object):
         ## Remove any stale metadata
         for elem in self.doc.getElementsByTagName('data'):
             if elem.attributes['type'].value == mdtype:
-                self.doc.firstChild.removeChild(elem) 
+                self.doc.firstChild.removeChild(elem)
         ## Build the metadata
         root = self.doc.firstChild
-        data = self._insert_element(root, 'data', attrs={ 'type' : mdtype })
+        data = self._insert_element(root, 'data', attrs={'type' : mdtype})
         self._insert_element(data, 'location',
-                             attrs={ 'href' : 'repodata/' + mdname })
-        self._insert_element(data, 'checksum', attrs={ 'type' : 'sha' },
+                             attrs={'href' : 'repodata/' + mdname})
+        self._insert_element(data, 'checksum', attrs={'type' : 'sha'},
                              text=sha(newmd).hexdigest())
         self._insert_element(data, 'timestamp',
                              text=str(os.stat(destmd).st_mtime))
-        self._insert_element(data, 'open-checksum', attrs={ 'type' : 'sha' },
+        self._insert_element(data, 'open-checksum', attrs={'type' : 'sha'},
                              text=sha(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
 
-        #print "           type =", mdtype 
+        #print "           type =", mdtype
         #print "       location =", 'repodata/' + mdname
         #print "       checksum =", sha(newmd).hexdigest()
         #print "      timestamp =", str(os.stat(destmd).st_mtime)

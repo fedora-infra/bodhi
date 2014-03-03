@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 class Feed(FeedController):
 
     def get_feed_data(self, release=None, type=None, status=None,
-                      comments=False, submitter=None, builds=None, 
+                      comments=False, submitter=None, builds=None,
                       user=None, package=None, critpath=False,
                       unapproved=None, *args, **kw):
         query = []
@@ -123,15 +123,14 @@ class Feed(FeedController):
                     break
 
             entries.append({
-                'id'        : config.get('base_address') + \
+                'id'        : config.get('base_address') +
                               url(comment.update.get_url()),
                 'summary'   : comment.text,
                 'published' : comment.timestamp,
-                'link'      : config.get('base_address') + \
+                'link'      : config.get('base_address') +
                               url(comment.update.get_url()),
-                              'title'     : "[%s] [%s] [%d]" % (
-                                  comment.update.title, comment.author,
-                                  comment.karma)
+                'title'     : "[%s] [%s] [%d]" % (comment.update.title,
+                                                  comment.author, comment.karma)
             })
         return dict(
                 title = 'Latest Comments',

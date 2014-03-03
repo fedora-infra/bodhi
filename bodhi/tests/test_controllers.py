@@ -48,7 +48,7 @@ def login(username='guest', display_name='guest', group=None):
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
                      cherrypy.response.header_list)
     cookiehdr = cookies[0][1].strip()
-    return { 'Cookie' : cookiehdr }
+    return {'Cookie' : cookiehdr}
 
 class TestControllers(testutil.DBTest):
 
@@ -662,8 +662,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
 
         assert update.status == 'testing'
-        assert update.request == None
-
+        assert update.request is None
 
     def test_edit_builds(self):
         """ Make sure we can edit builds in an update """
@@ -699,7 +698,6 @@ class TestControllers(testutil.DBTest):
 
         assert update.status == 'pending'
         assert update.request == 'testing'
-
 
     def test_edit_testing_update_headed_to_stable(self):
         """ Make sure we cannot edit updates that are headed to stable"""
@@ -897,7 +895,7 @@ class TestControllers(testutil.DBTest):
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.status == 'pending'
-        assert update.pushed == False
+        assert update.pushed is False
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
@@ -1196,7 +1194,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
 
-        url = '/updates/list?' + urllib.urlencode({ 'release' : 'F7' })
+        url = '/updates/list?' + urllib.urlencode({'release' : 'F7'})
         testutil.create_request(url, method='GET')
         assert "1 update found" in cherrypy.response.body[0], cherrypy.response.body[0]
 
@@ -1275,7 +1273,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
         params = {
                 'builds'  : 'xprobe2-1.4.6-1.fc7',
                 'release' : 'Fedora 7',
@@ -1535,7 +1533,7 @@ class TestControllers(testutil.DBTest):
         # Create a MASHING lock with this update in it
         config.update({'global': {'mashed_dir': os.getcwd()}})
         mash_lock = file(os.path.join(config.get('mashed_dir'), 'MASHING-FEDORA'), 'w')
-        mash_lock.write(pickle.dumps({'updates': [params['builds'],], 'repos': []}))
+        mash_lock.write(pickle.dumps({'updates': [params['builds']], 'repos': []}))
         mash_lock.close()
 
         # Make sure it attempts to resume the current push
@@ -1547,12 +1545,12 @@ class TestControllers(testutil.DBTest):
         """ Make sure that setting requests also adds comments """
         session = login()
         create_release()
-        params = { 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
+        params = {'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
                 'type_'    : 'newpackage',
                 'bugs'    : '',
                 'notes'   : 'Initial release of new package!',
-        }
+                  }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
@@ -1645,7 +1643,7 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/revoke/%s' % params['builds'],
                                 headers=session, method='POST')
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
 
     def test_unicode_fail(self):
         session = login()
@@ -1774,7 +1772,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
@@ -1807,7 +1805,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)
@@ -1961,7 +1959,7 @@ class TestControllers(testutil.DBTest):
                                 params['builds'], method='POST', headers=releng)
         update = PackageUpdate.byTitle(params['builds'])
         print update.stable_karma, update.unstable_karma
-        assert update.request == None
+        assert update.request is None
 
     def test_critpath_num_approved_comments_with_autokarma(self):
         """
@@ -2122,7 +2120,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         print update.stable_karma, update.unstable_karma
 
-        assert update.request == None, "Auto-karma kicked in even though it didn't reach the stable threshold yet!"
+        assert update.request is None, "Auto-karma kicked in even though it didn't reach the stable threshold yet!"
 
         assert update.critpath
         assert update.critpath_approved
@@ -2414,7 +2412,7 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == None
+        assert update.request is None
 
         testutil.create_request('/updates/%s' % params['builds'],
                                 method='GET', headers=session)

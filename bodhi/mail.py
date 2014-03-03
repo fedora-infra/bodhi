@@ -149,7 +149,7 @@ marked as stable.\n\n%(updatestr)s
 """,
         'fields'  : lambda x: {
                         'karma'     : x.karma,
-                        'updatestr' : unicode(x) 
+                        'updatestr' : unicode(x)
                     }
     },
 
@@ -160,7 +160,7 @@ marked as unstable.  This update will be unpushed from the repository.\n\n%(upda
 """,
         'fields'  : lambda x: {
                         'karma'     : x.karma,
-                        'updatestr' : unicode(x) 
+                        'updatestr' : unicode(x)
                     }
     },
 
@@ -227,7 +227,7 @@ The critical path update for %(package)s has been in 'testing' status for over
 
 %(updatestr)s
 
-To approve this update and request that it be pushed to stable, you can use 
+To approve this update and request that it be pushed to stable, you can use
 the link below:
 
     https://admin.fedoraproject.org/updates/approve/%(package)s
@@ -288,7 +288,7 @@ Description :
 
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
-This update can be installed with the "yum" update program.  Use 
+This update can be installed with the "yum" update program.  Use
 su -c 'yum%(yum_repository)s update %(name)s' at the command line.
 For more information, refer to "Managing Software with yum",
 available at http://docs.fedoraproject.org/yum/.
@@ -473,10 +473,10 @@ def send(to, msg_type, update, sender=None):
                    "X-Bodhi-Update-Pushed": update.pushed,
                    "X-Bodhi-Update-Request": update.request,
                    "X-Bodhi-Update-Submitter": update.submitter,
-                  }
+                   }
         initial_message_id = "<bodhi-update-%s-%s-%s@%s>" % (update.id, update.submitter, update.release.name, config.get('message_id_email_domain'))
         if msg_type == 'new':
-             headers["Message-ID"] = initial_message_id
+            headers["Message-ID"] = initial_message_id
         else:
             headers["References"] = initial_message_id
             headers["In-Reply-To"] = initial_message_id
@@ -486,8 +486,7 @@ def send(to, msg_type, update, sender=None):
                   critpath, msg_type, title),
                   messages[msg_type]['body'] %
                   messages[msg_type]['fields'](update),
-                  headers=headers
-                 )
+                  headers=headers)
 
 def send_releng(subject, body):
     """ Send the Release Engineering team a message """

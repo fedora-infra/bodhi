@@ -22,7 +22,8 @@ try:
         bz.getbug(bug).close('ERRATA', fixedin=u.builds[0].nvr, comment=b._default_message(u))
         done.add(bug)
 except:
-    import traceback; traceback.print_exc()
+    import traceback
+    traceback.print_exc()
     out = file('bugs.done', 'w')
     pickle.dump(done, out)
     out.close()

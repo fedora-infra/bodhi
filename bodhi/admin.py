@@ -56,7 +56,7 @@ class AdminController(Controller, SecureResource):
         if config.get('masher'):
             data = self._masher_request('/admin/masher')
             if not data:
-                data = {'masher_str': 'Unable to contact the masher','tags': []}
+                data = {'masher_str': 'Unable to contact the masher', 'tags': []}
             return dict(masher_str=data['masher_str'], tags=data['tags'])
         else:
             from bodhi.masher import masher
@@ -156,8 +156,8 @@ class AdminController(Controller, SecureResource):
         # If we're not The Masher, then proxy this request to it
         if config.get('masher'):
             data = self._masher_request('/admin/mash', updates=updates, resume=resume) or {}
-            flash_log('Push request %s' % (data.get('success') and 'succeeded'
-                                                                or 'failed'))
+            flash_log('Push request %s'
+                      % (data.get('success') and 'succeeded' or 'failed'))
             raise redirect('/admin/masher')
 
         from bodhi.masher import masher

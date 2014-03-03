@@ -51,9 +51,9 @@ class BuildRootOverrideController(Controller):
         'release': validators.UnicodeString(),
         'show_expired': validators.StringBool()
     })
-    @paginate('overrides', default_order='-date_submitted', 
+    @paginate('overrides', default_order='-date_submitted',
               limit=20, max_limit=1000)
-    def list(self, build=None, tg_errors=None, mine=False, release=None, 
+    def list(self, build=None, tg_errors=None, mine=False, release=None,
              show_expired=False, **kw):
         query = []
         title = '%d Buildroot Overrides'
@@ -128,7 +128,7 @@ class BuildRootOverrideController(Controller):
     @error_handler(new)
     def save(self, builds, notes, expiration=None, *args, **kw):
         log.debug(repr(locals()))
-        last_release = None # for our koji wait-repo example
+        last_release = None  # for our koji wait-repo example
 
         if expiration:
             if datetime.utcnow() > expiration:
@@ -169,7 +169,7 @@ class BuildRootOverrideController(Controller):
 
             if not release:
                 flash('Error: Could not determine release for %s with tags %s' %
-                        (build, map(str, tags)))
+                      (build, map(str, tags)))
                 if request_format() == 'json': return dict()
                 raise redirect('/override/new')
 

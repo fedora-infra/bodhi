@@ -69,7 +69,7 @@ class SoBugzillaIdentityProvider(SqlObjectIdentityProvider):
         # if there is a password in our local database, then authenticate
         # against it (ie, guest, admin, etc)
         if user.password:
-            log.debug("Authenticating against local password for %s" %user_name)
+            log.debug("Authenticating against local password for %s" % user_name)
             return user.password == self.encrypt_password(password)
 
         # if there is no password stored, then try the supplied password against

@@ -57,7 +57,7 @@ class SearchForm(Form):
     template = "bodhi.templates.searchform"
     fields = [
             TextField("search", default="  Package | Bug # | CVE  ",
-                      attrs={ 'size' : 25 }),
+                      attrs={'size' : 25}),
     ]
 
 class LocalJSLink(JSLink):
@@ -137,7 +137,7 @@ class NewUpdateForm(Form):
                          '}',
                     'title': 'Karma Automatism - Enable update request '
                              'automation based on user feedback',
-            }),
+                            }),
             TextField('stable_karma', label='Threshold for pushing to stable',
                       validator=validators.Int(), default='3',
                       attrs={'title' : 'Stable Karma - The threshold for '
