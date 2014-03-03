@@ -106,7 +106,7 @@ class Root(controllers.RootController):
                     ('Karma', make_karma_icon)
                 ]
             ],
-       }
+        }
 
         if identity.current.anonymous:
             updates = 'latest'
