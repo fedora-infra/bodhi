@@ -1334,10 +1334,7 @@ class Root(controllers.RootController):
             elif tg_errors.has_key('author'):
                 flash_log(tg_errors['author'])
             elif 'captcha' in tg_errors:
-                if 'author' in tg_errors:
-                    flash_log('%s %s' % (tg_errors['captcha'],
-                                         tg_errors['author']))
-                elif isinstance(tg_errors['captcha'], dict) and \
+                if isinstance(tg_errors['captcha'], dict) and \
                         tg_errors['captcha'].has_key('captchainput'):
                     flash_log("Problem with captcha: %s" %
                               tg_errors['captcha']['captchainput'])
