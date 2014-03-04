@@ -5,11 +5,13 @@ from turbogears import testutil, database, config
 turbogears.update_config(configfile='bodhi.cfg', modulename='bodhi.config')
 database.set_db_uri("sqlite:///:memory:")
 
+import glob
 import shutil
 import tempfile
 
 from datetime import datetime
-from os.path import join, exists
+from hashlib import sha256
+from os.path import join, exists, basename
 from datetime import datetime
 from bodhi.util import mkmetadatadir, get_nvr
 from bodhi.model import (Release, Package, PackageUpdate, Bugzilla, CVE,
@@ -20,6 +22,21 @@ from yum.update_md import UpdateMetadata
 
 
 class TestExtendedMetadata(testutil.DBTest):
+    def __verify_updateinfo(self, repodata):
+        """Verify the updateinfo file
+
+        This is not a test, just a helper function.
+        """
+        updateinfos = glob.glob(join(repodata, "*-updateinfo.xml.gz"))
+        assert len(updateinfos) == 1, "We generated %d updateinfo metadata" % len(updateinfos)
+
+        updateinfo = updateinfos[0]
+        hash = basename(updateinfo).split("-", 1)[0]
+        hashed = sha256(open(updateinfo).read()).hexdigest()
+
+        assert hash == hashed, "File: %s\nHash: %s" % (basename(updateinfo), hashed)
+
+        return updateinfo
 
     def test_extended_metadata(self):
         # grab the name of a build in updates-testing, and create it in our db
@@ -58,8 +75,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -131,8 +147,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -167,8 +182,7 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Test out updateinfo.xml updating via our ExtendedMetadata
         md = ExtendedMetadata(temprepo, updateinfo)
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -234,8 +248,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -262,8 +275,7 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Test out updateinfo.xml updating via our ExtendedMetadata
         md = ExtendedMetadata(temprepo, updateinfo)
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -315,8 +327,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -349,8 +360,7 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Test out updateinfo.xml updating via our ExtendedMetadata
         md = ExtendedMetadata(temprepo, updateinfo)
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -405,8 +415,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         # Create a new non-security update for the same package
         newbuild = 'TurboGears-1.0.2.2-3.fc7'
@@ -425,7 +434,7 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Test out updateinfo.xml updating via our ExtendedMetadata
         md = ExtendedMetadata(temprepo, updateinfo)
         md.insert_updateinfo()
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -483,8 +492,7 @@ class TestExtendedMetadata(testutil.DBTest):
 
         ## Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
-        updateinfo = join(repodata, 'updateinfo.xml.gz')
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         # Create a new non-security update for the same package
         newbuild = 'TurboGears-1.0.2.2-3.fc7'
@@ -503,7 +511,7 @@ class TestExtendedMetadata(testutil.DBTest):
         ## Test out updateinfo.xml updating via our ExtendedMetadata
         md = ExtendedMetadata(temprepo, updateinfo)
         md.insert_updateinfo()
-        assert exists(updateinfo)
+        updateinfo = self.__verify_updateinfo(repodata)
 
         ## Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
