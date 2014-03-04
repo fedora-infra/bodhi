@@ -14,6 +14,7 @@
 #
 # Authors: Luke Macken <lmacken@redhat.com>
 
+import glob
 import os
 import sha
 import time
@@ -949,9 +950,21 @@ class MashTask(Thread):
         self.genmd = True
         t0 = time.time()
         for repo, mashdir in self.mashed_repos.items():
-            olduinfo = join(config.get('mashed_dir'), '%s.repodata' % repo,
-                            'i386', 'updateinfo.xml.gz')
-            olduinfo = exists(olduinfo) and olduinfo or None
+            # File name is prefixed with a hash, use a glob to find it
+            olduinfos = glob.glob(os.path.join(config.get('mashed_dir'),
+                                               '%s.repodata' % repo, 'i386',
+                                               "*updateinfo.xml.gz"))
+
+            if len(olduinfos) > 1:
+                # TODO: Shouldn't that be an error?
+                olduinfo = olduinfos[0]
+
+            if len(olduinfos) == 1:
+                olduinfo = olduinfos[0]
+
+            else:
+                olduinfo = None
+
             repo = join(mashdir, repo)
             log.debug("Generating updateinfo.xml.gz for %s" % repo)
             uinfo = ExtendedMetadata(repo, olduinfo)
