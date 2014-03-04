@@ -28,7 +28,6 @@ import os
 import sys
 import gzip
 
-from hashlib import sha1 as sha
 from hashlib import sha256
 from xml.dom import minidom
 from kitchen.text.converters import to_bytes
@@ -107,12 +106,12 @@ class RepoMetadata(object):
         data = self._insert_element(root, 'data', attrs={'type' : mdtype})
         self._insert_element(data, 'location',
                              attrs={'href' : 'repodata/' + hashed_mdname})
-        self._insert_element(data, 'checksum', attrs={'type' : 'sha'},
-                             text=sha(newmd).hexdigest())
+        self._insert_element(data, 'checksum', attrs={'type' : 'sha256'},
+                             text=hashed_md)
         self._insert_element(data, 'timestamp',
                              text=str(os.stat(hashed_destmd).st_mtime))
-        self._insert_element(data, 'open-checksum', attrs={'type' : 'sha'},
-                             text=sha(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
+        self._insert_element(data, 'open-checksum', attrs={'type' : 'sha256'},
+                             text=sha256(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
 
         #print "           type =", mdtype
         #print "       location =", 'repodata/' + mdname
