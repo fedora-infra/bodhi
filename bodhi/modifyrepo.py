@@ -113,12 +113,6 @@ class RepoMetadata(object):
         self._insert_element(data, 'open-checksum', attrs={'type' : 'sha256'},
                              text=sha256(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
 
-        #print "           type =", mdtype
-        #print "       location =", 'repodata/' + mdname
-        #print "       checksum =", sha(newmd).hexdigest()
-        #print "      timestamp =", str(os.stat(destmd).st_mtime)
-        #print "  open-checksum =", sha(md).hexdigest()
-
         ## Write the updated repomd.xml
         outmd = file(self.repomdxml, 'w')
         self.doc.writexml(outmd)
