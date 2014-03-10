@@ -1,7 +1,7 @@
 import json
 
 from pyramid.view import view_config, notfound_view_config
-from pyramid.exceptions import NotFound
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid.security import effective_principals
 from cornice import Service
 from sqlalchemy.sql import or_
@@ -177,10 +177,13 @@ def new_update(request):
     return up.__json__()
 
 
-@notfound_view_config(renderer='404.html', append_slash=True)
+@notfound_view_config(append_slash=True)
 def notfound_view(context, request):
-    request.response_status = 404
-    return dict()
+    """ Automatically redirects to slash-appended routes.
+
+    http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#redirecting-to-slash-appended-rou
+    """
+    return HTTPNotFound()
 
 
 @view_config(route_name='home', renderer='home.html')
