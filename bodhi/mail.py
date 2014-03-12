@@ -411,7 +411,7 @@ def get_template(update, use_template='fedora_errata_template'):
             del oldh
             if not text:
                 oldtime = 0
-            elif len(text) != 1:
+            elif isinstance(oldtime, list):
                 oldtime = oldtime[0]
             info['changelog'] = u"ChangeLog:\n\n%s%s" % \
                     (to_unicode(build.get_changelog(oldtime)), line)
