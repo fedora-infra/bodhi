@@ -28,7 +28,7 @@ import os
 import sys
 import gzip
 
-from hashlib import sha1 as sha
+from hashlib import sha256
 from xml.dom import minidom
 from kitchen.text.converters import to_bytes
 
@@ -83,12 +83,19 @@ class RepoMetadata(object):
         newmd = gzip.GzipFile(destmd, 'wb')
         newmd.write(to_bytes(md, errors='ignore', non_string='passthru'))
         newmd.close()
-        print "Wrote:", destmd
 
         ## Read the gzipped metadata
         f = file(destmd, 'r')
         newmd = f.read()
         f.close()
+
+        ## Prefix the file name with its hash
+        hashed_md = sha256(newmd).hexdigest()
+        hashed_mdname = "%s-%s" % (hashed_md, mdname)
+        hashed_destmd = os.path.join(self.repodir, hashed_mdname)
+        os.rename(destmd, hashed_destmd)
+
+        print "Wrote:", hashed_destmd
 
         ## Remove any stale metadata
         for elem in self.doc.getElementsByTagName('data'):
@@ -98,19 +105,13 @@ class RepoMetadata(object):
         root = self.doc.firstChild
         data = self._insert_element(root, 'data', attrs={'type' : mdtype})
         self._insert_element(data, 'location',
-                             attrs={'href' : 'repodata/' + mdname})
-        self._insert_element(data, 'checksum', attrs={'type' : 'sha'},
-                             text=sha(newmd).hexdigest())
+                             attrs={'href' : 'repodata/' + hashed_mdname})
+        self._insert_element(data, 'checksum', attrs={'type' : 'sha256'},
+                             text=hashed_md)
         self._insert_element(data, 'timestamp',
-                             text=str(os.stat(destmd).st_mtime))
-        self._insert_element(data, 'open-checksum', attrs={'type' : 'sha'},
-                             text=sha(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
-
-        #print "           type =", mdtype
-        #print "       location =", 'repodata/' + mdname
-        #print "       checksum =", sha(newmd).hexdigest()
-        #print "      timestamp =", str(os.stat(destmd).st_mtime)
-        #print "  open-checksum =", sha(md).hexdigest()
+                             text=str(os.stat(hashed_destmd).st_mtime))
+        self._insert_element(data, 'open-checksum', attrs={'type' : 'sha256'},
+                             text=sha256(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
 
         ## Write the updated repomd.xml
         outmd = file(self.repomdxml, 'w')

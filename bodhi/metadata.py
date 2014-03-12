@@ -53,6 +53,10 @@ class ExtendedMetadata(object):
             log.debug("Loading cached updateinfo.xml.gz")
             umd = UpdateMetadata()
             umd.add(cacheduinfo)
+
+            # Drop the old cached updateinfo.xml.gz, it's unneeded now
+            os.unlink(cacheduinfo)
+
             existing_ids = set([up['update_id'] for up in umd.get_notices()])
             seen_ids = set()
             from_cache = set()

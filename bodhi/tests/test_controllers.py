@@ -1487,7 +1487,7 @@ class TestControllers(testutil.DBTest):
         me.addGroup(testers)
         create_release()
         testutil.create_request('/updates/admin/push', headers=session)
-        assert '0 pending requests' in cherrypy.response.body[0]
+        assert '0 pending requests' in cherrypy.response.body[0], cherrypy.response.body[0]
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
