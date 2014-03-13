@@ -113,6 +113,9 @@ def mkmetadatadir(dir):
 
 
 def authorized_user(update, identity):
+    """
+    Return whether or not the current user can modify an update.
+    """
     # FIXME: port to pyramid auth
     return True
     return 'releng' in identity.current.groups or \

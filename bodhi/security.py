@@ -49,6 +49,7 @@ def logout(request):
 #
 
 def remember_me(context, request, info, *args, **kw):
+    """ Called upon successful login """
     log.debug('remember_me(%s)' % locals())
     log.debug('request.params = %r' % request.params)
     endpoint = request.params['openid.op_endpoint']
