@@ -633,6 +633,26 @@ class TestPackageUpdate(testutil.DBTest):
         assert templates[0][0] == u'[SECURITY] Fedora 7 Test Update: TurboGears-1.0.2.2-2.fc7'
         assert templates[0][1] == u'--------------------------------------------------------------------------------\nFedora Test Update Notification\nFEDORA-%s-0001\nNone\n--------------------------------------------------------------------------------\n\nName        : TurboGears\nProduct     : Fedora 7\nVersion     : 1.0.2.2\nRelease     : 2.fc7\nURL         : turbogears.org\nSummary     : summary\nDescription :\nZ\u2019s\n\n--------------------------------------------------------------------------------\nUpdate Information:\n\nfoobar\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #1 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=1\n  [ 2 ] CVE-2007-0000\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-0000\n--------------------------------------------------------------------------------\n\nThis update can be installed with the "yum" update program.  Use\nsu -c \'yum --enablerepo=updates-testing update TurboGears\' at the command line.\nFor more information, refer to "Managing Software with yum",\navailable at http://docs.fedoraproject.org/yum/.\n\nAll packages are signed with the Fedora Project GPG key.  More details on the\nGPG keys used by the Fedora Project can be found at\nhttps://fedoraproject.org/keys\n--------------------------------------------------------------------------------\n' % YEAR
 
+    def test_disable_autokarma_on_autoqa_failure(self):
+        """
+        Ensure that karma automatism gets disabled upon AutoQA test failures.
+        """
+        update = self.get_update()
+        assert update.karma == 0
+        assert update.stable_karma == 3
+        assert update.status == 'testing'
+        update.comment("foo", 1, 'tester1')
+        assert update.karma == 1
+        update.comment("foo", 1, 'tester2')
+        assert update.karma == 2
+        assert update.stable_karma == 3
+        update.comment("FAILED", 0, 'autoqa')
+        assert update.comments[-1].text == config.get('stablekarma_disabled_comment')
+        assert update.stable_karma == 0
+        update.comment("foo", 1, 'tester3')
+        assert update.karma == 3
+        assert update.request != 'stable'
+        assert update.stable_karma == 0
 
 class TestBugzilla(testutil.DBTest):
 
