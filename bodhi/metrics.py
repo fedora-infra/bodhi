@@ -62,7 +62,7 @@ class AllMetric(Metric):
     def __init__(self, release):
         self.all = {}       # { month : num }
         self.months = {}    # { month_num : month_name }
-        self.timeline = {}  # { type : { month : num } } 
+        self.timeline = {}  # { type : { month : num } }
         self.earliest = datetime.now()
         self.release = release
         for update_type in config.get('update_types').split():
@@ -73,11 +73,11 @@ class AllMetric(Metric):
             return
         if update.date_pushed < self.earliest:
             self.earliest = update.date_pushed
-        if not self.timeline[update.type].has_key(update.date_pushed.month):
+        if not update.date_pushed.month in self.timeline[update.type]:
             self.timeline[update.type][update.date_pushed.month] = 0
             self.months[update.date_pushed.month] = \
                     update.date_pushed.strftime("%b")
-        if not self.all.has_key(update.date_pushed.month):
+        if not update.date_pushed.month in self.all:
             self.all[update.date_pushed.month] = 0
         for build in update.builds:
             self.timeline[update.type][update.date_pushed.month] += 1
@@ -166,7 +166,7 @@ class MostUpdatedMetric(Metric):
 
     def update(self, update):
         for build in update.builds:
-            if not self.data.has_key(build.package.name):
+            if not build.package.name in self.data:
                 self.data[build.package.name] = 0
             self.data[build.package.name] += 1
 
@@ -186,8 +186,8 @@ class MostUpdatedMetric(Metric):
     def get_widget(self, data):
         return TurboFlot([
             # Hack, to get the color we want :)
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
             {
                 'data': data['packages'],
                 'bars': {'show': 'true'}
@@ -205,11 +205,11 @@ class ActiveDevsMetric(Metric):
     """
     def __init__(self, release):
         self.release = release
-        self.users = {} # { user : # updates }
+        self.users = {}  # { user : # updates }
         self.data = {}
 
     def update(self, update):
-        if not self.users.has_key(update.submitter):
+        if not update.submitter in self.users:
             self.users[update.submitter] = 0
         self.users[update.submitter] += 1
 
@@ -228,7 +228,7 @@ class ActiveDevsMetric(Metric):
 
     def get_widget(self, data):
         return TurboFlot([
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
             {
                 'data': data['data'],
                 'bars': {'show': 'true'}
@@ -246,7 +246,7 @@ class KarmaMetric(Metric):
     feedback.
     """
     def __init__(self, release):
-        self.data = {} # { pkg : karma }
+        self.data = {}  # { pkg : karma }
         self.release = release
         self.bestpkgs = {}
         self.bestdata = []
@@ -255,7 +255,7 @@ class KarmaMetric(Metric):
 
     def update(self, update):
         for build in update.builds:
-            if not self.data.has_key(build.package.name):
+            if not build.package.name in self.data:
                 self.data[build.package.name] = 0
             self.data[build.package.name] += update.karma
 
@@ -289,7 +289,7 @@ class KarmaMetric(Metric):
 
 class TopTestersMetric(Metric):
     """
-    A metric that calculates the people that have provided the most 
+    A metric that calculates the people that have provided the most
     testing feedback for updates
     """
     def __init__(self, release):
@@ -301,7 +301,7 @@ class TopTestersMetric(Metric):
         for comment in update.comments:
             if comment.author == 'bodhi' or comment.karma == 0:
                 continue
-            if not self.data.has_key(comment.author.split()[0]):
+            if not comment.author.split()[0] in self.data:
                 self.data[comment.author.split()[0]] = 0
             self.data[comment.author.split()[0]] += 1
 
@@ -319,9 +319,9 @@ class TopTestersMetric(Metric):
 
     def get_widget(self, data):
         return TurboFlot([
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-            {'data': [[0,0]]}, {'data': [[0,0]]},
-            {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]},
             {
                 'data': data['data'],
                 'bars': {'show': True}
@@ -339,13 +339,13 @@ class MostTestedMetric(Metric):
     """
     def __init__(self, release):
         self.release = release
-        self.data = {} # {pkg: # of +1/-1's}
+        self.data = {}  # {pkg: # of +1/-1's}
         self.tested_data = []
         self.tested_pkgs = {}
 
     def update(self, update):
         for build in update.builds:
-            if not self.data.has_key(build.package.name):
+            if not build.package.name in self.data:
                 self.data[build.package.name] = 0
             for comment in update.comments:
                 if comment.karma in (1, -1):
@@ -363,8 +363,8 @@ class MostTestedMetric(Metric):
 
     def get_widget(self, data):
         return TurboFlot([
-            {'data': [[0,0]]}, {'data': [[0,0]]}, {'data': [[0,0]]},
-            {'data': [[0,0]]}, {'data': [[0,0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]}, {'data': [[0, 0]]},
+            {'data': [[0, 0]]}, {'data': [[0, 0]]},
             {
                 'data': data['data'],
                 'bars': {'show': True}
@@ -420,12 +420,12 @@ class UpdateTypeMetric(Metric):
 ## All of the metrics that we are going to generate
 ##
 metrics = [AllMetric, MostUpdatedMetric, ActiveDevsMetric, KarmaMetric,
-           TopTestersMetric, MostTestedMetric, UpdateTypeMetric,]
+           TopTestersMetric, MostTestedMetric, UpdateTypeMetric]
 
 
 class MetricData(Singleton):
 
-    widgets = {} # { release : { type : TurboFlot } }
+    widgets = {}  # { release : { type : TurboFlot } }
     metrics = []
     age = None
 
@@ -445,7 +445,7 @@ class MetricData(Singleton):
                 log.warning("No metrics found for %s" % rel.name)
                 return
             self.init_metrics(rel)
-            if not freshwidgets.has_key(rel.name):
+            if not rel.name in freshwidgets:
                 freshwidgets[rel.name] = {}
             for metric in self.metrics:
                 widget = metric.get_widget(rel.metrics[metric.__class__.__name__])
@@ -471,7 +471,7 @@ class MetricData(Singleton):
         """
         log.info("Doing a hard refresh of our metrics data")
         metrics = {}
-        updates = {} # {release: [updates,]}
+        updates = {}  # {release: [updates,]}
         all_updates = list(PackageUpdate.select())
         releases = list(Release.select())
         for release in releases:

@@ -30,7 +30,7 @@ from sqlobject import SQLObjectNotFound
 from turbogears.database import PackageHub
 
 from bodhi.util import ProgressBar, load_config
-from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError, 
+from bodhi.exceptions import (DuplicateEntryError, SQLiteIntegrityError,
                               PostgresIntegrityError)
 from bodhi.model import (PackageUpdate, Release, Comment, Bugzilla, CVE,
                          Package, PackageBuild, BuildRootOverride)
@@ -140,9 +140,9 @@ def load_db():
             request = 'obsolete'
         if u['approved'] in (True, False):
             u['approved'] = None
-        if u.has_key('update_id'):
+        if 'update_id' in u:
             u['updateid'] = u['update_id']
-        if not u.has_key('date_modified'):
+        if not 'date_modified' in u:
             u['date_modified'] = None
 
         try:

@@ -86,7 +86,7 @@ def rpm_fileheader(pkgpath):
     log.debug("Grabbing the rpm header of %s" % pkgpath)
     is_oldrpm = hasattr(rpm, 'opendb')
     try:
-        fd = os.open(pkgpath,0)
+        fd = os.open(pkgpath, 0)
         if is_oldrpm:
             h = rpm.headerFromPackage(fd)[0]
         else:
@@ -167,11 +167,11 @@ def authorized_user(update, identity):
 def make_update_link(obj):
     """ Return a link Element for a given PackageUpdate or PackageBuild """
     update = None
-    if hasattr(obj, 'updates'):   # Package or PackageBuild
+    if hasattr(obj, 'updates'):    # Package or PackageBuild
         update = obj.updates[0]
-    elif hasattr(obj, 'get_url'): # PackageUpdate
+    elif hasattr(obj, 'get_url'):  # PackageUpdate
         update = obj
-    elif hasattr(obj, 'update'):  # Comment
+    elif hasattr(obj, 'update'):   # Comment
         update = obj.update
     else:
         log.error("Unknown parameter make_update_link(%s)" % obj)
@@ -292,7 +292,6 @@ def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel')
         return ((['guest', 'admin'], ['guest', 'admin']),
                 (['guest', 'admin'], ['guest', 'admin']))
 
-
     # Note if AppError is raised (for no pkgNamme or other server errors) we
     # do not catch the exception here.
     pkgdb = PackageDB(config.get('pkgdb_url'))
@@ -330,6 +329,7 @@ def cache_with_expire(expire=86400):
     # expire is the number of seconds to cache for.
     # Default is 86400s == 24 hours
     _cache = {}
+
     def cached(func, *args, **kwargs):
         # Setup the args
         if kwargs:
@@ -494,7 +494,7 @@ def sanity_check_repodata(myurl):
                 loc = baseurl + href
 
             destfn = tempdir + '/' + os.path.basename(href)
-            dest =  urlgrabber.urlgrab(loc, destfn)
+            dest = urlgrabber.urlgrab(loc, destfn)
             ctype, known_csum = data.checksum
             csum = checksum(ctype, dest)
             if csum != known_csum:

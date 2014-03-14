@@ -53,6 +53,10 @@ class ExtendedMetadata(object):
             log.debug("Loading cached updateinfo.xml.gz")
             umd = UpdateMetadata()
             umd.add(cacheduinfo)
+
+            # Drop the old cached updateinfo.xml.gz, it's unneeded now
+            os.unlink(cacheduinfo)
+
             existing_ids = set([up['update_id'] for up in umd.get_notices()])
             seen_ids = set()
             from_cache = set()
@@ -185,9 +189,9 @@ class ExtendedMetadata(object):
         self._insert(root, 'id', text=notice['update_id'])
         self._insert(root, 'title', text=notice['title'])
         self._insert(root, 'release', text=notice['release'])
-        self._insert(root, 'issued', attrs={ 'date' : notice['issued'] })
+        self._insert(root, 'issued', attrs={'date' : notice['issued']})
         if notice['updated']:
-            self._insert(root, 'updated', attrs={ 'date' : notice['updated'] })
+            self._insert(root, 'updated', attrs={'date' : notice['updated']})
         self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
 
         ## Build the references

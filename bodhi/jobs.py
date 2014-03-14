@@ -54,7 +54,7 @@ def clean_repo():
         for repo in [release + '-updates', release + '-updates-testing']:
             liverepos.append(dirname(realpath(join(repos, repo))))
     for repo in [join(repos, repo) for repo in os.listdir(repos)]:
-        if 'repodata' in repo: # skip our repodata caches
+        if 'repodata' in repo:  # skip our repodata caches
             continue
         if not islink(repo) and isdir(repo):
             fullpath = realpath(repo)
@@ -94,9 +94,9 @@ def nagmail():
         for update in query:
             if date(update) > 14:
                 if update.nagged:
-                    if update.nagged.has_key(name) and update.nagged[name]:
+                    if name in update.nagged and update.nagged[name]:
                         if (datetime.utcnow() - update.nagged[name]).days < 7:
-                            continue # Only nag once a week at most
+                            continue  # Only nag once a week at most
                     nagged = update.nagged
                 else:
                     nagged = {}
@@ -141,8 +141,8 @@ def fix_bug_titles():
     from sqlobject.sqlbuilder import OR
     log.debug("Running fix_bug_titles job")
     for bug in Bugzilla.select(
-                 OR(Bugzilla.q.title == 'Invalid bug number',
-                    Bugzilla.q.title == 'Unable to fetch bug title')):
+            OR(Bugzilla.q.title == 'Invalid bug number',
+               Bugzilla.q.title == 'Unable to fetch bug title')):
         bug.fetch_details()
 
 
@@ -283,8 +283,8 @@ def schedule():
     if 'nagmail' in jobs:
         log.debug("Scheduling nagmail job")
         scheduler.add_weekday_task(action=nagmail,
-                                   weekdays=range(1,8),
-                                   timeonday=(0,0))
+                                   weekdays=range(1, 8),
+                                   timeonday=(0, 0))
 
     # Fix invalid bug titles
     if 'fix_bug_titles' in jobs:

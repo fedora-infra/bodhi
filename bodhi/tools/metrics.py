@@ -24,9 +24,9 @@ def short_url(update):
 
 def main():
     load_config()
-    stats = {} # {release: {'stat': ...}}
-    feedback = 0 # total number of updates that received feedback
-    karma = defaultdict(int) # {username: # of karma submissions}
+    stats = {}  # {release: {'stat': ...}}
+    feedback = 0  # total number of updates that received feedback
+    karma = defaultdict(int)  # {username: # of karma submissions}
     num_updates = PackageUpdate.select().count()
     proventesters = set()
 
@@ -107,12 +107,11 @@ def main():
 
                 # For figuring out if an update has received feedback or not
                 if not feedback_done:
-                    if (not comment.author.startswith('bodhi')
-                        and comment.karma != 0
-                        and not comment.anonymous):
-                        data['num_feedback'] += 1 # per-release tracking of feedback
-                        feedback += 1 # total number of updates that have received feedback
-                        feedback_done = True # so we don't run this for each comment
+                    if (not comment.author.startswith('bodhi') and
+                            comment.karma != 0 and not comment.anonymous):
+                        data['num_feedback'] += 1  # per-release tracking of feedback
+                        feedback += 1  # total number of updates that have received feedback
+                        feedback_done = True  # so we don't run this for each comment
 
                 # Tracking per-author karma & anonymous feedback
                 if not comment.author.startswith('bodhi'):
@@ -126,7 +125,7 @@ def main():
                         karma[author] += 1
 
                 if (not testingtime_done and
-                    comment.text == 'This update has been pushed to testing'):
+                        comment.text == 'This update has been pushed to testing'):
                     for othercomment in update.comments:
                         if othercomment.text == 'This update has been pushed to stable':
                             delta = othercomment.timestamp - comment.timestamp
@@ -150,7 +149,7 @@ def main():
                     data['critpath_without_karma'].add(update)
 
                 # Proventester metrics
-                proventester_karma = defaultdict(int) # {username: karma}
+                proventester_karma = defaultdict(int)  # {username: karma}
                 positive_proventesters = 0
                 negative_proventesters = 0
                 for comment in update.comments:
@@ -223,13 +222,13 @@ def main():
 #        print " * %d out of %d stable updates went through testing (%0.2f%%)" %(
 #                data['num_tested'], data['num_stable'],
 #                float(data['num_tested']) / data['num_stable'] * 100)
-        print " * %d updates reached the stable karma threshold (%0.2f%%)" %(
+        print " * %d updates reached the stable karma threshold (%0.2f%%)" % (
                 data['num_stablekarma'],
                 float(data['num_stablekarma']) / data['num_stable'] * 100)
         print " * %d updates reached the minimum time in testing threshold (%0.2f%%)" % (
                 data['num_testingtime'],
                 float(data['num_testingtime']) / data['num_stable'] * 100)
-        print " * %d went from testing to stable *without* karma (%0.2f%%)" %(
+        print " * %d went from testing to stable *without* karma (%0.2f%%)" % (
                 data['num_tested_without_karma'],
                 float(data['num_tested_without_karma']) /
                 data['num_tested'] * 100)

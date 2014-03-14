@@ -56,8 +56,9 @@ log = logging.getLogger(__name__)
 hub = PackageHub("bodhi")
 __connection__ = hub
 
-soClasses=('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
-           'Bugzilla', 'Comment', 'User', 'Group', 'Visit', 'BuildRootOverride')
+soClasses = ('Release', 'Package', 'PackageBuild', 'PackageUpdate', 'CVE',
+             'Bugzilla', 'Comment', 'User', 'Group', 'Visit',
+             'BuildRootOverride')
 
 
 class Release(SQLObject):
@@ -66,8 +67,8 @@ class Release(SQLObject):
     long_name   = UnicodeCol(notNone=True)
     updates     = MultipleJoin('PackageUpdate', joinColumn='release_id')
     id_prefix   = UnicodeCol(notNone=True)
-    dist_tag    = UnicodeCol(notNone=True) # ie dist-fc7
-    metrics     = PickleCol(default=None) # {metric: {data}}
+    dist_tag    = UnicodeCol(notNone=True)  # ie dist-fc7
+    metrics     = PickleCol(default=None)  # {metric: {data}}
 
     # [No Frozen Rawhide] We're going to re-use this column to flag 'pending'
     # releases, since we'll no longer need to lock releases in this case.
@@ -84,7 +85,7 @@ class Release(SQLObject):
 
     @property
     def candidate_tag(self):
-        if self.name.startswith('EL'): # EPEL Hack.
+        if self.name.startswith('EL'):  # EPEL Hack.
             return '%s-testing-candidate' % self.dist_tag
         else:
             return '%s-updates-candidate' % self.dist_tag
@@ -99,7 +100,7 @@ class Release(SQLObject):
     def stable_tag(self):
         if self.locked:
             return self.dist_tag
-        if self.name.startswith('EL'): # EPEL Hack.
+        if self.name.startswith('EL'):  # EPEL Hack.
             return self.dist_tag
         else:
             return '%s-updates' % self.dist_tag
@@ -121,7 +122,7 @@ class Release(SQLObject):
     @property
     def stable_repo(self):
         id = self.name.replace('-', '').lower()
-        if self.name.startswith('EL'): # EPEL Hack.
+        if self.name.startswith('EL'):  # EPEL Hack.
             return '%s-epel' % id
         else:
             return '%s-updates' % id
@@ -169,7 +170,7 @@ class Package(SQLObject):
 
     def __str__(self):
         x = header(self.name)
-        states = { 'pending' : [], 'testing' : [], 'stable' : [] }
+        states = {'pending' : [], 'testing' : [], 'stable' : []}
         if len(self.builds):
             for build in self.builds:
                 for state in states.keys():
@@ -200,8 +201,8 @@ class Package(SQLObject):
             query = dict(action='query', list='categorymembers', cmtitle=cat_page)
             response = wiki.call(query)
             members = [entry.get('title') for entry in
-                       response.get('query',{}).get('categorymembers',{})
-                       if entry.has_key('title')]
+                       response.get('query', {}).get('categorymembers', {})
+                       if 'title' in entry]
 
             # Determine whether we need to recurse
             idx = 0
@@ -211,7 +212,7 @@ class Package(SQLObject):
                 # Recurse?
                 if members[idx].startswith('Category:') and limit > 0:
                     members.extend(list_categorymembers(wiki, members[idx], limit-1))
-                    members.remove(members[idx]) # remove Category from list
+                    members.remove(members[idx])  # remove Category from list
                 else:
                     idx += 1
 
@@ -242,7 +243,7 @@ class PackageBuild(SQLObject):
         when = rpm_header[rpm.RPMTAG_CHANGELOGTIME]
 
         num = len(descrip)
-        if num == 1: when = [when]
+        if not isinstance(when, list): when = [when]
 
         str = ""
         i = 0
@@ -341,7 +342,7 @@ class PackageUpdate(SQLObject):
     comments         = MultipleJoin('Comment', joinColumn='update_id', orderBy='timestamp')
     karma            = IntCol(default=0)
     close_bugs       = BoolCol(default=True)
-    nagged           = PickleCol(default=None) # { nagmail_name : datetime, ... }
+    nagged           = PickleCol(default=None)  # { nagmail_name : datetime, ... }
     approved         = DateTimeCol(default=None)
 
     stable_karma    = IntCol(default=3)
@@ -377,7 +378,7 @@ class PackageUpdate(SQLObject):
         prefixes it with the id_prefix of the release and the year
         (ie FEDORA-2007-0001)
         """
-        if self.updateid != None and self.updateid != u'None':
+        if self.updateid is not None and self.updateid != u'None':
             log.debug("Keeping current update id %s" % self.updateid)
             return
 
@@ -405,14 +406,14 @@ class PackageUpdate(SQLObject):
             split = update.updateid.split('-')
             year, id = split[-2:]
             prefix = '-'.join(split[:-2])
-            if int(year) != time.localtime()[0]: # new year
+            if int(year) != time.localtime()[0]:  # new year
                 id = 0
             id = int(id) + 1
         except IndexError:
-            id = 1 # First update
+            id = 1  # First update
 
         self.updateid = u'%s-%s-%0.4d' % (self.release.id_prefix,
-                                          time.localtime()[0],id)
+                                          time.localtime()[0], id)
         log.debug("Setting updateid for %s to %s" % (self.title,
                                                      self.updateid))
         self.date_pushed = datetime.utcnow()
@@ -511,12 +512,12 @@ class PackageUpdate(SQLObject):
                                  'proventesters, along with %d additional '
                                  'karma from the community. Or, it must '
                                  'spend %d days in testing without any '
-                                 'negative feedback' % (
-                        config.get('critpath.min_karma'),
-                        config.get('critpath.num_admin_approvals'),
-                        config.get('critpath.min_karma') -
-                        config.get('critpath.num_admin_approvals'),
-                        config.get('critpath.stable_after_days_without_negative_karma')))
+                                 'negative feedback'
+                                 % (config.get('critpath.min_karma'),
+                                    config.get('critpath.num_admin_approvals'),
+                                    config.get('critpath.min_karma') -
+                                            config.get('critpath.num_admin_approvals'),
+                                    config.get('critpath.stable_after_days_without_negative_karma')))
                     if self.status == 'testing':
                         self.request = None
                         flash_log('. '.join(notes))
@@ -717,8 +718,8 @@ class PackageUpdate(SQLObject):
         val += u"""    Release: %s
      Status: %s
        Type: %s
-      Karma: %d""" % (self.release.long_name,self.status,self.type,self.karma)
-        if self.request != None:
+      Karma: %d""" % (self.release.long_name, self.status, self.type, self.karma)
+        if self.request is not None:
             val += u"\n    Request: %s" % self.request
         if len(self.bugs):
             bugs = self.get_bugstring(show_titles=True)
@@ -726,7 +727,7 @@ class PackageUpdate(SQLObject):
         if len(self.cves):
             val += u"\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
-            notes = wrap(self.notes, width=67, subsequent_indent=' ' * 11 +': ')
+            notes = wrap(self.notes, width=67, subsequent_indent=' ' * 11 + ': ')
             val += u"\n      Notes: %s" % '\n'.join(notes)
         val += u"""
   Submitter: %s
@@ -787,7 +788,7 @@ class PackageUpdate(SQLObject):
             try:
                 try:
                     bug = int(bug)
-                except ValueError: # bug alias
+                except ValueError:  # bug alias
                     bugzilla = Bugzilla.get_bz()
                     bug = bugzilla.getbug(bug).bug_id
                 try:
@@ -842,13 +843,13 @@ class PackageUpdate(SQLObject):
     def get_pushed_color(self):
         age = get_age_in_days(self.date_pushed)
         if age == 0 or self.karma < 0:
-            color = '#ff0000' # red
+            color = '#ff0000'  # red
         elif age < 4:
-            color = '#ff6600' # orange
+            color = '#ff6600'  # orange
         elif age < 7:
-            color = '#ffff00' # yellow
+            color = '#ffff00'  # yellow
         else:
-            color = '#00ff00' # green
+            color = '#00ff00'  # green
         return color
 
     def comment(self, text, karma=0, author=None, anonymous=False, email=True):
@@ -872,7 +873,7 @@ class PackageUpdate(SQLObject):
         if not anonymous and author != 'bodhi':
             admin_groups = config.get('admin_groups', '').split()
             try:
-                groups =  list(identity.current.groups)
+                groups = list(identity.current.groups)
                 for admin_group in admin_groups:
                     if admin_group in groups:
                         author += ' (%s)' % admin_group
@@ -883,8 +884,15 @@ class PackageUpdate(SQLObject):
                 pass
 
         if not anonymous and karma != 0:
+            # Because we reset its global karma to 0 when editing an update,
+            # we can't "remove" the previous karmas if they were given before
+            # the last edit
+            last_date = (max(self.date_submitted, self.date_modified)
+                         if self.date_modified else self.date_submitted)
+
             my_karmas = [c.karma for c in self.comments if c.author == author
-                         and not c.anonymous and c.karma != 0]
+                         and not c.anonymous and c.karma != 0
+                         and c.timestamp >= last_date]
             if len(my_karmas) > 0:
                 # Remove the previous karma.
                 self.karma -= my_karmas[-1]
@@ -903,6 +911,16 @@ class PackageUpdate(SQLObject):
                 agent=identity.current.user_name
             ))
 
+        # Disable karma automatism autoqa test failures
+        # https://github.com/fedora-infra/bodhi/issues/36
+        if author == 'autoqa':
+            if 'FAILED' in text:
+                if self.stable_karma != 0:
+                    log.info('Disabling autokarma due to AutoQA failure')
+                    self.stable_karma = 0
+                    self.comment(config.get('stablekarma_disabled_comment'),
+                                 author='bodhi')
+
         if self.critpath:
             min_karma = config.get('critpath.min_karma')
             # If we weren't approved before, but are now...
@@ -910,12 +928,12 @@ class PackageUpdate(SQLObject):
                 self.comment('Critical path update approved', author='bodhi')
                 mail.send_admin('critpath_approved', self)
             # Karma automatism enabled
-            if self.stable_karma != 0:
+            if self.stable_karma != 0 and not self.currently_pushing:
                 # If this update has a stable karma threshold that is lower
                 # than the critpath.min_karma, then automatically push it to
                 # stable once it has met the requirements.
                 if (self.stable_karma < min_karma and self.critpath_approved and
-                    self.karma >= min_karma and self.pushable):
+                        self.karma >= min_karma and self.pushable):
                     if self.request == 'testing':
                         self.remove_tag(self.release.pending_testing_tag)
                     if self.request != 'stable':
@@ -927,8 +945,8 @@ class PackageUpdate(SQLObject):
                 # If we're approved and meet the minimum requirements, then
                 # automatically push this update to the stable repository
                 if (self.critpath_approved and self.pushable and
-                    self.karma >= self.stable_karma and
-                    self.karma >= min_karma):
+                        self.karma >= self.stable_karma and
+                        self.karma >= min_karma):
                     if self.request == 'testing':
                         self.remove_tag(self.release.pending_testing_tag)
                     if self.request != 'stable':
@@ -942,7 +960,7 @@ class PackageUpdate(SQLObject):
             if self.pushable:
                 if self.critpath and not self.critpath_approved:
                     pass
-                else:
+                elif not self.currently_pushing:
                     log.info("Automatically marking %s as stable" % self.title)
                     if self.request == 'testing':
                         self.remove_tag(self.release.pending_testing_tag)
@@ -961,7 +979,6 @@ class PackageUpdate(SQLObject):
             self.obsolete(msg='This update has reached a karma of %s and is '
                               'being unpushed and marked as unstable' % self.karma)
             mail.send(self.submitter, 'unstable', self)
-
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """
@@ -988,7 +1005,7 @@ class PackageUpdate(SQLObject):
                     pass
             else:
                 # Build is untagged
-                task = koji.tagBuild(self.release.candidate_tag,build.nvr,force=True)
+                task = koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
                 tasks.append(task)
         if tasks:
             if buildsys.wait_for_tasks(tasks, sleep=1):
@@ -1401,17 +1418,14 @@ class Bugzilla(SQLObject):
     _bz_server = config.get("bz_server")
 
     newpackage_msg = "%s has been pushed to the %s repository."
-    stable_msg = "%s has been pushed to the %s repository.  If problems " + \
-                  "still persist, please make note of it in this bug report."
-    testing_msg = "Package %s:\n" + \
-            "* should fix your issue,\n" + \
-            "* was pushed to the %s testing repository,\n" + \
-            "* should be available at your local mirror within two days.\n" + \
-            "Update it with:\n" + \
-            "# su -c 'yum update --enablerepo=%s %s'\n" + \
-            "as soon as you are able to%s.\n" + \
-            "Please go to the following url:\n%s\n" + \
-            "then log in and leave karma (feedback)."
+    stable_msg = ("%s has been pushed to the %s repository.  If problems "
+                  "still persist, please make note of it in this bug report.")
+    testing_msg = ("Package %s:\n* should fix your issue,\n* was pushed to "
+                   "the %s testing repository,\n* should be available at your"
+                   " local mirror within two days.\nUpdate it with:\n"
+                   "# su -c 'yum update --enablerepo=%s %s'\n"
+                   "as soon as you are able to%s.\nPlease go to the following"
+                   " url:\n%s\nthen log in and leave karma (feedback).")
 
     def __json__(self):
         return dict(bz_id=self.bz_id, title=self.title, security=self.security,

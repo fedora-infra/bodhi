@@ -102,8 +102,6 @@ def main():
                                              key=itemgetter(1))[-1][0]
 
 
-
-
 if __name__ == '__main__':
     load_config()
     main()

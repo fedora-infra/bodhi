@@ -32,7 +32,7 @@ def compare_builds(testing_build, stable_build, untag, tag):
                         print "%s not stable in bodhi!" % update.title
                         raise SQLObjectNotFound
                     else:
-                        pass # TODO: do the untagging?
+                        pass  # TODO: do the untagging?
             except SQLObjectNotFound:
                 if untag:
                     print "Untagging via koji"
@@ -58,7 +58,6 @@ def clean_stable_builds(untag=False):
                 if build['nvr'] == latest_build['nvr']:
                     continue
                 compare_builds(latest_build, build, untag, release.stable_tag)
-
 
 
 if __name__ == '__main__':

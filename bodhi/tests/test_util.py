@@ -33,7 +33,7 @@ class TestUtil(object):
     def test_sanity_check_repodata(self):
         """
         Do an extremely basic check to make sure that the
-        sanity_check_repodata code actually runs.  This is by no means 
+        sanity_check_repodata code actually runs.  This is by no means
         a complete test for all possible forms of repodata corruption.
         """
         ## Initialize our temporary repo

@@ -109,7 +109,7 @@ class TestRepoClosure(object):
             self._test_closure(release)
 
         log.debug("Dependency checking complete in %f seconds" % (
-                  time.time()- start))
+                  time.time() - start))
 
     def _copy_to_repo(self):
         """
@@ -154,7 +154,7 @@ class TestRepoClosure(object):
                 if release == 'testing': continue
                 for arch in os.listdir(join(self.testrepo_dir, tf, release)):
                     fullpath = normpath(join(self.testrepo_dir, tf,
-                                             release,arch))
+                                             release, arch))
                     log.debug("Generating metadata for %s" % fullpath)
                     genpkgmetadata.main(['-c', str(self.cache_dir), '-q',
                                          str(fullpath)])
@@ -168,7 +168,7 @@ class TestRepoClosure(object):
                 log.debug("Checking closure on %s-%s-%s" % (release.name,
                           arch.name, testing and 'testing' or 'final'))
                 if not self.testing and testing:
-                    log.debug("Skipping updates-testing check for %s - %s" % 
+                    log.debug("Skipping updates-testing check for %s - %s" %
                               (release.name, arch.name))
                     continue
                 conf = self.generate_config(release, arch, testing)

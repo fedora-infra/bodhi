@@ -106,7 +106,7 @@ class Root(controllers.RootController):
                     ('Karma', make_karma_icon)
                 ]
             ],
-       }
+        }
 
         if identity.current.anonymous:
             updates = 'latest'
@@ -173,19 +173,19 @@ class Root(controllers.RootController):
                 return dict(user=identity.current.user)
             raise redirect(forward_url)
 
-        forward_url=None
-        previous_url= cherrypy.request.path
+        forward_url = None
+        previous_url = cherrypy.request.path
 
         if identity.was_login_attempted():
-            msg="The credentials you supplied were not correct or did not grant access to this resource."
+            msg = "The credentials you supplied were not correct or did not grant access to this resource."
         elif identity.get_identity_errors():
-            msg="You must provide your credentials before accessing this resource."
+            msg = "You must provide your credentials before accessing this resource."
         else:
-            msg="Please log in."
-            forward_url= cherrypy.request.headers.get("Referer", "/")
+            msg = "Please log in."
+            forward_url = cherrypy.request.headers.get("Referer", "/")
 
         # This seems to be the cause of some bodhi-client errors
-        cherrypy.response.status=403
+        cherrypy.response.status = 403
         return dict(message=msg, previous_url=previous_url, logging_in=True,
                     original_parameters=cherrypy.request.params,
                     forward_url=forward_url)
@@ -247,7 +247,7 @@ class Root(controllers.RootController):
 
         # Check the identity first of all
         if mine and identity.current.anonymous:
-            cherrypy.response.status=401
+            cherrypy.response.status = 401
             return dict(updates=[], num_items=0, title='0 updates found')
 
         # If no arguments are specified, return the most recent updates
@@ -369,7 +369,7 @@ class Root(controllers.RootController):
                         updates = [update]
                     else:
                         if update in updates:
-                            updates = [update] # There can be only one
+                            updates = [update]  # There can be only one
                         else:
                             updates = []
                 except SQLObjectNotFound:
@@ -447,8 +447,8 @@ class Root(controllers.RootController):
     def mine(self):
         """ List all updates submitted by the current user """
         updates = PackageUpdate.select(
-                       PackageUpdate.q.submitter == identity.current.user_name,
-                    orderBy=PackageUpdate.q.date_submitted).reversed()
+                PackageUpdate.q.submitter == identity.current.user_name,
+                orderBy=PackageUpdate.q.date_submitted).reversed()
         return dict(updates=updates, title='%s\'s updates' %
                     identity.current.user_name, num_items=updates.count())
 
@@ -537,7 +537,7 @@ class Root(controllers.RootController):
             flash_log("Cannot edit an update you did not submit")
             raise redirect(update.get_url())
         values = {
-                'builds'    : {'text':update.title, 'hidden':update.title},
+                'builds'    : {'text': update.title, 'hidden': update.title},
                 'testing'   : update.status == 'testing',
                 'request'   : str(update.request).title(),
                 'type_'     : update.type,
@@ -593,12 +593,12 @@ class Root(controllers.RootController):
         """
         log.debug('save(%s)' % locals())
 
-        note = []      # Messages to flash to the user
-        updates = []   # PackageUpdate objects
-        releases = {}  # { Release : [build, ...] }
-        buildinfo = {} # { nvr : { 'nvr' : (n, v, r), 'people' : [person, ...],
-                       #           'releases' : set(Release, ...),
-                       #           'build' : PackageBuild } }
+        note = []       # Messages to flash to the user
+        updates = []    # PackageUpdate objects
+        releases = {}   # { Release : [build, ...] }
+        buildinfo = {}  # { nvr : { 'nvr' : (n, v, r), 'people' : [person, ...],
+                        #           'releases' : set(Release, ...),
+                        #           'build' : PackageBuild } }
 
         if not bugs: bugs = []
         if request == 'None': request = None
@@ -649,7 +649,7 @@ class Root(controllers.RootController):
                 if build == other_build:
                     continue
                 if (build_nvr[0] == other_build_nvr[0] and
-                    build_nvr[2].split('.')[-1] == other_build_nvr[2].split('.')[-1]):
+                        build_nvr[2].split('.')[-1] == other_build_nvr[2].split('.')[-1]):
                     flash_log("Unable to save update with conflicting builds of "
                               "the same package: %s and %s. Please remove one "
                               "and try again." % (build, other_build))
@@ -703,7 +703,7 @@ class Root(controllers.RootController):
                         break
 
                 people, groups = get_pkg_pushers(pkg, **pkgdb_args)
-                people = people[0] # we only care about committers, not watchers
+                people = people[0]  # we only care about committers, not watchers
                 buildinfo[build]['people'] = people
             except urllib2.URLError:
                 flash_log("Unable to access the package database.  Please "
@@ -790,10 +790,10 @@ class Root(controllers.RootController):
                 try:
                     if edited.request == 'testing':
                         koji.tagBuild(edited.release.pending_testing_tag,
-                                        build, force=True)
+                                      build, force=True)
                     elif edited.request == 'stable':
                         koji.tagBuild(edited.release.pending_stable_tag,
-                                        build, force=True)
+                                      build, force=True)
                 except (TagError, GenericError),  e:
                     log.exception(e)
 
@@ -805,7 +805,7 @@ class Root(controllers.RootController):
                     elif edited.request == 'testing':
                         koji.untagBuild(edited.release.pending_testing_tag,
                                         build, force=True)
-                except (TagError, GenericError),e :
+                except (TagError, GenericError), e :
                     log.debug(str(e))
 
             # Comment on the update with details of added/removed builds
@@ -857,7 +857,7 @@ class Root(controllers.RootController):
                                       rel.name, edited.release.name, build))
                             raise InvalidUpdateException(params)
 
-                    if not releases.has_key(rel):
+                    if not rel in releases:
                         releases[rel] = []
                     if build not in releases[rel]:
                         releases[rel].append(build)
@@ -877,7 +877,7 @@ class Root(controllers.RootController):
                                         package=buildinfo[build]['nvr'][0])[0]
                     if b['nvr'] == build:
                         log.info("Adding %s for inheritance" % rel.name)
-                        if not releases.has_key(rel):
+                        if not rel in releases:
                             releases[rel] = []
                         if build not in releases[rel]:
                             releases[rel].append(build)
@@ -1014,6 +1014,7 @@ class Root(controllers.RootController):
                 for build in update.builds:
                     if build.nvr not in edited.title:
                         log.debug("Removing unnecessary build: %s" % build.nvr)
+                        update.set(karma=0)
                         update.removePackageBuild(build)
                         if len(build.updates) == 0:
                             build.destroySelf()
@@ -1035,6 +1036,7 @@ class Root(controllers.RootController):
             # Add the PackageBuilds to our PackageUpdate
             for build in [buildinfo[build]['build'] for build in builds]:
                 if build not in update.builds:
+                    update.set(karma=0)
                     update.addPackageBuild(build)
 
             # Add/remove the necessary Bugzillas
@@ -1082,7 +1084,7 @@ class Root(controllers.RootController):
                 for bug in bugs:
                     try:
                         bug = int(bug)
-                    except ValueError: # bug alias
+                    except ValueError:  # bug alias
                         bugzilla = Bugzilla.get_bz()
                         bug = bugzilla.getbug(bug).bug_id
                     if bug not in original_bugs:
@@ -1140,7 +1142,7 @@ class Root(controllers.RootController):
             # release to see if this gets hit.
             if config.get('critpath.num_admin_approvals'):
                 if (update.request == 'stable' and update.critpath and
-                    not update.critpath_approved):
+                        not update.critpath_approved):
                     update.request = 'testing'
                     log.error("Unapproved critpath request is 'stable'.  "
                               "This shouldn't happen!")
@@ -1149,11 +1151,11 @@ class Root(controllers.RootController):
                                 'repository.  It must first reach a karma '
                                 'of %d, consisting of %d positive karma from '
                                 'proventesters, along with %d additional '
-                                'karma from the community.' % (
-                        config.get('critpath.min_karma'),
-                        config.get('critpath.num_admin_approvals'),
-                        config.get('critpath.min_karma') -
-                        config.get('critpath.num_admin_approvals')))
+                                'karma from the community.'
+                                % (config.get('critpath.min_karma'),
+                                   config.get('critpath.num_admin_approvals'),
+                                   config.get('critpath.min_karma') -
+                                           config.get('critpath.num_admin_approvals')))
 
         flash_log('. '.join(note))
 
@@ -1312,8 +1314,10 @@ class Root(controllers.RootController):
     @expose(template='bodhi.templates.show')
     #@validate(validators={'karma': validators.Int()})
     @validate(form=comment_captcha_form)
-    def captcha_comment(self, text, title, author, karma, captcha=None,
-                        tg_errors=None):
+    def captcha_comment(self, text=None, title=None, author=None, karma=None,
+                        captcha=None, tg_errors=None):
+        if None in (text, title, author, karma):
+            raise redirect('/')
         if not captcha:
             captcha = {}
         try:
@@ -1325,28 +1329,22 @@ class Root(controllers.RootController):
         except SQLObjectNotFound:
             flash_log("The specified update does not exist")
         if tg_errors:
-            if tg_errors.has_key('text'):
+            if 'text' in tg_errors:
                 flash_log("Please fill in all comment fields")
-            elif tg_errors.has_key('author'):
+            elif 'author' in tg_errors:
                 flash_log(tg_errors['author'])
-            elif tg_errors.has_key('captcha'):
-                if 'captcha' in tg_errors:
-                    if 'author' in tg_errors:
-                        flash_log('%s %s' % (tg_errors['captcha'],
-                                             tg_errors['author']))
-                    elif isinstance(tg_errors['captcha'], dict) and \
-                            tg_errors['captcha'].has_key('captchainput'):
-                        flash_log("Problem with captcha: %s" %
-                                  tg_errors['captcha']['captchainput'])
-                    else:
-                        flash_log("Problem with captcha: %s" %
-                                  tg_errors['captcha'])
+            elif 'captcha' in tg_errors:
+                if isinstance(tg_errors['captcha'], dict) and \
+                        'captchainput' in tg_errors['captcha']:
+                    flash_log("Problem with captcha: %s" %
+                              tg_errors['captcha']['captchainput'])
                 else:
-                    flash_log("Problem with captcha: %s" % tg_errors)
+                    flash_log("Problem with captcha: %s" %
+                              tg_errors['captcha'])
             else:
                 flash_log(tg_errors)
             return dict(update=update, updates=[],
-                        values={'title':update.title, 'karma' : karma},
+                        values={'title': update.title, 'karma' : karma},
                         comment_form=self.comment_captcha_form)
         elif karma not in (0, 1, -1):
             flash_log("Karma must be one of (1, 0, -1)")
@@ -1356,11 +1354,11 @@ class Root(controllers.RootController):
         if text == 'None':
             text = None
         else:
-            try: # Python 2.6+
+            try:  # Python 2.6+
                 text = textwrap.TextWrapper(width=80,
                     break_long_words=False,
                     break_on_hyphens=False).fill(text)
-            except TypeError: # Python 2.4
+            except TypeError:  # Python 2.4
                 text = textwrap.TextWrapper(width=80,
                     break_long_words=False).fill(text)
         update.comment(text, karma, author=author, anonymous=True)
@@ -1405,11 +1403,11 @@ class Root(controllers.RootController):
                 if text == 'None':
                     text = None
                 else:
-                    try: # Python 2.6+
+                    try:  # Python 2.6+
                         text = textwrap.TextWrapper(width=80,
                             break_long_words=False,
                             break_on_hyphens=False).fill(text)
-                    except TypeError: # Python 2.4
+                    except TypeError:  # Python 2.4
                         text = textwrap.TextWrapper(width=80,
                             break_long_words=False).fill(text)
                 update.comment(text, karma, email=email)
