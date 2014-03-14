@@ -15,7 +15,7 @@
 # Copyright 2007-2010  Red Hat, Inc
 # Authors: Luke Macken <lmacken@redhat.com>
 
-__version__ = '0.9.8'
+__version__ = '0.9.9'
 __description__ = 'Command line tool for interacting with Bodhi'
 
 import os

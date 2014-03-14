@@ -2,8 +2,8 @@
 %{!?pyver: %global pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.9.8
-Release:        2%{?dist}
+Version:        0.9.9
+Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -136,6 +136,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Fri Mar 14 2014 Luke Macken <lmacken@redhat.com> - 0.9.9-1
+- Update to 0.9.9
+
 * Wed Feb 19 2014 Luke Macken <lmacken@redhat.com> - 0.9.8-2
 - Require python-tgcaptcha, not python-tgcaptcha2
 
