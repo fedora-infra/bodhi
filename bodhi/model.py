@@ -911,6 +911,16 @@ class PackageUpdate(SQLObject):
                 agent=identity.current.user_name
             ))
 
+        # Disable karma automatism autoqa test failures
+        # https://github.com/fedora-infra/bodhi/issues/36
+        if author == 'autoqa':
+            if 'FAILED' in text:
+                if self.stable_karma != 0:
+                    log.info('Disabling autokarma due to AutoQA failure')
+                    self.stable_karma = 0
+                    self.comment(config.get('stablekarma_disabled_comment'),
+                                 author='bodhi')
+
         if self.critpath:
             min_karma = config.get('critpath.min_karma')
             # If we weren't approved before, but are now...
