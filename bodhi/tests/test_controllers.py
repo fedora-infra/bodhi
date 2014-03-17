@@ -376,7 +376,7 @@ class TestControllers(testutil.DBTest):
         assert f7up.builds[0].package.name == 'TurboGears'
 
     def test_add_older_build_to_update(self):
-        """ Try adding a newer build an update (#385) """
+        """ Try adding an older build an update (#385) """
         session = login()
         f7 = create_release()
         params = {
@@ -1095,18 +1095,14 @@ class TestControllers(testutil.DBTest):
         assert newupdate.notes == "%s\n%s" % (newparams['notes'], params['notes'])
 
     def test_obsoleting_multibuild_update(self):
-        """ Ensure that a new update cannot obsolete an older update that
-        contains this new build along with others """
+        """ Ensure that a new update can obsolete an older update that
+        contains a new build of a package along with others """
         session = login()
         create_release()
         params = {
-                'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlalchemy-0.5-0-1.fc7',
-                'release' : 'Fedora 7',
-                'type_'   : 'enhancement',
-                'bugs'    : '1234',
-                'cves'    : 'CVE-2020-0001',
-                'notes'   : 'foobar',
-                'request' : None
+            'builds': 'TurboGears-1.0.2.2-2.fc7 python-sqlalchemy-0.5.0-1.fc7',
+            'release': 'Fedora 7', 'type_': 'enhancement',
+            'bugs': '1234', 'notes': 'foobar', 'request': None,
         }
         self.save_update(params, session)
         update = PackageUpdate.byTitle(','.join(params['builds'].split()))
@@ -1116,22 +1112,37 @@ class TestControllers(testutil.DBTest):
         update.status = 'testing'
         update.pushed = True
         update.date_pushed = datetime.now()
+        update.request = None
+        assert not update.currently_pushing
 
-        # Throw a newer build in, which should *NOT* obsolete the previous
+        # Throw a newer build in, which should obsolete the previous
+        # and inherit the TurboGears build.
         newparams = {
-                'builds'  : 'python-sqlalchemy-0.5.1-1.fc7',
-                'release' : 'Fedora 7',
-                'type_'    : 'enhancement',
-                'bugs'    : '',
-                'cves'    : '',
-                'notes'   : 'foo'
+            'builds': 'python-sqlalchemy-0.5.1-1.fc7',
+            'release': 'Fedora 7', 'type_': 'enhancement',
+            'bugs': '', 'notes': 'foo'
         }
         self.save_update(newparams, session)
-        newupdate = PackageUpdate.byTitle(newparams['builds'])
+
+        # The new update should contain the older TG build too
+        try:
+            newupdate = PackageUpdate.byTitle(newparams['builds'])
+            assert False, newupdate
+        except SQLObjectNotFound:
+            pass
+
+        b = PackageBuild.byNvr(newparams['builds'])
+        newupdate = b.updates[0]
+        assert len(newupdate.builds) == 2
         assert newupdate.status == 'pending'
-        assert newupdate.notes == 'foo', newupdate.notes
-        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
-        assert update.status == 'testing', update.status
+        assert newupdate.notes == 'foo\nfoobar', newupdate.notes
+
+        # The old update should be obsolete and the TG build should be removed
+        obsolete_build = params['builds'].split()[1]
+        up = PackageBuild.byNvr(obsolete_build).updates[0]
+        assert up.status == 'obsolete', up.status
+        assert len(up.builds) == 1, up
+        assert up.title == obsolete_build, up.title
 
     def test_obsoleting_update_with_different_packages(self):
         """ Ensure that a new update cannot obsolete an older update that
@@ -1156,7 +1167,7 @@ class TestControllers(testutil.DBTest):
         update.pushed = True
         update.date_pushed = datetime.now()
 
-        # Throw a newer build in, which should *NOT* obsolete the previous
+        # Throw a newer build in, which should obsolete the previous
         newparams = {
                 'builds'  : 'TurboGears-1.0.3.2-2.fc7 python-sqlalchemy-0.6.0-1.fc7 kernel-3.0-1.fc7',
                 'release' : 'Fedora 7',
@@ -1165,16 +1176,20 @@ class TestControllers(testutil.DBTest):
                 'cves'    : '',
                 'notes'   : 'foo'
         }
-        #testutil.capture_log(['bodhi.model', 'bodhi.controllers', 'bodhi.admin', 'bodhi.masher', 'bodhi.util'])
         self.save_update(newparams, session)
-        #assert False, testutil.get_log()
-        newupdate = PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+        try:
+            newupdate = PackageUpdate.byTitle(','.join(newparams['builds'].split()))
+            assert False, 'Builds not inherited'
+        except SQLObjectNotFound:
+            pass
+        newupdate = PackageUpdate.byTitle(','.join(newparams['builds'].split()) + ',nethack-1.0-1.fc7')
         assert newupdate.status == 'pending'
-        assert newupdate.notes == 'foo', newupdate.notes
+        assert newupdate.notes == 'foo\nfoobar', newupdate.notes
 
-        # Ensure the original update is still in tact
-        update = PackageUpdate.byTitle(','.join(params['builds'].split()))
-        assert update.status == 'testing', update.status
+        # Ensure the original update is obsolete
+        update = PackageUpdate.byTitle('TurboGears-1.0.2.2-2.fc7,python-sqlalchemy-0.5.0-1.fc7')
+        assert update.status == 'obsolete', update.status
+        assert len(update.builds) == 2
 
     def test_list(self):
         """
@@ -1397,6 +1412,10 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'].replace(' ', ','))
         assert update.stable_karma == params['stable_karma'], update.stable_karma
         assert update.unstable_karma == params['unstable_karma'], update.unstable_karma
+
+        # Pretend it's stable so we don't obsolete it
+        update.status = 'stable'
+        update.request = None
 
         # Create a different update to ensure we have unique thresholds
         params = {
@@ -3066,7 +3085,7 @@ class TestControllers(testutil.DBTest):
 
     def test_obsoleting_different_batches_of_updates(self):
         """
-        Make sure a batch of builds can't obsolete an update that only has a
+        Make sure a batch of builds can obsolete an update that only has a
         single build
         """
         session = login()
@@ -3104,9 +3123,9 @@ class TestControllers(testutil.DBTest):
         }
         self.save_update(new_params, session)
 
-        # Make sure it doesn't obsolete the older one
+        # Make sure it obsoletes the older one
         assert PackageUpdate.byTitle(new_params['builds']).status == 'pending'
-        assert PackageUpdate.byTitle(params['builds']).status == 'testing'
+        assert PackageUpdate.byTitle(params['builds']).status == 'obsolete'
 
     def test_push_EPEL_before_tested(self):
         """

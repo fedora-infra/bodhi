@@ -731,6 +731,7 @@ class Root(controllers.RootController):
         # of the builds are tagged as update candidates
         edited_testing_update = False
         removed_builds = []
+        not_obsolete = []
         if edited:
             try:
                 edited = PackageUpdate.byTitle(edited)
@@ -960,33 +961,54 @@ class Root(controllers.RootController):
                     if rpm.labelCompare(util.get_nvr(oldBuild.nvr), nvr) < 0:
                         log.debug("%s is newer than %s" % (nvr, oldBuild.nvr))
                         obsoletable = True
-                    # Ensure the same number of builds are present
-                    if len(update.builds) != len(releases[update.release]):
-                        obsoletable = False
-                        break
-                    # Ensure that all of the packages in the old update are
-                    # present in the new one.
+
+                    # Find builds that are not present in this update that we
+                    # need to inherit.
                     pkgs = [get_nvr(b)[0] for b in releases[update.release]]
                     for _build in update.builds:
                         if _build.package.name not in pkgs:
-                            obsoletable = False
-                            break
+                            log.debug('Inheriting build: %s' % _build.nvr)
+                            not_obsolete.append(_build)
+
                     if update.request == 'testing':
                         # if the update has a testing request, but has yet to
                         # be pushed, obsolete it
                         if update.currently_pushing:
                             obsoletable = False
+
                 if obsoletable:
                     log.info('%s is obsoletable' % oldBuild.nvr)
                     for update in oldBuild.updates:
                         # Have the newer update inherit the older updates bugs
                         for bug in update.bugs:
                             bugs.append(unicode(bug.bz_id))
+
                         # Also inherit the older updates notes as well
                         notes += '\n' + update.notes
+
+                        # Remove inherited builds from the old update and add
+                        # them to this new one
+                        if not_obsolete:
+                            # If we're inheriting builds from a security
+                            # update, change the type of this update
+                            if update.type == 'security':
+                                type_ = 'security'
+                            for _build in not_obsolete:
+                                log.debug('Removing %s from %s' % (_build, update))
+                                update.removePackageBuild(_build)
+                                buildinfo[_build.nvr] = {'build': _build, 'release': update.release}
+                                releases[update.release].append(_build.nvr)
+                                # update the old title
+                                title_builds = update.title.replace(',', ' ').split()
+                                title_builds.remove(_build.nvr)
+                                update.title = ','.join(title_builds)
+
                         update.obsolete(newer=build)
+
                     note.append('This update has obsoleted %s, and has '
                                 'inherited its bugs and notes.' % oldBuild.nvr)
+                else:
+                    not_obsolete = []
 
         # Create or modify the necessary PackageUpdate objects
         for release, builds in releases.items():
