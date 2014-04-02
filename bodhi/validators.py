@@ -95,7 +95,13 @@ def validate_acls(request):
 
         # Determine the release associated with this build
         tags = buildinfo['tags']
-        release = Release.from_tags(tags, db)
+        try:
+            release = Release.from_tags(tags, db)
+        except KeyError:
+            log.exception('Unable to determine release from tags')
+            request.errors.add('body', 'builds', 'Unable to determine release ' +
+                               'from build: %s' % build)
+            return
         buildinfo['release'] = release
         if not release:
             msg = 'Cannot find release associated with tags: {}'.format(tags)
