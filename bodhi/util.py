@@ -249,7 +249,7 @@ def get_critpath_pkgs(collection='devel'):
             critpath_pkgs = pkgdb.get_critpath_pkgs(['devel'])
             critpath_pkgs = getattr(critpath_pkgs, 'devel', [])
     else:
-        critpath_pkgs = config.get('critpath_pkgs', [])
+        critpath_pkgs = config.get('critpath_pkgs', '').split()
     return critpath_pkgs
 
 
