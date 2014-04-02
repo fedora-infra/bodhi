@@ -377,4 +377,3 @@ class TestGroup(ModelTest):
     def do_get_dependencies(self):
         user = model.User(name=u'bob')
         return dict(users=[user])
-
