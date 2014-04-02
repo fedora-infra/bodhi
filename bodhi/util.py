@@ -153,20 +153,6 @@ def flash_log(msg):
     log.debug(msg)
 
 
-def get_release_names():
-    from bodhi.tools.init import releases
-    return [release['long_name'] for release in releases]
-
-
-def get_release_tuples():
-    from bodhi.tools.init import releases
-    names = []
-    for release in releases:
-        names.append(release['name'])
-        names.append(release['long_name'])
-    return names
-
-
 def get_repo_tag(repo):
     """ Pull the koji tag from the given mash repo """
     mashconfig = join(dirname(config.get('mash_conf')),
