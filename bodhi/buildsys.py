@@ -17,7 +17,6 @@ import atexit
 import logging
 
 from os.path import join, expanduser
-from bodhi.util import get_nvr
 
 log = logging.getLogger(__name__)
 
@@ -67,13 +66,24 @@ class Buildsystem:
     def untagBuild(self, *args, **kw):
         raise NotImplementedError
 
+    def multiCall(self, *args, **kw):
+        raise NotImplementedError
+
 
 class DevBuildsys(Buildsystem):
     """
     A dummy buildsystem instance used during development and testing
     """
+    __untag__ = []
+
+    def multiCall(self):
+        pass
+
     def moveBuild(self, *args, **kw):
         log.debug("moveBuild(%s, %s)" % (args, kw))
+
+    def tagBuild(self, *args, **kw):
+        log.debug("tagBuild(%s, %s)" % (args, kw))
 
     def untagBuild(self, *args, **kw):
         log.debug("untagBuild(%s, %s)" % (args, kw))
@@ -81,28 +91,57 @@ class DevBuildsys(Buildsystem):
     def ssl_login(self, *args, **kw):
         log.debug("ssl_login(%s, %s)" % (args, kw))
 
-    def logout(self, *args, **kw):
-        pass
-
     def taskFinished(self, task):
         return True
 
     def getTaskInfo(self, task):
         return {'state': koji.TASK_STATES['CLOSED']}
 
-    def getBuild(self, build):
-        n, v, r = get_nvr(build)
-        return {'build_id': 127983, 'tag_name': 'dist-f11-updates',
-                'owner_name': 'toshio', 'package_name': n,
-                'task_id': 1616247, 'creation_event_id': 1952597,
-                'creation_time': '2009-08-20 03:29:55.31542', 'epoch': None,
-                'tag_id': 87, 'name': n, 'completion_time':
-                '2009-08-20 03:33:51.134736', 'state': 1, 'version': v,
-                'release': r, 'package_id': 1256, 'owner_id': 293, 'id':
-                127983, 'nvr': build}
+    def getBuild(self, build='TurboGears-1.0.2.2-2.fc7', other=False):
+        data = {'build_id': 16058,
+                'completion_time': '2007-08-24 23:26:10.890319',
+                'creation_event_id': 151517,
+                'creation_time': '2007-08-24 19:38:29.422344',
+                'epoch': None,
+                'id': 16059 if other else 16058,
+                'owner_id': 388,
+                'owner_name': 'lmacken',
+                'package_id': 8,
+                'state': 1,
+                'tag_id': 19,
+                'task_id': 127621}
 
-    def listBuildRPMs(self, *args, **kw):
-        return [{'arch': 'src',
+        name, version, release = build.rsplit("-", 2)
+        release_tokens = release.split(".")
+
+        for token in release_tokens:
+            if token.startswith("fc"):
+                tag = "f%s-updates-testing" % token.replace("fc", "")
+                break
+
+            if token.startswith("el"):
+                tag = "dist-%sE-epel-testing-candidate" % token.replace("el", "")
+                break
+
+        else:
+            raise ValueError("Couldn't determine dist for build '%s'" % build)
+
+        if other:
+            release_tokens[0] = str(int(release_tokens[0]) + 1)
+            release = ".".join(release_tokens)
+            build = "%s-%s-%s" % (name, version, release)
+
+        data.update({'name': name,
+                     'nvr': build,
+                     'package_name': name,
+                     'release': release,
+                     'tag_name': tag,
+                     'version': version})
+
+        return data
+
+    def listBuildRPMs(self, id, *args, **kw):
+        rpms = [{'arch': 'src',
                  'build_id': 6475,
                  'buildroot_id': 1883,
                  'buildtime': 1178868422,
@@ -127,63 +166,40 @@ class DevBuildsys(Buildsystem):
                  'size': 1993385,
                  'version': '1.0.2.2'},
                 ]
+        if id == 16059:  # for updateinfo.xml tests
+            rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
+            rpms[0]['release'] = rpms[1]['release'] = '3.fc7'
+        return rpms
 
     def listTags(self, build, *args, **kw):
-        if build == 'bodhi-1.0-1':  # return a testing update
-            return [{
-                'arches': 'i386 x86_64 ppc ppc64',
-                'id': 10,
-                'locked': True,
-                'name': 'f17-updates-testing',
-                'perm': None,
-                'perm_id': None
-            }]
+        if 'el5' in build:
+            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                     'name': 'dist-5E-epel', 'perm': None, 'perm_id': None}]
         else:
-            return [{
-                'arches': 'i386 x86_64 ppc ppc64',
-                'name': 'f17-updates-candidate',
-                'id': 10,
-                'locked': True,
-                'perm': None,
-                'perm_id': None
-            }]
+            release = build.split('.')[-1].replace('fc', 'f')
+            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                     'name': '%s' % release, 'perm': None, 'perm_id': None},
+                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                     'name': '%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
-        if tag not in (
-                'dist-rawhide', 'dist-fc7', 'dist-fc7-updates-candidate',
-                'dist-fc7-updates-testing', 'dist-fc7-updates',
-                'dist-f8', 'dist-f8-updates', 'dist-f8-updates-testing',
-                'dist-fc8', 'dist-fc8-updates',
-                'dist-fc8-updates-testing', 'dist-f8-updates-candidate',
-                'dist-f9', 'dist-f9-updates', 'dist-f9-updates-testing',
-                'dist-f9-updates-candidate'):
-            raise koji.GenericError
-        return [self.getBuild(), ]
+        builds = []
+        for build in [self.getBuild(), self.getBuild(other=True)]:
+            if build['nvr'] in self.__untag__:
+                print('Pruning koji build %s' % build['nvr'])
+                continue
+            else:
+                builds.append(build)
+        return builds
 
     def getLatestBuilds(self, *args, **kw):
-        return [{
-            'build_id': 127983,
-            'tag_name': 'dist-f11-updates',
-            'owner_name': 'toshio',
-            'package_name': 'TurboGears',
-            'task_id': 1616247,
-            'creation_event_id': 1952597,
-            'creation_time': '2009-08-20 03:29:55.31542',
-            'epoch': None,
-            'tag_id': 87,
-            'name': 'TurboGears',
-            'completion_time': '2009-08-20 03:33:51.134736',
-            'state': 1,
-            'version': '1.0.8',
-            'release': '7.fc11',
-            'package_id': 1256,
-            'owner_id': 293,
-            'id': 127983,
-            'nvr': 'TurboGears-1.0.8-7.fc11'
-        }]
-
-    def tagBuild(self, *args, **kw):
-        pass
+        return [self.getBuild()]
 
 
 def koji_login(config, client=None, clientca=None, serverca=None):
