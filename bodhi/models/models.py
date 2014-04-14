@@ -28,7 +28,6 @@ from bodhi.util import (
     get_age, get_critpath_pkgs,
 )
 
-# TODO: move these methods into the model
 from bodhi.util import get_age_in_days
 from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import InvalidRequest, RPMNotFound
@@ -36,9 +35,6 @@ from bodhi.config import config
 from bodhi.bugs import bugtracker
 
 log = logging.getLogger(__name__)
-
-from bunch import Bunch
-identity = Bunch(current=Bunch(user_name=u'Bob'))
 
 
 class BodhiBase(object):
@@ -1195,7 +1191,7 @@ class Update(Base):
             color = '#00ff00'  # green
         return color
 
-    def comment(self, text, karma=0, author=None, anonymous=False):
+    def comment(self, text, author, karma=0, anonymous=False):
         """ Add a comment to this update, adjusting the karma appropriately.
 
         Each user has the ability to comment as much as they want, but only
@@ -1203,8 +1199,6 @@ class Update(Base):
         the 'stable_karma' value, then request that this update be marked
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
-        if not author:
-            author = identity.current.user_name
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.user.name == author and c.karma == karma,
                       self.comments):
