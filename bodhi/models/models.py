@@ -904,7 +904,7 @@ class Update(Base):
             raise InvalidRequest("Unauthorized to perform action on %s" %
                                  self.title)
         if action is self.status:
-            log.info("%s already %s" % (self.title, action))
+            log.info("%s already %s" % (self.title, action.description))
             return
         if action is self.request:
             log.debug("%s has already been submitted to %s" % (self.title,
