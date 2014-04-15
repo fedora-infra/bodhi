@@ -73,13 +73,21 @@ def remember_me(context, request, info, *args, **kw):
     # See if they are a member of any important groups
     important_groups = request.registry.settings['important_groups'].split()
     for important_group in important_groups:
+
+        group = db.query(Group).filter_by(name=important_group).first()
+        if not group:
+            group = Group(name=important_group)
+            db.add(group)
+            db.flush()
+
         if important_group in info['groups']:
-            group = db.query(Group).filter_by(name=important_group).first()
-            if not group:
-                group = Group(name=important_group)
-                db.add(group)
+            if group not in user.groups:
+                user.groups.append(group)
                 db.flush()
-            user.groups.append(group)
+        else:
+            if group in user.groups:
+                user.groups.remove(group)
+                db.flush()
 
     headers = remember(request, username)
     came_from = request.session['came_from']
