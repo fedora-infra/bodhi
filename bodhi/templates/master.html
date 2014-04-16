@@ -18,6 +18,7 @@
     <link href="${request.static_url('bodhi:static/css/navbar.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:static/css/footer.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:static/css/site.css') }" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:static/js/jquery-1.10.2.min.js')}"></script>
   </head>
 
   <body>
@@ -40,6 +41,11 @@
 
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+              <li>
+              <a href="${request.route_url('metrics')}">
+                <span class="glyphicon glyphicon-stats"></span>
+                  Metrics</a>
+              </li>
               <li>
               % if request.user:
               <a href="${request.route_url('logout')}">
@@ -71,7 +77,8 @@
     </div>
 
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="${request.static_url('bodhi:static/js/jquery-1.10.2.min.js')}"></script>
+    <script src="${request.static_url('bodhi:static/jquery.flot.js')}"></script>
+    <script src="${request.static_url('bodhi:static/jquery.flot.stack.js')}"></script>
     <script src="${request.static_url('bodhi:static/bootstrap/js/bootstrap.min.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/site.js')}"></script>
   </body>

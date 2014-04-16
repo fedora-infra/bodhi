@@ -1,56 +1,41 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Bodhi Metrics</title>
-    ##<link href="${request.static_url('bodhi:static/bodhi.css')}" rel="stylesheet" type="text/css">
-    <script language="javascript" type="text/javascript" src="${request.static_url('bodhi:static/jquery.js')}"></script>
-    <script language="javascript" type="text/javascript" src="${request.static_url('bodhi:static/jquery.flot.js')}"></script>
-    <script language="javascript" type="text/javascript" src="${request.static_url('bodhi:static/jquery.flot.stack.js')}"></script>
-    <script type="text/javascript">
+<%inherit file="master.html"/>
 
-    $(document).ready(function(){
-        var stack = 0,
-            bars = true,
-            lines = false,
-            steps = false;
+<div class="row">
+  <div class="col-md-8 col-md-offset-2">
+    <h2 class="centered">Bodhi Metrics</h2>
+    <div id="placeholder" class="centered" style="height: 350px; width: 650px;"></div>
+  </div>
+</div>
 
-        $.plot("#placeholder", ${data | n}, {
-            xaxis: {
-                ticks: ${ticks | n},
-                mode: "categories",
-                tickLength: 0
-            },
-            series: {
-                stack: stack,
-                lines: {
-                    show: lines,
-                    fill: true,
-                    steps: steps
-                },
-                bars: {
-                    show: bars,
-                    barWidth: 0.6,
-                    align: "center"
-                }
-            },
-            legend: {
-                position: 'nw'
-            }
-        });
-    });
+<script type="text/javascript">
+  $(document).ready(function(){
+      var stack = 0,
+          bars = true,
+          lines = false,
+          steps = false;
 
-    </script>
-</head>
-<body>
-
-    <div id="header">
-        <h2>Bodhi Metrics</h2>
-    </div>
-
-    <div id="content">
-        <div id="placeholder" style="height: 350px; width: 650px;"></div>
-    </div>
-
-</body>
-</html>
+      $.plot("#placeholder", ${data | n}, {
+          xaxis: {
+              ticks: ${ticks | n},
+              mode: "categories",
+              tickLength: 0
+          },
+          series: {
+              stack: stack,
+              lines: {
+                  show: lines,
+                  fill: true,
+                  steps: steps
+              },
+              bars: {
+                  show: bars,
+                  barWidth: 0.6,
+                  align: "center"
+              }
+          },
+          legend: {
+              position: 'nw'
+          }
+      });
+  });
+</script>
