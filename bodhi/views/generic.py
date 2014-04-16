@@ -23,11 +23,8 @@ def home(request):
     db = request.db
 
     blacklist = request.registry.settings.get('stats_blacklist').split()
-
-    # For development
-    start_time = datetime.datetime.utcnow() - datetime.timedelta(days=900)
-    # For production
-    #start_time = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+    days = int(request.registry.settings.get('top_testers_timeframe', 7))
+    start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
 
     query = db.query(
         bodhi.models.User,
