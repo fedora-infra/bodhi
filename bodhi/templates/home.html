@@ -1,3 +1,5 @@
+<%inherit file="master.html"/>
+
 % if request.user:
 	Hello, ${request.user.name}!
 	<a href="${request.route_url('logout')}">Logout</a>

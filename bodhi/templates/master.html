@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="management of Fedora Project updates" />
+    <meta name="author" content="Luke Macken" />
+    <meta name="author" content="Ralph Bean" />
+
+    <link rel="shortcut icon" href="${request.static_url('bodhi:static/ico/favicon.ico')}">
+
+    <title>Fedora Updates System</title>
+
+    <link href="${request.static_url('bodhi:static/bootstrap/css/bootstrap.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/text.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/navbar.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/footer.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/avatars.css') }" rel="stylesheet" />
+  </head>
+
+  <body>
+
+  <div id="wrap" class="container max-width">
+
+      <!-- Static navbar -->
+      <div class="navbar navbar-default navbar-fixed-top">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse"
+                data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">
+            Fedora Update System
+          </a>
+        </div>
+
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+              <li>
+              % if request.user:
+              <a href="${request.route_url('logout')}">
+                <span class="glyphicon glyphicon-log-out"></span>
+                  Logout</a>
+              % else:
+                <a href="${request.route_url('login')}">
+                  <span class="glyphicon glyphicon-log-in"></span>
+                    Login</a>
+              % endif
+              </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+
+      ${self.body()}
+
+    </div> <!-- /container -->
+
+    <div id="footer">
+      <div class="container">
+        <p class="text-muted credit">
+        Bodhi is cool.
+        </p>
+        <p class="text-muted">
+        Running <code>bodhi-VERSION</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="${request.static_url('bodhi:static/js/jquery-1.10.2.min.js')}"></script>
+    <script src="${request.static_url('bodhi:static/bootstrap/js/bootstrap.min.js')}"></script>
+    <script src="${request.static_url('bodhi:static/js/site.js')}"></script>
+  </body>
+</html>
