@@ -51,6 +51,12 @@ def get_latest_updates(request, critpath, security):
         query = query.filter(
             bodhi.models.Update.type==bodhi.models.UpdateType.security)
 
+    # TODO - remove this.  It should never be the case, but I hit it in dev.
+    query = query.filter(bodhi.models.Update.user != None)
+
+    query = query.filter(
+        bodhi.models.Update.status==bodhi.models.UpdateStatus.testing)
+
     query = query.order_by(bodhi.models.Update.date_submitted.desc())
     return query.limit(5).all()
 
@@ -66,9 +72,9 @@ def home(request):
         security_updates = get_latest_updates(request, False, True)
 
         return {
-            "top_testers": top_testers,
-            "critpath_updates": critpath_updates,
-            "security_updates": security_updates,
+            "top_testers": [(obj.__json__(), n) for obj, n in top_testers],
+            "critpath_updates": [obj.__json__() for obj in critpath_updates],
+            "security_updates": [obj.__json__() for obj in security_updates],
         }
 
     return work()

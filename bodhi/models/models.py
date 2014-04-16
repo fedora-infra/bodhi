@@ -2,7 +2,6 @@ import os
 import re
 import rpm
 import time
-import libravatar
 import logging
 import bugzilla
 import xmlrpclib
@@ -1616,16 +1615,6 @@ class User(Base):
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
-
-    def avatar(self, settings, size=40):
-        https = settings.get('prefer_ssl'),
-        openid = "http://%s.id.fedoraproject.org/" % self.name
-        return libravatar.libravatar_url(
-            openid=openid,
-            https=https,
-            size=size,
-            default='retro',
-        )
 
 
 class Group(Base):

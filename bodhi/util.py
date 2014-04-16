@@ -19,9 +19,11 @@ Random functions that don't fit elsewhere
 import os
 import rpm
 import sys
+import arrow
 import logging
 import tempfile
 import subprocess
+import libravatar
 import urlgrabber
 import collections
 import functools
@@ -366,3 +368,23 @@ def url(*args, **kw):
         return csrf_url(*args, **kw)
     else:
         return tg_url(*args, **kw)
+
+
+def age(context, date):
+    return arrow.get(date).humanize()
+
+
+def avatar(context, username, size):
+    # context is a mako context object
+    request = context['request']
+    @request.cache.cache_on_arguments()
+    def work(username, size):
+        https = request.registry.settings.get('prefer_ssl'),
+        openid = "http://%s.id.fedoraproject.org/" % username
+        return libravatar.libravatar_url(
+            openid=openid,
+            https=https,
+            size=size,
+            default='retro',
+        )
+    return work(username, size)

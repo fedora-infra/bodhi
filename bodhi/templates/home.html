@@ -1,7 +1,8 @@
 <%inherit file="master.html"/>
+<%namespace name="util" module="bodhi.util"/>
 
 <div class="row">
-  <div class="col-md-2">
+  <div class="col-md-1">
     MENU GOES HERE?
   </div>
   <div class="col-md-5">
@@ -19,8 +20,8 @@
     <tr>
       <td>
         <strong>#${str(loop.index + 1)}</strong>
-        <img class="img-circle" src="${tester.avatar(request.registry.settings, size=24)}"/>
-        ${tester.name}
+        <img class="img-circle" src="${util.avatar(tester['name'], size=24)}"/>
+        ${tester['name']}
       </td>
       <td>(${str(count)})</td>
     </tr>
@@ -29,14 +30,40 @@
   </div>
 </div>
 <div class="row">
-  <div class="col-md-12">
+  <div class="col-md-10 col-md-offset-1">
   <p class="lead">Latest Critical Path Updates in Need of Testing</p>
-  table goes here
+  ${updates_table(critpath_updates)}
   </div>
 </div>
 <div class="row">
-  <div class="col-md-12">
+  <div class="col-md-10 col-md-offset-1">
   <p class="lead">Latest Security Updates in Need of Testing</p>
-  table goes here
+  ${updates_table(security_updates)}
   </div>
 </div>
+
+<%def name="updates_table(updates)">
+  <table class="table">
+    <thead><tr>
+        <th>Package</th>
+        <th>Age</th>
+        <th>Submitter</th>
+        <th>Release(s)</th>
+        <th>Status</th>
+    </tr></thead>
+    <tbody>
+    % for update in updates:
+    <tr>
+      <td>${update['title']}</td>
+      <td>${util.age(update['date_submitted'])}</td>
+      <td>
+        <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+        ${update['user']['name']}
+      </td>
+      <td>${update['release']['name']}</td>
+      <td>${update['status']}</td>
+    </tr>
+    % endfor
+    </tbody>
+  </table>
+</%def>

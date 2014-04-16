@@ -37,6 +37,7 @@ requires = [
     'pylibravatar',
     'pyDNS',
     'dogpile.cache',
+    'arrow',
 
     # i18n
     'Babel',
