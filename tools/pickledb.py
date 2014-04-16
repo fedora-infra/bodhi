@@ -228,10 +228,15 @@ def load_sqlalchemy_db():
                                   dist_tag=u['release'][3])
                 db.add(release)
             releases[u['release'][0]] = release
-            if whitelist and release.name in whitelist:
+            if whitelist:
+                if release.name in whitelist:
+                    critpath[release.name] = get_critpath_pkgs(release.name.lower())
+                    print('%s critpath packages for %s' % (len(critpath[release.name]),
+                                                           release.name))
+            else:
                 critpath[release.name] = get_critpath_pkgs(release.name.lower())
                 print('%s critpath packages for %s' % (len(critpath[release.name]),
-                                                    release.name))
+                                                       release.name))
 
         if whitelist and release.name not in whitelist:
             continue
