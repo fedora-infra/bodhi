@@ -892,17 +892,9 @@ class Update(Base):
         # FIXME: don't do this here:
         self.date_pushed = datetime.utcnow()
 
-    def set_request(self, action):
-        """ Attempt to request an action for this update.
-
-        This method either sets the given request on this update, or raises
-        an InvalidRequest exception.
-
-        At the moment, this method cannot be called outside of a request.
-        """
-        if not authorized_user(self, identity):
-            raise InvalidRequest("Unauthorized to perform action on %s" %
-                                 self.title)
+    def set_request(self, action, request, pathcheck=True):
+        """ Attempt to request an action for this update """
+        notes = []
         if action is self.status:
             log.info("%s already %s" % (self.title, action.description))
             return
@@ -913,32 +905,107 @@ class Update(Base):
         if action is UpdateRequest.unpush:
             self.unpush()
             self.comment(u'This update has been unpushed',
-                         author=identity.current.user_name)
+                         author=request.user.name)
             flash_log("%s has been unpushed" % self.title)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete()
             flash_log("%s has been obsoleted" % self.title)
             return
-        # TODO:
-        # Make it so that we can optionally configure bodhi to require
-        # mandatory signoff from a specific group before an update can hit
-        # stable:
-        #       eg: Security Team (for security updates)
-        #                or
-        #           AutoQA (for all updates)
-        #elif self.type is UpdateType.security and not self.date_approved:
-        #    flash_log("%s is awaiting approval of the Security Team" %
-        #              self.title)
-        #    self.request = action
-        #    return
+
+        elif action is UpdateRequest.stable and pathcheck:
+            # Make sure we don't break update paths by trying to push out
+            # an update that is older than than the latest.
+            koji = request.koji
+            for build in self.builds:
+                mybuild = koji.getBuild(build.nvr)
+                log.debug('stable_tag = %r' % self.release.stable_tag)
+                kojiBuilds = koji.listTagged(self.release.stable_tag,
+                                             package=build.package.name,
+                                             latest=True)
+                for oldBuild in kojiBuilds:
+                    if rpm.labelCompare(build_evr(mybuild),
+                                        build_evr(oldBuild)) < 0:
+                        raise InvalidRequest("Broken update path: %s is "
+                                             "already released, and is newer "
+                                             "than %s" % (oldBuild['nvr'],
+                                                          mybuild['nvr']))
+
+        # Disable pushing critical path updates for pending releases directly to stable
+        if action is UpdateRequest.stable and self.critpath:
+            if config.get('critpath.num_admin_approvals') is not None:
+                if not self.critpath_approved:
+                    notes.append('This critical path update has not '
+                                 'yet been approved for pushing to the stable '
+                                 'repository.  It must first reach a karma '
+                                 'of %s, consisting of %s positive karma from '
+                                 'proventesters, along with %d additional '
+                                 'karma from the community. Or, it must '
+                                 'spend %s days in testing without any '
+                                 'negative feedback'
+                                 % (config.get('critpath.min_karma'),
+                                    config.get('critpath.num_admin_approvals'),
+                                    int(config.get('critpath.min_karma')) -
+                                            int(config.get('critpath.num_admin_approvals')),
+                                    config.get('critpath.stable_after_days_without_negative_karma')))
+                    if self.status is UpdateStatus.testing:
+                        self.request = None
+                        flash_log('. '.join(notes))
+                        return
+                    else:
+                        log.info('Forcing critical path update into testing')
+                        action = UpdateRequest.testing
+
+        # Ensure this update meets the minimum testing requirements
+        flash_notes = ''
+        if action is UpdateRequest.stable and not self.critpath:
+            # Check if we've met the karma requirements
+            if (self.stable_karma != 0 and self.karma >= self.stable_karma) or \
+                    self.critpath_approved:
+                pass
+            else:
+                # If we haven't met the stable karma requirements, check if it
+                # has met the mandatory time-in-testing requirements
+                if self.release.mandatory_days_in_testing:
+                    if not self.met_testing_requirements and \
+                       not self.meets_testing_requirements:
+                        flash_notes = config.get('not_yet_tested_msg')
+                        if self.status is UpdateStatus.testing:
+                            self.request = None
+                            flash_log(flash_notes)
+                            return
+                        elif self.request is UpdateRequest.testing:
+                            flash_log(flash_notes)
+                            return
+                        else:
+                            action = UpdateRequest.testing
+
+        # Add the appropriate 'pending' koji tag to this update, so tools like
+        # AutoQA can mash repositories of them for testing.
+        if action is UpdateRequest.testing:
+            self.add_tag(self.release.pending_testing_tag)
+        elif action is UpdateRequest.stable:
+            self.add_tag(self.release.pending_stable_tag)
+
+        # If an obsolete/unpushed build is being re-submitted, return
+        # it to the pending state, and make sure it's tagged as a candidate
+        if self.status in (UpdateStatus.obsolete, UpdateStatus.unpushed):
+            self.status = UpdateStatus.pending
+            if not self.release.candidate_tag in self.get_tags():
+                self.add_tag(self.release.candidate_tag)
+
         self.request = action
+        self.pushed = False
+
+        notes = notes and '. '.join(notes) or ''
+        flash_notes = flash_notes and '. %s' % flash_notes
+        flash_log("%s has been submitted for %s. %s%s" % (self.title,
+            action.description, notes, flash_notes))
+        self.comment('This update has been submitted for %s by %s. %s' % (
+            action.description, request.user.name, notes), author='bodhi')
+
+        # FIXME: track date pushed to testing & stable in different fields
         self.date_pushed = None
-        flash_log("%s has been submitted for %s" % (
-            self.title, action.description))
-        self.comment(u'This update has been submitted for %s' %
-                action.description, author=identity.current.user_name)
-        mail.send_admin(action.description, self)
 
     def request_complete(self):
         """
