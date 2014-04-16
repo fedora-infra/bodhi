@@ -1279,7 +1279,7 @@ class Update(Base):
             color = '#00ff00'  # green
         return color
 
-    def comment(self, text, author, karma=0, anonymous=False):
+    def comment(self, text, karma=0, author=None, anonymous=False):
         """ Add a comment to this update, adjusting the karma appropriately.
 
         Each user has the ability to comment as much as they want, but only
@@ -1287,6 +1287,8 @@ class Update(Base):
         the 'stable_karma' value, then request that this update be marked
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
+        if not author:
+            raise ValueError('You must provide a comment author')
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.user.name == author and c.karma == karma,
                       self.comments):
