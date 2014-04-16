@@ -51,9 +51,6 @@ def get_latest_updates(request, critpath, security):
         query = query.filter(
             bodhi.models.Update.type==bodhi.models.UpdateType.security)
 
-    # TODO - remove this.  It should never be the case, but I hit it in dev.
-    query = query.filter(bodhi.models.Update.user != None)
-
     query = query.filter(
         bodhi.models.Update.status==bodhi.models.UpdateStatus.testing)
 

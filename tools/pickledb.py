@@ -308,6 +308,7 @@ def load_sqlalchemy_db():
                             )
                             #approved=u['approved'])
             db.add(update)
+            db.flush()
 
             try:
                 user = users[u['submitter']]
