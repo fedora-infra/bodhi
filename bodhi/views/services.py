@@ -159,6 +159,8 @@ def new_update(request):
         request.errors.add('body', 'builds', 'Unable to create update')
         return
 
+    up.obsolete_older_updates(request)
+
     # Set request
     if req:
         try:
