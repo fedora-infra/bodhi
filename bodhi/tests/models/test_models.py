@@ -4,10 +4,11 @@
 import time
 
 from nose.tools import eq_, raises
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
+from pyramid.testing import DummyRequest
 
-from bodhi import models as model
+from bodhi import models as model, buildsys
 from bodhi.models import (UpdateStatus, UpdateType, UpdateRequest,
                           UpdateSeverity, UpdateSuggestion)
 from bodhi.tests.models import ModelTest
@@ -308,28 +309,45 @@ class TestUpdate(ModelTest):
         eq_(model.DBSession.query(model.Bug)
                 .filter_by(bug_id=1234).first(), None)
 
-    def test_set_request_unpush(self):
+    def test_set_request_untested_stable(self):
+        """
+        Ensure that we can't submit an update for stable if it hasn't met the
+        minimum testing requirements.
+        """
+        req = DummyRequest()
+        req.koji = buildsys.get_session()
         eq_(self.obj.status, UpdateStatus.pending)
-        self.obj.status = UpdateStatus.testing
-        self.obj.set_request(UpdateRequest.testing)
-        eq_(self.obj.status, UpdateStatus.unpushed)
+        self.obj.set_request(UpdateRequest.stable, req)
+        eq_(self.obj.request, UpdateRequest.testing)
+        eq_(self.obj.status, UpdateStatus.pending)
 
-    def test_set_request_stable(self):
-        eq_(self.obj.status, UpdateStatus.pending)
-        self.obj.set_request(UpdateRequest.stable)
+    def test_set_request_stable_after_week_in_testing(self):
+        req = DummyRequest()
+        req.koji = buildsys.get_session()
+        req.user = model.User(name='bob')
+
+        self.obj.status = UpdateStatus.testing
+        self.obj.request = None
+
+        # Pretend it's been in testing for a week
+        self.obj.comment('This update has been pushed to testing', author='bodhi')
+        self.obj.comments[-1].timestamp -= timedelta(days=7)
+        eq_(self.obj.days_in_testing, 7)
+        eq_(self.obj.meets_testing_requirements, True)
+
+        self.obj.set_request(UpdateRequest.stable, req)
         eq_(self.obj.request, UpdateRequest.stable)
-        eq_(self.obj.status, UpdateStatus.pending)
-        # TODO: verify results (via session flash?)
 
     def test_set_request_obsolete(self):
+        req = DummyRequest()
         eq_(self.obj.status, UpdateStatus.pending)
-        self.obj.set_request(UpdateRequest.obsolete)
+        self.obj.set_request(UpdateRequest.obsolete, req)
         eq_(self.obj.status, UpdateStatus.obsolete)
 
     def test_request_complete(self):
         self.obj.request = None
         eq_(self.obj.date_pushed, None)
-        self.obj.set_request(UpdateRequest.testing)
+        self.obj.request = UpdateRequest.testing
         self.obj.request_complete()
         assert self.obj.date_pushed
         eq_(self.obj.status, UpdateStatus.testing)
