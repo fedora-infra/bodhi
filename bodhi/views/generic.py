@@ -1,8 +1,11 @@
+import datetime
+import sqlalchemy as sa
+
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPNotFound
 
 from bodhi import log, buildsys
-import bodhi.models as m
+import bodhi.models
 
 
 @notfound_view_config(append_slash=True)
@@ -16,7 +19,33 @@ def notfound_view(context, request):
 
 @view_config(route_name='home', renderer='home.html')
 def home(request):
-    return {}
+    """ Returns data for the frontpage """
+    db = request.db
+
+    blacklist = request.registry.settings.get('stats_blacklist').split()
+
+    # For development
+    start_time = datetime.datetime.utcnow() - datetime.timedelta(days=900)
+    # For production
+    #start_time = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+
+    query = db.query(
+        bodhi.models.User,
+        sa.func.count(bodhi.models.User.comments).label('count_1')
+    ).join(bodhi.models.Comment)
+    query = query\
+        .order_by('count_1 desc')\
+        .filter(bodhi.models.Comment.timestamp > start_time)
+
+    for user in blacklist:
+        query = query.filter(bodhi.models.User.name != user)
+
+    top_testers = query\
+        .group_by(bodhi.models.User)\
+        .limit(5)\
+        .all()
+
+    return {"top_testers": top_testers}
 
 
 @view_config(route_name='latest_candidates', renderer='json')
@@ -33,7 +62,7 @@ def latest_candidates(request):
     if pkg:
         koji.multicall = True
 
-        for release in db.query(m.Release).all():
+        for release in db.query(bodhi.models.Release).all():
             koji.listTagged(release.candidate_tag, package=pkg, latest=True)
 
         results = koji.multiCall()

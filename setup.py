@@ -34,6 +34,8 @@ requires = [
     # Useful tools
     'kitchen',
     'python-fedora',
+    'pylibravatar',
+    'pyDNS',
 
     # i18n
     'Babel',

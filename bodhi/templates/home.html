@@ -1,8 +1,42 @@
 <%inherit file="master.html"/>
 
-% if request.user:
-	Hello, ${request.user.name}!
-	<a href="${request.route_url('logout')}">Logout</a>
-%else:
-	<a href="${request.route_url('login')}">Login</a>
-% endif
+<div class="row">
+  <div class="col-md-2">
+    MENU GOES HERE?
+  </div>
+  <div class="col-md-5">
+    <h2>Help test Fedora!</h2>
+    <p class="lead">The Fedora Updates System is where developers submit the
+    very latest versions of software in preparation for inclusion in
+    Fedora.</p>
+    <p>You can help make Fedora better by testing out these latest software
+    bits and letting us know how well they work (or don't work!)</p>
+  </div>
+  <div class="col-md-4">
+    <h2>This week's top testers</h2>
+    <table class="table">
+    % for tester, count in top_testers:
+    <tr>
+      <td>
+        <strong>#${str(loop.index + 1)}</strong>
+        <img class="img-circle" src="${tester.avatar(request.registry.settings, size=24)}"/>
+        ${tester.name}
+      </td>
+      <td>(${str(count)})</td>
+    </tr>
+    % endfor
+    </table>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+  <p class="lead">Latest Critical Path Updates in Need of Testing</p>
+  table goes here
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+  <p class="lead">Latest Security Updates in Need of Testing</p>
+  table goes here
+  </div>
+</div>
