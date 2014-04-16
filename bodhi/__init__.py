@@ -116,9 +116,6 @@ def main(global_config, testing=None, **settings):
     # Frontpage
     config.add_route('home', '/')
 
-    config.add_route('user', '/user/{username}')
-    config.add_route('release', '/release/{name}')
-
     # Metrics
     config.add_route('metrics', '/metrics')
 
