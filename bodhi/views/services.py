@@ -2,7 +2,7 @@ from cornice import Service
 from sqlalchemy.sql import or_
 
 from bodhi import log
-from bodhi.models import Update, Build, Bug, CVE, Package
+from bodhi.models import Update, Build, Bug, CVE, Package, User, Release
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -20,6 +20,13 @@ from bodhi.validators import (
 
 update = Service(name='update', path='/updates/{id}',
                  description='Update submission service')
+updates = Service(name='updates', path='/updates/',
+                  description='Update submission service',
+                  acl=bodhi.security.packagers_allowed_acl)
+user = Service(name='user', path='/user/{name}',
+                 description='Bodhi users')
+release = Service(name='release', path='/release/{name}',
+                 description='Fedora Releases')
 
 
 @update.get()
@@ -37,11 +44,6 @@ def get_update(request):
         return
 
     return upd.__json__()
-
-
-updates = Service(name='updates', path='/updates/',
-                  description='Update submission service',
-                  acl=bodhi.security.packagers_allowed_acl)
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
@@ -192,3 +194,35 @@ def new_update(request):
     # Send out email notifications
 
     return up.__json__()
+
+
+@user.get()
+def get_user(request):
+    db = request.db
+    id = request.matchdict.get('name')
+    user = db.query(User).filter(or_(
+        User.id==id,
+        User.name==id,
+    )).first()
+
+    if not user:
+        request.errors.add('body', 'name', 'No such .')
+        return
+
+    return user.__json__()
+
+
+@release.get()
+def get_release(request):
+    db = request.db
+    id = request.matchdict.get('name')
+    release = db.query(Release).filter(or_(
+        Release.id==id,
+        Release.name==id,
+    )).first()
+
+    if not release:
+        request.errors.add('body', 'name', 'No such .')
+        return
+
+    return release.__json__()

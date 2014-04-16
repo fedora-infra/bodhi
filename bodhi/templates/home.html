@@ -20,7 +20,7 @@
     <tr>
       <td>
         <strong>#${str(loop.index + 1)}</strong>
-        <a href="${request.route_url('user', username=tester['name'])}">
+        <a href="${request.route_url('user', name=tester['name'])}">
         <img class="img-circle" src="${util.avatar(tester['name'], size=24)}"/>
         ${tester['name']}
         </a>
@@ -71,7 +71,7 @@
       </td>
       <td>${util.age(update['date_submitted'])}</td>
       <td>
-        <a href="${request.route_url('user', username=update['user']['name'])}">
+        <a href="${request.route_url('user', name=update['user']['name'])}">
         <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
         ${update['user']['name']}
         </a>
