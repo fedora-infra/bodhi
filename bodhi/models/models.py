@@ -1600,7 +1600,7 @@ user_group_table = Table('user_group_table', Base.metadata,
 
 class User(Base):
     __tablename__ = 'users'
-    __exclude_columns__ = ('id', 'comments', 'updates', 'groups')
+    __exclude_columns__ = ('id', 'comments', 'updates', 'groups', 'packages')
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
