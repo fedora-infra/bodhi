@@ -143,6 +143,8 @@ def new_update(request):
     """
     data = request.validated
     log.debug('validated = %s' % request.validated)
+    req = data.get('request')
+    del(data['request'])
 
     try:
         if data.get('edited'):
@@ -158,6 +160,12 @@ def new_update(request):
         return
 
     # Set request
+    if req:
+        try:
+            up.set_request(req, request)
+        except:
+            log.exception('Problem setting request')
+
     # Send out email notifications
 
     return up.__json__()
