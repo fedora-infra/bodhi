@@ -685,15 +685,10 @@ class Update(Base):
 
         del(data['edited'])
 
-        up_req = data['request']
-        del(data['request'])
-
         # Create the update
         up = Update(**data)
         db.add(up)
         db.flush()
-
-        up.set_request(up_req)
 
         return up
 
