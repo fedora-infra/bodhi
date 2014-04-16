@@ -17,11 +17,8 @@ def notfound_view(context, request):
     return HTTPNotFound()
 
 
-@view_config(route_name='home', renderer='home.html')
-def home(request):
-    """ Returns data for the frontpage """
+def get_top_testers(request):
     db = request.db
-
     blacklist = request.registry.settings.get('stats_blacklist').split()
     days = int(request.registry.settings.get('top_testers_timeframe', 7))
     start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
@@ -37,12 +34,44 @@ def home(request):
     for user in blacklist:
         query = query.filter(bodhi.models.User.name != user)
 
-    top_testers = query\
+    return query\
         .group_by(bodhi.models.User)\
         .limit(5)\
         .all()
 
-    return {"top_testers": top_testers}
+
+def get_latest_updates(request, critpath, security):
+    db = request.db
+    query = db.query(bodhi.models.Update)
+
+    if critpath:
+        query = query.filter(
+            bodhi.models.Update.critpath==True)
+    if security:
+        query = query.filter(
+            bodhi.models.Update.type==bodhi.models.UpdateType.security)
+
+    query = query.order_by(bodhi.models.Update.date_submitted.desc())
+    return query.limit(5).all()
+
+
+@view_config(route_name='home', renderer='home.html')
+def home(request):
+    """ Returns data for the frontpage """
+
+    @request.cache.cache_on_arguments()
+    def work():
+        top_testers = get_top_testers(request)
+        critpath_updates = get_latest_updates(request, True, False)
+        security_updates = get_latest_updates(request, False, True)
+
+        return {
+            "top_testers": top_testers,
+            "critpath_updates": critpath_updates,
+            "security_updates": security_updates,
+        }
+
+    return work()
 
 
 @view_config(route_name='latest_candidates', renderer='json')

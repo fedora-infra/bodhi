@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dogpile.cache import make_region
 from sqlalchemy import engine_from_config
 
 from pyramid.settings import asbool
@@ -24,6 +25,12 @@ log = logging.getLogger(__name__)
 def get_dbsession(request):
     from bodhi.models import DBSession
     return DBSession()
+
+
+def get_cacheregion(request):
+    region = make_region()
+    region.configure_from_config(request.registry.settings, "dogpile.cache.")
+    return region
 
 
 def get_user(request):
@@ -84,6 +91,7 @@ def main(global_config, testing=None, **settings):
     config.add_request_method(get_koji, 'koji', reify=True)
     config.add_request_method(get_pkgdb, 'pkgdb', reify=True)
     config.add_request_method(get_dbsession, 'db', reify=True)
+    config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
 
     # Templating

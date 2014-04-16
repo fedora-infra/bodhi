@@ -36,6 +36,7 @@ requires = [
     'python-fedora',
     'pylibravatar',
     'pyDNS',
+    'dogpile.cache',
 
     # i18n
     'Babel',

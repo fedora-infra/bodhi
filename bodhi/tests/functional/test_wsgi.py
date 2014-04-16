@@ -28,6 +28,8 @@ app_settings = {
     'session.type': 'memory',
     'session.key': 'testing',
     'session.secret': 'foo',
+    'dogpile.cache.backend': 'dogpile.cache.memory',
+    'dogpile.cache.expiration_time': 0,
     'cache.type': 'memory',
     'cache.regions': 'default_term, second, short_term, long_term',
     'cache.second.expire': '1',

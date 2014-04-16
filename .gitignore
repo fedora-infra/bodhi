@@ -11,3 +11,4 @@ bodhi-pickledb*
 *.egg*
 bodhi.db
 .coverage
+dogpile-cache.dbm*
