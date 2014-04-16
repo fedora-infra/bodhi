@@ -34,6 +34,9 @@ class TestRelease(ModelTest):
         eq_(self.obj.testing_tag, 'dist-f11-updates-testing')
         eq_(self.obj.candidate_tag, 'dist-f11-updates-candidate')
 
+    def test_version_int(self):
+        eq_(self.obj.version_int, 11)
+
 
 class TestEPELRelease(ModelTest):
     """Unit test case for the ``Release`` model."""
