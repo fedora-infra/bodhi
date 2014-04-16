@@ -2,7 +2,7 @@ from cornice import Service
 from sqlalchemy.sql import or_
 
 from bodhi import log
-import bodhi.models as m
+from bodhi.models import Update, Build, Bug, CVE, Package
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -28,16 +28,16 @@ updates = Service(name='updates', path='/updates/',
 def query_updates(request):
     db = request.db
     data = request.validated
-    query = db.query(m.Update)
+    query = db.query(Update)
 
     approved_since = data.get('approved_since')
     if approved_since is not None:
-        query = query.filter(m.Update.date_approved >= approved_since)
+        query = query.filter(Update.date_approved >= approved_since)
 
     bugs = data.get('bugs')
     if bugs is not None:
         query = query.join(Update.bugs)
-        query = query.filter(or_(*[m.Bug.bug_id==bug_id for bug_id in bugs]))
+        query = query.filter(or_(*[Bug.bug_id==bug_id for bug_id in bugs]))
 
     critpath = data.get('critpath')
     if critpath is not None:
@@ -46,7 +46,7 @@ def query_updates(request):
     cves = data.get('cves')
     if cves is not None:
         query = query.join(Update.cves)
-        query = query.filter(or_(*[m.CVE.cve_id==cve_id for cve_id in cves]))
+        query = query.filter(or_(*[CVE.cve_id==cve_id for cve_id in cves]))
 
     locked = data.get('locked')
     if locked is not None:
@@ -54,12 +54,12 @@ def query_updates(request):
 
     modified_since = data.get('modified_since')
     if modified_since is not None:
-        query = query.filter(m.Update.date_modified >= modified_since)
+        query = query.filter(Update.date_modified >= modified_since)
 
     packages = data.get('packages')
     if packages is not None:
-        query = query.join(m.Update.builds).join(Build.package)
-        query = query.filter(or_(*[m.Package.name==pkg for pkg in packages]))
+        query = query.join(Update.builds).join(Build.package)
+        query = query.filter(or_(*[Package.name==pkg for pkg in packages]))
 
     pushed = data.get('pushed')
     if pushed is not None:
@@ -67,7 +67,7 @@ def query_updates(request):
 
     pushed_since = data.get('pushed_since')
     if pushed_since is not None:
-        query = query.filter(m.Update.date_pushed >= pushed_since)
+        query = query.filter(Update.date_pushed >= pushed_since)
 
     qa_approved = data.get('qa_approved')
     if qa_approved is not None:
@@ -75,11 +75,11 @@ def query_updates(request):
 
     qa_approved_since = data.get('qa_approved_since')
     if qa_approved_since is not None:
-        query = query.filter(m.Update.qa_approval_date >= qa_approved_since)
+        query = query.filter(Update.qa_approval_date >= qa_approved_since)
 
     releases = data.get('releases')
     if releases is not None:
-        query = query.filter(or_(*[m.Update.release==r for r in releases]))
+        query = query.filter(or_(*[Update.release==r for r in releases]))
 
     releng_approved = data.get('releng_approved')
     if releng_approved is not None:
@@ -87,7 +87,7 @@ def query_updates(request):
 
     releng_approved_since = data.get('releng_approved_since')
     if releng_approved_since is not None:
-        query = query.filter(m.Update.releng_approval_date >= releng_approved_since)
+        query = query.filter(Update.releng_approval_date >= releng_approved_since)
 
     req = data.get('request')
     if req is not None:
@@ -99,7 +99,7 @@ def query_updates(request):
 
     security_approved_since = data.get('security_approved_since')
     if security_approved_since is not None:
-        query = query.filter(m.Update.security_approval_date >= security_approved_since)
+        query = query.filter(Update.security_approval_date >= security_approved_since)
 
     severity = data.get('severity')
     if severity is not None:
@@ -111,7 +111,7 @@ def query_updates(request):
 
     submitted_since = data.get('submitted_since')
     if submitted_since is not None:
-        query = query.filter(m.Update.date_submitted >= submitted_since)
+        query = query.filter(Update.date_submitted >= submitted_since)
 
     suggest = data.get('suggest')
     if suggest is not None:
@@ -123,7 +123,7 @@ def query_updates(request):
 
     user = data.get('user')
     if user is not None:
-        query = query.filter(m.Update.user==user)
+        query = query.filter(Update.user==user)
 
     return dict(updates=[u.__json__() for u in query])
 
@@ -149,10 +149,10 @@ def new_update(request):
     try:
         if data.get('edited'):
             log.info('Editing update: %s' % data['edited'])
-            up = m.Update.edit(request, data)
+            up = Update.edit(request, data)
         else:
             log.info('Creating new update: %s' % ' '.join(data['builds']))
-            up = m.Update.new(request, data)
+            up = Update.new(request, data)
             log.debug(up)
     except:
         log.exception('An unexpected exception has occured')
