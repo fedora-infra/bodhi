@@ -20,8 +20,10 @@
     <tr>
       <td>
         <strong>#${str(loop.index + 1)}</strong>
+        <a href="${request.route_url('user', username=tester['name'])}">
         <img class="img-circle" src="${util.avatar(tester['name'], size=24)}"/>
         ${tester['name']}
+        </a>
       </td>
       <td>(${str(count)})</td>
     </tr>
@@ -34,6 +36,7 @@
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
   <p class="lead">Latest Critical Path Updates in Need of Testing</p>
+  <p>Critical path updates are updates for the highest-priority software in Fedora.</p>
   ${updates_table(critpath_updates)}
   </div>
 </div>
@@ -43,6 +46,7 @@
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
   <p class="lead">Latest Security Updates in Need of Testing</p>
+  <p>Security updates are... something important or something.</p>
   ${updates_table(security_updates)}
   </div>
 </div>
@@ -51,7 +55,7 @@
 <%def name="updates_table(updates)">
   <table class="table">
     <thead><tr>
-        <th>Package</th>
+        <th>Update</th>
         <th>Age</th>
         <th>Submitter</th>
         <th>Release(s)</th>
@@ -60,13 +64,23 @@
     <tbody>
     % for update in updates:
     <tr>
-      <td>${update['title']}</td>
+      <td>
+        <a href="${request.route_url('update', title=update['title'])}">
+          ${update['title']}
+        </a>
+      </td>
       <td>${util.age(update['date_submitted'])}</td>
       <td>
+        <a href="${request.route_url('user', username=update['user']['name'])}">
         <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
         ${update['user']['name']}
+        </a>
       </td>
-      <td>${update['release']['name']}</td>
+      <td>
+        <a href="${request.route_url('release', name=update['release']['name'])}">
+          ${update['release']['name']}
+        </a>
+      </td>
       <td>${update['status']}</td>
     </tr>
     % endfor
