@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPNotFound
 
-from bodhi import log, buildsys
+from bodhi import log
 import bodhi.models
 
 
