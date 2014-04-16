@@ -18,6 +18,27 @@ from bodhi.validators import (
 )
 
 
+update = Service(name='update', path='/updates/{id}',
+                 description='Update submission service')
+
+
+@update.get()
+def get_update(request):
+    db = request.db
+    id = request.matchdict.get('id')
+    upd = db.query(Update).filter(or_(
+        Update.id==id,
+        Update.title==id,
+        Update.alias==id,
+    )).first()
+
+    if not upd:
+        request.errors.add('body', 'id', 'No such update.')
+        return
+
+    return upd.__json__()
+
+
 updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   acl=bodhi.security.packagers_allowed_acl)
