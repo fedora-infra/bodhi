@@ -13,7 +13,7 @@
     <p>You can help make Fedora better by testing out these latest software
     bits and letting us know how well they work (or don't work!)</p>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-5">
     <h2>This week's top testers</h2>
     <table class="table">
     % for tester, count in top_testers:
@@ -29,18 +29,22 @@
     </table>
   </div>
 </div>
+% if critpath_updates:
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
   <p class="lead">Latest Critical Path Updates in Need of Testing</p>
   ${updates_table(critpath_updates)}
   </div>
 </div>
+% endif
+% if security_updates:
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
   <p class="lead">Latest Security Updates in Need of Testing</p>
   ${updates_table(security_updates)}
   </div>
 </div>
+%endif
 
 <%def name="updates_table(updates)">
   <table class="table">
