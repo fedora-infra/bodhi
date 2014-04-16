@@ -41,6 +41,7 @@ app_settings = {
     'mandatory_packager_groups': 'packager',
     'critpath_pkgs': 'kernel',
     'bugtracker': 'dummy',
+    'stats_blacklist': 'bodhi autoqa',
 }
 
 
