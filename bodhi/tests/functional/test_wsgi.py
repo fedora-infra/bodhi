@@ -1349,7 +1349,6 @@ class TestWSGIApp(unittest.TestCase):
         Ensure that we cannot push an untested critpath update directly to
         stable.
         """
-# TODO: port bochecha's buildsys changes to get this working
         args = self.get_update('kernel-3.11.5-300.fc17')
         args['request'] = 'stable'
         up = self.app.post_json('/updates/', args).json_body
