@@ -252,12 +252,12 @@ class Release(Base):
         name = self.name.lower().replace('-', '')
         status = config.get('%s.status' % name, None)
         if status:
-            days = config.get(
-                '%s.%s.mandatory_days_in_testing' % (name, status))
+            days = int(config.get(
+                '%s.%s.mandatory_days_in_testing' % (name, status)))
             if days:
                 return days
-        return config.get('%s.mandatory_days_in_testing' %
-                          self.id_prefix.lower().replace('-', '_'))
+        return int(config.get('%s.mandatory_days_in_testing' %
+                          self.id_prefix.lower().replace('-', '_')))
 
     @property
     def collection_name(self):
