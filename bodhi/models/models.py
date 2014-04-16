@@ -43,11 +43,6 @@ class BodhiBase(object):
 
     id = Column(Integer, primary_key=True)
 
-    def __init__(self, **kw):
-        """ Automatically mapping attributes """
-        for key, value in kw.iteritems():
-            setattr(self, key, value)
-
     def __repr__(self):
         return '<{} {}>'.format(self.__class__.__name__, self.__json__())
 
