@@ -1,0 +1,11 @@
+p, .lead {
+    margin-bottom: 0px;
+}
+
+a {
+    outline: 0 !important;
+}
+
+a:hover {
+    text-decoration: none;
+}
