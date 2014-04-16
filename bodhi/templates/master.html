@@ -1,3 +1,4 @@
+<%namespace name="util" module="bodhi.util"/>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -63,9 +64,9 @@
         <p class="text-muted credit">
         Bodhi is cool.
         </p>
-        <p class="text-muted">
-        Running <code>bodhi-VERSION</code>.
-        </p>
+        <p class="text-muted"> Running
+        <code>bodhi-${util.version()}</code> on
+        <code>${util.hostname()}</code>.</p>
       </div>
     </div>
 

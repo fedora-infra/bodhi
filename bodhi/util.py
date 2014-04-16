@@ -20,12 +20,14 @@ import os
 import rpm
 import sys
 import arrow
+import socket
 import logging
 import tempfile
 import subprocess
 import libravatar
 import urlgrabber
 import collections
+import pkg_resources
 import functools
 
 
@@ -388,3 +390,11 @@ def avatar(context, username, size):
             default='retro',
         )
     return work(username, size)
+
+
+def version(context):
+    return pkg_resources.get_distribution('bodhi').version
+
+
+def hostname(context):
+    return socket.gethostname()
