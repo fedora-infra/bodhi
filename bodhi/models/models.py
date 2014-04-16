@@ -1007,6 +1007,27 @@ class Update(Base):
         # FIXME: track date pushed to testing & stable in different fields
         self.date_pushed = None
 
+    def add_tag(self, tag):
+        """ Add a koji tag to all builds in this update """
+        log.debug('Adding tag %s to %s' % (tag, self.title))
+        koji = buildsys.get_session()
+        koji.multicall = True
+        for build in self.builds:
+            koji.tagBuild(tag, build.nvr, force=True)
+        return koji.multiCall()
+
+    def remove_tag(self, tag, koji=None):
+        """ Remove a koji tag from all builds in this update """
+        log.debug('Removing tag %s from %s' % (tag, self.title))
+        return_multicall = not koji
+        if not koji:
+            koji = buildsys.get_session()
+            koji.multicall = True
+        for build in self.builds:
+            koji.untagBuild(tag, build.nvr, force=True)
+        if return_multicall:
+            return koji.multiCall()
+
     def request_complete(self):
         """
         Perform post-request actions.
