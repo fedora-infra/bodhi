@@ -34,7 +34,7 @@ user = Service(name='user', path='/users/{name}',
                  description='Bodhi users')
 users = Service(name='users', path='/users/',
                  description='Bodhi users')
-release = Service(name='release', path='/release/{name}',
+release = Service(name='release', path='/releases/{name}',
                  description='Fedora Releases')
 
 
@@ -284,6 +284,8 @@ def get_release(request):
     release = request.db.query(Release).filter(or_(
         Release.id==id,
         Release.name==id,
+        Release.long_name==id,
+        Release.dist_tag==id,
     )).first()
 
     if not release:
