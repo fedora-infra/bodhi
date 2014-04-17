@@ -58,6 +58,14 @@ class Releases(colander.SequenceSchema):
     release = colander.SchemaNode(colander.String())
 
 
+class Groups(colander.SequenceSchema):
+    group = colander.SchemaNode(colander.String())
+
+
+class Updates(colander.SequenceSchema):
+    update = colander.SchemaNode(colander.String())
+
+
 class SaveUpdateSchema(colander.MappingSchema):
     builds = Builds(colander.Sequence(accept_scalar=True),
                     preparer=[splitter])
@@ -112,7 +120,7 @@ class SaveUpdateSchema(colander.MappingSchema):
     )
 
 
-class ListUpdateSchema(colander.MappingSchema):
+class PaginatedSchema(colander.MappingSchema):
     page = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=1),
@@ -127,6 +135,37 @@ class ListUpdateSchema(colander.MappingSchema):
         missing=20,
     )
 
+
+class ListUserSchema(PaginatedSchema):
+    name = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
+    groups = Groups(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+    updates = Updates(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+
+class ListUpdateSchema(PaginatedSchema):
     approved_since = colander.SchemaNode(
         colander.DateTime(),
         location="querystring",

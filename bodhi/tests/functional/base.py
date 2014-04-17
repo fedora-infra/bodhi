@@ -73,6 +73,7 @@ class BaseWSGICase(unittest.TestCase):
         session.add(release)
         pkg = Package(name=u'bodhi')
         session.add(pkg)
+        user.packages.append(pkg)
         build = Build(nvr=u'bodhi-2.0-1.fc17', release=release, package=pkg)
         session.add(build)
         update = Update(

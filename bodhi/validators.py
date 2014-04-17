@@ -5,7 +5,7 @@ from sqlalchemy.sql import or_
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
-                     UpdateSuggestion, User)
+                     UpdateSuggestion, User, Group)
 from .util import get_nvr
 
 
@@ -209,6 +209,102 @@ def validate_enums(request):
         request.validated[param] = enum.from_string(value)
 
 
+def validate_packages(request):
+    """Make sure those packages exist"""
+    packages = request.validated.get("packages")
+    if packages is None:
+        return
+
+    db = request.db
+    bad_packages = []
+    validated_packages = []
+
+    for p in packages:
+        package = db.query(Package).filter(Package.name==p).first()
+
+        if not package:
+            bad_packages.append(p)
+        else:
+            validated_packages.append(package)
+
+    if bad_packages:
+        request.errors.add('querystring', 'packages',
+                           "Invalid packages specified: {}".format(
+                               ", ".join(bad_packages)))
+    else:
+        request.validated["packages"] = validated_packages
+
+
+def validate_updates(request):
+    """Make sure those updates exist"""
+    updates = request.validated.get("updates")
+    if updates is None:
+        return
+
+    db = request.db
+    bad_updates = []
+    validated_updates = []
+
+    for u in updates:
+        update = db.query(Update).filter(or_(
+            Update.title==u,
+            Update.alias==u,
+        )).first()
+
+        if not update:
+            bad_updates.append(u)
+        else:
+            validated_updates.append(update)
+
+    if bad_updates:
+        request.errors.add('querystring', 'updates',
+                           "Invalid updates specified: {}".format(
+                               ", ".join(bad_updates)))
+    else:
+        request.validated["updates"] = validated_updates
+
+
+def validate_groups(request):
+    """Make sure those groups exist"""
+    groups = request.validated.get("groups")
+    if groups is None:
+        return
+
+    db = request.db
+    bad_groups = []
+    validated_groups = []
+
+    for g in groups:
+        group = db.query(Group).filter(Group.name==g).first()
+
+        if not group:
+            bad_groups.append(g)
+        else:
+            validated_groups.append(group)
+
+    if bad_groups:
+        request.errors.add('querystring', 'groups',
+                           "Invalid groups specified: {}".format(
+                               ", ".join(bad_groups)))
+    else:
+        request.validated["groups"] = validated_groups
+
+
+def validate_release(request):
+    """Make sure this singular release exists"""
+    releasename = request.validated.get("release")
+    if releasename is None:
+        return
+
+    db = request.db
+    release = db.query(Release).filter_by(name=releasename).first()
+
+    if release:
+        request.validated["release"] = release
+    else:
+        request.errors.add("querystring", "release",
+                           "Invalid release specified: {}".format(releasename))
+
 def validate_releases(request):
     """Make sure those releases exist"""
     releases = request.validated.get("releases")
@@ -248,7 +344,6 @@ def validate_username(request):
 
     if user:
         request.validated["user"] = user
-
     else:
         request.errors.add("querystring", "user",
                            "Invalid user specified: {}".format(username))

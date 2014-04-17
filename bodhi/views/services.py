@@ -4,7 +4,7 @@ from sqlalchemy.sql import or_
 import math
 
 from bodhi import log
-from bodhi.models import Update, Build, Bug, CVE, Package, User, Release
+from bodhi.models import Update, Build, Bug, CVE, Package, User, Release, Group
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -15,8 +15,12 @@ from bodhi.validators import (
     validate_acls,
     validate_builds,
     validate_enums,
+    validate_updates,
+    validate_packages,
     validate_releases,
+    validate_release,
     validate_username,
+    validate_groups,
 )
 
 
@@ -25,7 +29,9 @@ update = Service(name='update', path='/updates/{id}',
 updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   acl=bodhi.security.packagers_allowed_acl)
-user = Service(name='user', path='/user/{name}',
+user = Service(name='users', path='/users/{name}',
+                 description='Bodhi users')
+users = Service(name='users', path='/users/',
                  description='Bodhi users')
 release = Service(name='release', path='/release/{name}',
                  description='Fedora Releases')
@@ -48,8 +54,54 @@ def get_update(request):
     return upd.__json__()
 
 
+@users.get(schema=bodhi.schemas.ListUserSchema,
+           validators=(validate_groups, validate_updates, validate_packages))
+def query_users(request):
+    db = request.db
+    data = request.validated
+    query = db.query(User)
+
+    name = data.get('name')
+    if name is not None:
+        query = query.filter(User.name.like(name))
+
+    groups = data.get('groups')
+    if groups is not None:
+        query = query.join(User.groups)
+        query = query.filter(or_(*[Group.id==grp.id for grp in groups]))
+
+    updates = data.get('updates')
+    if updates is not None:
+        query = query.join(User.updates)
+        args = \
+            [Update.title==update.title for update in updates] +\
+            [Update.alias==update.alias for update in updates]
+        query = query.filter(or_(*args))
+
+    packages = data.get('packages')
+    if packages is not None:
+        query = query.join(User.packages)
+        query = query.filter(or_(*[Package.id==p.id for p in packages]))
+
+    total = query.count()
+
+    page = data.get('page')
+    rows_per_page = data.get('rows_per_page')
+    if rows_per_page is None:
+        pages = 1
+    else:
+        pages = int(math.ceil(total / float(rows_per_page)))
+        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+
+    return dict(users=[u.__json__() for u in query])
+
+
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
-             validators=(validate_releases, validate_enums, validate_username))
+             validators=(
+                 validate_releases,
+                 validate_enums,
+                 validate_username,
+             ))
 def query_updates(request):
     db = request.db
     data = request.validated
@@ -208,33 +260,19 @@ def new_update(request):
     return up.__json__()
 
 
-@user.get()
+@user.get(validators=(validate_username,))
 def get_user(request):
-    db = request.db
     id = request.matchdict.get('name')
-    user = db.query(User).filter(or_(
+    return request.db.query(User).filter(or_(
         User.id==id,
         User.name==id,
-    )).first()
-
-    if not user:
-        request.errors.add('body', 'name', 'No such .')
-        return
-
-    return user.__json__()
+    )).first().__json__()
 
 
-@release.get()
+@release.get(validators=(validate_release,))
 def get_release(request):
-    db = request.db
     id = request.matchdict.get('name')
-    release = db.query(Release).filter(or_(
+    return request.db.query(Release).filter(or_(
         Release.id==id,
         Release.name==id,
-    )).first()
-
-    if not release:
-        request.errors.add('body', 'name', 'No such .')
-        return
-
-    return release.__json__()
+    )).first().__json__()
