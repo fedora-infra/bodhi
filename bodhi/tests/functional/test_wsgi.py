@@ -237,6 +237,26 @@ class TestWSGIApp(unittest.TestCase):
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
 
+    def test_list_updates_pagination(self):
+
+        # First, stuff a second update in there
+        self.test_new_update()
+
+        # Then, test pagination
+        res = self.app.get('/updates/',
+                           {"rows_per_page": 1})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        update1 = body['updates'][0]
+
+        res = self.app.get('/updates/',
+                           {"rows_per_page": 1, "page": 2})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        update2 = body['updates'][0]
+
+        self.assertNotEquals(update1, update2)
+
     def test_list_updates_by_approved_since(self):
         now = datetime.now()
 

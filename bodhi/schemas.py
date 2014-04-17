@@ -113,6 +113,20 @@ class SaveUpdateSchema(colander.MappingSchema):
 
 
 class ListUpdateSchema(colander.MappingSchema):
+    page = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(min=1),
+        location="querystring",
+        missing=1,
+    )
+
+    rows_per_page = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(min=1, max=100),
+        location="querystring",
+        missing=20,
+    )
+
     approved_since = colander.SchemaNode(
         colander.DateTime(),
         location="querystring",

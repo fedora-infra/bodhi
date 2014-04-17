@@ -1,6 +1,8 @@
 from cornice import Service
 from sqlalchemy.sql import or_
 
+import math
+
 from bodhi import log
 from bodhi.models import Update, Build, Bug, CVE, Package, User, Release
 import bodhi.schemas
@@ -148,7 +150,17 @@ def query_updates(request):
     if user is not None:
         query = query.filter(Update.user==user)
 
-    return dict(updates=[u.__json__() for u in query])
+    total = query.count()
+
+    page = data.get('page')
+    rows_per_page = data.get('rows_per_page')
+    if rows_per_page is None:
+        pages = 1
+    else:
+        pages = int(math.ceil(total / float(rows_per_page)))
+        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+
+    return dict(updates=[u.__json__() for u in query],)
 
 
 @updates.post(schema=bodhi.schemas.SaveUpdateSchema,
