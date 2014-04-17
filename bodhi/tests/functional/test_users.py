@@ -34,6 +34,10 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
     def test_404(self):
         self.app.get('/users/watwatwat', status=404)
 
+    def test_get_single_user(self):
+        res = self.app.get('/users/bodhi')
+        self.assertEquals(res.json_body['name'], 'bodhi')
+
     def test_list_users(self):
         res = self.app.get('/users/')
         body = res.json_body

@@ -121,6 +121,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_404(self):
         self.app.get('/a', status=404)
 
+    def test_get_single_update(self):
+        res = self.app.get('/updates/bodhi-2.0-1.fc17')
+        self.assertEquals(res.json_body['title'], 'bodhi-2.0-1.fc17')
+
     def test_list_updates(self):
         res = self.app.get('/updates/')
         body = res.json_body

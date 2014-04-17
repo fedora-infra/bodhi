@@ -1,4 +1,5 @@
 from cornice import Service
+from pyramid.exceptions import HTTPNotFound
 from sqlalchemy.sql import or_
 
 import math
@@ -29,7 +30,7 @@ update = Service(name='update', path='/updates/{id}',
 updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   acl=bodhi.security.packagers_allowed_acl)
-user = Service(name='users', path='/users/{name}',
+user = Service(name='user', path='/users/{name}',
                  description='Bodhi users')
 users = Service(name='users', path='/users/',
                  description='Bodhi users')
@@ -49,6 +50,7 @@ def get_update(request):
 
     if not upd:
         request.errors.add('body', 'id', 'No such update.')
+        request.errors.status = HTTPNotFound.code
         return
 
     return upd.__json__()
@@ -260,19 +262,33 @@ def new_update(request):
     return up.__json__()
 
 
-@user.get(validators=(validate_username,))
+@user.get()
 def get_user(request):
     id = request.matchdict.get('name')
-    return request.db.query(User).filter(or_(
+    user = request.db.query(User).filter(or_(
         User.id==id,
         User.name==id,
-    )).first().__json__()
+    )).first()
+
+    if not user:
+        request.errors.add('body', 'name', 'No such release')
+        request.errors.status = HTTPNotFound.code
+        return
+
+    return user.__json__()
 
 
-@release.get(validators=(validate_release,))
+@release.get()
 def get_release(request):
     id = request.matchdict.get('name')
-    return request.db.query(Release).filter(or_(
+    release = request.db.query(Release).filter(or_(
         Release.id==id,
         Release.name==id,
-    )).first().__json__()
+    )).first()
+
+    if not release:
+        request.errors.add('body', 'name', 'No such release')
+        request.errors.status = HTTPNotFound.code
+        return
+
+    return release.__json__()
