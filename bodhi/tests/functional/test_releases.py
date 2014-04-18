@@ -48,7 +48,6 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['name'], 'F22')
 
     def test_list_releases(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/')
         body = res.json_body
         self.assertEquals(len(body['releases']), 2)
@@ -57,7 +56,6 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['releases'][1]['name'], u'F22')
 
     def test_list_releases_with_pagination(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/')
         body = res.json_body
         self.assertEquals(len(body['releases']), 2)
@@ -65,41 +63,36 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.get('/releases/', {'rows_per_page': 1})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
-        self.assertEquals(body['releases'][0]['name'], 'guest')
+        self.assertEquals(body['releases'][0]['name'], 'F17')
 
         res = self.app.get('/releases/', {'rows_per_page': 1, 'page': 2})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
-        self.assertEquals(body['releases'][0]['name'], 'bodhi')
+        self.assertEquals(body['releases'][0]['name'], 'F22')
 
     def test_list_releases_by_name(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/', {"name": 'F22'})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F22')
 
     def test_list_releases_by_name_match(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/', {"name": '%1%'})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
     def test_list_releases_by_name_match_miss(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/', {"name": '%wat%'})
         self.assertEquals(len(res.json_body['releases']), 0)
 
     def test_list_releases_by_update_title(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/', {"updates": 'bodhi-2.0-1.fc17'})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
     def test_list_releases_by_update_alias(self):
-        self.skipTest("Not yet implemented")
         session = DBSession()
         update = session.query(Update).first()
         update.alias = 'some_alias'
@@ -111,21 +104,18 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
     def test_list_releases_by_nonexistant_update(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/', {"updates": 'carbunkle'}, status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'updates')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid updates specified: carbunkle')
 
     def test_list_releases_by_package_name(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/', {"packages": 'bodhi'})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
     def test_list_releases_by_nonexistant_package(self):
-        self.skipTest("Not yet implemented")
         res = self.app.get('/releases/', {"packages": 'carbunkle'}, status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
         self.assertEquals(res.json_body['errors'][0]['description'],

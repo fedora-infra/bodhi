@@ -136,6 +136,28 @@ class PaginatedSchema(colander.MappingSchema):
     )
 
 
+class ListReleaseSchema(PaginatedSchema):
+    name = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
+    updates = Updates(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+
 class ListUserSchema(PaginatedSchema):
     name = colander.SchemaNode(
         colander.String(),

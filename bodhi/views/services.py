@@ -36,6 +36,8 @@ users = Service(name='users', path='/users/',
                  description='Bodhi users')
 release = Service(name='release', path='/releases/{name}',
                  description='Fedora Releases')
+releases = Service(name='releases', path='/releases/',
+                 description='Fedora Releases')
 
 
 @update.get()
@@ -96,6 +98,43 @@ def query_users(request):
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return dict(users=[u.__json__() for u in query])
+
+
+@releases.get(schema=bodhi.schemas.ListReleaseSchema,
+           validators=(validate_release, validate_updates, validate_packages))
+def query_releases(request):
+    db = request.db
+    data = request.validated
+    query = db.query(Release)
+
+    name = data.get('name')
+    if name is not None:
+        query = query.filter(Release.name.like(name))
+
+    updates = data.get('updates')
+    if updates is not None:
+        query = query.join(Release.builds).join(Build.update)
+        args = \
+            [Update.title==update.title for update in updates] +\
+            [Update.alias==update.alias for update in updates]
+        query = query.filter(or_(*args))
+
+    packages = data.get('packages')
+    if packages is not None:
+        query = query.join(Release.builds).join(Build.package)
+        query = query.filter(or_(*[Package.id==p.id for p in packages]))
+
+    total = query.count()
+
+    page = data.get('page')
+    rows_per_page = data.get('rows_per_page')
+    if rows_per_page is None:
+        pages = 1
+    else:
+        pages = int(math.ceil(total / float(rows_per_page)))
+        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+
+    return dict(releases=[r.__json__() for r in query])
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
