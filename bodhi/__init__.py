@@ -134,5 +134,6 @@ def main(global_config, testing=None, **settings):
     config.add_view('pyramid_fas_openid.verify_openid', route_name='verify_openid')
 
     config.scan('bodhi.views')
+    config.scan('bodhi.services')
 
     return config.make_wsgi_app()
