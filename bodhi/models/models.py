@@ -1615,6 +1615,10 @@ class User(Base):
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
 
+    @classmethod
+    def get(cls, id, db):
+        return db.query(User).filter(or_(User.id==id, User.name==id)).first()
+
 
 class Group(Base):
     __tablename__ = 'groups'

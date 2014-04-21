@@ -6,6 +6,7 @@ import math
 
 from bodhi import log
 from bodhi.models import Update, Build, Bug, CVE, Package, User, Release, Group
+import bodhi.services.updates
 import bodhi.schemas
 from bodhi.validators import (
     validate_nvrs,
@@ -30,13 +31,10 @@ users = Service(name='users', path='/users/',
                  description='Bodhi users')
 
 
-@user.get()
+@user.get(accept=("application/json", "text/json"))
 def get_user(request):
     id = request.matchdict.get('name')
-    user = request.db.query(User).filter(or_(
-        User.id==id,
-        User.name==id,
-    )).first()
+    user = User.get(id, request.db)
 
     if not user:
         request.errors.add('body', 'name', 'No such user')
@@ -44,6 +42,16 @@ def get_user(request):
         return
 
     return user.__json__()
+
+@user.get(accept="text/html", renderer="user.html")
+def get_user_html(request):
+    # Re-use the JSON from our own service.
+    user = get_user(request)
+
+    if not user:
+        raise HTTPNotFound("No such user %r" % id)
+
+    return dict(user=user)
 
 
 @users.get(schema=bodhi.schemas.ListUserSchema,
