@@ -12,7 +12,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import rpm
 import logging
 
 from textwrap import wrap
@@ -22,6 +21,12 @@ from bodhi.util import rpm_fileheader
 from bodhi.exceptions import RPMNotFound
 
 log = logging.getLogger(__name__)
+
+try:
+    import rpm
+except ImportError:
+    log.warning("Could not import 'rpm'")
+
 
 ##
 ## All of the email messages that bodhi is going to be sending around.

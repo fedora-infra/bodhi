@@ -1,6 +1,5 @@
 import os
 import re
-import rpm
 import time
 import logging
 import bugzilla
@@ -35,6 +34,11 @@ from bodhi.config import config
 from bodhi.bugs import bugtracker
 
 log = logging.getLogger(__name__)
+
+try:
+    import rpm
+except ImportError:
+    log.warning("Could not import 'rpm'")
 
 
 class BodhiBase(object):

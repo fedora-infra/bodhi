@@ -1,4 +1,3 @@
-import rpm
 
 from sqlalchemy.sql import or_
 
@@ -7,6 +6,14 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group)
 from .util import get_nvr
+
+import logging
+log = logging.getLogger(__name__)
+
+try:
+    import rpm
+except ImportError:
+    log.warning("Could not import 'rpm'")
 
 
 def validate_nvrs(request):

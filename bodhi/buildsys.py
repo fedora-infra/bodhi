@@ -12,7 +12,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import time
-import koji
 import atexit
 import logging
 
@@ -21,6 +20,11 @@ from os.path import join, expanduser
 log = logging.getLogger(__name__)
 
 _buildsystem = None
+
+try:
+    import koji
+except ImportError:
+    log.warn("Could not import 'koji'")
 
 # Cached koji session info
 _koji_session = None
