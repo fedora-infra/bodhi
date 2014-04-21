@@ -25,6 +25,10 @@ from bodhi.validators import (
 )
 
 
+build = Service(name='build', path='/builds/{nvr}',
+                 description='Koji builds')
+builds = Service(name='builds', path='/builds/',
+                 description='Koji builds')
 update = Service(name='update', path='/updates/{id}',
                  description='Update submission service')
 updates = Service(name='updates', path='/updates/',
@@ -135,6 +139,53 @@ def query_releases(request):
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return dict(releases=[r.__json__() for r in query])
+
+
+@builds.get(schema=bodhi.schemas.ListBuildSchema,
+             validators=(
+                 validate_releases,
+                 validate_updates,
+                 validate_packages,
+             ))
+def query_builds(request):
+    db = request.db
+    data = request.validated
+    query = db.query(Build)
+
+    nvr = data.get('nvr')
+    if nvr is not None:
+        query = query.filter(Build.nvr==nvr)
+
+    updates = data.get('updates')
+    if updates is not None:
+        query = query.join(Build.update)
+        args = \
+            [Update.title==update.title for update in updates] +\
+            [Update.alias==update.alias for update in updates]
+        query = query.filter(or_(*args))
+
+    packages = data.get('packages')
+    if packages is not None:
+        query = query.join(Build.package)
+        query = query.filter(or_(*[Package.id==p.id for p in packages]))
+
+    releases = data.get('releases')
+    if releases is not None:
+        query = query.join(Build.release)
+        query = query.filter(or_(*[Release.id==r.id for r in releases]))
+
+
+    total = query.count()
+
+    page = data.get('page')
+    rows_per_page = data.get('rows_per_page')
+    if rows_per_page is None:
+        pages = 1
+    else:
+        pages = int(math.ceil(total / float(rows_per_page)))
+        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+
+    return dict(builds=[b.__json__() for b in query],)
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
@@ -301,6 +352,19 @@ def new_update(request):
     return up.__json__()
 
 
+@build.get()
+def get_build(request):
+    nvr = request.matchdict.get('nvr')
+    build = request.db.query(Build).filter(Build.nvr==nvr).first()
+
+    if not build:
+        request.errors.add('body', 'nvr', 'No such build')
+        request.errors.status = HTTPNotFound.code
+        return
+
+    return build.__json__()
+
+
 @user.get()
 def get_user(request):
     id = request.matchdict.get('name')
@@ -310,7 +374,7 @@ def get_user(request):
     )).first()
 
     if not user:
-        request.errors.add('body', 'name', 'No such release')
+        request.errors.add('body', 'name', 'No such user')
         request.errors.status = HTTPNotFound.code
         return
 

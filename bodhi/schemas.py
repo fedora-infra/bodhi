@@ -334,3 +334,32 @@ class ListUpdateSchema(PaginatedSchema):
         location="querystring",
         missing=None,
     )
+
+
+class ListBuildSchema(PaginatedSchema):
+    nvr = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+    releases = Releases(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+    updates = Updates(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
