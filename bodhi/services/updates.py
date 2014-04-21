@@ -25,23 +25,11 @@ from bodhi.validators import (
 )
 
 
-build = Service(name='build', path='/builds/{nvr}',
-                 description='Koji builds')
-builds = Service(name='builds', path='/builds/',
-                 description='Koji builds')
 update = Service(name='update', path='/updates/{id}',
                  description='Update submission service')
 updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   acl=bodhi.security.packagers_allowed_acl)
-user = Service(name='user', path='/users/{name}',
-                 description='Bodhi users')
-users = Service(name='users', path='/users/',
-                 description='Bodhi users')
-release = Service(name='release', path='/releases/{name}',
-                 description='Fedora Releases')
-releases = Service(name='releases', path='/releases/',
-                 description='Fedora Releases')
 
 
 @update.get()
@@ -60,132 +48,6 @@ def get_update(request):
         return
 
     return upd.__json__()
-
-
-@users.get(schema=bodhi.schemas.ListUserSchema,
-           validators=(validate_groups, validate_updates, validate_packages))
-def query_users(request):
-    db = request.db
-    data = request.validated
-    query = db.query(User)
-
-    name = data.get('name')
-    if name is not None:
-        query = query.filter(User.name.like(name))
-
-    groups = data.get('groups')
-    if groups is not None:
-        query = query.join(User.groups)
-        query = query.filter(or_(*[Group.id==grp.id for grp in groups]))
-
-    updates = data.get('updates')
-    if updates is not None:
-        query = query.join(User.updates)
-        args = \
-            [Update.title==update.title for update in updates] +\
-            [Update.alias==update.alias for update in updates]
-        query = query.filter(or_(*args))
-
-    packages = data.get('packages')
-    if packages is not None:
-        query = query.join(User.packages)
-        query = query.filter(or_(*[Package.id==p.id for p in packages]))
-
-    total = query.count()
-
-    page = data.get('page')
-    rows_per_page = data.get('rows_per_page')
-    if rows_per_page is None:
-        pages = 1
-    else:
-        pages = int(math.ceil(total / float(rows_per_page)))
-        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
-
-    return dict(users=[u.__json__() for u in query])
-
-
-@releases.get(schema=bodhi.schemas.ListReleaseSchema,
-           validators=(validate_release, validate_updates, validate_packages))
-def query_releases(request):
-    db = request.db
-    data = request.validated
-    query = db.query(Release)
-
-    name = data.get('name')
-    if name is not None:
-        query = query.filter(Release.name.like(name))
-
-    updates = data.get('updates')
-    if updates is not None:
-        query = query.join(Release.builds).join(Build.update)
-        args = \
-            [Update.title==update.title for update in updates] +\
-            [Update.alias==update.alias for update in updates]
-        query = query.filter(or_(*args))
-
-    packages = data.get('packages')
-    if packages is not None:
-        query = query.join(Release.builds).join(Build.package)
-        query = query.filter(or_(*[Package.id==p.id for p in packages]))
-
-    total = query.count()
-
-    page = data.get('page')
-    rows_per_page = data.get('rows_per_page')
-    if rows_per_page is None:
-        pages = 1
-    else:
-        pages = int(math.ceil(total / float(rows_per_page)))
-        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
-
-    return dict(releases=[r.__json__() for r in query])
-
-
-@builds.get(schema=bodhi.schemas.ListBuildSchema,
-             validators=(
-                 validate_releases,
-                 validate_updates,
-                 validate_packages,
-             ))
-def query_builds(request):
-    db = request.db
-    data = request.validated
-    query = db.query(Build)
-
-    nvr = data.get('nvr')
-    if nvr is not None:
-        query = query.filter(Build.nvr==nvr)
-
-    updates = data.get('updates')
-    if updates is not None:
-        query = query.join(Build.update)
-        args = \
-            [Update.title==update.title for update in updates] +\
-            [Update.alias==update.alias for update in updates]
-        query = query.filter(or_(*args))
-
-    packages = data.get('packages')
-    if packages is not None:
-        query = query.join(Build.package)
-        query = query.filter(or_(*[Package.id==p.id for p in packages]))
-
-    releases = data.get('releases')
-    if releases is not None:
-        query = query.join(Build.release)
-        query = query.filter(or_(*[Release.id==r.id for r in releases]))
-
-
-    total = query.count()
-
-    page = data.get('page')
-    rows_per_page = data.get('rows_per_page')
-    if rows_per_page is None:
-        pages = 1
-    else:
-        pages = int(math.ceil(total / float(rows_per_page)))
-        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
-
-    return dict(builds=[b.__json__() for b in query],)
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
@@ -350,50 +212,3 @@ def new_update(request):
     # Send out email notifications
 
     return up.__json__()
-
-
-@build.get()
-def get_build(request):
-    nvr = request.matchdict.get('nvr')
-    build = request.db.query(Build).filter(Build.nvr==nvr).first()
-
-    if not build:
-        request.errors.add('body', 'nvr', 'No such build')
-        request.errors.status = HTTPNotFound.code
-        return
-
-    return build.__json__()
-
-
-@user.get()
-def get_user(request):
-    id = request.matchdict.get('name')
-    user = request.db.query(User).filter(or_(
-        User.id==id,
-        User.name==id,
-    )).first()
-
-    if not user:
-        request.errors.add('body', 'name', 'No such user')
-        request.errors.status = HTTPNotFound.code
-        return
-
-    return user.__json__()
-
-
-@release.get()
-def get_release(request):
-    id = request.matchdict.get('name')
-    release = request.db.query(Release).filter(or_(
-        Release.id==id,
-        Release.name==id,
-        Release.long_name==id,
-        Release.dist_tag==id,
-    )).first()
-
-    if not release:
-        request.errors.add('body', 'name', 'No such release')
-        request.errors.status = HTTPNotFound.code
-        return
-
-    return release.__json__()
