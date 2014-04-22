@@ -45,6 +45,8 @@ class BaseWSGICase(unittest.TestCase):
         'critpath_pkgs': 'kernel',
         'bugtracker': 'dummy',
         'stats_blacklist': 'bodhi autoqa',
+        'system_users': 'bodhi autoqa',
+        'max_update_length_for_ui': '70',
     }
 
     def setUp(self):
