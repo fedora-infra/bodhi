@@ -956,8 +956,9 @@ class Update(Base):
         flash_notes = ''
         if action is UpdateRequest.stable and not self.critpath:
             # Check if we've met the karma requirements
-            if (self.stable_karma != 0 and self.karma >= self.stable_karma) or \
-                    self.critpath_approved:
+            if (self.stable_karma not in (None, 0) and self.karma >=
+                self.stable_karma) or self.critpath_approved:
+                log.debug('%s meets stable karma requirements' % self.title)
                 pass
             else:
                 # If we haven't met the stable karma requirements, check if it
