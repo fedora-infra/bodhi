@@ -1522,7 +1522,7 @@ class Comment(Base):
             anonymous = " (unauthenticated)"
         else:
             anonymous = ""
-        return "%s%s - %s (karma: %s)\n%s" % (self.author, anonymous,
+        return "%s%s - %s (karma: %s)\n%s" % (self.user.name, anonymous,
                                               self.timestamp, karma, self.text)
 
 
