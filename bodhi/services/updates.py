@@ -32,6 +32,10 @@ updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   acl=bodhi.security.packagers_allowed_acl)
 
+update_request = Service(name='update_request', path='/updates/{id}/request',
+                         description='Update request service',)
+                         #acl=bodhi.security.package_maintainers_only)
+
 user = Service(name='user', path='/user/{name}',
                description='Bodhi users')
 
@@ -69,6 +73,34 @@ def get_update_html(request):
         raise HTTPNotFound("No such update")
 
     return dict(update=update)
+
+
+@update_request.post(permission='edit')
+def update_request(request):
+    """
+    This currently supports setting a specific
+    :class:`bodhi.models.UpdateRequest` action on a given update.
+    """
+    upd = _get_update(request)
+    if not upd:
+        request.errors.add('body', 'id', 'No such update')
+        return {}
+
+    try:
+        data = request.json_body
+    except ValueError:
+        data = None
+    if not data:
+        request.errors.add('body', 'action', 'Invalid JSON: %s' % request.body)
+
+    action = data.get('action')
+    if action:
+        try:
+            upd.set_request(action, request)
+            return {'status': 'success', 'update': upd.__json__()}
+        except:
+            log.exception('Problem setting %r request on %s' % (action, upd.title))
+            request.errors.add('body', 'action', 'Invalid action: %s' % action)
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
