@@ -7,9 +7,6 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateSuggestion, User, Group)
 from .util import get_nvr
 
-import logging
-log = logging.getLogger(__name__)
-
 try:
     import rpm
 except ImportError:
