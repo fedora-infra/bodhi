@@ -1,4 +1,5 @@
 import datetime
+import markdown
 import sqlalchemy as sa
 
 from pyramid.view import view_config, notfound_view_config
@@ -102,3 +103,14 @@ def latest_candidates(request):
 
     log.debug(result)
     return result
+
+
+@view_config(route_name='markdowner', renderer='json')
+def markdowner(request):
+    """ Given some text, return the markdownified html version.
+
+    We use this for "previews" of comments and update notes.
+    """
+
+    text = request.params.get('text')
+    return dict(html=markdown.markdown(text))

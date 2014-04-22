@@ -119,6 +119,9 @@ def main(global_config, testing=None, **settings):
     # Metrics
     config.add_route('metrics', '/metrics')
 
+    # Utils
+    config.add_route('markdowner', '/markdown')
+
     # Auto-completion search
     config.add_route('search_pkgs', '/search_pkgs')
     config.add_route('latest_candidates', '/latest_candidates')
