@@ -25,9 +25,41 @@
 
 <div class="row">
   <div class="col-md-5 col-md-offset-1">
-    we could put a list of latest $USER comments on all updates here?
+    <h3>Comments by ${user['name']}</h3>
+    <ul>
+    % for comment in user['comments_by']:
+      <li>
+        <a href="${request.route_url('user', name=comment['user']['name'])}">
+        <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
+        ${comment['user']['name']}
+        </a> commented
+        ${util.age(comment['timestamp'])}
+        on 
+        <a href="${request.route_url('update', id=comment['update']['title'])}">
+        ${comment['update']['title']}
+        </a>
+        ${util.markup(comment['text']) | n}
+      </li>
+    % endfor
+    </ul>
   </div>
   <div class="col-md-5">
-    maybe a list of comments on $USER updates could go here?
+    <h3>Comments on ${user['name']}'s updates</h3>
+    <ul>
+    % for comment in user['comments_on']:
+      <li>
+        <a href="${request.route_url('user', name=comment['user']['name'])}">
+        <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
+        ${comment['user']['name']}
+        </a> commented
+        ${util.age(comment['timestamp'])}
+        on 
+        <a href="${request.route_url('update', id=comment['update']['title'])}">
+        ${comment['update']['title']}
+        </a>
+        ${util.markup(comment['text']) | n}
+      </li>
+    % endfor
+    </ul>
   </div>
 </div>

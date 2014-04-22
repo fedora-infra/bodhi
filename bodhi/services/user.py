@@ -1,11 +1,11 @@
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
-from sqlalchemy.sql import or_
+from sqlalchemy.sql import or_, and_
 
 import math
 
 from bodhi import log
-from bodhi.models import Update, Build, Bug, CVE, Package, User, Release, Group
+from bodhi.models import Update, Package, User, Comment, Group
 import bodhi.services.updates
 import bodhi.schemas
 from bodhi.validators import (
@@ -33,6 +33,7 @@ users = Service(name='users', path='/users/',
 
 @user.get(accept=("application/json", "text/json"))
 def get_user(request):
+    db = request.db
     id = request.matchdict.get('name')
     user = User.get(id, request.db)
 
@@ -41,7 +42,29 @@ def get_user(request):
         request.errors.status = HTTPNotFound.code
         return
 
-    return user.__json__()
+    result = user.__json__()
+
+    # Throw some extra information in there
+
+    # First, build a list of blacklisted user IDs
+    #blacklist = ['bodhi', 'autoqa']
+    #blacklist = db.query(User).filter(or_(*[User.name==u for u in blacklist]))
+    #blacklist = [user.id for user in blacklist.all()]
+
+    # TODO -- don't hardcode this.  2 and 7 are 'bodhi' and 'autoqa'
+    blacklist = [2, 7]
+
+    query = request.db.query(Comment)
+    query = query.filter(and_(*[Comment.user_id != i for i in blacklist]))
+
+    execute = lambda q: q.order_by(Comment.timestamp.desc()).limit(10).all()
+    comments_by = execute(query.filter(Comment.user==user))
+    comments_on = execute(query.join(Update).filter(Update.user==user))
+
+    result['comments_by'] = [c.__json__() for c in comments_by]
+    result['comments_on'] = [c.__json__() for c in comments_on]
+
+    return result
 
 
 @user.get(accept="text/html", renderer="user.html")
