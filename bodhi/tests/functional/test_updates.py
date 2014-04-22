@@ -1332,23 +1332,25 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         """Test submitting an invalid request"""
         args = self.get_update()
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'action': 'foo'}, status=400)
+                                  {'request': 'foo'}, status=400)
         resp = resp.json_body
         eq_(resp['status'], 'error')
-        eq_(resp['errors'][0]['description'], 'Invalid action: foo')
+        eq_(resp['errors'][0]['description'], u'"foo" is not one of unpush, testing, obsolete, stable')
 
     def test_testing_request(self):
         """Test submitting a valid testing request"""
         args = self.get_update()
         args['request'] = None
-        resp = self.app.post_json('/updates/%s/request' % args['builds'], {'action': 'testing'})
+        resp = self.app.post_json('/updates/%s/request' % args['builds'],
+                                  {'request': 'testing'})
         eq_(resp.json['status'], 'success')
         eq_(resp.json['update']['request'], 'testing')
 
     def test_stable_request(self):
         """Test submitting a stable request"""
         args = self.get_update()
-        resp = self.app.post_json('/updates/%s/request' % args['builds'], {'action': 'stable'})
+        resp = self.app.post_json('/updates/%s/request' % args['builds'],
+                                  {'request': 'stable'})
         # This update hasn't met the testing requirements yet
         eq_(resp.json['update']['request'], 'testing')
 
@@ -1364,6 +1366,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         DBSession.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
-        resp = self.app.post_json('/updates/%s/request' % args['builds'], {'action': 'stable'})
+        resp = self.app.post_json('/updates/%s/request' % args['builds'],
+                                  {'request': 'stable'})
         eq_(resp.json['status'], 'success')
         eq_(resp.json['update']['request'], 'stable')
