@@ -172,8 +172,8 @@ def build_evr(build):
     return (str(build['epoch']), build['version'], build['release'])
 
 
-def link(text, href):
-    return '<a href="%s">%s</a>' % (url(href), text)
+def link(href, text):
+    return '<a href="%s">%s</a>' % (href, text)
 
 
 class memoized(object):
@@ -412,15 +412,11 @@ def request2html(context, request):
     return "<span class='label label-%s'>%s</span>" % (cls, request)
 
 def update2html(context, update):
-
     request = context.get('request')
+    url = request.route_url('update', id=update['title'])
     settings = request.registry.settings
     max_length = int(settings.get('max_update_length_for_ui', 30))
-
-    url = context.get('request').route_url('update', id=update['title'])
     title = update['title']
-
     if len(title) > max_length:
         title = title[:max_length] + "..."
-
-    return "<a href='%s'>%s</a>" % (url, title)
+    return link(url, title)
