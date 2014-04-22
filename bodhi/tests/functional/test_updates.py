@@ -1347,15 +1347,16 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp.json['update']['request'], 'testing')
 
     def test_stable_request(self):
-        """Test submitting a stable request"""
+        """Test submitting a stable request for an update that has yet to meet
+        the stable requirements"""
         args = self.get_update()
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
                                   {'request': 'stable'})
-        # This update hasn't met the testing requirements yet
         eq_(resp.json['update']['request'], 'testing')
 
     def test_stable_request_after_testing(self):
-        """Test submitting a stable request"""
+        """Test submitting a stable request to an update that has met the
+        minimum amount of time in testing"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
         up = DBSession.query(Update).filter_by(title=resp.json['title']).one()
