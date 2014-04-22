@@ -424,3 +424,17 @@ def request2html(context, request):
     }.get(request)
 
     return "<span class='label label-%s'>%s</span>" % (cls, request)
+
+def update2html(context, update):
+
+    request = context.get('request')
+    settings = request.registry.settings
+    max_length = int(settings.get('max_update_length_for_ui', 30))
+
+    url = context.get('request').route_url('update', id=update['title'])
+    title = update['title']
+
+    if len(title) > max_length:
+        title = title[:max_length] + "..."
+
+    return "<a href='%s'>%s</a>" % (url, title)

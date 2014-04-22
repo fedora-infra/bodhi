@@ -61,11 +61,7 @@
     <tbody>
     % for update in updates:
     <tr>
-      <td>
-        <a href="${request.route_url('update', id=update['title'])}">
-          ${update['title']}
-        </a>
-      </td>
+      <td>${util.update2html(update) | n}</td>
       <td>${util.age(update['date_submitted'])}</td>
       <td>
         <a href="${request.route_url('user', name=update['user']['name'])}">

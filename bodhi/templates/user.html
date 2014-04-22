@@ -8,42 +8,9 @@
     <img class="centered img-circle" src="${util.avatar(user['name'], size=256)}"/>
     <h2 class="centered">${user['name']}</h2>
   </div>
+
+  % if user['comments_on']:
   <div class="col-md-7">
-    <h3>blah blah</h3>
-    we could put a list of latest comments on %USER updates here?
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-md-5 col-md-offset-1">
-    we could put a list of latest updates from $USER here..
-  </div>
-  <div class="col-md-5">
-    we could put a list of updates that need pushing to stable here?
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-md-5 col-md-offset-1">
-    <h3>Comments by ${user['name']}</h3>
-    <ul>
-    % for comment in user['comments_by']:
-      <li>
-        <a href="${request.route_url('user', name=comment['user']['name'])}">
-        <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
-        ${comment['user']['name']}
-        </a> commented
-        ${util.age(comment['timestamp'])}
-        on 
-        <a href="${request.route_url('update', id=comment['update']['title'])}">
-        ${comment['update']['title']}
-        </a>
-        ${util.markup(comment['text']) | n}
-      </li>
-    % endfor
-    </ul>
-  </div>
-  <div class="col-md-5">
     <h3>Comments on ${user['name']}'s updates</h3>
     <ul>
     % for comment in user['comments_on']:
@@ -52,14 +19,62 @@
         <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
         ${comment['user']['name']}
         </a> commented
-        ${util.age(comment['timestamp'])}
-        on 
-        <a href="${request.route_url('update', id=comment['update']['title'])}">
-        ${comment['update']['title']}
-        </a>
+        ${util.age(comment['timestamp'])} on
+        ${util.update2html(comment['update']) | n}
         ${util.markup(comment['text']) | n}
       </li>
     % endfor
     </ul>
   </div>
+  % endif
+
+</div>
+
+<div class="row">
+  % if user['updates']:
+  <div class="col-md-5 col-md-offset-1">
+    <table class="table">
+      <thead><tr>
+          <th>Update</th>
+          <th>Age</th>
+          <th>Release(s)</th>
+          <th>Status</th>
+      </tr></thead>
+      <tbody>
+      % for update in user['updates']:
+      <tr>
+        <td> ${util.update2html(update) | n} </td>
+        <td>${util.age(update['date_submitted'])}</td>
+        <td>
+          <a href="${request.route_url('release', name=update['release']['name'])}">
+            ${update['release']['name']}
+          </a>
+        </td>
+        <td>${update['status']}</td>
+      </tr>
+      % endfor
+      </tbody>
+    </table>
+  </div>
+  % endif
+
+  % if user['comments_by']:
+  <div class="col-md-5">
+    <h3>Comments by ${user['name']}</h3>
+    <ul>
+    % for comment in user['comments_by']:
+      <li> <a href="${request.route_url('user', name=comment['user']['name'])}">
+        <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
+        ${comment['user']['name']}
+        </a> commented
+        ${util.age(comment['timestamp'])} on
+        ${util.update2html(comment['update']) | n}
+        ${util.markup(comment['text']) | n}
+      </li>
+    % endfor
+    </ul>
+  </div>
+  % endif
+
+
 </div>

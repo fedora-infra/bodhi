@@ -46,23 +46,29 @@ def get_user(request):
 
     # Throw some extra information in there
 
-    # First, build a list of blacklisted user IDs
-    #blacklist = ['bodhi', 'autoqa']
-    #blacklist = db.query(User).filter(or_(*[User.name==u for u in blacklist]))
-    #blacklist = [user.id for user in blacklist.all()]
-
-    # TODO -- don't hardcode this.  2 and 7 are 'bodhi' and 'autoqa'
-    blacklist = [2, 7]
+    # First, build a blacklist of users whose comments we don't want to see.
+    blacklist = request.registry.settings.get('system_users').split()
+    blacklist = db.query(User)\
+        .filter(or_(*[User.name == name for name in blacklist]))
+    blacklist = [u.id for u in blacklist]
 
     query = request.db.query(Comment)
     query = query.filter(and_(*[Comment.user_id != i for i in blacklist]))
 
+    # Then, make a couple different queries
     execute = lambda q: q.order_by(Comment.timestamp.desc()).limit(10).all()
     comments_by = execute(query.filter(Comment.user==user))
     comments_on = execute(query.join(Update).filter(Update.user==user))
 
+    updates = db.query(Update)\
+        .filter(Update.user == user)\
+        .order_by(Update.date_submitted.desc())\
+        .limit(14).all()
+
+    # And stuff the results in the dict
     result['comments_by'] = [c.__json__() for c in comments_by]
     result['comments_on'] = [c.__json__() for c in comments_on]
+    result['updates'] = [u.__json__() for u in updates]
 
     return result
 
