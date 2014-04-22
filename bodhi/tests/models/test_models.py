@@ -371,6 +371,14 @@ class TestUpdate(ModelTest):
         eq_(self.obj.comments[1].user.name, u'bodhi')
         eq_(self.obj.comments[1].text,
                 u'This update has been pushed to stable')
+        assert str(self.obj.comments[1]).endswith('This update has been pushed to stable')
+
+    def test_anonymous_comment(self):
+        self.obj.comment('testing', author='anon', anonymous=True, karma=1)
+        c = self.obj.comments[-1]
+        assert str(c).endswith('testing')
+        eq_(c.anonymous, True)
+        eq_(c.text, 'testing')
 
     def test_get_url(self):
         eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
