@@ -3,9 +3,18 @@
 
 <div class="row">
   <div class="col-md-3 col-md-offset-1">
-    &nbsp;
-    </br>
+    &nbsp;</br>
+    % if request.user and request.user.name == user['name']:
+    <form method="POST" action="https://www.libravatar.org/openid/login/">
+      <input type="hidden" name="openid_identifier"
+          value="http://${user['name']}.id.fedoraproject.org/"/>
+      <input type="image" class="img-circle centered"
+          src="${util.avatar(user['name'], size=256)}"
+          style="outline: none;" alt="Your avatar"/>
+    </form>
+    % else:
     <img class="centered img-circle" src="${util.avatar(user['name'], size=256)}"/>
+    % endif
     <h2 class="centered">${user['name']}</h2>
   </div>
 
