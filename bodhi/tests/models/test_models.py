@@ -58,6 +58,20 @@ class TestEPELRelease(ModelTest):
         eq_(self.obj.candidate_tag, 'dist-5E-epel-testing-candidate')
 
 
+class MockWiki(object):
+    """ Mocked simplemediawiki.MediaWiki class. """
+    def __init__(self, response):
+        self.response = response
+        self.query = None
+
+    def __call__(self, *args, **kwargs):
+        return self
+
+    def call(self, query):
+        self.query = query
+        return self.response
+
+
 class TestPackage(ModelTest):
     """Unit test case for the ``Package`` model."""
     klass = model.Package
@@ -70,10 +84,28 @@ class TestPackage(ModelTest):
 
     def test_wiki_test_cases(self):
         """Test querying the wiki for test cases"""
-        config['query_wiki_test_cases'] = True
-        pkg = model.Package(name=u'gnome-shell')
-        pkg.fetch_test_cases(model.DBSession())
-        assert pkg.test_cases
+
+        # Mock out mediawiki so we don't do network calls in our tests
+        import simplemediawiki
+        response = {
+            'query': {
+                'categorymembers': [{
+                    'title': 'Fake test case',
+                }],
+            }
+        }
+        original = simplemediawiki.MediaWiki
+        simplemediawiki.MediaWiki = MockWiki(response)
+
+        # Now, our actual test.
+        try:
+            config['query_wiki_test_cases'] = True
+            pkg = model.Package(name=u'gnome-shell')
+            pkg.fetch_test_cases(model.DBSession())
+            assert pkg.test_cases
+        finally:
+            # Restore things
+            simplemediawiki.MediaWiki = original
 
     def test_committers(self):
         assert self.obj.committers[0].name == u'lmacken'

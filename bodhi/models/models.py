@@ -1,6 +1,5 @@
 import os
 import re
-import rpm
 import time
 import logging
 import bugzilla
@@ -35,6 +34,11 @@ from bodhi.config import config
 from bodhi.bugs import bugtracker
 
 log = logging.getLogger(__name__)
+
+try:
+    import rpm
+except ImportError:
+    log.warning("Could not import 'rpm'")
 
 
 class BodhiBase(object):
@@ -1617,6 +1621,10 @@ class User(Base):
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
+
+    @classmethod
+    def get(cls, id, db):
+        return db.query(User).filter(or_(User.id==id, User.name==id)).first()
 
 
 class Group(Base):

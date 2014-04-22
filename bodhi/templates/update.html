@@ -1,0 +1,185 @@
+<%inherit file="master.html"/>
+<%namespace name="util" module="bodhi.util"/>
+
+<div class="row">
+  <div class="col-md-12">
+    <h1>${update['title']} <small>${update['type']} update</small></h1>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <table class="table">
+      <tr>
+        <td>Submitter</td>
+        <td>
+          <a href="${request.route_url('user', name=update['user']['name'])}">
+          <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+          ${update['user']['name']}
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>Builds</td>
+        <td>
+          % for build in update['builds']:
+          <a href="http://koji.fedoraproject.org/koji/search?terms=${build['nvr']}&type=build&match=glob">
+          ${build['nvr']}
+          </a>
+          % endfor
+        </td>
+      </tr>
+
+      % if update['alias']:
+      <tr>
+        <td>Update ID</td>
+        <td><a href="${request.route_url('update', id=update['alias'])}">
+            ${update['alias']}
+        </a></td>
+      </tr>
+      %endif
+      <tr>
+        <td>Release</td>
+        <td><a href="${request.route_url('release', name=update['release']['name'])}">
+            ${update['release']['name']}
+        </a></td>
+      </tr>
+      <tr>
+        <td>Karma</td><td>${util.karma2html(update['karma']) | n}
+          % if update['stable_karma']:
+          <small>stable threshold: ${update['stable_karma']}</small>
+          % endif
+          % if update['unstable_karma']:
+          <small>unstable threshold: ${update['unstable_karma']}</small>
+          % endif
+        </td>
+      </tr>
+
+      % if update['type']:
+      <tr>
+        <td>Type</td><td>${util.type2html(update['type']) | n}</td>
+      </tr>
+      % endif
+
+      % if update['severity'] != 'unspecified':
+      <tr>
+        <td>Severity</td><td>${util.severity2html(update['severity']) | n}</td>
+      </tr>
+      % endif
+
+      % if update['request']:
+      <tr>
+        <td>Request</td><td>${util.request2html(update['request']) | n}</td>
+      </tr>
+      % endif
+
+      <tr>
+        <td>Status</td><td>${util.status2html(update['status']) | n}</td>
+      </tr>
+
+      % if update['suggest'] != 'unspecified':
+      <tr>
+        <td>Suggestion</td><td>${util.suggestion2html(update['suggest']) | n}</td>
+      </tr>
+      % endif
+
+      <tr>
+        <td>Submitted</td>
+        <td>${util.age(update['date_submitted'])},
+          <small>${update['date_submitted']}</small></td>
+      </tr>
+
+      % if update['pushed']:
+      <tr>
+        <td>Pushed</td>
+        <td>${util.age(update['date_pushed'])},
+          <small>${update['date_pushed']}</small></td>
+      </tr>
+      % endif
+
+      % if update['date_modified']:
+      <tr>
+        <td>Modified</td>
+        <td>${util.age(update['date_modified'])},
+          <small>${update['date_modified']}</small></td>
+      </tr>
+      % endif
+
+      % if update['qa_approved']:
+      <tr>
+        <td>QA <span class="glyphicon glyphicon-ok"></span></td>
+        <td>${util.age(update['qa_approval_date'])},
+          <small>${update['qa_approval_date']}</small></td>
+      </tr>
+      % endif
+
+      % if update['security_approved']:
+      <tr>
+        <td>Sec <span class="glyphicon glyphicon-ok"></span></td>
+        <td>${util.age(update['security_approval_date'])},
+          <small>${update['security_approval_date']}</small></td>
+      </tr>
+      % endif
+
+      % if update['releng_approved']:
+      <tr>
+        <td>Releng <span class="glyphicon glyphicon-ok"></span></td>
+        <td>${util.age(update['releng_approval_date'])},
+          <small>${update['releng_approval_date']}</small></td>
+      </tr>
+      % endif
+
+      % if update['date_approved']:
+      <tr>
+        <td>approved</td>
+        <td>${util.age(update['date_approved'])},
+          <small>${update['date_approved']}</small></td>
+      </tr>
+      % endif
+
+    </table>
+  </div>
+  % if update['bugs']:
+  <div class="col-md-4">
+    <h3>Related Bugs <span class="badge">${len(update['bugs'])}</h3>
+    <ul>
+    % for bug in update['bugs']:
+      <li> <a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug['bug_id']}">
+        #${bug['bug_id']}
+      </a> ${bug['title']} </li>
+    % endfor
+    </ul>
+  </div>
+  % endif
+  <div class="col-md-4">
+    <h3>Test Results</h3>
+    TODO -- resultsdb/taskotron stuff goes here some day
+  </div>
+</div>
+
+% if update['notes']:
+<div class="row">
+  <div class="col-md-8 col-md-offset-2">
+    <h3>Notes</h3>
+    ${util.markup(update['notes']) | n}
+  </div>
+</div>
+% endif
+
+<div class="row">
+  <div class="col-md-12">
+    <h3>Comments <span class="badge">${len(update['comments'])}</span></h3>
+    <ul>
+    % for comment in update['comments']:
+    <li>
+      <a href="${request.route_url('user', name=comment['user']['name'])}">
+      <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
+      ${comment['user']['name']}
+      </a>
+      ${util.age(comment['timestamp'])}, <small>${comment['timestamp']}</small>
+      ${util.markup(comment['text']) | n}
+    </li>
+    % endfor
+    </ul>
+  </div>
+</div>

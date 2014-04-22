@@ -17,22 +17,19 @@ Random functions that don't fit elsewhere
 """
 
 import os
-import rpm
 import sys
 import arrow
 import socket
 import logging
 import tempfile
+import markdown
 import subprocess
 import libravatar
-import urlgrabber
 import collections
 import pkg_resources
 import functools
 
 
-from yum import repoMDObject
-from yum.misc import checksum
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 
@@ -49,6 +46,17 @@ from bodhi.config import config
 
 _ = TranslationStringFactory('bodhi')
 log = logging.getLogger(__name__)
+
+try:
+    import rpm
+except ImportError:
+    log.warning("Could not import 'rpm'")
+
+try:
+    import yum
+    import yum.misc
+except ImportError:
+    log.warning("Could not import 'yum'")
 
 ## Display a given message as a heading
 header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
@@ -257,6 +265,9 @@ def sanity_check_repodata(myurl):
     Sanity check the repodata for a given repository.
     Initial implementation by Seth Vidal.
     """
+
+    import urlgrabber
+
     tempdir = tempfile.mkdtemp()
     errorstrings = []
     if myurl[-1] != '/':
@@ -270,7 +281,7 @@ def sanity_check_repodata(myurl):
     rf = myurl + 'repomd.xml'
     try:
         rm = urlgrabber.urlopen(rf)
-        repomd = repoMDObject.RepoMD('foo', rm)
+        repomd = yum.repoMDObject.RepoMD('foo', rm)
         for t in repomd.fileTypes():
             data = repomd.getData(t)
             base, href = data.location
@@ -282,7 +293,7 @@ def sanity_check_repodata(myurl):
             destfn = tempdir + '/' + os.path.basename(href)
             dest = urlgrabber.urlgrab(loc, destfn)
             ctype, known_csum = data.checksum
-            csum = checksum(ctype, dest)
+            csum = yum.misc.checksum(ctype, dest)
             if csum != known_csum:
                 errorstrings.append("checksum: %s" % t)
 
@@ -332,3 +343,84 @@ def version(context):
 
 def hostname(context):
     return socket.gethostname()
+
+
+def markup(context, text):
+    return markdown.markdown(text)
+
+
+def status2html(context, status):
+    cls = {
+        'pending': 'primary',
+        'testing': 'warning',
+        'stable': 'success',
+        'unpushed': 'danger',
+        'obsolete': 'default',
+        'processing': 'info',
+    }[status]
+    return "<span class='label label-%s'>%s</span>" % (cls, status)
+
+
+def karma2html(context, karma):
+    cls = {
+        -2: 'danger',
+        -1: 'warning',
+        0: 'info',
+        1: 'primary',
+        2: 'success',
+    }.get(karma)
+
+    if not cls:
+        if karma < -2:
+            cls = 'danger'
+        else:
+            cls = 'success'
+
+    if karma > 0:
+        karma = "+%i" % karma
+    else:
+        karma = "%i" % karma
+
+    return "<span class='label label-%s'>%s</span>" % (cls, karma)
+
+
+def type2html(context, kind):
+    cls = {
+        'security': 'danger',
+        'bugfix': 'warning',
+        'newpackage': 'primary',
+        'enhancement': 'success',
+    }.get(kind)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, kind)
+
+
+def severity2html(context, severity):
+    cls = {
+        'urgent': 'danger',
+        'high': 'warning',
+        'medium': 'primary',
+        'low': 'success',
+    }.get(severity)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, severity)
+
+
+def suggestion2html(context, suggestion):
+    cls = {
+        'reboot': 'danger',
+        'logout': 'warning',
+    }.get(suggestion)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, suggestion)
+
+
+def request2html(context, request):
+    cls = {
+        'unpush': 'danger',
+        'obsolete': 'warning',
+        'testing': 'primary',
+        'stable': 'success',
+    }.get(request)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, request)

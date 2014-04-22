@@ -38,6 +38,7 @@ requires = [
     'pyDNS',
     'dogpile.cache',
     'arrow',
+    'markdown',
 
     # i18n
     'Babel',

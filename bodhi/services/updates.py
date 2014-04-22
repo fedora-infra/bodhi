@@ -1,8 +1,11 @@
 from cornice import Service
+from pyramid.exceptions import HTTPNotFound
 from sqlalchemy.sql import or_
 
+import math
+
 from bodhi import log
-from bodhi.models import Update, Build, Bug, CVE, Package, User, Release
+from bodhi.models import Update, Build, Bug, CVE, Package, User, Release, Group
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -13,8 +16,12 @@ from bodhi.validators import (
     validate_acls,
     validate_builds,
     validate_enums,
+    validate_updates,
+    validate_packages,
     validate_releases,
+    validate_release,
     validate_username,
+    validate_groups,
 )
 
 
@@ -42,6 +49,16 @@ def _get_update(request):
     )).first()
 
 
+@update.get(accept=('application/json', 'text/json'))
+def get_update(request):
+    db = request.db
+    upd = _get_update(request)
+    if not upd:
+        request.errors.add('body', 'id', 'No such update.')
+        request.errors.status = HTTPNotFound.code
+        return
+
+
 @update.get()
 def get_update(request):
     """Return a single update from an id, title, or alias"""
@@ -52,8 +69,23 @@ def get_update(request):
     return upd.__json__()
 
 
+@update.get(accept="text/html", renderer="update.html")
+def get_update_html(request):
+    # Re-use the JSON from our own service.
+    update = get_update(request)
+
+    if not update:
+        raise HTTPNotFound("No such update")
+
+    return dict(update=update)
+
+
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
-             validators=(validate_releases, validate_enums, validate_username))
+             validators=(
+                 validate_releases,
+                 validate_enums,
+                 validate_username,
+             ))
 def query_updates(request):
     db = request.db
     data = request.validated
@@ -154,7 +186,17 @@ def query_updates(request):
     if user is not None:
         query = query.filter(Update.user==user)
 
-    return dict(updates=[u.__json__() for u in query])
+    total = query.count()
+
+    page = data.get('page')
+    rows_per_page = data.get('rows_per_page')
+    if rows_per_page is None:
+        pages = 1
+    else:
+        pages = int(math.ceil(total / float(rows_per_page)))
+        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+
+    return dict(updates=[u.__json__() for u in query],)
 
 
 @updates.post(schema=bodhi.schemas.SaveUpdateSchema,
@@ -200,35 +242,3 @@ def new_update(request):
     # Send out email notifications
 
     return up.__json__()
-
-
-@user.get()
-def get_user(request):
-    db = request.db
-    id = request.matchdict.get('name')
-    user = db.query(User).filter(or_(
-        User.id==id,
-        User.name==id,
-    )).first()
-
-    if not user:
-        request.errors.add('body', 'name', 'No such .')
-        return
-
-    return user.__json__()
-
-
-@release.get()
-def get_release(request):
-    db = request.db
-    id = request.matchdict.get('name')
-    release = db.query(Release).filter(or_(
-        Release.id==id,
-        Release.name==id,
-    )).first()
-
-    if not release:
-        request.errors.add('body', 'name', 'No such .')
-        return
-
-    return release.__json__()

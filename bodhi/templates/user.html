@@ -1,0 +1,33 @@
+<%inherit file="master.html"/>
+<%namespace name="util" module="bodhi.util"/>
+
+<div class="row">
+  <div class="col-md-3 col-md-offset-1">
+    &nbsp;
+    </br>
+    <img class="centered img-circle" src="${util.avatar(user['name'], size=256)}"/>
+    <h2 class="centered">${user['name']}</h2>
+  </div>
+  <div class="col-md-7">
+    <h3>blah blah</h3>
+    we could put a list of latest comments on %USER updates here?
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-5 col-md-offset-1">
+    we could put a list of latest updates from $USER here..
+  </div>
+  <div class="col-md-5">
+    we could put a list of updates that need pushing to stable here?
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-5 col-md-offset-1">
+    we could put a list of latest $USER comments on all updates here?
+  </div>
+  <div class="col-md-5">
+    maybe a list of comments on $USER updates could go here?
+  </div>
+</div>

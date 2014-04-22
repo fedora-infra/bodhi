@@ -16,3 +16,12 @@ a:hover {
     margin-right: auto;
     text-align: center;
 }
+
+.messenger-message-inner a {
+    color: white;
+    text-decoration: none;
+}
+
+.row {
+    margin-right: 0px;
+}
