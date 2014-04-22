@@ -251,8 +251,11 @@ class Release(Base):
                 '%s.%s.mandatory_days_in_testing' % (name, status)))
             if days:
                 return days
-        return int(config.get('%s.mandatory_days_in_testing' %
-                          self.id_prefix.lower().replace('-', '_')))
+        days = int(config.get('%s.mandatory_days_in_testing' %
+                              self.id_prefix.lower().replace('-', '_')))
+        if not days:
+            log.warn('No mandatory days in testing defined for %s' % self.name)
+        return days
 
     @property
     def collection_name(self):
