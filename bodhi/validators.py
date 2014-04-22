@@ -195,6 +195,7 @@ def validate_uniqueness(request):
                                    other_build))
                 return
 
+
 def validate_enums(request):
     """Convert from strings to our enumerated types"""
     for param, enum in (("request", UpdateRequest),
@@ -236,6 +237,7 @@ def validate_releases(request):
 
     else:
         request.validated["releases"] = validated_releases
+
 
 def validate_username(request):
     """Make sure this user exists"""

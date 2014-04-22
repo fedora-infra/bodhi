@@ -20,13 +20,16 @@ from bodhi.validators import (
 
 update = Service(name='update', path='/updates/{id}',
                  description='Update submission service')
+
 updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   acl=bodhi.security.packagers_allowed_acl)
+
 user = Service(name='user', path='/user/{name}',
-                 description='Bodhi users')
+               description='Bodhi users')
+
 release = Service(name='release', path='/release/{name}',
-                 description='Fedora Releases')
+                  description='Fedora Releases')
 
 
 @update.get()
