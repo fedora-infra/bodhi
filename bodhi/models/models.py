@@ -23,7 +23,7 @@ from pyramid.settings import asbool
 
 from bodhi import buildsys, mail
 from bodhi.util import (
-    header, build_evr, authorized_user, rpm_fileheader, get_nvr, flash_log,
+    header, build_evr, rpm_fileheader, get_nvr, flash_log,
     get_age, get_critpath_pkgs,
 )
 

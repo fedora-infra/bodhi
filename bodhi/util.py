@@ -124,20 +124,6 @@ def mkmetadatadir(dir):
         genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
 
 
-def authorized_user(update, identity):
-    """
-    Return whether or not the current user can modify an update.
-    """
-    # FIXME: port to pyramid auth
-    warnings.warn('authorized_user does not work yet')
-    return True
-    return 'releng' in identity.current.groups or \
-           'cvsadmin' in identity.current.groups or \
-           'security_respons' in identity.current.groups or \
-           identity.current.user_name == update.submitter or \
-           identity.current.user_name in update.get_maintainers()
-
-
 def get_age(date):
     age = datetime.utcnow() - date
     if age.days == 0:
