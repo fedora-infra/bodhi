@@ -356,10 +356,7 @@ def validate_username(request):
 
 
 def validate_update_id(request):
-    """Ensure that a given update id exists.
-
-    This validator also caches the Update instance in request.buildinfo
-    """
+    """Ensure that a given update id exists"""
     update = Update.find_by_id(request)
     if update:
         request.validated['update'] = update

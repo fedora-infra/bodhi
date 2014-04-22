@@ -1,11 +1,10 @@
-from cornice import Service
-from pyramid.exceptions import HTTPNotFound
-from sqlalchemy.sql import or_
-
 import math
 
+from cornice import Service
+from sqlalchemy.sql import or_
+
 from bodhi import log
-from bodhi.models import Update, Build, Bug, CVE, Package, User, Release, Group
+from bodhi.models import Update, Build, Bug, CVE, Package
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -16,12 +15,8 @@ from bodhi.validators import (
     validate_acls,
     validate_builds,
     validate_enums,
-    validate_updates,
-    validate_packages,
     validate_releases,
-    validate_release,
     validate_username,
-    validate_groups,
     validate_update_id,
 )
 
