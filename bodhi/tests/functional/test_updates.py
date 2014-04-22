@@ -1332,7 +1332,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         """Test submitting an invalid request"""
         args = self.get_update()
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'action': 'foo'})
+                                  {'action': 'foo'}, status=400)
         resp = resp.json_body
         eq_(resp['status'], 'error')
         eq_(resp['errors'][0]['description'], 'Invalid action: foo')
