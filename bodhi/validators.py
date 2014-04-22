@@ -356,3 +356,16 @@ def validate_username(request):
     else:
         request.errors.add("querystring", "user",
                            "Invalid user specified: {}".format(username))
+
+
+def validate_update_id(request):
+    """Ensure that a given update id exists.
+
+    This validator also caches the Update instance in request.buildinfo
+    """
+    update = Update.find_by_id(request)
+    if update:
+        request.validated['update'] = update
+    else:
+        request.errors.add('url', 'id', 'Invalid update id')
+        request.errors.status = HTTPNotFound.code
