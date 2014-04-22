@@ -3,7 +3,7 @@ from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound
 
 from . import log
-from .models import User, Group
+from .models import User, Group, Update
 
 #
 # Pyramid ACL factories
@@ -22,6 +22,14 @@ def packagers_allowed_acl(request):
             request.registry.settings['mandatory_packager_groups'].split()] + \
            [DENY_ALL]
 
+
+def package_maintainers_only(request):
+    """An ACL that only allows package maintainers for a given package"""
+    update = Update.find_by_id(request)
+    acl = admin_only_acl(request)
+    for committer in update.get_maintainers():
+        acl.insert(0, (Allow, committer, ALL_PERMISSIONS))
+    return acl
 
 #
 # OpenID views
