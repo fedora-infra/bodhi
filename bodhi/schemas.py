@@ -363,3 +363,10 @@ class ListBuildSchema(PaginatedSchema):
         missing=None,
         preparer=[splitter],
     )
+
+
+class UpdateRequestSchema(colander.MappingSchema):
+    request = colander.SchemaNode(
+        colander.String(),
+        validator=colander.OneOf(UpdateRequest.values()),
+    )
