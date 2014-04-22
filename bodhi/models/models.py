@@ -887,7 +887,10 @@ class Update(Base):
 
     def set_request(self, action, request, pathcheck=True):
         """ Attempt to request an action for this update """
+        log.debug('Attempting to set request %s' % action)
         notes = []
+        if isinstance(action, basestring):
+            action = UpdateRequest.from_string(action)
         if action is self.status:
             log.info("%s already %s" % (self.title, action.description))
             return
