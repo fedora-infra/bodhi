@@ -9,8 +9,10 @@ log = logging.getLogger('bodhi')
 
 
 class BugTracker(object):
+
     def _(self, *args, **kw):
         raise NotImplementedError
+
     getbug = update_details = modified = on_qa = close = update_details = _
 
 
@@ -19,11 +21,10 @@ class FakeBugTracker(BugTracker):
     def getbug(self, bug_id, *args, **kw):
         return Bunch(bug_id=int(bug_id))
 
-    def update_details(self, *args, **kw):
+    def __noop__(self, *args, **kw):
         pass
 
-    def modified(self, *args, **kw):
-        pass
+    comment = update_details = modified = close = on_qa = __noop__
 
 
 class Bugzilla(BugTracker):
