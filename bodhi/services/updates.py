@@ -76,7 +76,7 @@ def get_update_html(request):
 
 
 @update_request.post(permission='edit')
-def update_request(request):
+def set_request(request):
     """
     This currently supports setting a specific
     :class:`bodhi.models.UpdateRequest` action on a given update.
