@@ -392,6 +392,20 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.stable
         eq_(self.obj.get_build_tag(), u'dist-f11-updates')
 
+    def test_bug(self):
+        bug = self.obj.bugs[0]
+        eq_(bug.url, 'https://bugzilla.redhat.com/show_bug.cgi?id=1')
+        bug.testing(self.obj)
+        bug.add_comment(self.obj)
+        bug.add_comment(self.obj, comment='testing')
+        bug.close_bug(self.obj)
+        self.obj.status = UpdateStatus.testing
+        bug.add_comment(self.obj)
+
+    def test_cve(self):
+        cve = self.obj.cves[0]
+        eq_(cve.url, 'http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-0001')
+
 
 class TestUser(ModelTest):
     klass = model.User
