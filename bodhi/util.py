@@ -20,7 +20,6 @@ import os
 import sys
 import arrow
 import socket
-import logging
 import tempfile
 import markdown
 import subprocess
@@ -36,11 +35,9 @@ from datetime import datetime
 from fedora.client import PackageDB
 from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
-from pyramid.threadlocal import get_current_request
 
 from . import log
-from .exceptions import (RPMNotFound, RepodataException,
-                         InvalidUpdateException)
+from .exceptions import RPMNotFound, RepodataException
 
 from bodhi.config import config
 
@@ -302,7 +299,6 @@ def sanity_check_repodata(myurl):
             raise RepodataException('updateinfo.xml.gz contains empty ID tags')
 
 
-
 def age(context, date):
     return arrow.get(date).humanize()
 
@@ -310,6 +306,7 @@ def age(context, date):
 def avatar(context, username, size):
     # context is a mako context object
     request = context['request']
+
     @request.cache.cache_on_arguments()
     def work(username, size):
         https = request.registry.settings.get('prefer_ssl'),
@@ -320,6 +317,7 @@ def avatar(context, username, size):
             size=size,
             default='retro',
         )
+
     return work(username, size)
 
 
@@ -410,6 +408,7 @@ def request2html(context, request):
     }.get(request)
 
     return "<span class='label label-%s'>%s</span>" % (cls, request)
+
 
 def update2html(context, update):
     request = context.get('request')

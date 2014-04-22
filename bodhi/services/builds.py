@@ -77,7 +77,6 @@ def query_builds(request):
         query = query.join(Build.release)
         query = query.filter(or_(*[Release.id==r.id for r in releases]))
 
-
     total = query.count()
 
     page = data.get('page')

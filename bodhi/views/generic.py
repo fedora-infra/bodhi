@@ -111,6 +111,5 @@ def markdowner(request):
 
     We use this for "previews" of comments and update notes.
     """
-
     text = request.params.get('text')
     return dict(html=markdown.markdown(text))
