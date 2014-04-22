@@ -22,6 +22,7 @@ import arrow
 import socket
 import logging
 import tempfile
+import markdown
 import subprocess
 import libravatar
 import collections
@@ -408,3 +409,37 @@ def version(context):
 
 def hostname(context):
     return socket.gethostname()
+
+
+def markup(context, text):
+    return markdown.markdown(text)
+
+
+def status2html(context, status):
+    cls = {
+        'pending': 'primary',
+        'testing': 'warning',
+        'stable': 'success',
+        'unpushed': 'danger',
+        'obsolete': 'default',
+        'processing': 'info',
+    }[status]
+    return "<span class='label label-%s'>%s</span>" % (cls, status)
+
+
+def karma2html(context, karma):
+    cls = {
+        -2: 'danger',
+        -1: 'warning',
+        0: 'info',
+        1: 'primary',
+        2: 'success',
+    }.get(karma)
+
+    if not cls:
+        if karma < -2:
+            cls = 'danger'
+        else:
+            cls = 'success'
+
+    return "<span class='label label-%s'>%i</span>" % (cls, karma)

@@ -43,13 +43,14 @@ def get_user(request):
 
     return user.__json__()
 
+
 @user.get(accept="text/html", renderer="user.html")
 def get_user_html(request):
     # Re-use the JSON from our own service.
     user = get_user(request)
 
     if not user:
-        raise HTTPNotFound("No such user %r" % id)
+        raise HTTPNotFound("No such user")
 
     return dict(user=user)
 

@@ -1,0 +1,102 @@
+<%inherit file="master.html"/>
+<%namespace name="util" module="bodhi.util"/>
+
+<div class="row">
+  <div class="col-md-12">
+    <h1>${update['title']} ${update['type']} update</h1>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <table class="table">
+      <tr>
+        <td>Submitter</td>
+        <td>
+          <a href="${request.route_url('user', name=update['user']['name'])}">
+          <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+          ${update['user']['name']}
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>Builds</td>
+        <td>
+          % for build in update['builds']:
+          <a href="http://koji.fedoraproject.org/koji/search?terms=${build['nvr']}&type=build&match=glob">
+          ${build['nvr']}
+          </a>
+          % endfor
+        </td>
+      </tr>
+
+      % if update['alias']:
+      <tr>
+        <td>Update ID</td>
+        <td><a href="${request.route_url('update', id=update['alias'])}">
+            ${update['alias']}
+        </a></td>
+      </tr>
+      %endif
+      <tr>
+        <td>Release</td>
+        <td><a href="${request.route_url('release', name=update['release']['name'])}">
+            ${update['release']['name']}
+        </a></td>
+      </tr>
+      <tr>
+        <td>Karma</td><td>${util.karma2html(update['karma']) | n}</td>
+      </tr>
+      <tr>
+        <td>Status</td><td>${util.status2html(update['status']) | n}</td>
+      </tr>
+      <tr>
+        <td>Submitted</td>
+        <td>${util.age(update['date_submitted'])},
+          <small>${update['date_submitted']}</small></td>
+      </tr>
+      <tr>
+        <td>Pushed</td>
+        % if update['pushed']:
+        <td>${util.age(update['date_pushed'])},
+          <small>${update['date_pushed']}</small></td>
+        % else:
+        <td>(not yet)</td>
+        % endif
+      </tr>
+    </table>
+  </div>
+  % if update['bugs']:
+  <div class="col-md-4">
+    <h3>Related Bugs <span class="badge">${len(update['bugs'])}</h3>
+    <ul>
+    % for bug in update['bugs']:
+      <li> <a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug['bug_id']}">
+        #${bug['bug_id']}
+      </a> ${bug['title']} </li>
+    % endfor
+    </ul>
+  </div>
+  % endif
+  <div class="col-md-4">
+    <h3>Test Results</h3>
+    TODO -- resultsdb/taskotron stuff goes here some day
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <h3>Comments <span class="badge">${len(update['comments'])}</span></h3>
+    <ul>
+    % for comment in update['comments']:
+    <li>
+      <a href="${request.route_url('user', name=comment['user']['name'])}">
+      <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
+      ${comment['user']['name']}
+      </a>
+      ${util.age(comment['timestamp'])}, <small>${comment['timestamp']}</small>
+      ${util.markup(comment['text']) | n}
+    </li>
+    % endfor
+    </ul>
+  </div>
+</div>

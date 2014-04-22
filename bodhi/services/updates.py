@@ -32,7 +32,7 @@ updates = Service(name='updates', path='/updates/',
                   acl=bodhi.security.packagers_allowed_acl)
 
 
-@update.get()
+@update.get(accept=('application/json', 'text/json'))
 def get_update(request):
     db = request.db
     id = request.matchdict.get('id')
@@ -48,6 +48,17 @@ def get_update(request):
         return
 
     return upd.__json__()
+
+
+@update.get(accept="text/html", renderer="update.html")
+def get_update_html(request):
+    # Re-use the JSON from our own service.
+    update = get_update(request)
+
+    if not update:
+        raise HTTPNotFound("No such update")
+
+    return dict(update=update)
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
