@@ -32,20 +32,23 @@ release = Service(name='release', path='/release/{name}',
                   description='Fedora Releases')
 
 
-@update.get()
-def get_update(request):
-    db = request.db
+def _get_update(request):
+    """A helper method to return an Update from a request"""
     id = request.matchdict.get('id')
-    upd = db.query(Update).filter(or_(
+    return request.db.query(Update).filter(or_(
         Update.id==id,
         Update.title==id,
         Update.alias==id,
     )).first()
 
-    if not upd:
-        request.errors.add('body', 'id', 'No such update.')
-        return
 
+@update.get()
+def get_update(request):
+    """Return a single update from an id, title, or alias"""
+    upd = _get_update(request)
+    if not upd:
+        request.errors.add('body', 'id', 'No such update')
+        return {}
     return upd.__json__()
 
 
