@@ -1583,7 +1583,7 @@ class Bug(Base):
         log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
         bugtracker.comment(self.bug_id, comment)
 
-    def testing(self, bug_id):
+    def testing(self, update):
         """
         Change the status of this bug to ON_QA, and comment on the bug with
         some details on how to test and provide feedback for this update.
