@@ -257,10 +257,7 @@ def new_update(request):
 
     # Set request
     if req:
-        try:
-            up.set_request(req, request)
-        except:
-            log.exception('Problem setting request')
+        up.set_request(req, request)
 
     # Send out email notifications
 
