@@ -1,3 +1,6 @@
+import unittest
+
+from nose.tools import eq_, raises
 from datetime import datetime, timedelta
 from webtest import TestApp
 
@@ -1324,3 +1327,43 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up = DBSession.query(Update).filter_by(title=nvr).one()
         self.assertEquals(up.status, UpdateStatus.pending)
         self.assertEquals(up.request, UpdateRequest.testing)
+
+    def test_invalid_request(self):
+        """Test submitting an invalid request"""
+        args = self.get_update()
+        resp = self.app.post_json('/updates/%s/request' % args['builds'],
+                                  {'action': 'foo'})
+        resp = resp.json_body
+        eq_(resp['status'], 'error')
+        eq_(resp['errors'][0]['description'], 'Invalid action: foo')
+
+    def test_testing_request(self):
+        """Test submitting a valid testing request"""
+        args = self.get_update()
+        args['request'] = None
+        resp = self.app.post_json('/updates/%s/request' % args['builds'], {'action': 'testing'})
+        eq_(resp.json['status'], 'success')
+        eq_(resp.json['update']['request'], 'testing')
+
+    def test_stable_request(self):
+        """Test submitting a stable request"""
+        args = self.get_update()
+        resp = self.app.post_json('/updates/%s/request' % args['builds'], {'action': 'stable'})
+        # This update hasn't met the testing requirements yet
+        eq_(resp.json['update']['request'], 'testing')
+
+    def test_stable_request_after_testing(self):
+        """Test submitting a stable request"""
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = DBSession.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comments[-1].timestamp -= timedelta(days=7)
+        DBSession.flush()
+        eq_(up.days_in_testing, 7)
+        eq_(up.meets_testing_requirements, True)
+        resp = self.app.post_json('/updates/%s/request' % args['builds'], {'action': 'stable'})
+        eq_(resp.json['status'], 'success')
+        eq_(resp.json['update']['request'], 'stable')
