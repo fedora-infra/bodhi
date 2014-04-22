@@ -22,6 +22,7 @@ from bodhi.validators import (
     validate_release,
     validate_username,
     validate_groups,
+    validate_update_id,
 )
 
 
@@ -43,64 +44,38 @@ release = Service(name='release', path='/release/{name}',
                   description='Fedora Releases')
 
 
-def _get_update(request):
-    """A helper method to return an Update from a request"""
-    id = request.matchdict.get('id')
-    return request.db.query(Update).filter(or_(
-        Update.id==id,
-        Update.title==id,
-        Update.alias==id,
-    )).first()
-
-
-@update.get(accept=('application/json', 'text/json'))
+@update.get(accept=('application/json', 'text/json'),
+            validators=(validate_update_id,))
 def get_update(request):
     """Return a single update from an id, title, or alias"""
-    upd = _get_update(request)
-    if not upd:
-        request.errors.add('body', 'id', 'No such update.')
-        request.errors.status = HTTPNotFound.code
-        return
-    return upd.__json__()
+    update = request.validated['update']
+    return update.__json__()
 
 
-@update.get(accept="text/html", renderer="update.html")
+@update.get(accept="text/html", renderer="update.html",
+            validators=(validate_update_id,))
 def get_update_html(request):
-    # Re-use the JSON from our own service.
-    update = get_update(request)
-
-    if not update:
-        raise HTTPNotFound("No such update")
-
+    update = request.validated['update']
     return dict(update=update)
 
 
-@update_request.post(permission='edit')
+@update_request.post(schema=bodhi.schemas.UpdateRequestSchema,
+                     validators=(validate_enums, validate_update_id),
+                     permission='edit')
 def set_request(request):
     """
     This currently supports setting a specific
     :class:`bodhi.models.UpdateRequest` action on a given update.
     """
-    upd = _get_update(request)
-    if not upd:
-        request.errors.add('body', 'id', 'No such update')
-        return {}
-
-    try:
-        data = request.json_body
-    except ValueError:
-        data = None
-    if not data:
-        request.errors.add('body', 'action', 'Invalid JSON: %s' % request.body)
-
-    action = data.get('action')
+    update = request.validated['update']
+    action = request.validated['request']
     if action:
         try:
-            upd.set_request(action, request)
-            return {'status': 'success', 'update': upd.__json__()}
+            update.set_request(action, request)
+            return {'status': 'success', 'update': update.__json__()}
         except:
-            log.exception('Problem setting %r request on %s' % (action, upd.title))
-            request.errors.add('body', 'action', 'Invalid action: %s' % action)
+            log.exception('Problem setting %r request on %s' % (action, update.title))
+            request.errors.add('body', 'request', 'Invalid action: %s' % action)
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
