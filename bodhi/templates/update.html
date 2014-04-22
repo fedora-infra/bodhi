@@ -181,5 +181,38 @@
     </li>
     % endfor
     </ul>
+
+    <form class="form-horizontal" role="form">
+      <div class="form-group">
+        <label for="comment" class="col-sm-1 control-label">Comment</label>
+        <div class="col-sm-5">
+          <textarea class="form-control" id="comment"
+            placeholder="Comment..." required></textarea>
+        </div>
+        <div class="col-sm-5">
+          <span id="preview"><h3><small>Preview</small></h3></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="karma" class="col-sm-1 control-label">Karma</label>
+        <div class="col-sm-5">
+          <label class="radio-inline">
+            <input type="radio" id="karma1" value="-1">Does not work
+          </label>
+          <label class="radio-inline">
+            <input type="radio" id="karma2" value="0">Untested
+          </label>
+          <label class="radio-inline">
+            <input type="radio" id="karma3" value="1">Works for me
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-offset-1 col-sm-5">
+          <button type="submit" class="btn btn-default">Add Comment</button>
+        </div>
+      </div>
+    </form>
+
   </div>
 </div>
