@@ -13,7 +13,7 @@ from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
-from sqlalchemy.orm import scoped_session, sessionmaker, relationship
+from sqlalchemy.orm import scoped_session, sessionmaker, relationship, backref
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.ext.declarative import declarative_base, synonym_for
@@ -1628,7 +1628,7 @@ class User(Base):
 
     # One-to-many relationships
     comments = relationship(Comment, backref='user')
-    updates = relationship(Update, backref='user')
+    updates = relationship(Update, backref=backref('user', lazy='joined'))
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
