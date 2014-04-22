@@ -32,12 +32,6 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
                          acl=bodhi.security.package_maintainers_only_acl)
 
-user = Service(name='user', path='/user/{name}',
-               description='Bodhi users')
-
-release = Service(name='release', path='/release/{name}',
-                  description='Fedora Releases')
-
 
 @update.get(accept=('application/json', 'text/json'),
             validators=(validate_update_id,))
