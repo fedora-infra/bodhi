@@ -40,6 +40,7 @@ class BaseWSGICase(unittest.TestCase):
         'acl_system': 'dummy',
         'buildsystem': 'dummy',
         'important_groups': 'proventesters provenpackager releng',
+        'admin_groups': 'bodhiadmin releng',
         'admin_packager_groups': 'provenpackager',
         'mandatory_packager_groups': 'packager',
         'critpath_pkgs': 'kernel',
