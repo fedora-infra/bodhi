@@ -121,6 +121,7 @@ def authorized_user(update, identity):
     Return whether or not the current user can modify an update.
     """
     # FIXME: port to pyramid auth
+    warnings.warn('authorized_user does not work yet')
     return True
     return 'releng' in identity.current.groups or \
            'cvsadmin' in identity.current.groups or \
