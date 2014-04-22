@@ -442,4 +442,51 @@ def karma2html(context, karma):
         else:
             cls = 'success'
 
-    return "<span class='label label-%s'>%i</span>" % (cls, karma)
+    if karma > 0:
+        karma = "+%i" % karma
+    else:
+        karma = "%i" % karma
+
+    return "<span class='label label-%s'>%s</span>" % (cls, karma)
+
+
+def type2html(context, kind):
+    cls = {
+        'security': 'danger',
+        'bugfix': 'warning',
+        'newpackage': 'primary',
+        'enhancement': 'success',
+    }.get(kind)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, kind)
+
+
+def severity2html(context, severity):
+    cls = {
+        'urgent': 'danger',
+        'high': 'warning',
+        'medium': 'primary',
+        'low': 'success',
+    }.get(severity)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, severity)
+
+
+def suggestion2html(context, suggestion):
+    cls = {
+        'reboot': 'danger',
+        'logout': 'warning',
+    }.get(suggestion)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, suggestion)
+
+
+def request2html(context, request):
+    cls = {
+        'unpush': 'danger',
+        'obsolete': 'warning',
+        'testing': 'primary',
+        'stable': 'success',
+    }.get(request)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, request)
