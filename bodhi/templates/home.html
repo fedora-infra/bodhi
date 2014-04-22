@@ -35,6 +35,12 @@
   <p class="lead">Latest Critical Path Updates in Need of Testing</p>
   <p>Critical path updates are updates for the highest-priority software in Fedora.</p>
   ${updates_table(critpath_updates)}
+  <span class="pull-right">
+    <a href="${request.route_url('updates')}?status=testing">
+      View more testing updates
+      <span class="glyphicon glyphicon-chevron-right"></span>
+    </a>
+  </span>
   </div>
 </div>
 % endif
@@ -45,6 +51,12 @@
   <p class="lead">Latest Security Updates in Need of Testing</p>
   <p>Security updates are... something important or something.</p>
   ${updates_table(security_updates)}
+  <span class="pull-right">
+    <a href="${request.route_url('updates')}?type=security&status=testing">
+      View more security updates
+      <span class="glyphicon glyphicon-chevron-right"></span>
+    </a>
+  </span>
   </div>
 </div>
 %endif

@@ -64,6 +64,12 @@
       % endfor
       </tbody>
     </table>
+    <span class="pull-right">
+      <a href="${request.route_url('updates')}?user=${user['name']}">
+        View more of ${user['name']}'s updates
+        <span class="glyphicon glyphicon-chevron-right"></span>
+      </a>
+    </span>
   </div>
   % endif
 
