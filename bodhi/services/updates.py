@@ -22,6 +22,7 @@ from bodhi.validators import (
 
 
 update = Service(name='update', path='/updates/{id}',
+                 validators=(validate_update_id,),
                  description='Update submission service')
 
 updates = Service(name='updates', path='/updates/',
@@ -33,10 +34,8 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
                          acl=bodhi.security.package_maintainers_only_acl)
 
 
-@update.get(accept=('application/json', 'text/json'),
-            validators=(validate_update_id,))
-@update.get(accept="text/html", renderer="update.html",
-            validators=(validate_update_id,))
+@update.get(accept=('application/json', 'text/json'))
+@update.get(accept="text/html", renderer="update.html")
 def get_update(request):
     """Return a single update from an id, title, or alias"""
     update = request.validated['update']
