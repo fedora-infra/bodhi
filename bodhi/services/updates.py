@@ -51,21 +51,12 @@ def _get_update(request):
 
 @update.get(accept=('application/json', 'text/json'))
 def get_update(request):
-    db = request.db
+    """Return a single update from an id, title, or alias"""
     upd = _get_update(request)
     if not upd:
         request.errors.add('body', 'id', 'No such update.')
         request.errors.status = HTTPNotFound.code
         return
-
-
-@update.get()
-def get_update(request):
-    """Return a single update from an id, title, or alias"""
-    upd = _get_update(request)
-    if not upd:
-        request.errors.add('body', 'id', 'No such update')
-        return {}
     return upd.__json__()
 
 
