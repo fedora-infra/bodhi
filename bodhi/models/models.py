@@ -1574,7 +1574,7 @@ class Bug(Base):
         if update.status is UpdateStatus.testing:
             message += config['testing_bug_msg'] % (
                 ' '.join([build.package.name for build in update.builds]),
-                config.get('base_address') + url(update.get_url()))
+                config.get('base_address') + update.get_url())
         return message
 
     def add_comment(self, update, comment=None):
