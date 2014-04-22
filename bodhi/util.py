@@ -38,6 +38,7 @@ from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
 from pyramid.threadlocal import get_current_request
 
+from . import log
 from .exceptions import (RPMNotFound, RepodataException,
                          InvalidUpdateException)
 
@@ -45,7 +46,6 @@ from bodhi.config import config
 
 
 _ = TranslationStringFactory('bodhi')
-log = logging.getLogger(__name__)
 
 try:
     import rpm
