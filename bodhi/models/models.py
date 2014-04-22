@@ -602,18 +602,18 @@ class Update(Base):
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'))
-    release = relationship('Release')
+    release = relationship('Release', lazy='joined')
 
     # One-to-many relationships
-    comments = relationship('Comment', backref='update',
-                        order_by='Comment.timestamp')
-    builds = relationship('Build', backref='update')
+    comments = relationship('Comment', backref='update', lazy='joined',
+                            order_by='Comment.timestamp')
+    builds = relationship('Build', backref='update', lazy='joined')
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table,
-                        backref='updates')
+                        backref='updates', lazy='joined')
     cves = relationship('CVE', secondary=update_cve_table,
-                        backref='updates')
+                        backref='updates', lazy='joined')
 
     # We may or may not need this, since we can determine the releases from the
     # builds
