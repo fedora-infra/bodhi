@@ -23,7 +23,7 @@ def packagers_allowed_acl(request):
            [DENY_ALL]
 
 
-def package_maintainers_only(request):
+def package_maintainers_only_acl(request):
     """An ACL that only allows package maintainers for a given package"""
     update = Update.find_by_id(request)
     acl = admin_only_acl(request)

@@ -35,7 +35,7 @@ updates = Service(name='updates', path='/updates/',
 
 update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
-                         acl=bodhi.security.package_maintainers_only)
+                         acl=bodhi.security.package_maintainers_only_acl)
 
 user = Service(name='user', path='/user/{name}',
                description='Bodhi users')
