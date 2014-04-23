@@ -36,7 +36,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_get_single_user(self):
         res = self.app.get('/users/bodhi')
-        self.assertEquals(res.json_body['name'], 'bodhi')
+        self.assertEquals(res.json_body['user']['name'], 'bodhi')
 
     def test_get_single_user_page(self):
         res = self.app.get('/users/bodhi', headers=dict(accept='text/html'))

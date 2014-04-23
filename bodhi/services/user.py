@@ -32,6 +32,7 @@ users = Service(name='users', path='/users/',
 
 
 @user.get(accept=("application/json", "text/json"))
+@user.get(accept="text/html", renderer="user.html")
 def get_user(request):
     db = request.db
     id = request.matchdict.get('name')
@@ -70,18 +71,7 @@ def get_user(request):
     result['comments_on'] = [c.__json__() for c in comments_on]
     result['updates'] = [u.__json__() for u in updates]
 
-    return result
-
-
-@user.get(accept="text/html", renderer="user.html")
-def get_user_html(request):
-    # Re-use the JSON from our own service.
-    user = get_user(request)
-
-    if not user:
-        raise HTTPNotFound("No such user")
-
-    return dict(user=user)
+    return dict(user=result)
 
 
 @users.get(schema=bodhi.schemas.ListUserSchema,
