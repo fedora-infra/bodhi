@@ -26,6 +26,16 @@ from bodhi.models import (
 
 class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
+    def test_home_html(self):
+        resp = self.app.get('/', headers={'Accept': 'text/html'})
+        self.assertIn('Fedora Updates System', resp)
+
+    def test_get_single_update_html(self):
+        id = 'bodhi-2.0-1.fc17'
+        resp = self.app.get('/updates/%s' % id, headers={'Accept': 'text/html'})
+        self.assertIn(id, resp)
+        self.assertIn('&copy;', resp)
+
     def test_invalid_build_name(self):
         res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-1.fc17,invalidbuild-1.0'),
                                  status=400)
