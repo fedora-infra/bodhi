@@ -14,8 +14,8 @@ def get_configfile():
             log.error("Cannot find config: %s" % configfile)
             return
     else:
-        for cfg in ('/etc/bodhi/production.ini',
-                    os.path.join(setupdir, 'development.ini')):
+        for cfg in (os.path.join(setupdir, 'development.ini'),
+                    '/etc/bodhi/production.ini'):
             if os.path.exists(cfg):
                 configfile = cfg
                 break
