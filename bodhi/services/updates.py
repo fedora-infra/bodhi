@@ -37,8 +37,7 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
 @update.get(accept="text/html", renderer="update.html")
 def get_update(request):
     """Return a single update from an id, title, or alias"""
-    update = request.validated['update']
-    return dict(update=update.__json__())
+    return dict(update=request.validated['update'].__json__())
 
 
 @update_request.post(schema=bodhi.schemas.UpdateRequestSchema,
