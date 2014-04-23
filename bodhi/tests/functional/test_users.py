@@ -38,6 +38,11 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.get('/users/bodhi')
         self.assertEquals(res.json_body['name'], 'bodhi')
 
+    def test_get_single_user_page(self):
+        res = self.app.get('/users/bodhi', headers=dict(accept='text/html'))
+        self.assertIn('libravatar.org', res)
+        self.assertIn('&copy;', res)
+
     def test_list_users(self):
         res = self.app.get('/users/')
         body = res.json_body
