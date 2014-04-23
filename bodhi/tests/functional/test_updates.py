@@ -1348,6 +1348,14 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp['status'], 'error')
         eq_(resp['errors'][0]['description'], u'"foo" is not one of unpush, testing, obsolete, stable')
 
+        # Now try with None
+        resp = self.app.post_json('/updates/%s/request' % args['builds'],
+                                  {'request': None}, status=400)
+        resp = resp.json_body
+        eq_(resp['status'], 'error')
+        eq_(resp['errors'][0]['name'], 'request')
+        eq_(resp['errors'][0]['description'], 'Required')
+
     def test_testing_request(self):
         """Test submitting a valid testing request"""
         args = self.get_update()
