@@ -46,18 +46,12 @@ def get_update(request):
                      permission='edit')
 def set_request(request):
     """
-    This currently supports setting a specific
-    :class:`bodhi.models.UpdateRequest` action on a given update.
+    Sets a specific :class:`bodhi.models.UpdateRequest` on a given update.
     """
     update = request.validated['update']
     action = request.validated['request']
-    if action:
-        try:
-            update.set_request(action, request)
-            return {'status': 'success', 'update': update.__json__()}
-        except:
-            log.exception('Problem setting %r request on %s' % (action, update.title))
-            request.errors.add('body', 'request', 'Invalid action: %s' % action)
+    update.set_request(action, request)
+    return dict(update=update.__json__())
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,

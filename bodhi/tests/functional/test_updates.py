@@ -7,6 +7,7 @@ from webtest import TestApp
 import bodhi.tests.functional.base
 
 from bodhi import main
+from bodhi.config import config
 from bodhi.models import (
     Base,
     Bug,
@@ -1353,20 +1354,19 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         args['request'] = None
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
                                   {'request': 'testing'})
-        eq_(resp.json['status'], 'success')
         eq_(resp.json['update']['request'], 'testing')
 
-    def test_stable_request(self):
-        """Test submitting a stable request for an update that has yet to meet
-        the stable requirements"""
+    def test_invalid_stable_request(self):
+        """Test submitting a stable request for an update that has yet to meet the stable requirements"""
         args = self.get_update()
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'request': 'stable'})
-        eq_(resp.json['update']['request'], 'testing')
+                                  {'request': 'stable'}, status=400)
+        eq_(resp.json['status'], 'error')
+        eq_(resp.json['errors'][0]['description'],
+            config.get('not_yet_tested_msg'))
 
     def test_stable_request_after_testing(self):
-        """Test submitting a stable request to an update that has met the
-        minimum amount of time in testing"""
+        """Test submitting a stable request to an update that has met the minimum amount of time in testing"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
         up = DBSession.query(Update).filter_by(title=resp.json['title']).one()
@@ -1379,5 +1379,4 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(up.meets_testing_requirements, True)
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
                                   {'request': 'stable'})
-        eq_(resp.json['status'], 'success')
         eq_(resp.json['update']['request'], 'stable')

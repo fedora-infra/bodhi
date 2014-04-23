@@ -2,6 +2,7 @@
 """Test suite for the Bodhi models"""
 
 import time
+import cornice
 
 from nose.tools import eq_, raises
 from datetime import datetime, timedelta
@@ -12,7 +13,6 @@ from bodhi import models as model, buildsys
 from bodhi.models import (UpdateStatus, UpdateType, UpdateRequest,
                           UpdateSeverity, UpdateSuggestion)
 from bodhi.tests.models import ModelTest
-from bodhi.exceptions import InvalidRequest
 from bodhi.config import config
 
 
@@ -353,14 +353,17 @@ class TestUpdate(ModelTest):
         minimum testing requirements.
         """
         req = DummyRequest()
+        req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
         eq_(self.obj.status, UpdateStatus.pending)
         self.obj.set_request(UpdateRequest.stable, req)
         eq_(self.obj.request, UpdateRequest.testing)
         eq_(self.obj.status, UpdateStatus.pending)
+        eq_(req.errors[0]['description'], config.get('not_yet_tested_msg'))
 
     def test_set_request_stable_after_week_in_testing(self):
         req = DummyRequest()
+        req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
         req.user = model.User(name='bob')
 
@@ -375,12 +378,15 @@ class TestUpdate(ModelTest):
 
         self.obj.set_request(UpdateRequest.stable, req)
         eq_(self.obj.request, UpdateRequest.stable)
+        eq_(len(req.errors), 0)
 
     def test_set_request_obsolete(self):
         req = DummyRequest()
+        req.errors = cornice.Errors()
         eq_(self.obj.status, UpdateStatus.pending)
         self.obj.set_request(UpdateRequest.obsolete, req)
         eq_(self.obj.status, UpdateStatus.obsolete)
+        eq_(len(req.errors), 0)
 
     def test_request_complete(self):
         self.obj.request = None

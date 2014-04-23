@@ -29,7 +29,7 @@ from bodhi.util import (
 
 from bodhi.util import get_age_in_days
 from bodhi.models.enum import DeclEnum, EnumSymbol
-from bodhi.exceptions import InvalidRequest, RPMNotFound
+from bodhi.exceptions import RPMNotFound
 from bodhi.config import config
 from bodhi.bugs import bugtracker
 
@@ -927,17 +927,17 @@ class Update(Base):
             koji = request.koji
             for build in self.builds:
                 mybuild = koji.getBuild(build.nvr)
-                log.debug('stable_tag = %r' % self.release.stable_tag)
                 kojiBuilds = koji.listTagged(self.release.stable_tag,
                                              package=build.package.name,
                                              latest=True)
                 for oldBuild in kojiBuilds:
                     if rpm.labelCompare(build_evr(mybuild),
                                         build_evr(oldBuild)) < 0:
-                        raise InvalidRequest("Broken update path: %s is "
-                                             "already released, and is newer "
-                                             "than %s" % (oldBuild['nvr'],
-                                                          mybuild['nvr']))
+                        request.errors.add('body', 'build',
+                                           'Broken update path: %s is already '\
+                                           'released, and is newer than %s' %
+                                           (oldBuild['nvr'], mybuild['nvr']))
+                        return
 
         # Disable pushing critical path updates for pending releases directly to stable
         if action is UpdateRequest.stable and self.critpath:
@@ -958,7 +958,7 @@ class Update(Base):
                                     config.get('critpath.stable_after_days_without_negative_karma')))
                     if self.status is UpdateStatus.testing:
                         self.request = None
-                        flash_log('. '.join(notes))
+                        request.error.add('body', 'update', '. '.join(notes))
                         return
                     else:
                         log.info('Forcing critical path update into testing')
@@ -981,10 +981,10 @@ class Update(Base):
                         flash_notes = config.get('not_yet_tested_msg')
                         if self.status is UpdateStatus.testing:
                             self.request = None
-                            flash_log(flash_notes)
+                            request.errors.add('body', 'update', flash_notes)
                             return
                         elif self.request is UpdateRequest.testing:
-                            flash_log(flash_notes)
+                            request.errors.add('body', 'update', flash_notes)
                             return
                         else:
                             action = UpdateRequest.testing
