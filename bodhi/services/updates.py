@@ -26,8 +26,7 @@ update = Service(name='update', path='/updates/{id}',
                  description='Update submission service')
 
 updates = Service(name='updates', path='/updates/',
-                  description='Update submission service',
-                  acl=bodhi.security.packagers_allowed_acl)
+                  description='Update submission service')
 
 update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
