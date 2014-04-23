@@ -44,9 +44,7 @@ def get_update(request):
                      validators=(validate_enums, validate_update_id),
                      permission='edit')
 def set_request(request):
-    """
-    Sets a specific :class:`bodhi.models.UpdateRequest` on a given update.
-    """
+    """Sets a specific :class:`bodhi.models.UpdateRequest` on a given update"""
     update = request.validated['update']
     action = request.validated['request']
     update.set_request(action, request)
