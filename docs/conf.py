@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'bodhi'
-copyright = u'2013, Luke Macken'
+copyright = u'2007-2014, Red Hat, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

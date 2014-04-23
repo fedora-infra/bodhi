@@ -8,9 +8,10 @@ Welcome to bodhi's documentation!
 
 Contents:
 
-.. cornice-autodoc::
-   :modules: bodhi.views
-   :service: updates
+.. toctree::
+   :maxdepth: 2
+
+   services
 
 
 Indices and tables
