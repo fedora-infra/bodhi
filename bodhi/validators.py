@@ -357,7 +357,7 @@ def validate_username(request):
 
 def validate_update_id(request):
     """Ensure that a given update id exists"""
-    update = Update.find_by_id(request)
+    update = Update.get(request.matchdict['id'], request.db)
     if update:
         request.validated['update'] = update
     else:

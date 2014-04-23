@@ -623,15 +623,12 @@ class Update(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
 
     @classmethod
-    def find_by_id(cls, request):
-        db = request.db
-        id = request.matchdict['id']
-        if id:
-            return db.query(cls).filter(or_(
-                Update.id==id,
-                Update.title==id,
-                Update.alias==id,
-            )).first()
+    def get(cls, id, db):
+        return db.query(cls).filter(or_(
+            Update.id==id,
+            Update.title==id,
+            Update.alias==id,
+        )).first()
 
     @classmethod
     def new(cls, request, data):
