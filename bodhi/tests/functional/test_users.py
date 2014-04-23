@@ -121,8 +121,8 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_users_by_nonexistant_update(self):
         res = self.app.get('/users/', {"updates": 'carbunkle'}, status=400)
         body = res.json_body
-        self.assertEquals(res.json_body['errors'][0]['name'], 'updates')
-        self.assertEquals(res.json_body['errors'][0]['description'],
+        self.assertEquals(body['errors'][0]['name'], 'updates')
+        self.assertEquals(body['errors'][0]['description'],
                           'Invalid updates specified: carbunkle')
 
     def test_list_users_by_package_name(self):
@@ -134,6 +134,6 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_users_by_nonexistant_package(self):
         res = self.app.get('/users/', {"packages": 'carbunkle'}, status=400)
         body = res.json_body
-        self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
-        self.assertEquals(res.json_body['errors'][0]['description'],
+        self.assertEquals(body['errors'][0]['name'], 'packages')
+        self.assertEquals(body['errors'][0]['description'],
                           'Invalid packages specified: carbunkle')
