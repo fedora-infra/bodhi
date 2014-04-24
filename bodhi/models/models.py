@@ -421,7 +421,7 @@ class Package(Base):
             if not case:
                 case = TestCase(name=test, package=self)
                 db.add(case)
-
+                db.flush()
 
     def __str__(self):
         x = header(self.name)
