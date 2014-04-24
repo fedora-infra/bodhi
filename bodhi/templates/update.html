@@ -152,10 +152,22 @@
     </ul>
   </div>
   % endif
+
+  % if update.test_cases:
   <div class="col-md-4">
-    <h3>Test Results</h3>
-    TODO -- resultsdb/taskotron stuff goes here some day
+    <h3>Test Cases <span class="badge">${len(update.test_cases)}</span></h3>
+    <ul>
+    % for test in update.test_cases:
+      <li>
+        <a href="${request.registry.settings['test_case_base_url'] + test}">${test.replace('QA:Testcase ', '')}</a>
+      </li>
+    % endfor
+    </ul>
   </div>
+ % endif
+
+## TODO: resultsdb/taskotron stuff goes here some day
+
 </div>
 
 % if update.notes:
