@@ -586,7 +586,7 @@ class Update(Base):
     qa_approved = Column(Boolean, default=False)
 
     # Timestamps
-    date_submitted = Column(DateTime, default=datetime.now)
+    date_submitted = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime)
     date_approved = Column(DateTime)
     date_pushed = Column(DateTime)
