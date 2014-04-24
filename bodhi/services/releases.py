@@ -1,11 +1,11 @@
+import math
+
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy.sql import or_
 
-import math
-
 from bodhi import log
-from bodhi.models import Update, Build, Bug, CVE, Package, User, Release, Group
+from bodhi.models import Update, Build, Package, Release
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -31,24 +31,19 @@ releases = Service(name='releases', path='/releases/',
                    description='Fedora Releases')
 
 
-@release.get()
+@release.get(renderer='json')
 def get_release(request):
     id = request.matchdict.get('name')
     release = Release.get(id, request.db)
     if not release:
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code
-        return
-
-    return release.__json__()
+    return release
 
 
-@releases.get(schema=bodhi.schemas.ListReleaseSchema,
-              validators=(
-                  validate_release,
-                  validate_updates,
-                  validate_packages,
-              ))
+@releases.get(schema=bodhi.schemas.ListReleaseSchema, renderer='json',
+              validators=(validate_release, validate_updates,
+                          validate_packages))
 def query_releases(request):
     db = request.db
     data = request.validated
@@ -81,4 +76,4 @@ def query_releases(request):
         pages = int(math.ceil(total / float(rows_per_page)))
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(releases=[r.__json__() for r in query])
+    return dict(releases=query.all())
