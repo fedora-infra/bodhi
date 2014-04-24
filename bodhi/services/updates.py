@@ -33,7 +33,7 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
                          acl=bodhi.security.package_maintainers_only_acl)
 
 
-@update.get(accept=('application/json', 'text/json'))
+@update.get(accept=('application/json', 'text/json'), renderer='json')
 @update.get(accept="text/html", renderer="update.html")
 def get_update(request):
     """Return a single update from an id, title, or alias"""
@@ -42,7 +42,7 @@ def get_update(request):
 
 @update_request.post(schema=bodhi.schemas.UpdateRequestSchema,
                      validators=(validate_enums, validate_update_id),
-                     permission='edit')
+                     permission='edit', renderer='json')
 def set_request(request):
     """Sets a specific :class:`bodhi.models.UpdateRequest` on a given update"""
     update = request.validated['update']
