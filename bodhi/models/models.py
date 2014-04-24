@@ -50,10 +50,10 @@ class BodhiBase(object):
     def __repr__(self):
         return '<{} {}>'.format(self.__class__.__name__, self.__json__())
 
-    def __json__(self):
-        return self._to_json(self)
+    def __json__(self, request=None):
+        return self._to_json(self, request=request)
 
-    def _to_json(self, obj, seen=None):
+    def _to_json(self, obj, seen=None, request=None):
         if not seen:
             seen = []
         if not obj:
@@ -85,7 +85,7 @@ class BodhiBase(object):
         if hasattr(relation, '__iter__'):
             return [self._expand(obj, item, seen) for item in relation]
         if type(relation) not in seen:
-            return self._to_json(relation, seen + [type(obj)])
+            return self._to_json(relation, seen=seen + [type(obj)])
         else:
             return relation.id
 
