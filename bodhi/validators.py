@@ -1,5 +1,5 @@
-
 from sqlalchemy.sql import or_
+from pyramid.exceptions import HTTPNotFound
 
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
