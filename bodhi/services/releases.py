@@ -34,13 +34,7 @@ releases = Service(name='releases', path='/releases/',
 @release.get()
 def get_release(request):
     id = request.matchdict.get('name')
-    release = request.db.query(Release).filter(or_(
-        Release.id == id,
-        Release.name == id,
-        Release.long_name == id,
-        Release.dist_tag == id,
-    )).first()
-
+    release = Release.get(id, request.db)
     if not release:
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code

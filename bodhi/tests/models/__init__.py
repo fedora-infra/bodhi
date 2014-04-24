@@ -51,3 +51,7 @@ class ModelTest(object):
     def test_json(self):
         """ Ensure our models can return valid JSON """
         assert json.dumps(self.obj.__json__())
+
+    def test_get(self):
+        for col in self.obj.__get_by__:
+            eq_(self.klass.get(getattr(self.obj, col), DBSession), self.obj)

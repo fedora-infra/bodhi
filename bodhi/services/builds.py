@@ -31,25 +31,20 @@ builds = Service(name='builds', path='/builds/',
                  description='Koji builds')
 
 
-@build.get()
+@build.get(renderer='json')
 def get_build(request):
     nvr = request.matchdict.get('nvr')
-    build = request.db.query(Build).filter(Build.nvr==nvr).first()
-
+    build = Build.get(nvr, request.db)
     if not build:
         request.errors.add('body', 'nvr', 'No such build')
         request.errors.status = HTTPNotFound.code
         return
+    return build
 
-    return build.__json__()
 
-
-@builds.get(schema=bodhi.schemas.ListBuildSchema,
-             validators=(
-                 validate_releases,
-                 validate_updates,
-                 validate_packages,
-             ))
+@builds.get(schema=bodhi.schemas.ListBuildSchema, renderer='json',
+            validators=(validate_releases, validate_updates,
+                        validate_packages))
 def query_builds(request):
     db = request.db
     data = request.validated
@@ -87,4 +82,4 @@ def query_builds(request):
         pages = int(math.ceil(total / float(rows_per_page)))
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(builds=[b.__json__() for b in query],)
+    return dict(builds=query.all())
