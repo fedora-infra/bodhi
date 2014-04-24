@@ -31,7 +31,7 @@ users = Service(name='users', path='/users/',
                  description='Bodhi users')
 
 
-@user.get(accept=("application/json", "text/json"))
+@user.get(accept=("application/json", "text/json"), renderer="json")
 @user.get(accept="text/html", renderer="user.html")
 def get_user(request):
     db = request.db
@@ -53,7 +53,7 @@ def get_user(request):
         .filter(or_(*[User.name == name for name in blacklist]))
     blacklist = [u.id for u in blacklist]
 
-    query = request.db.query(Comment)
+    query = db.query(Comment)
     query = query.filter(and_(*[Comment.user_id != i for i in blacklist]))
 
     # Then, make a couple different queries
@@ -74,7 +74,7 @@ def get_user(request):
     return dict(user=result)
 
 
-@users.get(schema=bodhi.schemas.ListUserSchema,
+@users.get(schema=bodhi.schemas.ListUserSchema, renderer='json',
            validators=(validate_groups, validate_updates, validate_packages))
 def query_users(request):
     db = request.db
@@ -113,4 +113,4 @@ def query_users(request):
         pages = int(math.ceil(total / float(rows_per_page)))
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(users=[u.__json__() for u in query])
+    return dict(users=query.all())
