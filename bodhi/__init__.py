@@ -70,6 +70,21 @@ def get_buildinfo(request):
     """
     return defaultdict(dict)
 
+
+#
+# Cornice filters
+#
+
+def exception_filter(response, request):
+    """Log exceptions that get thrown up to cornice"""
+    if isinstance(response, Exception):
+        log.exception('Unhandled exception raised')
+    return response
+
+from cornice.validators import DEFAULT_FILTERS
+DEFAULT_FILTERS.insert(0, exception_filter)
+
+
 #
 # Bodhi initialization
 #
