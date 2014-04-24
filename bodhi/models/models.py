@@ -1518,6 +1518,14 @@ class Update(Base):
                     break
         return approvals
 
+    @property
+    def test_cases(self):
+        tests = set()
+        for build in self.builds:
+            for test in build.package.test_cases:
+                tests.add(test.name)
+        return list(tests)
+
 
 class Comment(Base):
     __tablename__ = 'comments'
