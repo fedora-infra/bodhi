@@ -334,6 +334,7 @@ def markup(context, text):
 
 
 def status2html(context, status):
+    status = unicode(status)
     cls = {
         'pending': 'primary',
         'testing': 'warning',
@@ -369,6 +370,7 @@ def karma2html(context, karma):
 
 
 def type2html(context, kind):
+    kind = unicode(kind)
     cls = {
         'security': 'danger',
         'bugfix': 'warning',
@@ -380,6 +382,7 @@ def type2html(context, kind):
 
 
 def severity2html(context, severity):
+    severity = unicode(severity)
     cls = {
         'urgent': 'danger',
         'high': 'warning',
@@ -391,6 +394,7 @@ def severity2html(context, severity):
 
 
 def suggestion2html(context, suggestion):
+    suggestion = unicode(suggestion)
     cls = {
         'reboot': 'danger',
         'logout': 'warning',
@@ -400,6 +404,7 @@ def suggestion2html(context, suggestion):
 
 
 def request2html(context, request):
+    request = unicode(request)
     cls = {
         'unpush': 'danger',
         'obsolete': 'warning',
