@@ -38,11 +38,7 @@ from pyramid.i18n import TranslationStringFactory
 
 from . import log
 from .exceptions import RPMNotFound, RepodataException
-
-from bodhi.config import config
-
-
-_ = TranslationStringFactory('bodhi')
+from .config import config
 
 try:
     import rpm
@@ -54,6 +50,9 @@ try:
     import yum.misc
 except ImportError:
     log.warning("Could not import 'yum'")
+
+
+_ = TranslationStringFactory('bodhi')
 
 ## Display a given message as a heading
 header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
