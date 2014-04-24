@@ -52,6 +52,7 @@ def set_request(request):
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
+             accept=('application/json', 'text/json'),
              validators=(
                  validate_releases,
                  validate_enums,
