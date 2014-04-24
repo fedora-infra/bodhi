@@ -52,7 +52,7 @@ def set_request(request):
 
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
-             accept=('application/json', 'text/json'),
+             accept=('application/json', 'text/json'), renderer='json',
              validators=(
                  validate_releases,
                  validate_enums,
@@ -168,11 +168,11 @@ def query_updates(request):
         pages = int(math.ceil(total / float(rows_per_page)))
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(updates=[u.__json__() for u in query],)
+    return dict(updates=query.all())
 
 
 @updates.post(schema=bodhi.schemas.SaveUpdateSchema,
-              permission='create',
+              permission='create', renderer='json',
               validators=(
                   validate_nvrs, validate_version, validate_builds,
                   validate_uniqueness, validate_tags, validate_acls,
@@ -210,4 +210,4 @@ def new_update(request):
 
     # Send out email notifications
 
-    return up.__json__()
+    return up
