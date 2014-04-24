@@ -1624,7 +1624,7 @@ class User(Base):
     name = Column(Unicode(64), unique=True, nullable=False)
 
     # One-to-many relationships
-    comments = relationship(Comment, backref='user')
+    comments = relationship(Comment, backref=backref('user', lazy='joined'))
     updates = relationship(Update, backref=backref('user', lazy='joined'))
 
     # Many-to-many relationships
