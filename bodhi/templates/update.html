@@ -139,9 +139,10 @@
 
     </table>
   </div>
+
   % if update.bugs:
   <div class="col-md-4">
-    <h3>Related Bugs <span class="badge">${len(update.bugs)}</h3>
+    <h3>Related Bugs <span class="badge">${len(update.bugs)}</span></h3>
     <ul>
     % for bug in update.bugs:
       <li> <a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">
