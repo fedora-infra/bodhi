@@ -165,6 +165,8 @@ def query_updates(request):
     if user is not None:
         query = query.filter(Update.user==user)
 
+    query = query.order_by(Update.date_submitted.desc())
+
     total = query.count()
 
     page = data.get('page')
