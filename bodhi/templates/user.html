@@ -20,7 +20,7 @@
 
   % if user['comments_on']:
   <div class="col-md-7">
-    <h3>Comments on ${user['name']}'s updates</h3>
+    <h3>Comments on ${user['name']}'s Updates</h3>
     <ul>
     % for comment in user['comments_on']:
       <li>
@@ -34,14 +34,20 @@
       </li>
     % endfor
     </ul>
+  <span class="pull-right">
+    <a href="${request.route_url('comments')}?update_owner=${user['name']}">
+      View more comments on ${user['name']}'s updates
+      <span class="glyphicon glyphicon-chevron-right"></span>
+    </a>
+  </span>
   </div>
   % endif
-
 </div>
 
 <div class="row">
   % if user['updates']:
   <div class="col-md-5 col-md-offset-1">
+    <h3>${user['name']}'s Updates</h3>
     <table class="table">
       <thead><tr>
           <th>Update</th>
@@ -88,8 +94,12 @@
       </li>
     % endfor
     </ul>
+    <span class="pull-right">
+      <a href="${request.route_url('comments')}?user=${user['name']}">
+        View more comments by ${user['name']}
+        <span class="glyphicon glyphicon-chevron-right"></span>
+      </a>
+    </span>
   </div>
   % endif
-
-
 </div>

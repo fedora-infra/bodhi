@@ -185,10 +185,12 @@
     <ul>
     % for comment in update.comments:
     <li>
+      % if comment.user:
       <a href="${request.route_url('user', name=comment.user.name)}">
       <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
       ${comment.user.name}
       </a>
+      % endif
       ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
       ${util.markup(comment.text) | n}
     </li>
