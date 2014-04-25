@@ -76,10 +76,7 @@ def query_builds(request):
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')
-    if rows_per_page is None:
-        pages = 1
-    else:
-        pages = int(math.ceil(total / float(rows_per_page)))
-        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+    pages = int(math.ceil(total / float(rows_per_page)))
+    query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return dict(builds=query.all())
