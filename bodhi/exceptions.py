@@ -28,33 +28,3 @@ class RepodataException(Exception):
 class RPMNotFound(BodhiException):
     pass
 
-
-class RepositoryLocked(BodhiException):
-    pass
-
-
-class RepositoryNotFound(BodhiException):
-    pass
-
-
-class InvalidUpdateException(BodhiException):
-    pass
-
-
-try:
-    from sqlobject.dberrors import DuplicateEntryError
-except ImportError:
-    # Handle pre-DuplicateEntryError versions of SQLObject
-    class DuplicateEntryError(Exception):
-        pass
-
-try:
-    from psycopg2 import IntegrityError
-except ImportError:
-    try:
-        from pysqlite2.dbapi2 import IntegrityError
-    except:
-        try:
-            from sqlite3 import IntegrityError
-        except ImportError:
-            print("Unable to import either psycopg2, pysqlite2, or sqlite3")
