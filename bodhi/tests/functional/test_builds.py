@@ -92,3 +92,17 @@ class TestBuildsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['name'], 'releases')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid releases specified: WinXP')
+
+    def test_list_builds_by_nvr(self):
+        res = self.app.get('/builds/', {"nvr": "bodhi-2.0-1.fc17"})
+        up = res.json_body['builds'][0]
+        self.assertEquals(up['nvr'], u'bodhi-2.0-1.fc17')
+
+    def test_list_builds_by_update_title(self):
+        res = self.app.get('/builds/', {"updates": ["bodhi-2.0-1.fc17"]})
+        up = res.json_body['builds'][0]
+        self.assertEquals(up['nvr'], u'bodhi-2.0-1.fc17')
+
+    def test_list_builds_no_rows_per_page(self):
+        res = self.app.get('/builds/', {"rows_per_page": None}, status=400)
+        self.assertEquals(res.json_body['status'], 'error')
