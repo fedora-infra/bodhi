@@ -4,8 +4,10 @@ Random functions that don't fit elsewhere
 
 import os
 import sys
+import copy
 import arrow
 import socket
+import urllib
 import tempfile
 import markdown
 import subprocess
@@ -414,3 +416,22 @@ def update2html(context, update):
     if len(title) > max_length:
         title = title[:max_length] + "..."
     return link(url, title)
+
+
+def pages_list(context, page, pages):
+    pager_margin = 10
+    half = pager_margin / 2
+
+    if page <= half:
+        return range(1, pager_margin)
+    elif page > pages - half:
+        return range(pages - pager_margin + 2, pages + 1)
+
+    return range(page - half + 1, page + half)
+
+
+def page_url(context, page):
+    request = context.get('request')
+    params = dict(request.params)
+    params['page'] = page
+    return request.path_url + "?" + urllib.urlencode(params)
