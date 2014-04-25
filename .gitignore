@@ -12,3 +12,4 @@ bodhi-pickledb*
 bodhi.db
 .coverage
 dogpile-cache.dbm*
+html-docs

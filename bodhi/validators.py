@@ -355,6 +355,22 @@ def validate_username(request):
                            "Invalid user specified: {}".format(username))
 
 
+def validate_update_owner(request):
+    """Make sure this user exists"""
+    username = request.validated.get("update_owner")
+    if username is None:
+        return
+
+    db = request.db
+    user = db.query(User).filter_by(name=username).first()
+
+    if user:
+        request.validated["update_owner"] = user
+    else:
+        request.errors.add("querystring", "update_owner",
+                           "Invalid user specified: {}".format(username))
+
+
 def validate_update_id(request):
     """Ensure that a given update id exists"""
     update = Update.get(request.matchdict['id'], request.db)
