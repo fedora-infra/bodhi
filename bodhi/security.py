@@ -16,11 +16,11 @@ def admin_only_acl(request):
             [DENY_ALL]
 
 
-def packagers_allowed_acl(request):
-    """Generate an ACL for update submission"""
-    return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
-            request.registry.settings['mandatory_packager_groups'].split()] + \
-           [DENY_ALL]
+#def packagers_allowed_acl(request):
+#    """Generate an ACL for update submission"""
+#    return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
+#            request.registry.settings['mandatory_packager_groups'].split()] + \
+#           [DENY_ALL]
 
 
 def package_maintainers_only_acl(request):

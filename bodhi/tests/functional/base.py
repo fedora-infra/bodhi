@@ -49,6 +49,7 @@ class BaseWSGICase(unittest.TestCase):
         'stats_blacklist': 'bodhi autoqa',
         'system_users': 'bodhi autoqa',
         'max_update_length_for_ui': '70',
+        'openid.provider': 'https://id.stg.fedoraproject.org',
     }
 
     def setUp(self):
