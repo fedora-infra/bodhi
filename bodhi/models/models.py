@@ -557,9 +557,6 @@ class Build(Base):
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
 
-    def __repr__(self):
-        return "<Build %s>" % self.nvr
-
 
 class Update(Base):
     __tablename__ = 'updates'
