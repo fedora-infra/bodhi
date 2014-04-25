@@ -1,5 +1,4 @@
 <%inherit file="master.html"/>
-<%namespace name="util" module="bodhi.util"/>
 
 <div class="row">
   <div class="col-md-3 col-md-offset-1">
@@ -9,11 +8,11 @@
       <input type="hidden" name="openid_identifier"
           value="http://${user['name']}.id.fedoraproject.org/"/>
       <input type="image" class="img-circle centered"
-          src="${util.avatar(user['name'], size=256)}"
+          src="${self.util.avatar(user['name'], size=256)}"
           style="outline: none;" alt="Your avatar"/>
     </form>
     % else:
-    <img class="centered img-circle" src="${util.avatar(user['name'], size=256)}"/>
+    <img class="centered img-circle" src="${self.util.avatar(user['name'], size=256)}"/>
     % endif
     <h2 class="centered">${user['name']}</h2>
   </div>
@@ -25,12 +24,12 @@
     % for comment in user['comments_on']:
       <li>
         <a href="${request.route_url('user', name=comment['user']['name'])}">
-        <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
+        <img class="img-circle" src="${self.util.avatar(comment['user']['name'], size=24)}"/>
         ${comment['user']['name']}
         </a> commented
-        ${util.age(comment['timestamp'])} on
-        ${util.update2html(comment['update']) | n}
-        ${util.markup(comment['text']) | n}
+        ${self.util.age(comment['timestamp'])} on
+        ${self.util.update2html(comment['update']) | n}
+        ${self.util.markup(comment['text']) | n}
       </li>
     % endfor
     </ul>
@@ -58,8 +57,8 @@
       <tbody>
       % for update in user['updates']:
       <tr>
-        <td> ${util.update2html(update) | n} </td>
-        <td>${util.age(update['date_submitted'])}</td>
+        <td> ${self.util.update2html(update) | n} </td>
+        <td>${self.util.age(update['date_submitted'])}</td>
         <td>
           <a href="${request.route_url('release', name=update['release']['name'])}">
             ${update['release']['name']}
@@ -85,12 +84,12 @@
     <ul>
     % for comment in user['comments_by']:
       <li> <a href="${request.route_url('user', name=comment['user']['name'])}">
-        <img class="img-circle" src="${util.avatar(comment['user']['name'], size=24)}"/>
+        <img class="img-circle" src="${self.util.avatar(comment['user']['name'], size=24)}"/>
         ${comment['user']['name']}
         </a> commented
-        ${util.age(comment['timestamp'])} on
-        ${util.update2html(comment['update']) | n}
-        ${util.markup(comment['text']) | n}
+        ${self.util.age(comment['timestamp'])} on
+        ${self.util.update2html(comment['update']) | n}
+        ${self.util.markup(comment['text']) | n}
       </li>
     % endfor
     </ul>

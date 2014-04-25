@@ -1,5 +1,4 @@
 <%inherit file="master.html"/>
-<%namespace name="util" module="bodhi.util"/>
 
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
@@ -22,16 +21,17 @@
     <li>
       % if comment.user:
       <a href="${request.route_url('user', name=comment.user.name)}">
-      <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
+      <img class="img-circle" src="${self.util.avatar(comment.user.name, size=24)}"/>
       ${comment.user.name}
       </a>
       % endif
       commented
-      ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
-      on ${util.update2html(comment.update) | n}
-      ${util.markup(comment.text) | n}
+      ${self.util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
+      on ${self.util.update2html(comment.update) | n}
+      ${self.util.markup(comment.text) | n}
     </li>
     % endfor
     </ul>
+    ${self.pager.render(page, pages)}
   </div>
 </div>

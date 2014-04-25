@@ -1,5 +1,4 @@
 <%inherit file="master.html"/>
-<%namespace name="util" module="bodhi.util"/>
 
 <div class="row">
   <div class="col-md-12">
@@ -14,7 +13,7 @@
         <td>Submitter</td>
         <td>
           <a href="${request.route_url('user', name=update.user.name)}">
-          <img class="img-circle" src="${util.avatar(update.user.name, size=24)}"/>
+          <img class="img-circle" src="${self.util.avatar(update.user.name, size=24)}"/>
           ${update.user.name}
           </a>
         </td>
@@ -45,7 +44,7 @@
         </a></td>
       </tr>
       <tr>
-        <td>Karma</td><td>${util.karma2html(update.karma) | n}
+        <td>Karma</td><td>${self.util.karma2html(update.karma) | n}
           % if update.stable_karma:
           <small>stable threshold: ${update.stable_karma}</small>
           % endif
@@ -57,42 +56,42 @@
 
       % if update.type:
       <tr>
-        <td>Type</td><td>${util.type2html(update.type) | n}</td>
+        <td>Type</td><td>${self.util.type2html(update.type) | n}</td>
       </tr>
       % endif
 
       % if update.severity != 'unspecified':
       <tr>
-        <td>Severity</td><td>${util.severity2html(update.severity) | n}</td>
+        <td>Severity</td><td>${self.util.severity2html(update.severity) | n}</td>
       </tr>
       % endif
 
       % if update.request:
       <tr>
-        <td>Request</td><td>${util.request2html(update.request) | n}</td>
+        <td>Request</td><td>${self.util.request2html(update.request) | n}</td>
       </tr>
       % endif
 
       <tr>
-        <td>Status</td><td>${util.status2html(update.status) | n}</td>
+        <td>Status</td><td>${self.util.status2html(update.status) | n}</td>
       </tr>
 
       % if update.suggest != 'unspecified':
       <tr>
-        <td>Suggestion</td><td>${util.suggestion2html(update.suggest) | n}</td>
+        <td>Suggestion</td><td>${self.util.suggestion2html(update.suggest) | n}</td>
       </tr>
       % endif
 
       <tr>
         <td>Submitted</td>
-        <td>${util.age(update.date_submitted)},
+        <td>${self.util.age(update.date_submitted)},
           <small>${update.date_submitted}</small></td>
       </tr>
 
       % if update.pushed:
       <tr>
         <td>Pushed</td>
-        <td>${util.age(update.date_pushed)},
+        <td>${self.util.age(update.date_pushed)},
           <small>${update.date_pushed}</small></td>
       </tr>
       % endif
@@ -100,7 +99,7 @@
       % if update.date_modified:
       <tr>
         <td>Modified</td>
-        <td>${util.age(update.date_modified)},
+        <td>${self.util.age(update.date_modified)},
           <small>${update.date_modified}</small></td>
       </tr>
       % endif
@@ -108,7 +107,7 @@
       % if update.qa_approved:
       <tr>
         <td>QA <span class="glyphicon glyphicon-ok"></span></td>
-        <td>${util.age(update.qa_approval_date)},
+        <td>${self.util.age(update.qa_approval_date)},
           <small>${update.qa_approval_date}</small></td>
       </tr>
       % endif
@@ -116,7 +115,7 @@
       % if update.security_approved:
       <tr>
         <td>Sec <span class="glyphicon glyphicon-ok"></span></td>
-        <td>${util.age(update.security_approval_date)},
+        <td>${self.util.age(update.security_approval_date)},
           <small>${update.security_approval_date}</small></td>
       </tr>
       % endif
@@ -124,7 +123,7 @@
       % if update.releng_approved:
       <tr>
         <td>Releng <span class="glyphicon glyphicon-ok"></span></td>
-        <td>${util.age(update.releng_approval_date)},
+        <td>${self.util.age(update.releng_approval_date)},
           <small>${update.releng_approval_date}</small></td>
       </tr>
       % endif
@@ -132,7 +131,7 @@
       % if update.date_approved:
       <tr>
         <td>approved</td>
-        <td>${util.age(update.date_approved)},
+        <td>${self.util.age(update.date_approved)},
           <small>${update.date_approved}</small></td>
       </tr>
       % endif
@@ -174,7 +173,7 @@
 <div class="row">
   <div class="col-md-8 col-md-offset-2">
     <h3>Notes</h3>
-    ${util.markup(update.notes) | n}
+    ${self.util.markup(update.notes) | n}
   </div>
 </div>
 % endif
@@ -187,12 +186,12 @@
     <li>
       % if comment.user:
       <a href="${request.route_url('user', name=comment.user.name)}">
-      <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
+      <img class="img-circle" src="${self.util.avatar(comment.user.name, size=24)}"/>
       ${comment.user.name}
       </a>
       % endif
-      ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
-      ${util.markup(comment.text) | n}
+      ${self.util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
+      ${self.util.markup(comment.text) | n}
     </li>
     % endfor
     </ul>

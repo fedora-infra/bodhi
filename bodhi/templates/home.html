@@ -1,5 +1,4 @@
 <%inherit file="master.html"/>
-<%namespace name="util" module="bodhi.util"/>
 
 <div class="row">
   <div class="col-md-5 col-md-offset-1">
@@ -18,7 +17,7 @@
       <td>
         <strong>#${str(loop.index + 1)}</strong>
         <a href="${request.route_url('user', name=tester['name'])}">
-        <img class="img-circle" src="${util.avatar(tester['name'], size=24)}"/>
+        <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
         ${tester['name']}
         </a>
       </td>
@@ -73,11 +72,11 @@
     <tbody>
     % for update in updates:
     <tr>
-      <td>${util.update2html(update) | n}</td>
-      <td>${util.age(update['date_submitted'])}</td>
+      <td>${self.util.update2html(update) | n}</td>
+      <td>${self.util.age(update['date_submitted'])}</td>
       <td>
         <a href="${request.route_url('user', name=update['user']['name'])}">
-        <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+        <img class="img-circle" src="${self.util.avatar(update['user']['name'], size=24)}"/>
         ${update['user']['name']}
         </a>
       </td>
