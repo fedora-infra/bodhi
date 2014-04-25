@@ -54,6 +54,9 @@ class BodhiBase(object):
             getattr(cls, col) == id for col in cls.__get_by__
         )).first()
 
+    def __getitem__(self, key):
+        return getattr(self, key)
+
     def __repr__(self):
         return '<{} {}>'.format(self.__class__.__name__, self.__json__())
 
