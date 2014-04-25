@@ -33,7 +33,7 @@
   <div class="col-md-10 col-md-offset-1">
   <p class="lead">Latest Critical Path Updates in Need of Testing</p>
   <p>Critical path updates are updates for the highest-priority software in Fedora.</p>
-  ${updates_table(critpath_updates)}
+  ${self.tables.updates(critpath_updates)}
   <span class="pull-right">
     <a href="${request.route_url('updates')}?status=testing">
       View more testing updates
@@ -49,7 +49,7 @@
   <div class="col-md-10 col-md-offset-1">
   <p class="lead">Latest Security Updates in Need of Testing</p>
   <p>Security updates are... something important or something.</p>
-  ${updates_table(security_updates)}
+  ${self.tables.updates(security_updates)}
   <span class="pull-right">
     <a href="${request.route_url('updates')}?type=security&status=testing">
       View more security updates
@@ -59,35 +59,3 @@
   </div>
 </div>
 %endif
-
-<%def name="updates_table(updates)">
-  <table class="table">
-    <thead><tr>
-        <th>Update</th>
-        <th>Age</th>
-        <th>Submitter</th>
-        <th>Release(s)</th>
-        <th>Status</th>
-    </tr></thead>
-    <tbody>
-    % for update in updates:
-    <tr>
-      <td>${self.util.update2html(update) | n}</td>
-      <td>${self.util.age(update['date_submitted'])}</td>
-      <td>
-        <a href="${request.route_url('user', name=update['user']['name'])}">
-        <img class="img-circle" src="${self.util.avatar(update['user']['name'], size=24)}"/>
-        ${update['user']['name']}
-        </a>
-      </td>
-      <td>
-        <a href="${request.route_url('release', name=update['release']['name'])}">
-          ${update['release']['name']}
-        </a>
-      </td>
-      <td>${update['status']}</td>
-    </tr>
-    % endfor
-    </tbody>
-  </table>
-</%def>

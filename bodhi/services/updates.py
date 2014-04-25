@@ -58,6 +58,13 @@ def set_request(request):
                  validate_enums,
                  validate_username,
              ))
+@updates.get(schema=bodhi.schemas.ListUpdateSchema,
+             accept=('text/html'), renderer='updates.html',
+             validators=(
+                 validate_releases,
+                 validate_enums,
+                 validate_username,
+             ))
 def query_updates(request):
     db = request.db
     data = request.validated
@@ -165,7 +172,12 @@ def query_updates(request):
     pages = int(math.ceil(total / float(rows_per_page)))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(updates=query.all())
+    return dict(
+        updates=query.all(),
+        page=page,
+        pages=pages,
+        rows_per_page=rows_per_page,
+    )
 
 
 @updates.post(schema=bodhi.schemas.SaveUpdateSchema,
