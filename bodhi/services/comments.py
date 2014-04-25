@@ -27,6 +27,14 @@ comments = Service(name='comments', path='/comments/',
                  validate_updates,
                  validate_packages,
              ))
+@comments.get(schema=bodhi.schemas.ListCommentSchema,
+             accept=('text/html'), renderer='comments.html',
+             validators=(
+                 validate_username,
+                 validate_update_owner,
+                 validate_updates,
+                 validate_packages,
+             ))
 def query_comments(request):
     db = request.db
     data = request.validated
@@ -73,7 +81,12 @@ def query_comments(request):
         pages = int(math.ceil(total / float(rows_per_page)))
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(comments=query.all())
+    return dict(
+        comments=query.all(),
+        page=page,
+        pages=pages,
+        rows_per_page=rows_per_page,
+    )
 
 
 #@comments.post(schema=bodhi.schemas.SaveCommentSchema,

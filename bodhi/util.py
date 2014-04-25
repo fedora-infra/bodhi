@@ -402,10 +402,15 @@ def request2html(context, request):
 
 def update2html(context, update):
     request = context.get('request')
-    url = request.route_url('update', id=update['title'])
+
+    if hasattr(update, 'title'):
+        title = update.title
+    else:
+        title = update['title']
+
+    url = request.route_url('update', id=title)
     settings = request.registry.settings
     max_length = int(settings.get('max_update_length_for_ui', 30))
-    title = update['title']
     if len(title) > max_length:
         title = title[:max_length] + "..."
     return link(url, title)
