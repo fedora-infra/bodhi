@@ -66,6 +66,21 @@ class Updates(colander.SequenceSchema):
     update = colander.SchemaNode(colander.String())
 
 
+class SaveCommentSchema(colander.MappingSchema):
+    update = colander.SchemaNode(colander.String())
+    text = colander.SchemaNode(colander.String())
+    karma = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(min=-1, max=1),
+        missing=0,
+    )
+    email = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Email(),
+        missing=None,
+    )
+
+
 class SaveUpdateSchema(colander.MappingSchema):
     builds = Builds(colander.Sequence(accept_scalar=True),
                     preparer=[splitter])

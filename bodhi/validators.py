@@ -355,6 +355,19 @@ def validate_username(request):
                            "Invalid user specified: {}".format(username))
 
 
+def validate_update(request):
+    """Make sure this update exists"""
+    idx = request.validated.get('update')
+    update = Update.get(idx, request.db)
+
+    if update:
+        request.validated['update'] = update
+    else:
+        request.errors.add('url', 'update',
+                           'Invalid update specified: %s' % idx)
+        request.errors.status = HTTPNotFound.code
+
+
 def validate_update_owner(request):
     """Make sure this user exists"""
     username = request.validated.get("update_owner")

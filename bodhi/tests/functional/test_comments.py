@@ -28,90 +28,69 @@ from bodhi.models import (
 
 class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
-    # FIXME: make it easy to tweak the tag of an comment in our buildsys during unit tests
-    #def test_invalid_tag(self):
-    #    session = DBSession()
-    #    map(session.delete, session.query(Comment).all())
-    #    map(session.delete, session.query(Build).all())
-    #    num = session.query(Comment).count()
-    #    assert num == 0, num
-    #    res = self.app.post_json('/comments/', self.get_comment(u'bodhi-1.0-1.fc17'),
-    #                             status=400)
-    #    assert 'Invalid tag' in res, res
+    def make_comment(self,
+                     update='bodhi-2.0-1.fc17',
+                     text='Test',
+                     karma=0,
+                     **kwargs):
+        comment = {
+            u'update': update,
+            u'text': text,
+            u'karma': karma,
+        }
+        comment.update(kwargs)
+        return comment
 
-    #def test_old_build(self):
-    #    res = self.app.post_json('/comments/', self.get_comment(u'bodhi-1.9-1.fc17'),
-    #                             status=400)
-    #    assert 'Invalid build: bodhi-1.9-1.fc17 is older than bodhi-2.0-1.fc17' in res, res
+    def test_invalid_update(self):
+        session = DBSession()
+        res = self.app.post_json('/comments/', self.make_comment(
+            update='bodhi-1.0-2.fc17',
+        ), status=404)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'update')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          "Invalid update specified: bodhi-1.0-2.fc17")
 
-    #def test_duplicate_build(self):
-    #    res = self.app.post_json('/comments/',
-    #        self.get_comment([u'bodhi-2.0-2.fc17', u'bodhi-2.0-2.fc17']),
-    #        status=400)
-    #    assert 'Duplicate builds' in res, res
+    def test_invalid_karma(self):
+        res = self.app.post_json('/comments/',
+                                 self.make_comment(karma=-2),
+                                 status=400)
+        assert '-2 is less than minimum value -1' in res, res
+        res = self.app.post_json('/comments/',
+                                 self.make_comment(karma=2),
+                                 status=400)
+        assert '2 is greater than maximum value 1' in res, res
 
-    #def test_multiple_builds_of_same_package(self):
-    #    res = self.app.post_json('/comments/', self.get_comment([u'bodhi-2.0-2.fc17',
-    #                                                           u'bodhi-2.0-3.fc17']),
-    #                             status=400)
-    #    assert 'Multiple bodhi builds specified' in res, res
+    def test_anonymous_commenting_with_login(self):
+        res = self.app.post_json('/comments/', self.make_comment())
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
 
-    #def test_invalid_autokarma(self):
-    #    res = self.app.post_json('/comments/', self.get_comment(stable_karma=-1),
-    #                             status=400)
-    #    assert '-1 is less than minimum value 1' in res, res
-    #    res = self.app.post_json('/comments/', self.get_comment(unstable_karma=1),
-    #                             status=400)
-    #    assert '1 is greater than maximum value -1' in res, res
-
-    #def test_duplicate_comment(self):
-    #    res = self.app.post_json('/comments/', self.get_comment(u'bodhi-2.0-1.fc17'),
-    #                             status=400)
-    #    assert 'Comment for bodhi-2.0-1.fc17 already exists' in res, res
-
-    #def test_no_privs(self):
-    #    session = DBSession()
-    #    user = User(name=u'bodhi')
-    #    session.add(user)
-    #    session.flush()
-    #    app = TestApp(main({}, testing=u'bodhi', **self.app_settings))
-    #    res = app.post_json('/comments/', self.get_comment(u'bodhi-2.1-1.fc17'),
-    #                        status=400)
-    #    assert 'bodhi does not have commit access to bodhi' in res, res
-
-    #def test_provenpackager_privs(self):
-    #    "Ensure provenpackagers can push comments for any package"
-    #    session = DBSession()
-    #    user = User(name=u'bodhi')
-    #    session.add(user)
-    #    session.flush()
-    #    group = session.query(Group).filter_by(name=u'provenpackager').one()
-    #    user.groups.append(group)
-
-    #    app = TestApp(main({}, testing=u'bodhi', **self.app_settings))
-    #    res = app.post_json('/comments/', self.get_comment(u'bodhi-2.1-1.fc17'))
-    #    assert 'bodhi does not have commit access to bodhi' not in res, res
-    #    # TODO; uncomment once we're actually creating comments properly
-    #    #build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1').one()
-    #    #assert len(build.comments) == 1
-
-    #def test_pkgdb_outage(self):
-    #    "Test the case where our call to the pkgdb throws an exception"
+    #def test_anonymous_commenting_without_email(self):
     #    settings = self.app_settings.copy()
-    #    settings['acl_system'] = 'pkgdb'
-    #    settings['pkgdb_url'] = 'invalidurl'
-    #    app = TestApp(main({}, testing=u'guest', **settings))
-    #    res = app.post_json('/comments/', self.get_comment(u'bodhi-2.0-2.fc17'),
-    #                        status=400)
-    #    assert "Unable to access the Package Database. Please try again later." in res, res
+    #    app = TestApp(main({}, testing=None, **settings))
+    #    res = app.post_json('/comments/', self.make_comment(), status=400)
+    #    self.assertNotIn('errors', res.json_body)
+    #    raise NotImplementError("check more here")
 
-    #def test_invalid_acl_system(self):
-    #    settings = self.app_settings.copy()
-    #    settings['acl_system'] = 'null'
-    #    app = TestApp(main({}, testing=u'guest', **settings))
-    #    res = app.post_json('/comments/', self.get_comment(u'bodhi-2.0-2.fc17'),
-    #                        status=400)
-    #    assert "guest does not have commit access to bodhi" in res, res
+    def test_anonymous_commenting_with_email(self):
+        res = self.app.post_json('/comments/',
+                                 self.make_comment(email='w@t.com'))
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], True)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 2)
+
+    def test_anonymous_commenting_with_invalid_email(self):
+        res = self.app.post_json('/comments/',
+                                 self.make_comment(email='foo'),
+                                 status=400)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'email')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          "Invalid email address")
 
     def test_404(self):
         self.app.get('/a', status=404)

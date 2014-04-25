@@ -1354,6 +1354,7 @@ class Update(Base):
                 continue
             people.add(comment.user.name)
         mail.send(people, 'comment', self)
+        return comment
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """

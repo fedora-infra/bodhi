@@ -9,6 +9,7 @@ import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
     validate_packages,
+    validate_update,
     validate_updates,
     validate_update_owner,
     validate_username,
@@ -86,43 +87,22 @@ def query_comments(request):
     )
 
 
-#@comments.post(schema=bodhi.schemas.SaveCommentSchema,
-#              permission='create', renderer='json',
-#              validators=(
-#                  validate_nvrs, validate_version, validate_builds,
-#                  validate_uniqueness, validate_tags, validate_acls,
-#                  validate_enums))
-#def new_comment(request):
-#    """ Save a comment.
-#
-#    This entails either creating a new comment, or editing an existing one. To
-#    edit an existing comment, the comment's original title must be specified in
-#    the ``edited`` parameter.
-#    """
-#    data = request.validated
-#    log.debug('validated = %s' % data)
-#    req = data.get('request')
-#    del(data['request'])
-#
-#    try:
-#        if data.get('edited'):
-#            log.info('Editing comment: %s' % data['edited'])
-#            up = Comment.edit(request, data)
-#        else:
-#            log.info('Creating new comment: %s' % ' '.join(data['builds']))
-#            up = Comment.new(request, data)
-#            log.debug('comment = %r' % up)
-#    except:
-#        log.exception('An unexpected exception has occured')
-#        request.errors.add('body', 'builds', 'Unable to create comment')
-#        return
-#
-#    up.obsolete_older_comments(request)
-#
-#    # Set request
-#    if req:
-#        up.set_request(req, request)
-#
-#    # Send out email notifications
-#
-#    return up
+@comments.post(schema=bodhi.schemas.SaveCommentSchema,
+              permission='create', renderer='json',
+              validators=(validate_update))
+def new_comment(request):
+    """ Add a new comment to an update. """
+    data = request.validated
+    update = data.pop('update')
+    email = data.pop('email', None)
+    author = email or (request.user and request.user.name)
+    anonymous = bool(email) or not author
+
+    try:
+        com = update.comment(author=author, anonymous=anonymous, **data)
+    except Exception as e:
+        log.exception(e)
+        request.errors.add('body', 'comment', 'Unable to create comment')
+        return
+
+    return dict(comment=com)
