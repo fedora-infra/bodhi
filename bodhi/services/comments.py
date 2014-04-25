@@ -61,6 +61,8 @@ def query_comments(request):
     if user is not None:
         query = query.filter(Comment.user==user)
 
+    query = query.order_by(Comment.timestamp.desc())
+
     total = query.count()
 
     page = data.get('page')

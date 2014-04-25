@@ -122,9 +122,8 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['comments']), 2)
 
         comment = body['comments'][0]
-        self.assertEquals(comment['text'], u'wow. amaze.')
-        self.assertEquals(comment['karma'], 1)
-        self.assertEquals(comment['user']['name'], u'guest')
+        self.assertEquals(comment['text'], u'srsly.  pretty good.')
+        self.assertEquals(comment['karma'], 0)
 
     def test_list_comments_pagination(self):
         # Then, test pagination
@@ -206,7 +205,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['comments']), 2)
 
         comment = body['comments'][0]
-        self.assertEquals(comment['text'], u'wow. amaze.')
+        self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
     #def test_list_comments_by_update_no_comments(self):
     #    res = self.app.get('/comments/', {"updates": "bodhi-2.0-2.fc17"})
@@ -259,7 +258,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['comments']), 2)
 
         comment = body['comments'][0]
-        self.assertEquals(comment['text'], u'wow. amaze.')
+        self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
     #def test_list_comments_by_update_owner_with_none(self):
     #    res = self.app.get('/comments/', {"update_owner": "bodhi"})
