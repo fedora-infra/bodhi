@@ -155,7 +155,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_comments_by_future_date(self):
         """test filtering by future date"""
         tomorrow = datetime.now() + timedelta(days=1)
-        tomorrow = tomorrow.strftime("%Y-%m-%d")
+        tomorrow = tomorrow.strftime("%Y-%m-%d %H:%M:%S")
 
         res = self.app.get('/comments/', {"since": tomorrow})
         body = res.json_body
