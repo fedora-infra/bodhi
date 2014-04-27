@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import unittest
 
 from nose.tools import eq_, raises
@@ -47,6 +49,15 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.post_json('/updates/', self.get_update([u'']), status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'builds.0')
         self.assertEquals(res.json_body['errors'][0]['description'], 'Required')
+
+    def test_unicode_description(self):
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update['notes'] = u'This is wünderfül'
+        r = self.app.post_json('/updates/', update)
+        up = r.json_body
+        self.assertEquals(up['title'], u'bodhi-2.0.0-2.fc17')
+        self.assertEquals(up['notes'], u'This is wünderfül')
+        self.assertIsNotNone(up['date_submitted'])
 
     # FIXME: make it easy to tweak the tag of an update in our buildsys during unit tests
     #def test_invalid_tag(self):
