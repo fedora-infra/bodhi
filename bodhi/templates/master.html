@@ -11,6 +11,9 @@
     <meta name="author" content="Luke Macken" />
     <meta name="author" content="Ralph Bean" />
 
+    <!-- Only allow websockets connections to fedoraproject.org. -->
+    <meta http-equiv="Content-Security-Policy" content="connect-src '*.fedoraproject.org'">
+
     <link rel="shortcut icon" href="${request.static_url('bodhi:static/ico/favicon.ico')}">
 
     <title>Fedora Updates System</title>
