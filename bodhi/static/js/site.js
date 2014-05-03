@@ -112,4 +112,9 @@ $(document).ready(function() {
             });
         }, 500);
     });
+
+    // Make the magic cabbage tilt its head whenever a form is submitted.
+    $('form').submit(function() {
+        $("#ghost-cabbage").css({transform: "rotate(15deg)"});
+    });
 });
