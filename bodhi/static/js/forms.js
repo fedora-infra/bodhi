@@ -16,6 +16,8 @@ Form.prototype.url = null;
 //
 Form.prototype.start = function() {
     var self = this;
+    // TODO -- clear all error divs before attempt this,
+    // both knock their content, and hide them
     cabbage.spin();
     $(this.idx + " button").attr("disabled", "disable");
 }
@@ -28,12 +30,23 @@ Form.prototype.finish = function() {
 
 Form.prototype.success = function(data) {
     var self = this;
-    // TODO -- this is still being worked on...
-    console.log("success");
-    console.log(data);
     msg = self.messenger.post({
-        message: "BOOOYA",
+        message: "Success",
         type: "success"
+    });
+    $.ajax({
+        url: self.url + "../comments/" + data.comment.id,
+        dataType: "html",
+        success: function(html) {
+            $("ul#comments").append("<li>" + html + "</li>");
+        },
+        error: function(html) {
+            // TODO -- handle this
+            msg = self.messenger.post({
+                message: "Unhandled error",
+                type: "error"
+            });
+        }
     });
     self.finish();
 }
@@ -43,12 +56,11 @@ Form.prototype.error = function(data) {
     self.finish();
     $.each(data.responseJSON.errors, function (i, error) {
         if (error.name == "comment") {
-            $(self.idx).prepend("")
+            // TODO -- also insert this error into the form-wide alert div
             msg = self.messenger.post({
                 message: error.description,
                 type: "error"
             });
-            $("")
         } else {
             var selector = self.idx + " div[for=" + error.name + "]";
             $(selector + " strong").html(error.name);

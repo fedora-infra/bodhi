@@ -4,7 +4,7 @@ from pyramid.exceptions import HTTPNotFound
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
-                     UpdateSuggestion, User, Group)
+                     UpdateSuggestion, User, Group, Comment)
 from .util import get_nvr
 
 try:
@@ -391,4 +391,14 @@ def validate_update_id(request):
         request.validated['update'] = update
     else:
         request.errors.add('url', 'id', 'Invalid update id')
+        request.errors.status = HTTPNotFound.code
+
+
+def validate_comment_id(request):
+    """Ensure that a given comment id exists"""
+    comment = Comment.get(request.matchdict['id'], request.db)
+    if comment:
+        request.validated['comment'] = comment
+    else:
+        request.errors.add('url', 'id', 'Invalid comment id')
         request.errors.status = HTTPNotFound.code

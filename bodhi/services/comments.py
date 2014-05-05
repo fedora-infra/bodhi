@@ -12,12 +12,24 @@ from bodhi.validators import (
     validate_update,
     validate_updates,
     validate_update_owner,
+    validate_comment_id,
     validate_username,
 )
 
 
+comment = Service(name='comment', path='/comments/{id}',
+                 validators=(validate_comment_id,),
+                 description='Comment submission service')
+
 comments = Service(name='comments', path='/comments/',
                   description='Comment submission service')
+
+
+@comment.get(accept=('application/json', 'text/json'), renderer='json')
+@comment.get(accept="text/html", renderer="comment.html")
+def get_comment(request):
+    """ Return a single comment from an id """
+    return dict(comment=request.validated['comment'])
 
 
 @comments.get(schema=bodhi.schemas.ListCommentSchema,

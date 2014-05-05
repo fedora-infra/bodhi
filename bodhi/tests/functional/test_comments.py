@@ -92,8 +92,18 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid email address")
 
+    def test_get_single_comment(self):
+        res = self.app.get('/comments/1')
+        self.assertEquals(res.json_body['comment']['update_id'], 1)
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        self.assertEquals(res.json_body['comment']['id'], 1)
+
+    def test_get_single_comment_page(self):
+        res = self.app.get('/comments/1', headers=dict(accept='text/html'))
+        self.assertIn('libravatar.org', res)
+
     def test_404(self):
-        self.app.get('/a', status=404)
+        self.app.get('/comments/a', status=404)
 
     def test_list_comments(self):
         res = self.app.get('/comments/')
