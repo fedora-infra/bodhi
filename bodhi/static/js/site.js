@@ -87,6 +87,9 @@ var delay = (function(){
   };
 })();
 
+
+var cabbage = new Cabbage();
+
 $(document).ready(function() {
     // Kick it off, but only if we're on the right page.
     var container = $('#examples-container');
@@ -114,7 +117,5 @@ $(document).ready(function() {
     });
 
     // Make the magic cabbage tilt its head whenever a form is submitted.
-    $('form').submit(function() {
-        $("#ghost-cabbage").css({transform: "rotate(15deg)"});
-    });
+    $('form').submit(function() { cabbage.spin() });
 });
