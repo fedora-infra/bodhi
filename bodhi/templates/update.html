@@ -196,11 +196,13 @@
     % endfor
     </ul>
 
-    <form class="form-horizontal" role="form">
+    <form class="form-horizontal" role="form"
+          action="${request.route_url('comments')}" method="POST">
+      <input type="hidden" name="update" value="${update.title}"/>
       <div class="form-group">
         <label for="comment" class="col-sm-1 control-label">Comment</label>
         <div class="col-sm-5">
-          <textarea class="form-control" id="comment"
+          <textarea class="form-control" id="comment" name="text"
             placeholder="Comment..." required></textarea>
         </div>
         <div class="col-sm-5">

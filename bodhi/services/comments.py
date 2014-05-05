@@ -88,8 +88,9 @@ def query_comments(request):
 
 
 @comments.post(schema=bodhi.schemas.SaveCommentSchema,
-              permission='create', renderer='json',
-              validators=(validate_update))
+               #permission='create',  # We need an ACL for this to work...
+               renderer='json',
+               validators=(validate_update))
 def new_comment(request):
     """ Add a new comment to an update. """
     data = request.validated
