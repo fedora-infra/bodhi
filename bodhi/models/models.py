@@ -1521,6 +1521,7 @@ class Update(Base):
 
 class Comment(Base):
     __tablename__ = 'comments'
+    __exclude_columns__ = tuple()
 
     karma = Column(Integer, default=0)
     text = Column(UnicodeText)
