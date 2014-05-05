@@ -2,7 +2,6 @@ import os
 import re
 import time
 import logging
-import bugzilla
 import xmlrpclib
 
 from textwrap import wrap
