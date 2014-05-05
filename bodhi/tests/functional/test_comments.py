@@ -103,7 +103,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('libravatar.org', res)
 
     def test_404(self):
-        self.app.get('/comments/a', status=404)
+        self.app.get('/comments/a', status=400)
 
     def test_list_comments(self):
         res = self.app.get('/comments/')

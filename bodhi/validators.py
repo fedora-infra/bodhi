@@ -1,5 +1,5 @@
 from sqlalchemy.sql import or_
-from pyramid.exceptions import HTTPNotFound
+from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
@@ -396,7 +396,17 @@ def validate_update_id(request):
 
 def validate_comment_id(request):
     """Ensure that a given comment id exists"""
+    idx = request.matchdict['id']
+
+    try:
+        idx = int(idx)
+    except ValueError:
+        request.errors.add('url', 'id', 'Comment id must be an int')
+        request.errors.status = HTTPBadRequest.code
+        return
+
     comment = Comment.get(request.matchdict['id'], request.db)
+
     if comment:
         request.validated['comment'] = comment
     else:
