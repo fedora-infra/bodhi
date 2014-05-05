@@ -183,7 +183,7 @@
     <h3>Comments <span class="badge">${len(update.comments)}</span></h3>
     <ul class="linkable">
     % for comment in update.comments:
-    <li>
+    <li id="comment-${comment.id}">
       % if comment.user:
       <a href="${request.route_url('user', name=comment.user.name)}">
       <img class="img-circle" src="${self.util.avatar(comment.user.name, size=24)}"/>
@@ -191,7 +191,7 @@
       </a>
       % endif
       ${self.util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
-      <a class="anchor" href="#comment-${comment.id}" id="comment-${comment.id}">
+      <a class="anchor" href="#comment-${comment.id}">
       <span class="glyphicon glyphicon-link"></span>
       </a>
       ${self.util.markup(comment.text) | n}
