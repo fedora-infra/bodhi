@@ -1385,7 +1385,8 @@ class Comment(SQLObject):
                     karma=self.karma, timestamp=self.timestamp,
                     update_title=self.update.title,
                     update_submitter=self.update.submitter,
-                    update_status=self.update.status)
+                    update_status=self.update.status,
+                    update_request=self.update.request)
 
 
 class CVE(SQLObject):
