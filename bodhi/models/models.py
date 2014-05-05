@@ -43,7 +43,7 @@ except ImportError:
 class BodhiBase(object):
     """ Our custom model base class """
     __exclude_columns__ = ('id',)  # List of columns to exclude from JSON
-    __get_by__ = ('id',)  # Columns that get() will query
+    __get_by__ = ()  # Columns that get() will query
 
     id = Column(Integer, primary_key=True)
 
@@ -190,7 +190,7 @@ user_package_table = Table('user_package_table', metadata,
 class Release(Base):
     __tablename__ = 'releases'
     __exclude_columns__ = ('id', 'metrics', 'builds')
-    __get_by__ = ('id', 'name', 'long_name', 'dist_tag')
+    __get_by__ = ('name', 'long_name', 'dist_tag')
 
     name = Column(Unicode(10), unique=True, nullable=False)
     long_name = Column(Unicode(25), unique=True, nullable=False)
@@ -304,7 +304,7 @@ class Release(Base):
 class TestCase(Base):
     """Test cases from the wiki"""
     __tablename__ = 'testcases'
-    __get_by__ = ('id', 'name')
+    __get_by__ = ('name',)
 
     name = Column(UnicodeText, nullable=False)
 
@@ -314,7 +314,7 @@ class TestCase(Base):
 
 class Package(Base):
     __tablename__ = 'packages'
-    __get_by__ = ('id', 'name')
+    __get_by__ = ('name',)
 
     name = Column(Unicode(50), unique=True, nullable=False)
 
@@ -447,7 +447,7 @@ class Build(Base):
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
                            'release_id', 'update_id', 'update', 'inherited')
-    __get_by__ = ('id', 'nvr')
+    __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
     inherited = Column(Boolean, default=False)
@@ -563,7 +563,7 @@ class Build(Base):
 class Update(Base):
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
-    __get_by__ = ('id', 'title', 'alias')
+    __get_by__ = ('title', 'alias')
 
     title = Column(UnicodeText, default=None)
 
@@ -1553,7 +1553,7 @@ class Comment(Base):
 class CVE(Base):
     __tablename__ = 'cves'
     __exclude_columns__ = ('id', 'updates', 'bugs')
-    __get_by__ = ('id', 'cve_id')
+    __get_by__ = ('cve_id',)
 
     cve_id = Column(Unicode(13), unique=True, nullable=False)
 
@@ -1566,7 +1566,7 @@ class CVE(Base):
 class Bug(Base):
     __tablename__ = 'bugs'
     __exclude_columns__ = ('id', 'cves', 'updates')
-    __get_by__ = ('id', 'bug_id')
+    __get_by__ = ('bug_id',)
 
     # Bug number. If None, assume ``url`` points to an external bug tracker
     bug_id = Column(Integer, unique=True)
@@ -1634,7 +1634,7 @@ user_group_table = Table('user_group_table', Base.metadata,
 class User(Base):
     __tablename__ = 'users'
     __exclude_columns__ = ('id', 'comments', 'updates', 'groups', 'packages')
-    __get_by__ = ('id', 'name')
+    __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
@@ -1648,7 +1648,7 @@ class User(Base):
 
 class Group(Base):
     __tablename__ = 'groups'
-    __get_by__ = ('id', 'name')
+    __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
