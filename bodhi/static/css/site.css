@@ -29,7 +29,7 @@ a:hover {
 #ghost-cabbage {
     position: absolute;
     top: 40px;
-    right: 40px;
+    right: 55px;
 
     zoom: 1;
     filter: alpha(opacity=07);

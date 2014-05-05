@@ -1,5 +1,3 @@
-var examples_loading_message = "Searching for example messages that match this filter";
-
 var load_examples = function(page) {
     // First, destroy the more button if there is one.
     $('#more-button').remove();
@@ -79,6 +77,8 @@ var examples_error = function(jqXHR, status, errorThrown) {
     $('#examples-container p').addClass('text-danger');
 }
 
+var cabbage = new Cabbage();
+
 var delay = (function(){
   var timer = 0;
   return function(callback, ms){
@@ -86,9 +86,6 @@ var delay = (function(){
     timer = setTimeout(callback, ms);
   };
 })();
-
-
-var cabbage = new Cabbage();
 
 $(document).ready(function() {
     // Kick it off, but only if we're on the right page.
@@ -115,7 +112,4 @@ $(document).ready(function() {
             });
         }, 500);
     });
-
-    // Make the magic cabbage tilt its head whenever a form is submitted.
-    $('form').submit(function() { cabbage.spin() });
 });

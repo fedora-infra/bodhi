@@ -1,5 +1,12 @@
 <%inherit file="master.html"/>
 
+<script type="text/javascript">
+  var form;
+  $(document).ready(function(){
+    form = new Form("#new_comment", "${request.route_url('comments')}");
+  });
+</script>
+
 <div class="row">
   <div class="col-md-12">
     <h1>${update.title} <small>${update.type} update</small></h1>
@@ -175,14 +182,24 @@
     % endfor
     </ul>
 
-    <form class="form-horizontal" role="form"
-          action="${request.route_url('comments')}" method="POST">
+    <form id="new_comment" class="form-horizontal" role="form"
+      action="javascript:form.submit();">
+
+      <div class="hidden alert alert-danger col-sm-4 col-sm-offset-1">
+        <strong></strong><span class="error"></span>
+      </div>
+
+      <div class="clearfix"></div>
+
       <input type="hidden" name="update" value="${update.title}"/>
       <div class="form-group">
         <label for="comment" class="col-sm-1 control-label">Comment</label>
         <div class="col-sm-5">
-          <textarea class="form-control" id="comment" name="text"
-            placeholder="Comment..." required></textarea>
+          <textarea class="form-control" id="text" name="text"
+            placeholder="Comment..."></textarea>
+          <div class="hidden alert alert-danger" for="text">
+            <strong></strong> <span class="error"></span>
+          </div>
         </div>
         <div class="col-sm-5">
           <span id="preview"><h3><small>Preview</small></h3></span>
@@ -202,6 +219,12 @@
           </label>
         </div>
       </div>
+
+      <div class="hidden alert alert-danger col-sm-5 col-sm-offset-1" for="karma">
+        <strong></strong><span class="error"></span>
+      </div>
+      <div class="clearfix"></div>
+
       <div class="form-group">
         <div class="col-sm-offset-1 col-sm-5">
           <button type="submit" class="btn btn-default">Add Comment</button>

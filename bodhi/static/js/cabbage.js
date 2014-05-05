@@ -5,7 +5,7 @@ Cabbage.prototype.spinning = false;
 Cabbage.prototype.degrees = 0;
 Cabbage.prototype.interval_id = null;
 Cabbage.prototype.frequency = 50;
-Cabbage.prototype.finish_time = 1000;  // Finish up in 1 second
+Cabbage.prototype.finish_time = 400;  // Finish up in 1 second
 
 Cabbage.prototype.spin = function() {
     var self = this;
@@ -38,8 +38,13 @@ Cabbage.prototype.finish = function() {
 
     // Set up a self-stopping rotation to finish out self.finish_time.
     self.interval_id = setInterval(function() {
-        if (self.degrees == 360) { self.stop(); return; }
         self.degrees = self.degrees + delta;
-        $("#ghost-cabbage").css({transform: "rotate(" + self.degrees + "deg)"});
+        if (self.degrees >= 360) {
+            self.degrees = 0;
+            self.stop();
+            $("#ghost-cabbage").css({transform: "rotate(" + self.degrees + "deg)"});
+        } else {
+            $("#ghost-cabbage").css({transform: "rotate(" + self.degrees + "deg)"});
+        }
     }, self.frequency);
 }
