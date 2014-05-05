@@ -260,18 +260,6 @@ class ListUpdateSchema(PaginatedSchema):
         missing=None,
     )
 
-    qa_approved = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
-        location="querystring",
-        missing=None,
-    )
-
-    qa_approved_since = colander.SchemaNode(
-        colander.DateTime(),
-        location="querystring",
-        missing=None,
-    )
-
     releases = Releases(
         colander.Sequence(accept_scalar=True),
         location="querystring",
@@ -279,35 +267,11 @@ class ListUpdateSchema(PaginatedSchema):
         preparer=[splitter],
     )
 
-    releng_approved = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
-        location="querystring",
-        missing=None,
-    )
-
-    releng_approved_since = colander.SchemaNode(
-        colander.DateTime(),
-        location="querystring",
-        missing=None,
-    )
-
     request = colander.SchemaNode(
         colander.String(),
         location="querystring",
         missing=None,
         validator=colander.OneOf(UpdateRequest.values()),
-    )
-
-    security_approved = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
-        location="querystring",
-        missing=None,
-    )
-
-    security_approved_since = colander.SchemaNode(
-        colander.DateTime(),
-        location="querystring",
-        missing=None,
     )
 
     severity = colander.SchemaNode(

@@ -109,37 +109,13 @@ def query_updates(request):
     if pushed_since is not None:
         query = query.filter(Update.date_pushed >= pushed_since)
 
-    qa_approved = data.get('qa_approved')
-    if qa_approved is not None:
-        query = query.filter_by(qa_approved=qa_approved)
-
-    qa_approved_since = data.get('qa_approved_since')
-    if qa_approved_since is not None:
-        query = query.filter(Update.qa_approval_date >= qa_approved_since)
-
     releases = data.get('releases')
     if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))
 
-    releng_approved = data.get('releng_approved')
-    if releng_approved is not None:
-        query = query.filter_by(releng_approved=releng_approved)
-
-    releng_approved_since = data.get('releng_approved_since')
-    if releng_approved_since is not None:
-        query = query.filter(Update.releng_approval_date >= releng_approved_since)
-
     req = data.get('request')
     if req is not None:
         query = query.filter_by(request=req)
-
-    security_approved = data.get('security_approved')
-    if security_approved is not None:
-        query = query.filter_by(security_approved=security_approved)
-
-    security_approved_since = data.get('security_approved_since')
-    if security_approved_since is not None:
-        query = query.filter(Update.security_approval_date >= security_approved_since)
 
     severity = data.get('severity')
     if severity is not None:

@@ -104,30 +104,6 @@
       </tr>
       % endif
 
-      % if update.qa_approved:
-      <tr>
-        <td>QA <span class="glyphicon glyphicon-ok"></span></td>
-        <td>${self.util.age(update.qa_approval_date)},
-          <small>${update.qa_approval_date}</small></td>
-      </tr>
-      % endif
-
-      % if update.security_approved:
-      <tr>
-        <td>Sec <span class="glyphicon glyphicon-ok"></span></td>
-        <td>${self.util.age(update.security_approval_date)},
-          <small>${update.security_approval_date}</small></td>
-      </tr>
-      % endif
-
-      % if update.releng_approved:
-      <tr>
-        <td>Releng <span class="glyphicon glyphicon-ok"></span></td>
-        <td>${self.util.age(update.releng_approval_date)},
-          <small>${update.releng_approval_date}</small></td>
-      </tr>
-      % endif
-
       % if update.date_approved:
       <tr>
         <td>approved</td>

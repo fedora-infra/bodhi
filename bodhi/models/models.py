@@ -591,19 +591,11 @@ class Update(Base):
     # Bug settings
     close_bugs = Column(Boolean, default=True)
 
-    # Team approvals
-    security_approved = Column(Boolean, default=False)
-    releng_approved = Column(Boolean, default=False)
-    qa_approved = Column(Boolean, default=False)
-
     # Timestamps
     date_submitted = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime)
     date_approved = Column(DateTime)
     date_pushed = Column(DateTime)
-    security_approval_date = Column(DateTime)
-    qa_approval_date = Column(DateTime)
-    releng_approval_date = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(32), default=None, unique=True)
