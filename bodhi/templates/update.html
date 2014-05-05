@@ -181,7 +181,7 @@
 <div class="row">
   <div class="col-md-12">
     <h3>Comments <span class="badge">${len(update.comments)}</span></h3>
-    <ul>
+    <ul class="linkable">
     % for comment in update.comments:
     <li>
       % if comment.user:
@@ -191,6 +191,9 @@
       </a>
       % endif
       ${self.util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
+      <a class="anchor" href="#comment-${comment.id}" id="comment-${comment.id}">
+      <span class="glyphicon glyphicon-link"></span>
+      </a>
       ${self.util.markup(comment.text) | n}
     </li>
     % endfor
