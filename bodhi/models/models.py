@@ -318,7 +318,7 @@ class Package(Base):
 
     name = Column(Unicode(50), unique=True, nullable=False)
 
-    builds = relationship('Build', backref='package')
+    builds = relationship('Build', backref=backref('package', lazy='joined'))
     test_cases = relationship('TestCase', backref='package')
     committers = relationship('User', secondary=user_package_table,
                               backref='packages')
