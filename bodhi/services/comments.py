@@ -1,5 +1,6 @@
 import math
 
+from pyramid.httpexceptions import HTTPFound
 from cornice import Service
 from sqlalchemy.sql import or_
 
@@ -105,5 +106,11 @@ def new_comment(request):
         log.exception(e)
         request.errors.add('body', 'comment', 'Unable to create comment')
         return
+
+    possibilities = ['text/html', 'text/json', 'application/json']
+    preference = request.accept.best_match(possibilities)
+    if preference == 'text/html':
+        url = request.route_url('update', id=update.title)
+        return HTTPFound(location=url + "#comment-%i" % com.id)
 
     return dict(comment=com)
