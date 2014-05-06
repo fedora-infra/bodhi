@@ -95,12 +95,12 @@ $(document).ready(function() {
         load_examples(1);
     }
 
-    $('#comment').keyup(function() {
+    $('#text').keyup(function() {
         delay(function() {
             $("#preview").html("<h3><small>Loading</small></h3>");
             $.ajax({
                 url: "/markdown",
-                data: $.param({text: $('#comment').val()}),
+                data: $.param({text: $('#text').val()}),
                 dataType: 'json',
                 success: function(data) {
                     console.log(data)
