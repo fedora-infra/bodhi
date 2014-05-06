@@ -18,12 +18,12 @@ import transaction
 from bodhi.models import Base, DBSession, Update
 
 
-engine = op.get_bind()
-DBSession.configure(bind=engine)
-Base.metadata.bind = engine
-
-
 def upgrade():
+    engine = op.get_bind()
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
+
+
     with transaction.manager:
         updates = DBSession.query(Update)
 

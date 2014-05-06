@@ -19,12 +19,11 @@ from bodhi.models import Base, DBSession, Release, Update
 from bodhi.util import get_critpath_pkgs
 
 
-engine = op.get_bind()
-DBSession.configure(bind=engine)
-Base.metadata.bind = engine
-
-
 def upgrade():
+    engine = op.get_bind()
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
+
     critpath_pkgs = {}
     for release in DBSession.query(Release):
         relname = release.name
@@ -44,6 +43,10 @@ def upgrade():
 
 
 def downgrade():
+    engine = op.get_bind()
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
+
     with transaction.manager:
         updates = DBSession.query(Update)
 
