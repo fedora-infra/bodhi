@@ -1,6 +1,7 @@
 import math
 
 from cornice import Service
+from pyramid.httpexceptions import HTTPBadRequest
 from sqlalchemy.sql import or_
 
 from bodhi import log
@@ -110,6 +111,11 @@ def new_comment(request):
     email = data.pop('email', None)
     author = email or (request.user and request.user.name)
     anonymous = bool(email) or not author
+
+    if not author:
+        request.errors.add('body', 'email', 'You must provide an author')
+        request.errors.status = HTTPBadRequest.code
+        return
 
     try:
         com = update.comment(author=author, anonymous=anonymous, **data)

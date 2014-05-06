@@ -192,11 +192,26 @@
       <div class="clearfix"></div>
 
       <input type="hidden" name="update" value="${update.title}"/>
+
+      % if not request.user:
+      <div class="form-group">
+        <label for="email" class="col-sm-1 control-label">Email</label>
+        <div class="col-sm-5">
+          <input class="form-control" id="email" name="email" type="email"
+            placeholder="email@address.org" required="true"></input>
+          <div class="hidden alert alert-danger" for="email">
+            <strong></strong> <span class="error"></span>
+          </div>
+        </div>
+        <div class="col-sm-5"> </div>
+      </div>
+      % endif
+
       <div class="form-group">
         <label for="comment" class="col-sm-1 control-label">Comment</label>
         <div class="col-sm-5">
           <textarea class="form-control" id="text" name="text"
-            placeholder="Comment..."></textarea>
+            placeholder="Comment..." required="true"></textarea>
           <div class="hidden alert alert-danger" for="text">
             <strong></strong> <span class="error"></span>
           </div>
