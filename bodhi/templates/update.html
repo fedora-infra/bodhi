@@ -188,14 +188,64 @@
         <label for="email" class="col-sm-1 control-label">Email</label>
         <div class="col-sm-5">
           <input class="form-control" id="email" name="email" type="email"
-            placeholder="email@address.org" required="true"></input>
+          placeholder="email@address.org" required="true"></input>
           <div class="hidden alert alert-danger" for="email">
             <strong></strong> <span class="error"></span>
           </div>
         </div>
-        <div class="col-sm-5"> </div>
       </div>
       % endif
+
+      <div class="form-group">
+        <label class="col-lg-1 control-label">General?</label>
+        <div class="col-lg-2">
+          <select name="karma" class="form-control">
+            <option value="-1">broken entirely</option>
+            <option value="0" selected="selected">untested</option>
+            <option value="1">not entirely broken</option>
+          </select>
+        </div>
+        <label class="col-lg-1 control-label">Critpath?</label>
+        <div class="col-lg-2">
+          <select name="critpath_karma" class="form-control">
+            <option value="-1">breaks the critical path</option>
+            <option value="0" selected="selected">untested</option>
+            <option value="1">my machine still works</option>
+          </select>
+        </div>
+
+        <div class="clearfix"></div>
+
+        % for bug in update.bugs:
+        <label class="col-lg-4 control-label">
+          (<a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">
+            #${bug.bug_id}</a>) ${bug.title}
+        </label>
+        <div class="col-lg-2">
+          <select name="bug_karma_${bug.id}"class="form-control">
+            <option value="-1">bug #${bug.bug_id} is not fixed</option>
+            <option value="0" selected="selected">untested</option>
+            <option value="1">bug #${bug.bug_id} confirmed as fixed</option>
+          </select>
+        </div>
+        <div class="clearfix"></div>
+        % endfor
+
+        % for test in update.full_test_cases:
+        <label class="col-lg-4 control-label">
+          Test Case <a target="_blank" href="${request.registry.settings['test_case_base_url'] + test.name}">${test.name.replace('QA:Testcase ', '')}</a>
+        </label>
+        <div class="col-lg-2">
+          <select name="testcase_karma_${test.id}"class="form-control">
+            <option value="-1">fails</option>
+            <option value="0" selected="selected">untested</option>
+            <option value="1">passes</option>
+          </select>
+        </div>
+        <div class="clearfix"></div>
+        % endfor
+
+      </div>
 
       <div class="form-group">
         <label for="comment" class="col-sm-1 control-label">Comment</label>
@@ -210,29 +260,11 @@
           <span id="preview"><h3><small>Preview</small></h3></span>
         </div>
       </div>
-      <div class="form-group">
-        <label for="karma" class="col-sm-1 control-label">Karma</label>
-        <div class="col-sm-5">
-          <label class="radio-inline">
-            <input type="radio" id="karma1" value="-1">Does not work
-          </label>
-          <label class="radio-inline">
-            <input type="radio" id="karma2" value="0">Untested
-          </label>
-          <label class="radio-inline">
-            <input type="radio" id="karma3" value="1">Works for me
-          </label>
-        </div>
-      </div>
 
-      <div class="hidden alert alert-danger col-sm-5 col-sm-offset-1" for="karma">
-        <strong></strong><span class="error"></span>
-      </div>
-      <div class="clearfix"></div>
 
       <div class="form-group">
         <div class="col-sm-offset-1 col-sm-5">
-          <button type="submit" class="btn btn-default">Add Comment</button>
+          <button type="submit" class="pull-right btn btn-default">Add Comment</button>
         </div>
       </div>
     </form>

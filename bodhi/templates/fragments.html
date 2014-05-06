@@ -7,7 +7,16 @@
   ${comment.user.name}
   </a>
   % endif
-  ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
+  ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>, comment.karma,
+
+  % for feedback in comment.bug_feedback:
+  #${feedback.bug.bug_id} ${feedback.karma}
+  % endfor
+
+  % for feedback in comment.testcase_feedback:
+  ${feedback.testcase.name} ${feedback.karma}
+  % endfor
+
   <a class="anchor" href="#comment-${comment.id}">
   <span class="glyphicon glyphicon-link"></span>
   </a>

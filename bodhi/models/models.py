@@ -1518,6 +1518,14 @@ class Update(Base):
                 tests.add(test.name)
         return list(tests)
 
+    @property
+    def full_test_cases(self):
+        tests = set()
+        for build in self.builds:
+            for test in build.package.test_cases:
+                tests.add(test)
+        return list(tests)
+
 
 # Used for many-to-many relationships between karma and a bug
 class BugKarma(Base):
