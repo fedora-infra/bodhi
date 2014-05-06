@@ -48,12 +48,23 @@
 
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+              % if request.user:
+              <li>
+              <a href="${request.route_url('user', name=request.user.name)}">
+                <span class="glyphicon glyphicon-user"></span>
+                Profile
+              </a>
+              </li>
+              <li>
+              % endif
+              % if request.user:
               <li>
               <a href="#">
                 <span class="glyphicon glyphicon-plus"></span>
                 Submit
               </a>
               </li>
+              % endif
               <li>
               <a href="${request.route_url('metrics')}">
                 <span class="glyphicon glyphicon-stats"></span>
