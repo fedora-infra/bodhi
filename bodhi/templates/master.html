@@ -76,9 +76,9 @@
                 <span class="glyphicon glyphicon-log-out"></span>
                   Logout</a>
               % else:
-                <a href="${request.route_url('login')}">
-                  <span class="glyphicon glyphicon-log-in"></span>
-                    Login</a>
+              <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
+                <span class="glyphicon glyphicon-log-in"></span>
+                  Login</a>
               % endif
               </li>
           </ul>
