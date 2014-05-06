@@ -167,17 +167,7 @@
     <ul id="comments" class="linkable">
     % for comment in update.comments:
     <li id="comment-${comment.id}">
-      % if comment.user:
-      <a href="${request.route_url('user', name=comment.user.name)}">
-      <img class="img-circle" src="${self.util.avatar(comment.user.name, size=24)}"/>
-      ${comment.user.name}
-      </a>
-      % endif
-      ${self.util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
-      <a class="anchor" href="#comment-${comment.id}">
-      <span class="glyphicon glyphicon-link"></span>
-      </a>
-      ${self.util.markup(comment.text) | n}
+      ${self.fragments.comment(comment)}
     </li>
     % endfor
     </ul>

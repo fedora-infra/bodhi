@@ -1,12 +1,2 @@
-<%namespace name="util" module="bodhi.util"/>
-% if comment.user:
-<a href="${request.route_url('user', name=comment.user.name)}">
-<img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
-${comment.user.name}
-</a>
-% endif
-${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
-<a class="anchor" href="#comment-${comment.id}">
-<span class="glyphicon glyphicon-link"></span>
-</a>
-${util.markup(comment.text) | n}
+<%namespace name="fragments" file="fragments.html"/>
+${fragments.comment(comment)}
