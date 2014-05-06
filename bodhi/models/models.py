@@ -1519,6 +1519,32 @@ class Update(Base):
         return list(tests)
 
 
+# Used for many-to-many relationships between karma and a bug
+class BugKarma(Base):
+    __tablename__ = 'comment_bug_assoc'
+
+    karma = Column(Integer, default=0)
+
+    comment_id = Column(Integer, ForeignKey('comments.id'))
+    comment = relationship("Comment", backref='bug_feedback')
+
+    bug_id = Column(Integer, ForeignKey('bugs.id'))
+    bug = relationship("Bug", backref='feedback')
+
+
+# Used for many-to-many relationships between karma and a bug
+class TestCaseKarma(Base):
+    __tablename__ = 'comment_testcase_assoc'
+
+    karma = Column(Integer, default=0)
+
+    comment_id = Column(Integer, ForeignKey('comments.id'))
+    comment = relationship("Comment", backref='testcase_feedback')
+
+    testcase_id = Column(Integer, ForeignKey('testcases.id'))
+    testcase = relationship("TestCase", backref='feedback')
+
+
 class Comment(Base):
     __tablename__ = 'comments'
     __exclude_columns__ = tuple()
