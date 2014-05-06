@@ -100,6 +100,11 @@ def remember_me(context, request, info, *args, **kw):
     headers = remember(request, username)
     came_from = request.session['came_from']
     del(request.session['came_from'])
+
+    # Mitigate "Covert Redirect"
+    if not came_from.startswith(request.host_url):
+        came_from = '/'
+
     response = HTTPFound(location=came_from)
     response.headerlist.extend(headers)
     return response
