@@ -112,4 +112,15 @@ $(document).ready(function() {
             });
         }, 500);
     });
+
+    // Attach bootstrap tooltips to everything.
+    $('span').tooltip();
+
+    // Make the rows on the comment form change color on click.
+    $('.table td > input').click(function() {
+        var td = $(this).parent();
+        td.parent().removeClass('danger');
+        td.parent().removeClass('success');
+        td.parent().addClass(td.attr('data-class'));
+    });
 });

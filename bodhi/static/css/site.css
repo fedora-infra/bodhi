@@ -41,9 +41,14 @@ a:hover {
     height: 256px;
 }
 
-
 ul {
     list-style: none;
+}
+
+.table > thead > tr > th.angled {
+    transform: rotate(330deg);
+    padding-bottom: 20px;
+    max-width: 20px;
 }
 
 .anchor {

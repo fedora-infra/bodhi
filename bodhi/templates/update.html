@@ -1,10 +1,10 @@
 <%inherit file="master.html"/>
 
 <script type="text/javascript">
-  var form;
-  $(document).ready(function(){
-    form = new Form("#new_comment", "${request.route_url('comments')}");
-  });
+var form;
+$(document).ready(function(){
+  form = new Form("#new_comment", "${request.route_url('comments')}");
+});
 </script>
 
 <div class="row">
@@ -20,8 +20,8 @@
         <td>Submitter</td>
         <td>
           <a href="${request.route_url('user', name=update.user.name)}">
-          <img class="img-circle" src="${self.util.avatar(update.user.name, size=24)}"/>
-          ${update.user.name}
+            <img class="img-circle" src="${self.util.avatar(update.user.name, size=24)}"/>
+            ${update.user.name}
           </a>
         </td>
       </tr>
@@ -30,7 +30,7 @@
         <td>
           % for build in update.builds:
           <a href="http://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob">
-          ${build.nvr}
+            ${build.nvr}
           </a>
           % endfor
         </td>
@@ -126,11 +126,11 @@
   <div class="col-md-4">
     <h3>Related Bugs <span class="badge">${len(update.bugs)}</span></h3>
     <ul>
-    % for bug in update.bugs:
+      % for bug in update.bugs:
       <li> <a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">
         #${bug.bug_id}
       </a> ${bug.title} </li>
-    % endfor
+      % endfor
     </ul>
   </div>
   % endif
@@ -139,16 +139,16 @@
   <div class="col-md-4">
     <h3>Test Cases <span class="badge">${len(update.test_cases)}</span></h3>
     <ul>
-    % for test in update.test_cases:
+      % for test in update.test_cases:
       <li>
-        <a href="${request.registry.settings['test_case_base_url'] + test}">${test.replace('QA:Testcase ', '')}</a>
+      <a href="${request.registry.settings['test_case_base_url'] + test}">${test.replace('QA:Testcase ', '')}</a>
       </li>
-    % endfor
+      % endfor
     </ul>
   </div>
   % endif
 
-## TODO: resultsdb/taskotron stuff goes here some day
+  ## TODO: resultsdb/taskotron stuff goes here some day
 
 </div>
 
@@ -165,11 +165,11 @@
   <div class="col-md-12">
     <h3>Comments <span class="badge">${len(update.comments)}</span></h3>
     <ul id="comments" class="linkable">
-    % for comment in update.comments:
-    <li id="comment-${comment.id}">
+      % for comment in update.comments:
+      <li id="comment-${comment.id}">
       ${self.fragments.comment(comment)}
-    </li>
-    % endfor
+      </li>
+      % endfor
     </ul>
 
     <form id="new_comment" class="form-horizontal" role="form"
@@ -183,81 +183,93 @@
 
       <input type="hidden" name="update" value="${update.title}"/>
 
-      % if not request.user:
-      <div class="form-group">
-        <label for="email" class="col-sm-1 control-label">Email</label>
-        <div class="col-sm-5">
-          <input class="form-control" id="email" name="email" type="email"
-          placeholder="email@address.org" required="true"></input>
-          <div class="hidden alert alert-danger" for="email">
-            <strong></strong> <span class="error"></span>
+      <div class="row">
+        <div class="col-md-6">
+
+          % if not request.user:
+          <div class="form-group">
+            <label for="email" class="col-sm-1 control-label">Email</label>
+            <div class="col-sm-5">
+              <input class="form-control" id="email" name="email" type="email"
+              placeholder="email@address.org" required="true"></input>
+              <div class="hidden alert alert-danger" for="email">
+                <strong></strong> <span class="error"></span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      % endif
+          % endif
 
-      <div class="form-group">
-        <label class="col-lg-1 control-label">General?</label>
-        <div class="col-lg-2">
-          <select name="karma" class="form-control">
-            <option value="-1">broken entirely</option>
-            <option value="0" selected="selected">untested</option>
-            <option value="1">not entirely broken</option>
-          </select>
-        </div>
-        <label class="col-lg-1 control-label">Critpath?</label>
-        <div class="col-lg-2">
-          <select name="critpath_karma" class="form-control">
-            <option value="-1">breaks the critical path</option>
-            <option value="0" selected="selected">untested</option>
-            <option value="1">my machine still works</option>
-          </select>
-        </div>
-
-        <div class="clearfix"></div>
-
-        % for bug in update.bugs:
-        <label class="col-lg-4 control-label">
-          (<a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">
-            #${bug.bug_id}</a>) ${bug.title}
-        </label>
-        <div class="col-lg-2">
-          <select name="bug_karma_${bug.id}"class="form-control">
-            <option value="-1">bug #${bug.bug_id} is not fixed</option>
-            <option value="0" selected="selected">untested</option>
-            <option value="1">bug #${bug.bug_id} confirmed as fixed</option>
-          </select>
-        </div>
-        <div class="clearfix"></div>
-        % endfor
-
-        % for test in update.full_test_cases:
-        <label class="col-lg-4 control-label">
-          Test Case <a target="_blank" href="${request.registry.settings['test_case_base_url'] + test.name}">${test.name.replace('QA:Testcase ', '')}</a>
-        </label>
-        <div class="col-lg-2">
-          <select name="testcase_karma_${test.id}"class="form-control">
-            <option value="-1">fails</option>
-            <option value="0" selected="selected">untested</option>
-            <option value="1">passes</option>
-          </select>
-        </div>
-        <div class="clearfix"></div>
-        % endfor
-
-      </div>
-
-      <div class="form-group">
-        <label for="comment" class="col-sm-1 control-label">Comment</label>
-        <div class="col-sm-5">
-          <textarea class="form-control" id="text" name="text"
-            placeholder="Comment..." required="true"></textarea>
-          <div class="hidden alert alert-danger" for="text">
-            <strong></strong> <span class="error"></span>
+          <div class="form-group">
+            <label for="comment" class="col-sm-2 control-label">Comment</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" id="text" name="text" rows="6"
+                placeholder="Comment..." required="true"></textarea>
+              <div class="hidden alert alert-danger" for="text">
+                <strong></strong> <span class="error"></span>
+              </div>
+            </div>
+            <label for="preview" class="col-sm-2 control-label">Preview</label>
+            <div class="col-sm-10">
+              <span id="preview"><h3><small>Preview</small></h3></span>
+            </div>
           </div>
+
         </div>
-        <div class="col-sm-5">
-          <span id="preview"><h3><small>Preview</small></h3></span>
+        <div class="col-md-6">
+
+          <label for="preview" class="col-sm-2 control-label">Feedback</label>
+          <div class="col-sm-10">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="glyphicon glyphicon-remove-circle"></span></th>
+                  <th><span data-toggle="tooltip" data-placement="top" title="Untested." class="glyphicon glyphicon-unchecked"></span></th>
+                  <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
+                  <th></th>
+                </tr>
+              </thead>
+
+              % for bug in update.bugs:
+              <tr>
+                <td data-class="danger">  <input type="radio" name="karma_bug_${bug.id}" value="-1"> </td>
+                <td>                      <input type="radio" name="karma_bug_${bug.id}" value="0" checked> </td>
+                <td data-class="success"> <input type="radio" name="karma_bug_${bug.id}" value="1"> </td>
+                <td>
+                  <a target="_blank" href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">#${bug.bug_id}</a> ${bug.title}
+                </td>
+              </tr>
+              % endfor
+
+              % for test in update.full_test_cases:
+              <tr>
+                <td data-class="danger">   <input type="radio" name="karma_testcase_${test.id}" value="-1"> </td>
+                <td>                      <input type="radio" name="karma_testcase_${test.id}" value="0" checked> </td>
+                <td data-class="success"> <input type="radio" name="karma_testcase_${test.id}" value="1"> </td>
+                <td>
+                  Test Case <a target="_blank" href="${request.registry.settings['test_case_base_url'] + test.name}">${test.name.replace('QA:Testcase ', '')}</a>
+                </td>
+              </tr>
+              % endfor
+
+              % if update.critpath:
+              <tr>
+                <td data-class="danger">  <input type="radio" name="karma_critpath" value="-1"> </td>
+                <td>                      <input type="radio" name="karma_critpath" value="0" checked> </td>
+                <td data-class="success"> <input type="radio" name="karma_critpath" value="1"> </td>
+                <td>Does this update break the basic functioning of your system?</td>
+              </tr>
+              % endif
+
+              <tr>
+                <td data-class="danger">  <input type="radio" name="karma" value="-1"> </td>
+                <td>                      <input type="radio" name="karma" value="0" checked> </td>
+                <td data-class="success"> <input type="radio" name="karma" value="1"> </td>
+                <td>General behavior?  Any other problems?</td>
+              </tr>
+
+            </table>
+          </div>
+
         </div>
       </div>
 
