@@ -4,7 +4,8 @@ from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
-                     UpdateSuggestion, User, Group, Comment)
+                     UpdateSuggestion, User, Group, Comment,
+                     Bug, TestCase)
 from .util import get_nvr
 
 try:
@@ -392,6 +393,104 @@ def validate_update_id(request):
     else:
         request.errors.add('url', 'id', 'Invalid update id')
         request.errors.status = HTTPNotFound.code
+
+
+def _conditionally_get_update(request):
+    update = request.validated['update']
+
+    # This may or may not be true.. if a *different* validator runs first, then
+    # request.validated['update'] will be an Update object.  But if it does
+    # not, then request.validated['update'] will be a unicode object.
+    # So.. we have to handle either situation.  It is, however, not our
+    # responsibility to put the update object back in the request.validated
+    # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
+    if not isinstance(update, Update) and not update is None:
+        update = Update.get(update, request.db)
+
+    return update
+
+
+def validate_bug_feedback(request):
+    """Ensure that a given update id exists"""
+    feedback = request.validated.get('bug_feedback')
+    if feedback is None:
+        return
+
+    update = _conditionally_get_update(request)
+    if not update:
+        request.errors.add('url', 'id', 'Invalid update')
+        request.errors.status = HTTPNotFound.code
+        return
+
+    db = request.db
+    bad_bugs = []
+    validated = []
+
+    for item in feedback:
+        bug_id = item.pop('bug_id')
+        bug = db.query(Bug).filter(Bug.bug_id==bug_id).first()
+
+        if not bug or not update in bug.updates:
+            bad_bugs.append(bug_id)
+        else:
+            item['bug'] = bug
+            validated.append(item)
+
+    if bad_bugs:
+        request.errors.add('querystring', 'bug_feedback',
+                           "Invalid bug ids specified: {}".format(
+                               ", ".join(map(str, bad_bugs))))
+    else:
+        request.validated["bug_feedback"] = validated
+
+
+def validate_testcase_feedback(request):
+    """Ensure that a given update id exists"""
+    feedback = request.validated.get('testcase_feedback')
+    if feedback is None:
+        return
+
+    update = request.validated['update']
+    if not update:
+        request.errors.add('url', 'id', 'Invalid update')
+        request.errors.status = HTTPNotFound.code
+        return
+
+    # This may or may not be true.. if a *different* validator runs first, then
+    # request.validated['update'] will be an Update object.  But if it does
+    # not, then request.validated['update'] will be a unicode object.
+    # So.. we have to handle either situation.  It is, however, not our
+    # responsibility to put the update object back in the request.validated
+    # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
+    if not isinstance(update, Update):
+        update = Update.get(update, request.db)
+        if not update:
+            request.errors.add('url', 'id', 'Invalid update')
+            request.errors.status = HTTPNotFound.code
+            return
+
+    packages = [build.package for build in update.builds]
+
+    db = request.db
+    bad_testcases = []
+    validated = []
+
+    for item in feedback:
+        name = item.pop('testcase_name')
+        testcase = db.query(TestCase).filter(TestCase.name==name).first()
+
+        if not testcase or not testcase.package in packages:
+            bad_testcases.append(name)
+        else:
+            item['testcase'] = testcase
+            validated.append(item)
+
+    if bad_testcases:
+        request.errors.add('querystring', 'testcase_feedback',
+                           "Invalid testcase names specified: {}".format(
+                               ", ".join(bad_testcases)))
+    else:
+        request.validated["testcase_feedback"] = validated
 
 
 def validate_comment_id(request):

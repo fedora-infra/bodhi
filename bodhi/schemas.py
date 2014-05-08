@@ -66,19 +66,50 @@ class Updates(colander.SequenceSchema):
     update = colander.SchemaNode(colander.String())
 
 
-class SaveCommentSchema(colander.MappingSchema):
-    update = colander.SchemaNode(colander.String())
-    text = colander.SchemaNode(colander.String())
+class BugFeedback(colander.MappingSchema):
+    bug_id = colander.SchemaNode(colander.Integer())
     karma = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=-1, max=1),
         missing=0,
     )
+
+class BugFeedbacks(colander.SequenceSchema):
+    bug_feedback = BugFeedback()
+
+
+class TestcaseFeedback(colander.MappingSchema):
+    testcase_name = colander.SchemaNode(colander.String())
+    karma = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(min=-1, max=1),
+        missing=0,
+    )
+
+class TestcaseFeedbacks(colander.SequenceSchema):
+    testcase_feedback = TestcaseFeedback()
+
+
+class SaveCommentSchema(colander.MappingSchema):
+    update = colander.SchemaNode(colander.String())
+    text = colander.SchemaNode(colander.String())
     email = colander.SchemaNode(
         colander.String(),
         validator=colander.Email(),
         missing=None,
     )
+    karma = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(min=-1, max=1),
+        missing=0,
+    )
+    karma_critpath = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(min=-1, max=1),
+        missing=0,
+    )
+    bug_feedback = BugFeedbacks(missing=[])
+    testcase_feedback = TestcaseFeedbacks(missing=[])
 
 
 class SaveUpdateSchema(colander.MappingSchema):

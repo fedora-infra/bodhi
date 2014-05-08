@@ -15,6 +15,8 @@ from bodhi.validators import (
     validate_update_owner,
     validate_comment_id,
     validate_username,
+    validate_bug_feedback,
+    validate_testcase_feedback,
 )
 
 
@@ -103,7 +105,11 @@ def query_comments(request):
 @comments.post(schema=bodhi.schemas.SaveCommentSchema,
                #permission='create',  # We need an ACL for this to work...
                renderer='json',
-               validators=(validate_update))
+               validators=(
+                   validate_update,
+                   validate_bug_feedback,
+                   validate_testcase_feedback,
+               ))
 def new_comment(request):
     """ Add a new comment to an update. """
     data = request.validated

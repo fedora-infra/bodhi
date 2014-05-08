@@ -1283,7 +1283,8 @@ class Update(Base):
             color = '#00ff00'  # green
         return color
 
-    def comment(self, text, karma=0, author=None, anonymous=False):
+    def comment(self, text, karma=0, author=None, anonymous=False,
+                karma_critpath=0, bug_feedback=None, testcase_feedback=None):
         """ Add a comment to this update, adjusting the karma appropriately.
 
         Each user has the ability to comment as much as they want, but only
@@ -1293,6 +1294,11 @@ class Update(Base):
         """
         if not author:
             raise ValueError('You must provide a comment author')
+
+        # Listify these
+        bug_feedback = bug_feedback or []
+        testcase_feedback = testcase_feedback or []
+
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.user.name == author and c.karma == karma,
                       self.comments):
@@ -1304,6 +1310,9 @@ class Update(Base):
                 self.karma -= 2
             else:
                 self.karma += karma
+
+            # TODO -- this block of code should be moved out of here and to
+            # some kind of policy module.. so its not embedded in the model.
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if self.stable_karma != 0 and self.stable_karma == self.karma:
                 log.info("Automatically marking %s as stable" % self.title)
@@ -1321,6 +1330,18 @@ class Update(Base):
         session = DBSession()
         comment = Comment(text=text, karma=karma, anonymous=anonymous)
         session.add(comment)
+        session.flush()
+
+        for feedback_dict in bug_feedback:
+            feedback = BugKarma(**feedback_dict)
+            session.add(feedback)
+            comment.bug_feedback.append(feedback)
+
+        for feedback_dict in testcase_feedback:
+            feedback = TestCaseKarma(**feedback_dict)
+            session.add(feedback)
+            comment.testcase_feedback.append(feedback)
+
         session.flush()
 
         if anonymous:
@@ -1536,7 +1557,7 @@ class BugKarma(Base):
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='bug_feedback')
 
-    bug_id = Column(Integer, ForeignKey('bugs.id'))
+    bug_id = Column(Integer, ForeignKey('bugs.bug_id'))
     bug = relationship("Bug", backref='feedback')
 
 

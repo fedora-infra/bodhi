@@ -20,6 +20,7 @@ from bodhi.models import (
     User,
     UpdateStatus,
     UpdateRequest,
+    TestCase,
 )
 
 
@@ -50,6 +51,7 @@ class BaseWSGICase(unittest.TestCase):
         'system_users': 'bodhi autoqa',
         'max_update_length_for_ui': '70',
         'openid.provider': 'https://id.stg.fedoraproject.org',
+        'test_case_base_url': 'https://fedoraproject.org/wiki/',
     }
 
     def setUp(self):
@@ -81,6 +83,9 @@ class BaseWSGICase(unittest.TestCase):
         user.packages.append(pkg)
         build = Build(nvr=u'bodhi-2.0-1.fc17', release=release, package=pkg)
         session.add(build)
+        testcase = TestCase(name=u'Wat')
+        session.add(testcase)
+        pkg.test_cases.append(testcase)
         update = Update(
             title=u'bodhi-2.0-1.fc17',
             builds=[build], user=user,
