@@ -258,9 +258,10 @@ $(document).ready(function(){
 
               % for bug in update.bugs:
               <tr>
-                <td data-class="danger">  <input type="radio" name="karma_bug_${bug.id}" value="-1"> </td>
-                <td>                      <input type="radio" name="karma_bug_${bug.id}" value="0" checked> </td>
-                <td data-class="success"> <input type="radio" name="karma_bug_${bug.id}" value="1"> </td>
+                <input type="hidden" name="bug_feedback.${loop.index}.bug_id" value="${bug.bug_id}">
+                <td data-class="danger">  <input type="radio" name="bug_feedback.${loop.index}.karma" value="-1"> </td>
+                <td>                      <input type="radio" name="bug_feedback.${loop.index}.karma" value="0" checked> </td>
+                <td data-class="success"> <input type="radio" name="bug_feedback.${loop.index}.karma" value="1"> </td>
                 <td>
                   <a target="_blank" href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">#${bug.bug_id}</a> ${bug.title}
                 </td>
@@ -269,9 +270,10 @@ $(document).ready(function(){
 
               % for test in update.full_test_cases:
               <tr>
-                <td data-class="danger">   <input type="radio" name="karma_testcase_${test.id}" value="-1"> </td>
-                <td>                      <input type="radio" name="karma_testcase_${test.id}" value="0" checked> </td>
-                <td data-class="success"> <input type="radio" name="karma_testcase_${test.id}" value="1"> </td>
+                <input type="hidden" name="testcase_feedback.${loop.index}.testcase_name" value="${test.name}">
+                <td data-class="danger">  <input type="radio" name="testcase_feedback.${loop.index}.karma" value="-1"> </td>
+                <td>                      <input type="radio" name="testcase_feedback.${loop.index}.karma" value="0" checked> </td>
+                <td data-class="success"> <input type="radio" name="testcase_feedback.${loop.index}.karma" value="1"> </td>
                 <td>
                   Test Case <a target="_blank" href="${request.registry.settings['test_case_base_url'] + test.name}">${test.name.replace('QA:Testcase ', '')}</a>
                 </td>
