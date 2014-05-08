@@ -60,6 +60,17 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
                                  status=400)
         assert '2 is greater than maximum value 1' in res, res
 
+    def test_commenting_with_critpath_feedback(self):
+        comment = self.make_comment()
+        comment['karma_critpath'] = -1  # roll out the trucks
+        res = self.app.post_json('/comments/', comment)
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        self.assertEquals(res.json_body['comment']['karma_critpath'], -1)
+
     def test_commenting_with_bug_feedback(self):
         comment = self.make_comment()
         comment['bug_feedback'] = [{'bug_id': 12345, 'karma': 1}]

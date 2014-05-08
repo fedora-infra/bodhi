@@ -1328,7 +1328,9 @@ class Update(Base):
                 mail.send(self.get_maintainers(), 'unstable', self)
 
         session = DBSession()
-        comment = Comment(text=text, karma=karma, anonymous=anonymous)
+        comment = Comment(
+            text=text, anonymous=anonymous,
+            karma=karma, karma_critpath=karma_critpath)
         session.add(comment)
         session.flush()
 
@@ -1580,6 +1582,7 @@ class Comment(Base):
     __get_by__ = ('id',)
 
     karma = Column(Integer, default=0)
+    karma_critpath = Column(Integer, default=0)
     text = Column(UnicodeText)
     anonymous = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
