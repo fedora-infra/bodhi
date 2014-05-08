@@ -15,22 +15,22 @@
   <span class="karma-fest pull-right">
     <!-- This UI component could use some thought/love -->
     % if comment.karma:
-    karma: ${util.karma2html(comment.karma) | n}
+    <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
     % endif
 
     % if comment.karma_critpath:
-    critpath: ${util.karma2html(comment.karma_critpath) | n}
+    <span class="nowrap">critpath: ${util.karma2html(comment.karma_critpath) | n}</span>
     % endif
 
     % for feedback in comment.bug_feedback:
     % if feedback.karma:
-    #${feedback.bug.bug_id}: ${util.karma2html(feedback.karma) | n}
+    <span class="nowrap">#${feedback.bug.bug_id}: ${util.karma2html(feedback.karma) | n}</span>
     % endif
     % endfor
 
     % for feedback in comment.testcase_feedback:
     % if feedback.karma:
-    ${feedback.testcase.name}: ${util.karma2html(feedback.karma) | n}
+    <span class="nowrap">${feedback.testcase.name}: ${util.karma2html(feedback.karma) | n}</span>
     % endif
     % endfor
   </span>

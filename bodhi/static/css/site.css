@@ -49,6 +49,9 @@ ul {
     width: 10px !important;
 }
 
+.nowrap {
+    white-space: nowrap;
+}
 .anchor {
     color: black;
 }
