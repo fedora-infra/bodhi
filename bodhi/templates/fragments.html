@@ -7,18 +7,32 @@
   ${comment.user.name}
   </a>
   % endif
-  ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>, comment.karma,
-
-  % for feedback in comment.bug_feedback:
-  #${feedback.bug.bug_id} ${feedback.karma}
-  % endfor
-
-  % for feedback in comment.testcase_feedback:
-  ${feedback.testcase.name} ${feedback.karma}
-  % endfor
-
+  ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
   <a class="anchor" href="#comment-${comment.id}">
   <span class="glyphicon glyphicon-link"></span>
   </a>
+
+  <span class="karma-fest pull-right">
+    <!-- This UI component could use some thought/love -->
+    % if comment.karma:
+    karma: ${util.karma2html(comment.karma) | n}
+    % endif
+
+    % if comment.karma_critpath:
+    critpath: ${util.karma2html(comment.karma_critpath) | n}
+    % endif
+
+    % for feedback in comment.bug_feedback:
+    % if feedback.karma:
+    #${feedback.bug.bug_id}: ${util.karma2html(feedback.karma) | n}
+    % endif
+    % endfor
+
+    % for feedback in comment.testcase_feedback:
+    % if feedback.karma:
+    ${feedback.testcase.name}: ${util.karma2html(feedback.karma) | n}
+    % endif
+    % endfor
+  </span>
   ${util.markup(comment.text) | n}
 </%def>
