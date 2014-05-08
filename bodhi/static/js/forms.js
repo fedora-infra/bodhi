@@ -74,7 +74,11 @@ Form.prototype.data = function() {
     var data = {};
     $(this.idx + " :input").each(function() {
         if (data[this.name] === undefined) { data[this.name] = []; }
-        data[this.name].push($(this).val());
+        if (this.type == 'radio' && ! this.checked) {
+            // pass - don't add unchecked radio buttons to the submission
+        } else {
+            data[this.name].push($(this).val());
+        }
     });
     return data;
 }
