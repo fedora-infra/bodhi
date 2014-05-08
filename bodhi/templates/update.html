@@ -139,8 +139,7 @@ $(document).ready(function(){
       % for bug in update.bugs:
       <tr>
         <td> ${self.util.karma2html(update.get_bug_karma(bug)) | n} </td>
-        <td><a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">
-        #${bug.bug_id}</a> ${bug.title}</td>
+        <td>${self.util.bug_link(bug) | n}</td>
       </tr>
       % endfor
       </table>
@@ -164,7 +163,7 @@ $(document).ready(function(){
       % for test in update.full_test_cases:
       <tr>
         <td>${self.util.karma2html(update.get_testcase_karma(test)) | n}</td>
-        <td><a href="${request.registry.settings['test_case_base_url'] + test.name}">${test.name.replace('QA:Testcase ', '')}</a></td>
+        <td>${self.util.testcase_link(test) | n}</td>
       </tr>
       % endfor
     </table>
@@ -262,9 +261,7 @@ $(document).ready(function(){
                 <td data-class="danger">  <input type="radio" name="bug_feedback.${loop.index}.karma" value="-1"> </td>
                 <td>                      <input type="radio" name="bug_feedback.${loop.index}.karma" value="0" checked> </td>
                 <td data-class="success"> <input type="radio" name="bug_feedback.${loop.index}.karma" value="1"> </td>
-                <td>
-                  <a target="_blank" href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">#${bug.bug_id}</a> ${bug.title}
-                </td>
+                <td>${self.util.bug_link(bug) | n}</td>
               </tr>
               % endfor
 
@@ -274,9 +271,7 @@ $(document).ready(function(){
                 <td data-class="danger">  <input type="radio" name="testcase_feedback.${loop.index}.karma" value="-1"> </td>
                 <td>                      <input type="radio" name="testcase_feedback.${loop.index}.karma" value="0" checked> </td>
                 <td data-class="success"> <input type="radio" name="testcase_feedback.${loop.index}.karma" value="1"> </td>
-                <td>
-                  Test Case <a target="_blank" href="${request.registry.settings['test_case_base_url'] + test.name}">${test.name.replace('QA:Testcase ', '')}</a>
-                </td>
+                <td>${self.util.testcase_link(test) | n}</td>
               </tr>
               % endfor
 

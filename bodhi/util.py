@@ -440,3 +440,21 @@ def page_url(context, page):
     params = dict(request.params)
     params['page'] = page
     return request.path_url + "?" + urllib.urlencode(params)
+
+def bug_link(context, bug, short=False):
+    url = "https://bugzilla.redhat.com/show_bug.cgi?id=" + str(bug.bug_id)
+    display = "#%i" % bug.bug_id
+    link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
+    if not short:
+        link = link + " " + str(bug.title)
+    return link
+
+def testcase_link(context, test, short=False):
+    settings = context['request'].registry
+    default = 'https://fedoraproject.org/wiki/'
+    url = settings.get('test_case_base_url', default) + test.name
+    display = test.name.replace('QA:Testcase ', '')
+    link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
+    if not short:
+        link = "Test Case " + link
+    return link

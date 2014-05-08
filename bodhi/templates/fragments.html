@@ -24,13 +24,13 @@
 
     % for feedback in comment.bug_feedback:
     % if feedback.karma:
-    <span class="nowrap">#${feedback.bug.bug_id}: ${util.karma2html(feedback.karma) | n}</span>
+    <span class="nowrap">${util.bug_link(feedback.bug, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
     % endif
     % endfor
 
     % for feedback in comment.testcase_feedback:
     % if feedback.karma:
-    <span class="nowrap">${feedback.testcase.name}: ${util.karma2html(feedback.karma) | n}</span>
+    <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
     % endif
     % endfor
   </span>
