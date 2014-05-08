@@ -3341,7 +3341,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert 'Error: You must supply details for this update' in logs
+        assert 'Error: You must supply notes for this update' in logs
 
     def test_placeholder_notes(self):
         session = login()
@@ -3357,7 +3357,7 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         self.save_update(params, session)
         logs = testutil.get_log()
-        assert 'Error: You must supply details for this update' in logs
+        assert 'Error: You must supply notes for this update' in logs
 
     def test_new_updateid_url(self):
         session = login()
