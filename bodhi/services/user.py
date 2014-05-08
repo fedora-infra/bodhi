@@ -67,9 +67,9 @@ def get_user(request):
         .limit(14).all()
 
     # And stuff the results in the dict
-    result['comments_by'] = [c.__json__() for c in comments_by]
-    result['comments_on'] = [c.__json__() for c in comments_on]
-    result['updates'] = [u.__json__() for u in updates]
+    result['comments_by'] = comments_by
+    result['comments_on'] = comments_on
+    result['recent_updates'] = updates
 
     return dict(user=result)
 

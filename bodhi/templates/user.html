@@ -20,17 +20,9 @@
   % if user['comments_on']:
   <div class="col-md-7">
     <h3>Comments on ${user['name']}'s Updates</h3>
-    <ul>
+    <ul class="linkable">
     % for comment in user['comments_on']:
-      <li>
-        <a href="${request.route_url('user', name=comment['user']['name'])}">
-        <img class="img-circle" src="${self.util.avatar(comment['user']['name'], size=24)}"/>
-        ${comment['user']['name']}
-        </a> commented
-        ${self.util.age(comment['timestamp'])} on
-        ${self.util.update2html(comment['update']) | n}
-        ${self.util.markup(comment['text']) | n}
-      </li>
+      <li>${self.fragments.comment(comment)}</li>
     % endfor
     </ul>
   <span class="pull-right">
@@ -44,7 +36,7 @@
 </div>
 
 <div class="row">
-  % if user['updates']:
+  % if user['recent_updates']:
   <div class="col-md-5 col-md-offset-1">
     <h3>${user['name']}'s Updates</h3>
     <table class="table">
@@ -55,7 +47,7 @@
           <th>Status</th>
       </tr></thead>
       <tbody>
-      % for update in user['updates']:
+      % for update in user['recent_updates']:
       <tr>
         <td> ${self.util.update2html(update) | n} </td>
         <td>${self.util.age(update['date_submitted'])}</td>
@@ -81,16 +73,9 @@
   % if user['comments_by']:
   <div class="col-md-5">
     <h3>Comments by ${user['name']}</h3>
-    <ul>
+    <ul class="linkable">
     % for comment in user['comments_by']:
-      <li> <a href="${request.route_url('user', name=comment['user']['name'])}">
-        <img class="img-circle" src="${self.util.avatar(comment['user']['name'], size=24)}"/>
-        ${comment['user']['name']}
-        </a> commented
-        ${self.util.age(comment['timestamp'])} on
-        ${self.util.update2html(comment['update']) | n}
-        ${self.util.markup(comment['text']) | n}
-      </li>
+      <li>${self.fragments.comment(comment)}</li>
     % endfor
     </ul>
     <span class="pull-right">

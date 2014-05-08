@@ -1,18 +1,23 @@
 <%namespace name="util" module="bodhi.util"/>
 
 <%def name="comment(comment)">
-  % if comment.user:
-  <a href="${request.route_url('user', name=comment.user.name)}">
-  <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
-  ${comment.user.name}
-  </a>
-  % endif
-  ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
-  <a class="anchor" href="#comment-${comment.id}">
-  <span class="glyphicon glyphicon-link"></span>
-  </a>
+<div class="row">
+  <div class="col-md-6">
+    % if comment.user:
+    <a href="${request.route_url('user', name=comment.user.name)}">
+    <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
+    ${comment.user.name}
+    </a>
+    % endif
+    ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small> on
+    ${util.update2html(comment['update']) | n}
+    <a class="anchor" href="#comment-${comment.id}">
+    <span class="glyphicon glyphicon-link"></span>
+    </a>
+    ${util.markup(comment.text) | n}
+  </div>
 
-  <span class="karma-fest pull-right">
+  <div class="col-md-6 karma-fest">
     <!-- This UI component could use some thought/love -->
     % if comment.karma:
     <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
@@ -33,6 +38,7 @@
     <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
     % endif
     % endfor
-  </span>
-  ${util.markup(comment.text) | n}
+  </div>
+</div>
+<hr/>
 </%def>
