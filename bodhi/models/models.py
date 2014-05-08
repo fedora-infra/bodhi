@@ -858,7 +858,7 @@ class Update(Base):
                         good += 1
                     else:
                         bad += 1
-        return good, bad
+        return good, bad * -1
 
     def get_testcase_karma(self, testcase):
         good, bad = 0, 0
@@ -869,7 +869,7 @@ class Update(Base):
                         good += 1
                     else:
                         bad += 1
-        return good, bad
+        return good, bad * -1
 
     def assign_alias(self):
         """Assign an update ID to this update.
