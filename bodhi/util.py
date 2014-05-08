@@ -334,6 +334,11 @@ def status2html(context, status):
 
 
 def karma2html(context, karma):
+
+    # Recurse if we are handle multiple karma values
+    if isinstance(karma, tuple):
+        return '</td><td>'.join([karma2html(context, item) for item in karma])
+
     cls = {
         -2: 'danger',
         -1: 'warning',

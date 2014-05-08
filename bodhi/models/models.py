@@ -849,6 +849,28 @@ class Update(Base):
         """ Return a space-delimited string of CVE ids for this update """
         return u' '.join([cve.cve_id for cve in self.cves])
 
+    def get_bug_karma(self, bug):
+        good, bad = 0, 0
+        for comment in self.comments:
+            for feedback in comment.bug_feedback:
+                if feedback.bug == bug:
+                    if feedback.karma > 0:
+                        good += 1
+                    else:
+                        bad += 1
+        return good, bad
+
+    def get_testcase_karma(self, testcase):
+        good, bad = 0, 0
+        for comment in self.comments:
+            for feedback in comment.testcase_feedback:
+                if feedback.testcase == testcase:
+                    if feedback.karma > 0:
+                        good += 1
+                    else:
+                        bad += 1
+        return good, bad
+
     def assign_alias(self):
         """Assign an update ID to this update.
 

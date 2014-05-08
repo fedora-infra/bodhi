@@ -125,26 +125,49 @@ $(document).ready(function(){
   % if update.bugs:
   <div class="col-md-4">
     <h3>Related Bugs <span class="badge">${len(update.bugs)}</span></h3>
-    <ul>
+    <table class="table">
+      <colgroup class='strip' span="1"></colgroup>
+      <colgroup class='strip' span="1"></colgroup>
+      <colgroup span="1"></colgroup>
+      <thead>
+        <tr>
+          <th class='icon'><span data-toggle="tooltip" data-placement="top" title="PASS - Passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
+          <th class='icon'><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug." class="glyphicon glyphicon-remove-circle"></span></th>
+          <th></th>
+        </tr>
+      </thead>
       % for bug in update.bugs:
-      <li> <a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">
-        #${bug.bug_id}
-      </a> ${bug.title} </li>
+      <tr>
+        <td> ${self.util.karma2html(update.get_bug_karma(bug)) | n} </td>
+        <td><a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">
+        #${bug.bug_id}</a> ${bug.title}</td>
+      </tr>
       % endfor
-    </ul>
+      </table>
   </div>
   % endif
 
   % if update.test_cases:
   <div class="col-md-4">
     <h3>Test Cases <span class="badge">${len(update.test_cases)}</span></h3>
-    <ul>
-      % for test in update.test_cases:
-      <li>
-      <a href="${request.registry.settings['test_case_base_url'] + test}">${test.replace('QA:Testcase ', '')}</a>
-      </li>
+    <table class="table">
+      <colgroup class='strip' span="1"></colgroup>
+      <colgroup class='strip' span="1"></colgroup>
+      <colgroup span="1"></colgroup>
+      <thead>
+        <tr>
+          <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
+          <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="glyphicon glyphicon-remove-circle"></span></th>
+          <th></th>
+        </tr>
+      </thead>
+      % for test in update.full_test_cases:
+      <tr>
+        <td>${self.util.karma2html(update.get_testcase_karma(test)) | n}</td>
+        <td><a href="${request.registry.settings['test_case_base_url'] + test.name}">${test.name.replace('QA:Testcase ', '')}</a></td>
+      </tr>
       % endfor
-    </ul>
+    </table>
   </div>
   % endif
 
@@ -220,11 +243,15 @@ $(document).ready(function(){
           <label for="preview" class="col-sm-2 control-label">Feedback</label>
           <div class="col-sm-10">
             <table class="table">
+              <colgroup class='strip' span="1"></colgroup>
+              <colgroup class='strip' span="1"></colgroup>
+              <colgroup class='strip' span="1"></colgroup>
+              <colgroup span="1"></colgroup>
               <thead>
                 <tr>
-                  <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="glyphicon glyphicon-remove-circle"></span></th>
-                  <th><span data-toggle="tooltip" data-placement="top" title="Untested." class="glyphicon glyphicon-unchecked"></span></th>
-                  <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
+                  <th class='icon'><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="glyphicon glyphicon-remove-circle"></span></th>
+                  <th class='icon'><span data-toggle="tooltip" data-placement="top" title="Untested." class="glyphicon glyphicon-unchecked"></span></th>
+                  <th class='icon'><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
                   <th></th>
                 </tr>
               </thead>
