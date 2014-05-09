@@ -138,7 +138,7 @@ $(document).ready(function(){
       </thead>
       % for bug in update.bugs:
       <tr>
-        <td> ${self.util.karma2html(update.get_bug_karma(bug)) | n} </td>
+        <td>${self.util.karma2html(update.get_bug_karma(bug)) | n}</td>
         <td>${self.util.bug_link(bug) | n}</td>
       </tr>
       % endfor

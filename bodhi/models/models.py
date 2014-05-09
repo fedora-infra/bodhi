@@ -856,7 +856,7 @@ class Update(Base):
                 if feedback.bug == bug:
                     if feedback.karma > 0:
                         good += 1
-                    else:
+                    elif feedback.karma < 0:
                         bad += 1
         return good, bad * -1
 
@@ -867,7 +867,7 @@ class Update(Base):
                 if feedback.testcase == testcase:
                     if feedback.karma > 0:
                         good += 1
-                    else:
+                    elif feedback.karma < 0:
                         bad += 1
         return good, bad * -1
 
