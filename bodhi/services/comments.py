@@ -25,7 +25,7 @@ comment = Service(name='comment', path='/comments/{id}',
                  description='Comment submission service')
 
 comments = Service(name='comments', path='/comments/',
-                  description='Comment submission service')
+                   description='Comment submission service')
 
 
 @comment.get(accept=('application/json', 'text/json'), renderer='json')
