@@ -22,6 +22,7 @@ def validate_nvrs(request):
             if '' in (name, version, release):
                 raise ValueError
         except:
+            request.validated['builds'] = []
             request.errors.add('body', 'builds', 'Build not in '
                                'name-version-release format: %s' % build)
             return
@@ -182,6 +183,8 @@ def validate_version(request):
 def validate_uniqueness(request):
     """ Check for multiple builds from the same package """
     builds = request.validated.get('builds', [])
+    if not builds:  # validate_nvr failed
+        return
     for build in builds:
         nvr = request.buildinfo[build]['nvr']
         seen_build = 0
