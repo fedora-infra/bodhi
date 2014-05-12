@@ -50,6 +50,9 @@ requires = [
     'fedmsg',
 
     'Sphinx',
+
+    # For the bodhi-client
+    'click',
     ]
 
 if sys.version_info[:3] < (2,5,0):
@@ -84,6 +87,7 @@ setup(name='bodhi',
       main = bodhi:main
       [console_scripts]
       initialize_bodhi_db = bodhi.scripts.initializedb:main
+      bodhi = bodhi.cli:cli
       """,
       paster_plugins=['pyramid'],
       )
