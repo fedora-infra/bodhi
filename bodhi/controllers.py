@@ -688,20 +688,16 @@ class Root(controllers.RootController):
                 raise InvalidUpdateException(params)
             try:
                 # Grab a list of committers.
-                pkgdb_args = {
-                        'collectionName': 'Fedora',
-                        'collectionVersion': 'devel',
-                }
+                branch = 'master'
                 tags = buildinfo[build]['tags']
                 for release in Release.select():
                     if release.candidate_tag in tags or \
-                       release.testing_tag in tags:
-                        pkgdb_args['collectionName'] = release.collection_name
-                        pkgdb_args['collectionVersion'] = str(release.get_version())
+                        release.testing_tag in tags:
+                        branch = release.branchname
                         buildinfo[build]['release'] = release
                         break
 
-                people, groups = get_pkg_pushers(pkg, **pkgdb_args)
+                people, groups = get_pkg_pushers(pkg, branch)
                 people = people[0]  # we only care about committers, not watchers
                 buildinfo[build]['people'] = people
             except urllib2.URLError:
