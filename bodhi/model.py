@@ -74,6 +74,13 @@ class Release(SQLObject):
     # releases, since we'll no longer need to lock releases in this case.
     locked      = BoolCol(default=False)
 
+    @property
+    def branchname(self):
+        if self.id_prefix == 'FEDORA-EPEL':
+            return 'el%r' % self.get_version()
+        else:
+            return 'f%r' % self.get_version()
+
     def get_version(self):
         regex = re.compile('\D+(\d+)$')
         return int(regex.match(self.name).groups()[0])
