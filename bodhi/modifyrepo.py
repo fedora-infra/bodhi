@@ -27,8 +27,8 @@
 import os
 import sys
 import gzip
+import hashlib
 
-from hashlib import sha256
 from xml.dom import minidom
 from kitchen.text.converters import to_bytes
 
@@ -43,6 +43,12 @@ class RepoMetadata(object):
         if not os.path.exists(self.repomdxml):
             raise RepositoryNotFound(self.repomdxml)
         self.doc = minidom.parse(self.repomdxml)
+
+        self.hash_type = 'sha256'
+        # yum on py2.4 doesn't support sha256 (#1080373)
+        if 'el5' in repo:
+            self.hash_type = 'sha1'
+        self.hash = getattr(hashlib, self.hash_type)
 
     def _insert_element(self, parent, name, attrs={}, text=None):
         child = self.doc.createElement(name)
@@ -90,7 +96,7 @@ class RepoMetadata(object):
         f.close()
 
         ## Prefix the file name with its hash
-        hashed_md = sha256(newmd).hexdigest()
+        hashed_md = self.hash(newmd).hexdigest()
         hashed_mdname = "%s-%s" % (hashed_md, mdname)
         hashed_destmd = os.path.join(self.repodir, hashed_mdname)
         os.rename(destmd, hashed_destmd)
@@ -106,12 +112,12 @@ class RepoMetadata(object):
         data = self._insert_element(root, 'data', attrs={'type' : mdtype})
         self._insert_element(data, 'location',
                              attrs={'href' : 'repodata/' + hashed_mdname})
-        self._insert_element(data, 'checksum', attrs={'type' : 'sha256'},
+        self._insert_element(data, 'checksum', attrs={'type' : self.hash_type},
                              text=hashed_md)
         self._insert_element(data, 'timestamp',
                              text=str(os.stat(hashed_destmd).st_mtime))
-        self._insert_element(data, 'open-checksum', attrs={'type' : 'sha256'},
-                             text=sha256(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
+        self._insert_element(data, 'open-checksum', attrs={'type' : self.hash_type},
+                             text=self.hash(to_bytes(md, errors='ignore', non_string='passthru')).hexdigest())
 
         ## Write the updated repomd.xml
         outmd = file(self.repomdxml, 'w')
