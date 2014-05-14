@@ -257,8 +257,40 @@ def get_repo_tag(repo):
         log.error("Cannot find mash configuration for %s: %s" % (repo,
                                                                  mashconfig))
 
-def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel'):
+
+def get_pkg_pushers(pkg, branch):
+    watchers = []
+    committers = []
+    watchergroups = []
+    committergroups = []
+
+    from pkgdb2client import PkgDB
+    pkgdb = PkgDB(config.get('pkgdb_url'))
+    acls = pkgdb.get_package(pkg, branches=branch)
+
+    for package in acls['packages']:
+        for acl in package['acls']:
+            if acl['status'] == 'Approved':
+                if acl['acl'] == 'watchcommits':
+                    name = acl['fas_name']
+                    if name.startswith('group::'):
+                        watchergroups.append(name.split('::')[1])
+                    else:
+                        watchers.append(name)
+                elif acl['acl'] == 'commit':
+                    name = acl['fas_name']
+                    if name.startswith('group::'):
+                        committergroups.append(name.split('::')[1])
+                    else:
+                        committers.append(name)
+
+    return (committers, watchers), (committergroups, watchergroups)
+
+
+def _get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel'):
     """ Pull users who can commit and are watching a package
+
+    :deprecated: by the new pkgdb2 get_pkg_pushers
 
     Return two two-tuples of lists:
     * The first tuple is for usernames.  The second tuple is for groups.

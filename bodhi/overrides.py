@@ -174,15 +174,8 @@ class BuildRootOverrideController(Controller):
                 raise redirect('/override/new')
 
             # Make sure the user has commit rights to the appropriate branch
-            pkgdb_args = {
-                    'collectionName': 'Fedora',
-                    'collectionVersion': 'devel',
-            }
-            pkgdb_args['collectionName'] = release.collection_name
-            pkgdb_args['collectionVersion'] = str(release.get_version())
-
             try:
-                people, groups = get_pkg_pushers(n, **pkgdb_args)
+                people, groups = get_pkg_pushers(n, release.branchname)
             except Exception, e:
                 flash(str(e))
                 if request_format() == 'json': return dict()
