@@ -1152,7 +1152,7 @@ class PackageUpdate(SQLObject):
     def critpath(self):
         """ Return whether or not this update is in the critical path """
         critical = False
-        critpath_pkgs = get_critpath_pkgs(self.release.name.lower())
+        critpath_pkgs = get_critpath_pkgs(self.release.branchname)
         if not critpath_pkgs:
             # Optimize case where there's no critpath packages
             return False

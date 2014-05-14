@@ -389,14 +389,16 @@ def cache_with_expire(expire=86400):
     return decorator(cached)
 
 @cache_with_expire()
-def get_critpath_pkgs(collection='devel'):
+def get_critpath_pkgs(collection='master'):
+    critpath_pkgs = []
     critpath_type = config.get('critpath.type', None)
     if critpath_type == 'pkgdb':
-        pkgdb = PackageDB(config.get('pkgdb_url'))
-        critpath_pkgs = pkgdb.get_critpath_pkgs([collection])
-        critpath_pkgs = getattr(critpath_pkgs, collection, [])
+        from pkgdb2client import PkgDB
+        pkgdb = PkgDB(config.get('pkgdb_url'))
+        results = pkgdb.get_critpath_packages(branches=collection, page='all')
+        for package in results['packages']:
+            critpath_pkgs.append(package['name'])
     else:
-        critpath_pkgs = []
         # HACK: Avoid the current critpath policy for EPEL
         if not collection.startswith('EL'):
             # Note: ''.split() == []
