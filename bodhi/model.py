@@ -74,6 +74,13 @@ class Release(SQLObject):
     # releases, since we'll no longer need to lock releases in this case.
     locked      = BoolCol(default=False)
 
+    @property
+    def branchname(self):
+        if self.id_prefix == 'FEDORA-EPEL':
+            return 'el%r' % self.get_version()
+        else:
+            return 'f%r' % self.get_version()
+
     def get_version(self):
         regex = re.compile('\D+(\d+)$')
         return int(regex.match(self.name).groups()[0])
@@ -1145,7 +1152,7 @@ class PackageUpdate(SQLObject):
     def critpath(self):
         """ Return whether or not this update is in the critical path """
         critical = False
-        critpath_pkgs = get_critpath_pkgs(self.release.name.lower())
+        critpath_pkgs = get_critpath_pkgs(self.release.branchname)
         if not critpath_pkgs:
             # Optimize case where there's no critpath packages
             return False

@@ -425,8 +425,7 @@ class Root(controllers.RootController):
                 can_modify = False
                 if not identity.current.anonymous:
                     people, groups = get_pkg_pushers(up.builds[0].package.name,
-                            up.release.id_prefix.capitalize(),
-                            up.release.get_version())
+                            up.release.branchname)
                     if (identity.current.user_name in people[0]):
                         can_modify = True
                 dict_up = up.__json__()

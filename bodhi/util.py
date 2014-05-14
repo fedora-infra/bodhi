@@ -257,73 +257,35 @@ def get_repo_tag(repo):
         log.error("Cannot find mash configuration for %s: %s" % (repo,
                                                                  mashconfig))
 
-def get_pkg_pushers(pkgName, collectionName='Fedora', collectionVersion='devel'):
-    """ Pull users who can commit and are watching a package
 
-    Return two two-tuples of lists:
-    * The first tuple is for usernames.  The second tuple is for groups.
-    * The first list of the tuple is for committers.  The second is for
-      watchers.
+def get_pkg_pushers(pkg, branch):
+    watchers = []
+    committers = []
+    watchergroups = []
+    committergroups = []
 
-    An example::
-      >>> people, groups = get_pkg_pushers('foo', 'Fedora', 'devel')
-      >>> print people
-      (['toshio', 'lmacken'], ['wtogami', 'toshio', 'lmacken'])
-      >>> print groups
-      (['cvsextras'], [])
+    from pkgdb2client import PkgDB
+    pkgdb = PkgDB(config.get('pkgdb_url'))
+    acls = pkgdb.get_package(pkg, branches=branch)
 
-    Note: The interface to the pkgdb could undergo the following changes:
-      FAS2 related:
-      * pkg['packageListings'][0]['owneruser'] =>
-        pkg['packageListings'][0]['owner']
-      * pkg['packageListings'][0]['people'][0..n]['user'] =>
-        pkg['packageListings'][0]['people'][0..n]['userid']
+    for package in acls['packages']:
+        for acl in package['acls']:
+            if acl['status'] == 'Approved':
+                if acl['acl'] == 'watchcommits':
+                    name = acl['fas_name']
+                    if name.startswith('group::'):
+                        watchergroups.append(name.split('::')[1])
+                    else:
+                        watchers.append(name)
+                elif acl['acl'] == 'commit':
+                    name = acl['fas_name']
+                    if name.startswith('group::'):
+                        committergroups.append(name.split('::')[1])
+                    else:
+                        committers.append(name)
 
-    * We may want to create a 'push' acl specifically for bodhi instead of
-      reusing 'commit'.
-    * ['status']['translations'] may one day contain more than the 'C'
-      translation.  The pkgdb will have to figure out how to deal with that
-      if so.
+    return (committers, watchers), (committergroups, watchergroups)
 
-    This may raise: fedora.client.AppError if there's an error talking to the
-    PackageDB (for instance, no such package)
-    """
-    if config.get('acl_system') == 'dummy':
-        return ((['guest', 'admin'], ['guest', 'admin']),
-                (['guest', 'admin'], ['guest', 'admin']))
-
-    # Note if AppError is raised (for no pkgNamme or other server errors) we
-    # do not catch the exception here.
-    pkgdb = PackageDB(config.get('pkgdb_url'))
-    pkg = pkgdb.get_owners(pkgName, collectionName, collectionVersion)
-
-    # Owner is allowed to commit and gets notified of pushes
-    # This will always be the 0th element as we'll retrieve at most one
-    # value for any given Package-Collection-Version
-    pNotify = [pkg.packageListings[0]['owner']]
-    pAllowed = [pNotify[0]]
-
-    # Find other people in the acl
-    for person in pkg['packageListings'][0]['people']:
-        if person['aclOrder']['watchcommits'] and \
-           pkg['statusMap'][str(person['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-            pNotify.append(person['username'])
-        if person['aclOrder']['commit'] and \
-           pkg['statusMap'][str(person['aclOrder']['commit']['statuscode'])] == 'Approved':
-            pAllowed.append(person['username'])
-
-    # Find groups that can push
-    gNotify = []
-    gAllowed = []
-    for group in pkg['packageListings'][0]['groups']:
-        if group['aclOrder']['watchcommits'] and \
-           pkg['statusMap'][str(group['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-            gNotify.append(group['groupname'])
-        if group['aclOrder']['commit'] and \
-           pkg['statusMap'][str(group['aclOrder']['commit']['statuscode'])] == 'Approved':
-            gAllowed.append(group['groupname'])
-
-    return ((pAllowed, pNotify), (gAllowed, gNotify))
 
 def cache_with_expire(expire=86400):
     # expire is the number of seconds to cache for.
@@ -357,14 +319,16 @@ def cache_with_expire(expire=86400):
     return decorator(cached)
 
 @cache_with_expire()
-def get_critpath_pkgs(collection='devel'):
+def get_critpath_pkgs(collection='master'):
+    critpath_pkgs = []
     critpath_type = config.get('critpath.type', None)
     if critpath_type == 'pkgdb':
-        pkgdb = PackageDB(config.get('pkgdb_url'))
-        critpath_pkgs = pkgdb.get_critpath_pkgs([collection])
-        critpath_pkgs = getattr(critpath_pkgs, collection, [])
+        from pkgdb2client import PkgDB
+        pkgdb = PkgDB(config.get('pkgdb_url'))
+        results = pkgdb.get_critpath_packages(branches=collection, page='all')
+        for package in results['packages']:
+            critpath_pkgs.append(package['name'])
     else:
-        critpath_pkgs = []
         # HACK: Avoid the current critpath policy for EPEL
         if not collection.startswith('EL'):
             # Note: ''.split() == []
