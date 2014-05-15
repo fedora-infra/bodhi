@@ -9,10 +9,8 @@ class BodhiClient(OpenIdBaseClient):
         super(BodhiClient, self).__init__(base_url, **kwargs)
 
     def new(self, **kwargs):
-        return self.send_request('/updates/', verb='POST', auth=True, data=kwargs)
+        return self.send_request('/updates/', verb='POST', auth=True,
+                                 data=kwargs)
 
     def query(self, **kwargs):
-        return self.send_request('query', verb='GET', **kwargs)
-
-    def authed_query(self, **kwargs):
-        return self.send_request('query', verb='POST', auth=True, params=kwargs)
+        return self.send_request('/updates/', verb='GET', **kwargs)
