@@ -77,9 +77,9 @@ class Release(SQLObject):
     @property
     def branchname(self):
         if self.id_prefix == 'FEDORA-EPEL':
-            return 'el%r' % self.get_version()
+            return 'el%d' % self.get_version()
         else:
-            return 'f%r' % self.get_version()
+            return 'f%d' % self.get_version()
 
     def get_version(self):
         regex = re.compile('\D+(\d+)$')
