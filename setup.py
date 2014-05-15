@@ -24,6 +24,7 @@ requires = [
 
     'python-openid',
     'pyramid_fas_openid',
+    'packagedb-cli',
 
     'sqlalchemy',
     'zope.sqlalchemy',

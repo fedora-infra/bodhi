@@ -206,17 +206,16 @@ def get_db_from_config(dev=False):
 
 
 @memoized
-def get_critpath_pkgs(collection='devel'):
+def get_critpath_pkgs(collection='master'):
     """Return a list of critical path packages for a given collection"""
+    critpath_pkgs = []
     critpath_type = config.get('critpath.type')
     if critpath_type == 'pkgdb':
-        pkgdb = PackageDB(config.get('pkgdb_url'))
-        critpath_pkgs = pkgdb.get_critpath_pkgs([collection])
-        critpath_pkgs = getattr(critpath_pkgs, collection, [])
-        # Fallback to rawhide's critpath list
-        if not critpath_pkgs:
-            critpath_pkgs = pkgdb.get_critpath_pkgs(['devel'])
-            critpath_pkgs = getattr(critpath_pkgs, 'devel', [])
+        from pkgdb2client import PkgDB
+        pkgdb = PkgDB(config.get('pkgdb_url'))
+        results = pkgdb.get_critpath_packages(branches=collection)
+        if collection in results['pkgs']:
+            critpath_pkgs = results['pkgs'][collection]
     else:
         critpath_pkgs = config.get('critpath_pkgs', '').split()
     return critpath_pkgs
