@@ -329,9 +329,9 @@ def get_critpath_pkgs(collection='master'):
     if critpath_type == 'pkgdb':
         from pkgdb2client import PkgDB
         pkgdb = PkgDB(config.get('pkgdb_url'))
-        results = pkgdb.get_critpath_packages(branches=collection, page='all')
-        for package in results['packages']:
-            critpath_pkgs.append(package['name'])
+        results = pkgdb.get_critpath_packages(branches=collection)
+        if collection in results['pkgs']:
+            critpath_pkgs = results['pkgs'][collection]
     else:
         # HACK: Avoid the current critpath policy for EPEL
         if not collection.startswith('EL'):
