@@ -13,4 +13,4 @@ class BodhiClient(OpenIdBaseClient):
                                  data=kwargs)
 
     def query(self, **kwargs):
-        return self.send_request('/updates/', verb='GET', **kwargs)
+        return self.send_request('/updates/', verb='GET', params=kwargs)
