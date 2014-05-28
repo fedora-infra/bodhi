@@ -132,11 +132,11 @@ def query_updates(request):
 
     suggest = data.get('suggest')
     if suggest is not None:
-        query = query.filter_by(suggest=suggest)
+        query = query.filter(Update.suggest==suggest)
 
     type = data.get('type')
     if type is not None:
-        query = query.filter_by(type=type)
+        query = query.filter(Update.type==type)
 
     user = data.get('user')
     if user is not None:
