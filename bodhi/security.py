@@ -67,8 +67,9 @@ def remember_me(context, request, info, *args, **kw):
         request.session.flash('Invalid OpenID provider. You can only use: %s' %
                               request.registry.settings['openid.provider'])
         return HTTPFound(location=request.route_url('home'))
-    username = info['identity_url'].split('http://')[1].split('.')[0]
-    log.debug('%s successfully logged in' % username)
+
+    username = unicode(info['identity_url'].split('http://')[1].split('.')[0])
+    log.info('%s successfully logged in' % username)
     log.debug('groups = %s' % info['groups'])
 
     # Find the user in our database. Create it if it doesn't exist.
@@ -80,9 +81,8 @@ def remember_me(context, request, info, *args, **kw):
         db.flush()
 
     # See if they are a member of any important groups
-    important_groups = request.registry.settings['important_groups'].split()
-    for important_group in important_groups:
-
+    important_groups = unicode(request.registry.settings['important_groups'])
+    for important_group in important_groups.split():
         group = db.query(Group).filter_by(name=important_group).first()
         if not group:
             group = Group(name=important_group)
