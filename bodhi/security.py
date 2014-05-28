@@ -1,9 +1,11 @@
-from pyramid.security import Allow, Deny, Everyone, Authenticated, ALL_PERMISSIONS, DENY_ALL
+from pyramid.security import (Allow, Deny, Everyone, Authenticated,
+                              ALL_PERMISSIONS, DENY_ALL)
 from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound
 
 from . import log
 from .models import User, Group, Update
+
 
 #
 # Pyramid ACL factories
@@ -11,9 +13,9 @@ from .models import User, Group, Update
 
 def admin_only_acl(request):
     """Generate our admin-only ACL"""
-    return  [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
-             request.registry.settings['admin_groups'].split()] + \
-            [DENY_ALL]
+    return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
+            request.registry.settings['admin_groups'].split()] + \
+           [DENY_ALL]
 
 
 def packagers_allowed_acl(request):
@@ -31,6 +33,7 @@ def package_maintainers_only_acl(request):
     for committer in update.get_maintainers():
         acl.insert(0, (Allow, committer, ALL_PERMISSIONS))
     return acl
+
 
 #
 # OpenID views
