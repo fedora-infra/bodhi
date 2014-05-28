@@ -155,6 +155,7 @@ def query_updates(request):
         page=page,
         pages=pages,
         rows_per_page=rows_per_page,
+        total=total,
     )
 
 
