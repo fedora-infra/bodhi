@@ -82,7 +82,7 @@ def query_updates(request):
 
     critpath = data.get('critpath')
     if critpath is not None:
-        query = query.filter_by(critpath=critpath)
+        query = query.filter(Update.critpath==critpath)
 
     cves = data.get('cves')
     if cves is not None:
@@ -91,7 +91,7 @@ def query_updates(request):
 
     locked = data.get('locked')
     if locked is not None:
-        query = query.filter_by(locked=locked)
+        query = query.filter(Update.locked==locked)
 
     modified_since = data.get('modified_since')
     if modified_since is not None:
@@ -104,7 +104,7 @@ def query_updates(request):
 
     pushed = data.get('pushed')
     if pushed is not None:
-        query = query.filter_by(pushed=pushed)
+        query = query.filter(Update.pushed==pushed)
 
     pushed_since = data.get('pushed_since')
     if pushed_since is not None:
@@ -116,15 +116,15 @@ def query_updates(request):
 
     req = data.get('request')
     if req is not None:
-        query = query.filter_by(request=req)
+        query = query.filter(Update.request==req)
 
     severity = data.get('severity')
     if severity is not None:
-        query = query.filter_by(severity=severity)
+        query = query.filter(Update.severity==severity)
 
     status = data.get('status')
     if status is not None:
-        query = query.filter_by(status=status)
+        query = query.filter(Update.status==status)
 
     submitted_since = data.get('submitted_since')
     if submitted_since is not None:
