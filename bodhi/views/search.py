@@ -10,8 +10,9 @@ def get_all_packages():
     return [pkg['package_name'] for pkg in koji.listPackages()]
 
 
-@view_config(route_name='search_pkgs', renderer='json', request_method='GET')
-def search_pkgs(request):
+@view_config(route_name='search_packages', renderer='json',
+             request_method='GET')
+def search_packages(request):
     """ Called by the NewUpdateForm.builds AutocompleteWidget """
     packages = get_all_packages()
     return [{'id': p, 'label': p, 'value': p} for p in packages
