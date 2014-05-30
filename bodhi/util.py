@@ -273,7 +273,7 @@ def get_pkg_pushers(pkg, branch):
     acls = pkgdb.get_package(pkg, branches=branch)
 
     for package in acls['packages']:
-        for acl in package['acls']:
+        for acl in package.get('acls', []):
             if acl['status'] == 'Approved':
                 if acl['acl'] == 'watchcommits':
                     name = acl['fas_name']
