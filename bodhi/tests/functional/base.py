@@ -3,6 +3,7 @@ import unittest
 from datetime import datetime, timedelta
 from webtest import TestApp
 from sqlalchemy import create_engine
+from sqlalchemy import event
 
 from bodhi import main
 from bodhi.models import (
@@ -60,6 +61,13 @@ class BaseWSGICase(unittest.TestCase):
         Base.metadata.create_all(engine)
         self.populate()
         self.app = TestApp(main({}, testing=u'guest', **self.app_settings))
+
+        # Track sql statements in every test
+        self.sql_statements = []
+        def track(conn, cursor, statement, param, ctx, many):
+            self.sql_statements.append(statement)
+
+        event.listen(engine, "before_cursor_execute", track)
 
     def tearDown(self):
         DBSession.remove()

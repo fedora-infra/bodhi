@@ -37,11 +37,15 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
     def test_get_single_user(self):
         res = self.app.get('/users/bodhi')
         self.assertEquals(res.json_body['user']['name'], 'bodhi')
+        # check to catch performance regressions
+        self.assertEquals(len(self.sql_statements), 6)
 
     def test_get_single_user_page(self):
         res = self.app.get('/users/bodhi', headers=dict(accept='text/html'))
         self.assertIn('libravatar.org', res)
         self.assertIn('&copy;', res)
+        # check to catch performance regressions
+        self.assertEquals(len(self.sql_statements), 7)
 
     def test_list_users(self):
         res = self.app.get('/users/')
@@ -50,6 +54,8 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
 
         self.assertEquals(body['users'][0]['name'], u'guest')
         self.assertEquals(body['users'][1]['name'], u'bodhi')
+        # check to catch performance regressions
+        self.assertEquals(len(self.sql_statements), 3)
 
     def test_search_users(self):
         res = self.app.get('/users/', {'like': 'odh'})
