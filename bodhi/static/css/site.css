@@ -84,6 +84,11 @@ form#search, form#search input, .twitter-typeahead {
   margin-top: 0px;
   margin-left: 10px;
   padding: 8px;
+
+  /* Make it scrollable */
+  max-height: 350px;
+  overflow-y: auto;
+
   background-color: #fff;
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
