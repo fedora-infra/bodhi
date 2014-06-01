@@ -66,14 +66,24 @@ hr {
     display: inline;
 }
 
+/* Search-y stuff */
+form#search, form#search input, .twitter-typeahead {
+    width: 100%;
+}
+.twitter-typeahead {
+    margin-top: 20px;
+    font-size: 115%;
+    padding-left: 10px;
+}
 .tt-hint {
   color: #999
 }
 
 .tt-dropdown-menu {
-  width: 422px;
-  margin-top: 12px;
-  padding: 8px 0;
+  width: 100%;
+  margin-top: 0px;
+  margin-left: 10px;
+  padding: 8px;
   background-color: #fff;
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
