@@ -16,18 +16,9 @@ $(document).ready(function() {
             filter: function(response) { return response.users; },
         }
     });
-    var comments = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            url: '/comments/?like=%QUERY',
-            filter: function(response) { return response.comments; },
-        }
-    });
 
     updates.initialize();
     users.initialize();
-    comments.initialize();
 
     $('#bloodhound .typeahead').typeahead({
         hint: true,
@@ -56,19 +47,6 @@ $(document).ready(function() {
             empty: [
                 '<div class="empty-message">',
                 'unable to find any users that match the current query',
-                '</div>'
-            ].join('\n'),
-        },
-    },
-    {
-        name: 'comments',
-        displayKey: 'text',
-        source: comments.ttAdapter(),
-        templates: {
-            header: '<h3 class="search">Comments</h3>',
-            empty: [
-                '<div class="empty-message">',
-                'unable to find any comments that match the current query',
                 '</div>'
             ].join('\n'),
         },
