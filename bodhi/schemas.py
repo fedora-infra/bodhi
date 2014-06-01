@@ -182,6 +182,14 @@ class PaginatedSchema(colander.MappingSchema):
     )
 
 
+class SearchableSchema(colander.MappingSchema):
+    like = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
+
 class ListReleaseSchema(PaginatedSchema):
     name = colander.SchemaNode(
         colander.String(),
@@ -233,7 +241,7 @@ class ListUserSchema(PaginatedSchema):
     )
 
 
-class ListUpdateSchema(PaginatedSchema):
+class ListUpdateSchema(PaginatedSchema, SearchableSchema):
     approved_since = colander.SchemaNode(
         colander.DateTime(),
         location="querystring",

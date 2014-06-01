@@ -174,6 +174,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
 
+    def test_search_updates(self):
+        res = self.app.get('/updates/', {'like': 'odh'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+
+        res = self.app.get('/updates/', {'like': 'wat'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
     def test_list_updates_pagination(self):
 
         # First, stuff a second update in there

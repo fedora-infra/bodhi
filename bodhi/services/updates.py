@@ -89,6 +89,12 @@ def query_updates(request):
         query = query.join(Update.cves)
         query = query.filter(or_(*[CVE.cve_id==cve_id for cve_id in cves]))
 
+    like = data.get('like')
+    if like is not None:
+        query = query.filter(or_(*[
+            Update.title.like('%%%s%%' % like)
+        ]))
+
     locked = data.get('locked')
     if locked is not None:
         query = query.filter(Update.locked==locked)
