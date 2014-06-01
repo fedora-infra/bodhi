@@ -52,6 +52,19 @@ $(document).ready(function() {
         },
     });
 
+    $('input.typeahead').on('typeahead:selected', function (e, datum) {
+        if (datum.alias != undefined) {
+            window.location.href = '/updates/' + datum.alias;
+        } else if (datum.title != undefined ) {
+            window.location.href = '/updates/' + datum.title;
+        } else if (datum.name != undefined) {
+            window.location.href = '/users/' + datum.name;
+        } else {
+            console.log("unhandled search result");
+            console.log(datum);
+        }
+    });
+
     // Our ajaxy search is hidden by default.  Only show it if this is running
     // (and therefore if the user has javascript enabled).
     $("form#search").removeClass('hidden');
