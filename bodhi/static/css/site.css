@@ -65,3 +65,8 @@ hr {
 .linkable li:hover .anchor {
     display: inline;
 }
+
+.tt-dropdown-menu {
+    background: white;
+    border: 1px dashed black;
+}
