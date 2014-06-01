@@ -32,6 +32,8 @@ requires = [
     'webhelpers',
     'progressbar',
 
+    'bunch',
+
     # Useful tools
     'kitchen',
     'python-fedora',
