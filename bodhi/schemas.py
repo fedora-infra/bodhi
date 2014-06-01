@@ -212,7 +212,7 @@ class ListReleaseSchema(PaginatedSchema):
     )
 
 
-class ListUserSchema(PaginatedSchema):
+class ListUserSchema(PaginatedSchema, SearchableSchema):
     name = colander.SchemaNode(
         colander.String(),
         location="querystring",
@@ -390,7 +390,7 @@ class UpdateRequestSchema(colander.MappingSchema):
     )
 
 
-class ListCommentSchema(PaginatedSchema):
+class ListCommentSchema(PaginatedSchema, SearchableSchema):
     updates = Updates(
         colander.Sequence(accept_scalar=True),
         location="querystring",

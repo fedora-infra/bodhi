@@ -60,6 +60,12 @@ def query_comments(request):
     if anonymous is not None:
         query = query.filter_by(anonymous=anonymous)
 
+    like = data.get('like')
+    if like is not None:
+        query = query.filter(or_(*[
+            Comment.text.like('%%%s%%' % like)
+        ]))
+
     packages = data.get('packages')
     if packages is not None:
         query = query\

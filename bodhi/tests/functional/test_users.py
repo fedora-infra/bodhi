@@ -51,6 +51,18 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['users'][0]['name'], u'guest')
         self.assertEquals(body['users'][1]['name'], u'bodhi')
 
+    def test_search_users(self):
+        res = self.app.get('/users/', {'like': 'odh'})
+        body = res.json_body
+        self.assertEquals(len(body['users']), 1)
+
+        user = body['users'][0]
+        self.assertEquals(user['name'], u'bodhi')
+
+        res = self.app.get('/users/', {'like': 'wat'})
+        body = res.json_body
+        self.assertEquals(len(body['users']), 0)
+
     def test_list_users_with_pagination(self):
         res = self.app.get('/users/')
         body = res.json_body

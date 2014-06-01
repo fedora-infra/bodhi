@@ -152,6 +152,18 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
         self.assertEquals(comment['karma'], 0)
 
+    def test_search_comments(self):
+        res = self.app.get('/comments/', {'like': 'srsly'})
+        body = res.json_body
+        self.assertEquals(len(body['comments']), 1)
+
+        comment = body['comments'][0]
+        self.assertEquals(comment['text'], u'srsly.  pretty good.')
+
+        res = self.app.get('/comments/', {'like': 'wat'})
+        body = res.json_body
+        self.assertEquals(len(body['comments']), 0)
+
     def test_list_comments_pagination(self):
         # Then, test pagination
         res = self.app.get('/comments/',

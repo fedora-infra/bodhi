@@ -81,6 +81,12 @@ def query_users(request):
     data = request.validated
     query = db.query(User)
 
+    like = data.get('like')
+    if like is not None:
+        query = query.filter(or_(*[
+            User.name.like('%%%s%%' % like)
+        ]))
+
     name = data.get('name')
     if name is not None:
         query = query.filter(User.name.like(name))
