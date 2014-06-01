@@ -26,7 +26,7 @@ from bodhi.util import (
     get_age, get_critpath_pkgs,
 )
 
-from bodhi.util import get_age_in_days
+from bodhi.util import get_age_in_days, avatar as get_avatar
 from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import RPMNotFound
 from bodhi.config import config
@@ -43,6 +43,7 @@ except ImportError:
 class BodhiBase(object):
     """ Our custom model base class """
     __exclude_columns__ = ('id',)  # List of columns to exclude from JSON
+    __include_extras__ = tuple()  # List of methods to include in JSON
     __get_by__ = ()  # Columns that get() will query
 
     id = Column(Integer, primary_key=True)
@@ -75,10 +76,15 @@ class BodhiBase(object):
         d = dict([(attr, getattr(obj, attr)) for attr in attrs
                   if attr not in exclude and not attr.startswith('_')])
 
+        extras = getattr(obj, '__include_extras__', [])
+        for name in extras:
+            d[name] = getattr(obj, name)(request)
+
         for attr in rels:
             if attr in exclude:
                 continue
-            d[attr] = self._expand(obj, getattr(obj, attr), seen)
+            d[attr] = self._expand(obj, getattr(obj, attr), seen, request)
+
         for key, value in d.iteritems():
             if isinstance(value, datetime):
                 d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
@@ -87,14 +93,14 @@ class BodhiBase(object):
 
         return d
 
-    def _expand(self, obj, relation, seen):
+    def _expand(self, obj, relation, seen, req):
         """ Return the to_json or id of a sqlalchemy relationship. """
         if hasattr(relation, 'all'):
             relation = relation.all()
         if hasattr(relation, '__iter__'):
-            return [self._expand(obj, item, seen) for item in relation]
+            return [self._expand(obj, item, seen, req) for item in relation]
         if type(relation) not in seen:
-            return self._to_json(relation, seen=seen + [type(obj)])
+            return self._to_json(relation, seen + [type(obj)], req)
         else:
             return relation.id
 
@@ -1708,6 +1714,7 @@ user_group_table = Table('user_group_table', Base.metadata,
 class User(Base):
     __tablename__ = 'users'
     __exclude_columns__ = ('id', 'comments', 'updates', 'groups', 'packages')
+    __include_extras__ = ('avatar',)
     __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
@@ -1718,6 +1725,12 @@ class User(Base):
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
+
+    def avatar(self, request):
+        if not request:
+            return None
+        context = dict(request=request)
+        return get_avatar(context=context, username=self.name, size=24)
 
 
 class Group(Base):

@@ -293,10 +293,10 @@ def age(context, date):
 def avatar(context, username, size):
     # context is a mako context object
     request = context['request']
+    https = request.registry.settings.get('prefer_ssl'),
 
     @request.cache.cache_on_arguments()
     def work(username, size):
-        https = request.registry.settings.get('prefer_ssl'),
         openid = "http://%s.id.fedoraproject.org/" % username
         if asbool(config.get('libravatar_enabled', True)):
             return libravatar.libravatar_url(

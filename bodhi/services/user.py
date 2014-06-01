@@ -43,7 +43,7 @@ def get_user(request):
         request.errors.status = HTTPNotFound.code
         return
 
-    result = user.__json__()
+    result = user.__json__(request)
 
     # Throw some extra information in there
 

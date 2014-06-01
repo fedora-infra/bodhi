@@ -49,6 +49,9 @@ $(document).ready(function() {
                 'unable to find any users that match the current query',
                 '</div>'
             ].join('\n'),
+            suggestion: function(datum) {
+                return '<p><img class="img-circle" src="' + datum.avatar + '">' + datum.name + '</p>';
+            },
         },
     });
 

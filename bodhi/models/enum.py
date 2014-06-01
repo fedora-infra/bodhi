@@ -28,7 +28,7 @@ class EnumSymbol(object):
     def __unicode__(self):
         return unicode(self.description)
 
-    def __json__(self):
+    def __json__(self, request=None):
         return self.description
 
 

@@ -62,6 +62,7 @@ def get_latest_updates(request, critpath, security):
 @view_config(route_name='home', renderer='home.html')
 def home(request):
     """ Returns data for the frontpage """
+    r = request
 
     @request.cache.cache_on_arguments()
     def work():
@@ -70,9 +71,9 @@ def home(request):
         security_updates = get_latest_updates(request, False, True)
 
         return {
-            "top_testers": [(obj.__json__(), n) for obj, n in top_testers],
-            "critpath_updates": [obj.__json__() for obj in critpath_updates],
-            "security_updates": [obj.__json__() for obj in security_updates],
+            "top_testers": [(obj.__json__(r), n) for obj, n in top_testers],
+            "critpath_updates": [obj.__json__(r) for obj in critpath_updates],
+            "security_updates": [obj.__json__(r) for obj in security_updates],
         }
 
     return work()
