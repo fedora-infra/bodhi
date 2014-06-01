@@ -23,6 +23,7 @@ from datetime import datetime
 from fedora.client import PackageDB
 from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
+from pyramid.settings import asbool
 
 from . import log
 from .exceptions import RPMNotFound, RepodataException
@@ -297,12 +298,14 @@ def avatar(context, username, size):
     def work(username, size):
         https = request.registry.settings.get('prefer_ssl'),
         openid = "http://%s.id.fedoraproject.org/" % username
-        return libravatar.libravatar_url(
-            openid=openid,
-            https=https,
-            size=size,
-            default='retro',
-        )
+        if asbool(config.get('libravatar_enabled', True)):
+            return libravatar.libravatar_url(
+                openid=openid,
+                https=https,
+                size=size,
+                default='retro',
+            )
+        return 'libravatar.org'
 
     return work(username, size)
 
