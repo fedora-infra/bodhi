@@ -1,5 +1,4 @@
 import datetime
-import markdown
 import sqlalchemy as sa
 
 from pyramid.view import view_config, notfound_view_config
@@ -7,6 +6,7 @@ from pyramid.exceptions import HTTPNotFound
 
 from bodhi import log
 import bodhi.models
+from bodhi.util import markup
 
 
 @notfound_view_config(append_slash=True)
@@ -113,4 +113,4 @@ def markdowner(request):
     We use this for "previews" of comments and update notes.
     """
     text = request.params.get('text')
-    return dict(html=markdown.markdown(text))
+    return dict(html=markup(request.context, text))
