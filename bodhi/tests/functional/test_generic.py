@@ -91,6 +91,10 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)
         self.assertEquals(res.json_body['html'], '<p>wat</p>')
 
+    def test_markdown_with_html(self):
+        res = self.app.get('/markdown', {'text': '<b>bold</b>'}, status=200)
+        self.assertEquals(res.json_body['html'], '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>')
+
     def test_metrics(self):
         res = self.app.get('/metrics')
         self.assertIn('$.plot', res)
