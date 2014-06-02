@@ -16,7 +16,7 @@ def cli():
               type=click.Choice(['security', 'bugfix',
                                  'enhancement', 'newpackage']))
 @click.option('--notes', help='Update description')
-@click.option('--bugs', help='Comma-seperated list of bug numbers')
+@click.option('--bugs', help='Comma-seperated list of bug numbers', default='')
 @click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs')
 @click.option('--request', help='Requested repository',
               type=click.Choice(['testing', 'stable', 'unpush']))
