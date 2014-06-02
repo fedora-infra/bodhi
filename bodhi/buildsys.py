@@ -262,7 +262,8 @@ def setup_buildsystem(settings):
     if buildsys == 'koji':
         log.debug('Using Koji Buildsystem')
         koji_login(config=settings)
-        _buildsystem = lambda: koji.ClientSession(_koji_hub, sinfo=_koji_session)
+        #_buildsystem = lambda: koji.ClientSession(_koji_hub, sinfo=_koji_session)
+        _buildsystem = lambda: koji.ClientSession(_koji_hub)
         atexit.register(close_session)
     elif buildsys in ('dev', 'dummy', None):
         log.debug('Using DevBuildsys')
