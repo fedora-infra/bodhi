@@ -1,8 +1,0 @@
-<%namespace name="util" module="bodhi.util"/>
-<%def name="updatelist(updates)">
-  <ul class="updateslist">
-    % for update in updates:
-      <li>${util.update2html(update) | n}</li>
-    % endfor
-  </ul>
-</%def>
