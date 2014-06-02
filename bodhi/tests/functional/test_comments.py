@@ -152,6 +152,15 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_get_single_comment_page(self):
         res = self.app.get('/comments/1', headers=dict(accept='text/html'))
+        self.assertIn('text/html', res.headers['Content-Type'])
+        self.assertIn('libravatar.org', res)
+
+    def test_get_single_comment_jsonp(self):
+        res = self.app.get('/comments/1',
+                           {'callback': 'callback'},
+                           headers=dict(accept='application/javascript'))
+        self.assertIn('application/javascript', res.headers['Content-Type'])
+        self.assertIn('callback', res)
         self.assertIn('libravatar.org', res)
 
     def test_404(self):
@@ -165,6 +174,25 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
         self.assertEquals(comment['karma'], 0)
+
+    def test_list_comments_jsonp(self):
+        res = self.app.get('/comments/',
+                           {'callback': 'callback'},
+                           headers=dict(accept='application/javascript'))
+        self.assertIn('application/javascript', res.headers['Content-Type'])
+        self.assertIn('callback', res)
+        self.assertIn('srsly.  pretty good', res)
+
+    def test_list_comments_rss(self):
+        res = self.app.get('/comments/',
+                           headers=dict(accept='application/rss'))
+        self.assertIn('application/rss+xml', res.headers['Content-Type'])
+        self.assertIn('srsly.  pretty good', res)
+
+    def test_list_comments_page(self):
+        res = self.app.get('/comments/', headers=dict(accept='text/html'))
+        self.assertIn('text/html', res.headers['Content-Type'])
+        self.assertIn('libravatar.org', res)
 
     def test_search_comments(self):
         res = self.app.get('/comments/', {'like': 'srsly'})

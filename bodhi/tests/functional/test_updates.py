@@ -48,12 +48,6 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('Fedora Updates System', resp)
         self.assertIn('&copy;', resp)
 
-    def test_get_single_update_html(self):
-        id = 'bodhi-2.0-1.fc17'
-        resp = self.app.get('/updates/%s' % id, headers={'Accept': 'text/html'})
-        self.assertIn(id, resp)
-        self.assertIn('&copy;', resp)
-
     def test_invalid_build_name(self):
         res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-1.fc17,invalidbuild-1.0'),
                                  status=400)
@@ -164,6 +158,28 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_get_single_update(self):
         res = self.app.get('/updates/bodhi-2.0-1.fc17')
         self.assertEquals(res.json_body['update']['title'], 'bodhi-2.0-1.fc17')
+        self.assertIn('application/json', res.headers['Content-Type'])
+
+    def test_get_single_update_jsonp(self):
+        res = self.app.get('/updates/bodhi-2.0-1.fc17',
+                           {'callback': 'callback'},
+                           headers={'Accept': 'application/javascript'})
+        self.assertIn('application/javascript', res.headers['Content-Type'])
+        self.assertIn('callback', res)
+        self.assertIn('bodhi-2.0-1.fc17', res)
+
+    def test_get_single_update_rss(self):
+        res = self.app.get('/updates/bodhi-2.0-1.fc17',
+                           headers={'Accept': 'application/rss'},
+                           status=406)
+
+    def test_get_single_update_html(self):
+        id = 'bodhi-2.0-1.fc17'
+        resp = self.app.get('/updates/%s' % id,
+                            headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('&copy;', resp)
 
     def test_list_updates(self):
         res = self.app.get('/updates/')
@@ -187,6 +203,27 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
+
+    def test_list_updates_jsonp(self):
+        res = self.app.get('/updates/',
+                           {'callback': 'callback'},
+                           headers={'Accept': 'application/javascript'})
+        self.assertIn('application/javascript', res.headers['Content-Type'])
+        self.assertIn('callback', res)
+        self.assertIn('bodhi-2.0-1.fc17', res)
+
+    def test_list_updates_rss(self):
+        res = self.app.get('/updates/',
+                           headers={'Accept': 'application/rss'})
+        self.assertIn('application/rss+xml', res.headers['Content-Type'])
+        self.assertIn('bodhi-2.0-1.fc17', res)
+
+    def test_list_updates_html(self):
+        res = self.app.get('/updates/',
+                           headers={'Accept': 'text/html'})
+        self.assertIn('text/html', res.headers['Content-Type'])
+        self.assertIn('bodhi-2.0-1.fc17', res)
+        self.assertIn('&copy;', res)
 
     def test_search_updates(self):
         res = self.app.get('/updates/', {'like': 'odh'})

@@ -47,7 +47,6 @@ users = Service(name='users', path='/users/',
 
 @user.get(accept=("application/json", "text/json"), renderer="json")
 @user.get(accept=("application/javascript"), renderer="jsonp")
-@user.get(accept=("application/rss"), renderer="rss")
 @user.get(accept="text/html", renderer="user.html")
 def get_user(request):
     db = request.db

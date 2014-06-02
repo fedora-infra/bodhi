@@ -73,18 +73,54 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_get_single_user_page(self):
         res = self.app.get('/users/bodhi', headers=dict(accept='text/html'))
+        self.assertIn('text/html', res.headers['Content-Type'])
         self.assertIn('libravatar.org', res)
         self.assertIn('&copy;', res)
         # check to catch performance regressions
         self.assertEquals(len(self.sql_statements), 7)
 
+    def test_get_single_user_jsonp(self):
+        res = self.app.get('/users/bodhi',
+                           {'callback': 'callback'},
+                           headers=dict(accept='application/javascript'))
+        self.assertIn('application/javascript', res.headers['Content-Type'])
+        self.assertIn('libravatar.org', res)
+        # check to catch performance regressions
+        self.assertEquals(len(self.sql_statements), 6)
+
+    def test_get_single_user_rss(self):
+        res = self.app.get('/users/bodhi',
+                           headers=dict(accept='application/rss'),
+                           status=406)
+
     def test_list_users(self):
         res = self.app.get('/users/')
+        self.assertIn('application/json', res.headers['Content-Type'])
         body = res.json_body
         self.assertEquals(len(body['users']), 2)
 
         self.assertEquals(body['users'][0]['name'], u'guest')
         self.assertEquals(body['users'][1]['name'], u'bodhi')
+        # check to catch performance regressions
+        self.assertEquals(len(self.sql_statements), 3)
+
+    def test_list_users_jsonp(self):
+        res = self.app.get('/users/',
+                           {'callback': 'callback'},
+                           headers=dict(accept='application/javascript'))
+        self.assertIn('application/javascript', res.headers['Content-Type'])
+        self.assertIn('callback', res)
+        self.assertIn('bodhi', res)
+        self.assertIn('guest', res)
+        # check to catch performance regressions
+        self.assertEquals(len(self.sql_statements), 3)
+
+    def test_list_users_rss(self):
+        res = self.app.get('/users/',
+                           headers=dict(accept='application/rss'))
+        self.assertIn('application/rss+xml', res.headers['Content-Type'])
+        self.assertIn('bodhi', res)
+        self.assertIn('guest', res)
         # check to catch performance regressions
         self.assertEquals(len(self.sql_statements), 3)
 
