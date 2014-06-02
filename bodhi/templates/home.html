@@ -10,17 +10,26 @@
     </script>
   </div>
 
-  <div class="col-md-12 js-md-6">
+  <div class="col-md-12 remove-cols js-md-6">
+
     <div class="row">
-      <div class="col-md-10 col-md-offset-1 remove-cols">
+      <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 sidepanel nopadding">
+        <div class="panelheader clearfix">
+          <h3 class="pull-left">Search Bodhi</h3>
+        </div>
         <form id="search" role="search">
-          <div id="bloodhound" class="form-group">
-            <input class="typeahead form-control" name="term" type="text" placeholder="Search Bodhi">
+          <div id="bloodhound" class="form-group noui">
+            <input class="typeahead form-control noui" name="term" type="text" placeholder="Search query here...">
           </div>
         </form>
+      </div>
+    </div>
 
-        <div class="rowjs">
-          <h2>This week's top testers</h2>
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 sidepanel nopadding">
+          <div class="panelheader clearfix">
+            <h3 class="pull-left">This week's top testers</h3>
+          </div>
           <table class="table">
             % for tester, count in top_testers:
             <tr>
@@ -40,33 +49,34 @@
 
       % if critpath_updates:
       <div class="row">
-        <hr />
-        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12">
-          <p class="lead">Latest Critical Path Updates in Need of Testing</p>
-          <p>Critical path updates are updates for the highest-priority software in Fedora.</p>
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 sidepanel nopadding">
+          <div class="panelheader clearfix">
+            <h3 class="pull-left">Latest Critical Path Updates in Need of Testing</h3>
+            <span class="pull-right">
+              <a href="${request.route_url('updates')}?status=testing">
+                View all
+                <span class="glyphicon glyphicon-chevron-right"></span>
+              </a>
+            </span>
+          </div>
           ${self.tables.updates(critpath_updates)}
-          <span class="pull-right">
-            <a href="${request.route_url('updates')}?status=testing">
-              View more testing updates
-              <span class="glyphicon glyphicon-chevron-right"></span>
-            </a>
-          </span>
         </div>
       </div>
       % endif
 
       % if security_updates:
       <div class="row">
-        <div class="col-md-10 col-md-offset-1 js-md-12">
-          <p class="lead">Latest Security Updates in Need of Testing</p>
-          <p>Security updates are... something important or something.</p>
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 sidepanel nopadding">
+          <div class="panelheader clearfix">
+            <h3 class="pull-left">Latest Security Updates in Need of Testing</h3>
+            <span class="pull-right">
+              <a href="${request.route_url('updates')}?type=security&status=testing">
+                View all
+                <span class="glyphicon glyphicon-chevron-right"></span>
+              </a>
+            </span>
+          </div>
           ${self.tables.updates(security_updates)}
-          <span class="pull-right">
-            <a href="${request.route_url('updates')}?type=security&status=testing">
-              View more security updates
-              <span class="glyphicon glyphicon-chevron-right"></span>
-            </a>
-          </span>
         </div>
       </div>
       %endif

@@ -301,7 +301,7 @@ def sanity_check_repodata(myurl):
 
 
 def age(context, date):
-    return arrow.get(date).humanize()
+    return arrow.get(date).humanize().replace('ago', '')
 
 
 def avatar(context, username, size):

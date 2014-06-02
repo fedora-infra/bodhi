@@ -3,23 +3,23 @@
   <table class="table">
     <thead><tr>
         <th>Update</th>
-        <th>Age</th>
-        <th>Submitter</th>
-        <th>Release(s)</th>
+        <th class="nobreak">Age</th>
+        <th class="nobreak">Submitter</th>
+        <th class="hidejs">Release(s)</th>
         <th class="hidejs">Status</th>
     </tr></thead>
     <tbody>
     % for update in updates:
     <tr>
       <td>${util.update2html(update) | n}</td>
-      <td>${util.age(update['date_submitted'])}</td>
-      <td>
+      <td class="nobreak">${util.age(update['date_submitted'])}</td>
+      <td class="nobreak">
         <a href="${request.route_url('user', name=update['user']['name'])}">
           <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
           ${update['user']['name']}
         </a>
       </td>
-      <td>
+      <td class="hidejs">
         <a href="${request.route_url('release', name=update['release']['name'])}">
           ${update['release']['name']}
         </a>

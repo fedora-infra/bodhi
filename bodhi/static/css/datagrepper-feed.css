@@ -7,13 +7,24 @@
     width: 32px;
 }
 
-#datagrepper-widget .message-card {
-    font-style: bold;
-    border-bottom: 1px solid #ccc;
+#datagrepper-widget .message-card:before {
+    border-top: 1px solid #CCCCCC;
+    color: #fff;
+    content: ".";
+    display: block;
+    margin-top: 10px;
+    clear: both;
+}
+
+#datagrepper-widget .message-card a img {
+    visibility: hidden;
+    display: none;
 }
 
 #datagrepper-widget .datetime {
     font-style: italic;
+    float: right;
+    color: #777;
 }
 
 #datagrepper-widget p {

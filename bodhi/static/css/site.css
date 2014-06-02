@@ -129,3 +129,7 @@ ul.updateslist li {
     display: none;
     visibility: hidden;
 }
+
+.nopadding {
+    padding: 0;
+}
