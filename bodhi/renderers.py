@@ -14,9 +14,9 @@ def rss(info):
                 response.content_type = 'application/rss+xml'
 
         feed = webhelpers.feedgenerator.Rss201rev2Feed(
-            title=key
+            title=key,
             link=request.url,
-            description=key
+            description=key,
             language=u"en",
         )
 
