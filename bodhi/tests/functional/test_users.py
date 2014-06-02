@@ -15,8 +15,11 @@
 from datetime import datetime, timedelta
 from webtest import TestApp
 
+from pyramid.settings import asbool
+
 import bodhi.tests.functional.base
 
+from bodhi.config import config
 from bodhi import main
 from bodhi.models import (
     Base,
@@ -57,6 +60,9 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
     def test_get_single_avatar(self):
         res = self.app.get('/users/bodhi')
         self.assertEquals(res.json_body['user']['name'], 'bodhi')
+
+        if not asbool(config.get('libravatar_enabled', True)):
+            return
 
         base = 'https://seccdn.libravatar.org/avatar/'
         h = '6f26f2d69404c1b45b3cacc63054bdd0d8270c262335cdda5930c29a8ebc35f1'
