@@ -13,70 +13,86 @@
   <div class="col-md-12 remove-cols js-md-6">
 
     <div class="row">
-      <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 sidepanel nopadding">
-        <div class="panelheader clearfix">
-          <h3 class="pull-left">Search Bodhi</h3>
-        </div>
-        <form id="search" role="search">
-          <div id="bloodhound" class="form-group noui">
-            <input class="typeahead form-control noui" name="term" type="text" placeholder="Search query here...">
+      <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 nopadding">
+        <div class="searchpanel sidepanel panel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Search Bodhi</span>
           </div>
-        </form>
+          <div class="panel-body">
+            <form id="search" role="search">
+              <div id="bloodhound" class="form-group">
+                <input class="typeahead form-control" name="term" type="text" placeholder="Search query here...">
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
 
       <div class="row">
-        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 sidepanel nopadding">
-          <div class="panelheader clearfix">
-            <h3 class="pull-left">This week's top testers</h3>
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 nopadding">
+          <div class="sidepanel panel panel-default">
+            <div class="panel-heading clearfix">
+              <span class="pull-left">This week's top testers</span>
+            </div>
+            <div class="panel-body">
+              <table class="table">
+                % for tester, count in top_testers:
+                <tr>
+                  <td>
+                    <strong>#${str(loop.index + 1)}</strong>
+                    <a href="${request.route_url('user', name=tester['name'])}">
+                      <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
+                      ${tester['name']}
+                    </a>
+                  </td>
+                  <td>(${str(count)})</td>
+                </tr>
+                % endfor
+              </table>
+            </div>
           </div>
-          <table class="table">
-            % for tester, count in top_testers:
-            <tr>
-              <td>
-                <strong>#${str(loop.index + 1)}</strong>
-                <a href="${request.route_url('user', name=tester['name'])}">
-                  <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
-                  ${tester['name']}
-                </a>
-              </td>
-              <td>(${str(count)})</td>
-            </tr>
-            % endfor
-          </table>
         </div>
       </div>
 
       % if critpath_updates:
       <div class="row">
-        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 sidepanel nopadding">
-          <div class="panelheader clearfix">
-            <h3 class="pull-left">Latest Critical Path Updates in Need of Testing</h3>
-            <span class="pull-right">
-              <a href="${request.route_url('updates')}?status=testing">
-                View all
-                <span class="glyphicon glyphicon-chevron-right"></span>
-              </a>
-            </span>
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 nopadding">
+          <div class="sidepanel panel panel-default">
+            <div class="panel-heading clearfix">
+              <span class="pull-left">Latest Critical Path Updates in Need of Testing</span>
+              <span class="pull-right">
+                <a href="${request.route_url('updates')}?status=testing">
+                  View all
+                  <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+              </span>
+            </div>
+            <div class="panel-body">
+              ${self.tables.updates(critpath_updates)}
+            </div>
           </div>
-          ${self.tables.updates(critpath_updates)}
         </div>
       </div>
       % endif
 
       % if security_updates:
       <div class="row">
-        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 sidepanel nopadding">
-          <div class="panelheader clearfix">
-            <h3 class="pull-left">Latest Security Updates in Need of Testing</h3>
-            <span class="pull-right">
-              <a href="${request.route_url('updates')}?type=security&status=testing">
-                View all
-                <span class="glyphicon glyphicon-chevron-right"></span>
-              </a>
-            </span>
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 nopadding">
+          <div class="sidepanel panel panel-default">
+            <div class="panel-heading clearfix">
+              <span class="pull-left">Latest Security Updates in Need of Testing</span>
+              <span class="pull-right">
+                <a href="${request.route_url('updates')}?type=security&status=testing">
+                  View all
+                  <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+              </span>
+            </div>
+            <div class="panel-body">
+              ${self.tables.updates(security_updates)}
+            </div>
           </div>
-          ${self.tables.updates(security_updates)}
         </div>
       </div>
       %endif
