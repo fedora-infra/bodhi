@@ -48,6 +48,8 @@ Form.prototype.success = function(data) {
             });
         }
     });
+
+    // Clear out the form.
     $('#new_comment').find(':input').each(function() {
         switch (this.type) {
         case 'password':
@@ -61,7 +63,10 @@ Form.prototype.success = function(data) {
             this.checked = false;
         }
     });
+
+    // And the preview.
     $('#preview').html('');
+
     self.finish();
 }
 
