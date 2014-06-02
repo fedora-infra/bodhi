@@ -12,8 +12,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import unittest
+from bodhi.models import Update
 from bodhi.masher import Masher
+from bodhi.tests.functional.base import BaseWSGICase
 
 
 class FakeHub(object):
@@ -23,24 +24,33 @@ class FakeHub(object):
         'masher_topic': 'bodhi.start',
         'masher': True,
     }
-    def noop(self, *args, **kw):
+
+    def subscribe(self, *args, **kw):
         pass
 
-    subscribe = noop
+
+def makemsg(body=None):
+    if not body:
+        body = {'updates': 'bodhi-2.0-1.fc17'}
+    return {
+        'topic': u'org.fedoraproject.dev.bodhi.masher.start',
+        'body': {
+            u'i': 1,
+            u'msg': body,
+            u'msg_id': u'2014-9568c910-91de-4870-90f5-709cc577d56d',
+            u'timestamp': 1401728063,
+            u'topic': u'org.fedoraproject.dev.bodhi.masher.start',
+            u'username': u'lmacken',
+        },
+    }
 
 
-fake_msg = {
-    'body': {u'i': 1, u'msg': {u'log': u'foo'}, u'msg_id':
-    u'2014-9568c910-91de-4870-90f5-709cc577d56d', u'timestamp': 1401728063,
-    u'topic': u'org.fedoraproject.dev.bodhi.masher.start', u'username':
-    u'lmacken'}, 'topic': u'org.fedoraproject.dev.bodhi.masher.start'
-}
-
-
-class TestMasher(unittest.TestCase):
+class TestMasher(BaseWSGICase):
 
     def setUp(self):
+        super(TestMasher, self).setUp()
         self.masher = Masher(FakeHub())
 
     def test_basic_consume(self):
-        self.masher.consume(fake_msg)
+        self.assertEquals(self.db.query(Update).count(), 1)
+        self.masher.consume(makemsg())

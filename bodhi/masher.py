@@ -15,8 +15,11 @@
 import fedmsg.consumers
 
 from pprint import pprint
+from pyramid.paster import bootstrap
+
 from bodhi import log
-from bodhi.config import config
+from bodhi.config import config, get_configfile
+from bodhi.models import Update
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
@@ -27,10 +30,12 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     An updates "push" consists of::
 
     - verify that the message was sent by someone in releng
+    - determine which updates to push
     - Lock repo
       - track which repos were completed
       - track which packages are in the push
-    - Move builds
+      - lock updates
+    - Move build tags
     - Update security bug titles
     - Expire buildroot overrides
     - Remove pending tags
@@ -40,13 +45,15 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Generate/update updateinfo.xml and inject it into the repodata
     - Sanity check the repo
     - Flip the symlinks to the new repo
-    - Cache the lateset repodata
+    - Cache the latest repodata
     - Wait for the repo to hit the master mirror
     - Update bugzillas
     - Add comments to updates
     - Generate and email stable update notices
     - Email updates-testing digest
     - Unlock repo
+        - unlock updates
+        - see if any updates now meet the stable criteria, and set the request
     - Send fedmsgs
 
     """
@@ -61,6 +68,9 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
     def consume(self, msg):
         pprint(msg)
+        body = msg['body']['msg']
+        env = bootstrap(get_configfile())
+        db = env['request'].db
 
         if not self.validate_msg_cert(msg):
             log.warn('Received message with invalid signature! Ignoring...')
