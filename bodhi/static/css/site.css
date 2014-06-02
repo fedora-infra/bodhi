@@ -113,3 +113,19 @@ form#search, form#search input, .twitter-typeahead {
 .tt-suggestion p {
   margin: 0;
 }
+
+ul.updateslist {
+    list-style: none;
+}
+
+ul.updateslist li {
+    width: 100%;
+    border-top: 1px solid #ccc;
+    padding: 6px 30px;
+    position: relative
+}
+
+.onlyjs {
+    display: none;
+    visibility: hidden;
+}

@@ -1,12 +1,14 @@
 <%namespace name="util" module="bodhi.util"/>
-<%def name="updates(updates)">
+<%def name="updates(updates, showstatus=True)">
   <table class="table">
     <thead><tr>
         <th>Update</th>
         <th>Age</th>
         <th>Submitter</th>
         <th>Release(s)</th>
+        % if showstatus:
         <th>Status</th>
+        % endif
     </tr></thead>
     <tbody>
     % for update in updates:
@@ -15,8 +17,8 @@
       <td>${util.age(update['date_submitted'])}</td>
       <td>
         <a href="${request.route_url('user', name=update['user']['name'])}">
-        <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
-        ${update['user']['name']}
+          <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+          ${update['user']['name']}
         </a>
       </td>
       <td>
@@ -24,7 +26,9 @@
           ${update['release']['name']}
         </a>
       </td>
+      % if showstatus:
       <td>${update['status']}</td>
+      % endif
     </tr>
     % endfor
     </tbody>

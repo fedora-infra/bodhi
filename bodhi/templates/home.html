@@ -1,68 +1,75 @@
 <%inherit file="master.html"/>
 
-<div class="row">
-  <div class="col-md-5 col-md-offset-1">
-    <h2>Help test Fedora!</h2>
-    <p class="lead">The Fedora Updates System is where developers submit the
-    very latest versions of software in preparation for inclusion in
-    Fedora.</p>
-    <p>You can help make Fedora better by testing out these latest software
-    bits and letting us know how well they work (or don't work!)</p>
+<script src="${request.static_url('bodhi:static/js/resize-newsfeed.js')}"></script>
 
-    <form id="search" role="search">
-      <div id="bloodhound" class="form-group">
-        <input class="typeahead form-control" name="term" type="text" placeholder="Search Bodhi">
+<div class="row">
+  <div id="newsfeed" class="col-md-6 onlyjs">
+    <script id="datagrepper-widget"
+            src="https://apps.fedoraproject.org/datagrepper/widget.js"
+            data-category="bodhi">
+    </script>
+  </div>
+
+  <div class="col-md-12 js-md-6">
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1 remove-cols">
+        <form id="search" role="search">
+          <div id="bloodhound" class="form-group">
+            <input class="typeahead form-control" name="term" type="text" placeholder="Search Bodhi">
+          </div>
+        </form>
+
+        <div class="rowjs">
+          <h2>This week's top testers</h2>
+          <table class="table">
+            % for tester, count in top_testers:
+            <tr>
+              <td>
+                <strong>#${str(loop.index + 1)}</strong>
+                <a href="${request.route_url('user', name=tester['name'])}">
+                  <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
+                  ${tester['name']}
+                </a>
+              </td>
+              <td>(${str(count)})</td>
+            </tr>
+            % endfor
+          </table>
+        </div>
       </div>
-    </form>
 
-  </div>
-  <div class="col-md-5">
-    <h2>This week's top testers</h2>
-    <table class="table">
-    % for tester, count in top_testers:
-    <tr>
-      <td>
-        <strong>#${str(loop.index + 1)}</strong>
-        <a href="${request.route_url('user', name=tester['name'])}">
-        <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
-        ${tester['name']}
-        </a>
-      </td>
-      <td>(${str(count)})</td>
-    </tr>
-    % endfor
-    </table>
+      % if critpath_updates:
+      <div class="row">
+        <hr />
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12">
+          <p class="lead">Latest Critical Path Updates in Need of Testing</p>
+          <p>Critical path updates are updates for the highest-priority software in Fedora.</p>
+          ${self.tables.updates(critpath_updates)}
+          <span class="pull-right">
+            <a href="${request.route_url('updates')}?status=testing">
+              View more testing updates
+              <span class="glyphicon glyphicon-chevron-right"></span>
+            </a>
+          </span>
+        </div>
+      </div>
+      % endif
+
+      % if security_updates:
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1 js-md-12">
+          <p class="lead">Latest Security Updates in Need of Testing</p>
+          <p>Security updates are... something important or something.</p>
+          ${self.tables.updates(security_updates)}
+          <span class="pull-right">
+            <a href="${request.route_url('updates')}?type=security&status=testing">
+              View more security updates
+              <span class="glyphicon glyphicon-chevron-right"></span>
+            </a>
+          </span>
+        </div>
+      </div>
+      %endif
+    </div>
   </div>
 </div>
-
-% if critpath_updates:
-<div class="row">
-  <div class="col-md-10 col-md-offset-1">
-  <p class="lead">Latest Critical Path Updates in Need of Testing</p>
-  <p>Critical path updates are updates for the highest-priority software in Fedora.</p>
-  ${self.tables.updates(critpath_updates)}
-  <span class="pull-right">
-    <a href="${request.route_url('updates')}?status=testing">
-      View more testing updates
-      <span class="glyphicon glyphicon-chevron-right"></span>
-    </a>
-  </span>
-  </div>
-</div>
-% endif
-
-% if security_updates:
-<div class="row">
-  <div class="col-md-10 col-md-offset-1">
-  <p class="lead">Latest Security Updates in Need of Testing</p>
-  <p>Security updates are... something important or something.</p>
-  ${self.tables.updates(security_updates)}
-  <span class="pull-right">
-    <a href="${request.route_url('updates')}?type=security&status=testing">
-      View more security updates
-      <span class="glyphicon glyphicon-chevron-right"></span>
-    </a>
-  </span>
-  </div>
-</div>
-%endif

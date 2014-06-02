@@ -1,6 +1,7 @@
 <%namespace name="util" module="bodhi.util" inheritable="True"/>
 <%namespace name="pager" file="pager.html" inheritable="True" />
 <%namespace name="tables" file="tables.html" inheritable="True" />
+<%namespace name="updatelists" file="updatelists.html" inheritable="True" />
 <%namespace name="fragments" file="fragments.html" inheritable="True" />
 
 <!DOCTYPE html>
@@ -25,83 +26,82 @@
     <link href="${request.static_url('bodhi:static/css/navbar.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:static/css/footer.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:static/css/site.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/datagrepper-feed.css') }" rel="stylesheet" />
     <script src="${request.static_url('bodhi:static/js/jquery-1.10.2.min.js')}"></script>
   </head>
 
   <body>
-
-  <div id="wrap" class="container max-width">
-
+    <div id="wrap">
       <!-- Static navbar -->
       <div class="navbar navbar-default navbar-fixed-top">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse"
-                data-target=".navbar-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="${request.route_url('home')}">
-            Fedora Update System
-          </a>
-        </div>
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="${request.route_url('home')}">
+              Fedora Update System
+            </a>
+          </div>
 
-
-        <div class="navbar-collapse collapse">
-
-          <ul class="nav navbar-nav navbar-right">
+          <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
               % if request.user:
               <li>
-              <a href="${request.route_url('user', name=request.user.name)}">
-                <span class="glyphicon glyphicon-user"></span>
-                Profile
-              </a>
+                <a href="${request.route_url('user', name=request.user.name)}">
+                  <span class="glyphicon glyphicon-user"></span>
+                  Profile
+                </a>
               </li>
-              <li>
               % endif
               % if request.user:
               <li>
-              <a href="#">
-                <span class="glyphicon glyphicon-plus"></span>
-                Submit
-              </a>
+                <a href="#">
+                  <span class="glyphicon glyphicon-plus"></span>
+                  Submit
+                </a>
               </li>
               % endif
               <li>
-              <a href="${request.route_url('metrics')}">
-                <span class="glyphicon glyphicon-stats"></span>
+                <a href="${request.route_url('metrics')}">
+                  <span class="glyphicon glyphicon-stats"></span>
                   Metrics</a>
               </li>
               <li>
-              % if request.user:
-              <a href="${request.route_url('logout')}">
-                <span class="glyphicon glyphicon-log-out"></span>
+                % if request.user:
+                <a href="${request.route_url('logout')}">
+                  <span class="glyphicon glyphicon-log-out"></span>
                   Logout</a>
-              % else:
-              <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
-                <span class="glyphicon glyphicon-log-in"></span>
+                % else:
+                <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
+                  <span class="glyphicon glyphicon-log-in"></span>
                   Login</a>
-              % endif
+                % endif
               </li>
-          </ul>
-
+            </ul>
+          </div>
         </div><!--/.nav-collapse -->
       </div>
 
-      ${self.body()}
+      <div class="container">
+        ${self.body()}
+      </div>
 
       <div id="ghost-cabbage">
         <img src="${request.static_url('bodhi:static/img/logo-large.png')}"/>
       </div>
-    </div> <!-- /container -->
+    </div> <!-- /#wrap -->
 
     <div id="footer">
       <div class="container">
-        <p class="text-muted"> Running
+        <p class="text-muted pull-left"> Running
           <code>bodhi-${util.version()}</code> on
           <code>${util.hostname()}</code>.
         </p>
-        <p class="text-muted credit">
+        <p class="text-muted credit pull-right">
           Copyright &copy; 2007-2014 Red Hat, Inc. and others.
         </p>
       </div>

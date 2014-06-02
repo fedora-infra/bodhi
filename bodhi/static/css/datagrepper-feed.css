@@ -1,0 +1,22 @@
+#datagrepper-widget {
+    margin-top: 20px;
+}
+
+#datagrepper-widget img {
+    height: 32px;
+    width: 32px;
+}
+
+#datagrepper-widget .message-card {
+    font-style: bold;
+    border-bottom: 1px solid #ccc;
+}
+
+#datagrepper-widget .datetime {
+    font-style: italic;
+}
+
+#datagrepper-widget p {
+    display: inline;
+    margin-left: 10px;
+}
