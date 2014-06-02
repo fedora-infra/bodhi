@@ -1,14 +1,12 @@
 <%namespace name="util" module="bodhi.util"/>
-<%def name="updates(updates, showstatus=True)">
+<%def name="updates(updates)">
   <table class="table">
     <thead><tr>
         <th>Update</th>
         <th>Age</th>
         <th>Submitter</th>
         <th>Release(s)</th>
-        % if showstatus:
-        <th>Status</th>
-        % endif
+        <th class="hidejs">Status</th>
     </tr></thead>
     <tbody>
     % for update in updates:
@@ -26,9 +24,7 @@
           ${update['release']['name']}
         </a>
       </td>
-      % if showstatus:
-      <td>${update['status']}</td>
-      % endif
+      <td class="hidejs">${update['status']}</td>
     </tr>
     % endfor
     </tbody>
