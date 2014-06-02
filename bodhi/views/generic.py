@@ -120,7 +120,10 @@ def latest_candidates(request):
 
         for build in results:
             if build and build[0] and build[0][0]:
-                result.append(build[0][0]['nvr'])
+                result.append({
+                    'nvr': build[0][0]['nvr'],
+                    'id': build[0][0]['id'],
+                })
 
     log.debug(result)
     return result

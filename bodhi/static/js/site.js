@@ -8,6 +8,24 @@ var delay = (function(){
   };
 })();
 
+var update_markdown_preview = function(text) {
+    delay(function() {
+        $("#preview").html("<h3><small>Loading</small></h3>");
+        $.ajax({
+            url: "/markdown",
+            data: $.param({text: text}),
+            dataType: 'json',
+            success: function(data) {
+                console.log(data)
+                $("#preview").html(data.html);
+            },
+            error: function(e1, e2, e3) {
+                $("#preview").html("<h3><small>Error loading preview</small></h3>");
+            }
+        });
+    }, 500);
+}
+
 $(document).ready(function() {
     // Kick it off, but only if we're on the right page.
     var container = $('#examples-container');
@@ -17,21 +35,7 @@ $(document).ready(function() {
     }
 
     $('#text, #notes').keyup(function() {
-        delay(function() {
-            $("#preview").html("<h3><small>Loading</small></h3>");
-            $.ajax({
-                url: "/markdown",
-                data: $.param({text: $('#text').val()}),
-                dataType: 'json',
-                success: function(data) {
-                    console.log(data)
-                    $("#preview").html(data.html);
-                },
-                error: function(e1, e2, e3) {
-                    $("#preview").html("<h3><small>Error loading preview</small></h3>");
-                }
-            });
-        }, 500);
+        update_markdown_preview($(this).val());
     });
 
     // Attach bootstrap tooltips to everything.

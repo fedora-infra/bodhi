@@ -49,15 +49,40 @@ $(document).ready(function() {
             success: function(builds) {
                 if (builds.length == 0) {return candidate_error(datum.label);}
                 $.each(builds, function(i, build) {
-                    $("#rhbz-checkboxes").append(
+                    $("#candidate-checkboxes").append(
                         [
                             '<div class="checkbox">',
                             '<label>',
-                            '<input type="checkbox" value="">',
-                            build,
+                            '<input data-build-nvr="' + build.nvr + '" data-build-id="' + build.id + '" type="checkbox" value="">',
+                            build.nvr,
                             '</label>',
                             '</div>',
                     ].join('\n'));
+                });
+                $("#candidate-checkboxes input").click(function() {
+                    var self = $(this);
+                    if (! self.is(':checked')) { return; }
+
+                    var build_id = $(this).attr('data-build-id');
+                    var build_nvr = $(this).attr('data-build-nvr');
+
+                    var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
+                    var prefix = '/koji/query/query_changelogs/%7B%22filters%22:%7B%22build_id%22:%22';
+                    var suffix = '%22,%22version%22:%22%22%7D,%22rows_per_page%22:8,%22start_row%22:0%7D';
+
+                    $.ajax({
+                        url: base + prefix + build_id + suffix,
+                        success: function(data) {
+                            data = JSON.parse(data);
+                            if (data.rows.length == 0) {console.log('error');}
+                            $("#notes").val( [
+                                    $("#notes").val(), "",
+                                    build_nvr, "",
+                                    data.rows[0].text, "",
+                            ].join('\n'));
+                            update_markdown_preview($("#notes").val());
+                        }
+                    })
                 });
             },
             error: function() {candidate_error(datum.label);},
