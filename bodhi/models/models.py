@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -860,9 +862,11 @@ class Update(Base):
                                  'inherited its bugs and notes.' % oldBuild.nvr,
                                  author='bodhi')
 
-    def get_title(self, delim=' '):
-        nvrs = [build.nvr for build in self.builds]
-        return delim.join(sorted(nvrs))
+    def get_title(self, delim=' ', limit=None, after_limit='…'):
+        nvrs = [build.nvr for build in self.builds][:limit]
+        builds = delim.join(sorted(nvrs)) + (after_limit if limit else "")
+        return builds
+
 
     def get_bugstring(self, show_titles=False):
         """Return a space-delimited string of bug numbers for this update """

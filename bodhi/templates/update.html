@@ -9,7 +9,18 @@ $(document).ready(function(){
 
 <div class="row">
   <div class="col-md-12">
-    <h1>${update.title} <small>${update.type} update</small></h1>
+    <h1>
+      % if update.alias:
+      ${update.alias}
+      % else:
+      ${update.get_title(', ', 2, ", &hellip;") | n}
+      <div>
+        <span title="${(', ').join(map(lambda x: x.nvr, update.builds[2:]))}">
+          <small>${ "(+ " + str(len(update.builds) - 2) + " more)" if len(update.builds) > 2 else "" }</small>
+        </span>
+      </div>
+      % endif
+    </h1>
   </div>
 </div>
 
