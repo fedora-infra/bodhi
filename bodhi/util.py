@@ -26,6 +26,7 @@ import tempfile
 import markdown
 import subprocess
 import libravatar
+import hashlib
 import collections
 import pkg_resources
 import functools
@@ -313,12 +314,19 @@ def avatar(context, username, size):
     def work(username, size):
         openid = "http://%s.id.fedoraproject.org/" % username
         if asbool(config.get('libravatar_enabled', True)):
-            return libravatar.libravatar_url(
-                openid=openid,
-                https=https,
-                size=size,
-                default='retro',
-            )
+            if asbool(config.get('libravatar_dns', False)):
+                return libravatar.libravatar_url(
+                    openid=openid,
+                    https=https,
+                    size=size,
+                    default='retro',
+                )
+            else:
+                query = urllib.urlencode({'s': size, 'd': 'retro'})
+                hash = hashlib.sha256(openid).hexdigest()
+                template = "https://seccdn.libravatar.org/avatar/%s?%s"
+                return template % (hash, query)
+
         return 'libravatar.org'
 
     return work(username, size)
