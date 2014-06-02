@@ -67,9 +67,9 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         base = 'https://seccdn.libravatar.org/avatar/'
         h = '6f26f2d69404c1b45b3cacc63054bdd0d8270c262335cdda5930c29a8ebc35f1'
         tail = '?d=retro&s=24'
-        url = base + h + tail
+        url = base + h
 
-        self.assertEquals(res.json_body['user']['avatar'], url)
+        self.assertEquals(res.json_body['user']['avatar'][:-len(tail)], url)
 
     def test_get_single_user_page(self):
         res = self.app.get('/users/bodhi', headers=dict(accept='text/html'))
