@@ -105,25 +105,35 @@ def latest_candidates(request):
     For a given `package`, this method returns the most recent builds tagged
     into the Release.candidate_tag for all Releases.
     """
-    result = []
     koji = request.koji
     db = request.db
-    pkg = request.params.get('package')
-    log.debug('latest_candidate(%r)' % pkg)
-    if pkg:
+
+    @request.cache.cache_on_arguments()
+    def work(pkg):
+        result = []
         koji.multicall = True
 
         for release in db.query(bodhi.models.Release).all():
             koji.listTagged(release.candidate_tag, package=pkg, latest=True)
 
-        results = koji.multiCall() or []  # Protect against None
+        builds = koji.multiCall() or []  # Protect against None
 
-        for build in results:
+        for build in builds:
             if build and build[0] and build[0][0]:
                 result.append({
                     'nvr': build[0][0]['nvr'],
                     'id': build[0][0]['id'],
                 })
+        return result
+
+
+    pkg = request.params.get('package')
+    log.debug('latest_candidate(%r)' % pkg)
+
+    if not pkg:
+        return []
+
+    result = work(pkg)
 
     log.debug(result)
     return result
