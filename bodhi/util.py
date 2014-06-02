@@ -319,7 +319,8 @@ def hostname(context):
 
 
 def markup(context, text):
-    return markdown.markdown(text)
+    return markdown.markdown(text, safe_mode="replace",
+                             html_replacement_text="--RAW HTML NOT ALLOWED--")
 
 
 def status2html(context, status):

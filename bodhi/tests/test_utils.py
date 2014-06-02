@@ -1,5 +1,5 @@
 from bodhi.models import Update
-from bodhi.util import get_db_from_config, get_critpath_pkgs
+from bodhi.util import get_db_from_config, get_critpath_pkgs, markup
 from bodhi.config import config
 
 
@@ -18,3 +18,9 @@ class TestUtils(object):
         """Ensure the pkgdb's critpath API works"""
         pkgs = get_critpath_pkgs()
         assert 'kernel' in pkgs, pkgs
+
+    def test_markup(self):
+        """Ensure we escape HTML"""
+        text = '<b>bold</b>'
+        html = markup(None, text)
+        assert html == '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>', html
