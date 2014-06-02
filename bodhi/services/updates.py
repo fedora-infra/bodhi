@@ -18,6 +18,7 @@ from cornice import Service
 from sqlalchemy.sql import or_
 
 from bodhi import log
+from bodhi.exceptions import LockedUpdateException
 from bodhi.models import Update, Build, Bug, CVE, Package
 import bodhi.schemas
 import bodhi.security
@@ -63,6 +64,12 @@ def set_request(request):
     """Sets a specific :class:`bodhi.models.UpdateRequest` on a given update"""
     update = request.validated['update']
     action = request.validated['request']
+
+    if update.locked:
+        request.errors.add('body', 'request',
+                           "Can't change request on a locked update")
+        return
+
     update.set_request(action, request)
     return dict(update=update)
 
@@ -218,6 +225,11 @@ def new_update(request):
             log.info('Creating new update: %s' % ' '.join(data['builds']))
             up = Update.new(request, data)
             log.debug('update = %r' % up)
+
+    except LockedUpdateException as e:
+        request.errors.add('body', 'builds', "%s" % e)
+        return
+
     except Exception as e:
         log.exception(e)
         request.errors.add('body', 'builds', 'Unable to create update')

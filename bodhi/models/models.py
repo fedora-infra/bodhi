@@ -42,7 +42,7 @@ from bodhi.util import (
 
 from bodhi.util import get_age_in_days, avatar as get_avatar
 from bodhi.models.enum import DeclEnum, EnumSymbol
-from bodhi.exceptions import RPMNotFound
+from bodhi.exceptions import LockedUpdateException, RPMNotFound
 from bodhi.config import config
 from bodhi.bugs import bugtracker
 
@@ -735,6 +735,10 @@ class Update(Base):
         new_builds = []
         for build in data['builds']:
             if build not in edited_builds:
+                if up.locked:
+                    raise LockedUpdateException("Can't add builds to a "
+                                                "locked update")
+
                 new_builds.append(build)
                 name, version, release = buildinfo[build]['nvr']
                 package = db.query(Package).filter_by(name=name).first()
@@ -750,6 +754,10 @@ class Update(Base):
         removed_builds = []
         for build in edited_builds:
             if build not in data['builds']:
+                if up.locked:
+                    raise LockedUpdateException("Can't remove builds from a "
+                                                "locked update")
+
                 removed_builds.append(build)
                 b = None
                 for b in up.builds:
@@ -955,6 +963,11 @@ class Update(Base):
             log.debug("%s has already been submitted to %s" % (self.title,
                                                                self.request.description))
             return
+
+        if self.locked:
+            raise LockedUpdateException("Can't change the request on a "
+                                        "locked update")
+
         if action is UpdateRequest.unpush:
             self.unpush()
             self.comment(u'This update has been unpushed',
