@@ -133,3 +133,13 @@ ul.updateslist li {
 .nopadding {
     padding: 0;
 }
+
+.nomargin {
+    margin: 0;
+}
+
+.karma-fest {
+    clear: both;
+    font-size: 0.9em;
+    margin-left: 27px; /* avatar + 2px pad */
+}

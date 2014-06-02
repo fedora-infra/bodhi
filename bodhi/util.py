@@ -301,8 +301,12 @@ def sanity_check_repodata(myurl):
             raise RepodataException('updateinfo.xml.gz contains empty ID tags')
 
 
-def age(context, date):
-    return arrow.get(date).humanize().replace('ago', '')
+def age(context, date, nuke_ago=False):
+    humanized = arrow.get(date).humanize()
+    if nuke_ago:
+        return humanized.replace(' ago', '')
+    else:
+        return humanized
 
 
 def avatar(context, username, size):
@@ -357,6 +361,16 @@ def status2html(context, status):
     }[status]
     return "<span class='label label-%s'>%s</span>" % (cls, status)
 
+def karma2class(context, karma, default='default'):
+    if karma and karma >= -2 and karma <= 2:
+        return {
+            -2: 'danger',
+            -1: 'danger',
+            0: 'info',
+            1: 'success',
+            2: 'success',
+        }.get(karma)
+    return default
 
 def karma2html(context, karma):
 
@@ -364,13 +378,7 @@ def karma2html(context, karma):
     if isinstance(karma, tuple):
         return '</td><td>'.join([karma2html(context, item) for item in karma])
 
-    cls = {
-        -2: 'danger',
-        -1: 'warning',
-        0: 'info',
-        1: 'primary',
-        2: 'success',
-    }.get(karma)
+    cls = karma2class(context, karma, None)
 
     if not cls:
         if karma < -2:

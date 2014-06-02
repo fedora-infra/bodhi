@@ -2,43 +2,56 @@
 
 <%def name="comment(comment)">
 <div class="row">
-  <div class="col-md-6">
-    % if comment.user:
-    <a href="${request.route_url('user', name=comment.user.name)}">
-    <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
-    ${comment.user.name}
-    </a>
-    % endif
-    ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small> on
-    ${util.update2html(comment['update']) | n}
-    <a class="anchor" href="#comment-${comment.id}">
-    <span class="glyphicon glyphicon-link"></span>
-    </a>
-    ${util.markup(comment.text) | n}
-  </div>
+  <div class="col-md-12">
+    <div class="panel panel-${util.karma2class(comment.karma)}">
+      <div class="panel-heading clearfix">
+        <span class="pull-left">
+          % if comment.user:
+          <a href="${request.route_url('user', name=comment.user.name)}">
+            <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
+            ${comment.user.name}
+          </a>
+          % endif
+        </span>
 
-  <div class="col-md-6 karma-fest">
-    <!-- This UI component could use some thought/love -->
-    % if comment.karma:
-    <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
-    % endif
+        <span class="pull-right">
+          <a href="#comment-${comment.id}">
+            ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
+          </a>
+        </span>
+      </div>
 
-    % if comment.karma_critpath:
-    <span class="nowrap">critpath: ${util.karma2html(comment.karma_critpath) | n}</span>
-    % endif
+      <div class="panel-body">
+        <div class="col-md-10">
+          ${util.markup(comment.text) | n}
+        </div>
+        <div class="col-md-2 text-right">
+          % if comment.karma:
+          <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
+          <hr />
+          % endif
 
-    % for feedback in comment.bug_feedback:
-    % if feedback.karma:
-    <span class="nowrap">${util.bug_link(feedback.bug, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
-    % endif
-    % endfor
+          % if comment.karma_critpath:
+          <span class="nowrap">critpath: ${util.karma2html(comment.karma_critpath) | n}</span>
+          <hr />
+          % endif
 
-    % for feedback in comment.testcase_feedback:
-    % if feedback.karma:
-    <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
-    % endif
-    % endfor
+          % for feedback in comment.bug_feedback:
+          % if feedback.karma:
+          <span class="nowrap">${util.bug_link(feedback.bug, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
+          <hr />
+          % endif
+          % endfor
+
+          % for feedback in comment.testcase_feedback:
+          % if feedback.karma:
+          <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
+          <hr />
+          % endif
+          % endfor
+        </div>
+      </div>
+    </div>
   </div>
 </div>
-<hr/>
 </%def>

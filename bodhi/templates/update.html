@@ -25,7 +25,7 @@ $(document).ready(function(){
 </div>
 
 <div class="row">
-  <div class="col-md-4">
+  <div class="col-md-5">
     <table class="table">
       <tr>
         <td>Submitter</td>
@@ -39,11 +39,15 @@ $(document).ready(function(){
       <tr>
         <td>Builds</td>
         <td>
-          % for build in update.builds:
-          <a href="http://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob">
-            ${build.nvr}
-          </a>
-          % endfor
+          <ul>
+            % for build in update.builds:
+            <li>
+              <a href="http://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob">
+                ${build.nvr}
+              </a>
+            </li>
+            % endfor
+          </ul>
         </td>
       </tr>
 
@@ -133,8 +137,15 @@ $(document).ready(function(){
     </table>
   </div>
 
-  % if update.bugs:
-  <div class="col-md-4">
+  <div class="col-md-7">
+    % if update.notes:
+    <h3 class="nomargin">Notes about this update:</h3>
+    ${self.util.markup(update.notes) | n}
+    % endif
+
+    <hr />
+
+    % if update.bugs:
     <h3>Related Bugs <span class="badge">${len(update.bugs)}</span></h3>
     <table class="table">
       <colgroup class='strip' span="1"></colgroup>
@@ -153,46 +164,36 @@ $(document).ready(function(){
         <td>${self.util.bug_link(bug) | n}</td>
       </tr>
       % endfor
-      </table>
-  </div>
-  % endif
-
-  % if update.test_cases:
-  <div class="col-md-4">
-    <h3>Test Cases <span class="badge">${len(update.test_cases)}</span></h3>
-    <table class="table">
-      <colgroup class='strip' span="1"></colgroup>
-      <colgroup class='strip' span="1"></colgroup>
-      <colgroup span="1"></colgroup>
-      <thead>
-        <tr>
-          <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
-          <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="glyphicon glyphicon-remove-circle"></span></th>
-          <th></th>
-        </tr>
-      </thead>
-      % for test in update.full_test_cases:
-      <tr>
-        <td>${self.util.karma2html(update.get_testcase_karma(test)) | n}</td>
-        <td>${self.util.testcase_link(test) | n}</td>
-      </tr>
-      % endfor
     </table>
   </div>
   % endif
 
-  ## TODO: resultsdb/taskotron stuff goes here some day
+  % if update.test_cases:
+  <h3>Test Cases <span class="badge">${len(update.test_cases)}</span></h3>
+  <table class="table">
+    <colgroup class='strip' span="1"></colgroup>
+    <colgroup class='strip' span="1"></colgroup>
+    <colgroup span="1"></colgroup>
+    <thead>
+      <tr>
+        <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
+        <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="glyphicon glyphicon-remove-circle"></span></th>
+        <th></th>
+      </tr>
+    </thead>
+    % for test in update.full_test_cases:
+    <tr>
+      <td>${self.util.karma2html(update.get_testcase_karma(test)) | n}</td>
+      <td>${self.util.testcase_link(test) | n}</td>
+    </tr>
+    % endfor
+  </table>
+  % endif
 
+    ## TODO: resultsdb/taskotron stuff goes here some day
 </div>
 
-% if update.notes:
-<div class="row">
-  <div class="col-md-8 col-md-offset-2">
-    <h3>Notes</h3>
-    ${self.util.markup(update.notes) | n}
-  </div>
-</div>
-% endif
+<hr />
 
 <div class="row">
   <div class="col-md-12">
@@ -200,7 +201,7 @@ $(document).ready(function(){
     <ul id="comments" class="linkable">
       % for comment in update.comments:
       <li id="comment-${comment.id}">
-      ${self.fragments.comment(comment)}
+        ${self.fragments.comment(comment)}
       </li>
       % endfor
     </ul>
