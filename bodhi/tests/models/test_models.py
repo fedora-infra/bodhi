@@ -38,39 +38,20 @@ class TestRelease(ModelTest):
         name=u"F11",
         long_name=u"Fedora 11",
         id_prefix=u"FEDORA",
-        dist_tag=u"dist-f11",
         version=11,
+        dist_tag=u"dist-f11",
+        stable_tag=u"dist-f11-updates",
+        testing_tag=u"dist-f11-updates-testing",
+        candidate_tag=u"dist-f11-updates-candidate",
+        pending_testing_tag=u"dist-f11-updates-testing-pending",
+        pending_stable_tag=u"dist-f11-updates-pending",
+        override_tag=u"dist-f11-override",
         locked=False,
         metrics={'test_metric': [0, 1, 2, 3, 4]}
         )
 
-    def test_tags(self):
-        eq_(self.obj.stable_tag, 'dist-f11-updates')
-        eq_(self.obj.testing_tag, 'dist-f11-updates-testing')
-        eq_(self.obj.candidate_tag, 'dist-f11-updates-candidate')
-
     def test_version_int(self):
         eq_(self.obj.version_int, 11)
-
-
-class TestEPELRelease(ModelTest):
-    """Unit test case for the ``Release`` model."""
-    klass = model.Release
-    attrs = dict(
-        name=u"EL5",
-        long_name=u"Fedora EPEL 5",
-        id_prefix=u"FEDORA-EPEL",
-        dist_tag=u"dist-5E-epel",
-        _candidate_tag=u"dist-5E-epel-testing-candidate",
-        _testing_tag=u"dist-5E-epel-testing",
-        _stable_tag=u"dist-5E-epel",
-        version=5,
-        )
-
-    def test_tags(self):
-        eq_(self.obj.stable_tag, 'dist-5E-epel')
-        eq_(self.obj.testing_tag, 'dist-5E-epel-testing')
-        eq_(self.obj.candidate_tag, 'dist-5E-epel-testing-candidate')
 
 
 class MockWiki(object):
@@ -249,7 +230,13 @@ class TestUpdate(ModelTest):
         ## duplicate IDs across Fedora 10/11 updates.
         update = self.get_update(name=u'nethack-3.4.5-1.fc10')
         otherrel = model.Release(name=u'fc10', long_name=u'Fedora 10',
-                                 id_prefix=u'FEDORA', dist_tag=u'dist-fc10')
+                                 id_prefix=u'FEDORA', dist_tag=u'dist-fc10',
+                                 stable_tag=u'dist-fc10-updates',
+                                 testing_tag=u'dist-fc10-updates-testing',
+                                 candidate_tag=u'dist-fc10-updates-candidate',
+                                 pending_testing_tag=u'dist-fc10-updates-testing-pending',
+                                 pending_stable_tag=u'dist-fc10-updates-pending',
+                                 override_tag=u'dist-fc10-override')
         update.release = otherrel
         update.assign_alias()
         eq_(update.alias, u'%s-%s-0003' % (update.release.id_prefix, year))
@@ -286,7 +273,13 @@ class TestUpdate(ModelTest):
 
         update = self.get_update(name=u'TurboGears-2.1-1.el5')
         release = model.Release(name=u'EL-5', long_name=u'Fedora EPEL 5',
-                          dist_tag=u'dist-5E-epel', id_prefix=u'FEDORA-EPEL')
+                          id_prefix=u'FEDORA-EPEL', dist_tag=u'dist-5E-epel',
+                          stable_tag=u'dist-5E-epel-updates',
+                          testing_tag=u'dist-5E-epel-updates-testing',
+                          candidate_tag=u'dist-5E-epel-updates-candidate',
+                          pending_testing_tag=u'dist-5E-epel-updates-testing-pending',
+                          pending_stable_tag=u'dist-5E-epel-updates-pending',
+                          override_tag=u'dist-5E-epel-override')
         update.release = release
         update.assign_alias()
         eq_(update.alias, u'FEDORA-EPEL-%s-0001' % time.localtime()[0])

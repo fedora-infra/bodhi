@@ -218,12 +218,15 @@ class Release(Base):
     long_name = Column(Unicode(25), unique=True, nullable=False)
     version = Column(Unicode(5))
     id_prefix = Column(Unicode(25), nullable=False)
+
     dist_tag = Column(Unicode(20), nullable=False)
-    _stable_tag = Column(UnicodeText)
-    _testing_tag = Column(UnicodeText)
-    _candidate_tag = Column(UnicodeText)
-    # TODO:
-    #_pending_tag = Column(UnicodeText)
+    stable_tag = Column(UnicodeText, nullable=False)
+    testing_tag = Column(UnicodeText, nullable=False)
+    candidate_tag = Column(UnicodeText, nullable=False)
+    pending_testing_tag = Column(UnicodeText, nullable=False)
+    pending_stable_tag = Column(UnicodeText, nullable=False)
+    override_tag = Column(UnicodeText, nullable=False)
+
     locked = Column(Boolean, default=False)
     metrics = Column(PickleType, default=None)
 
@@ -231,52 +234,6 @@ class Release(Base):
     def version_int(self):
         regex = re.compile('\D+(\d+)$')
         return int(regex.match(self.name).groups()[0])
-
-    @synonym_for('_stable_tag')
-    @property
-    def stable_tag(self):
-        if self._stable_tag:
-            return self._stable_tag
-        else:
-            if self.name.startswith('EL'):  # EPEL Hack.
-                return self.dist_tag
-            else:
-                return '%s-updates' % self.dist_tag
-
-    @synonym_for('_testing_tag')
-    @property
-    def testing_tag(self):
-        if self._testing_tag:
-            return self._testing_tag
-        else:
-            if self.locked:
-                return '%s-updates-testing' % self.stable_tag
-            return '%s-testing' % self.stable_tag
-
-    @synonym_for('_candidate_tag')
-    @property
-    def candidate_tag(self):
-        if self._candidate_tag:
-            return self._candidate_tag
-        else:
-            if self.name.startswith('EL'):  # EPEL Hack.
-                return '%s-testing-candidate' % self.dist_tag
-            else:
-                return '%s-updates-candidate' % self.dist_tag
-
-    @property
-    def pending_testing_tag(self):
-        return self.testing_tag + '-pending'
-
-    @property
-    def pending_stable_tag(self):
-        if self.locked:
-            return '%s-updates-pending' % self.dist_tag
-        return self.stable_tag + '-pending'
-
-    @property
-    def override_tag(self):
-        return '%s-override' % self.dist_tag
 
     @property
     def mandatory_days_in_testing(self):
