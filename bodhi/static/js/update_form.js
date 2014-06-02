@@ -64,7 +64,7 @@ $(document).ready(function() {
         });
         var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
         var prefix = '/bugzilla/query/query_bugs/%7B%22filters%22:%7B%22package%22:%22';
-        var suffix = '%22,%22version%22:%22%22%7D,%22rows_per_page%22:5,%22start_row%22:0%7D';
+        var suffix = '%22,%22version%22:%22%22%7D,%22rows_per_page%22:8,%22start_row%22:0%7D';
         $.ajax({
             url: base + prefix + datum.label + suffix,
             success: function(data) {
