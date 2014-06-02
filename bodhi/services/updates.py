@@ -35,6 +35,7 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
 
 
 @update.get(accept=('application/json', 'text/json'), renderer='json')
+@update.get(accept=('application/javascript'), renderer='jsonp')
 @update.get(accept="text/html", renderer="update.html")
 def get_update(request):
     """Return a single update from an id, title, or alias"""
@@ -54,6 +55,13 @@ def set_request(request):
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/json', 'text/json'), renderer='json',
+             validators=(
+                 validate_releases,
+                 validate_enums,
+                 validate_username,
+             ))
+@updates.get(schema=bodhi.schemas.ListUpdateSchema,
+             accept=('application/javascript'), renderer='jsonp',
              validators=(
                  validate_releases,
                  validate_enums,

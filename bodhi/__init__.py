@@ -8,6 +8,7 @@ from pyramid.security import unauthenticated_userid
 from pyramid.config import Configurator
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
+from pyramid.renderers import JSONP
 
 from fedora.client.pkgdb import PackageDB
 
@@ -121,6 +122,8 @@ def main(global_config, testing=None, **settings):
     # Templating
     config.add_mako_renderer('.html', settings_prefix='mako.')
     config.add_static_view('static', 'bodhi:static')
+
+    config.add_renderer('jsonp', JSONP(param_name='callback'))
 
     # i18n
     config.add_translation_dirs('bodhi:locale/')
