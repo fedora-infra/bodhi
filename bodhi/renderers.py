@@ -37,6 +37,7 @@ def rss(info):
                 'title': operator.itemgetter('title'),
                 'link': linker('update', 'id', 'title'),
                 'description': operator.itemgetter('notes'),
+                'pubdate': operator.itemgetter('date_submitted'),
             },
             'users': {
                 'title': operator.itemgetter('name'),
@@ -47,6 +48,7 @@ def rss(info):
                 'title': operator.itemgetter('text'),
                 'link': linker('comment', 'id', 'id'),
                 'description': operator.itemgetter('text'),
+                'pubdate': operator.itemgetter('timestamp'),
             },
         }
 
