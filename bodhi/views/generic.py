@@ -116,7 +116,7 @@ def latest_candidates(request):
         for release in db.query(bodhi.models.Release).all():
             koji.listTagged(release.candidate_tag, package=pkg, latest=True)
 
-        results = koji.multiCall()
+        results = koji.multiCall() or []  # Protect against None
 
         for build in results:
             if build and build[0] and build[0][0]:
