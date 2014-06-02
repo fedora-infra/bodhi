@@ -73,6 +73,7 @@ class BaseWSGICase(unittest.TestCase):
         engine = create_engine('sqlite://')
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
+        self.db = DBSession()
         self.populate()
         self.app = TestApp(main({}, testing=u'guest', **self.app_settings))
 
@@ -87,26 +88,25 @@ class BaseWSGICase(unittest.TestCase):
         DBSession.remove()
 
     def populate(self):
-        session = DBSession()
         user = User(name=u'guest')
-        session.add(user)
+        self.db.add(user)
         provenpackager = Group(name=u'provenpackager')
-        session.add(provenpackager)
+        self.db.add(provenpackager)
         packager = Group(name=u'packager')
-        session.add(packager)
-        session.flush()
+        self.db.add(packager)
+        self.db.flush()
         user.groups.append(packager)
         release = Release(
             name=u'F17', long_name=u'Fedora 17',
             id_prefix=u'FEDORA', dist_tag=u'f17', version='17')
-        session.add(release)
+        self.db.add(release)
         pkg = Package(name=u'bodhi')
-        session.add(pkg)
+        self.db.add(pkg)
         user.packages.append(pkg)
         build = Build(nvr=u'bodhi-2.0-1.fc17', release=release, package=pkg)
-        session.add(build)
+        self.db.add(build)
         testcase = TestCase(name=u'Wat')
-        session.add(testcase)
+        self.db.add(testcase)
         pkg.test_cases.append(testcase)
         update = Update(
             title=u'bodhi-2.0-1.fc17',
@@ -116,20 +116,20 @@ class BaseWSGICase(unittest.TestCase):
             date_submitted=datetime(1984, 11, 02))
         update.type = UpdateType.bugfix
         bug = Bug(bug_id=12345)
-        session.add(bug)
+        self.db.add(bug)
         update.bugs.append(bug)
         cve = CVE(cve_id="CVE-1985-0110")
-        session.add(cve)
+        self.db.add(cve)
         update.cves.append(cve)
         comment = Comment(karma=1, text="wow. amaze.")
-        session.add(comment)
+        self.db.add(comment)
         comment.user = user
         update.comments.append(comment)
         comment = Comment(karma=0, text="srsly.  pretty good.", anonymous=True)
-        session.add(comment)
+        self.db.add(comment)
         update.comments.append(comment)
-        session.add(update)
-        session.flush()
+        self.db.add(update)
+        self.db.flush()
 
     def get_update(self, builds=u'bodhi-2.0-1.fc17', stable_karma=3, unstable_karma=-3):
         if isinstance(builds, list):
