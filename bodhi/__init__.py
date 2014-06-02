@@ -137,6 +137,8 @@ def main(global_config, testing=None, **settings):
     config.add_mako_renderer('.html', settings_prefix='mako.')
     config.add_static_view('static', 'bodhi:static')
 
+    from bodhi.renderers import rss
+    config.add_renderer('rss', rss)
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 
     # i18n

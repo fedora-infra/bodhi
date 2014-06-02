@@ -44,6 +44,7 @@ comments = Service(name='comments', path='/comments/',
 
 @comment.get(accept=('application/json', 'text/json'), renderer='json')
 @comment.get(accept=('application/javascript'), renderer='jsonp')
+@comment.get(accept=('application/rss', 'application/rss+xml'), renderer='rss')
 @comment.get(accept="text/html", renderer="comment.html")
 def get_comment(request):
     """ Return a single comment from an id """
@@ -60,6 +61,14 @@ def get_comment(request):
              ))
 @comments.get(schema=bodhi.schemas.ListCommentSchema,
              accept=('application/javascript'), renderer='jsonp',
+             validators=(
+                 validate_username,
+                 validate_update_owner,
+                 validate_updates,
+                 validate_packages,
+             ))
+@comments.get(schema=bodhi.schemas.ListCommentSchema,
+             accept=('application/rss', 'application/rss+xml'), renderer='rss',
              validators=(
                  validate_username,
                  validate_update_owner,

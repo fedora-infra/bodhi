@@ -82,6 +82,13 @@ def set_request(request):
                  validate_username,
              ))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
+             accept=('application/rss', 'application/rss+xml'), renderer='rss',
+             validators=(
+                 validate_releases,
+                 validate_enums,
+                 validate_username,
+             ))
+@updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('text/html'), renderer='updates.html',
              validators=(
                  validate_releases,
