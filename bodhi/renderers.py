@@ -32,7 +32,6 @@ def rss(info):
         def linker(route, param, key):
             return lambda obj: request.route_url(route, **{param: obj[key]})
 
-        args = ['title', 'link', 'description']
         getters = {
             'updates': {
                 'title': operator.itemgetter('title'),
@@ -53,7 +52,7 @@ def rss(info):
 
         for value in data[key]:
             feed.add_item(**dict([
-                (arg, getters[key][arg](value)) for arg in args
+                (name, getter(value)) for name, getter in getters[key].items()
             ]))
 
         return feed.writeString('utf-8')
