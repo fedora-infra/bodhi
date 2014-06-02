@@ -158,6 +158,7 @@ def main(global_config, testing=None, **settings):
 
     # Frontpage
     config.add_route('home', '/')
+    config.add_route('new_update', '/updates/new')
 
     # Metrics
     config.add_route('metrics', '/metrics')

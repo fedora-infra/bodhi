@@ -93,6 +93,12 @@ def home(request):
     return work()
 
 
+@view_config(route_name='new_update', renderer='new_update.html')
+def new_update(request):
+    """ Returns the new update form """
+    return dict()
+
+
 @view_config(route_name='latest_candidates', renderer='json')
 def latest_candidates(request):
     """
