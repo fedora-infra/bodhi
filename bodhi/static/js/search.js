@@ -55,7 +55,7 @@ $(document).ready(function() {
         },
     });
 
-    $('input.typeahead').on('typeahead:selected', function (e, datum) {
+    $('#bloodhound input.typeahead').on('typeahead:selected', function (e, datum) {
         if (datum.alias != undefined) {
             window.location.href = '/updates/' + datum.alias;
         } else if (datum.title != undefined ) {

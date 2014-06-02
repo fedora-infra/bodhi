@@ -103,7 +103,9 @@ class DevBuildsys(Buildsystem):
         return {'state': koji.TASK_STATES['CLOSED']}
 
     def listPackages(self):
-        return [{'package_id': 2625, 'package_name': 'nethack'}]
+        return [
+            {'package_id': 2625, 'package_name': 'nethack'},
+        ]
 
     def getBuild(self, build='TurboGears-1.0.2.2-2.fc7', other=False):
         data = {'build_id': 16058,
