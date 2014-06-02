@@ -779,7 +779,8 @@ class Update(Base):
         data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))
 
         # Updates with new or removed builds always go back to testing
-        data['request'] = UpdateRequest.testing
+        if new_builds or removed_builds:
+            data['request'] = UpdateRequest.testing
 
         new_bugs = up.update_bugs(data['bugs'])
         del(data['bugs'])
