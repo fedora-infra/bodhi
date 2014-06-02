@@ -91,6 +91,8 @@ setup(name='bodhi',
       [console_scripts]
       initialize_bodhi_db = bodhi.scripts.initializedb:main
       bodhi = bodhi.cli:cli
+      [moksha.consumer]
+      masher = bodhi.masher:Masher
       """,
       paster_plugins=['pyramid'],
       )
