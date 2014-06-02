@@ -16,7 +16,7 @@ $(document).ready(function() {
         load_examples(1);
     }
 
-    $('#text').keyup(function() {
+    $('#text, #notes').keyup(function() {
         delay(function() {
             $("#preview").html("<h3><small>Loading</small></h3>");
             $.ajax({

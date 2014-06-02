@@ -6,67 +6,93 @@
 
     <div class="row">
       <div class="col-md-12">
-        <h2 class="pull-left">New Update</h3>
+        <h2 class="pull-left">New Update</span>
       </div>
     </div>
 
     <div class="row">
 
-      <div class="col-md-4 panel">
-        <div class="panelheader clearfix">
-          <h3 class="pull-left">Packages</h3>
-        </div>
-        <form id="search" role="search">
-          <div id="packages-search" class="form-group noui">
-            <input class="typeahead form-control noui" name="term" type="text"
-                   placeholder="Add a package">
+      <div class="col-md-4">
+        <div class=" panel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Packages</span>
           </div>
-        </form>
-      </div>
-
-      <div class="col-md-4 panel">
-        <div class="panelheader clearfix">
-          <h3 class="pull-left">Candidate Builds</h3>
+          <div class="panel-body">
+            <form id="search" role="search">
+              <div id="packages-search" class="form-group noui">
+                <input class="typeahead form-control noui" name="term" type="text"
+                       placeholder="Add a package">
+              </div>
+            </form>
+          </div>
         </div>
-        check box list goes here
       </div>
 
       <div class="col-md-4">
-        <div class="panelheader clearfix">
-          <h3 class="pull-left">Related Bugs</h3>
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Candidate Builds</span>
+          </div>
+          <div class="panel-body">
+            <input class="form-control noui" type="text"
+                   placeholder="Add NEVR">
+            <div id="rhbz-checkboxes">
+            </div>
+          </div>
         </div>
-        check box list goes here
       </div>
 
+      <div class="col-md-4">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Related Bugs</span>
+          </div>
+          <div class="panel-body">
+            <input class="form-control noui" type="text"
+                   placeholder="Add #RHBZ">
+            <div id="bugs-checkboxes">
+            </div>
+          </div>
+        </div>
+      </div>
     </div> <!-- end row -->
 
     <div class="row">
-
-      <div class="col-md-6 panel">
-        <div class="panelheader clearfix">
-          <h3 class="pull-left">Update notes</h3>
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Update notes</span>
+          </div>
+          <div class="panel-body">
+            <textarea class="form-control" id="text" name="text" rows="6"
+              placeholder="Update notes" required="true"></textarea>
+          </div>
         </div>
-        Big input goes here
       </div>
 
-      <div class="col-md-6 panel">
-        <div class="panelheader clearfix">
-          <h3 class="pull-left">Preview</h3>
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Preview</span>
+          </div>
+          <div class="panel-body">
+            <span id="preview"><h3><small>Preview</small></h3></span>
+          </div>
         </div>
-        Markdown-ify preview goes here
       </div>
-
     </div> <!-- end row -->
 
     <div class="row">
-
-      <div class="col-md-12 panel">
-        <div class="panelheader clearfix">
-          <h3 class="pull-left">Karma Policy</h3>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Karma Policy</span>
+          </div>
+          <div class="panel-body">
+            Crazy karma policy widget goes here.
+          </div>
         </div>
-        Crazy karma policy widget goes here.
       </div>
-
     </div> <!-- end row -->
 
   </div>
