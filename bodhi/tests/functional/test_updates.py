@@ -982,6 +982,55 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['status'], 'error')
         self.assertEquals(up['errors'][0]['description'], "Cannot edit stable updates")
 
+    def test_edit_locked_update(self):
+        """Make sure some changes are prevented"""
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        r = self.app.post_json('/updates/', args, status=200)
+
+        up = DBSession.query(Update).filter_by(title=nvr).one()
+        up.locked = True
+        up.status = UpdateRequest.testing
+        up.request = None
+        up_id = up.id
+
+        build = DBSession.query(Build).filter_by(nvr=nvr).one()
+
+        # Changing the notes should work
+        args['edited'] = args['builds']
+        args['notes'] = 'Some new notes'
+        up = self.app.post_json('/updates/', args, status=200).json_body
+        self.assertEquals(up['notes'], 'Some new notes')
+
+        # Changing the builds should fail
+        args['notes'] = 'And yet some other notes'
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+        r = self.app.post_json('/updates/', args, status=400).json_body
+        self.assertEquals(r['status'], 'error')
+        self.assertIn('errors', r)
+        self.assertIn({u'description': u"Can't add builds to a locked update",
+                       u'location': u'body', u'name': u'builds'},
+                      r['errors'])
+        up = DBSession.query(Update).get(up_id)
+        self.assertEquals(up.notes, 'Some new notes')
+        self.assertEquals(up.builds, [build])
+
+        # Changing the request should fail
+        args['notes'] = 'Still new notes'
+        args['builds'] = args['edited']
+        args['request'] = 'stable'
+        r = self.app.post_json('/updates/', args, status=400).json_body
+        self.assertEquals(r['status'], 'error')
+        self.assertIn('errors', r)
+        self.assertIn({u'description': u"Can't change the request on a "
+                                        "locked update",
+                       u'location': u'body', u'name': u'builds'},
+                      r['errors'])
+        up = DBSession.query(Update).get(up_id)
+        self.assertEquals(up.notes, 'Some new notes')
+        self.assertEquals(up.builds, [build])
+        self.assertEquals(up.request, None)
+
     def test_push_untested_critpath_to_release(self):
         """
         Ensure that we cannot push an untested critpath update directly to
@@ -1004,7 +1053,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         args = self.get_update('bodhi-2.0.0-3.fc17')
         r = self.app.post_json('/updates/', args).json_body
         self.assertEquals(r['request'], 'testing')
-        self.assertEquals(r['comments'][-2]['text'],
+        self.assertEquals(r['comments'][-1]['text'],
                           u'This update has obsoleted bodhi-2.0.0-2.fc17, '
                           'and has inherited its bugs and notes.')
 

@@ -27,3 +27,6 @@ class RepodataException(Exception):
 class RPMNotFound(BodhiException):
     pass
 
+
+class LockedUpdateException(Exception):
+    pass
