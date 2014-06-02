@@ -82,7 +82,7 @@ def set_request(request):
                  validate_username,
              ))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
-             accept=('application/rss', 'application/rss+xml'), renderer='rss',
+             accept=('application/rss'), renderer='rss',
              validators=(
                  validate_releases,
                  validate_enums,

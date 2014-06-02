@@ -47,7 +47,7 @@ users = Service(name='users', path='/users/',
 
 @user.get(accept=("application/json", "text/json"), renderer="json")
 @user.get(accept=("application/javascript"), renderer="jsonp")
-@user.get(accept=("application/rss", "application/rss+xml"), renderer="rss")
+@user.get(accept=("application/rss"), renderer="rss")
 @user.get(accept="text/html", renderer="user.html")
 def get_user(request):
     db = request.db
@@ -97,7 +97,7 @@ def get_user(request):
            accept=("application/javascript"), renderer="jsonp",
            validators=(validate_groups, validate_updates, validate_packages))
 @users.get(schema=bodhi.schemas.ListUserSchema,
-           accept=("application/rss", "application/rss+xml"), renderer="rss",
+           accept=("application/rss"), renderer="rss",
            validators=(validate_groups, validate_updates, validate_packages))
 def query_users(request):
     db = request.db
