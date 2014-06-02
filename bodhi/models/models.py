@@ -710,8 +710,11 @@ class Update(Base):
 
         del(data['edited'])
 
+        req = data.pop("request", UpdateRequest.testing)
+
         # Create the update
         up = Update(**data)
+        up.set_request(req, request)
         db.add(up)
         db.flush()
 
@@ -787,6 +790,10 @@ class Update(Base):
         for bug in new_bugs:
             bug.add_comment(up, config['initial_bug_msg'] % (
                 data['title'], data['release'].long_name, up.url))
+
+        req = data.pop("request", None)
+        if req is not None:
+            up.set_request(req, request)
 
         for key, value in data.items():
             setattr(up, key, value)

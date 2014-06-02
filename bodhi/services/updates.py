@@ -209,8 +209,6 @@ def new_update(request):
     """
     data = request.validated
     log.debug('validated = %s' % data)
-    req = data.get('request')
-    del(data['request'])
 
     try:
         if data.get('edited'):
@@ -226,10 +224,6 @@ def new_update(request):
         return
 
     up.obsolete_older_updates(request)
-
-    # Set request
-    if req:
-        up.set_request(req, request)
 
     # Send out email notifications
 

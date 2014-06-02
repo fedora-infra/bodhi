@@ -1004,7 +1004,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         args = self.get_update('bodhi-2.0.0-3.fc17')
         r = self.app.post_json('/updates/', args).json_body
         self.assertEquals(r['request'], 'testing')
-        self.assertEquals(r['comments'][-2]['text'],
+        self.assertEquals(r['comments'][-1]['text'],
                           u'This update has obsoleted bodhi-2.0.0-2.fc17, '
                           'and has inherited its bugs and notes.')
 
