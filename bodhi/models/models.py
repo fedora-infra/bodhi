@@ -1535,6 +1535,24 @@ class Update(Base):
                 tests.add(test)
         return list(tests)
 
+    @property
+    def requested_tag(self):
+        """Return the tag that update has requested"""
+        tag = None
+        if self.request is UpdateRequest.stable:
+            tag = self.release.stable_tag
+            # [No Frozen Rawhide] Move stable builds going to a pending
+            # release to the Release.dist-tag
+            if self.release.locked:
+                tag = self.release.dist_tag
+        elif self.request is UpdateRequest.testing:
+            tag = self.release.testing_tag
+        elif self.request is UpdateRequest.obsolete:
+            tag = self.release.candidate_tag
+        if not tag:
+            log.error('Unable to determine requested tag for %s' % self.title)
+        return tag
+
 
 # Used for many-to-many relationships between karma and a bug
 class BugKarma(Base):
