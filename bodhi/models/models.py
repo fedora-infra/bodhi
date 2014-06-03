@@ -177,6 +177,13 @@ class UpdateSuggestion(DeclEnum):
     logout = 'logout', 'logout'
 
 
+class ReleaseState(DeclEnum):
+    disabled = 'disabled', 'disabled'
+    pending = 'pending', 'pending'
+    current = 'current', 'current'
+    archived = 'archived', 'archived'
+
+
 ##
 ## Association tables
 ##
