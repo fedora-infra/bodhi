@@ -1214,18 +1214,6 @@ class Update(Base):
         val += u"\n  %s\n" % (config.get('base_address') + self.get_url())
         return val
 
-    def get_build_tag(self):
-        """
-        Get the tag that this build is currently tagged with.
-        TODO: we should probably get this stuff from koji instead of guessing
-        """
-        tag = '%s-updates' % self.release.dist_tag
-        if self.status in (UpdateStatus.pending, UpdateStatus.obsolete):
-            tag += '-candidate'
-        elif self.status is UpdateStatus.testing:
-            tag += '-testing'
-        return tag
-
     def update_bugs(self, bugs):
         """
         Create any new bugs, and remove any missing ones. Destroy removed bugs
@@ -1398,19 +1386,20 @@ class Update(Base):
         """ Move this update back to its dist-fX-updates-candidate tag """
         log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
-        newtag = '%s-updates-candidate' % self.release.dist_tag
-        curtag = self.get_build_tag()
-        if curtag.endswith('-updates-candidate'):
+
+        if self.status == UpdateStatus.unpushed:
             log.debug("%s already unpushed" % self.title)
             return
+
+        if self.status != UpdateStatus.testing:
+            raise BodhiException("Can't unpush a %s update"
+                                 % self.status.description)
+
+        self.untag()
+
         for build in self.builds:
-            if build.inherited:
-                log.debug("Removing %s tag from %s" % (curtag, build.nvr))
-                koji.untagBuild(curtag, build.nvr, force=True)
-            else:
-                log.debug("Moving %s from %s to %s" % (
-                    build.nvr, curtag, newtag))
-                koji.moveBuild(curtag, newtag, build.nvr, force=True)
+            koji.tagBuild(self.candidate_tag, build.nvr, force=True)
+
         self.pushed = False
         self.status = UpdateStatus.unpushed
         mail.send_admin('unpushed', self)

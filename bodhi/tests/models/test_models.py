@@ -431,13 +431,6 @@ class TestUpdate(ModelTest):
         self.obj.assign_alias()
         eq_(self.obj.get_url(), u'/F11/FEDORA-%s-0001' % time.localtime()[0])
 
-    def test_get_build_tag(self):
-        eq_(self.obj.get_build_tag(), u'dist-f11-updates-candidate')
-        self.obj.status = UpdateStatus.testing
-        eq_(self.obj.get_build_tag(), u'dist-f11-updates-testing')
-        self.obj.status = UpdateStatus.stable
-        eq_(self.obj.get_build_tag(), u'dist-f11-updates')
-
     def test_bug(self):
         bug = self.obj.bugs[0]
         eq_(bug.url, 'https://bugzilla.redhat.com/show_bug.cgi?id=1')
