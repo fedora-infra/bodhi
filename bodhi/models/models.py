@@ -793,8 +793,9 @@ class Update(Base):
                                  author='bodhi')
 
     def get_title(self, delim=' ', limit=None, after_limit='…'):
-        nvrs = [build.nvr for build in self.builds][:limit]
-        builds = delim.join(sorted(nvrs)) + (after_limit if limit else "")
+        all_nvrs = map(lambda x: x.nvr, self.builds)
+        nvrs     = all_nvrs[:limit]
+        builds   = delim.join(sorted(nvrs)) + (after_limit if limit and len(all_nvrs) > limit else "")
         return builds
 
     def get_bugstring(self, show_titles=False):
