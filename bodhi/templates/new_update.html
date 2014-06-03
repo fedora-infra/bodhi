@@ -1,8 +1,25 @@
 <%inherit file="master.html"/>
 
 <div class="row">
+  <div id='js-warning' class="col-md-6 col-md-offset-3">
+    <div class=" panel panel-warning">
+      <div class="panel-heading clearfix">
+        <span class="pull-left">New Update Form Requires JavaScript</span>
+      </div>
+      <div class="panel-body">
+        <p class="lead">This page only works with JavaScript enabled.</p>
+        <p>If you have JavaScript disabled with a plugin like NoScript, please
+        disable that plugin and reload the page.  If you trust Fedora
+        Infrastructure, you might find it convenient to enable JavaScript just
+        for the domain <code>fedoraproject.org</code>.</p>
+        <p>If you are opposed to JavaScript in principle, you're not left out!
+        Please use the fully-featured <a href="#">Bodhi command-line
+        interface tool</a>.</p>
+      </div>
+    </div>
+  </div>
 
-  <div class="col-md-12">
+  <div id="new-update-form" class="col-md-12 hidden">
 
     <div class="row">
       <div class="col-md-12">

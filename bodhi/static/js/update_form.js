@@ -152,5 +152,7 @@ $(document).ready(function() {
         }
     });
 
-
+    // Lastly, hide our warning and show the main form
+    $("#js-warning").addClass('hidden');
+    $("#new-update-form").removeClass('hidden');
 });
