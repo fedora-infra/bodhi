@@ -235,7 +235,8 @@ class Release(Base):
     pending_stable_tag = Column(UnicodeText, nullable=False)
     override_tag = Column(UnicodeText, nullable=False)
 
-    locked = Column(Boolean, default=False)
+    state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
+
     metrics = Column(PickleType, default=None)
 
     @property
@@ -1550,7 +1551,7 @@ class Update(Base):
             tag = self.release.stable_tag
             # [No Frozen Rawhide] Move stable builds going to a pending
             # release to the Release.dist-tag
-            if self.release.locked:
+            if self.release.state is ReleaseState.pending:
                 tag = self.release.dist_tag
         elif self.request is UpdateRequest.testing:
             tag = self.release.testing_tag
