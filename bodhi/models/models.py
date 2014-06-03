@@ -1419,9 +1419,9 @@ class Update(Base):
         """ Untag all of the builds in this update """
         log.info("Untagging %s" % self.title)
         koji = buildsys.get_session()
-        tag = self.get_build_tag()
         for build in self.builds:
-            koji.untagBuild(tag, build.nvr, force=True)
+            for tag in build.get_tags():
+                koji.untagBuild(tag, build.nvr, force=True)
         self.pushed = False
 
     def obsolete(self, newer=None):
