@@ -2,11 +2,20 @@
 $(document).ready(function() {
     var messenger = Messenger({theme: 'flat'});
 
+    var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
+    var prefix = '/xapian/query/search_packages/%7B%22filters%22:%7B%22search%22:%22'
+    var suffix = '%22%7D,%22rows_per_page%22:10,%22start_row%22:0%7D'
+
     var packages = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
-            url: '/search/packages?term=%QUERY',
+            url: base + prefix + '%QUERY' + suffix,
+            filter: function (response) {
+                return $.map(response.rows, function(row) {
+                    return {'name': $('<p>' + row.name + '</p>').text()}
+                });
+            },
         }
     });
     packages.initialize();
@@ -18,7 +27,7 @@ $(document).ready(function() {
     },
     {
         name: 'packages',
-        displayKey: 'label',
+        displayKey: 'name',
         source: packages.ttAdapter(),
         templates: {
             empty: [
@@ -100,31 +109,31 @@ $(document).ready(function() {
         // Get the candidate builds
         $.ajax({
             url: '/latest_candidates',
-            data: $.param({package: datum.label}),
+            data: $.param({package: datum.name}),
             success: function(builds) {
                 $("#candidate-checkboxes .spinner").remove();
-                if (builds.length == 0) {return candidate_error(datum.label);}
+                if (builds.length == 0) {return candidate_error(datum.name);}
                 $.each(builds, function(i, build) {
                     add_build_checkbox(build.nvr, build.id, false);
                 });
             },
-            error: function() {candidate_error(datum.label);},
+            error: function() {candidate_error(datum.name);},
         });
         var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
         var prefix = '/bugzilla/query/query_bugs/%7B%22filters%22:%7B%22package%22:%22';
         var suffix = '%22,%22version%22:%22%22%7D,%22rows_per_page%22:8,%22start_row%22:0%7D';
         $.ajax({
-            url: base + prefix + datum.label + suffix,
+            url: base + prefix + datum.name + suffix,
             success: function(data) {
                 $("#bugs-checkboxes .spinner").remove();
                 data = JSON.parse(data);
-                if (data.rows.length == 0) {return bug_error(datum.label);}
+                if (data.rows.length == 0) {return bugs_error(datum.name);}
                 $.each(data.rows, function(i, bug) {
                     add_bug_checkbox(bug.id, bug.description, false);
                 });
                 // TODO -- tack on 'And 200 more bugs..'
             },
-            error: function() {bugs_error(datum.label);},
+            error: function() {bugs_error(datum.name);},
         });
     });
     $("#bugs-adder").keypress(function (e) {
