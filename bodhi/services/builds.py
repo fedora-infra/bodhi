@@ -26,7 +26,6 @@ from bodhi.validators import (
     validate_nvrs,
     validate_version,
     validate_uniqueness,
-    validate_tags,
     validate_acls,
     validate_builds,
     validate_enums,
