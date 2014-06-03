@@ -15,8 +15,9 @@
 import datetime
 import sqlalchemy as sa
 
+from pyramid.security import authenticated_userid
 from pyramid.view import view_config, notfound_view_config
-from pyramid.exceptions import HTTPNotFound
+from pyramid.exceptions import HTTPNotFound, HTTPForbidden
 
 from bodhi import log
 import bodhi.models
@@ -96,6 +97,9 @@ def home(request):
 @view_config(route_name='new_update', renderer='new_update.html')
 def new_update(request):
     """ Returns the new update form """
+    user = authenticated_userid(request)
+    if not user:
+        raise HTTPForbidden("You must be logged in.")
     return dict()
 
 

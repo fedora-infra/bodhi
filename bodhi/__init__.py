@@ -23,6 +23,7 @@ from pyramid.config import Configurator
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.renderers import JSONP
+from pyramid.exceptions import HTTPForbidden
 
 from fedora.client.pkgdb import PackageDB
 
@@ -173,8 +174,7 @@ def main(global_config, testing=None, **settings):
     # pyramid.openid
     config.add_route('login', '/login')
     config.add_view('bodhi.security.login', route_name='login')
-    #config.add_view('bodhi.views.login', context=Forbidden,
-    #                renderer='bodhi:templates/login.mak')
+    config.add_view('bodhi.security.login', context=HTTPForbidden)
     config.add_route('logout', '/logout')
     config.add_view('bodhi.security.logout', route_name='logout')
     config.add_route('verify_openid', pattern='/dologin.html')
