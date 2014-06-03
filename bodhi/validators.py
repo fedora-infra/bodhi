@@ -70,7 +70,7 @@ def validate_builds(request):
             return
 
 
-def validate_tags(request):
+def validate_build_tags(request):
     """ Ensure that all of the builds are tagged as candidates """
     tag_types, tag_rels = Release.get_tags()
     if request.validated.get('edited'):

@@ -26,7 +26,7 @@ from bodhi.validators import (
     validate_nvrs,
     validate_version,
     validate_uniqueness,
-    validate_tags,
+    validate_build_tags,
     validate_acls,
     validate_builds,
     validate_enums,
@@ -205,7 +205,7 @@ def query_updates(request):
               permission='create', renderer='json',
               validators=(
                   validate_nvrs, validate_version, validate_builds,
-                  validate_uniqueness, validate_tags, validate_acls,
+                  validate_uniqueness, validate_build_tags, validate_acls,
                   validate_enums))
 def new_update(request):
     """ Save an update.
