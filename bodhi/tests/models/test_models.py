@@ -274,11 +274,11 @@ class TestUpdate(ModelTest):
         update = self.get_update(name=u'TurboGears-2.1-1.el5')
         release = model.Release(name=u'EL-5', long_name=u'Fedora EPEL 5',
                           id_prefix=u'FEDORA-EPEL', dist_tag=u'dist-5E-epel',
-                          stable_tag=u'dist-5E-epel-updates',
-                          testing_tag=u'dist-5E-epel-updates-testing',
-                          candidate_tag=u'dist-5E-epel-updates-candidate',
-                          pending_testing_tag=u'dist-5E-epel-updates-testing-pending',
-                          pending_stable_tag=u'dist-5E-epel-updates-pending',
+                          stable_tag=u'dist-5E-epel',
+                          testing_tag=u'dist-5E-epel-testing',
+                          candidate_tag=u'dist-5E-epel-testing-candidate',
+                          pending_testing_tag=u'dist-5E-epel-testing-pending',
+                          pending_stable_tag=u'dist-5E-epel-pending',
                           override_tag=u'dist-5E-epel-override')
         update.release = release
         update.assign_alias()
