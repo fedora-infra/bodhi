@@ -12,6 +12,7 @@ from bodhi.models import Release
 @click.option('--id-prefix', help='Release prefix (eg: FEDORA)')
 @click.option('--version', help='Release version number (eg: 20)')
 @click.option('--dist-tag', help='Koji dist tag (eg: dist-5E-epel)')
+@click.option('--branch', help='Git branch name (eg: f20)')
 def create_release(**kwargs):
     env = bootstrap(get_configfile())
     db = env['request'].db
