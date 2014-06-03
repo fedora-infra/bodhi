@@ -96,7 +96,6 @@ def validate_acls(request):
     db = request.db
     user = request.user
     settings = request.registry.settings
-    acl_system = settings['acl_system']
     committers = []
     watchers = []
     groups = []
@@ -129,26 +128,22 @@ def validate_acls(request):
             request.errors.add('body', 'builds', msg)
             return
 
+        acl_system = settings.get('acl_system')
         if acl_system == 'pkgdb':
-            pkgdb_args = {
-                'collectionName': release.collection_name,
-                'collectionVersion': release.version,
-            }
             try:
-                people, groups = package.get_pkg_pushers(request.pkgdb,
-                                                         **pkgdb_args)
+                people, groups = package.get_pkg_pushers(release.branch, settings)
                 committers, watchers = people
                 groups, notify_groups = groups
             except Exception, e:
                 log.exception(e)
                 request.errors.add('body', 'builds', "Unable to access the Package "
-                                   "Database. " "Please try again later.")
+                                   "Database. Please try again later.")
                 return
         elif acl_system == 'dummy':
             people, groups = (['guest'], ['guest']), (['guest'], ['guest'])
             committers, watchers = people
         else:
-            log.warn('No bodhi acl_system configured')
+            log.warn('No acl_system configured')
             people = None
 
         buildinfo['people'] = people

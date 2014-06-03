@@ -303,68 +303,40 @@ class Package(Base):
     committers = relationship('User', secondary=user_package_table,
                               backref='packages')
 
-    def get_pkg_pushers(self, pkgdb, collectionName='Fedora', collectionVersion='devel'):
-        """ Pull users who can commit and are watching a package
+    def get_pkg_pushers(self, branch, settings):
+        """ Pull users who can commit and are watching a package.
 
         Return two two-tuples of lists:
         * The first tuple is for usernames.  The second tuple is for groups.
-        * The first list of the tuple is for committers.  The second is for
-        watchers.
-
-        An example::
-        >>> people, groups = get_pkg_pushers('foo', 'Fedora', 'devel')
-        >>> print people
-        (['toshio', 'lmacken'], ['wtogami', 'toshio', 'lmacken'])
-        >>> print groups
-        (['cvsextras'], [])
-
-        Note: The interface to the pkgdb could undergo the following changes:
-        FAS2 related:
-        * pkg['packageListings'][0]['owneruser'] =>
-            pkg['packageListings'][0]['owner']
-        * pkg['packageListings'][0]['people'][0..n]['user'] =>
-            pkg['packageListings'][0]['people'][0..n]['userid']
-
-        * We may want to create a 'push' acl specifically for bodhi instead of
-        reusing 'commit'.
-        * ['status']['translations'] may one day contain more than the 'C'
-        translation.  The pkgdb will have to figure out how to deal with that
-        if so.
-
-        This may raise: fedora.client.AppError if there's an error talking to the
-        PackageDB (for instance, no such package)
+        * The first list of the tuple is for committers. The second is for
+          watchers.
         """
-        # Note if AppError is raised (for no pkgNamme or other server errors) we
-        # do not catch the exception here.
-        pkg = pkgdb.get_owners(self.name, collectionName, collectionVersion)
+        watchers = []
+        committers = []
+        watchergroups = []
+        committergroups = []
 
-        # Owner is allowed to commit and gets notified of pushes
-        # This will always be the 0th element as we'll retrieve at most one
-        # value for any given Package-Collection-Version
-        pNotify = [pkg.packageListings[0]['owner']]
-        pAllowed = [pNotify[0]]
+        from pkgdb2client import PkgDB
+        pkgdb = PkgDB(settings.get('pkgdb_url'))
+        acls = pkgdb.get_package(self.name, branches=branch)
 
-        # Find other people in the acl
-        for person in pkg['packageListings'][0]['people']:
-            if person['aclOrder']['watchcommits'] and \
-            pkg['statusMap'][str(person['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-                pNotify.append(person['username'])
-            if person['aclOrder']['commit'] and \
-            pkg['statusMap'][str(person['aclOrder']['commit']['statuscode'])] == 'Approved':
-                pAllowed.append(person['username'])
+        for package in acls['packages']:
+            for acl in package.get('acls', []):
+                if acl['status'] == 'Approved':
+                    if acl['acl'] == 'watchcommits':
+                        name = acl['fas_name']
+                        if name.startswith('group::'):
+                            watchergroups.append(name.split('::')[1])
+                        else:
+                            watchers.append(name)
+                    elif acl['acl'] == 'commit':
+                        name = acl['fas_name']
+                        if name.startswith('group::'):
+                            committergroups.append(name.split('::')[1])
+                        else:
+                            committers.append(name)
 
-        # Find groups that can push
-        gNotify = []
-        gAllowed = []
-        for group in pkg['packageListings'][0]['groups']:
-            if group['aclOrder']['watchcommits'] and \
-            pkg['statusMap'][str(group['aclOrder']['watchcommits']['statuscode'])] == 'Approved':
-                gNotify.append(group['groupname'])
-            if group['aclOrder']['commit'] and \
-            pkg['statusMap'][str(group['aclOrder']['commit']['statuscode'])] == 'Approved':
-                gAllowed.append(group['groupname'])
-
-        return ((pAllowed, pNotify), (gAllowed, gNotify))
+        return (committers, watchers), (committergroups, watchergroups)
 
     def fetch_test_cases(self, db):
         """ Get a list of test cases from the wiki """
@@ -824,7 +796,6 @@ class Update(Base):
         nvrs = [build.nvr for build in self.builds][:limit]
         builds = delim.join(sorted(nvrs)) + (after_limit if limit else "")
         return builds
-
 
     def get_bugstring(self, show_titles=False):
         """Return a space-delimited string of bug numbers for this update """
