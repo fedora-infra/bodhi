@@ -19,7 +19,7 @@ import colander
 from kitchen.iterutils import iterate
 
 from bodhi.models import (UpdateRequest, UpdateSeverity, UpdateStatus,
-                          UpdateSuggestion, UpdateType)
+                          UpdateSuggestion, UpdateType, ReleaseState)
 
 
 CVE_REGEX = re.compile(r"CVE-[0-9]{4,4}-[0-9]{4,}")
@@ -223,6 +223,57 @@ class ListReleaseSchema(PaginatedSchema):
         location="querystring",
         missing=None,
         preparer=[splitter],
+    )
+
+
+class SaveReleaseSchema(colander.MappingSchema):
+    name = colander.SchemaNode(
+        colander.String(),
+    )
+    long_name = colander.SchemaNode(
+        colander.String(),
+    )
+    version = colander.SchemaNode(
+        colander.String(),
+        missing=None,
+    )
+    branch = colander.SchemaNode(
+        colander.String(),
+    )
+    id_prefix = colander.SchemaNode(
+        colander.String(),
+    )
+    dist_tag = colander.SchemaNode(
+        colander.String(),
+    )
+    stable_tag = colander.SchemaNode(
+        colander.String(),
+    )
+    testing_tag = colander.SchemaNode(
+        colander.String(),
+    )
+    candidate_tag = colander.SchemaNode(
+        colander.String(),
+    )
+    pending_testing_tag = colander.SchemaNode(
+        colander.String(),
+        missing="",
+    )
+    pending_stable_tag = colander.SchemaNode(
+        colander.String(),
+        missing="",
+    )
+    override_tag = colander.SchemaNode(
+        colander.String(),
+    )
+    state = colander.SchemaNode(
+        colander.String(),
+        validator=colander.OneOf(ReleaseState.values()),
+        missing="disabled",
+    )
+    edited = colander.SchemaNode(
+        colander.String(),
+        missing=None,
     )
 
 
