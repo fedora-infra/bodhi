@@ -238,7 +238,8 @@ def validate_enums(request):
                         ("severity", UpdateSeverity),
                         ("status", UpdateStatus),
                         ("suggest", UpdateSuggestion),
-                        ("type", UpdateType)):
+                        ("type", UpdateType),
+                        ("state", ReleaseState)):
         value = request.validated.get(param)
         if value is None:
             continue
