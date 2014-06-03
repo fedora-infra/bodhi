@@ -19,7 +19,7 @@ from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
-                     Bug, TestCase)
+                     Bug, TestCase, ReleaseState)
 from .util import get_nvr
 
 try:
@@ -90,6 +90,24 @@ def validate_build_tags(request):
             request.errors.add('body', 'builds', 'Invalid tag: {} tagged with '
                                '{}'.format(build, valid_tags))
 
+
+def validate_tags(request):
+    """Ensure that all the tags are valid Koji tags"""
+    tag_types, tag_rels = Release.get_tags()
+
+    for tag_type in tag_types:
+        tag_name = request.validated.get("%s_tag" % tag_type)
+
+        if not tag_name:
+            continue
+
+        try:
+            request.koji.getTag(tag_name, strict=True)
+            request.validated["%s_tag" % tag_type] = tag_name
+
+        except Exception as e:
+            request.errors.add('body', "%s_tag" % tag_type,
+                               'Invalid tag: %s' % tag_name)
 
 def validate_acls(request):
     """Ensure this user has commit privs to these builds or is an admin"""
