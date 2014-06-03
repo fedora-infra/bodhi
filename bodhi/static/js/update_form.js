@@ -42,11 +42,14 @@ $(document).ready(function() {
     }
 
     $('#packages-search input.typeahead').on('typeahead:selected', function (e, datum) {
+        $("#candidate-checkboxes").append("<img class='spinner' src='/static/img/spinner.gif'>")
+        $("#bugs-checkboxes").append("<img class='spinner' src='/static/img/spinner.gif'>")
         // Get the candidate builds
         $.ajax({
             url: '/latest_candidates',
             data: $.param({package: datum.label}),
             success: function(builds) {
+                $("#candidate-checkboxes .spinner").remove();
                 if (builds.length == 0) {return candidate_error(datum.label);}
                 $.each(builds, function(i, build) {
                     $("#candidate-checkboxes").append(
@@ -93,6 +96,7 @@ $(document).ready(function() {
         $.ajax({
             url: base + prefix + datum.label + suffix,
             success: function(data) {
+                $("#bugs-checkboxes .spinner").remove();
                 data = JSON.parse(data);
                 if (data.rows.length == 0) {return bug_error(datum.label);}
                 $.each(data.rows, function(i, bug) {
