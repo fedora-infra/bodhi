@@ -1360,11 +1360,11 @@ class Update(Base):
         log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
 
-        if self.status == UpdateStatus.unpushed:
+        if self.status is UpdateStatus.unpushed:
             log.debug("%s already unpushed" % self.title)
             return
 
-        if self.status != UpdateStatus.testing:
+        if self.status is not UpdateStatus.testing:
             raise BodhiException("Can't unpush a %s update"
                                  % self.status.description)
 
