@@ -18,7 +18,6 @@ Random functions that don't fit elsewhere
 
 import os
 import sys
-import copy
 import arrow
 import socket
 import urllib
@@ -34,8 +33,8 @@ import functools
 
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
+from collections import defaultdict
 
-from fedora.client import PackageDB
 from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
@@ -491,3 +490,38 @@ def testcase_link(context, test, short=False):
     if not short:
         link = "Test Case " + link
     return link
+
+
+def sorted_builds(builds):
+    return sorted(builds,
+                  cmp=lambda x, y: rpm.labelCompare(get_nvr(x), get_nvr(y)),
+                  reverse=True)
+
+
+def sorted_updates(updates):
+    """
+    Order our updates so that the highest version gets tagged last so that
+    it appears as the 'latest' in koji.
+    """
+    builds = defaultdict(set)
+    build_to_update = {}
+    ordered_updates = []
+    for update in updates:
+        for build in update.builds:
+            n, v, r = get_nvr(build.nvr)
+            builds[n].add(build.nvr)
+            build_to_update[build.nvr] = update
+    for package in builds:
+        if len(builds[package]) > 1:
+            log.info('Found multiple %s packages' % package)
+            log.debug(builds[package])
+            for build in sorted_builds(builds[package]):
+                update = build_to_update[build]
+                if update not in ordered_updates:
+                    ordered_updates.append(update)
+        else:
+            update = build_to_update[builds[package].pop()]
+            if update not in ordered_updates:
+                ordered_updates.append(update)
+    log.debug('ordered_updates = %s' % ordered_updates)
+    return ordered_updates[::-1]
