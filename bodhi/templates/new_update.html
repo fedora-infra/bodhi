@@ -51,6 +51,7 @@
           <div class="panel-body">
             <input id="builds-adder" class="form-control noui" type="text"
                 placeholder="Add a build, like package-0.2.1-5.fc20">
+            <input name="builds" type="hidden"/>
             <div id="candidate-checkboxes"> </div>
           </div>
         </div>
@@ -64,7 +65,8 @@
           <div class="panel-body">
             <input id="bugs-adder" class="form-control noui" type="text"
                    placeholder="Add #RHBZ">
-            <div id="bugs-checkboxes"> </div>
+            <input name="bugs" type="hidden"/>
+            <div id="bugs-checkboxes"></div>
           </div>
         </div>
       </div>
@@ -99,10 +101,20 @@
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
-            <span class="pull-left">Karma Policy</span>
+            <span class="pull-left">Final details</span>
           </div>
           <div class="panel-body">
-            Crazy karma policy widget goes here.
+            <p class="lead">Crazy karma policy widget goes here.</p>
+
+            % for value in update_types:
+            <label class="radio-inline">
+              <input type="radio" name="type" value="value"> ${value}
+            </label>
+            % endfor
+
+            <span class="pull-right">
+              <button id="submit" class="btn btn-success">Submit</button>
+            </span>
           </div>
         </div>
       </div>

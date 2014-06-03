@@ -74,18 +74,10 @@ Form.prototype.error = function(data) {
     var self = this;
     self.finish();
     $.each(data.responseJSON.errors, function (i, error) {
-        if (error.name == "comment") {
-            // TODO -- also insert this error into the form-wide alert div
-            msg = self.messenger.post({
-                message: error.description,
-                type: "error"
-            });
-        } else {
-            var selector = self.idx + " div[for=" + error.name + "]";
-            $(selector + " strong").html(error.name);
-            $(selector + " span").html(error.description);
-            $(selector).removeClass('hidden');
-        }
+        msg = self.messenger.post({
+            message: error.description,
+            type: "error"
+        });
     });
 }
 
@@ -96,9 +88,18 @@ Form.prototype.data = function() {
         if (this.type == 'radio' && ! this.checked) {
             // pass - don't add unchecked radio buttons to the submission
         } else {
-            data[this.name].push($(this).val());
+            var value = $(this).val();
+            if (value != "") {
+                data[this.name].push(value);
+            }
         }
     });
+
+    // Flatten things into scalars if we can
+    $.each(data, function (key, value) {
+        if (value.length == 1) { data[key] = value[0]; }
+    });
+
     return data;
 }
 
@@ -108,8 +109,9 @@ Form.prototype.submit = function() {
 
     $.ajax(this.url, {
         method: 'POST',
-        data: $.param(self.data(), traditional=true),
+        data: JSON.stringify(self.data()),
         dataType: 'json',
+        contentType: 'application/json',
         success: function(data) { return self.success(data); },
         error: function(data) { return self.error(data); },
     })

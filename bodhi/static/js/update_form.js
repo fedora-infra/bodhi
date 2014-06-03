@@ -73,9 +73,9 @@ $(document).ready(function() {
             [
                 '<div class="checkbox">',
                 '<label>',
-                '<input data-build-nvr="' + nvr + '"' +
+                '<input name="builds" data-build-nvr="' + nvr + '"' +
                     (idx ? '" data-build-id="' + idx + '" ' : ' ') +
-                    'type="checkbox" value=""' + (checked ? ' checked' : '') + '>',
+                    'type="checkbox" value="' + nvr + '"' + (checked ? ' checked' : '') + '>',
                 nvr,
                 '</label>',
                 '</div>',
@@ -113,7 +113,7 @@ $(document).ready(function() {
             [
                 '<div class="checkbox">',
                 '<label>',
-                '<input type="checkbox" value=""' + (checked ? ' checked' : '') + '>',
+                '<input name="bugs" type="checkbox" value="' + idx + '"' + (checked ? ' checked' : '') + '>',
                 '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=' + idx + '">',
                 '#' + idx + '</a> ' + description,
                 '</label>',
@@ -176,6 +176,12 @@ $(document).ready(function() {
             add_build_checkbox(value, false, true);
             return false;
         }
+    });
+
+    // Wire up the submit button
+    $("#submit").click(function (e) {
+        var theform = new Form("#new-update-form", "/updates/");
+        theform.submit();
     });
 
     // Lastly, hide our warning and show the main form
