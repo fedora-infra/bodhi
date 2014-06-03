@@ -218,12 +218,15 @@ class Release(Base):
     long_name = Column(Unicode(25), unique=True, nullable=False)
     version = Column(Unicode(5))
     id_prefix = Column(Unicode(25), nullable=False)
+
     dist_tag = Column(Unicode(20), nullable=False)
-    _stable_tag = Column(UnicodeText)
-    _testing_tag = Column(UnicodeText)
-    _candidate_tag = Column(UnicodeText)
-    # TODO:
-    #_pending_tag = Column(UnicodeText)
+    stable_tag = Column(UnicodeText, nullable=False)
+    testing_tag = Column(UnicodeText, nullable=False)
+    candidate_tag = Column(UnicodeText, nullable=False)
+    pending_testing_tag = Column(UnicodeText, nullable=False)
+    pending_stable_tag = Column(UnicodeText, nullable=False)
+    override_tag = Column(UnicodeText, nullable=False)
+
     locked = Column(Boolean, default=False)
     metrics = Column(PickleType, default=None)
 
@@ -231,52 +234,6 @@ class Release(Base):
     def version_int(self):
         regex = re.compile('\D+(\d+)$')
         return int(regex.match(self.name).groups()[0])
-
-    @synonym_for('_stable_tag')
-    @property
-    def stable_tag(self):
-        if self._stable_tag:
-            return self._stable_tag
-        else:
-            if self.name.startswith('EL'):  # EPEL Hack.
-                return self.dist_tag
-            else:
-                return '%s-updates' % self.dist_tag
-
-    @synonym_for('_testing_tag')
-    @property
-    def testing_tag(self):
-        if self._testing_tag:
-            return self._testing_tag
-        else:
-            if self.locked:
-                return '%s-updates-testing' % self.stable_tag
-            return '%s-testing' % self.stable_tag
-
-    @synonym_for('_candidate_tag')
-    @property
-    def candidate_tag(self):
-        if self._candidate_tag:
-            return self._candidate_tag
-        else:
-            if self.name.startswith('EL'):  # EPEL Hack.
-                return '%s-testing-candidate' % self.dist_tag
-            else:
-                return '%s-updates-candidate' % self.dist_tag
-
-    @property
-    def pending_testing_tag(self):
-        return self.testing_tag + '-pending'
-
-    @property
-    def pending_stable_tag(self):
-        if self.locked:
-            return '%s-updates-pending' % self.dist_tag
-        return self.stable_tag + '-pending'
-
-    @property
-    def override_tag(self):
-        return '%s-override' % self.dist_tag
 
     @property
     def mandatory_days_in_testing(self):
@@ -1257,18 +1214,6 @@ class Update(Base):
         val += u"\n  %s\n" % (config.get('base_address') + self.get_url())
         return val
 
-    def get_build_tag(self):
-        """
-        Get the tag that this build is currently tagged with.
-        TODO: we should probably get this stuff from koji instead of guessing
-        """
-        tag = '%s-updates' % self.release.dist_tag
-        if self.status in (UpdateStatus.pending, UpdateStatus.obsolete):
-            tag += '-candidate'
-        elif self.status is UpdateStatus.testing:
-            tag += '-testing'
-        return tag
-
     def update_bugs(self, bugs):
         """
         Create any new bugs, and remove any missing ones. Destroy removed bugs
@@ -1441,19 +1386,20 @@ class Update(Base):
         """ Move this update back to its dist-fX-updates-candidate tag """
         log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
-        newtag = '%s-updates-candidate' % self.release.dist_tag
-        curtag = self.get_build_tag()
-        if curtag.endswith('-updates-candidate'):
+
+        if self.status == UpdateStatus.unpushed:
             log.debug("%s already unpushed" % self.title)
             return
+
+        if self.status != UpdateStatus.testing:
+            raise BodhiException("Can't unpush a %s update"
+                                 % self.status.description)
+
+        self.untag()
+
         for build in self.builds:
-            if build.inherited:
-                log.debug("Removing %s tag from %s" % (curtag, build.nvr))
-                koji.untagBuild(curtag, build.nvr, force=True)
-            else:
-                log.debug("Moving %s from %s to %s" % (
-                    build.nvr, curtag, newtag))
-                koji.moveBuild(curtag, newtag, build.nvr, force=True)
+            koji.tagBuild(self.candidate_tag, build.nvr, force=True)
+
         self.pushed = False
         self.status = UpdateStatus.unpushed
         mail.send_admin('unpushed', self)
@@ -1462,9 +1408,9 @@ class Update(Base):
         """ Untag all of the builds in this update """
         log.info("Untagging %s" % self.title)
         koji = buildsys.get_session()
-        tag = self.get_build_tag()
         for build in self.builds:
-            koji.untagBuild(tag, build.nvr, force=True)
+            for tag in build.get_tags():
+                koji.untagBuild(tag, build.nvr, force=True)
         self.pushed = False
 
     def obsolete(self, newer=None):

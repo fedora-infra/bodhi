@@ -42,7 +42,14 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         session = DBSession()
         release = Release(
             name=u'F22', long_name=u'Fedora 22',
-            id_prefix=u'FEDORA', dist_tag=u'f22', version='22')
+            id_prefix=u'FEDORA', version='22',
+            dist_tag=u'f22', stable_tag=u'f22-updates',
+            testing_tag=u'f22-updates-testing',
+            candidate_tag=u'f22-updates-candidate',
+            pending_testing_tag=u'f22-updates-testing-pending',
+            pending_stable_tag=u'f22-updates-pending',
+            override_tag=u'f22-override')
+
         session.add(release)
         session.flush()
 

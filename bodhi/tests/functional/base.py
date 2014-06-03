@@ -98,7 +98,13 @@ class BaseWSGICase(unittest.TestCase):
         user.groups.append(packager)
         release = Release(
             name=u'F17', long_name=u'Fedora 17',
-            id_prefix=u'FEDORA', dist_tag=u'f17', version='17')
+            id_prefix=u'FEDORA', version='17',
+            dist_tag=u'f17', stable_tag=u'f17-updates',
+            testing_tag=u'f17-updates-testing',
+            candidate_tag=u'f17-updates-candidate',
+            pending_testing_tag=u'f17-updates-testing-pending',
+            pending_stable_tag=u'f17-updates-pending',
+            override_tag=u'f17-override')
         self.db.add(release)
         pkg = Package(name=u'bodhi')
         self.db.add(pkg)
