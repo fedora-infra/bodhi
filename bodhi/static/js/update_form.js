@@ -29,12 +29,14 @@ $(document).ready(function() {
         },
     });
     var candidate_error = function(package) {
+        $("#candidate-checkboxes .spinner").remove();
         messenger.post({
             message: 'No candidate builds found for ' + package,
             type: 'error',
         });
     }
     var bugs_error = function(package) {
+        $("#bugs-checkboxes .spinner").remove();
         messenger.post({
             message: 'No bugs found for ' + package,
             type: 'error',
