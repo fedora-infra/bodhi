@@ -653,7 +653,7 @@ class Update(Base):
             bug = db.query(Bug).filter_by(bug_id=bug_num).first()
             if not bug:
                 bug = Bug(bug_id=bug_num)
-                bug.fetch_details()
+                bug.update_details()
                 db.add(bug)
                 if bug.security:
                     data['type'] = UpdateType.security
@@ -1244,7 +1244,7 @@ class Update(Base):
                 if fetchdetails:
                     newbug = bugtracker.getbug(bug_id)
                     bug = Bug(bug_id=newbug.bug_id)
-                    bug.fetch_details(newbug)
+                    bug.update_details(newbug)
                     bug.modified()
                 else:
                     bug = Bug(bug_id=int(bug_id))
@@ -1655,7 +1655,7 @@ class Bug(Base):
     def url(self):
         return config['buglink'] % self.bug_id
 
-    def fetch_details(self, bug=None):
+    def update_details(self, bug=None):
         bugtracker.update_details(bug, self)
 
     def default_message(self, update):
