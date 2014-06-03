@@ -32,10 +32,9 @@
             <span class="pull-left">Candidate Builds</span>
           </div>
           <div class="panel-body">
-            <input class="form-control noui" type="text"
-                   placeholder="Add NEVR">
-            <div id="candidate-checkboxes">
-            </div>
+            <input id="builds-adder" class="form-control noui" type="text"
+                placeholder="Add a build, like package-0.2.1-5.fc20">
+            <div id="candidate-checkboxes"> </div>
           </div>
         </div>
       </div>
@@ -46,10 +45,9 @@
             <span class="pull-left">Related Bugs</span>
           </div>
           <div class="panel-body">
-            <input class="form-control noui" type="text"
+            <input id="bugs-adder" class="form-control noui" type="text"
                    placeholder="Add #RHBZ">
-            <div id="bugs-checkboxes">
-            </div>
+            <div id="bugs-checkboxes"> </div>
           </div>
         </div>
       </div>
@@ -63,7 +61,7 @@
           </div>
           <div class="panel-body">
             <textarea class="form-control" id="notes" name="notes" rows="6"
-              placeholder="Update notes" required="true"></textarea>
+              placeholder="Update notes go here.  They're really *really* useful, so feel free to write as you please.  You can use **markdown** to make them look nice." required="true"></textarea>
           </div>
         </div>
       </div>
