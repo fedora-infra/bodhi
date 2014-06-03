@@ -1,7 +1,15 @@
+// This file handles all the magic that happens in the 'New Update Form'
 
 $(document).ready(function() {
     var messenger = Messenger({theme: 'flat'});
 
+    // These next couple blocks of code wire up the auto-complete search for
+    // packages in the update form.  Two technologies are at play here.  The
+    // first is 'bloodhound' which is a suggestion engine.  Its suggestions are
+    // then fed to 'typeahead.js' which is responsible for presenting and
+    // acting on the suggestions.
+    //
+    // For the search here, we query the fedora-packages webapp.
     var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
     var prefix = '/xapian/query/search_packages/%7B%22filters%22:%7B%22search%22:%22'
     var suffix = '%22%7D,%22rows_per_page%22:10,%22start_row%22:0%7D'
@@ -37,6 +45,9 @@ $(document).ready(function() {
             ].join('\n'),
         },
     });
+
+    // candidate_error and bug_error are just two handy utilities for reporting
+    // errors when stuff in the code blocks below this goes wrong.
     var candidate_error = function(package) {
         $("#candidate-checkboxes .spinner").remove();
         messenger.post({
@@ -52,7 +63,11 @@ $(document).ready(function() {
         });
     }
 
-
+    // A utility for adding another candidate build to the checkbox list of
+    // candidate builds this update could include.
+    // The code here is a little long because we need to additionally wire up
+    // code to fire when one of those checkboxes is clicked.  (It adds
+    // changelog entries to the update notes).
     var add_build_checkbox = function(nvr, idx, checked) {
         $("#candidate-checkboxes").prepend(
             [
@@ -90,6 +105,9 @@ $(document).ready(function() {
             })
         });
     }
+
+    // A utility for adding another bug to the checkbox list of potential bugs
+    // this update could fix.
     var add_bug_checkbox = function(idx, description, checked) {
         $("#bugs-checkboxes").prepend(
             [
@@ -103,6 +121,10 @@ $(document).ready(function() {
         ].join('\n'));
     }
 
+    // This wires up the action that happens when the user selects something
+    // from the "add a package" typeahead search box.  When they do that, we
+    // fire off two async js calls to get bugs and builds.  Those are then
+    // added to their respective checkbox lists once they are retrieved.
     $('#packages-search input.typeahead').on('typeahead:selected', function (e, datum) {
         $("#candidate-checkboxes").prepend("<img class='spinner' src='/static/img/spinner.gif'>")
         $("#bugs-checkboxes").prepend("<img class='spinner' src='/static/img/spinner.gif'>")
@@ -136,6 +158,10 @@ $(document).ready(function() {
             error: function() {bugs_error(datum.name);},
         });
     });
+
+    // Rig it up so that if the user types in a custom value to the 'builds'
+    // field or the 'bugs' field, those things get added to the list of
+    // possibilities.
     $("#bugs-adder").keypress(function (e) {
         if (e.which == 13) {
             var value = $(this).val().trim();
