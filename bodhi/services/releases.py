@@ -68,10 +68,29 @@ def get_release_json(request):
         request.errors.status = HTTPNotFound.code
     return release
 
-@releases.get(schema=bodhi.schemas.ListReleaseSchema, renderer='json',
+@releases.get(accept="text/html", schema=bodhi.schemas.ListReleaseSchema,
+              renderer='releases.html',
               validators=(validate_release, validate_updates,
                           validate_packages))
-def query_releases(request):
+def query_releases_html(request):
+    def collect_releases(releases):
+        x = {}
+        for r in releases:
+            if r['state'] in x:
+                x[r['state']].append(r)
+            else:
+                x[r['state']] = [r]
+        return x
+
+    db = request.db
+    releases = db.query(Release).order_by(Release.id.desc()).all()
+    return dict(releases=collect_releases(releases))
+
+@releases.get(accept=('application/json', 'text/json'),
+              schema=bodhi.schemas.ListReleaseSchema, renderer='json',
+              validators=(validate_release, validate_updates,
+                          validate_packages))
+def query_releases_json(request):
     db = request.db
     data = request.validated
     query = db.query(Release)

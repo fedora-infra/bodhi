@@ -1,0 +1,19 @@
+<%inherit file="master.html"/>
+
+<div class="row">
+  <div class="col-md-12">
+    % for state in releases:
+    <h3>${state}</h3>
+
+    <ul>
+      % for r in releases[state]:
+      <li>
+        <a href="${request.route_url('releases')}${r['name']}">
+          ${r['long_name']}
+        </a>
+      </li>
+      % endfor
+    </ul>
+    % endfor
+  </div>
+</div>
