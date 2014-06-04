@@ -31,6 +31,10 @@ from bodhi.tests.models import ModelTest
 from bodhi.config import config
 
 
+class DummyUser(object):
+    name = 'guest'
+
+
 class TestRelease(ModelTest):
     """Unit test case for the ``Release`` model."""
     klass = model.Release
@@ -389,7 +393,7 @@ class TestUpdate(ModelTest):
         eq_(len(req.errors), 0)
 
     def test_set_request_obsolete(self):
-        req = DummyRequest()
+        req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         eq_(self.obj.status, UpdateStatus.pending)
         self.obj.set_request(UpdateRequest.obsolete, req)

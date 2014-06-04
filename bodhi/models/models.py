@@ -36,7 +36,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.settings import asbool
 
-from bodhi import buildsys, mail
+from bodhi import buildsys, mail, notifications
 from bodhi.util import (
     header, build_evr, rpm_fileheader, get_nvr, flash_log,
     get_age, get_critpath_pkgs,
@@ -910,15 +910,20 @@ class Update(Base):
             raise LockedUpdateException("Can't change the request on a "
                                         "locked update")
 
+        topic = u'update.request.%s' % action
         if action is UpdateRequest.unpush:
             self.unpush()
             self.comment(u'This update has been unpushed',
                          author=request.user.name)
+            notifications.publish(topic=topic, msg=dict(
+                update=self, agent=request.user.name))
             flash_log("%s has been unpushed" % self.title)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete()
             flash_log("%s has been obsoleted" % self.title)
+            notifications.publish(topic=topic, msg=dict(
+                update=self, agent=request.user.name))
             return
 
         elif action is UpdateRequest.stable and pathcheck:
@@ -1012,6 +1017,9 @@ class Update(Base):
             action.description, notes, flash_notes))
         self.comment('This update has been submitted for %s by %s. %s' % (
             action.description, request.user.name, notes), author='bodhi')
+        topic = u'update.request.%s' % action
+        notifications.publish(topic=topic, msg=dict(
+            update=self, agent=request.user.name))
 
         # FIXME: track date pushed to testing & stable in different fields
         self.date_pushed = None
@@ -1048,6 +1056,12 @@ class Update(Base):
         self.request = None
         self.date_pushed = datetime.utcnow()
         self.assign_alias()
+        topic = u'update.complete.%s' % self.status
+        notifications.publish(topic=topic, msg=dict(
+            update=self,
+            agent=os.getlogin(),  # Should almost always be "masher
+        ))
+
 
     def modify_bugs(self):
         """
@@ -1326,6 +1340,12 @@ class Update(Base):
             karma=karma, karma_critpath=karma_critpath)
         session.add(comment)
         session.flush()
+
+        if author not in ('bodhi', 'autoqa'):
+            notifications.publish(topic='update.comment', msg=dict(
+                comment=comment,
+                agent=author,
+            ))
 
         for feedback_dict in bug_feedback:
             feedback = BugKarma(**feedback_dict)
