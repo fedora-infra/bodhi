@@ -20,9 +20,10 @@ import pyramid.paster
 
 from collections import defaultdict
 
-from bodhi import log
+from bodhi import log, buildsys
+from bodhi.util import sorted_updates
 from bodhi.config import config, get_configfile
-from bodhi.models import Update, UpdateRequest, Release
+from bodhi.models import Update, UpdateRequest, UpdateType, Release, UpdateStatus
 
 CONFIG = get_configfile()
 
@@ -36,14 +37,14 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
     - Verify that the message was sent by someone in releng
     - Determine which updates to push
-
     - Lock repo
       - track which repos were completed
       - track which packages are in the push
       - lock updates
     - Make sure things are safe to move? (ideally we should trust our own state)
-    - Move build tags
     - Update security bug titles
+
+    - Move build tags
     - Expire buildroot overrides
     - Remove pending tags
     - mash
@@ -85,7 +86,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         if self.valid_signer:
             if not fedmsg.crypto.validate_signed_by(msg, self.valid_signer,
                                                     **self.hub.config):
-                self.log.error('Received message with invalid signature! Ignoring...')
+                self.log.error('Received message with invalid signature! Ignoring.')
                 # TODO: send email notifications
                 return
 
@@ -105,7 +106,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         self.log.info('Push complete!')
 
     def load_updates(self, body):
-        # {Release: {Request: [Update,]}}
+        # {Release: {UpdateRequest: [Update,]}}
         releases = defaultdict(lambda: defaultdict(list))
         for title in body['updates'].split():
             update = self.db.query(Update).filter_by(title=title).first()
