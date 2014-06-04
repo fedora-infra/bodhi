@@ -82,7 +82,7 @@ class DevBuildsys(Buildsystem):
     __untag__ = []
 
     def multiCall(self):
-        pass
+        return []
 
     def moveBuild(self, *args, **kw):
         log.debug("moveBuild(%s, %s)" % (args, kw))
