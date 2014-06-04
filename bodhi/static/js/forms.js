@@ -87,6 +87,8 @@ Form.prototype.data = function() {
         if (data[this.name] === undefined) { data[this.name] = []; }
         if (this.type == 'radio' && ! this.checked) {
             // pass - don't add unchecked radio buttons to the submission
+        } else if (this.type == 'checkbox' && ! this.checked) {
+            // pass - don't add unchecked checkboxes to the submission
         } else {
             var value = $(this).val();
             if (value != "") {

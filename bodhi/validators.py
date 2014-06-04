@@ -140,7 +140,8 @@ def validate_acls(request):
                                    "Database. Please try again later.")
                 return
         elif acl_system == 'dummy':
-            people, groups = (['guest'], ['guest']), (['guest'], ['guest'])
+            people = (['ralph', 'guest'], ['guest'])
+            groups = (['ralph', 'guest'], ['guest'])
             committers, watchers = people
         else:
             log.warn('No acl_system configured')
