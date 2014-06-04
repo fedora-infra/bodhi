@@ -156,6 +156,7 @@ class MasherThread(threading.Thread):
             self.load_updates()
 
             if not self.resume:
+                self.lock_updates()
                 self.update_security_bugs()
                 self.determine_tag_actions()
                 self.perform_tag_actions()
@@ -173,6 +174,11 @@ class MasherThread(threading.Thread):
             if update:
                 updates.append(update)
         self.updates = updates
+
+    def lock_updates(self):
+        for update in self.updates:
+            update.locked = True
+        self.db.flush()
 
     def save_state(self):
         """Save the state of this push so it can be resumed later if necessary"""
