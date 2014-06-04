@@ -53,6 +53,23 @@ def create(username, password, **kwargs):
     save(client, **kwargs)
 
 
+@main.command()
+@click.argument('name')
+def info(name):
+    client = BodhiClient()
+
+    res = client.send_request('/releases/%s' % name, verb='GET', auth=True)
+
+    data = res.json()
+
+    if 'errors' in data:
+        print_errors(data)
+
+    else:
+        print('Release:')
+        print_release(data)
+
+
 def save(client, **kwargs):
     res = client.send_request('/releases/', verb='POST', auth=True,
                               data=kwargs)
