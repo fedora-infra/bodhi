@@ -106,11 +106,35 @@
           <div class="panel-body">
             <p class="lead">Crazy karma policy widget goes here.</p>
 
-            % for value in update_types:
-            <label class="radio-inline">
-              <input type="radio" name="type" value="${value}"> ${value}
-            </label>
-            % endfor
+            <dl id='radios' class="dl-horizontal">
+              <dt>Type</dt>
+              <dd>
+                % for value in types:
+                <label class="radio-inline">
+                  <input type="radio" name="type" value="${value}">
+                  ${value}
+                </label>
+                % endfor
+              </dd>
+
+              <dt>Severity</dt>
+              <dd>
+                % for value in severities:
+                <label class="radio-inline">
+                  <input type="radio" name="severity" value="${value}"> ${value}
+                </label>
+                % endfor
+              </dd>
+
+              <dt>Suggestion</dt>
+              <dd>
+                % for value in suggestions:
+                <label class="radio-inline">
+                  <input type="radio" name="suggest" value="${value}"> ${value}
+                </label>
+                % endfor
+              </dd>
+            </dl>
 
             <span class="pull-right">
               <button id="submit" class="btn btn-success">Submit</button>

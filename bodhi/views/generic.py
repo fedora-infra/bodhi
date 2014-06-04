@@ -100,7 +100,11 @@ def new_update(request):
     user = authenticated_userid(request)
     if not user:
         raise HTTPForbidden("You must be logged in.")
-    return dict(update_types=bodhi.models.UpdateType.values())
+    return dict(
+        types=reversed(bodhi.models.UpdateType.values()),
+        severities=reversed(bodhi.models.UpdateSeverity.values()),
+        suggestions=reversed(bodhi.models.UpdateSuggestion.values()),
+    )
 
 
 @view_config(route_name='latest_candidates', renderer='json')
