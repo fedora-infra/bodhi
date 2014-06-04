@@ -135,6 +135,28 @@ $(document).ready(function(){
       % endif
 
     </table>
+
+    <hr/>
+
+    ## TODO -- implement this in javascript once resultsdb gets JSONP support
+    ## which is tracked here https://phab.qadevel.cloud.fedoraproject.org/D120
+    ## http://resultsdb-stg.cloud.fedoraproject.org/resultsdb/api/v1.0/results?item=kernel-3.14.5-200.fc20.i686.rpm
+    <h3>Automated Test Results <span class="badge">2</span> <small>mockup</small></h3>
+    <table class="table">
+      <colgroup class='strip' span="1"></colgroup>
+      <colgroup span="1"></colgroup>
+      <colgroup span="1"></colgroup>
+      <tr>
+        <td><span data-toggle="tooltip" data-placement="top" title="PASS" class="glyphicon glyphicon-ok-circle"></span></td>
+        <td>depcheck</td>
+        <td>kernel-3.14.5-200.fc20.i686.rpm</td>
+      </tr>
+      <tr class="danger">
+        <td><span data-toggle="tooltip" data-placement="top" title="FAIL" class="glyphicon glyphicon-remove-circle"></span></td>
+        <td>rpmlint</td>
+        <td>kernel-3.14.5-200.fc20.i686.rpm</td>
+      </tr>
+    </table>
   </div>
 
   <div class="col-md-7">
@@ -190,7 +212,6 @@ $(document).ready(function(){
   </table>
   % endif
 
-    ## TODO: resultsdb/taskotron stuff goes here some day
 </div>
 
 <hr />
