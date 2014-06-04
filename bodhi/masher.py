@@ -193,7 +193,6 @@ class MasherThread(threading.Thread):
 
     def finish(self):
         self.log.info('Thread(%s) finished' % self.id)
-        self.db.close()
 
     def update_security_bugs(self):
         """Update the bug titles for security updates"""
