@@ -119,15 +119,19 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
 class MasherThread(threading.Thread):
 
-    def __init__(self, release, request, updates, log):
+    def __init__(self, release, request, updates, log, resume=False):
         super(MasherThread, self).__init__()
         self.log = log
         self.env = pyramid.paster.bootstrap(CONFIG)
         self.db = db = self.env['request'].db
+        self.koji = self.env['request'].koji
         self.release = db.query(Release).filter_by(name=release).one()
         self.id = getattr(self.release, '%s_tag' % request)
         self.request = UpdateRequest.from_string(request)
+        self.resume = resume
         self.updates = set()
+        self.add_tags = []
+        self.move_tags = []
         self.state = {
             'tagged': False,
             'updates': updates,
@@ -138,15 +142,26 @@ class MasherThread(threading.Thread):
         log.info('Running MasherThread(%s)' % self.id)
         try:
             self.save_state()
-            # Normally safe_to_move/safe_to_resume happens here...
-            # Ideally, we should be able to trust our internal state
+            self.load_updates()
+
+            if not self.resume:
+                self.update_security_bugs()
+                self.determine_tag_actions()
+                self.perform_tag_actions()
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
         finally:
             self.finish()
 
+    def load_updates(self):
+        updates = []
+        for title in self.updates:
+            update = self.db.query(Update).filter_by(title=title).first()
+            updates.append(update)
+        self.updates = updates
+
     def save_state(self):
-        """ Save the state of this push so it can be resumed later if necessary """
+        """Save the state of this push so it can be resumed later if necessary"""
         mashed_dir = config.get('mashed_dir')
         mash_lock = os.path.join(mashed_dir, 'MASHING-%s' % self.id)
         if os.path.exists(mash_lock):
@@ -159,3 +174,51 @@ class MasherThread(threading.Thread):
     def finish(self):
         self.env['closer']()
         self.log.info('Thread(%s) finished' % self.id)
+
+    def update_security_bugs(self):
+        """Update the bug titles for security updates"""
+        self.log.info('Updating bug titles for security updates')
+        for update in self.updates:
+            if update.type is UpdateType.security:
+                for bug in update.bugs:
+                    bug.update_details()
+
+    def determine_tag_actions(self):
+        tag_types, tag_rels = Release.get_tags()
+        for update in sorted_updates(self.updates):
+            if update.status is UpdateStatus.testing:
+                status = 'testing'
+            else:
+                status = 'candidate'
+
+            for build in update.builds:
+                from_tag = None
+                tags = build.get_tags()
+                for tag in tags:
+                    if tag in tag_types[status]:
+                        from_tag = tag
+                        break
+                else:
+                    self.log.error('Cannot find relevant tag for %s: %s' % (
+                                   build.nvr, tags))
+                    raise Exception
+
+                if update.release.locked and update.request is UpdateRequest.stable:
+                    self.add_tags.append((update.requested_tag, build.nvr))
+                else:
+                    self.move_tags.append((from_tag, update.requested_tag, build.nvr))
+
+    def perform_tag_actions(self):
+        self.koji.multicall = True
+        for action in self.add_tags:
+            tag, build = action
+            self.log.info("Adding tag %s to %s" % (tag, build))
+            self.koji.tagBuild(tag, build.nvr, force=True)
+        for action in self.move_tags:
+            from_tag, to_tag, build = action
+            self.log.info('Moving %s from %s to %s' % (build, from_tag, to_tag))
+            self.koji.moveBuild(from_tag, to_tag, build, force=True)
+        results = self.koji.multiCall()
+        failed_tasks = buildsys.wait_for_tasks([task[0] for task in results])
+        if failed_tasks:
+            raise Exception("Failed to move builds: %s" % failed_tasks)
