@@ -16,16 +16,14 @@ import os
 import json
 import threading
 import fedmsg.consumers
-import pyramid.paster
 
 from collections import defaultdict
 
 from bodhi import log, buildsys
 from bodhi.util import sorted_updates
-from bodhi.config import config, get_configfile
-from bodhi.models import (Update, UpdateRequest, UpdateType, Release, UpdateStatus)
-
-#CONFIG = get_configfile()
+from bodhi.config import config
+from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
+                          UpdateStatus)
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
@@ -43,8 +41,8 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
       - lock updates
     - Make sure things are safe to move? (ideally we should trust our own state)
     - Update security bug titles
-
     - Move build tags
+
     - Expire buildroot overrides
     - Remove pending tags
     - mash
@@ -64,6 +62,9 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         - see if any updates now meet the stable criteria, and set the request
     - Send fedmsgs
 
+TODO:
+    - clean up old testing tags for pending releases after X days?
+    if there is already a masher lock, merge it with the current push????
     """
     config_key = 'masher'
 
@@ -106,7 +107,6 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         for thread in threads:
             thread.join()
 
-        #env['closer']()
         self.log.info('Push complete!')
 
     def organize_updates(self, session, body):
@@ -146,8 +146,6 @@ class MasherThread(threading.Thread):
             self.db = None
 
     def work(self):
-        self.log.debug('thread db = %s' % self.db)
-        self.log.info('bind = %s' % self.db.bind)
         self.koji = buildsys.get_session()
         self.release = self.db.query(Release).filter_by(name=self.release).one()
         self.id = getattr(self.release, '%s_tag' % self.request.value)
@@ -156,7 +154,6 @@ class MasherThread(threading.Thread):
         try:
             self.save_state()
             self.load_updates()
-            self.log.info('updates = %s' % self.updates)
 
             if not self.resume:
                 self.update_security_bugs()
@@ -190,7 +187,6 @@ class MasherThread(threading.Thread):
         self.log.info('Masher lock created: %s' % mash_lock)
 
     def finish(self):
-        #self.env['closer']()
         self.log.info('Thread(%s) finished' % self.id)
         self.db.close()
 

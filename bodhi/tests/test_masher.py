@@ -12,12 +12,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import os
+import unittest
 import tempfile
+import transaction
+
+from datetime import datetime
+from contextlib import contextmanager
+from sqlalchemy import create_engine
 
 from bodhi import buildsys
-from bodhi.models import *
-from bodhi.tests.functional.base import BaseWSGICase
-from sqlalchemy import create_engine
+from bodhi.masher import Masher
+from bodhi.models import (DBSession, Base, Update, User, Group, Release,
+                          Package, Build, TestCase, UpdateRequest, UpdateType,
+                          Bug, CVE, Comment)
 
 
 class FakeHub(object):
@@ -48,12 +56,9 @@ def makemsg(body=None):
     }
 
 
-from contextlib import contextmanager
-
 @contextmanager
 def transactional_session_maker():
     """Provide a transactional scope around a series of operations."""
-    import transaction
     session = DBSession()
     try:
         yield session
@@ -64,16 +69,13 @@ def transactional_session_maker():
     finally:
         session.close()
 
-import unittest
 
 class TestMasher(unittest.TestCase):
 
     def setUp(self):
-        #super(TestMasher, self).setUp()
         fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
         engine = create_engine('sqlite:///%s' % self.db_filename)
         DBSession.configure(bind=engine)
-        log.debug('Creating all models for %s' % engine)
         Base.metadata.create_all(engine)
         self.db_factory = transactional_session_maker
 
@@ -93,7 +95,6 @@ class TestMasher(unittest.TestCase):
                 pass
 
     def test_masher(self):
-        from bodhi.masher import Masher
         self.masher = Masher(FakeHub(), db_factory=self.db_factory)
 
         with self.db_factory() as session:
@@ -101,6 +102,7 @@ class TestMasher(unittest.TestCase):
             self.assertFalse(up.locked)
 
         self.masher.consume(makemsg())
+
         koji = buildsys.get_session()
         assert False, koji
         #self.assertTrue(up.locked)
