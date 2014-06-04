@@ -103,9 +103,15 @@ class TestMasher(unittest.TestCase):
 
         self.masher.consume(makemsg())
 
+        # Ensure our single update was moved
         koji = buildsys.get_session()
-        assert False, koji
-        #self.assertTrue(up.locked)
+        self.assertEquals(len(koji.__moved__), 1)
+        self.assertEquals(koji.__moved__[0], (u'f17-updates-candidate',
+            u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
+
+        with self.db_factory() as session:
+            up = session.query(Update).one()
+            self.assertTrue(up.locked)
 
     # test a basic push
     # ensure tags get moved
