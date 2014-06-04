@@ -75,10 +75,6 @@ def get_koji(request):
     return buildsys.get_session()
 
 
-def get_pkgdb(request):
-    return PackageDB(request.registry.settings['pkgdb_url'])
-
-
 def get_buildinfo(request):
     """
     A per-request cache populated by the validators and shared with the views
@@ -129,7 +125,6 @@ def main(global_config, testing=None, **settings):
     # Lazy-loaded memoized request properties
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
-    config.add_request_method(get_pkgdb, 'pkgdb', reify=True)
     config.add_request_method(get_dbsession, 'db', reify=True)
     config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
