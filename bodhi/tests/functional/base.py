@@ -19,7 +19,7 @@ from webtest import TestApp
 from sqlalchemy import create_engine
 from sqlalchemy import event
 
-from bodhi import main
+from bodhi import main, log
 from bodhi.models import (
     Base,
     Bug,
@@ -72,6 +72,7 @@ class BaseWSGICase(unittest.TestCase):
     def setUp(self):
         engine = create_engine('sqlite://')
         DBSession.configure(bind=engine)
+        log.debug('Creating all models for %s' % engine)
         Base.metadata.create_all(engine)
         self.db = DBSession()
         self.populate()
@@ -85,6 +86,8 @@ class BaseWSGICase(unittest.TestCase):
         event.listen(engine, "before_cursor_execute", track)
 
     def tearDown(self):
+        log.debug('Removing session')
+        #self.db.remove()
         DBSession.remove()
 
     def populate(self):

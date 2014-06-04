@@ -107,6 +107,8 @@ def query_updates(request):
     data = request.validated
     query = db.query(Update)
 
+    log.debug('query(%s)' % data)
+
     approved_since = data.get('approved_since')
     if approved_since is not None:
         query = query.filter(Update.date_approved >= approved_since)

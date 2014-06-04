@@ -16,16 +16,14 @@ import os
 import json
 import threading
 import fedmsg.consumers
-import pyramid.paster
 
 from collections import defaultdict
 
 from bodhi import log, buildsys
 from bodhi.util import sorted_updates
-from bodhi.config import config, get_configfile
-from bodhi.models import Update, UpdateRequest, UpdateType, Release, UpdateStatus
-
-CONFIG = get_configfile()
+from bodhi.config import config
+from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
+                          UpdateStatus)
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
@@ -43,8 +41,8 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
       - lock updates
     - Make sure things are safe to move? (ideally we should trust our own state)
     - Update security bug titles
-
     - Move build tags
+
     - Expire buildroot overrides
     - Remove pending tags
     - mash
@@ -64,10 +62,14 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         - see if any updates now meet the stable criteria, and set the request
     - Send fedmsgs
 
+TODO:
+    - clean up old testing tags for pending releases after X days?
+    if there is already a masher lock, merge it with the current push????
     """
     config_key = 'masher'
 
-    def __init__(self, hub, *args, **kw):
+    def __init__(self, hub, db_factory, *args, **kw):
+        self.db_factory = db_factory
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
         self.topic = prefix + '.' + env + '.' + hub.config.get('masher_topic')
@@ -79,8 +81,11 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
     def consume(self, msg):
         self.log.info(msg)
-        env = pyramid.paster.bootstrap(CONFIG)
-        self.db = env['request'].db
+        with self.db_factory() as session:
+            self.work(session, msg)
+
+    def work(self, session, msg):
+        self.log.debug('db.bind = %r' % session.bind)
         body = msg['body']['msg']
 
         if self.valid_signer:
@@ -90,26 +95,25 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
                 # TODO: send email notifications
                 return
 
-        releases = self.load_updates(body)
+        releases = self.organize_updates(session, body)
 
         # Fire off seperate masher threads for each tag being mashed
         threads = []
         for release in releases:
             for request, updates in releases[release].items():
-                thread = MasherThread(release, request, updates, self.log)
+                thread = MasherThread(release, request, updates, self.log, self.db_factory)
                 threads.append(thread)
                 thread.start()
         for thread in threads:
             thread.join()
 
-        env['closer']()
         self.log.info('Push complete!')
 
-    def load_updates(self, body):
+    def organize_updates(self, session, body):
         # {Release: {UpdateRequest: [Update,]}}
         releases = defaultdict(lambda: defaultdict(list))
         for title in body['updates'].split():
-            update = self.db.query(Update).filter_by(title=title).first()
+            update = session.query(Update).filter_by(title=title).first()
             if update:
                 releases[update.release.name][update.request.value].append(update.title)
             else:
@@ -119,15 +123,12 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
 class MasherThread(threading.Thread):
 
-    def __init__(self, release, request, updates, log, resume=False):
+    def __init__(self, release, request, updates, log, db_factory, resume=False):
         super(MasherThread, self).__init__()
+        self.db_factory = db_factory
         self.log = log
-        self.env = pyramid.paster.bootstrap(CONFIG)
-        self.db = db = self.env['request'].db
-        self.koji = self.env['request'].koji
-        self.release = db.query(Release).filter_by(name=release).one()
-        self.id = getattr(self.release, '%s_tag' % request)
         self.request = UpdateRequest.from_string(request)
+        self.release = release
         self.resume = resume
         self.updates = set()
         self.add_tags = []
@@ -139,7 +140,17 @@ class MasherThread(threading.Thread):
         }
 
     def run(self):
-        log.info('Running MasherThread(%s)' % self.id)
+        with self.db_factory() as session:
+            self.db = session
+            self.work()
+            self.db = None
+
+    def work(self):
+        self.koji = buildsys.get_session()
+        self.release = self.db.query(Release).filter_by(name=self.release).one()
+        self.id = getattr(self.release, '%s_tag' % self.request.value)
+        self.log.info('Running MasherThread(%s)' % self.id)
+
         try:
             self.save_state()
             self.load_updates()
@@ -155,9 +166,13 @@ class MasherThread(threading.Thread):
 
     def load_updates(self):
         updates = []
-        for title in self.updates:
+        for title in self.state['updates']:
+            self.log.debug('Querying for %r' % title)
+            cnt = self.db.query(Update).count()
+            assert cnt == 1, cnt
             update = self.db.query(Update).filter_by(title=title).first()
-            updates.append(update)
+            if update:
+                updates.append(update)
         self.updates = updates
 
     def save_state(self):
@@ -172,8 +187,8 @@ class MasherThread(threading.Thread):
         self.log.info('Masher lock created: %s' % mash_lock)
 
     def finish(self):
-        self.env['closer']()
         self.log.info('Thread(%s) finished' % self.id)
+        self.db.close()
 
     def update_security_bugs(self):
         """Update the bug titles for security updates"""
