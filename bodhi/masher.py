@@ -169,7 +169,6 @@ class MasherThread(threading.Thread):
         for title in self.state['updates']:
             self.log.debug('Querying for %r' % title)
             cnt = self.db.query(Update).count()
-            assert cnt == 1, cnt
             update = self.db.query(Update).filter_by(title=title).first()
             if update:
                 updates.append(update)
