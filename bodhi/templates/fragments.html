@@ -15,17 +15,17 @@
         </span>
 
         <span class="pull-right">
-          <a href="#comment-${comment.id}">
+          <a href="${comment.url()}">
             ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
           </a>
         </span>
       </div>
 
       <div class="panel-body">
-        <div class="col-md-10">
+        <div class="col-md-9">
           ${util.markup(comment.text) | n}
         </div>
-        <div class="col-md-2 text-right">
+        <div class="col-md-3 text-right">
           % if comment.karma:
           <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
           <hr />

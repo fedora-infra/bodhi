@@ -123,6 +123,8 @@ def latest_candidates(request):
         builds = koji.multiCall() or []  # Protect against None
 
         for build in builds:
+            if isinstance(build, dict):
+                continue
             if build and build[0] and build[0][0]:
                 result.append({
                     'nvr': build[0][0]['nvr'],

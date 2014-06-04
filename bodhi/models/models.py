@@ -1594,6 +1594,10 @@ class Comment(Base):
     update_id = Column(Integer, ForeignKey('updates.id'))
     user_id = Column(Integer, ForeignKey('users.id'))
 
+    def url(self):
+        url = '/updates/' + self.update.title + '#comment-' + str(self.id)
+        return url
+
     def __str__(self):
         karma = '0'
         if self.karma != 0:
