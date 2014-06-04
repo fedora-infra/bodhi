@@ -4,10 +4,13 @@
 
 <script>
   $(function() {
+      $("#lastactive").html('<img src="/static/img/spinner.gif" alt="loading..." />');
       $.ajax(
-          'http://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi', {
+          'http://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi&order=desc&rows_per_page=1', {
+              dataType: 'jsonp',
               success: function(e) {
-                  //alert(e);
+                  var date = e.raw_messages[0].meta.date;
+                  $('#lastactive').text('Last bodhi-related activity: ' + date);
               },
 
           });
@@ -15,14 +18,13 @@
 </script>
 
 <div class="row" style="margin-top: 10px;">
-  <div class="col-md-5">
+  <div class="col-md-12">
     <div class="pull-left">
       <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}"/>
     </div>
     <div class="pull-left" style="margin-left: 15px">
       <h1 class="nomargin nopadding">${user['name']}</h1>
-      <h3 class="nomargin nopadding" style="color: #666;">Last active: (TODO)</h3>
-      <span id="lastactive"></span>
+      <h3 id="lastactive" class="nomargin nopadding" style="color: #666;"></h3>
     </div>
   </div>
 </div>
