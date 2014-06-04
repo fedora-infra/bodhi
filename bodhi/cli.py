@@ -12,6 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import os
+
 import click
 
 from bodhi.client import BodhiClient
@@ -39,11 +41,20 @@ def cli():
 @click.option('--unstable-karma', help='Unstable karma threshold')
 @click.option('--suggest', help='Post-update user suggestion',
               type=click.Choice(['logout', 'reboot']))
+@click.option('--file', help='A text file containing all the update details')
 def new(username, password, **kwargs):
     client = BodhiClient()
     client.login(username, password)
-    resp = client.new(**kwargs)
-    print_resp(resp)
+
+    if kwargs['file'] is None:
+        updates = [kwargs]
+
+    else:
+        updates = client.parse_file(os.path.abspath(kwargs['file']))
+
+    for update in updates:
+        resp = client.new(**update)
+        print_resp(resp)
 
 
 @cli.command()
