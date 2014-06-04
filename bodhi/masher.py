@@ -85,7 +85,6 @@ TODO:
             self.work(session, msg)
 
     def work(self, session, msg):
-        self.log.debug('db.bind = %r' % session.bind)
         body = msg['body']['msg']
 
         if self.valid_signer:
@@ -168,8 +167,6 @@ class MasherThread(threading.Thread):
     def load_updates(self):
         updates = []
         for title in self.state['updates']:
-            self.log.debug('Querying for %r' % title)
-            cnt = self.db.query(Update).count()
             update = self.db.query(Update).filter_by(title=title).first()
             if update:
                 updates.append(update)
