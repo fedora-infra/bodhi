@@ -54,6 +54,60 @@ def create(username, password, **kwargs):
 
 
 @main.command()
+@click.option('--username', envvar='USERNAME')
+@click.option('--password', prompt=True, hide_input=True)
+@click.option('--name', help='Release name (eg: F20)')
+@click.option('--new-name', help='New release name (eg: F20)')
+@click.option('--long-name', help='Long release name (eg: "Fedora 20")')
+@click.option('--id-prefix', help='Release prefix (eg: FEDORA)')
+@click.option('--version', help='Release version number (eg: 20)')
+@click.option('--branch', help='Git branch name (eg: f20)')
+@click.option('--dist-tag', help='Koji dist tag (eg: f20)')
+@click.option('--stable-tag', help='Koji stable tag (eg: f20-updates)')
+@click.option('--testing-tag',
+              help='Koji testing tag (eg: f20-updates-testing)')
+@click.option('--candidate-tag',
+              help='Koji candidate tag (eg: f20-updates-candidate)')
+@click.option('--pending-stable-tag',
+              help='Koji pending tag (eg: f20-updates-pending)')
+@click.option('--pending-testing-tag',
+              help='Koji pending testing tag (eg: f20-updates-testing-testing)')
+@click.option('--override-tag', help='Koji override tag (eg: f20-override)')
+@click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
+                                            'archived']),
+              help='The state of the release')
+def edit(username, password, **kwargs):
+    client = BodhiClient()
+    client.login(username, password)
+
+    edited = kwargs.pop('name')
+
+    if edited is None:
+        print("ERROR: Please specify the name of the release to edit")
+        return
+
+    res = client.send_request('/releases/%s' % edited, verb='GET', auth=True)
+
+    data = res.json()
+
+    if 'errors' in data:
+        print_errors(data)
+
+    data['edited'] = edited
+
+    new_name = kwargs.pop('new_name')
+
+    if new_name is not None:
+        data['name'] = new_name
+
+    for k, v in kwargs.items():
+        if v is not None:
+            data[k] = v
+
+    save(client, **data)
+
+
+@main.command()
 @click.argument('name')
 def info(name):
     client = BodhiClient()
