@@ -74,6 +74,9 @@ class Buildsystem:
     def multiCall(self, *args, **kw):
         raise NotImplementedError
 
+    def getTag(self, *args, **kw):
+        raise NotImplementedError
+
 
 class DevBuildsys(Buildsystem):
     """
@@ -210,6 +213,21 @@ class DevBuildsys(Buildsystem):
 
     def getLatestBuilds(self, *args, **kw):
         return [self.getBuild()]
+
+    def getTag(self, taginfo, **kw):
+        if isinstance(taginfo, int):
+            taginfo = "f%d" % taginfo
+
+        if taginfo.startswith("epel"):
+            if kw.get("strict", False):
+                raise koji.GenericError("Invalid tagInfo: '%s'" % taginfo)
+
+            else:
+                return None
+
+        return {'maven_support': False, 'locked': False, 'name': taginfo,
+                'perm': None, 'id': 246, 'arches': None,
+                'maven_include_all': False, 'perm_id': None}
 
 
 def koji_login(config, client=None, clientca=None, serverca=None):

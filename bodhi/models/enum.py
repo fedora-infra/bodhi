@@ -112,3 +112,17 @@ class DeclEnumType(SchemaType, TypeDecorator):
         if value is None:
             return None
         return self.enum.from_string(value.strip())
+
+    def create(self, bind=None, checkfirst=False):
+        """Issue CREATE ddl for this type, if applicable."""
+        super(DeclEnumType, self).create(bind, checkfirst)
+        t = self.dialect_impl(bind.dialect)
+        if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
+            t.impl.create(bind=bind, checkfirst=checkfirst)
+
+    def drop(self, bind=None, checkfirst=False):
+        """Issue DROP ddl for this type, if applicable."""
+        super(DeclEnumType, self).drop(bind, checkfirst)
+        t = self.dialect_impl(bind.dialect)
+        if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
+            t.impl.drop(bind=bind, checkfirst=checkfirst)

@@ -27,6 +27,7 @@ from bodhi.models import (
     Group,
     Package,
     Release,
+    ReleaseState,
     Update,
     UpdateType,
     UpdateStatus,
@@ -141,3 +142,48 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid packages specified: carbunkle')
+
+    def test_new_release(self):
+        attrs = {"name": "F42", "long_name": "Fedora 42", "version": "42",
+                 "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
+                 "stable_tag": "f42-updates",
+                 "testing_tag": "f42-updates-testing",
+                 "candidate_tag": "f42-updates-candidate",
+                 "pending_stable_tag": "f42-updates-pending",
+                 "pending_testing_tag": "f42-updates-testing-pending",
+                 "override_tag": "f42-override"}
+        res = self.app.post("/releases/", attrs, status=200)
+
+        r = DBSession().query(Release).filter(Release.name==attrs["name"]).one()
+
+        for k, v in attrs.items():
+            self.assertEquals(getattr(r, k), v)
+
+        self.assertEquals(r.state, ReleaseState.disabled)
+
+    def test_new_release_invalid_tags(self):
+        attrs = {"name": "EL42", "long_name": "EPEL 42", "version": "42",
+                 "id_prefix": "FEDORA EPEL", "branch": "f42",
+                 "dist_tag": "epel42", "stable_tag": "epel42",
+                 "testing_tag": "epel42-testing",
+                 "candidate_tag": "epel42-candidate",
+                 "override_tag": "epel42-override"}
+        res = self.app.post("/releases/", attrs, status=400)
+
+        self.assertEquals(len(res.json_body['errors']), 4)
+        for error in res.json_body['errors']:
+            self.assertEquals(error["description"], "Invalid tag: %s" % attrs[error["name"]])
+
+    def test_edit_release(self):
+        name = "F22"
+
+        res = self.app.get('/releases/%s' % name, status=200)
+        r = res.json_body
+
+        r["edited"] = name
+        r["state"] = "current"
+
+        res = self.app.post("/releases/", r, status=200)
+
+        r = DBSession().query(Release).filter(Release.name==name).one()
+        self.assertEquals(r.state, ReleaseState.current)

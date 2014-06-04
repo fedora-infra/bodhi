@@ -177,6 +177,13 @@ class UpdateSuggestion(DeclEnum):
     logout = 'logout', 'logout'
 
 
+class ReleaseState(DeclEnum):
+    disabled = 'disabled', 'disabled'
+    pending = 'pending', 'pending'
+    current = 'current', 'current'
+    archived = 'archived', 'archived'
+
+
 ##
 ## Association tables
 ##
@@ -228,7 +235,8 @@ class Release(Base):
     pending_stable_tag = Column(UnicodeText, nullable=False)
     override_tag = Column(UnicodeText, nullable=False)
 
-    locked = Column(Boolean, default=False)
+    state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
+
     metrics = Column(PickleType, default=None)
 
     @property
@@ -1360,11 +1368,11 @@ class Update(Base):
         log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
 
-        if self.status == UpdateStatus.unpushed:
+        if self.status is UpdateStatus.unpushed:
             log.debug("%s already unpushed" % self.title)
             return
 
-        if self.status != UpdateStatus.testing:
+        if self.status is not UpdateStatus.testing:
             raise BodhiException("Can't unpush a %s update"
                                  % self.status.description)
 
@@ -1543,7 +1551,7 @@ class Update(Base):
             tag = self.release.stable_tag
             # [No Frozen Rawhide] Move stable builds going to a pending
             # release to the Release.dist-tag
-            if self.release.locked:
+            if self.release.state is ReleaseState.pending:
                 tag = self.release.dist_tag
         elif self.request is UpdateRequest.testing:
             tag = self.release.testing_tag

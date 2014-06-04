@@ -117,7 +117,13 @@ def latest_candidates(request):
         result = []
         koji.multicall = True
 
-        for release in db.query(bodhi.models.Release).all():
+        releases = db.query(bodhi.models.Release) \
+                     .filter(
+                         bodhi.models.Release.state.in_(
+                             (bodhi.models.ReleaseState.pending,
+                              bodhi.models.ReleaseState.current)))
+
+        for release in releases:
             koji.listTagged(release.candidate_tag, package=pkg, latest=True)
 
         builds = koji.multiCall() or []  # Protect against None

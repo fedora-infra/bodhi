@@ -88,3 +88,41 @@ def query_releases(request):
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return dict(releases=query.all())
+
+@releases.post(schema=bodhi.schemas.SaveReleaseSchema,
+               acl=bodhi.security.admin_only_acl, renderer='json',
+               validators=(validate_tags, validate_enums)
+               )
+def save_release(request):
+    """Save a release
+
+    This entails either creating a new release, or editing an existing one. To
+    edit an existing release, the release's original name must be specified in
+    the ``edited`` parameter.
+    """
+    data = request.validated
+
+    edited = data.pop("edited", None)
+
+    try:
+        if edited is None:
+            log.info("Creating a new release: %s" % data['name'])
+            r = Release(**data)
+
+        else:
+            log.info("Editing release: %s" % edited)
+            r = request.db.query(Release).filter(Release.name==edited).one()
+            for k, v in data.items():
+                setattr(r, k, v)
+
+    except Exception as e:
+        log.exception(e)
+        request.errors.add('body', 'release',
+                           'Unable to create update: %s' % e)
+        return
+
+
+    request.db.add(r)
+    request.db.flush()
+
+    return r
