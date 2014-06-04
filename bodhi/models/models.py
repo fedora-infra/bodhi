@@ -1015,8 +1015,8 @@ class Update(Base):
         flash_notes = flash_notes and '. %s' % flash_notes
         flash_log("%s has been submitted for %s. %s%s" % (self.title,
             action.description, notes, flash_notes))
-        self.comment('This update has been submitted for %s by %s. %s' % (
-            action.description, request.user.name, notes), author='bodhi')
+        self.comment(u'This update has been submitted for %s by %s. %s' % (
+            action.description, request.user.name, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(
             update=self, agent=request.user.name))

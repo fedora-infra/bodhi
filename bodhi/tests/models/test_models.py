@@ -91,7 +91,7 @@ class TestPackage(ModelTest):
         response = {
             'query': {
                 'categorymembers': [{
-                    'title': 'Fake test case',
+                    'title': u'Fake test case',
                 }],
             }
         }
@@ -390,7 +390,7 @@ class TestUpdate(ModelTest):
         self.obj.request = None
 
         # Pretend it's been in testing for a week
-        self.obj.comment('This update has been pushed to testing', author='bodhi')
+        self.obj.comment(u'This update has been pushed to testing', author=u'bodhi')
         self.obj.comments[-1].timestamp -= timedelta(days=7)
         eq_(self.obj.days_in_testing, 7)
         eq_(self.obj.meets_testing_requirements, True)
@@ -440,7 +440,7 @@ class TestUpdate(ModelTest):
 
     @mock.patch('bodhi.notifications.publish')
     def test_anonymous_comment(self, publish):
-        self.obj.comment('testing', author='anon', anonymous=True, karma=1)
+        self.obj.comment(u'testing', author='anon', anonymous=True, karma=1)
         c = self.obj.comments[-1]
         assert str(c).endswith('testing')
         eq_(c.anonymous, True)
