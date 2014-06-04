@@ -3,7 +3,7 @@
     font-weight: bold;
 }
 
-.sidepanel {
+.sidepanel, .formpanel {
     margin-top: 10px;
 }
 
@@ -11,20 +11,20 @@
     margin-bottom: 0;
 }
 
-.sidepanel .panel-body {
+.sidepanel .panel-body, .formpanel .panel-body {
     padding: 0;
 }
 
-.searchpanel .panel-body .form-group {
+.formpanel .panel-body .form-group {
     margin-bottom: 0;
 }
 
-.searchpanel .panel-body input {
+.formpanel .panel-body input, .formpanel .panel-body textarea {
     border: none;
     border-radius: 0;
 }
 
-.searchpanel .panel-body .twitter-typeahead {
+.formpanel .panel-body .twitter-typeahead {
     padding: 0;
     margin: 0;
 }
