@@ -1752,6 +1752,99 @@ class Group(Base):
     # users backref
 
 
+class BuildrootOverride(Base):
+    __tablename__ = 'buildroot_overrides'
+    __get_by__ = ('build_id',)
+
+    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
+    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    notes = Column(Unicode, nullable=False)
+
+    submission_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+    expiration_date = Column(DateTime, nullable=False)
+    expired_date = Column(DateTime)
+
+    build = relationship('Build', lazy='joined',
+                         backref=backref('override', lazy='joined',
+                                         uselist=False))
+    submitter = relationship('User', lazy='joined',
+                             backref=backref('buildroot_overrides',
+                                             lazy='joined'))
+
+    @classmethod
+    def new(cls, request, **data):
+        """Create a new buildroot override"""
+        db = request.db
+
+        build = data['build']
+
+        if build.override is not None:
+            request.errors.add('body', 'nvr', 'This build already is in a buildroot override')
+            return
+
+        override = cls(**data)
+        override.set_build(build)
+        db.add(override)
+        db.flush()
+
+        return override
+
+    @classmethod
+    def edit(cls, request, **data):
+        """Edit an existing buildroot override"""
+        db = request.db
+
+        edited = data.pop('edited')
+        build = data['build']
+
+        override = db.query(cls).get(edited.id)
+
+        if override is None:
+            request.errors.add('body', 'edited',
+                               'No buildroot override for this build')
+            return
+
+        if build.override is not None and build.override is not override:
+            request.errors.add('body', 'nvr',
+                               'This build is already in another override')
+            return
+
+        if edited != build:
+            override.set_build(build)
+
+        override.submitter = data['submitter']
+        override.notes = data['notes']
+        override.expiration_date = data['expiration_date']
+
+        if data['expired']:
+            override.expire()
+
+        db.add(override)
+        db.flush()
+
+        return override
+
+    def set_build(self, build):
+        koji_session = buildsys.get_session()
+
+        if build != self.build:
+            koji_session.untagBuild(self.build.release.override_tag,
+                                    self.build.nvr, strict=True)
+
+        koji_session.tagBuild(build.release.override_tag,
+                              self.build.nvr, strict=True)
+
+        self.build = build
+
+    def expire(self):
+        koji_session = buildsys.get_session()
+
+        koji_session.untagBuild(self.build.release.override_tag,
+                                self.build.nvr, strict=True)
+
+        self.expired_date = datetime.utcnow()
+
+
 #class Stack(Base):
 #    """
 #    A Stack in bodhi represents a group of packages that are commonly pushed

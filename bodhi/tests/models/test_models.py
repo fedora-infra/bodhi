@@ -484,3 +484,17 @@ class TestGroup(ModelTest):
     def do_get_dependencies(self):
         user = model.User(name=u'bob')
         return dict(users=[user])
+
+
+class TestBuildrootOverride(ModelTest):
+    klass = model.BuildrootOverride
+    attrs = dict(notes=u'This is needed to build foobar',
+                 expiration_date=datetime.utcnow())
+
+    def do_get_dependencies(self):
+        return dict(
+            build=model.Build(nvr=u'TurboGears-1.0.8-3.fc11',
+                              package=model.Package(**TestPackage.attrs),
+                              release=model.Release(**TestRelease.attrs)),
+            submitter=model.User(name=u'lmacken'),
+            )
