@@ -83,15 +83,19 @@ class DevBuildsys(Buildsystem):
     A dummy buildsystem instance used during development and testing
     """
     __untag__ = []
+    __moved__ = []
+    __added__ = []
 
     def multiCall(self):
         return []
 
-    def moveBuild(self, *args, **kw):
-        log.debug("moveBuild(%s, %s)" % (args, kw))
+    def moveBuild(self, from_tag, to_tag, build, *args, **kw):
+        log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
+        self.__moved__.append((from_tag, to_tag, build))
 
-    def tagBuild(self, *args, **kw):
-        log.debug("tagBuild(%s, %s)" % (args, kw))
+    def tagBuild(self, tag, build, *args, **kw):
+        log.debug("tagBuild(%s, %s)" % (tag, build))
+        self.__added__.append((tag, build))
 
     def untagBuild(self, *args, **kw):
         log.debug("untagBuild(%s, %s)" % (args, kw))
