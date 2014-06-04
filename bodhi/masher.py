@@ -23,7 +23,7 @@ from bodhi import log, buildsys
 from bodhi.util import sorted_updates
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
-                          UpdateStatus)
+                          UpdateStatus, ReleaseState)
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
@@ -222,7 +222,8 @@ class MasherThread(threading.Thread):
                                    build.nvr, tags))
                     raise Exception
 
-                if update.release.locked and update.request is UpdateRequest.stable:
+                if (self.release.state is ReleaseState.pending and
+                    update.request is UpdateRequest.stable):
                     self.add_tags.append((update.requested_tag, build.nvr))
                 else:
                     self.move_tags.append((from_tag, update.requested_tag, build.nvr))
