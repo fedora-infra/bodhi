@@ -12,6 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import tempfile
+
 from bodhi import buildsys
 from bodhi.models import *
 from bodhi.tests.functional.base import BaseWSGICase
@@ -46,30 +48,58 @@ def makemsg(body=None):
     }
 
 
+from contextlib import contextmanager
+
+@contextmanager
+def transactional_session_maker():
+    """Provide a transactional scope around a series of operations."""
+    import transaction
+    session = DBSession()
+    try:
+        yield session
+        transaction.commit()
+    except:
+        transaction.abort()
+        raise
+    finally:
+        session.close()
+
 import unittest
 
 class TestMasher(unittest.TestCase):
 
     def setUp(self):
         #super(TestMasher, self).setUp()
-        engine = create_engine('sqlite://')
+        fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
+        engine = create_engine('sqlite:///%s' % self.db_filename)
         DBSession.configure(bind=engine)
         log.debug('Creating all models for %s' % engine)
         Base.metadata.create_all(engine)
-        self.db = DBSession()
-        import transaction
-        with transaction.manager:
-            self.populate()
-        assert self.db.query(Update).count() == 1
+        self.db_factory = transactional_session_maker
+
+        with self.db_factory() as session:
+            self.populate(session)
+
+        with self.db_factory() as session:
+            assert session.query(Update).count() == 1
 
     def tearDown(self):
-        DBSession.remove()
+        try:
+            DBSession.remove()
+        finally:
+            try:
+                os.remove(self.db_filename)
+            except:
+                pass
 
     def test_masher(self):
         from bodhi.masher import Masher
-        self.masher = Masher(FakeHub(), db=DBSession)
-        up = self.db.query(Update).one()
-        self.assertFalse(up.locked)
+        self.masher = Masher(FakeHub(), db_factory=self.db_factory)
+
+        with self.db_factory() as session:
+            up = session.query(Update).one()
+            self.assertFalse(up.locked)
+
         self.masher.consume(makemsg())
         koji = buildsys.get_session()
         assert False, koji
@@ -83,14 +113,14 @@ class TestMasher(unittest.TestCase):
     # test loading state
     # test resuming a push
 
-    def populate(self):
+    def populate(self, session):
         user = User(name=u'guest')
-        self.db.add(user)
+        session.add(user)
         provenpackager = Group(name=u'provenpackager')
-        self.db.add(provenpackager)
+        session.add(provenpackager)
         packager = Group(name=u'packager')
-        self.db.add(packager)
-        self.db.flush()
+        session.add(packager)
+        session.flush()
         user.groups.append(packager)
         release = Release(
             name=u'F17', long_name=u'Fedora 17',
@@ -101,14 +131,14 @@ class TestMasher(unittest.TestCase):
             pending_testing_tag=u'f17-updates-testing-pending',
             pending_stable_tag=u'f17-updates-pending',
             override_tag=u'f17-override')
-        self.db.add(release)
+        session.add(release)
         pkg = Package(name=u'bodhi')
-        self.db.add(pkg)
+        session.add(pkg)
         user.packages.append(pkg)
         build = Build(nvr=u'bodhi-2.0-1.fc17', release=release, package=pkg)
-        self.db.add(build)
+        session.add(build)
         testcase = TestCase(name=u'Wat')
-        self.db.add(testcase)
+        session.add(testcase)
         pkg.test_cases.append(testcase)
         update = Update(
             title=u'bodhi-2.0-1.fc17',
@@ -118,17 +148,17 @@ class TestMasher(unittest.TestCase):
             date_submitted=datetime(1984, 11, 02))
         update.type = UpdateType.bugfix
         bug = Bug(bug_id=12345)
-        self.db.add(bug)
+        session.add(bug)
         update.bugs.append(bug)
         cve = CVE(cve_id="CVE-1985-0110")
-        self.db.add(cve)
+        session.add(cve)
         update.cves.append(cve)
         comment = Comment(karma=1, text="wow. amaze.")
-        self.db.add(comment)
+        session.add(comment)
         comment.user = user
         update.comments.append(comment)
         comment = Comment(karma=0, text="srsly.  pretty good.", anonymous=True)
-        self.db.add(comment)
+        session.add(comment)
         update.comments.append(comment)
-        self.db.add(update)
-        self.db.flush()
+        session.add(update)
+        session.flush()
