@@ -22,10 +22,10 @@
       </div>
 
       <div class="panel-body">
-        <div class="col-md-10">
+        <div class="col-md-9">
           ${util.markup(comment.text) | n}
         </div>
-        <div class="col-md-2 text-right">
+        <div class="col-md-3 text-right">
           % if comment.karma:
           <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
           <hr />

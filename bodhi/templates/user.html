@@ -1,44 +1,46 @@
 <%inherit file="master.html"/>
 
-<div class="row">
-  <div class="col-md-3 col-md-offset-1">
-    &nbsp;</br>
-    % if request.user and request.user.name == user['name']:
-    <form method="POST" action="https://www.libravatar.org/openid/login/">
-      <input type="hidden" name="openid_identifier"
-          value="http://${user['name']}.id.fedoraproject.org/"/>
-      <input type="image" class="img-circle centered"
-          src="${self.util.avatar(user['name'], size=256)}"
-          style="outline: none;" alt="Your avatar"/>
-    </form>
-    % else:
-    <img class="centered img-circle" src="${self.util.avatar(user['name'], size=256)}"/>
-    % endif
-    <h2 class="centered">${user['name']}</h2>
-  </div>
+<script src="${request.static_url('bodhi:static/moment.min.js')}"></script>
 
-  % if user['comments_on']:
-  <div class="col-md-7">
-    <h3>Comments on ${user['name']}'s Updates</h3>
-    <ul class="linkable">
-    % for comment in user['comments_on']:
-      <li>${self.fragments.comment(comment)}</li>
-    % endfor
-    </ul>
-  <span class="pull-right">
-    <a href="${request.route_url('comments')}?update_owner=${user['name']}">
-      View more comments on ${user['name']}'s updates
-      <span class="glyphicon glyphicon-chevron-right"></span>
-    </a>
-  </span>
+<script>
+  $(function() {
+      $.ajax(
+          'http://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi', {
+              success: function(e) {
+                  //alert(e);
+              },
+
+          });
+  });
+</script>
+
+<div class="row" style="margin-top: 10px;">
+  <div class="col-md-5">
+    <div class="pull-left">
+      <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}"/>
+    </div>
+    <div class="pull-left" style="margin-left: 15px">
+      <h1 class="nomargin nopadding">${user['name']}</h1>
+      <h3 class="nomargin nopadding" style="color: #666;">Last active: (TODO)</h3>
+      <span id="lastactive"></span>
+    </div>
   </div>
-  % endif
 </div>
+
+<hr style="margin: 15px 0;" />
 
 <div class="row">
   % if user['recent_updates']:
-  <div class="col-md-5 col-md-offset-1">
-    <h3>${user['name']}'s Updates</h3>
+  <div class="col-md-12">
+    <div>
+      <h3 class="pull-left nomargin nopadding">${user['name']}'s latest updates</h3>
+      <div class="pull-right">
+        <a href="${request.route_url('updates')}?user=${user['name']}">
+          View all ${len(user['user'].updates)}
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </div>
+    </div>
     <table class="table">
       <thead><tr>
           <th>Update</th>
@@ -61,29 +63,52 @@
       % endfor
       </tbody>
     </table>
-    <span class="pull-right">
-      <a href="${request.route_url('updates')}?user=${user['name']}">
-        View more of ${user['name']}'s updates
-        <span class="glyphicon glyphicon-chevron-right"></span>
-      </a>
-    </span>
   </div>
   % endif
+</div>
+
+<hr style="margin-bottom: 15px;" />
+
+<div class="row">
+  <div class="col-md-6">
+    % if user['comments_on']:
+    <div style="margin-bottom: 40px;">
+      <h3 class="nomargin nopadding pull-left">
+        Feedback received on updates (${user['comments_on_count']})
+      </h3>
+      <span class="pull-right">
+        <a href="${request.route_url('comments')}?update_owner=${user['name']}">
+          View all
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </span>
+    </div>
+    <ul class="linkable">
+      % for comment in user['comments_on']:
+      <li>${self.fragments.comment(comment)}</li>
+      % endfor
+    </ul>
+    % endif
+  </div>
 
   % if user['comments_by']:
-  <div class="col-md-5">
-    <h3>Comments by ${user['name']}</h3>
+  <div class="col-md-6">
+    <div style="margin-bottom: 40px;">
+      <h3 class="nomargin nopadding pull-left">
+        Feedback sent on updates (${user['comments_by_count']})
+      </h3>
+      <span class="pull-right">
+        <a href="${request.route_url('comments')}?user=${user['name']}">
+          View all
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </span>
+    </div>
     <ul class="linkable">
-    % for comment in user['comments_by']:
+      % for comment in user['comments_by']:
       <li>${self.fragments.comment(comment)}</li>
-    % endfor
+      % endfor
     </ul>
-    <span class="pull-right">
-      <a href="${request.route_url('comments')}?user=${user['name']}">
-        View more comments by ${user['name']}
-        <span class="glyphicon glyphicon-chevron-right"></span>
-      </a>
-    </span>
+    % endif
   </div>
-  % endif
 </div>

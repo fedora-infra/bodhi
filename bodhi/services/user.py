@@ -76,6 +76,10 @@ def get_user(request):
     comments_by = execute(query.filter(Comment.user==user))
     comments_on = execute(query.join(Update).filter(Update.user==user))
 
+    execute_count = lambda q: q.order_by(Comment.timestamp.desc()).count()
+    comments_by_count = execute_count(query.filter(Comment.user==user))
+    comments_on_count = execute_count(query.join(Update).filter(Update.user==user))
+
     updates = db.query(Update)\
         .filter(Update.user == user)\
         .order_by(Update.date_submitted.desc())\
@@ -84,7 +88,10 @@ def get_user(request):
     # And stuff the results in the dict
     result['comments_by'] = comments_by
     result['comments_on'] = comments_on
+    result['comments_by_count'] = comments_by_count
+    result['comments_on_count'] = comments_on_count
     result['recent_updates'] = updates
+    result['user'] = user
 
     return dict(user=result)
 
