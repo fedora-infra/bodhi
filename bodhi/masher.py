@@ -239,3 +239,4 @@ class MasherThread(threading.Thread):
         failed_tasks = buildsys.wait_for_tasks([task[0] for task in results])
         if failed_tasks:
             raise Exception("Failed to move builds: %s" % failed_tasks)
+        self.state['tagged'] = True
