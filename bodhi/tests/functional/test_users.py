@@ -55,7 +55,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.get('/users/bodhi')
         self.assertEquals(res.json_body['user']['name'], 'bodhi')
         # check to catch performance regressions
-        self.assertEquals(len(self.sql_statements), 6)
+        self.assertEquals(len(self.sql_statements), 8)
 
     def test_get_single_avatar(self):
         res = self.app.get('/users/bodhi')
@@ -77,7 +77,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('libravatar.org', res)
         self.assertIn('&copy;', res)
         # check to catch performance regressions
-        self.assertEquals(len(self.sql_statements), 7)
+        self.assertEquals(len(self.sql_statements), 9)
 
     def test_get_single_user_jsonp(self):
         res = self.app.get('/users/bodhi',
@@ -86,7 +86,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('application/javascript', res.headers['Content-Type'])
         self.assertIn('libravatar.org', res)
         # check to catch performance regressions
-        self.assertEquals(len(self.sql_statements), 6)
+        self.assertEquals(len(self.sql_statements), 8)
 
     def test_get_single_user_rss(self):
         res = self.app.get('/users/bodhi',
