@@ -1,0 +1,77 @@
+<%inherit file="master.html"/>
+
+<div class="row">
+  <div class="col-md-5">
+    <h2 class="pull-left">${release['long_name']}</h2>
+    <table class="table">
+      <tr>
+        <td>State</td>
+        <td>
+          ${self.util.state2html(release['state']) | n}
+        </td>
+      </tr>
+      <tr>
+        <td>Total updates</td>
+        <td>${count}</td>
+      </tr>
+      <tr>
+        <td>Candidate tag</td>
+        <td>
+          ${release['candidate_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Override tag</td>
+        <td>
+          ${release['override_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Stable tag</td>
+        <td>
+          ${release['stable_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Testing tag</td>
+        <td>
+          ${release['testing_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Pending stable tag</td>
+        <td>
+          ${release['pending_stable_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Pending testing tag</td>
+        <td>
+          ${release['pending_testing_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Dist tag</td>
+        <td>
+          ${release['dist_tag']}
+        </td>
+      </tr>
+    </table>
+  </div>
+  <div class="col-md-7">
+    <div class="sidepanel panel panel-default">
+      <div class="panel-heading clearfix">
+        <span class="pull-left">Latest ${release['long_name']} updates</span>
+        <span class="pull-right">
+          <a href="${request.route_url('updates')}?releases=${release['name']}">
+            View all
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </span>
+      </div>
+      <div class="panel-body">
+        ${self.tables.updates(latest_updates)}
+      </div>
+    </div>
+  </div>
+</div>

@@ -360,6 +360,17 @@ def status2html(context, status):
     }[status]
     return "<span class='label label-%s'>%s</span>" % (cls, status)
 
+def state2html(context, state):
+    state = unicode(state)
+    cls = {
+        'disabled': 'default',
+        'pending': 'warning',
+        'current': 'success',
+        'archived': 'danger'
+    }
+    urgency = cls[state] if state in cls.keys() else 'default'
+    return "<span class='label label-%s'>%s</span>" % (urgency, state)
+
 def karma2class(context, karma, default='default'):
     if karma and karma >= -2 and karma <= 2:
         return {

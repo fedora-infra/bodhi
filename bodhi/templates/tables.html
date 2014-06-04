@@ -12,7 +12,11 @@
     % for update in updates:
     <tr>
       <td>${util.update2html(update) | n}</td>
-      <td class="nobreak">${util.age(update['date_submitted'], True)}</td>
+      <td class="nobreak">
+        <span title="${update['date_submitted']} UTC">
+          ${util.age(update['date_submitted'], True)}
+        </span>
+      </td>
       <td class="nobreak">
         <a href="${request.route_url('user', name=update['user']['name'])}">
           <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>

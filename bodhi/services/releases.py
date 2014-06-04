@@ -44,16 +44,29 @@ release = Service(name='release', path='/releases/{name}',
 releases = Service(name='releases', path='/releases/',
                    description='Fedora Releases')
 
+@release.get(accept="text/html", renderer="release.html")
+def get_release_html(request):
+    id = request.matchdict.get('name')
+    release = Release.get(id, request.db)
+    if not release:
+        request.errors.add('body', 'name', 'No such release')
+        request.errors.status = HTTPNotFound.code
+    updates = request.db.query(Update).filter(
+        Update.release==release).order_by(
+            Update.date_submitted.desc())
+    return dict(release=release,
+                latest_updates=updates.limit(25).all(),
+                count=updates.count())
 
-@release.get(renderer='json')
-def get_release(request):
+@release.get(accept=('application/json', 'text/json'), renderer='json')
+@release.get(accept=('application/javascript'), renderer='jsonp')
+def get_release_json(request):
     id = request.matchdict.get('name')
     release = Release.get(id, request.db)
     if not release:
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code
     return release
-
 
 @releases.get(schema=bodhi.schemas.ListReleaseSchema, renderer='json',
               validators=(validate_release, validate_updates,
