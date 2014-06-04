@@ -60,6 +60,7 @@ def makemsg(body=None):
 def transactional_session_maker():
     """Provide a transactional scope around a series of operations."""
     session = DBSession()
+    transaction.begin()
     try:
         yield session
         transaction.commit()
