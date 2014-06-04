@@ -134,6 +134,28 @@
                 </label>
                 % endfor
               </dd>
+
+              <dt>Close bugs?</dt>
+              <dd>
+                <input type="checkbox" name="close_bugs" checked>
+              </dd>
+
+              <dt>Autokarma</dt>
+              <dd>
+                <input type="checkbox" name="autokarma" checked>
+              </dd>
+
+              <dt>Stable karma threshhold</dt>
+              <dd>
+                <input type="number" name="stable_karma" min="1" required value="3">
+              </dd>
+
+              <dt>Unstable karma threshhold</dt>
+              <dd>
+                <input type="number" name="unstable_karma" max="-1" required value="-3">
+              </dd>
+
+
             </dl>
 
             <span class="pull-right">
