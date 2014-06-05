@@ -22,7 +22,7 @@ from sqlalchemy.sql import or_
 from bodhi import log
 from bodhi.models import Build, BuildrootOverride, Package, Release
 import bodhi.schemas
-from bodhi.validators import (validate_build, validate_expiration_date,
+from bodhi.validators import (validate_override_build, validate_expiration_date,
                               validate_packages, validate_releases,
                               validate_username)
 
@@ -123,12 +123,12 @@ def query_overrides(request):
 @overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
                 acl=bodhi.security.packagers_allowed_acl,
                 accept=("application/json", "text/json"), renderer='json',
-                validators=(validate_build, validate_expiration_date),
+                validators=(validate_override_build, validate_expiration_date),
                 )
 @overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
                 acl=bodhi.security.packagers_allowed_acl,
                 accept=("application/javascript"), renderer="jsonp",
-                validators=(validate_build, validate_expiration_date),
+                validators=(validate_override_build, validate_expiration_date),
                 )
 def save_override(request):
     """Save a buildroot override

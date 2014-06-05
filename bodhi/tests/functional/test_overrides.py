@@ -229,21 +229,6 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['expired_date'], None)
         self.assertEquals(len(publish.call_args_list), 0)
 
-    def test_edit_override_build_does_not_exist(self):
-        old_nvr = u'bodhi-2.0-1.fc17'
-
-        res = self.app.get('/overrides/%s' % old_nvr)
-        o = res.json_body
-        expiration_date = o['expiration_date']
-
-        o.update({'nvr': u'bodhi-2.0-2.fc17', 'edited': old_nvr})
-        res = self.app.post('/overrides/', o, status=400)
-
-        errors = res.json_body['errors']
-        self.assertEquals(len(errors), 1)
-        self.assertEquals(errors[0]['name'], 'nvr')
-        self.assertEquals(errors[0]['description'], 'No such build')
-
     def test_edit_unexisting_override(self):
         session = DBSession()
         release = Release.get(u'F17', session)
