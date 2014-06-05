@@ -18,7 +18,14 @@
 <div class="row" style="margin-top: 10px;">
   <div class="col-md-12">
     <div class="pull-left">
-      <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}"/>
+      % if user['name'] == request.user.name:
+        <form method="POST" action="https://www.libravatar.org/openid/login/">
+          <input type="hidden" name="openid_identifier" value="${request.user.openid(request)}"/>
+          <input type="image" class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" style="outline: none;"/>
+        </form>
+      % else:
+        <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}"/>
+      % endif
     </div>
     <div class="pull-left" style="margin-left: 15px">
       <h1 class="nomargin nopadding">${user['name']}</h1>
