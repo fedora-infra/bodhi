@@ -110,8 +110,9 @@ class TestMasher(unittest.TestCase):
 
         self.masher.consume(self.msg)
 
-        # Ensure that fedmsg was called 3 times
-        self.assertEquals(len(publish.call_args_list), 3)
+        # Ensure that fedmsg was called 4 times
+        self.assertEquals(len(publish.call_args_list), 4)
+
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
@@ -136,7 +137,7 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(self.msg)
 
         # Ensure that fedmsg was called 3 times
-        self.assertEquals(len(publish.call_args_list), 3)
+        self.assertEquals(len(publish.call_args_list), 4)
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
