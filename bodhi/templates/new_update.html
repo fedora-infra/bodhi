@@ -106,61 +106,65 @@
           <div class="panel-body">
             <p class="lead">Crazy karma policy widget goes here.</p>
 
-            <dl id='radios' class="dl-horizontal">
-              <dt>Type</dt>
-              <dd>
-                % for value in types:
-                <label class="radio-inline">
-                  <input type="radio" name="type" value="${value}">
-                  ${value}
-                </label>
-                % endfor
-              </dd>
+            <div class="row">
+              <div class="col-md-7">
+                <dl id='radios' class="dl-horizontal">
+                  <dt>Type</dt>
+                  <dd>
+                    % for value in types:
+                    <label class="radio-inline">
+                      <input type="radio" name="type" value="${value}">
+                      ${value}
+                    </label>
+                    % endfor
+                  </dd>
 
-              <dt>Severity</dt>
-              <dd>
-                % for value in severities:
-                <label class="radio-inline">
-                  <input type="radio" name="severity" value="${value}"> ${value}
-                </label>
-                % endfor
-              </dd>
+                  <dt>Severity</dt>
+                  <dd>
+                    % for value in severities:
+                    <label class="radio-inline">
+                      <input type="radio" name="severity" value="${value}"> ${value}
+                    </label>
+                    % endfor
+                  </dd>
 
-              <dt>Suggestion</dt>
-              <dd>
-                % for value in suggestions:
-                <label class="radio-inline">
-                  <input type="radio" name="suggest" value="${value}"> ${value}
-                </label>
-                % endfor
-              </dd>
+                  <dt>Suggestion</dt>
+                  <dd>
+                    % for value in suggestions:
+                    <label class="radio-inline">
+                      <input type="radio" name="suggest" value="${value}"> ${value}
+                    </label>
+                    % endfor
+                  </dd>
+                </dl>
+              </div>
 
-              <dt>Close bugs?</dt>
-              <dd>
-                <input type="checkbox" name="close_bugs" checked>
-              </dd>
+              <div class="col-md-5">
+                <dl id='radios' class="dl-horizontal">
+                  <dt>Close bugs?</dt>
+                  <dd>
+                    <input type="checkbox" name="close_bugs" checked>
+                  </dd>
 
-              <dt>Autokarma</dt>
-              <dd>
-                <input type="checkbox" name="autokarma" checked>
-              </dd>
+                  <dt>Autokarma</dt>
+                  <dd>
+                    <input type="checkbox" name="autokarma" checked>
+                  </dd>
 
-              <dt>Stable karma threshhold</dt>
-              <dd>
-                <input type="number" name="stable_karma" min="1" required value="3">
-              </dd>
+                  <dt>Stable karma threshhold</dt>
+                  <dd>
+                    <input type="number" name="stable_karma" min="1" required value="3">
+                  </dd>
 
-              <dt>Unstable karma threshhold</dt>
-              <dd>
-                <input type="number" name="unstable_karma" max="-1" required value="-3">
-              </dd>
+                  <dt>Unstable karma threshhold</dt>
+                  <dd>
+                    <input type="number" name="unstable_karma" max="-1" required value="-3">
+                  </dd>
+                </dl>
+              </div>
+            </div>
 
-
-            </dl>
-
-            <span class="pull-right">
-              <button id="submit" class="btn btn-success">Submit</button>
-            </span>
+            <button id="submit" class="btn btn-success">Submit</button>
           </div>
         </div>
       </div>
