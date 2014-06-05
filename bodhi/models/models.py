@@ -1046,9 +1046,7 @@ class Update(Base):
             return koji.multiCall()
 
     def request_complete(self):
-        """
-        Perform post-request actions.
-        """
+        """Perform post-request actions"""
         if self.request is UpdateRequest.testing:
             self.status = UpdateStatus.testing
         elif self.request is UpdateRequest.stable:
@@ -1059,7 +1057,7 @@ class Update(Base):
         topic = u'update.complete.%s' % self.status
         notifications.publish(topic=topic, msg=dict(
             update=self,
-            agent=os.getlogin(),  # Should almost always be "masher
+            agent=os.getlogin(),  # Should almost always be "masher"
         ))
 
 

@@ -174,6 +174,10 @@ class TestMasher(unittest.TestCase):
             ovrd = session.query(BuildrootOverride).one()
             self.assertIsNotNone(ovrd.expired_date)
 
+            # Check that the request_complete method got run
+            up = session.query(Update).one()
+            self.assertIsNone(up.request)
+
     # test loading state
     # test resuming a push
 

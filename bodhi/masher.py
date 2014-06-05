@@ -167,6 +167,9 @@ class MasherThread(threading.Thread):
                 self.state['tagged'] = True
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
+                #self.mash()
+                self.complete_requests()
+
             success = True
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
@@ -271,3 +274,9 @@ class MasherThread(threading.Thread):
                 update.remove_tag(update.release.pending_testing_tag, koji=self.koji)
         result = self.koji.multiCall()
         log.debug('result = %r' % result)
+
+    def complete_requests(self):
+        log.debug("Running post-request actions on updates")
+        for update in self.updates:
+            if update.request:
+                update.request_complete()
