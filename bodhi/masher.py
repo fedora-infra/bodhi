@@ -19,7 +19,7 @@ import fedmsg.consumers
 
 from collections import defaultdict
 
-from bodhi import log, buildsys
+from bodhi import log, buildsys, notifications
 from bodhi.util import sorted_updates
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
@@ -94,6 +94,8 @@ TODO:
                 # TODO: send email notifications
                 return
 
+        notifications.publish(topic="mashtask.start", msg=dict())
+
         releases = self.organize_updates(session, body)
 
         # Fire off seperate masher threads for each tag being mashed
@@ -150,6 +152,9 @@ class MasherThread(threading.Thread):
         self.id = getattr(self.release, '%s_tag' % self.request.value)
         self.log.info('Running MasherThread(%s)' % self.id)
 
+        notifications.publish(topic="mashtask.mashing", msg=dict(repo=self.id))
+
+        success = False
         try:
             #self.save_state()
             self.load_updates()
@@ -162,11 +167,12 @@ class MasherThread(threading.Thread):
                 self.state['tagged'] = True
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
+            success = True
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             #self.save_state()
         finally:
-            self.finish()
+            self.finish(success)
 
     def load_updates(self):
         self.log.debug('Locking updates')
@@ -193,8 +199,10 @@ class MasherThread(threading.Thread):
             json.dump(self.state, lock)
         self.log.info('Masher lock created: %s' % mash_lock)
 
-    def finish(self):
-        self.log.info('Thread(%s) finished' % self.id)
+    def finish(self, success):
+        self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
+        notifications.publish(topic="mashtask.complete", msg=dict(
+            success=success))
 
     def update_security_bugs(self):
         """Update the bug titles for security updates"""

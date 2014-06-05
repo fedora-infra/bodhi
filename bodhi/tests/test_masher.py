@@ -13,6 +13,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+import mock
 import unittest
 import tempfile
 import transaction
@@ -101,19 +102,28 @@ class TestMasher(unittest.TestCase):
             except:
                 pass
 
-    def test_update_locking(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_update_locking(self, publish):
         with self.db_factory() as session:
             up = session.query(Update).one()
             self.assertFalse(up.locked)
 
         self.masher.consume(self.msg)
 
+        # Ensure that fedmsg was called 3 times
+        self.assertEquals(len(publish.call_args_list), 3)
+        # Also, ensure we reported success
+        publish.assert_called_with(
+            topic="mashtask.complete",
+            msg=dict(success=True))
+
         with self.db_factory() as session:
             # Ensure that the update was locked
             up = session.query(Update).one()
             self.assertTrue(up.locked)
 
-    def test_tags(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_tags(self, publish):
         # Make the build a buildroot override as well
         title = self.msg['body']['msg']['updates']
         with self.db_factory() as session:
@@ -124,6 +134,13 @@ class TestMasher(unittest.TestCase):
 
         # Start the push
         self.masher.consume(self.msg)
+
+        # Ensure that fedmsg was called 3 times
+        self.assertEquals(len(publish.call_args_list), 3)
+        # Also, ensure we reported success
+        publish.assert_called_with(
+            topic="mashtask.complete",
+            msg=dict(success=True))
 
         # Ensure our single update was moved
         self.assertEquals(len(self.koji.__moved__), 1)
