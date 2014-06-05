@@ -124,6 +124,13 @@ class TestMasher(unittest.TestCase):
         self.assertEquals(len(publish.call_args_list), 0)
 
     @mock.patch('bodhi.notifications.publish')
+    def test_push_invalid_update(self, publish):
+        msg = makemsg()
+        msg['body']['msg']['updates'] = 'invalidbuild-1.0-1.fc17'
+        self.masher.consume(msg)
+        self.assertEquals(len(publish.call_args_list), 1)
+
+    @mock.patch('bodhi.notifications.publish')
     def test_update_locking(self, publish):
         with self.db_factory() as session:
             up = session.query(Update).one()
