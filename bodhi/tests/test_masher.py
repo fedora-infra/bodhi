@@ -86,6 +86,11 @@ class TestMasher(unittest.TestCase):
         with self.db_factory() as session:
             assert session.query(Update).count() == 1
 
+        self.koji = buildsys.get_session()
+        self.koji.clear()  # clear out our dev introspection
+
+        self.masher = Masher(FakeHub(), db_factory=self.db_factory)
+
     def tearDown(self):
         try:
             DBSession.remove()
@@ -96,8 +101,6 @@ class TestMasher(unittest.TestCase):
                 pass
 
     def test_masher(self):
-        self.masher = Masher(FakeHub(), db_factory=self.db_factory)
-
         with self.db_factory() as session:
             up = session.query(Update).one()
             self.assertFalse(up.locked)
@@ -105,17 +108,31 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(makemsg())
 
         # Ensure our single update was moved
-        koji = buildsys.get_session()
-        self.assertEquals(len(koji.__moved__), 1)
-        self.assertEquals(koji.__moved__[0], (u'f17-updates-candidate',
+        self.assertEquals(len(self.koji.__moved__), 1)
+        self.assertEquals(len(self.koji.__added__), 0)
+        self.assertEquals(self.koji.__moved__[0], (u'f17-updates-candidate',
             u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
 
         with self.db_factory() as session:
+            # Ensure that the update was locked
             up = session.query(Update).one()
             self.assertTrue(up.locked)
 
-    # test a basic push
-    # ensure tags get moved
+            # Set the update request to stable and the release to pending
+            up.release.state = ReleaseState.pending
+            up.request = UpdateRequest.stable
+
+        print('koji.__moved__ = %r' % self.koji.__moved__)
+
+        self.koji.clear()
+
+        # Ensure that stable updates to pending releases get their
+        # tags added, not removed
+        self.masher.consume(makemsg())
+
+        self.assertEquals(len(self.koji.__moved__), 0)
+        self.assertEquals(len(self.koji.__added__), 1)
+        self.assertEquals(self.koji.__added__[0], (u'f17', u'bodhi-2.0-1.fc17'))
 
     #def test_masher_state(self):
     #    self.masher.save_state(self.db.query(Update).all())

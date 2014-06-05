@@ -86,16 +86,21 @@ class DevBuildsys(Buildsystem):
     __moved__ = []
     __added__ = []
 
+    def clear(self):
+        DevBuildsys.__untag__ = []
+        DevBuildsys.__moved__ = []
+        DevBuildsys.__added__ = []
+
     def multiCall(self):
         return []
 
     def moveBuild(self, from_tag, to_tag, build, *args, **kw):
         log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
-        self.__moved__.append((from_tag, to_tag, build))
+        DevBuildsys.__moved__.append((from_tag, to_tag, build))
 
     def tagBuild(self, tag, build, *args, **kw):
         log.debug("tagBuild(%s, %s)" % (tag, build))
-        self.__added__.append((tag, build))
+        DevBuildsys.__added__.append((tag, build))
 
     def untagBuild(self, *args, **kw):
         log.debug("untagBuild(%s, %s)" % (args, kw))
