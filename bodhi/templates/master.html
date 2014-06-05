@@ -51,7 +51,7 @@
           <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
               % if request.user:
-              % if request.matched_route.name == 'user' and request.user.name == user['name']:
+              % if request.matched_route.name == 'user' and request.user and request.user.name == user['name']:
               <li class="active">
               % else:
               <li>
