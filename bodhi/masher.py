@@ -160,6 +160,7 @@ class MasherThread(threading.Thread):
                 self.determine_tag_actions()
                 self.perform_tag_actions()
                 self.expire_buildroot_overrides()
+                self.remove_pending_tags()
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             #self.save_state()
@@ -249,3 +250,15 @@ class MasherThread(threading.Thread):
             if update.request is UpdateRequest.stable:
                 for build in update.builds:
                     build.override.expire()
+
+    def remove_pending_tags(self):
+        """ Remove all pending tags from these updates """
+        log.debug("Removing pending tags from builds")
+        self.koji.multicall = True
+        for update in self.updates:
+            if update.request is UpdateRequest.stable:
+                update.remove_tag(update.release.pending_stable_tag, koji=self.koji)
+            elif update.request is UpdateRequest.testing:
+                update.remove_tag(update.release.pending_testing_tag, koji=self.koji)
+        result = self.koji.multiCall()
+        log.debug('result = %r' % result)
