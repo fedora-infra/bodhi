@@ -522,3 +522,28 @@ class ListOverrideSchema(PaginatedSchema, SearchableSchema):
         location="querystring",
         missing=None,
     )
+
+
+class SaveOverrideSchema(colander.MappingSchema):
+    nvr = colander.SchemaNode(
+        colander.String(),
+    )
+
+    notes = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(min=10),
+    )
+
+    expiration_date = colander.SchemaNode(
+        colander.DateTime(default_tzinfo=None),
+    )
+
+    expired = colander.SchemaNode(
+        colander.Boolean(),
+        missing=False,
+    )
+
+    edited = colander.SchemaNode(
+        colander.String(),
+        missing=None,
+    )
