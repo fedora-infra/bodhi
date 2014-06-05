@@ -89,6 +89,7 @@ class TestMasher(unittest.TestCase):
         self.koji = buildsys.get_session()
         self.koji.clear()  # clear out our dev introspection
 
+        self.msg = makemsg()
         self.masher = Masher(FakeHub(), db_factory=self.db_factory)
 
     def tearDown(self):
@@ -100,12 +101,29 @@ class TestMasher(unittest.TestCase):
             except:
                 pass
 
-    def test_masher(self):
+    def test_update_locking(self):
         with self.db_factory() as session:
             up = session.query(Update).one()
             self.assertFalse(up.locked)
 
-        self.masher.consume(makemsg())
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            # Ensure that the update was locked
+            up = session.query(Update).one()
+            self.assertTrue(up.locked)
+
+    def test_tags(self):
+        # Make the build a buildroot override as well
+        title = self.msg['body']['msg']['updates']
+        with self.db_factory() as session:
+            release = session.query(Update).one().release
+            build = session.query(Build).one()
+            self.koji.__tagged__[title] = [release.override_tag,
+                                           release.pending_testing_tag]
+
+        # Start the push
+        self.masher.consume(self.msg)
 
         # Ensure our single update was moved
         self.assertEquals(len(self.koji.__moved__), 1)
@@ -113,29 +131,26 @@ class TestMasher(unittest.TestCase):
         self.assertEquals(self.koji.__moved__[0], (u'f17-updates-candidate',
             u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
 
-        with self.db_factory() as session:
-            # Ensure that the update was locked
-            up = session.query(Update).one()
-            self.assertTrue(up.locked)
+        # The override tag won't get removed until it goes to stable
+        self.assertEquals(self.koji.__untag__[0], (release.pending_testing_tag, build.nvr))
+        self.assertEquals(len(self.koji.__untag__), 1)
 
+        with self.db_factory() as session:
             # Set the update request to stable and the release to pending
+            up = session.query(Update).one()
             up.release.state = ReleaseState.pending
             up.request = UpdateRequest.stable
 
-        print('koji.__moved__ = %r' % self.koji.__moved__)
-
         self.koji.clear()
+
+        self.masher.consume(self.msg)
 
         # Ensure that stable updates to pending releases get their
         # tags added, not removed
-        self.masher.consume(makemsg())
-
         self.assertEquals(len(self.koji.__moved__), 0)
         self.assertEquals(len(self.koji.__added__), 1)
         self.assertEquals(self.koji.__added__[0], (u'f17', u'bodhi-2.0-1.fc17'))
 
-    #def test_masher_state(self):
-    #    self.masher.save_state(self.db.query(Update).all())
     # test loading state
     # test resuming a push
 
