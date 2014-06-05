@@ -150,6 +150,12 @@ class TestMasher(unittest.TestCase):
         self.assertEquals(len(self.koji.__moved__), 0)
         self.assertEquals(len(self.koji.__added__), 1)
         self.assertEquals(self.koji.__added__[0], (u'f17', u'bodhi-2.0-1.fc17'))
+        self.assertEquals(self.koji.__untag__[0], (release.override_tag, u'bodhi-2.0-1.fc17'))
+
+        # Check that the override got expired
+        with self.db_factory() as session:
+            ovrd = session.query(BuildrootOverride).one()
+            self.assertIsNotNone(ovrd.expired_date)
 
     # test loading state
     # test resuming a push
