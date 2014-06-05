@@ -12,6 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from datetime import datetime
+
 from sqlalchemy.sql import or_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 
@@ -543,3 +545,29 @@ def validate_comment_id(request):
     else:
         request.errors.add('url', 'id', 'Invalid comment id')
         request.errors.status = HTTPNotFound.code
+
+
+def validate_build(request):
+    """Ensure the nvr corresponds to an existing build"""
+    nvr = request.validated['nvr']
+
+    build = Build.get(nvr, request.db)
+
+    if build is None:
+        request.errors.add('body', 'nvr', 'No such build')
+        return
+
+    request.validated['build'] = build
+
+
+def validate_expiration_date(request):
+    """Ensure the expiration date is in the future"""
+    expiration_date = request.validated['expiration_date']
+
+    now = datetime.now()
+
+    if expiration_date <= now:
+        request.errors.add('body', 'nvr', 'Expiration date in the past')
+        return
+
+    request.validated['expiration_date'] = expiration_date

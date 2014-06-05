@@ -176,3 +176,165 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(errors[0]['description'],
                           "Invalid user specified: santa")
 
+    def test_create_override(self):
+        session = DBSession()
+
+        release = Release.get(u'F17', session)
+
+        build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
+        session.add(build)
+        session.flush()
+
+        expiration_date = datetime.now() + timedelta(days=1)
+
+        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date}
+        res = self.app.post('/overrides/', data)
+
+        o = res.json_body
+        self.assertEquals(o['build_id'], build.id)
+        self.assertEquals(o['notes'], 'blah blah blah')
+        self.assertEquals(o['expiration_date'],
+                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(o['expired_date'], None)
+
+    def test_edit_override_build(self):
+        session = DBSession()
+
+        release = Release.get(u'F17', session)
+
+        build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
+        session.add(build)
+        session.flush()
+
+        old_nvr = u'bodhi-2.0-1.fc17'
+
+        res = self.app.get('/overrides/%s' % old_nvr)
+        o = res.json_body
+        expiration_date = o['expiration_date']
+
+        o.update({'nvr': build.nvr, 'edited': old_nvr})
+        res = self.app.post('/overrides/', o)
+
+        override = res.json_body
+        self.assertEquals(override['build_id'], build.id)
+        self.assertEquals(override['notes'], 'blah blah blah')
+        self.assertEquals(override['expiration_date'], expiration_date)
+        self.assertEquals(override['expired_date'], None)
+
+    def test_edit_override_build_already_in_other_override(self):
+        # Get the override ot edit
+        res = self.app.get('/overrides/bodhi-2.0-1.fc17')
+        o1 = res.json_body
+
+        # Create a second one
+        session = DBSession()
+
+        release = Release.get(u'F17', session)
+
+        build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
+        session.add(build)
+        session.flush()
+
+        expiration_date = datetime.now() + timedelta(days=1)
+
+        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date}
+        res = self.app.post('/overrides/', data)
+
+        o2 = res.json_body
+
+        # Edit the first one
+        o1.update({'nvr': build.nvr, 'edited': o1['build']['nvr']})
+        res = self.app.post('/overrides/', o1, status=400)
+
+        errors = res.json_body['errors']
+        self.assertEquals(len(errors), 1)
+        self.assertEquals(errors[0]['name'], 'nvr')
+        self.assertEquals(errors[0]['description'],
+                          'This build is already in another override')
+
+    def test_edit_override_build_does_not_exist(self):
+        old_nvr = u'bodhi-2.0-1.fc17'
+
+        res = self.app.get('/overrides/%s' % old_nvr)
+        o = res.json_body
+        expiration_date = o['expiration_date']
+
+        o.update({'nvr': u'bodhi-2.0-2.fc17', 'edited': old_nvr})
+        res = self.app.post('/overrides/', o, status=400)
+
+        errors = res.json_body['errors']
+        self.assertEquals(len(errors), 1)
+        self.assertEquals(errors[0]['name'], 'nvr')
+        self.assertEquals(errors[0]['description'], 'No such build')
+
+    def test_edit_unexisting_override(self):
+        session = DBSession()
+        build = Build(nvr=u'bodhi-2.0-2.fc17')
+        session.add(build)
+        session.flush()
+
+        expiration_date = datetime.now() + timedelta(days=1)
+
+        o = {'nvr': build.nvr, 'notes': 'blah blah blah',
+             'expiration_date': expiration_date, 'edited': build.nvr}
+        res = self.app.post('/overrides/', o, status=400)
+
+        errors = res.json_body['errors']
+        self.assertEquals(len(errors), 1)
+        self.assertEquals(errors[0]['name'], 'edited')
+        self.assertEquals(errors[0]['description'],
+                          'No buildroot override for this build')
+
+    def test_edit_notes(self):
+        old_nvr = u'bodhi-2.0-1.fc17'
+
+        res = self.app.get('/overrides/%s' % old_nvr)
+        o = res.json_body
+        build_id = o['build_id']
+        expiration_date = o['expiration_date']
+
+        o.update({'nvr': old_nvr, 'notes': 'blah blah blah blah',
+                  'edited': old_nvr})
+        res = self.app.post('/overrides/', o)
+
+        override = res.json_body
+        self.assertEquals(override['build_id'], build_id)
+        self.assertEquals(override['notes'], 'blah blah blah blah')
+        self.assertEquals(override['expiration_date'], expiration_date)
+        self.assertEquals(override['expired_date'], None)
+
+    def test_edit_expiration_date(self):
+        old_nvr = u'bodhi-2.0-1.fc17'
+
+        res = self.app.get('/overrides/%s' % old_nvr)
+        o = res.json_body
+        expiration_date = datetime.utcnow() + timedelta(days=2)
+
+        o.update({'nvr': o['build']['nvr'],
+                  'expiration_date': expiration_date, 'edited': old_nvr})
+        res = self.app.post('/overrides/', o)
+
+        override = res.json_body
+        self.assertEquals(override['build'], o['build'])
+        self.assertEquals(override['notes'], o['notes'])
+        self.assertEquals(override['expiration_date'],
+                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(override['expired_date'], None)
+
+    def test_expire_override(self):
+        old_nvr = u'bodhi-2.0-1.fc17'
+
+        res = self.app.get('/overrides/%s' % old_nvr)
+        o = res.json_body
+
+        o.update({'nvr': o['build']['nvr'], 'expired': True,
+                  'edited': old_nvr})
+        res = self.app.post('/overrides/', o)
+
+        override = res.json_body
+        self.assertEquals(override['build'], o['build'])
+        self.assertEquals(override['notes'], o['notes'])
+        self.assertEquals(override['expiration_date'], o['expiration_date'])
+        self.assertNotEquals(override['expired_date'], None)

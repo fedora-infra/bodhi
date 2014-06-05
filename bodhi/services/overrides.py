@@ -19,9 +19,11 @@ from pyramid.exceptions import HTTPNotFound
 
 from sqlalchemy.sql import or_
 
+from bodhi import log
 from bodhi.models import Build, BuildrootOverride, Package, Release
 import bodhi.schemas
-from bodhi.validators import (validate_packages, validate_releases,
+from bodhi.validators import (validate_build, validate_expiration_date,
+                              validate_packages, validate_releases,
                               validate_username)
 
 
@@ -116,3 +118,60 @@ def query_overrides(request):
         rows_per_page=rows_per_page,
         total=total,
     )
+
+
+@overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
+                acl=bodhi.security.packagers_allowed_acl,
+                accept=("application/json", "text/json"), renderer='json',
+                validators=(validate_build, validate_expiration_date),
+                )
+@overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
+                acl=bodhi.security.packagers_allowed_acl,
+                accept=("application/javascript"), renderer="jsonp",
+                validators=(validate_build, validate_expiration_date),
+                )
+def save_override(request):
+    """Save a buildroot override
+
+    This entails either creating a new buildroot override, or editing an
+    existing one. To edit an existing buildroot override, the buildroot
+    override's original id needs to be specified in the ``edited`` parameter.
+    """
+    data = request.validated
+
+    edited = data.pop("edited")
+    build = data['build']
+
+    try:
+        if edited is None:
+            if build.override is not None:
+                request.errors.add('body', 'nvr', 'This build already is in a buildroot override')
+                return
+
+            log.info("Creating a new buildroot override: %s" % data['nvr'])
+
+            override = BuildrootOverride.new(request, build=build,
+                                             submitter=request.user,
+                                             notes=data['notes'],
+                                             expiration_date=data['expiration_date'],
+                                             )
+
+        else:
+            log.info("Editing buildroot override: %s" % edited)
+
+            edited = Build.get(edited, request.db)
+
+            if edited is None:
+                request.errors.add('body', 'edited', 'No such build')
+                return
+
+            override = BuildrootOverride.edit(request, edited=edited,
+                                              submitter=request.user, **data)
+
+    except Exception as e:
+        log.exception(e)
+        request.errors.add('body', 'override',
+                           'Unable to save buildroot override: %s' % e)
+        return
+
+    return override
