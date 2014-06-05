@@ -104,8 +104,9 @@ class DevBuildsys(Buildsystem):
         log.debug("tagBuild(%s, %s)" % (tag, build))
         DevBuildsys.__added__.append((tag, build))
 
-    def untagBuild(self, *args, **kw):
-        log.debug("untagBuild(%s, %s)" % (args, kw))
+    def untagBuild(self, tag, build, *args, **kw):
+        log.debug("untagBuild(%s, %s)" % (tag, build))
+        DevBuildsys.__untag__.append((tag, build))
 
     def ssl_login(self, *args, **kw):
         log.debug("ssl_login(%s, %s)" % (args, kw))
