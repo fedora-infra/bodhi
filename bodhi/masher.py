@@ -230,7 +230,7 @@ class MasherThread(threading.Thread):
         for action in self.add_tags:
             tag, build = action
             self.log.info("Adding tag %s to %s" % (tag, build))
-            self.koji.tagBuild(tag, build.nvr, force=True)
+            self.koji.tagBuild(tag, build, force=True)
         for action in self.move_tags:
             from_tag, to_tag, build = action
             self.log.info('Moving %s from %s to %s' % (build, from_tag, to_tag))
