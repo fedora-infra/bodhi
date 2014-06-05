@@ -85,11 +85,13 @@ class DevBuildsys(Buildsystem):
     __untag__ = []
     __moved__ = []
     __added__ = []
+    __tagged__ = {}
 
     def clear(self):
         DevBuildsys.__untag__ = []
         DevBuildsys.__moved__ = []
         DevBuildsys.__added__ = []
+        DevBuildsys.__tagged__ = {}
 
     def multiCall(self):
         return []
@@ -195,7 +197,7 @@ class DevBuildsys(Buildsystem):
 
     def listTags(self, build, *args, **kw):
         if 'el5' in build:
-            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+            result = [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
@@ -203,12 +205,16 @@ class DevBuildsys(Buildsystem):
                      'name': 'dist-5E-epel', 'perm': None, 'perm_id': None}]
         else:
             release = build.split('.')[-1].replace('fc', 'f')
-            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+            result = [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': '%s' % release, 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': '%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
+        if build in DevBuildsys.__tagged__:
+            for tag in DevBuildsys.__tagged__[build]:
+                result += [{'name': tag}]
+        return result
 
     def listTagged(self, tag, *args, **kw):
         builds = []
