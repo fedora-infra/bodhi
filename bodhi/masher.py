@@ -149,12 +149,13 @@ class MasherThread(threading.Thread):
         self.release = self.db.query(Release).filter_by(name=self.release).one()
         self.id = getattr(self.release, '%s_tag' % self.request.value)
         self.log.info('Running MasherThread(%s)' % self.id)
+        self.init_state()
 
         notifications.publish(topic="mashtask.mashing", msg=dict(repo=self.id))
 
         success = False
         try:
-            #self.save_state()
+            self.save_state()
             self.load_updates()
 
             if not self.resume:
@@ -163,15 +164,17 @@ class MasherThread(threading.Thread):
                 self.determine_tag_actions()
                 self.perform_tag_actions()
                 self.state['tagged'] = True
+                self.save_state()
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
                 #self.mash()
                 self.complete_requests()
 
             success = True
+            self.remove_state()
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
-            #self.save_state()
+            self.save_state()
         finally:
             self.finish(success)
 
@@ -189,16 +192,25 @@ class MasherThread(threading.Thread):
             update.locked = True
         self.db.flush()
 
+    def init_state(self):
+        self.mashed_dir = config.get('mashed_dir')
+        if not os.path.exists(self.mashed_dir):
+            log.info('Creating %s' % self.mashed_dir)
+            os.makedirs(self.mashed_dir)
+        self.mash_lock = os.path.join(self.mashed_dir, 'MASHING-%s' % self.id)
+        if os.path.exists(self.mash_lock) and not self.resume:
+            self.log.error('Trying to do a fresh push and masher lock already '
+                           'exists: %s' % self.mash_lock)
+            raise Exception
+
     def save_state(self):
         """Save the state of this push so it can be resumed later if necessary"""
-        mashed_dir = config.get('mashed_dir')
-        mash_lock = os.path.join(mashed_dir, 'MASHING-%s' % self.id)
-        if os.path.exists(mash_lock):
-            self.log.error('Masher lock already exists: %s' % mash_lock)
-            raise Exception
-        with file(mash_lock, 'w') as lock:
+        with file(self.mash_lock, 'w') as lock:
             json.dump(self.state, lock)
-        self.log.info('Masher lock created: %s' % mash_lock)
+        self.log.info('Masher lock created: %s' % self.mash_lock)
+
+    def remove_state(self):
+        os.remove(self.mash_lock)
 
     def finish(self, success):
         self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))

@@ -14,6 +14,7 @@
 
 import os
 import mock
+import json
 import unittest
 import tempfile
 import transaction
@@ -22,8 +23,9 @@ from datetime import datetime
 from contextlib import contextmanager
 from sqlalchemy import create_engine
 
-from bodhi import buildsys
-from bodhi.masher import Masher
+from bodhi import buildsys, log
+from bodhi.config import config
+from bodhi.masher import Masher, MasherThread
 from bodhi.models import (DBSession, Base, Update, User, Group, Release,
                           Package, Build, TestCase, UpdateRequest, UpdateType,
                           Bug, CVE, Comment, ReleaseState, BuildrootOverride)
@@ -207,8 +209,19 @@ class TestMasher(unittest.TestCase):
             up = session.query(Update).one()
             self.assertIsNone(up.request)
 
-    # test loading state
-    # test resuming a push
+    def test_statefile(self):
+        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log, self.db_factory)
+        t.id = 'f17-updates-testing'
+        t.init_state()
+        t.save_state()
+        self.assertTrue(os.path.exists(t.mash_lock))
+        with file(t.mash_lock) as f:
+            state = json.load(f)
+        try:
+            self.assertEquals(state, {u'tagged': False, u'updates':
+                [u'bodhi-2.0-1.fc17'], u'completed_repos': []})
+        finally:
+            t.remove_state()
 
     def populate(self, session):
         user = User(name=u'guest')
