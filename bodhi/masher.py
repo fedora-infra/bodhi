@@ -42,9 +42,9 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Make sure things are safe to move? (ideally we should trust our own state)
     - Update security bug titles
     - Move build tags
-
     - Expire buildroot overrides
     - Remove pending tags
+===
     - mash
     - request_complete
     - Add testing updates to updates-testing digest
@@ -168,6 +168,7 @@ class MasherThread(threading.Thread):
             self.finish()
 
     def load_updates(self):
+        self.log.debug('Locking updates')
         updates = []
         for title in self.state['updates']:
             update = self.db.query(Update).filter_by(title=title).first()
