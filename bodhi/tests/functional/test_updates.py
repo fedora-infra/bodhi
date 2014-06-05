@@ -1173,3 +1173,15 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp.json['update']['request'], 'stable')
         publish.assert_called_with(
             topic='update.request.stable', msg=mock.ANY)
+
+    def test_new_update_with_existing_build(self):
+        """Test submitting a new update with a build already in the database"""
+        session = DBSession()
+        package = Package.get('bodhi', session)
+        session.add(Build(nvr=u'bodhi-2.0.0-3.fc17', package=package))
+        session.flush()
+
+        args = self.get_update(u'bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+
+        eq_(resp.json['title'], 'bodhi-2.0.0-3.fc17')
