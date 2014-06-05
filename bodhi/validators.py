@@ -564,7 +564,10 @@ def validate_build(request):
 
 def validate_expiration_date(request):
     """Ensure the expiration date is in the future"""
-    expiration_date = request.validated['expiration_date']
+    expiration_date = request.validated.get('expiration_date')
+
+    if expiration_date is None:
+        return
 
     now = datetime.now()
 
