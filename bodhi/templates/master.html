@@ -51,7 +51,11 @@
           <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
               % if request.user:
+              % if request.matched_route.name == 'user' and request.user.name == user['name']:
+              <li class="active">
+              % else:
               <li>
+              % endif
                 <a href="${request.route_url('user', name=request.user.name)}">
                   <span class="glyphicon glyphicon-user"></span>
                   Profile
@@ -65,14 +69,22 @@
               </li>
               % endif
               % if request.user:
+              % if request.matched_route.name == 'new_update':
+              <li class="active">
+              % else:
               <li>
+              % endif
                 <a href="${request.route_url('new_update')}">
                   <span class="glyphicon glyphicon-plus"></span>
                   Submit
                 </a>
               </li>
               % endif
+              % if request.matched_route.name == 'metrics':
+              <li class="active">
+              % else:
               <li>
+              % endif
                 <a href="${request.route_url('metrics')}">
                   <span class="glyphicon glyphicon-stats"></span>
                   Metrics</a>
