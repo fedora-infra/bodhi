@@ -44,27 +44,28 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Move build tags
     - Expire buildroot overrides
     - Remove pending tags
-===
-    - mash
     - request_complete
+    - Send fedmsgs
+
+    - TODO: mash
+Things to do while we're waiting on mash
     - Add testing updates to updates-testing digest
-    - Generate/update updateinfo.xml and inject it into the repodata
+    - Generate/update updateinfo.xml
+
+Once mash is done:
+    - inject the updateinfo it into the repodata
     - Sanity check the repo
     - Flip the symlinks to the new repo
-    - Cache the latest repodata
+    - Generate and email stable update notices
+
+    - Cache the new repodata
     - Wait for the repo to hit the master mirror
     - Update bugzillas
     - Add comments to updates
-    - Generate and email stable update notices
     - Email updates-testing digest
     - Unlock repo
         - unlock updates
         - see if any updates now meet the stable criteria, and set the request
-    - Send fedmsgs
-
-TODO:
-    - clean up old testing tags for pending releases after X days?
-    if there is already a masher lock, merge it with the current push????
     """
     config_key = 'masher'
 
