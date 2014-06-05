@@ -30,12 +30,14 @@ from bodhi.models import (DBSession, Base, Update, User, Group, Release,
 
 
 class FakeHub(object):
-    config = {
-        'topic_prefix': 'org.fedoraproject',
-        'environment': 'dev',
-        'masher_topic': 'bodhi.start',
-        'masher': True,
-    }
+    def __init__(self):
+        self.config = {
+            'topic_prefix': 'org.fedoraproject',
+            'environment': 'dev',
+            'releng_fedmsg_certname': None,
+            'masher_topic': 'bodhi.start',
+            'masher': True,
+        }
 
     def subscribe(self, *args, **kw):
         pass
@@ -101,6 +103,25 @@ class TestMasher(unittest.TestCase):
                 os.remove(self.db_filename)
             except:
                 pass
+
+    @mock.patch('bodhi.notifications.publish')
+    def test_invalid_signature(self, publish):
+        """Make sure the masher ignores messages that aren't signed with the
+        appropriate releng cert
+        """
+        fakehub = FakeHub()
+        fakehub.config['releng_fedmsg_certname'] = 'foo'
+        self.masher = Masher(fakehub, db_factory=self.db_factory)
+        self.masher.consume(self.msg)
+
+        # Make sure the update did not get locked
+        with self.db_factory() as session:
+            # Ensure that the update was locked
+            up = session.query(Update).one()
+            self.assertFalse(up.locked)
+
+        # Ensure mashtask.start never got sent
+        self.assertEquals(len(publish.call_args_list), 0)
 
     @mock.patch('bodhi.notifications.publish')
     def test_update_locking(self, publish):

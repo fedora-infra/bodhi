@@ -73,7 +73,7 @@ TODO:
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
         self.topic = prefix + '.' + env + '.' + hub.config.get('masher_topic')
-        self.valid_signer = config.get('releng_fedmsg_certname')
+        self.valid_signer = hub.config.get('releng_fedmsg_certname')
         if not self.valid_signer:
             log.warn('No releng_fedmsg_certname defined. Cert validation disabled')
         super(Masher, self).__init__(hub, *args, **kw)
@@ -81,21 +81,18 @@ TODO:
 
     def consume(self, msg):
         self.log.info(msg)
-        with self.db_factory() as session:
-            self.work(session, msg)
-
-    def work(self, session, msg):
-        body = msg['body']['msg']
-
         if self.valid_signer:
             if not fedmsg.crypto.validate_signed_by(msg, self.valid_signer,
                                                     **self.hub.config):
                 self.log.error('Received message with invalid signature! Ignoring.')
                 # TODO: send email notifications
                 return
+        with self.db_factory() as session:
+            self.work(session, msg)
 
+    def work(self, session, msg):
+        body = msg['body']['msg']
         notifications.publish(topic="mashtask.start", msg=dict())
-
         releases = self.organize_updates(session, body)
 
         # Fire off seperate masher threads for each tag being mashed
