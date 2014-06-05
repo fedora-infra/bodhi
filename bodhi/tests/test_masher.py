@@ -25,7 +25,7 @@ from bodhi import buildsys
 from bodhi.masher import Masher
 from bodhi.models import (DBSession, Base, Update, User, Group, Release,
                           Package, Build, TestCase, UpdateRequest, UpdateType,
-                          Bug, CVE, Comment, ReleaseState)
+                          Bug, CVE, Comment, ReleaseState, BuildrootOverride)
 
 
 class FakeHub(object):
@@ -178,6 +178,10 @@ class TestMasher(unittest.TestCase):
         user.packages.append(pkg)
         build = Build(nvr=u'bodhi-2.0-1.fc17', release=release, package=pkg)
         session.add(build)
+        override = BuildrootOverride(build=build, submitter=user,
+                                     expiration_date=datetime.utcnow(),
+                                     notes='foo')
+        session.add(override)
         testcase = TestCase(name=u'Wat')
         session.add(testcase)
         pkg.test_cases.append(testcase)
