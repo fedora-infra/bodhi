@@ -159,6 +159,7 @@ class MasherThread(threading.Thread):
                 self.update_security_bugs()
                 self.determine_tag_actions()
                 self.perform_tag_actions()
+                self.state['tagged'] = True
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
         except:
@@ -243,7 +244,6 @@ class MasherThread(threading.Thread):
         failed_tasks = buildsys.wait_for_tasks([task[0] for task in results])
         if failed_tasks:
             raise Exception("Failed to move builds: %s" % failed_tasks)
-        self.state['tagged'] = True
 
     def expire_buildroot_overrides(self):
         """ Obsolete any buildroot overrides that are in this push """
