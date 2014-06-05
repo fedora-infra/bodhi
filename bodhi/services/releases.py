@@ -14,6 +14,7 @@
 
 import math
 
+from datetime import datetime, timedelta
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy.sql import or_
@@ -54,9 +55,34 @@ def get_release_html(request):
     updates = request.db.query(Update).filter(
         Update.release==release).order_by(
             Update.date_submitted.desc())
+
+    updates_count = request.db.query(Update.date_submitted, Update.type).filter(
+        Update.release==release).order_by(
+            Update.date_submitted.desc())
+
+    now = updates[0].date_submitted
+    year = timedelta(days=365)
+    diff = now - year
+
+    date_commits = {}
+    dates = set()
+
+    for update in updates_count.all():
+        d = update.date_submitted
+        yearmonth = str(d.year) + '/' + str(d.month).zfill(2)
+        dates.add(yearmonth)
+        if not update.type.description in date_commits:
+            date_commits[update.type.description] = {}
+        if yearmonth in date_commits[update.type.description]:
+            date_commits[update.type.description][yearmonth] += 1
+        else:
+            date_commits[update.type.description][yearmonth] = 0
+
     return dict(release=release,
                 latest_updates=updates.limit(25).all(),
-                count=updates.count())
+                count=updates.count(),
+                date_commits=date_commits,
+                dates = sorted(dates))
 
 @release.get(accept=('application/json', 'text/json'), renderer='json')
 @release.get(accept=('application/javascript'), renderer='jsonp')

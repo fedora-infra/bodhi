@@ -3,6 +3,32 @@
 <div class="row">
   <div class="col-md-5">
     <h2 class="pull-left">${release['long_name']}</h2>
+    <div style="clear: both;">
+      <canvas id="releasechart" style="clear: both;" width="451"></canvas>
+    </div>
+    <script>
+      var data = {
+        labels : [${', '.join(map(lambda x: '"' + x + '"', dates)) | n}],
+        datasets : [
+          % for ud_type in date_commits:
+          {
+            // ${ud_type}
+            fillColor : "${self.util.type2color(ud_type)}",
+            strokeColor : "rgba(220,220,220,1)",
+            pointColor : "rgba(220,220,220,1)",
+            pointStrokeColor : "#fff",
+            data : [
+              % for yearmonth in date_commits[ud_type]:
+              ${date_commits[ud_type][yearmonth]},
+              % endfor
+            ]
+          },
+          % endfor
+        ]
+      }
+      var ctx = document.getElementById("releasechart").getContext("2d");
+      var myNewChart = new Chart(ctx).Line(data);
+    </script>
     <table class="table">
       <tr>
         <td>State</td>

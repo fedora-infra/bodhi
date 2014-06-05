@@ -370,6 +370,15 @@ def state2class(context, state):
     }
     return cls[state] if state in cls.keys() else 'default'
 
+def type2color(context, t):
+    t = unicode(t)
+    cls = {
+        'bugfix': 'rgba(150,180,205,0.5)',
+        'security': 'rgba(205,150,180,0.5)',
+        'new package': 'rgba(150,205,180,0.5)',
+        'default': 'rgba(200,200,200,0.5)'
+    }
+    return cls[t] if t in cls.keys() else cls['default']
 
 def state2html(context, state):
     state_class = state2class(context, state)
