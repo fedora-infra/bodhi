@@ -65,10 +65,11 @@ def validate_builds(request):
                                    'Cannot edit stable updates')
         return
 
-    for build in request.validated.get('builds', []):
-        if request.db.query(Build).filter_by(nvr=build).first():
+    for nvr in request.validated.get('builds', []):
+        build = request.db.query(Build).filter_by(nvr=nvr).first()
+        if build and build.update is not None:
             request.errors.add('body', 'builds',
-                               "Update for {} already exists".format(build))
+                               "Update for {} already exists".format(nvr))
             return
 
 

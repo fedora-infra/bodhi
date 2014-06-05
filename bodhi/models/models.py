@@ -598,8 +598,8 @@ class Update(Base):
         builds = []
 
         # Create the Package and Build entities
-        for build in data['builds']:
-            name, version, release = buildinfo[build]['nvr']
+        for nvr in data['builds']:
+            name, version, release = buildinfo[nvr]['nvr']
             package = db.query(Package).filter_by(name=name).first()
             if not package:
                 package = Package(name=name)
@@ -609,7 +609,13 @@ class Update(Base):
             # Fetch test cases from the wiki
             package.fetch_test_cases(db)
 
-            build = Build(nvr=build, package=package)
+            build = Build.get(nvr, db)
+
+            if build is None:
+                build = Build(nvr=nvr, package=package)
+                db.add(build)
+                db.flush()
+
             builds.append(build)
             releases.add(buildinfo[build.nvr]['release'])
 
