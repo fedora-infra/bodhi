@@ -25,7 +25,7 @@ from bodhi import buildsys
 from bodhi.masher import Masher
 from bodhi.models import (DBSession, Base, Update, User, Group, Release,
                           Package, Build, TestCase, UpdateRequest, UpdateType,
-                          Bug, CVE, Comment)
+                          Bug, CVE, Comment, ReleaseState)
 
 
 class FakeHub(object):
