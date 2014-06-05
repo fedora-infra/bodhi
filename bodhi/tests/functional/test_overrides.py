@@ -14,6 +14,7 @@
 
 from datetime import datetime, timedelta
 
+import mock
 import colander
 
 import bodhi.tests.functional.base
@@ -176,7 +177,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(errors[0]['description'],
                           "Invalid user specified: santa")
 
-    def test_create_override(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_create_override(self, publish):
         session = DBSession()
 
         release = Release.get(u'F17', session)
@@ -190,6 +192,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         data = {'nvr': build.nvr, 'notes': u'blah blah blah',
                 'expiration_date': expiration_date}
         res = self.app.post('/overrides/', data)
+        publish.assert_called_once_with(
+            topic='buildroot_override.tag', msg=mock.ANY)
 
         o = res.json_body
         self.assertEquals(o['build_id'], build.id)
@@ -198,7 +202,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(o['expired_date'], None)
 
-    def test_edit_override_build(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_override_build(self, publish):
         session = DBSession()
 
         release = Release.get(u'F17', session)
@@ -221,8 +226,10 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['notes'], 'blah blah blah')
         self.assertEquals(override['expiration_date'], expiration_date)
         self.assertEquals(override['expired_date'], None)
+        self.assertEquals(len(publish.call_args_list), 2)
 
-    def test_edit_override_build_already_in_other_override(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_override_build_already_in_other_override(self, publish):
         # Get the override ot edit
         res = self.app.get('/overrides/bodhi-2.0-1.fc17')
         o1 = res.json_body
@@ -241,6 +248,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         data = {'nvr': build.nvr, 'notes': u'blah blah blah',
                 'expiration_date': expiration_date}
         res = self.app.post('/overrides/', data)
+        self.assertEquals(len(publish.call_args_list), 1)
 
         o2 = res.json_body
 
@@ -253,6 +261,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(errors[0]['name'], 'nvr')
         self.assertEquals(errors[0]['description'],
                           'This build is already in another override')
+        self.assertEquals(len(publish.call_args_list), 1)
 
     def test_edit_override_build_does_not_exist(self):
         old_nvr = u'bodhi-2.0-1.fc17'
@@ -323,7 +332,9 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(override['expired_date'], None)
 
-    def test_expire_override(self):
+
+    @mock.patch('bodhi.notifications.publish')
+    def test_expire_override(self, publish):
         old_nvr = u'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr)
@@ -338,3 +349,5 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['notes'], o['notes'])
         self.assertEquals(override['expiration_date'], o['expiration_date'])
         self.assertNotEquals(override['expired_date'], None)
+        publish.assert_called_once_with(
+            topic='buildroot_override.untag', msg=mock.ANY)

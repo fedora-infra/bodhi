@@ -1828,11 +1828,18 @@ class BuildrootOverride(Base):
         if build != self.build:
             koji_session.untagBuild(self.build.release.override_tag,
                                     self.build.nvr, strict=True)
+            notifications.publish(
+                topic='buildroot_override.untag',
+                msg=dict(override=self),
+            )
 
         koji_session.tagBuild(build.release.override_tag,
                               self.build.nvr, strict=True)
-
         self.build = build
+        notifications.publish(
+            topic='buildroot_override.tag',
+            msg=dict(override=self),
+        )
 
     def expire(self):
         koji_session = buildsys.get_session()
@@ -1841,6 +1848,10 @@ class BuildrootOverride(Base):
                                 self.build.nvr, strict=True)
 
         self.expired_date = datetime.utcnow()
+        notifications.publish(
+            topic='buildroot_override.untag',
+            msg=dict(override=self),
+        )
 
 
 #class Stack(Base):
