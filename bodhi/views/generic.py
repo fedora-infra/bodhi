@@ -163,3 +163,12 @@ def markdowner(request):
     """
     text = request.params.get('text')
     return dict(html=markup(request.context, text))
+
+
+@view_config(route_name='new_override', renderer='override.html')
+def new_override(request):
+    """ Returns the new buildroot override form """
+    user = authenticated_userid(request)
+    if not user:
+        raise HTTPForbidden("You must be logged in.")
+    return dict()

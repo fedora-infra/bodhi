@@ -1,0 +1,97 @@
+<%inherit file="master.html"/>
+
+<div class="row">
+  <div id='js-warning' class="col-md-6 col-md-offset-3">
+    <div class=" panel panel-warning">
+      <div class="panel-heading clearfix">
+        <span class="pull-left">New Buildroot Override Form Requires JavaScript</span>
+      </div>
+      <div class="panel-body">
+        <p class="lead">This page only works with JavaScript enabled.</p>
+        <p>If you have JavaScript disabled with a plugin like NoScript, please
+        disable that plugin and reload the page.  If you trust Fedora
+        Infrastructure, you might find it convenient to enable JavaScript just
+        for the domain <code>fedoraproject.org</code>.</p>
+        <p>If you are opposed to JavaScript in principle, you're not left out!
+        Please use the fully-featured <a href="#">Bodhi command-line
+        interface tool</a>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="new-override-form" class="col-md-12 hidden">
+
+    <div class="row">
+      <div class="col-md-12">
+        <h2 class="pull-left">New Override</span>
+      </div>
+    </div>
+
+    <div class="row">
+
+      <div class="col-md-6">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Candidate Build</span>
+          </div>
+          <div id="candidates-search" class="form-group noui">
+            <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
+                placeholder="Add a build, like package-0.2.1-5.fc20">
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Expiration date</span>
+          </div>
+          <div class="form-group noui">
+            <input class="form-control noui" id="expiration_date"
+                name="expiration_date" type="text"
+                placeholder="Add a date, like 2014-06-06">
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- end row -->
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Buildroot override notes</span>
+          </div>
+          <div class="panel-body">
+            <textarea class="form-control" id="notes" name="notes" rows="6"
+              placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please.  You can use **markdown** to make them look nice." required="true"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Preview</span>
+          </div>
+          <div class="panel-body">
+            <span id="preview"><h3><small>Preview</small></h3></span>
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+            <span class="pull-right">
+              <button id="submit" class="btn btn-success">Submit</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+  </div>
+</div>
+<script src="${request.static_url('bodhi:static/js/override_form.js')}"></script>
