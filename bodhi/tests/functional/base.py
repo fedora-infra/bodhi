@@ -24,6 +24,7 @@ from bodhi.models import (
     Base,
     Bug,
     Build,
+    BuildrootOverride,
     Comment,
     CVE,
     DBSession,
@@ -138,6 +139,15 @@ class BaseWSGICase(unittest.TestCase):
         self.db.add(comment)
         update.comments.append(comment)
         self.db.add(update)
+
+        expiration_date = datetime.now()
+        expiration_date = expiration_date + timedelta(days=1)
+
+        override = BuildrootOverride(build=build, submitter=user,
+                                     notes=u'blah blah blah',
+                                     expiration_date=expiration_date)
+        self.db.add(override)
+
         self.db.flush()
 
     def get_update(self, builds=u'bodhi-2.0-1.fc17', stable_karma=3, unstable_karma=-3):

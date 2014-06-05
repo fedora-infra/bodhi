@@ -493,3 +493,57 @@ class ListCommentSchema(PaginatedSchema, SearchableSchema):
         location="querystring",
         missing=None,
     )
+
+
+class ListOverrideSchema(PaginatedSchema, SearchableSchema):
+    expired = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+    releases = Releases(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+
+    user = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
+
+class SaveOverrideSchema(colander.MappingSchema):
+    nvr = colander.SchemaNode(
+        colander.String(),
+    )
+
+    notes = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(min=10),
+    )
+
+    expiration_date = colander.SchemaNode(
+        colander.DateTime(default_tzinfo=None),
+    )
+
+    expired = colander.SchemaNode(
+        colander.Boolean(),
+        missing=False,
+    )
+
+    edited = colander.SchemaNode(
+        colander.String(),
+        missing=None,
+    )
