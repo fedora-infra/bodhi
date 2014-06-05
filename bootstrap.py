@@ -127,7 +127,7 @@ def install_test_deps():
     To work around `python setup.py test` downloadling egg files to the current
     directory
     """
-    cmd = '{workon}/{env}/bin/pip install nose-cov webtest'.format(
+    cmd = '{workon}/{env}/bin/pip install nose-cov webtest mock'.format(
         envs=ENVS, env=VENV, workon=os.getenv("WORKON_HOME"))
     print(cmd)
     subprocess.call(cmd.split())

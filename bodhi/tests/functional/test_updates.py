@@ -16,6 +16,7 @@
 
 import unittest
 
+import mock
 from nose.tools import eq_, raises
 from datetime import datetime, timedelta
 from webtest import TestApp
@@ -58,7 +59,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['name'], 'builds.0')
         self.assertEquals(res.json_body['errors'][0]['description'], 'Required')
 
-    def test_unicode_description(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_unicode_description(self, publish):
         update = self.get_update('bodhi-2.0.0-2.fc17')
         update['notes'] = u'This is wünderfül'
         r = self.app.post_json('/updates/', update)
@@ -66,6 +68,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['title'], u'bodhi-2.0.0-2.fc17')
         self.assertEquals(up['notes'], u'This is wünderfül')
         self.assertIsNotNone(up['date_submitted'])
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
 
     # FIXME: make it easy to tweak the tag of an update in our buildsys during unit tests
     #def test_invalid_tag(self):
@@ -108,7 +113,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                                  status=400)
         assert 'Update for bodhi-2.0-1.fc17 already exists' in res, res
 
-    def test_no_privs(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_no_privs(self, publish):
         session = DBSession()
         user = User(name=u'bodhi')
         session.add(user)
@@ -117,8 +123,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         res = app.post_json('/updates/', self.get_update(u'bodhi-2.1-1.fc17'),
                             status=400)
         assert 'bodhi does not have commit access to bodhi' in res, res
+        self.assertEquals(publish.call_args_list, [])
 
-    def test_provenpackager_privs(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_provenpackager_privs(self, publish):
         "Ensure provenpackagers can push updates for any package"
         session = DBSession()
         user = User(name=u'bodhi')
@@ -133,6 +141,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         # TODO; uncomment once we're actually creating updates properly
         #build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1').one()
         #assert len(build.updates) == 1
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
 
     def test_pkgdb_outage(self):
         "Test the case where our call to the pkgdb throws an exception"
@@ -913,10 +923,14 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_put_json_update(self):
         self.app.put_json('/updates/', self.get_update(), status=405)
 
-    def test_post_json_update(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_post_json_update(self, publish):
         self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-1.fc17'))
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
 
-    def test_new_update(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_new_update(self, publish):
         r = self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-2.fc17'))
         up = r.json_body
         self.assertEquals(up['title'], u'bodhi-2.0.0-2.fc17')
@@ -936,8 +950,11 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
 
-    def test_edit_update(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_update(self, publish):
         args = self.get_update('bodhi-2.0.0-2.fc17')
         r = self.app.post_json('/updates/', args)
         args['edited'] = args['builds']
@@ -967,22 +984,36 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
         self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
 
-    def test_edit_stable_update(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_stable_update(self, publish):
         """Make sure we can't edit stable updates"""
+        self.assertEquals(publish.call_args_list, [])
+
+        # First, create a testing update
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         r = self.app.post_json('/updates/', args, status=200)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        # Then, switch it to stable behind the scenes
         up = DBSession.query(Update).filter_by(title=nvr).one()
         up.status = UpdateStatus.stable
+
+        # Then, try to edit it through the api again
         args['edited'] = args['builds']
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         r = self.app.post_json('/updates/', args, status=400)
         up = r.json_body
         self.assertEquals(up['status'], 'error')
         self.assertEquals(up['errors'][0]['description'], "Cannot edit stable updates")
+        self.assertEquals(len(publish.call_args_list), 1)
 
-    def test_edit_locked_update(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_locked_update(self, publish):
         """Make sure some changes are prevented"""
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -1030,8 +1061,11 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up.notes, 'Some new notes')
         self.assertEquals(up.builds, [build])
         self.assertEquals(up.request, None)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
 
-    def test_push_untested_critpath_to_release(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_push_untested_critpath_to_release(self, publish):
         """
         Ensure that we cannot push an untested critpath update directly to
         stable.
@@ -1041,11 +1075,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up = self.app.post_json('/updates/', args).json_body
         self.assertTrue(up['critpath'])
         self.assertEquals(up['request'], 'testing')
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
 
-    def test_obsoletion(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_obsoletion(self, publish):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+        publish.call_args_list = []
+
         up = DBSession.query(Update).filter_by(title=nvr).one()
         up.status = UpdateStatus.testing
         up.request = None
@@ -1056,13 +1097,16 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(r['comments'][-1]['text'],
                           u'This update has obsoleted bodhi-2.0.0-2.fc17, '
                           'and has inherited its bugs and notes.')
+        publish.assert_called_with(
+            topic='update.request.testing', msg=mock.ANY)
 
         up = DBSession.query(Update).filter_by(title=nvr).one()
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.comments[-1].text,
                           u'This update has been obsoleted by bodhi-2.0.0-3.fc17')
 
-    def test_obsoletion_with_open_request(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_obsoletion_with_open_request(self, publish):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args)
@@ -1092,13 +1136,15 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp['errors'][0]['name'], 'request')
         eq_(resp['errors'][0]['description'], 'Required')
 
-    def test_testing_request(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_testing_request(self, publish):
         """Test submitting a valid testing request"""
         args = self.get_update()
         args['request'] = None
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
                                   {'request': 'testing'})
         eq_(resp.json['update']['request'], 'testing')
+        self.assertEquals(publish.call_args_list, [])
 
     def test_invalid_stable_request(self):
         """Test submitting a stable request for an update that has yet to meet the stable requirements"""
@@ -1109,7 +1155,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp.json['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
-    def test_stable_request_after_testing(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_stable_request_after_testing(self, publish):
         """Test submitting a stable request to an update that has met the minimum amount of time in testing"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
@@ -1124,3 +1171,5 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
                                   {'request': 'stable'})
         eq_(resp.json['update']['request'], 'stable')
+        publish.assert_called_with(
+            topic='update.request.stable', msg=mock.ANY)

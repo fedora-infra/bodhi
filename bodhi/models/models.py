@@ -1322,6 +1322,8 @@ class Update(Base):
             # some kind of policy module.. so its not embedded in the model.
             log.info("Updated %s karma to %d" % (self.title, self.karma))
             if self.stable_karma != 0 and self.stable_karma == self.karma:
+                # TODO, this should use ".set_request" so that fedmsg gets
+                # triggered
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = UpdateRequest.stable
                 self.date_pushed = None

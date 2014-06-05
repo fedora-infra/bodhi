@@ -14,6 +14,7 @@
 
 import unittest
 
+import mock
 from nose.tools import eq_, raises
 from datetime import datetime, timedelta
 from webtest import TestApp
@@ -74,7 +75,8 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
                                  status=400)
         assert '2 is greater than maximum value 1' in res, res
 
-    def test_commenting_with_critpath_feedback(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_commenting_with_critpath_feedback(self, publish):
         comment = self.make_comment()
         comment['karma_critpath'] = -1  # roll out the trucks
         res = self.app.post_json('/comments/', comment)
@@ -84,8 +86,10 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['comment']['text'], 'Test')
         self.assertEquals(res.json_body['comment']['user_id'], 1)
         self.assertEquals(res.json_body['comment']['karma_critpath'], -1)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
-    def test_commenting_with_bug_feedback(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_commenting_with_bug_feedback(self, publish):
         comment = self.make_comment()
         comment['bug_feedback'] = [{'bug_id': 12345, 'karma': 1}]
         res = self.app.post_json('/comments/', comment)
@@ -97,9 +101,11 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('bug_feedback', res.json_body['comment'])
         feedback = res.json_body['comment']['bug_feedback']
         self.assertEquals(len(feedback), 1)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
 
-    def test_commenting_with_testcase_feedback(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_commenting_with_testcase_feedback(self, publish):
         comment = self.make_comment()
         comment['testcase_feedback'] = [{'testcase_name': "Wat", 'karma': -1}]
         res = self.app.post_json('/comments/', comment)
@@ -111,14 +117,17 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('testcase_feedback', res.json_body['comment'])
         feedback = res.json_body['comment']['testcase_feedback']
         self.assertEquals(len(feedback), 1)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
-    def test_commenting_with_login(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_commenting_with_login(self, publish):
         res = self.app.post_json('/comments/', self.make_comment())
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
         self.assertEquals(res.json_body['comment']['text'], 'Test')
         self.assertEquals(res.json_body['comment']['user_id'], 1)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
     #def test_anonymous_commenting_without_email(self):
     #    settings = self.app_settings.copy()
@@ -127,7 +136,8 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
     #    self.assertNotIn('errors', res.json_body)
     #    raise NotImplementError("check more here")
 
-    def test_anonymous_commenting_with_email(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_anonymous_commenting_with_email(self, publish):
         res = self.app.post_json('/comments/',
                                  self.make_comment(email='w@t.com'))
         self.assertNotIn('errors', res.json_body)
@@ -135,6 +145,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['comment']['anonymous'], True)
         self.assertEquals(res.json_body['comment']['text'], 'Test')
         self.assertEquals(res.json_body['comment']['user_id'], 2)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
     def test_anonymous_commenting_with_invalid_email(self):
         res = self.app.post_json('/comments/',

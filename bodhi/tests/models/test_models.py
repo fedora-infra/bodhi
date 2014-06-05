@@ -18,6 +18,7 @@
 
 import time
 import cornice
+import mock
 
 from nose.tools import eq_, raises
 from datetime import datetime, timedelta
@@ -299,7 +300,8 @@ class TestUpdate(ModelTest):
         self.get_update()
         self.get_update()
 
-    def test_stable_karma(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_stable_karma(self, publish):
         update = self.obj
         update.request = None
         eq_(update.karma, 0)
@@ -313,8 +315,11 @@ class TestUpdate(ModelTest):
         update.comment(u"foo", 1, u'biz')
         eq_(update.karma, 3)
         eq_(update.request, UpdateRequest.stable)
+        publish.assert_called_with(topic='update.comment', msg=mock.ANY)
+        #publish.assert_called_with(topic='update.request.stable', msg=mock.ANY)
 
-    def test_unstable_karma(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_unstable_karma(self, publish):
         update = self.obj
         update.status = UpdateStatus.testing
         eq_(update.karma, 0)
@@ -328,6 +333,7 @@ class TestUpdate(ModelTest):
         update.comment(u"biz", -1, u'biz')
         eq_(update.karma, -3)
         eq_(update.status, UpdateStatus.obsolete)
+        publish.assert_called_with(topic='update.comment', msg=mock.ANY)
 
     def test_update_bugs(self):
         update = self.obj
@@ -373,7 +379,8 @@ class TestUpdate(ModelTest):
         eq_(self.obj.status, UpdateStatus.pending)
         eq_(req.errors[0]['description'], config.get('not_yet_tested_msg'))
 
-    def test_set_request_stable_after_week_in_testing(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_set_request_stable_after_week_in_testing(self, publish):
         req = DummyRequest()
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
@@ -391,22 +398,30 @@ class TestUpdate(ModelTest):
         self.obj.set_request(UpdateRequest.stable, req)
         eq_(self.obj.request, UpdateRequest.stable)
         eq_(len(req.errors), 0)
+        publish.assert_called_once_with(
+            topic='update.request.stable', msg=mock.ANY)
 
-    def test_set_request_obsolete(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_set_request_obsolete(self, publish):
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         eq_(self.obj.status, UpdateStatus.pending)
         self.obj.set_request(UpdateRequest.obsolete, req)
         eq_(self.obj.status, UpdateStatus.obsolete)
         eq_(len(req.errors), 0)
+        publish.assert_called_once_with(
+            topic='update.request.obsolete', msg=mock.ANY)
 
-    def test_request_complete(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_request_complete(self, publish):
         self.obj.request = None
         eq_(self.obj.date_pushed, None)
         self.obj.request = UpdateRequest.testing
         self.obj.request_complete()
         assert self.obj.date_pushed
         eq_(self.obj.status, UpdateStatus.testing)
+        publish.assert_called_once_with(
+            topic='update.complete.testing', msg=mock.ANY)
 
     def test_status_comment(self):
         self.obj.status = UpdateStatus.testing
@@ -423,12 +438,15 @@ class TestUpdate(ModelTest):
                 u'This update has been pushed to stable')
         assert str(self.obj.comments[1]).endswith('This update has been pushed to stable')
 
-    def test_anonymous_comment(self):
+    @mock.patch('bodhi.notifications.publish')
+    def test_anonymous_comment(self, publish):
         self.obj.comment('testing', author='anon', anonymous=True, karma=1)
         c = self.obj.comments[-1]
         assert str(c).endswith('testing')
         eq_(c.anonymous, True)
         eq_(c.text, 'testing')
+        publish.assert_called_once_with(
+            topic='update.comment', msg=mock.ANY)
 
     def test_get_url(self):
         eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
