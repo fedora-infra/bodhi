@@ -57,6 +57,12 @@
                   Profile
                 </a>
               </li>
+              <li>
+                <a href="${request.registry.settings.get('fmn_url')}${request.user.openid(request)}/">
+                  <span class="glyphicon glyphicon-envelope"></span>
+                  Alerts
+                </a>
+              </li>
               % endif
               % if request.user:
               <li>

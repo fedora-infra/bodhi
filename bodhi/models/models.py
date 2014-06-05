@@ -1746,6 +1746,10 @@ class User(Base):
         context = dict(request=request)
         return get_avatar(context=context, username=self.name, size=24)
 
+    def openid(self, request):
+        template = request.registry.settings.get('openid_template')
+        return template.format(username=self.name)
+
 
 class Group(Base):
     __tablename__ = 'groups'
