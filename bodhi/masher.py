@@ -151,7 +151,7 @@ class MasherThread(threading.Thread):
         self.log.info('Running MasherThread(%s)' % self.id)
 
         try:
-            self.save_state()
+            #self.save_state()
             self.load_updates()
 
             if not self.resume:
@@ -161,6 +161,7 @@ class MasherThread(threading.Thread):
                 self.perform_tag_actions()
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
+            #self.save_state()
         finally:
             self.finish()
 
