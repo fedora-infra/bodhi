@@ -68,6 +68,7 @@ class BaseWSGICase(unittest.TestCase):
         'max_update_length_for_ui': '70',
         'openid.provider': 'https://id.stg.fedoraproject.org',
         'test_case_base_url': 'https://fedoraproject.org/wiki/',
+        'openid_template': '{username}.id.fedoraproject.org',
     }
 
     def setUp(self):
