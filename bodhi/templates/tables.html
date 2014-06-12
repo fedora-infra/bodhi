@@ -24,9 +24,11 @@
         </a>
       </td>
       <td class="hidejs">
+        % if update['release']:
         <a href="${request.route_url('release', name=update['release']['name'])}">
           ${update['release']['name']}
         </a>
+        % endif
       </td>
       <td class="hidejs">${update['status']}</td>
     </tr>
