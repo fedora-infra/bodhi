@@ -74,7 +74,7 @@ class BodhiBase(object):
         return getattr(self, key)
 
     def __repr__(self):
-        return '<{} {}>'.format(self.__class__.__name__, self.__json__())
+        return '<{0} {1}>'.format(self.__class__.__name__, self.__json__())
 
     def __json__(self, request=None):
         return self._to_json(self, request=request)
