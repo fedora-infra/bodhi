@@ -61,9 +61,11 @@ $(document).ready(function(){
       %endif
       <tr>
         <td>Release</td>
+        % if update.release:
         <td><a href="${request.route_url('release', name=update.release.name)}">
             ${update.release.name}
         </a></td>
+        % endif
       </tr>
       <tr>
         <td>Karma</td><td>${self.util.karma2html(update.karma) | n}
