@@ -35,15 +35,30 @@ import os
 
 ENVS = os.path.expanduser('~/.virtualenvs')
 VENV = 'bodhi-python{major}.{minor}'.format(
-    major=sys.version_info.major,
-    minor=sys.version_info.minor,
+    major=sys.version_info[0],
+    minor=sys.version_info[1],
 )
+
+if "check_output" not in dir( subprocess ): # duck punch it in!
+    def f(*popenargs, **kwargs):
+        if 'stdout' in kwargs:
+            raise ValueError('stdout argument not allowed, it will be overridden.')
+        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+        output, unused_err = process.communicate()
+        retcode = process.poll()
+        if retcode:
+            cmd = kwargs.get("args")
+            if cmd is None:
+                cmd = popenargs[0]
+            raise subprocess.CalledProcessError(retcode, cmd)
+        return output
+    subprocess.check_output = f
 
 
 def _link_system_lib(lib):
     for libdir in ('lib', 'lib64'):
         location = '{libdir}/python{major}.{minor}/site-packages'.format(
-            major=sys.version_info.major, minor=sys.version_info.minor,
+            major=sys.version_info[0], minor=sys.version_info[1],
             libdir=libdir)
         if not os.path.exists(os.path.join('/usr', location, lib)):
             if os.path.exists(os.path.join('/usr', location, lib + '.so')):
@@ -97,8 +112,8 @@ def rebuild():
 
     cmd = 'mkvirtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
             .format(
-                major=sys.version_info.major,
-                minor=sys.version_info.minor,
+                major=sys.version_info[0],
+                minor=sys.version_info[1],
                 v=VENV,
             )
     _do_virtualenvwrapper_command(cmd)
