@@ -1806,7 +1806,8 @@ class BuildrootOverride(Base):
             )
 
         koji_session.tagBuild(build.release.override_tag,
-                              self.build.nvr, strict=True)
+                              build.nvr)
+
         self.build = build
         notifications.publish(
             topic='buildroot_override.tag',
