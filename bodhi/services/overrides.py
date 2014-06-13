@@ -144,10 +144,6 @@ def save_override(request):
 
     try:
         if edited is None:
-            if build.override is not None:
-                request.errors.add('body', 'nvr', 'This build already is in a buildroot override')
-                return
-
             log.info("Creating a new buildroot override: %s" % data['nvr'])
 
             override = BuildrootOverride.new(request, build=build,
