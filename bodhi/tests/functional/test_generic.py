@@ -109,6 +109,56 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.get('/markdown', {'text': '<b>bold</b>'}, status=200)
         self.assertEquals(res.json_body['html'], '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>')
 
+    def test_markdown_with_mention(self):
+        res = self.app.get('/markdown', {
+            'text': 'my @colleague is distinguished',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<p>my <a href="http://localhost/users/colleague">@colleague</a>'
+            ' is distinguished</p>')
+
+    def test_markdown_with_mention_at_start(self):
+        res = self.app.get('/markdown', {
+            'text': '@pingou is on it',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<p><a href="http://localhost/users/pingou">@pingou</a>'
+            ' is on it</p>',
+        )
+
+    def test_markdown_with_mention_at_start_with_comma(self):
+        res = self.app.get('/markdown', {
+            'text': '@kevin, thanks for that',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<p><a href="http://localhost/users/kevin">@kevin</a>'
+            ', thanks for that</p>',
+        )
+
+    def test_markdown_with_mention_with_numbers(self):
+        res = self.app.get('/markdown', {
+            'text': 'I vote for @number80',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<p>I vote for '
+            '<a href="http://localhost/users/number80">@number80</a></p>',
+        )
+
+    def test_markdown_with_bugzilla(self):
+        res = self.app.get('/markdown', {
+            'text': 'Crazy.  #123 is still busted.',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<p>Crazy.  '
+            '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=123">'
+            '#123</a> is still busted.</p>',
+        )
+
     def test_metrics(self):
         res = self.app.get('/metrics')
         self.assertIn('$.plot', res)

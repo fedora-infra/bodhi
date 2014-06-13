@@ -33,15 +33,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
-# Hack out python-markdown to do the autolinking that we want.
-import markdown.inlinepatterns
-markdown.inlinepatterns.AUTOLINK_RE = '(%s)' % '|'.join([
-    r'<(?:f|ht)tps?://[^>]*>',
-    r'\b(?:f|ht)tps?://[^)<>\s]+[^.,)<>\s]',
-    r'\bwww\.[^)<>\s]+[^.,)<>\s]',
-    r'[^(<\s]+\.(?:com|net|org)\b',
-])
-
+# TODO -- someday move this externally to "fedora_flavored_markdown"
+import bodhi.ffmarkdown
+bodhi.ffmarkdown.inject()
 
 #
 # Request methods
