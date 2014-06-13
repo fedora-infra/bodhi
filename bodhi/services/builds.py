@@ -92,4 +92,10 @@ def query_builds(request):
     pages = int(math.ceil(total / float(rows_per_page)))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(builds=query.all())
+    return dict(
+        builds=query.all(),
+        page=page,
+        pages=pages,
+        rows_per_page=rows_per_page,
+        total=total,
+    )

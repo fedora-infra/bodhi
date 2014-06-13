@@ -145,7 +145,13 @@ def query_releases_json(request):
     pages = int(math.ceil(total / float(rows_per_page)))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(releases=query.all())
+    return dict(
+        releases=query.all(),
+        page=page,
+        pages=pages,
+        rows_per_page=rows_per_page,
+        total=total,
+    )
 
 @releases.post(schema=bodhi.schemas.SaveReleaseSchema,
                acl=bodhi.security.admin_only_acl, renderer='json',
