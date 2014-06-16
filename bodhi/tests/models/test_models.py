@@ -52,7 +52,6 @@ class TestRelease(ModelTest):
         pending_stable_tag=u"dist-f11-updates-pending",
         override_tag=u"dist-f11-override",
         state=model.ReleaseState.current,
-        metrics={'test_metric': [0, 1, 2, 3, 4]}
         )
 
     def test_version_int(self):

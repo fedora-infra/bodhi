@@ -210,6 +210,7 @@ def load_sqlalchemy_db():
             try:
                 db.query(Release).filter_by(name=release['name']).one()
             except NoResultFound:
+                del(release['metrics'])
                 r = Release(**release)
                 db.add(r)
         data = data['updates']

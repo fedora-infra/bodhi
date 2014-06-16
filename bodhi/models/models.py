@@ -218,7 +218,7 @@ user_package_table = Table('user_package_table', metadata,
 
 class Release(Base):
     __tablename__ = 'releases'
-    __exclude_columns__ = ('id', 'metrics', 'builds')
+    __exclude_columns__ = ('id', 'builds')
     __get_by__ = ('name', 'long_name', 'dist_tag')
 
     name = Column(Unicode(10), unique=True, nullable=False)
@@ -236,8 +236,6 @@ class Release(Base):
     override_tag = Column(UnicodeText, nullable=False)
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
-
-    metrics = Column(PickleType, default=None)
 
     @property
     def version_int(self):
@@ -1065,7 +1063,6 @@ class Update(Base):
             update=self,
             agent=os.getlogin(),  # Should almost always be "masher"
         ))
-
 
     def modify_bugs(self):
         """
