@@ -242,26 +242,22 @@ class DevBuildsys(Buildsystem):
                 'maven_include_all': False, 'perm_id': None}
 
 
-def koji_login(config, client=None, clientca=None, serverca=None):
-    """
-    Login to Koji and return the session
-    """
-    if not client:
-        client = config.get('client_cert')
-        if not client:
-            client = join(expanduser('~'), '.fedora.cert')
-    if not clientca:
-        clientca = config.get('clientca_cert')
-        if not clientca:
-            clientca = join(expanduser('~'), '.fedora-upload-ca.cert')
-    if not serverca:
-        serverca = config.get('serverca_cert')
-        if not serverca:
-            serverca = join(expanduser('~'), '.fedora-server-ca.cert')
-
+def koji_login(config):
+    """ Login to Koji and return the session """
     koji_client = koji.ClientSession(_koji_hub, {})
-    koji_client.ssl_login(client, clientca, serverca)
+    if not koji_client.ssl_login(*get_certs(config)):
+        log.error('Koji ssl_login failed')
     return koji_client
+
+
+def get_certs(config):
+    """ Return paths to the local certs needed log into koji """
+    client = config.get('client_cert', join(expanduser('~'), '.fedora.cert'))
+    clientca = config.get('clientca_cert', join(expanduser('~'),
+                          '.fedora-upload-ca.cert'))
+    serverca = config.get('serverca_cert', join(expanduser('~'),
+                          '.fedora-server-ca.cert'))
+    return client, clientca, serverca
 
 
 def get_session():
