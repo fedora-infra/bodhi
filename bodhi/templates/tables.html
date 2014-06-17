@@ -36,3 +36,42 @@
     </tbody>
   </table>
 </%def>
+<%def name="overrides(overrides)">
+  <table class="table">
+    <thead><tr>
+        <th>Override</th>
+        <th class="nobreak">Age</th>
+        <th class="nobreak">Submitter</th>
+        <th class="hidejs">Status</th>
+    </tr></thead>
+    <tbody>
+    % for override in overrides:
+    <tr>
+      <td>
+        <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
+          ${override['build']['nvr']}
+        </a>
+      </td>
+      <td class="nobreak">
+        <span title="${override['submission_date']} UTC">
+          ${util.age(override['submission_date'], True)}
+        </span>
+      </td>
+      <td class="nobreak">
+        <a href="${request.route_url('user', name=override['submitter']['name'])}">
+          <img class="img-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
+          ${override['submitter']['name']}
+        </a>
+      </td>
+      <td class="hidejs">
+        % if override['expired_date'] is None:
+        Active
+        % else:
+        Expired
+        % endif
+      </td>
+    </tr>
+    % endfor
+    </tbody>
+  </table>
+</%def>

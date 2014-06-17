@@ -72,11 +72,11 @@ def get_override(request):
                validators=(validate_packages, validate_releases,
                            validate_username)
                )
-#@overrides.get(schema=bodhi.schemas.ListOverrideSchema,
-#               accept=('text/html'), renderer='overrides.html',
-#               validators=(validate_packages, validate_releases,
-#                           validate_username)
-#               )
+@overrides.get(schema=bodhi.schemas.ListOverrideSchema,
+               accept=('text/html'), renderer='overrides.html',
+               validators=(validate_packages, validate_releases,
+                           validate_username)
+               )
 def query_overrides(request):
     db = request.db
     data = request.validated
