@@ -250,7 +250,7 @@ def koji_login(config, client=None, clientca=None, serverca=None):
     """
     Login to Koji and return the session
     """
-    global _koji_hub, _koji_session
+    global _koji_session
     if not client:
         client = config.get('client_cert')
         if not client:
@@ -264,7 +264,6 @@ def koji_login(config, client=None, clientca=None, serverca=None):
         if not serverca:
             serverca = join(expanduser('~'), '.fedora-server-ca.cert')
 
-    _koji_hub = config.get('koji_hub')
     koji_client = koji.ClientSession(_koji_hub, {})
     koji_client.ssl_login(client, clientca, serverca)
     _koji_session = koji_client.sinfo
@@ -292,6 +291,8 @@ def setup_buildsystem(settings):
     global _buildsystem, _koji_session, _koji_hub
     if _buildsystem:
         return
+
+    _koji_hub = settings.get('koji_hub')
     buildsys = settings.get('buildsystem')
     if buildsys == 'koji':
         log.debug('Using Koji Buildsystem')
