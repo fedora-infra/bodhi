@@ -13,7 +13,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import time
-import atexit
 import logging
 
 from os.path import join, expanduser
@@ -274,14 +273,6 @@ def get_session():
     return _buildsystem()
 
 
-def close_session():
-    koji = get_session()
-    try:
-        koji.logout()
-    except Exception, e:
-        log.debug('Exception while closing koji session: %s' % e)
-
-
 def setup_buildsystem(settings):
     global _buildsystem, _koji_hub
     if _buildsystem:
@@ -293,7 +284,6 @@ def setup_buildsystem(settings):
     if buildsys == 'koji':
         log.debug('Using Koji Buildsystem')
         _buildsystem = lambda: koji_login(config=settings)
-        atexit.register(close_session)
 
     elif buildsys in ('dev', 'dummy', None):
         log.debug('Using DevBuildsys')
