@@ -480,15 +480,24 @@ def update2html(context, update):
 
 
 def pages_list(context, page, pages):
-    pager_margin = 10
-    half = pager_margin / 2
+    margin = 4
+    num_pages = (2 * margin) + 1
 
-    if page <= half:
-        return range(1, pager_margin)
-    elif page > pages - half:
-        return range(pages - pager_margin + 2, pages + 1)
+    if page <= margin + 1:
+        # Current `page` is close to the beginning of `pages`
+        min_page = 1
+        max_page = min(pages, num_pages)
 
-    return range(page - half + 1, page + half)
+    elif (pages - page) >= margin:
+        min_page = max(page - margin, 1)
+        max_page = min(page + margin, pages)
+
+    else:
+        # Current `page` is close to the end of `pages`
+        max_page = min(pages, page + margin)
+        min_page = max(max_page - (num_pages - 1), 1)
+
+    return range(min_page, max_page + 1)
 
 
 def page_url(context, page):
