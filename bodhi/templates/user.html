@@ -73,6 +73,49 @@
       </tbody>
     </table>
   </div>
+  %endif
+  %if user['recent_overrides']:
+  <div class="col-md-12">
+    <div>
+      <h3 class="pull-left nomargin nopadding">${user['name']}'s latest buildroot overrides</h3>
+      <div class="pull-right">
+        <a href="${request.route_url('overrides')}?submitter=${user['name']}">
+          View all ${len(user['user'].buildroot_overrides)}
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </div>
+    </div>
+    <table class="table">
+      <thead><tr>
+          <th>Override</th>
+          <th>Age</th>
+          <th>Status</th>
+      </tr></thead>
+      <tbody>
+      % for override in user['recent_overrides']:
+        <tr>
+          <td>
+            <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
+              ${override['build']['nvr']}
+            </a>
+          </td>
+          <td>
+            <span title="${override['submission_date']} UTC">
+              ${self.util.age(override['submission_date'], True)}
+            </span>
+          </td>
+          <td>
+            % if override['expired_date'] is None:
+            Active
+            % else:
+            Expired
+            % endif
+          </td>
+        </tr>
+      % endfor
+      </tbody>
+    </table>
+  </div>
   % endif
 </div>
 
