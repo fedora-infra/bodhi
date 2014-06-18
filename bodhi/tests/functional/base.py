@@ -72,7 +72,19 @@ class BaseWSGICase(unittest.TestCase):
     }
 
     def setUp(self):
-        engine = create_engine('sqlite://')
+        faitout = 'http://209.132.184.152/faitout/'
+        db_path = 'sqlite://'
+        try:
+            import requests
+            req = requests.get('%s/new' % faitout)
+            if req.status_code == 200:
+                db_path = req.text
+                print 'Using faitout at: %s' % db_path
+        except:
+            pass
+
+        self.app_settings['sqlalchemy.url'] = db_path
+        engine = create_engine(db_path)
         DBSession.configure(bind=engine)
         log.debug('Creating all models for %s' % engine)
         Base.metadata.create_all(engine)
