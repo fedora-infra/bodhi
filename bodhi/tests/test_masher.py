@@ -87,6 +87,8 @@ class TestMasher(unittest.TestCase):
             if req.status_code == 200:
                 db_path = req.text
                 print 'Using faitout at: %s' % db_path
+            else:
+                raise
         except:
             fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
             db_path = 'sqlite:///%s' self.db_filename
