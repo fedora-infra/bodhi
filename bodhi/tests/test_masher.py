@@ -79,8 +79,18 @@ def transactional_session_maker():
 class TestMasher(unittest.TestCase):
 
     def setUp(self):
-        fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
-        engine = create_engine('sqlite:///%s' % self.db_filename)
+        self.db_filename = None
+        faitout = 'http://209.132.184.152/faitout/'
+        try:
+            import requests
+            req = requests.get('%s/new' % faitout)
+            if req.status_code == 200:
+                db_path = req.text
+                print 'Using faitout at: %s' % db_path
+        except:
+            fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
+            db_path = 'sqlite:///%s' self.db_filename
+        engine = create_engine(db_path)
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
         self.db_factory = transactional_session_maker
