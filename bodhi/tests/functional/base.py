@@ -39,6 +39,19 @@ from bodhi.models import (
     TestCase,
 )
 
+FAITOUT = 'http://209.132.184.152/faitout/'
+DB_PATH = 'sqlite://'
+DB_NAME = None
+try:
+    import requests
+    req = requests.get('%s/new' % FAITOUT)
+    if req.status_code == 200:
+        DB_PATH = req.text
+        DB_NAME = DB_PATH.rsplit('/', 1)[1]
+        print 'Using faitout at: %s' % DB_PATH
+except:
+    pass
+
 
 class BaseWSGICase(unittest.TestCase):
     app_settings = {
@@ -72,19 +85,8 @@ class BaseWSGICase(unittest.TestCase):
     }
 
     def setUp(self):
-        faitout = 'http://209.132.184.152/faitout/'
-        db_path = 'sqlite://'
-        try:
-            import requests
-            req = requests.get('%s/new' % faitout)
-            if req.status_code == 200:
-                db_path = req.text
-                print 'Using faitout at: %s' % db_path
-        except:
-            pass
-
-        self.app_settings['sqlalchemy.url'] = db_path
-        engine = create_engine(db_path)
+        self.app_settings['sqlalchemy.url'] = DB_PATH
+        engine = create_engine(DB_PATH)
         DBSession.configure(bind=engine)
         log.debug('Creating all models for %s' % engine)
         Base.metadata.create_all(engine)
@@ -103,6 +105,12 @@ class BaseWSGICase(unittest.TestCase):
         log.debug('Removing session')
         #self.db.remove()
         DBSession.remove()
+        if DB_NAME:
+            try:
+                import requests
+                req = requests.get('%s/clean/%s' % (FAITOUT, DB_NAME))
+            except:
+                pass
 
     def populate(self):
         user = User(name=u'guest')
