@@ -470,17 +470,6 @@ class Build(Base):
             i += 1
         return str
 
-    def get_srpm_path(self):
-        """ Return the path to the SRPM for this update """
-        src_path = self.get_source_path()
-        path = src_path.split('/')
-        srpm = os.path.join(
-            src_path, "src", "%s.src.rpm" % ('-'.join(path[-3:])))
-        if not os.path.isfile(srpm):
-            log.debug("Cannot find SRPM: %s" % srpm)
-            raise RPMNotFound
-        return srpm
-
     def get_source_path(self):
         """ Return the path of this built update """
         return os.path.join(config.get('build_dir'), *get_nvr(self.nvr))
