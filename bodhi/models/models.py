@@ -441,21 +441,6 @@ class Build(Base):
                 break
         return latest
 
-    def get_latest_srpm(self):
-        latest = get_nvr(self.get_latest())
-        latest_srpm = None
-        if latest:
-            srpm_path = os.path.join(config.get('build_dir'), latest[0],
-                             latest[1], latest[2], 'src',
-                             '%s.src.rpm' % '-'.join(latest))
-            latest_srpm = srpm_path
-            if os.path.isfile(srpm_path):
-                log.debug("Latest build before %s: %s" % (self.nvr,
-                                                          srpm_path))
-            else:
-                log.warning("Latest build %s not found" % srpm_path)
-        return latest_srpm
-
     def get_url(self):
         """ Return a the url to details about this build """
         return '/' + self.nvr

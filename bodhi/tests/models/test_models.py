@@ -147,10 +147,6 @@ class TestBuild(ModelTest):
     #    self.obj.nvr = 'TurboGears-1.0.8-8.fc11'
     #    eq_(self.obj.get_latest(), None)
 
-    #def test_latest_srpm(self):
-    #    eq_(self.obj.get_latest_srpm(), os.path.join(config.get('build_dir'),
-    #        'TurboGears/1.0.8/7.fc11/src/TurboGears-1.0.8-7.fc11.src.rpm'))
-
     def test_url(self):
         eq_(self.obj.get_url(), '/TurboGears-1.0.8-3.fc11')
 
