@@ -17,7 +17,6 @@ import logging
 from textwrap import wrap
 from kitchen.text.converters import to_unicode
 
-from bodhi.util import rpm_fileheader
 from bodhi.exceptions import RPMNotFound
 
 log = logging.getLogger(__name__)

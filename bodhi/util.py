@@ -63,23 +63,6 @@ header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
 
-def rpm_fileheader(pkgpath):
-    log.debug("Grabbing the rpm header of %s" % pkgpath)
-    is_oldrpm = hasattr(rpm, 'opendb')
-    try:
-        fd = os.open(pkgpath, 0)
-        if is_oldrpm:
-            h = rpm.headerFromPackage(fd)[0]
-        else:
-            ts = rpm.TransactionSet()
-            h = ts.hdrFromFdno(fd)
-            del ts
-    except (OSError, TypeError):
-        raise RPMNotFound
-    os.close(fd)
-    return h
-
-
 def get_nvr(nvr):
     """ Return the [ name, version, release ] a given name-ver-rel. """
     x = nvr.split('-')
