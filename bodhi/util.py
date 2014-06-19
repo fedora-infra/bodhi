@@ -40,7 +40,7 @@ from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
 
 from . import log, buildsys
-from .exceptions import RPMNotFound, RepodataException
+from .exceptions import RepodataException
 from .config import config
 
 try:

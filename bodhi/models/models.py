@@ -44,7 +44,7 @@ from bodhi.util import (
 
 from bodhi.util import get_age_in_days, avatar as get_avatar
 from bodhi.models.enum import DeclEnum, EnumSymbol
-from bodhi.exceptions import LockedUpdateException, RPMNotFound
+from bodhi.exceptions import LockedUpdateException
 from bodhi.config import config
 from bodhi.bugs import bugtracker
 
