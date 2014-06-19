@@ -57,7 +57,7 @@ if os.environ.get('BUILD_ID'):
 
 class BaseWSGICase(unittest.TestCase):
     app_settings = {
-        'sqlalchemy.url': 'sqlite://',
+        'sqlalchemy.url': DB_PATH,
         'mako.directories': 'bodhi:templates',
         'session.type': 'memory',
         'session.key': 'testing',
@@ -87,7 +87,6 @@ class BaseWSGICase(unittest.TestCase):
     }
 
     def setUp(self):
-        self.app_settings['sqlalchemy.url'] = DB_PATH
         engine = create_engine(DB_PATH)
         DBSession.configure(bind=engine)
         log.debug('Creating all models for %s' % engine)
