@@ -64,6 +64,10 @@ Form.prototype.success = function(data) {
         }
     });
 
+    // And the colors..
+    $('#new_comment tr.success').removeClass('success');
+    $('#new_comment tr.danger').removeClass('danger');
+
     // And the preview.
     $('#preview').html('');
 
