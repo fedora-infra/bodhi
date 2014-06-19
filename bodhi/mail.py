@@ -17,7 +17,7 @@ import logging
 from textwrap import wrap
 from kitchen.text.converters import to_unicode
 
-from bodhi.exceptions import RPMNotFound
+from .util import get_rpm_header
 
 log = logging.getLogger(__name__)
 
@@ -303,7 +303,7 @@ def get_template(update, use_template='fedora_errata_template'):
     templates = []
 
     for build in update.builds:
-        h = build.get_rpm_header()
+        h = get_rpm_header(build.nvr)
         info = {}
         info['date'] = str(update.date_pushed)
         info['name'] = h['name']
@@ -365,7 +365,7 @@ def get_template(update, use_template='fedora_errata_template'):
         # Grab the RPM header of the previous update, and generate a ChangeLog
         info['changelog'] = u""
         try:
-            oldh = rpm_fileheader(lastpkg)
+            oldh = get_rpm_header(lastpkg)
             oldtime = oldh['changelogtime']
             text = oldh['changelogtext']
             del oldh
@@ -375,9 +375,6 @@ def get_template(update, use_template='fedora_errata_template'):
                 oldtime = oldtime[0]
             info['changelog'] = u"ChangeLog:\n\n%s%s" % \
                     (to_unicode(build.get_changelog(oldtime)), line)
-        except RPMNotFound:
-            log.error("Cannot find 'latest' RPM for generating ChangeLog: %s" %
-                      lastpkg)
         except Exception, e:
             log.error("Unknown exception thrown during ChangeLog generation: %s"
                       % str(e))

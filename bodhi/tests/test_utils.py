@@ -13,7 +13,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from bodhi.models import Update
-from bodhi.util import get_db_from_config, get_critpath_pkgs, markup
+from bodhi.util import (get_db_from_config, get_critpath_pkgs, markup,
+                        get_rpm_header)
 from bodhi.config import config
 
 
@@ -38,3 +39,8 @@ class TestUtils(object):
         text = '<b>bold</b>'
         html = markup(None, text)
         assert html == '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>', html
+
+    def test_rpm_header(self):
+        h = get_rpm_header('')
+        assert h['name'] == 'libseccomp', h
+

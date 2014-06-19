@@ -39,7 +39,7 @@ from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
 
-from . import log
+from . import log, buildsys
 from .exceptions import RPMNotFound, RepodataException
 from .config import config
 
@@ -61,6 +61,17 @@ _ = TranslationStringFactory('bodhi')
 header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
+
+
+def get_rpm_header(nvr):
+    """ Get the rpm header for a given build """
+    rpmID = nvr + '.x86_64'
+    headers = [
+        'name', 'summary', 'version', 'release', 'url', 'description',
+        'changelogtime', 'changelogname', 'changelogtext',
+    ]
+    koji_session = buildsys.get_session()
+    return koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
 
 
 def get_nvr(nvr):

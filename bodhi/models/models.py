@@ -39,7 +39,7 @@ from pyramid.settings import asbool
 from bodhi import buildsys, mail, notifications
 from bodhi.util import (
     header, build_evr, get_nvr, flash_log,
-    get_age, get_critpath_pkgs,
+    get_age, get_critpath_pkgs, get_rpm_header
 )
 
 from bodhi.util import get_age_in_days, avatar as get_avatar
@@ -460,22 +460,12 @@ class Build(Base):
         """ Return a the url to details about this build """
         return '/' + self.nvr
 
-    def get_rpm_header(self):
-        """ Get the rpm header of this build """
-        rpmID = self.nvr + '.x86_64'
-        headers = [
-            'name', 'summary', 'version', 'release', 'url', 'description',
-            'changelogtime', 'changelogname', 'changelogtext',
-        ]
-        koji_session = buildsys.get_session()
-        return koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
-
     def get_changelog(self, timelimit=0):
         """
         Retrieve the RPM changelog of this package since it's last update
         """
-        rpm_header = self.get_rpm_header()
-        descrip = rpm_header[rpm.RPMTAG_CHANGELOGTEXT]
+        rpm_header = get_rpm_header(self.nvr)
+        descrip = rpm_header['changelogtext']
         if not descrip:
             return ""
 

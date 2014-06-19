@@ -135,10 +135,6 @@ class TestBuild(ModelTest):
         eq_(len(self.obj.package.builds), 1)
         eq_(self.obj.package.builds[0], self.obj)
 
-    def test_rpm_headers(self):
-        h = self.obj.get_rpm_header()
-        eq_(h['name'], 'libseccomp')
-
     #def test_latest(self):
     #    # Note, this build is hardcoded in bodhi/buildsys.py:DevBuildsys
     #    eq_(self.obj.get_latest(), u"TurboGears-1.0.8-7.fc11")
