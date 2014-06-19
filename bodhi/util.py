@@ -80,17 +80,6 @@ def rpm_fileheader(pkgpath):
     return h
 
 
-def excluded_arch(rpmheader, arch):
-    """
-    Determine if an RPM should be excluded from a given architecture, either
-    if it is explicitly marked as ExcludeArch, or if it is Exclusive to another
-    """
-    excluded = rpmheader[rpm.RPMTAG_EXCLUDEARCH]
-    exclusive = rpmheader[rpm.RPMTAG_EXCLUSIVEARCH]
-    return (excluded and arch in excluded) or \
-           (exclusive and arch not in exclusive)
-
-
 def get_nvr(nvr):
     """ Return the [ name, version, release ] a given name-ver-rel. """
     x = nvr.split('-')
