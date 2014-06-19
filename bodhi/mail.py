@@ -21,12 +21,6 @@ from bodhi.exceptions import RPMNotFound
 
 log = logging.getLogger(__name__)
 
-try:
-    import rpm
-except ImportError:
-    log.warning("Could not import 'rpm'")
-
-
 ##
 ## All of the email messages that bodhi is going to be sending around.
 ##
@@ -312,11 +306,11 @@ def get_template(update, use_template='fedora_errata_template'):
         h = build.get_rpm_header()
         info = {}
         info['date'] = str(update.date_pushed)
-        info['name'] = h[rpm.RPMTAG_NAME]
-        info['summary'] = h[rpm.RPMTAG_SUMMARY]
-        info['version'] = h[rpm.RPMTAG_VERSION]
-        info['release'] = h[rpm.RPMTAG_RELEASE]
-        info['url']     = h[rpm.RPMTAG_URL]
+        info['name'] = h['name']
+        info['summary'] = h['summary']
+        info['version'] = h['version']
+        info['release'] = h['release']
+        info['url']     = h['url']
         if update.status == 'testing':
             info['testing'] = ' Test'
             if update.release.name in ('F9', 'F8'):
@@ -331,7 +325,7 @@ def get_template(update, use_template='fedora_errata_template'):
                 update.type == 'security' and '[SECURITY] ' or '',
                 update.release.long_name, info['testing'], build.nvr)
         info['updateid'] = update.updateid
-        info['description'] = h[rpm.RPMTAG_DESCRIPTION]
+        info['description'] = h['description']
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
@@ -372,8 +366,8 @@ def get_template(update, use_template='fedora_errata_template'):
         info['changelog'] = u""
         try:
             oldh = rpm_fileheader(lastpkg)
-            oldtime = oldh[rpm.RPMTAG_CHANGELOGTIME]
-            text = oldh[rpm.RPMTAG_CHANGELOGTEXT]
+            oldtime = oldh['changelogtime']
+            text = oldh['changelogtext']
             del oldh
             if not text:
                 oldtime = 0

@@ -479,8 +479,8 @@ class Build(Base):
         if not descrip:
             return ""
 
-        who = rpm_header[rpm.RPMTAG_CHANGELOGNAME]
-        when = rpm_header[rpm.RPMTAG_CHANGELOGTIME]
+        who = rpm_header['changelogname']
+        when = rpm_header['changelogtime']
 
         num = len(descrip)
         if num == 1:
@@ -493,7 +493,6 @@ class Build(Base):
                                       time.localtime(when[i])), who[i],
                                       descrip[i])
             i += 1
-        del rpm_header
         return str
 
     def get_srpm_path(self):
