@@ -38,7 +38,7 @@ from pyramid.settings import asbool
 
 from bodhi import buildsys, mail, notifications
 from bodhi.util import (
-    header, build_evr, rpm_fileheader, get_nvr, flash_log,
+    header, build_evr, get_nvr, flash_log,
     get_age, get_critpath_pkgs,
 )
 
@@ -462,7 +462,13 @@ class Build(Base):
 
     def get_rpm_header(self):
         """ Get the rpm header of this build """
-        return rpm_fileheader(self.get_srpm_path())
+        rpmID = self.nvr + '.x86_64'
+        headers = [
+            'name', 'summary', 'version', 'release', 'url', 'description',
+            'changelogtime', 'changelogname', 'changelogtext',
+        ]
+        koji_session = buildsys.get_session()
+        return koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
 
     def get_changelog(self, timelimit=0):
         """
