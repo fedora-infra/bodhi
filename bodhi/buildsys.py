@@ -241,6 +241,45 @@ class DevBuildsys(Buildsystem):
                 'perm': None, 'id': 246, 'arches': None,
                 'maven_include_all': False, 'perm_id': None}
 
+    def getRPMHeaders(self, rpmID, headers):
+        return {
+            'description':
+                "The libseccomp library provides an easy to use interface to the "
+                "Linux Kernel's\nsyscall filtering mechanism, seccomp. The "
+                "libseccomp API allows an application\nto specify which "
+                "syscalls, and optionally which syscall arguments, the\n"
+                "application is allowed to execute, all of which are "
+                "enforced by the Linux\nKernel.",
+            'url': 'http://libseccomp.sourceforge.net',
+            'changelogname': [
+                'Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
+                'Paul Moore <pmoore@redhat.com> - 2.1.0-0',
+                'Paul Moore <pmoore@redhat.com> - 2.0.0-0',
+                'Paul Moore <pmoore@redhat.com> - 1.0.1-0',
+                'Paul Moore <pmoore@redhat.com> - 1.0.0-0',
+                'Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.1.0-2',
+                'Paul Moore <pmoore@redhat.com> - 0.1.0-1',
+                'Paul Moore <pmoore@redhat.com> - 0.1.0-0'],
+            'summary': 'Enhanced seccomp library',
+            'version': '2.1.0',
+            'changelogtime': [
+                1375531200, 1370952000, 1359374400, 1352808000, 1343736000,
+                1342699200, 1341921600, 1339502400],
+            'changelogtext': [
+                '- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild',
+                '- New upstream version\n- Added support for the ARM architecture\n'
+                '- Added the scmp_sys_resolver tool',
+                '- New upstream version',
+                '- New upstream version with several important fixes',
+                '- New upstream version\n- Remove verbose build patch as it is no '
+                'longer needed\n- Enable _smp_mflags during build stage',
+                '- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild',
+                '- Limit package to x86/x86_64 platforms (RHBZ #837888)',
+                '- Initial version'],
+            'release': '1.fc20',
+            'name': 'libseccomp'
+        }
+
 
 def koji_login(config):
     """ Login to Koji and return the session """
