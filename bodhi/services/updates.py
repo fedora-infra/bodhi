@@ -76,32 +76,16 @@ def set_request(request):
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/json', 'text/json'), renderer='json',
-             validators=(
-                 validate_releases,
-                 validate_enums,
-                 validate_username,
-             ))
+             validators=(validate_releases, validate_enums, validate_username))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/javascript'), renderer='jsonp',
-             validators=(
-                 validate_releases,
-                 validate_enums,
-                 validate_username,
-             ))
+             validators=(validate_releases, validate_enums, validate_username))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/rss'), renderer='rss',
-             validators=(
-                 validate_releases,
-                 validate_enums,
-                 validate_username,
-             ))
+             validators=(validate_releases, validate_enums, validate_username))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('text/html'), renderer='updates.html',
-             validators=(
-                 validate_releases,
-                 validate_enums,
-                 validate_username,
-             ))
+             validators=(validate_releases, validate_enums, validate_username))
 def query_updates(request):
     db = request.db
     data = request.validated
