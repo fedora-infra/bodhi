@@ -43,6 +43,9 @@ from bodhi.models import (
 FAITOUT = 'http://209.132.184.152/faitout/'
 DB_PATH = 'sqlite://'
 DB_NAME = None
+# The BUILD_ID environment variable is set by Jenkins and allows us to detect if
+# we are running the tests in jenkins or not
+# https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
 if os.environ.get('BUILD_ID'):
     try:
         import requests
