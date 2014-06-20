@@ -79,19 +79,24 @@ def transactional_session_maker():
 class TestMasher(unittest.TestCase):
 
     def setUp(self):
-        self.db_filename = None
-        faitout = 'http://209.132.184.152/faitout/'
-        try:
-            import requests
-            req = requests.get('%s/new' % faitout)
-            if req.status_code == 200:
-                db_path = req.text
-                print 'Using faitout at: %s' % db_path
-            else:
-                raise
-        except:
-            fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
-            db_path = 'sqlite:///%s' self.db_filename
+        fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
+        db_path = 'sqlite:///%s' self.db_filename
+        # The BUILD_ID environment variable is set by Jenkins and allows us to
+        # detect if
+        # we are running the tests in jenkins or not
+        # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
+        if os.environ.get('BUILD_ID'):
+            faitout = 'http://209.132.184.152/faitout/'
+            try:
+                import requests
+                req = requests.get('%s/new' % faitout)
+                if req.status_code == 200:
+                    db_path = req.text
+                    print 'Using faitout at: %s' % db_path
+                else:
+                    raise
+            except:
+                pass
         engine = create_engine(db_path)
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
