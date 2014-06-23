@@ -48,9 +48,11 @@ class Bugzilla(BugTracker):
         password = config.get('bodhi_password', None)
         if user and password:
             self.bz = bugzilla.Bugzilla(url=config.get("bz_server"),
-                                        user=user, password=password)
+                                        user=user, password=password,
+                                        cookiefile=None, tokenfile=None)
         else:
-            self.bz = bugzilla.Bugzilla(url=config.get("bz_server"))
+            self.bz = bugzilla.Bugzilla(url=config.get("bz_server"),
+                                        cookiefile=None, tokenfile=None)
 
     def get_url(self, bug_id):
         return "%s/show_bug.cgi?id=%s" % (config['bz_baseurl'], bug_id)
