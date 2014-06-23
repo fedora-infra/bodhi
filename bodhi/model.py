@@ -1444,7 +1444,7 @@ class Bugzilla(SQLObject):
         me = config.get('bodhi_email')
         password = config.get('bodhi_password', None)
         cookie = config.get('bz_cookie', None)
-        cookie = config.get('bz_token', None)
+        token = config.get('bz_token', None)
         if me and password:
             options = dict(url=config.get("bz_server"), user=me,
                            password=password, cookiefile=cookie,
