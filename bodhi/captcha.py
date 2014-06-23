@@ -79,7 +79,12 @@ def jpeg_generator(plainkey, settings):
 
 def validate(request, cipherkey, value):
     settings = request.registry.settings
-    plainkey = decrypt(cipherkey, settings)
+
+    try:
+        plainkey = decrypt(cipherkey, settings)
+    except cryptography.fernet.InvalidToken:
+        return False
+
     _, expected_value = math_generator(plainkey=plainkey, settings=settings)
     return value == expected_value
 
@@ -106,7 +111,7 @@ def decrypt(ciphertext, settings):
     if isinstance(ciphertext, six.text_type):
         ciphertext = ciphertext.encode('utf-8')
     ciphertext = base64.urlsafe_b64decode(ciphertext)
-    plaintext = engine.decrypt(ciphertext)
+    plaintext = engine.decrypt(ciphertext, ttl=int(settings['captcha.ttl']))
     return plaintext.decode('utf-8')
 
 
