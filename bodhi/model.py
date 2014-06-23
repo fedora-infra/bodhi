@@ -1443,12 +1443,15 @@ class Bugzilla(SQLObject):
     def get_bz():
         me = config.get('bodhi_email')
         password = config.get('bodhi_password', None)
-        cookie = config.get('bz_cookie')
+        cookie = config.get('bz_cookie', None)
+        cookie = config.get('bz_token', None)
         if me and password:
             options = dict(url=config.get("bz_server"), user=me,
-                           password=password, cookiefile=cookie)
+                           password=password, cookiefile=cookie,
+                           tokenfile=token)
         else:
-            options = dict(url=config.get("bz_server"), cookiefile=cookie)
+            options = dict(url=config.get("bz_server"), cookiefile=cookie,
+                           tokenfile=token)
         try:
             bz = bugzilla.Bugzilla(**options)
         except cookielib.LoadError:
