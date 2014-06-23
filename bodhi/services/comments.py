@@ -20,6 +20,7 @@ from sqlalchemy.sql import or_
 
 from bodhi import log
 from bodhi.models import Comment, Build, Bug, CVE, Package, Update
+import bodhi.captcha
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -150,16 +151,38 @@ def query_comments(request):
                ))
 def new_comment(request):
     """ Add a new comment to an update. """
+    settings = request.registry.settings
     data = request.validated
     update = data.pop('update')
     email = data.pop('email', None)
     author = email or (request.user and request.user.name)
     anonymous = bool(email) or not author
+    key = data.pop('captcha_key')
+    value = data.pop('captcha_value')
 
     if not author:
         request.errors.add('body', 'email', 'You must provide an author')
         request.errors.status = HTTPBadRequest.code
         return
+
+    if anonymous and settings.get('captcha.secret'):
+        if not key:
+            request.errors.add('body', 'captcha_key',
+                               'You must provide a captcha_key.')
+            request.errors.status = HTTPBadRequest.code
+            return
+
+        if not value:
+            request.errors.add('body', 'captcha_value',
+                               'You must provide a captcha_value.')
+            request.errors.status = HTTPBadRequest.code
+            return
+
+        if not bodhi.captcha.validate(request, key, value):
+            request.errors.add('body', 'captcha_value',
+                               'Incorrect response to the captcha.')
+            request.errors.status = HTTPBadRequest.code
+            return
 
     try:
         com = update.comment(author=author, anonymous=anonymous, **data)

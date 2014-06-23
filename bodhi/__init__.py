@@ -127,8 +127,9 @@ def main(global_config, testing=None, **settings):
     config.add_mako_renderer('.html', settings_prefix='mako.')
     config.add_static_view('static', 'bodhi:static')
 
-    from bodhi.renderers import rss
+    from bodhi.renderers import rss, jpeg
     config.add_renderer('rss', rss)
+    config.add_renderer('jpeg', jpeg)
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 
     # i18n
@@ -160,6 +161,8 @@ def main(global_config, testing=None, **settings):
     config.add_route('search_packages', '/search/packages')
     config.add_route('latest_candidates', '/latest_candidates')
 
+    config.add_route('captcha_image', '/captcha/{cipherkey}/')
+
     # pyramid.openid
     config.add_route('login', '/login')
     config.add_view('bodhi.security.login', route_name='login')
@@ -171,5 +174,6 @@ def main(global_config, testing=None, **settings):
 
     config.scan('bodhi.views')
     config.scan('bodhi.services')
+    config.scan('bodhi.captcha')
 
     return config.make_wsgi_app()

@@ -34,6 +34,10 @@ requires = [
 
     'bunch',
 
+    # for captchas
+    'cryptography',
+    'PIL',
+
     # Useful tools
     'kitchen',
     'python-fedora',

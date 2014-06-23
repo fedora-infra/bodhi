@@ -1,4 +1,5 @@
 <%inherit file="master.html"/>
+<%namespace name="captcha" module="bodhi.captcha"/>
 
 <script type="text/javascript">
 var form;
@@ -243,34 +244,62 @@ $(document).ready(function(){
       <div class="row">
         <div class="col-md-6">
 
-          % if not request.user:
           <div class="form-group">
-            <label for="email" class="col-sm-1 control-label">Email</label>
-            <div class="col-sm-5">
-              <input class="form-control" id="email" name="email" type="email"
-              placeholder="email@address.org" required="true"></input>
-              <div class="hidden alert alert-danger" for="email">
-                <strong></strong> <span class="error"></span>
+
+            % if not request.user:
+            <div class="row">
+              <label for="email" class="col-sm-2 control-label">Email</label>
+              <div class="col-sm-10">
+                <input class="form-control" id="email" name="email" type="email"
+                placeholder="email@address.org" required="true"></input>
+                <div class="hidden alert alert-danger" for="email">
+                  <strong></strong> <span class="error"></span>
+                </div>
               </div>
             </div>
-          </div>
-          % endif
+            % endif
 
-          <div class="form-group">
-            <label for="comment" class="col-sm-2 control-label">Comment</label>
-            <div class="col-sm-10">
-              <textarea class="form-control" id="text" name="text" rows="6"
-                placeholder="Comment..." required="true"></textarea>
-              <div class="hidden alert alert-danger" for="text">
-                <strong></strong> <span class="error"></span>
+            <div class="row">
+              <label for="comment" class="col-sm-2 control-label">Comment</label>
+              <div class="col-sm-10">
+                <textarea class="form-control" id="text" name="text" rows="6"
+                  placeholder="Comment..." required="true"></textarea>
+                <div class="hidden alert alert-danger" for="text">
+                  <strong></strong> <span class="error"></span>
+                </div>
               </div>
             </div>
-            <label for="preview" class="col-sm-2 control-label">Preview</label>
-            <div class="col-sm-10">
-              <span id="preview"><h3><small>Preview</small></h3></span>
-            </div>
-          </div>
 
+            <div class="row">
+              <label for="preview" class="col-sm-2 control-label">Preview</label>
+              <div class="col-sm-10">
+                <span id="preview"><h3><small>Preview</small></h3></span>
+              </div>
+            </div>
+
+
+            % if not request.user and request.registry.settings.get('captcha.secret', None):
+            <%
+              captcha_key, captcha_url = captcha.generate_captcha(request)
+            %>
+            <div class="row">
+              <label for="captcha_key" class="col-sm-2 control-label">Arithmetic</label>
+              <div class="col-sm-10">
+                <input type="hidden" name="captcha_key" value="${captcha_key}"/>
+                <img class="image centered" src="${captcha_url}"/>
+              </div>
+            </div>
+
+            <div class="row">
+              <label for="captcha_value" class="col-sm-2 control-label">Solution</label>
+              <div class="col-sm-10">
+                <input class="form-control" id="captcha_value" name="captcha_value"
+                placeholder="prove that you're a human" required="true"></input>
+              </div>
+            </div>
+            % endif
+
+          </div><! -- end form-group -->
         </div>
         <div class="col-md-6">
 

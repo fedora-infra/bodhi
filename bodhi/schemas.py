@@ -107,11 +107,6 @@ class TestcaseFeedbacks(colander.SequenceSchema):
 class SaveCommentSchema(colander.MappingSchema):
     update = colander.SchemaNode(colander.String())
     text = colander.SchemaNode(colander.String())
-    email = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Email(),
-        missing=None,
-    )
     karma = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=-1, max=1),
@@ -124,6 +119,15 @@ class SaveCommentSchema(colander.MappingSchema):
     )
     bug_feedback = BugFeedbacks(missing=[])
     testcase_feedback = TestcaseFeedbacks(missing=[])
+
+    # Optional
+    captcha_key = colander.SchemaNode(colander.String(), missing=None)
+    captcha_value = colander.SchemaNode(colander.String(), missing=None)
+    email = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Email(),
+        missing=None,
+    )
 
 
 class SaveUpdateSchema(colander.MappingSchema):
