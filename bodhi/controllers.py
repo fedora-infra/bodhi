@@ -511,7 +511,7 @@ class Root(controllers.RootController):
             if not update.pushed:
                 msg = "Deleted %s" % update.title
                 update.expire_buildroot_overrides()
-                update.untag()
+                update.unpush()
                 map(lambda x: x.destroySelf(), update.comments)
                 for build in update.builds:
                     if len(build.updates) == 1:
