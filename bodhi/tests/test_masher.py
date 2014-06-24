@@ -93,8 +93,6 @@ class TestMasher(unittest.TestCase):
                 if req.status_code == 200:
                     db_path = req.text
                     print 'Using faitout at: %s' % db_path
-                else:
-                    raise
             except:
                 pass
         engine = create_engine(db_path)
