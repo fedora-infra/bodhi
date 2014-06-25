@@ -54,8 +54,8 @@ def jpeg_generator(plainkey, settings):
         int(settings.get('captcha.image_width', 300)),
         int(settings.get('captcha.image_height', 80)),
     )
-    font_path = settings.get('captcha.font_path',
-                             '/usr/share/fonts/hermit/hermit.ttf')
+    default_font = '/usr/share/fonts/liberation/LiberationMono-Regular.ttf'
+    font_path = settings.get('captcha.font_path', default_font)
     font_size = int(settings.get('captcha.font_size', 36))
     font_color = settings.get('captcha.font_color', '#000000')
     background_color = settings.get('captcha.background_color', '#ffffff')
