@@ -32,6 +32,7 @@ from bodhi.validators import (
     validate_username,
     validate_bug_feedback,
     validate_testcase_feedback,
+    validate_captcha,
 )
 
 
@@ -148,6 +149,7 @@ def query_comments(request):
                    validate_update,
                    validate_bug_feedback,
                    validate_testcase_feedback,
+                   validate_captcha,
                ))
 def new_comment(request):
     """ Add a new comment to an update. """
@@ -157,32 +159,11 @@ def new_comment(request):
     email = data.pop('email', None)
     author = email or (request.user and request.user.name)
     anonymous = bool(email) or not author
-    key = data.pop('captcha_key')
-    value = data.pop('captcha_value')
 
     if not author:
         request.errors.add('body', 'email', 'You must provide an author')
         request.errors.status = HTTPBadRequest.code
         return
-
-    if anonymous and settings.get('captcha.secret'):
-        if not key:
-            request.errors.add('body', 'captcha_key',
-                               'You must provide a captcha_key.')
-            request.errors.status = HTTPBadRequest.code
-            return
-
-        if not value:
-            request.errors.add('body', 'captcha_value',
-                               'You must provide a captcha_value.')
-            request.errors.status = HTTPBadRequest.code
-            return
-
-        if not bodhi.captcha.validate(request, key, value):
-            request.errors.add('body', 'captcha_value',
-                               'Incorrect response to the captcha.')
-            request.errors.status = HTTPBadRequest.code
-            return
 
     try:
         com = update.comment(author=author, anonymous=anonymous, **data)
