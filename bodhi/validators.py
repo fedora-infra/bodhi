@@ -17,6 +17,7 @@ from datetime import datetime
 from sqlalchemy.sql import or_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 
+from . import captcha
 from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
@@ -572,3 +573,36 @@ def validate_expiration_date(request):
         return
 
     request.validated['expiration_date'] = expiration_date
+
+
+def validate_captcha(request):
+    """ A validator for our captcha. """
+
+    settings = request.registry.settings
+    data = request.validated
+
+    email = data.get('email', None)
+    author = email or (request.user and request.user.name)
+    anonymous = bool(email) or not author
+
+    key = data.pop('captcha_key')
+    value = data.pop('captcha_value')
+
+    if anonymous and settings.get('captcha.secret'):
+        if not key:
+            request.errors.add('body', 'captcha_key',
+                               'You must provide a captcha_key.')
+            request.errors.status = HTTPBadRequest.code
+            return
+
+        if not value:
+            request.errors.add('body', 'captcha_value',
+                               'You must provide a captcha_value.')
+            request.errors.status = HTTPBadRequest.code
+            return
+
+        if not captcha.validate(request, key, value):
+            request.errors.add('body', 'captcha_value',
+                               'Incorrect response to the captcha.')
+            request.errors.status = HTTPBadRequest.code
+            return

@@ -20,6 +20,7 @@ from sqlalchemy.sql import or_
 
 from bodhi import log
 from bodhi.models import Comment, Build, Bug, CVE, Package, Update
+import bodhi.captcha
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -31,6 +32,7 @@ from bodhi.validators import (
     validate_username,
     validate_bug_feedback,
     validate_testcase_feedback,
+    validate_captcha,
 )
 
 
@@ -147,9 +149,11 @@ def query_comments(request):
                    validate_update,
                    validate_bug_feedback,
                    validate_testcase_feedback,
+                   validate_captcha,
                ))
 def new_comment(request):
     """ Add a new comment to an update. """
+    settings = request.registry.settings
     data = request.validated
     update = data.pop('update')
     email = data.pop('email', None)
