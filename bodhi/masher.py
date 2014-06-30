@@ -186,6 +186,8 @@ class MasherThread(threading.Thread):
             update = self.db.query(Update).filter_by(title=title).first()
             if update:
                 updates.append(update)
+        if not updates:
+            raise Exception('Unable to load updates: %r' % self.state['updates'])
         self.updates = updates
 
     def lock_updates(self):
