@@ -19,7 +19,7 @@ import fedmsg.consumers
 
 from collections import defaultdict
 
-from bodhi import log, buildsys, notifications
+from bodhi import log, buildsys, notifications, mail
 from bodhi.util import sorted_updates
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
@@ -57,7 +57,6 @@ Once mash is done:
     - Sanity check the repo
     - Flip the symlinks to the new repo
     - Generate and email stable update notices
-
     - Cache the new repodata
     - Wait for the repo to hit the master mirror
     - Update bugzillas
@@ -132,6 +131,7 @@ class MasherThread(threading.Thread):
         self.updates = set()
         self.add_tags = []
         self.move_tags = []
+        self.testing_digest = {}
         self.state = {
             'tagged': False,
             'updates': updates,
@@ -168,6 +168,7 @@ class MasherThread(threading.Thread):
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
                 #self.mash()
+                self.generate_testing_digest()
                 self.complete_requests()
 
             success = True
@@ -290,3 +291,20 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             if update.request:
                 update.request_complete()
+
+    def add_to_digest(self, update):
+        """Add an package to the digest dictionary.
+
+        {'release-id': {'build nvr': body text for build, ...}}
+        """
+        prefix = update.release.long_name
+        if prefix not in self.testing_digest:
+            self.testing_digest[prefix] = {}
+        for i, subbody in enumerate(mail.get_template(
+                update, use_template='maillist_template')):
+            self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
+
+    def generate_testing_digest(self):
+        for update in self.updates:
+            if update.request is UpdateRequest.testing:
+                self.add_to_digest(update)

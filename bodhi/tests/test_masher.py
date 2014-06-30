@@ -238,6 +238,32 @@ class TestMasher(unittest.TestCase):
         finally:
             t.remove_state()
 
+    def test_testing_digest(self):
+        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                         log, self.db_factory)
+        with self.db_factory() as session:
+            t.db = session
+            t.work()
+            t.db = None
+        self.assertEquals(t.testing_digest[u'Fedora 17'][u'bodhi-2.0-1.fc17'], """\
+================================================================================
+ libseccomp-2.1.0-1.fc20 (None)
+ Enhanced seccomp library
+--------------------------------------------------------------------------------
+Update Information:
+
+Useful details!
+--------------------------------------------------------------------------------
+References:
+
+  [ 1 ] Bug #12345 - None
+        https://bugzilla.redhat.com/show_bug.cgi?id=12345
+  [ 2 ] CVE-1985-0110
+        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110
+--------------------------------------------------------------------------------
+
+""")
+
     def populate(self, session):
         user = User(name=u'guest')
         session.add(user)
