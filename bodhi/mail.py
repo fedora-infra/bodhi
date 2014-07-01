@@ -362,7 +362,7 @@ def get_template(update, use_template='fedora_errata_template'):
 
         # Grab the RPM header of the previous update, and generate a ChangeLog
         info['changelog'] = u""
-        try:
+        if lastpkg:
             oldh = get_rpm_header(lastpkg)
             oldtime = oldh['changelogtime']
             text = oldh['changelogtext']
@@ -373,9 +373,6 @@ def get_template(update, use_template='fedora_errata_template'):
                 oldtime = oldtime[0]
             info['changelog'] = u"ChangeLog:\n\n%s%s" % \
                     (to_unicode(build.get_changelog(oldtime)), line)
-        except Exception, e:
-            log.error("Unknown exception thrown during ChangeLog generation: %s"
-                      % str(e))
 
         try:
             templates.append((info['subject'], use_template % info))
