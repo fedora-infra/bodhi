@@ -80,7 +80,7 @@ class TestMasher(unittest.TestCase):
 
     def setUp(self):
         fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
-        db_path = 'sqlite:///%s' self.db_filename
+        db_path = 'sqlite:///%s' % self.db_filename
         # The BUILD_ID environment variable is set by Jenkins and allows us to
         # detect if
         # we are running the tests in jenkins or not
