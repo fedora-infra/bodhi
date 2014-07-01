@@ -65,7 +65,7 @@ pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
 def get_rpm_header(nvr):
     """ Get the rpm header for a given build """
-    rpmID = nvr + '.x86_64'
+    rpmID = nvr + '.x86_64'  # FIXME: don't hardcode arch here
     headers = [
         'name', 'summary', 'version', 'release', 'url', 'description',
         'changelogtime', 'changelogname', 'changelogtext',
