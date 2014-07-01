@@ -322,7 +322,7 @@ def get_template(update, use_template='fedora_errata_template'):
         info['subject'] = u"%s%s%s Update: %s" % (
                 update.type is UpdateType.security and '[SECURITY] ' or '',
                 update.release.long_name, info['testing'], build.nvr)
-        info['updateid'] = update.updateid
+        info['updateid'] = update.alias
         info['description'] = h['description']
         info['product'] = update.release.long_name
         info['notes'] = ""
