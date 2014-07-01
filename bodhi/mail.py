@@ -380,7 +380,8 @@ def get_template(update, use_template='fedora_errata_template'):
             # We can't trust the strings we get from RPM
             log.debug("UnicodeDecodeError! Will try again after decoding")
             for (key, value) in info.items():
-                if value: info[key] = to_unicode(value)
+                if value:
+                    info[key] = to_unicode(value)
             templates.append((info['subject'], use_template % info))
 
     return templates
@@ -400,7 +401,7 @@ def send_mail(sender, to, subject, body):
 def send(to, msg_type, update, sender=None):
     """ Send an update notification email to a given recipient """
     # TODO: port to pyramid mail sender?
-    return 
+    return
 
     if not sender:
         sender = config.get('bodhi_email')

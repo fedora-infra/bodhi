@@ -43,4 +43,3 @@ class TestUtils(object):
     def test_rpm_header(self):
         h = get_rpm_header('')
         assert h['name'] == 'libseccomp', h
-
