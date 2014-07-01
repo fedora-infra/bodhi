@@ -298,6 +298,7 @@ def get_template(update, use_template='fedora_errata_template'):
     Build the update notice for a given update.
     @param use_template: the template to generate this notice with
     """
+    from bodhi.models import UpdateStatus, UpdateType
     use_template = globals()[use_template]
     line = unicode('-' * 80) + '\n'
     templates = []
@@ -311,7 +312,7 @@ def get_template(update, use_template='fedora_errata_template'):
         info['version'] = h['version']
         info['release'] = h['release']
         info['url']     = h['url']
-        if update.status == 'testing':
+        if update.status is UpdateStatus.testing:
             info['testing'] = ' Test'
             info['yum_repository'] = ' --enablerepo=updates-testing'
         else:
@@ -319,7 +320,7 @@ def get_template(update, use_template='fedora_errata_template'):
             info['yum_repository'] = ''
 
         info['subject'] = u"%s%s%s Update: %s" % (
-                update.type == 'security' and '[SECURITY] ' or '',
+                update.type is UpdateType.security and '[SECURITY] ' or '',
                 update.release.long_name, info['testing'], build.nvr)
         info['updateid'] = update.updateid
         info['description'] = h['description']
@@ -338,7 +339,7 @@ def get_template(update, use_template='fedora_errata_template'):
             parent = True in [bug.parent for bug in update.bugs]
             for bug in update.bugs:
                 # Don't show any tracker bugs for security updates
-                if update.type == 'security':
+                if update.type is UpdateType.security:
                     # If there is a parent bug, don't show trackers
                     if parent and not bug.parent:
                         log.debug("Skipping tracker bug %s" % bug)
