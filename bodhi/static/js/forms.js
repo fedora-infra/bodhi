@@ -15,7 +15,6 @@ Form.prototype.url = null;
 // into using "promises".
 //
 Form.prototype.start = function() {
-    var self = this;
     // TODO -- clear all error divs before attempt this,
     // both knock their content, and hide them
     cabbage.spin();
@@ -23,7 +22,6 @@ Form.prototype.start = function() {
 }
 
 Form.prototype.finish = function() {
-    var self = this;
     cabbage.finish();
     $(this.idx + " button").attr("disabled", null);
 }
