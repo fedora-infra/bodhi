@@ -1,6 +1,15 @@
 // This file handles all the magic that happens in the 'New Update Form'
 
 $(document).ready(function() {
+    UpdatesForm = function() {};
+    UpdatesForm.prototype = new Form("#new-update-form", "/updates/");
+    UpdatesForm.prototype.success = function(data) {
+        Form.prototype.success.call(this, data);
+
+        // Now redirect to the update display
+        document.location.href = "/updates/" + data.title;
+    }
+
     var messenger = Messenger({theme: 'flat'});
 
     // These next couple blocks of code wire up the auto-complete search for
@@ -180,7 +189,7 @@ $(document).ready(function() {
 
     // Wire up the submit button
     $("#submit").click(function (e) {
-        var theform = new Form("#new-update-form", "/updates/");
+        var theform = new UpdatesForm();
         theform.submit();
     });
 

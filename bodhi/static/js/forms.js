@@ -15,7 +15,6 @@ Form.prototype.url = null;
 // into using "promises".
 //
 Form.prototype.start = function() {
-    var self = this;
     // TODO -- clear all error divs before attempt this,
     // both knock their content, and hide them
     cabbage.spin();
@@ -23,7 +22,6 @@ Form.prototype.start = function() {
 }
 
 Form.prototype.finish = function() {
-    var self = this;
     cabbage.finish();
     $(this.idx + " button").attr("disabled", null);
 }
@@ -34,39 +32,6 @@ Form.prototype.success = function(data) {
         message: "Success",
         type: "success"
     });
-    $.ajax({
-        url: self.url + "../comments/" + data.comment.id,
-        dataType: "html",
-        success: function(html) {
-            $("ul#comments").append("<li>" + html + "</li>");
-        },
-        error: function(html) {
-            // TODO -- handle this
-            msg = self.messenger.post({
-                message: "Unhandled error",
-                type: "error"
-            });
-        }
-    });
-
-    // Clear out the form.
-    $('#new_comment').find(':input').each(function() {
-        switch (this.type) {
-        case 'password':
-        case 'select-multiple':
-        case 'select-one':
-        case 'text':
-        case 'textarea':
-            $(this).val('');
-        case 'checkbox':
-        case 'radio':
-            this.checked = false;
-        }
-    });
-
-    // And the colors..
-    $('#new_comment tr.success').removeClass('success');
-    $('#new_comment tr.danger').removeClass('danger');
 
     // And the preview.
     $('#preview').html('');
