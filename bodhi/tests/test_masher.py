@@ -102,8 +102,6 @@ class TestMasher(unittest.TestCase):
 
         with self.db_factory() as session:
             self.populate(session)
-
-        with self.db_factory() as session:
             assert session.query(Update).count() == 1
 
         self.koji = buildsys.get_session()
@@ -175,8 +173,11 @@ class TestMasher(unittest.TestCase):
         with self.db_factory() as session:
             release = session.query(Update).one().release
             build = session.query(Build).one()
+            nvr = build.nvr
+            pending_testing_tag = release.pending_testing_tag
+            override_tag = release.override_tag
             self.koji.__tagged__[title] = [release.override_tag,
-                                           release.pending_testing_tag]
+                                           pending_testing_tag]
 
         # Start the push
         self.masher.consume(self.msg)
@@ -195,7 +196,7 @@ class TestMasher(unittest.TestCase):
             u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
 
         # The override tag won't get removed until it goes to stable
-        self.assertEquals(self.koji.__untag__[0], (release.pending_testing_tag, build.nvr))
+        self.assertEquals(self.koji.__untag__[0], (pending_testing_tag, nvr))
         self.assertEquals(len(self.koji.__untag__), 1)
 
         with self.db_factory() as session:
@@ -213,7 +214,7 @@ class TestMasher(unittest.TestCase):
         self.assertEquals(len(self.koji.__moved__), 0)
         self.assertEquals(len(self.koji.__added__), 1)
         self.assertEquals(self.koji.__added__[0], (u'f17', u'bodhi-2.0-1.fc17'))
-        self.assertEquals(self.koji.__untag__[0], (release.override_tag, u'bodhi-2.0-1.fc17'))
+        self.assertEquals(self.koji.__untag__[0], (override_tag, u'bodhi-2.0-1.fc17'))
 
         # Check that the override got expired
         with self.db_factory() as session:
