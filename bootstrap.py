@@ -85,7 +85,7 @@ def _link_system_lib(lib):
 def link_system_libs():
     for mod in ('koji', 'rpm', 'OpenSSL', 'urlgrabber', 'pycurl', 'yum',
                 'rpmUtils', 'sqlitecachec', '_sqlitecache', 'psycopg2',
-                'krbVmodule'):
+                'krbVmodule', 'createrepo', 'deltarpm', '_deltarpmmodule'):
         _link_system_lib(mod)
 
 
