@@ -34,6 +34,7 @@ from yum.update_md import UpdateMetadata
 
 log = logging.getLogger(__name__)
 
+
 class ExtendedMetadata(object):
 
     def __init__(self, release, request, db, path=config.get('mashed_dir'), cacheduinfo=None):
@@ -218,12 +219,12 @@ class ExtendedMetadata(object):
             self._insert(collection, 'name', text=group['name'])
             for pkg in group['packages']:
                 p = self._insert(collection, 'package', attrs={
-                        'name'    : pkg['name'],
-                        'version' : pkg['version'],
-                        'release' : pkg['release'],
-                        'arch'    : pkg['arch'],
-                        'src'     : pkg['src'],
-                        'epoch'   : pkg.get('epoch', 0) or '0',
+                        'name': pkg['name'],
+                        'version': pkg['version'],
+                        'release': pkg['release'],
+                        'arch': pkg['arch'],
+                        'src': pkg['src'],
+                        'epoch': pkg.get('epoch', 0) or '0',
                 })
                 self._insert(p, 'filename', text=pkg['filename'])
                 collection.appendChild(p)
@@ -232,10 +233,7 @@ class ExtendedMetadata(object):
         root.appendChild(pkglist)
 
     def add_update(self, update):
-        """
-        Generate the extended metadata for a given update
-        """
-        ## Make sure this update doesn't already exist
+        """Generate the extended metadata for a given update"""
         if self._get_notice(update):
             log.debug("Update %s already in updateinfo" % update.title)
             return
@@ -255,10 +253,10 @@ class ExtendedMetadata(object):
         })
         if update.date_modified:
             self._insert(root, 'updated', attrs={
-                'date' : update.date_modified.strftime('%Y-%m-%d %H:%M:%S'),
+                'date': update.date_modified.strftime('%Y-%m-%d %H:%M:%S'),
             })
 
-        ## Build the references
+        # Build the references
         refs = self.doc.createElement('references')
         for cve in update.cves:
             self._insert(refs, 'reference', attrs={
@@ -275,10 +273,10 @@ class ExtendedMetadata(object):
             })
         root.appendChild(refs)
 
-        ## Errata description
+        # Update description
         self._insert(root, 'description', text=update.notes)
 
-        ## The package list
+        # The package list
         pkglist = self.doc.createElement('pkglist')
         collection = self.doc.createElement('collection')
         collection.setAttribute('short', update.release.name)
@@ -303,12 +301,12 @@ class ExtendedMetadata(object):
                                update.status is UpdateStatus.testing and 'testing' or '',
                                str(update.release.version), arch, filename)
                 pkg = self._insert(collection, 'package', attrs={
-                            'name'      : rpm['name'],
-                            'version'   : rpm['version'],
-                            'release'   : rpm['release'],
-                            'epoch'     : rpm['epoch'] or '0',
-                            'arch'      : rpm['arch'],
-                            'src'       : urlpath
+                            'name': rpm['name'],
+                            'version': rpm['version'],
+                            'release': rpm['release'],
+                            'epoch': rpm['epoch'] or '0',
+                            'arch': rpm['arch'],
+                            'src': urlpath,
                 })
                 self._insert(pkg, 'filename', text=filename)
 
@@ -330,8 +328,7 @@ class ExtendedMetadata(object):
                 log.error("Cannot find repomd.xml in %s" % self.repo)
 
     def insert_pkgtags(self):
-        """ Download and inject the pkgtags sqlite from fedora-tagger """
-
+        """Download and inject the pkgtags sqlite from fedora-tagger"""
         if config.get('pkgtags_url') not in [None, ""]:
             try:
                 tags_url = config.get('pkgtags_url')
