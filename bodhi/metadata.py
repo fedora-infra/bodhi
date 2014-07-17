@@ -16,6 +16,8 @@ __version__ = '1.4'
 
 import os
 import logging
+import shutil
+import tempfile
 
 from xml.dom import minidom
 from os.path import join, exists
@@ -328,7 +330,8 @@ class ExtendedMetadata(object):
         if config.get('pkgtags_url') not in [None, ""]:
             try:
                 tags_url = config.get('pkgtags_url')
-                local_tags = '/tmp/pkgtags.sqlite'
+                tempdir = tempfile.mkdtemp('bodhi')
+                local_tags = join(tempdir, 'pkgtags.sqlite')
                 log.info('Downloading %s' % tags_url)
                 urlgrab(tags_url, filename=local_tags)
                 for arch in os.listdir(self.repo):
@@ -337,3 +340,5 @@ class ExtendedMetadata(object):
             except Exception, e:
                 log.exception(e)
                 log.error("There was a problem injecting pkgtags")
+            finally:
+                shutil.rmtree(tempdir)
