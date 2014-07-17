@@ -32,7 +32,6 @@ import hashlib
 from xml.dom import minidom
 from kitchen.text.converters import to_bytes
 
-from bodhi.exceptions import RepositoryNotFound
 
 class RepoMetadata(object):
 
@@ -40,8 +39,6 @@ class RepoMetadata(object):
         """ Parses the repomd.xml file existing in the given repo directory. """
         self.repodir = os.path.abspath(repo)
         self.repomdxml = os.path.join(self.repodir, 'repomd.xml')
-        if not os.path.exists(self.repomdxml):
-            raise RepositoryNotFound(self.repomdxml)
         self.doc = minidom.parse(self.repomdxml)
 
         self.hash_type = 'sha256'

@@ -28,7 +28,6 @@ from bodhi.config import config
 from bodhi.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
 from bodhi.buildsys import get_session
 from bodhi.modifyrepo import RepoMetadata
-from bodhi.exceptions import RepositoryNotFound
 
 from yum.update_md import UpdateMetadata
 
@@ -320,12 +319,9 @@ class ExtendedMetadata(object):
 
     def insert_updateinfo(self):
         for arch in os.listdir(self.repo):
-            try:
-                repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
-                log.debug("Inserting updateinfo.xml.gz into %s/%s" % (self.repo, arch))
-                repomd.add(self.doc)
-            except RepositoryNotFound:
-                log.error("Cannot find repomd.xml in %s" % self.repo)
+            repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
+            log.debug("Inserting updateinfo.xml.gz into %s/%s" % (self.repo, arch))
+            repomd.add(self.doc)
 
     def insert_pkgtags(self):
         """Download and inject the pkgtags sqlite from fedora-tagger"""
