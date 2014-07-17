@@ -118,7 +118,7 @@ class DevBuildsys(Buildsystem):
             {'package_id': 2625, 'package_name': 'nethack'},
         ]
 
-    def getBuild(self, build='TurboGears-1.0.2.2-2.fc7', other=False):
+    def getBuild(self, build='bodhi-2.0-1.fc17', other=False):
         data = {'build_id': 16058,
                 'completion_time': '2007-08-24 23:26:10.890319',
                 'creation_event_id': 151517,
@@ -168,28 +168,28 @@ class DevBuildsys(Buildsystem):
                  'buildtime': 1178868422,
                  'epoch': None,
                  'id': 62330,
-                 'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.2-2.fc7',
+                 'name': 'bodhi',
+                 'nvr': 'bodhi-2.0-1.fc17',
                  'payloadhash': '6787febe92434a9be2a8f309d0e2014e',
-                 'release': '2.fc7',
+                 'release': '1.fc17',
                  'size': 761742,
-                 'version': '1.0.2.2'},
+                 'version': '2.0'},
                 {'arch': 'noarch',
                  'build_id': 6475,
                  'buildroot_id': 1883,
                  'buildtime': 1178868537,
                  'epoch': None,
                  'id': 62331,
-                 'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.2-2.fc7',
+                 'name': 'bodhi',
+                 'nvr': 'bodhi-2.0-1.fc17',
                  'payloadhash': 'f3ec9bdce453816f94283a15a47cb952',
-                 'release': '2.fc7',
+                 'release': '1.fc7',
                  'size': 1993385,
-                 'version': '1.0.2.2'},
+                 'version': '2.0'},
                 ]
         if id == 16059:  # for updateinfo.xml tests
-            rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
-            rpms[0]['release'] = rpms[1]['release'] = '3.fc7'
+            rpms[0]['nvr'] = rpms[1]['nvr'] = 'bodhi-2.0-2.fc17'
+            rpms[0]['release'] = rpms[1]['release'] = '2.fc7'
         return rpms
 
     def listTags(self, build, *args, **kw):
