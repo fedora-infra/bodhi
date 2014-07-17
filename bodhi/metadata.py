@@ -20,12 +20,10 @@ import logging
 from xml.dom import minidom
 from os.path import join, exists
 from datetime import datetime
-from sqlobject import SQLObjectNotFound
-from turbogears import config
-from urlgrabber.grabber import URLGrabError, urlgrab
+from urlgrabber.grabber import urlgrab
 
-from bodhi.util import get_repo_tag
-from bodhi.model import PackageBuild, PackageUpdate
+from bodhi.config import config
+from bodhi.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
 from bodhi.buildsys import get_session
 from bodhi.modifyrepo import RepoMetadata
 from bodhi.exceptions import RepositoryNotFound
@@ -62,9 +60,9 @@ class ExtendedMetadata(object):
 
             # Generate metadata for any new builds
             for update in self.updates:
-                if update.updateid:
-                    seen_ids.add(update.updateid)
-                    if update.updateid in existing_ids:
+                if update.alias:
+                    seen_ids.add(update.alias)
+                    if update.alias in existing_ids:
                         notice = umd.get_notice(update.title)
                         if not notice:
                             log.warn('%s ID in cache but notice cannot be found' % (update.title))
@@ -76,13 +74,13 @@ class ExtendedMetadata(object):
                                 self.add_update(update)
                             else:
                                 log.debug('Loading updated %s from cache' % update.title)
-                                from_cache.add(update.updateid)
+                                from_cache.add(update.alias)
                         elif update.date_modified:
                             log.debug('Update modified, generating new notice: %s' % update.title)
                             self.add_update(update)
                         else:
                             log.debug('Loading %s from cache' % update.title)
-                            from_cache.add(update.updateid)
+                            from_cache.add(update.alias)
                     else:
                         log.debug('Adding new update notice: %s' % update.title)
                         self.add_update(update)
@@ -113,7 +111,7 @@ class ExtendedMetadata(object):
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:
-                if update.updateid:
+                if update.alias:
                     self.add_update(update)
                 else:
                     missing_ids.append(update.title)
@@ -128,21 +126,17 @@ class ExtendedMetadata(object):
             log.debug(missing_ids)
 
     def _fetch_updates(self):
-        """
-        Based on our given koji tag, populate a list of PackageUpdates.
-        """
+        """Based on our given koji tag, populate a list of Update objects"""
         log.debug("Fetching builds tagged with '%s'" % self.tag)
         kojiBuilds = self.koji.listTagged(self.tag, latest=True)
         nonexistent = []
         log.debug("%d builds found" % len(kojiBuilds))
         for build in kojiBuilds:
             self.builds[build['nvr']] = build
-            try:
-                b = PackageBuild.byNvr(build['nvr'])
-                for update in b.updates:
-                    if update.status in ('testing', 'stable'):
-                        self.updates.add(update)
-            except SQLObjectNotFound, e:
+            build_obj = self.db.query(Build).filter_by(nvr=build['nvr']).first()
+            if build_obj:
+                self.updates.add(build_obj.update)
+            else:
                 nonexistent.append(build['nvr'])
         if nonexistent:
             log.warning("Couldn't find the following koji builds tagged as "
@@ -171,7 +165,7 @@ class ExtendedMetadata(object):
         for elem in self.doc.getElementsByTagName('update'):
             for child in elem.childNodes:
                 if child.nodeName == 'id' and child.firstChild and \
-                   child.firstChild.nodeValue == update.updateid:
+                   child.firstChild.nodeValue == update.alias:
                     return elem
         return None
 
@@ -240,13 +234,13 @@ class ExtendedMetadata(object):
             return
 
         root = self._insert(self.doc.firstChild, 'update', attrs={
-                'type'      : update.type,
-                'status'    : update.status,
-                'version'   : __version__,
-                'from'      : config.get('bodhi_email')
+                'type': update.type.value,
+                'status': update.status.value,
+                'version': __version__,
+                'from': config.get('bodhi_email'),
         })
 
-        self._insert(root, 'id', text=update.updateid)
+        self._insert(root, 'id', text=update.alias)
         self._insert(root, 'title', text=update.title)
         self._insert(root, 'release', text=update.release.long_name)
         self._insert(root, 'issued', attrs={
@@ -261,15 +255,15 @@ class ExtendedMetadata(object):
         refs = self.doc.createElement('references')
         for cve in update.cves:
             self._insert(refs, 'reference', attrs={
-                    'type' : 'cve',
-                    'href' : cve.get_url(),
-                    'id'   : cve.cve_id
+                    'type': 'cve',
+                    'href': cve.url,
+                    'id': cve.cve_id
             })
         for bug in update.bugs:
             self._insert(refs, 'reference', attrs={
-                    'type' : 'bugzilla',
-                    'href' : bug.get_url(),
-                    'id'   : bug.bz_id,
+                    'type': 'bugzilla',
+                    'href': bug.url,
+                    'id': bug.bug_id,
                     'title': bug.title
             })
         root.appendChild(refs)
@@ -299,8 +293,8 @@ class ExtendedMetadata(object):
                 else:
                     arch = rpm['arch']
                 urlpath = join(config.get('file_url'),
-                               update.status == 'testing' and 'testing' or '',
-                               str(update.release.get_version()), arch, filename)
+                               update.status is UpdateStatus.testing and 'testing' or '',
+                               str(update.release.version), arch, filename)
                 pkg = self._insert(collection, 'package', attrs={
                             'name'      : rpm['name'],
                             'version'   : rpm['version'],
@@ -311,7 +305,7 @@ class ExtendedMetadata(object):
                 })
                 self._insert(pkg, 'filename', text=filename)
 
-                if build.package.suggest_reboot:
+                if build.update.suggest is UpdateSuggestion.reboot:
                     self._insert(pkg, 'reboot_suggested', text='True')
 
                 collection.appendChild(pkg)
