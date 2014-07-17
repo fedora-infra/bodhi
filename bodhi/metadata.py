@@ -36,10 +36,15 @@ log = logging.getLogger(__name__)
 
 class ExtendedMetadata(object):
 
-    def __init__(self, repo, cacheduinfo=None):
-        self.tag = get_repo_tag(repo)
-        self.repo = repo
+    def __init__(self, release, request, db, path=config.get('mashed_dir'), cacheduinfo=None):
+        if request is UpdateRequest.stable:
+            self.tag = release.stable_tag
+        else:
+            self.tag = release.testing_tag
+        self.repo = join(path, self.tag)
+        log.debug('repo = %r' % self.repo)
         self.doc = None
+        self.db = db
         self.updates = set()
         self.builds = {}
         self._from = config.get('bodhi_email')
