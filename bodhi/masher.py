@@ -115,7 +115,7 @@ Once mash is done:
             if update:
                 releases[update.release.name][update.request.value].append(update.title)
             else:
-                log.warn('Cannot find update: %s' % title)
+                self.log.warn('Cannot find update: %s' % title)
         return releases
 
 
