@@ -221,6 +221,10 @@ class DevBuildsys(Buildsystem):
                 continue
             else:
                 builds.append(build)
+        for build in DevBuildsys.__tagged__:
+            for tag_ in DevBuildsys.__tagged__[build]:
+                if tag_ == tag:
+                    builds.append(self.getBuild(build))
         return builds
 
     def getLatestBuilds(self, *args, **kw):
