@@ -180,7 +180,6 @@ class ExtendedMetadata(object):
                 if child.nodeName == 'id' and child.firstChild and \
                    child.firstChild.nodeValue == update.alias:
                     return elem
-        return None
 
     def _add_notice(self, notice):
         """ Add a yum.update_md.UpdateNotice to the metadata """
