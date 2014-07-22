@@ -36,12 +36,18 @@ log = logging.getLogger(__name__)
 
 class ExtendedMetadata(object):
 
-    def __init__(self, release, request, db, path=config.get('mashed_dir'), cacheduinfo=None):
+    def __init__(self, release, request, db, path=config.get('mashed_dir'),
+                 cacheduinfo=None):
         if request is UpdateRequest.stable:
             self.tag = release.stable_tag
         else:
             self.tag = release.testing_tag
+
         self.repo = join(path, self.tag)
+        if not os.path.isdir(self.repo):
+            log.info('Creating %s' % self.repo)
+            os.mkdir(self.repo)
+
         log.debug('repo = %r' % self.repo)
         self.doc = None
         self.db = db
