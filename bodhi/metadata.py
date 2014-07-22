@@ -340,8 +340,7 @@ class ExtendedMetadata(object):
                 for arch in os.listdir(self.repo):
                     repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
                     repomd.add(local_tags)
-            except Exception, e:
-                log.exception(e)
-                log.error("There was a problem injecting pkgtags")
+            except:
+                log.exception("There was a problem injecting pkgtags")
             finally:
                 shutil.rmtree(tempdir)
