@@ -309,6 +309,7 @@ class MasherThread(threading.Thread):
             self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
     def generate_testing_digest(self):
+        self.log.info('Generating testing digest for %s' % self.release.name)
         for update in self.updates:
             if update.request is UpdateRequest.testing:
                 self.add_to_digest(update)
