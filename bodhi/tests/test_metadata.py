@@ -91,7 +91,11 @@ class TestExtendedMetadata(unittest.TestCase):
         uinfo.add(updateinfo)
         notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
         self.assertIsNone(notice)
-        notice = uinfo.get_notice(get_nvr(update.title))
+
+        notices = uinfo.get_notices()
+        self.assertEquals(len(notices), 1)
+        notice = notices[0]
+
         self.assertIsNotNone(notice)
         self.assertEquals(notice['title'], update.title)
         self.assertEquals(notice['release'], update.release.long_name)
