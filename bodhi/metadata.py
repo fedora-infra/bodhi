@@ -330,7 +330,7 @@ class ExtendedMetadata(object):
 
     def insert_pkgtags(self):
         """Download and inject the pkgtags sqlite from fedora-tagger"""
-        if config.get('pkgtags_url') not in [None, ""]:
+        if config.get('pkgtags_url'):
             try:
                 tags_url = config.get('pkgtags_url')
                 tempdir = tempfile.mkdtemp('bodhi')
