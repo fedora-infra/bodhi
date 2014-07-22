@@ -27,9 +27,10 @@ from yum.update_md import UpdateMetadata
 from bodhi import log
 from bodhi.config import config
 from bodhi.util import mkmetadatadir, get_nvr
-from bodhi.models import (Release, Package, Update, Bug, Build, Base, DBSession)
-from bodhi.buildsys import get_session
-from bodhi.updateinfo import ExtendedMetadata
+from bodhi.models import (Release, Package, Update, Bug, Build, Base,
+        DBSession, UpdateRequest, UpdateStatus)
+from bodhi.buildsys import get_session, DevBuildsys
+from bodhi.metadata import ExtendedMetadata
 from bodhi.tests.functional.base import DB_PATH
 
 from bodhi.tests import populate
@@ -55,7 +56,12 @@ class TestExtendedMetadata(unittest.TestCase):
 
     def test_extended_metadata(self):
         update = self.db.query(Update).one()
+
+        # Pretend it's pushed to testing
         update.assign_alias()
+        update.status = UpdateStatus.testing
+        update.request = None
+        DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Initialize our temporary repo
         tempdir = tempfile.mkdtemp('bodhi')
