@@ -45,6 +45,10 @@ class TestExtendedMetadata(unittest.TestCase):
         self.db = DBSession()
         populate(self.db)
 
+    def tearDown(self):
+        DBSession.remove()
+        get_session().clear()
+
     def _verify_updateinfo(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml.gz"))
         assert len(updateinfos) == 1, "We generated %d updateinfo metadata" % len(updateinfos)
