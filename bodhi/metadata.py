@@ -185,10 +185,10 @@ class ExtendedMetadata(object):
         """ Add a yum.update_md.UpdateNotice to the metadata """
 
         root = self._insert(self.doc.firstChild, 'update', attrs={
-                'type'      : notice['type'],
-                'status'    : notice['status'],
-                'version'   : __version__,
-                'from'      : self._from,
+            'type': notice['type'],
+            'status': notice['status'],
+            'version': __version__,
+            'from': self._from,
         })
 
         self._insert(root, 'id', text=notice['update_id'])
@@ -199,23 +199,23 @@ class ExtendedMetadata(object):
             self._insert(root, 'updated', attrs={'date' : notice['updated']})
         self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
 
-        ## Build the references
+        # Build the references
         refs = self.doc.createElement('references')
         for ref in notice._md['references']:
             attrs = {
-                'type' : ref['type'],
-                'href' : ref['href'],
-                'id'   : ref['id'],
+                'type': ref['type'],
+                'href': ref['href'],
+                'id': ref['id'],
             }
             if ref.get('title'):
                 attrs['title'] = ref['title']
             self._insert(refs, 'reference', attrs=attrs)
         root.appendChild(refs)
 
-        ## Errata description
+        # Errata description
         self._insert(root, 'description', text=notice['description'])
 
-        ## The package list
+        # The package list
         pkglist = self.doc.createElement('pkglist')
         for group in notice['pkglist']:
             collection = self.doc.createElement('collection')
@@ -243,17 +243,17 @@ class ExtendedMetadata(object):
             return
 
         root = self._insert(self.doc.firstChild, 'update', attrs={
-                'type': update.type.value,
-                'status': update.status.value,
-                'version': __version__,
-                'from': config.get('bodhi_email'),
+            'type': update.type.value,
+            'status': update.status.value,
+            'version': __version__,
+            'from': config.get('bodhi_email'),
         })
 
         self._insert(root, 'id', text=update.alias)
         self._insert(root, 'title', text=update.title)
         self._insert(root, 'release', text=update.release.long_name)
         self._insert(root, 'issued', attrs={
-            'date' : update.date_pushed.strftime('%Y-%m-%d %H:%M:%S'),
+            'date': update.date_pushed.strftime('%Y-%m-%d %H:%M:%S'),
         })
         if update.date_modified:
             self._insert(root, 'updated', attrs={
@@ -264,16 +264,16 @@ class ExtendedMetadata(object):
         refs = self.doc.createElement('references')
         for cve in update.cves:
             self._insert(refs, 'reference', attrs={
-                    'type': 'cve',
-                    'href': cve.url,
-                    'id': cve.cve_id
+                'type': 'cve',
+                'href': cve.url,
+                'id': cve.cve_id
             })
         for bug in update.bugs:
             self._insert(refs, 'reference', attrs={
-                    'type': 'bugzilla',
-                    'href': bug.url,
-                    'id': bug.bug_id,
-                    'title': bug.title
+                'type': 'bugzilla',
+                'href': bug.url,
+                'id': bug.bug_id,
+                'title': bug.title
             })
         root.appendChild(refs)
 
@@ -305,12 +305,12 @@ class ExtendedMetadata(object):
                                update.status is UpdateStatus.testing and 'testing' or '',
                                str(update.release.version), arch, filename)
                 pkg = self._insert(collection, 'package', attrs={
-                            'name': rpm['name'],
-                            'version': rpm['version'],
-                            'release': rpm['release'],
-                            'epoch': rpm['epoch'] or '0',
-                            'arch': rpm['arch'],
-                            'src': urlpath,
+                    'name': rpm['name'],
+                    'version': rpm['version'],
+                    'release': rpm['release'],
+                    'epoch': rpm['epoch'] or '0',
+                    'arch': rpm['arch'],
+                    'src': urlpath,
                 })
                 self._insert(pkg, 'filename', text=filename)
 
