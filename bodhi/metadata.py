@@ -111,7 +111,7 @@ class ExtendedMetadata(object):
                         if notice['type'] == 'security':
                             if notice['update_id'] not in seen_ids:
                                 log.debug("Keeping existing security notice: %s" %
-                                        notice['title'])
+                                          notice['title'])
                                 self._add_notice(notice)
                             else:
                                 log.debug('%s already added?' % notice['title'])
@@ -194,9 +194,9 @@ class ExtendedMetadata(object):
         self._insert(root, 'id', text=notice['update_id'])
         self._insert(root, 'title', text=notice['title'])
         self._insert(root, 'release', text=notice['release'])
-        self._insert(root, 'issued', attrs={'date' : notice['issued']})
+        self._insert(root, 'issued', attrs={'date': notice['issued']})
         if notice['updated']:
-            self._insert(root, 'updated', attrs={'date' : notice['updated']})
+            self._insert(root, 'updated', attrs={'date': notice['updated']})
         self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
 
         # Build the references
@@ -223,12 +223,12 @@ class ExtendedMetadata(object):
             self._insert(collection, 'name', text=group['name'])
             for pkg in group['packages']:
                 p = self._insert(collection, 'package', attrs={
-                        'name': pkg['name'],
-                        'version': pkg['version'],
-                        'release': pkg['release'],
-                        'arch': pkg['arch'],
-                        'src': pkg['src'],
-                        'epoch': pkg.get('epoch', 0) or '0',
+                    'name': pkg['name'],
+                    'version': pkg['version'],
+                    'release': pkg['release'],
+                    'arch': pkg['arch'],
+                    'src': pkg['src'],
+                    'epoch': pkg.get('epoch', 0) or '0',
                 })
                 self._insert(p, 'filename', text=pkg['filename'])
                 collection.appendChild(p)

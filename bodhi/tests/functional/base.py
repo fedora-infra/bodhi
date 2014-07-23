@@ -108,7 +108,6 @@ class BaseWSGICase(unittest.TestCase):
 
     def tearDown(self):
         log.debug('Removing session')
-        #self.db.remove()
         DBSession.remove()
         if DB_NAME:
             try:
