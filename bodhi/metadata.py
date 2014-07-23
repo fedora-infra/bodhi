@@ -349,6 +349,9 @@ class ExtendedMetadata(object):
 
     def cache_repodata(self):
         repodata = os.path.join(self.repo, 'i386', 'repodata')
+        if not os.path.isdir(repodata):
+            log.warning('Cannot find repodata to cache: %s' % repodata)
+            return
         cache = self.repo + '.repodata'
         if os.path.isdir(cache):
             shutil.rmtree(cache)
