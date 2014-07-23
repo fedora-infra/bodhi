@@ -28,7 +28,7 @@ from bodhi import log
 from bodhi.config import config
 from bodhi.util import mkmetadatadir, get_nvr
 from bodhi.models import (Release, Package, Update, Bug, Build, Base,
-        DBSession, UpdateRequest, UpdateStatus)
+        DBSession, UpdateRequest, UpdateStatus, UpdateType)
 from bodhi.buildsys import get_session, DevBuildsys
 from bodhi.metadata import ExtendedMetadata
 from bodhi.tests.functional.base import DB_PATH
@@ -284,3 +284,76 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice['description'], u'x')
         self.assertEquals(notice['updated'],
                 update.date_modified.strftime('%Y-%m-%d %H:%M:%S'))
+
+    def test_metadata_updating_with_old_stable_security(self):
+        update = self.db.query(Update).one()
+        update.assign_alias()
+        update.request = None
+        update.type = UpdateType.security
+        update.status = UpdateStatus.stable
+        DevBuildsys.__tagged__[update.title] = ['f17-updates']
+
+        repo = join(self.tempdir, 'f17-updates')
+        mkmetadatadir(join(repo, 'i386'))
+        self.repodata = join(repo, 'i386', 'repodata')
+
+        # Generate the XML
+        md = ExtendedMetadata(update.release, UpdateRequest.stable,
+                              self.db, self.tempdir)
+
+        # Insert the updateinfo.xml into the repository
+        md.insert_updateinfo()
+        md.cache_repodata()
+
+        updateinfo = self._verify_updateinfo(self.repodata)
+
+        # Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+
+        notice = uinfo.get_notice(get_nvr(update.title))
+        self.assertIsNotNone(notice)
+
+        # Create a new non-security update for the same package
+        newbuild = 'bodhi-2.0-2.fc17'
+        pkg = self.db.query(Package).filter_by(name=u'bodhi').one()
+        build = Build(nvr=newbuild, package=pkg)
+        self.db.add(build)
+        self.db.flush()
+        newupdate = Update(title=newbuild,
+                           type=UpdateType.enhancement,
+                           status=UpdateStatus.stable,
+                           request=None,
+                           release=update.release,
+                           builds=[build],
+                           notes=u'x')
+        self.db.add(newupdate)
+        self.db.flush()
+        newupdate.assign_alias()
+
+        # Untag the old security build
+        DevBuildsys.__untag__.append(update.title)
+        DevBuildsys.__tagged__[newupdate.title] = [newupdate.release.stable_tag]
+        buildrpms = DevBuildsys.__rpms__[0].copy()
+        buildrpms['nvr'] = 'bodhi-2.0-2.fc17'
+        buildrpms['release'] = '2.fc17'
+        DevBuildsys.__rpms__.append(buildrpms)
+
+        # Re-initialize our temporary repo
+        shutil.rmtree(repo)
+        os.mkdir(repo)
+        mkmetadatadir(join(repo, 'i386'))
+
+        md = ExtendedMetadata(update.release, UpdateRequest.stable, self.db, self.tempdir)
+        md.insert_updateinfo()
+        updateinfo = self._verify_updateinfo(self.repodata)
+
+        # Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+
+        self.assertEquals(len(uinfo.get_notices()), 2)
+        notice = uinfo.get_notice(get_nvr('bodhi-2.0-1.fc17'))
+        self.assertIsNotNone(notice)
+        notice = uinfo.get_notice(get_nvr('bodhi-2.0-2.fc17'))
+        self.assertIsNotNone(notice)
