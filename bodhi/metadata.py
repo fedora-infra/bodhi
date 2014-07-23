@@ -57,88 +57,84 @@ class ExtendedMetadata(object):
         self.koji = get_session()
         self._create_document()
         self._fetch_updates()
-        missing_ids = []
+        self.missing_ids = []
 
         cached_repodata = self.repo + '.repodata'
         if os.path.isdir(cached_repodata):
-            cacheduinfo = glob.glob(join(cached_repodata, "*-updateinfo.xml.gz"))[0]
-            log.debug("Loading cached %s" % cacheduinfo)
-            umd = UpdateMetadata()
-            umd.add(cacheduinfo)
-
-            # Drop the old cached updateinfo.xml.gz, it's unneeded now
-            os.unlink(cacheduinfo)
-
-            existing_ids = set([up['update_id'] for up in umd.get_notices()])
-            seen_ids = set()
-            from_cache = set()
-
-            # Generate metadata for any new builds
-            for update in self.updates:
-                if update.alias:
-                    seen_ids.add(update.alias)
-                    if update.alias in existing_ids:
-                        notice = umd.get_notice(update.title)
-                        if not notice:
-                            log.warn('%s ID in cache but notice cannot be found' % (update.title))
-                            self.add_update(update)
-                            continue
-                        if notice['updated']:
-                            if datetime.strptime(notice['updated'], '%Y-%m-%d %H:%M:%S') < update.date_modified:
-                                log.debug('Update modified, generating new notice: %s' % update.title)
-                                self.add_update(update)
-                            else:
-                                log.debug('Loading updated %s from cache' % update.title)
-                                from_cache.add(update.alias)
-                        elif update.date_modified:
-                            log.debug('Update modified, generating new notice: %s' % update.title)
-                            self.add_update(update)
-                        else:
-                            log.debug('Loading %s from cache' % update.title)
-                            from_cache.add(update.alias)
-                    else:
-                        log.debug('Adding new update notice: %s' % update.title)
-                        self.add_update(update)
-                else:
-                    missing_ids.append(update.title)
-
-            # Add all relevant notices from the cache to this document
-            for notice in umd.get_notices():
-                if notice['update_id'] in from_cache:
-                    log.debug("Keeping existing notice: %s" % notice['title'])
-                    self._add_notice(notice)
-                else:
-                    # Keep all security notices in the stable repo
-                    if 'testing' not in self.repo:
-                        if notice['type'] == 'security':
-                            if notice['update_id'] not in seen_ids:
-                                log.debug("Keeping existing security notice: %s" %
-                                          notice['title'])
-                                self._add_notice(notice)
-                            else:
-                                log.debug('%s already added?' % notice['title'])
-                        else:
-                            log.debug('Purging cached stable notice %s' % notice['title'])
-                    else:
-                        log.debug('Purging cached testing update %s' % notice['title'])
-
-        # Clean metadata generation
+            self._load_cached_updateinfo(cached_repodata)
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:
                 if update.alias:
                     self.add_update(update)
                 else:
-                    missing_ids.append(update.title)
+                    self.missing_ids.append(update.title)
 
-            # Add *all* security updates
-            # TODO: only the most recent
-            #for update in PackageUpdate.select(PackageUpdate.q.type=='security'):
-            #    self.add_update(update)
+        if self.missing_ids:
+            log.error("%d updates with missing ID!" % len(self.missing_ids))
+            log.debug(self.missing_ids)
 
-        if missing_ids:
-            log.error("%d updates with missing ID!" % len(missing_ids))
-            log.debug(missing_ids)
+    def _load_cached_updateinfo(self, cached_repodata):
+        cacheduinfo = glob.glob(join(cached_repodata, "*-updateinfo.xml.gz"))[0]
+        log.debug("Loading cached %s" % cacheduinfo)
+        umd = UpdateMetadata()
+        umd.add(cacheduinfo)
+
+        # Drop the old cached updateinfo.xml.gz, it's unneeded now
+        os.unlink(cacheduinfo)
+
+        existing_ids = set([up['update_id'] for up in umd.get_notices()])
+        seen_ids = set()
+        from_cache = set()
+
+        # Generate metadata for any new builds
+        for update in self.updates:
+            if update.alias:
+                seen_ids.add(update.alias)
+                if update.alias in existing_ids:
+                    notice = umd.get_notice(update.title)
+                    if not notice:
+                        log.warn('%s ID in cache but notice cannot be found' % (update.title))
+                        self.add_update(update)
+                        continue
+                    if notice['updated']:
+                        if datetime.strptime(notice['updated'], '%Y-%m-%d %H:%M:%S') < update.date_modified:
+                            log.debug('Update modified, generating new notice: %s' % update.title)
+                            self.add_update(update)
+                        else:
+                            log.debug('Loading updated %s from cache' % update.title)
+                            from_cache.add(update.alias)
+                    elif update.date_modified:
+                        log.debug('Update modified, generating new notice: %s' % update.title)
+                        self.add_update(update)
+                    else:
+                        log.debug('Loading %s from cache' % update.title)
+                        from_cache.add(update.alias)
+                else:
+                    log.debug('Adding new update notice: %s' % update.title)
+                    self.add_update(update)
+            else:
+                self.missing_ids.append(update.title)
+
+        # Add all relevant notices from the cache to this document
+        for notice in umd.get_notices():
+            if notice['update_id'] in from_cache:
+                log.debug("Keeping existing notice: %s" % notice['title'])
+                self._add_notice(notice)
+            else:
+                # Keep all security notices in the stable repo
+                if 'testing' not in self.repo:
+                    if notice['type'] == 'security':
+                        if notice['update_id'] not in seen_ids:
+                            log.debug("Keeping existing security notice: %s" %
+                                      notice['title'])
+                            self._add_notice(notice)
+                        else:
+                            log.debug('%s already added?' % notice['title'])
+                    else:
+                        log.debug('Purging cached stable notice %s' % notice['title'])
+                else:
+                    log.debug('Purging cached testing update %s' % notice['title'])
 
     def _fetch_updates(self):
         """Based on our given koji tag, populate a list of Update objects"""
