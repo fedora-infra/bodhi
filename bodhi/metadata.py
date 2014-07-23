@@ -15,6 +15,7 @@
 __version__ = '1.4'
 
 import os
+import glob
 import logging
 import shutil
 import tempfile
@@ -36,8 +37,7 @@ log = logging.getLogger(__name__)
 
 class ExtendedMetadata(object):
 
-    def __init__(self, release, request, db, path=config.get('mashed_dir'),
-                 cacheduinfo=None):
+    def __init__(self, release, request, db, path=config.get('mashed_dir')):
         if request is UpdateRequest.stable:
             self.tag = release.stable_tag
         else:
@@ -59,8 +59,10 @@ class ExtendedMetadata(object):
         self._fetch_updates()
         missing_ids = []
 
-        if cacheduinfo and exists(cacheduinfo):
-            log.debug("Loading cached updateinfo.xml.gz")
+        cached_repodata = self.repo + '.repodata'
+        if os.path.isdir(cached_repodata):
+            cacheduinfo = glob.glob(join(cached_repodata, "*-updateinfo.xml.gz"))[0]
+            log.debug("Loading cached %s" % cacheduinfo)
             umd = UpdateMetadata()
             umd.add(cacheduinfo)
 
