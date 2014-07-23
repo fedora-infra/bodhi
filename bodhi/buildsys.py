@@ -220,7 +220,7 @@ class DevBuildsys(Buildsystem):
         builds = []
         for build in [self.getBuild(), self.getBuild(other=True)]:
             if build['nvr'] in self.__untag__:
-                print('Pruning koji build %s' % build['nvr'])
+                log.debug('Pruning koji build %s' % build['nvr'])
                 continue
             else:
                 builds.append(build)
