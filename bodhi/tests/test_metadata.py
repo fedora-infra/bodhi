@@ -126,6 +126,19 @@ class TestExtendedMetadata(unittest.TestCase):
         update.status = UpdateStatus.testing
         update.request = None
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
+        DevBuildsys.__rpms__ = [{
+            'arch': 'src',
+            'build_id': 6475,
+            'buildroot_id': 1883,
+            'buildtime': 1178868422,
+            'epoch': None,
+            'id': 62330,
+            'name': 'bodhi',
+            'nvr': 'bodhi-2.0-1.fc17',
+            'release': '1.fc17',
+            'size': 761742,
+            'version': '2.0'
+        }]
 
         # Initialize our temporary repo
         tempdir = tempfile.mkdtemp('bodhi')
@@ -153,9 +166,7 @@ class TestExtendedMetadata(unittest.TestCase):
         notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
         self.assertIsNone(notice)
 
-        notices = uinfo.get_notices()
-        self.assertEquals(len(notices), 1)
-        notice = notices[0]
+        notice = uinfo.get_notice(get_nvr(update.title))
 
         self.assertIsNotNone(notice)
         self.assertEquals(notice['title'], update.title)
@@ -177,27 +188,32 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(bug['id'], '12345')
         self.assertEquals(bug['type'], 'bugzilla')
 
-        # Now test using the cached updatinfo
-        md = ExtendedMetadata(update.release, update.request, self.db, tempdir,
-                              cacheduinfo=updateinfo)
+        # Change the notes on the update, but not the date_modified, so we can
+        # ensure that the notice came from the cache
+        update.notes = u'x'
+        self.db.flush()
+
+        # Re-initialize our temporary repo
+        shutil.rmtree(temprepo)
+        os.mkdir(temprepo)
+        mkmetadatadir(join(temprepo, 'i386'))
+
+        md = ExtendedMetadata(update.release, update.request, self.db, tempdir)
         md.insert_updateinfo()
         updateinfo = self._verify_updateinfo(repodata)
 
-        ## Read an verify the updateinfo.xml.gz
+        # Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
         uinfo.add(updateinfo)
 
-        notices = uinfo.get_notices()
-        self.assertEquals(len(notices), 1)
-        notice = notices[0]
-
+        notice = uinfo.get_notice(get_nvr(update.title))
         self.assertIsNotNone(notice)
+        self.assertEquals(notice['description'], u'Useful details!')  # not u'x'
         self.assertEquals(notice['title'], update.title)
         self.assertEquals(notice['release'], update.release.long_name)
         self.assertEquals(notice['status'], update.status.value)
         self.assertEquals(notice['updated'], update.date_modified)
         self.assertEquals(notice['from'], str(config.get('bodhi_email')))
-        self.assertEquals(notice['description'], update.notes)
         self.assertIsNotNone(notice['issued'])
         self.assertEquals(notice['update_id'], update.alias)
         self.assertIsNone(notice['epoch'])
