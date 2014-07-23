@@ -143,6 +143,8 @@ class TestExtendedMetadata(unittest.TestCase):
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
+        md.cache_repodata()
+
         updateinfo = self._verify_updateinfo(repodata)
 
         # Read an verify the updateinfo.xml.gz

@@ -319,3 +319,4 @@ class MasherThread(threading.Thread):
         uinfo = ExtendedMetadata(self.release, self.request, self.db)
         uinfo.insert_updateinfo()
         uinfo.insert_pkgtags()
+        uinfo.cache_repodata()

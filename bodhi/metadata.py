@@ -344,3 +344,11 @@ class ExtendedMetadata(object):
                 log.exception("There was a problem injecting pkgtags")
             finally:
                 shutil.rmtree(tempdir)
+
+    def cache_repodata(self):
+        repodata = os.path.join(self.repo, 'i386', 'repodata')
+        cache = self.repo + '.repodata'
+        if os.path.isdir(cache):
+            shutil.rmtree(cache)
+        shutil.copytree(repodata, cache)
+        log.info('%s cached to %s' % (repodata, cache))
