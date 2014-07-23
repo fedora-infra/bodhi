@@ -82,12 +82,14 @@ class DevBuildsys(Buildsystem):
     __moved__ = []
     __added__ = []
     __tagged__ = {}
+    __rpms__ = []
 
     def clear(self):
         DevBuildsys.__untag__ = []
         DevBuildsys.__moved__ = []
         DevBuildsys.__added__ = []
         DevBuildsys.__tagged__ = {}
+        DevBuildsys.__rpms__ = []
 
     def multiCall(self):
         return []
@@ -190,6 +192,7 @@ class DevBuildsys(Buildsystem):
         if id == 16059:  # for updateinfo.xml tests
             rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
             rpms[0]['release'] = rpms[1]['release'] = '3.fc7'
+        rpms += DevBuildsys.__rpms__
         return rpms
 
     def listTags(self, build, *args, **kw):
