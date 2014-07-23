@@ -1765,14 +1765,14 @@ class BuildrootOverride(Base):
         db = request.db
 
         edited = data.pop('edited')
-        build = data['build']
-
-        override = db.query(cls).get(edited.id)
+        override = cls.get(edited.id, db)
 
         if override is None:
             request.errors.add('body', 'edited',
                                'No buildroot override for this build')
             return
+
+        build = data['build']
 
         if build.override is not None and build.override is not override:
             request.errors.add('body', 'nvr',
