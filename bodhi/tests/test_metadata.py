@@ -38,6 +38,12 @@ from bodhi.tests import populate
 
 class TestExtendedMetadata(unittest.TestCase):
 
+    def __init__(self, *args, **kw):
+        super(TestExtendedMetadata, self).__init__(*args, **kw)
+        repo_path = os.path.join(config.get('mashed_dir'), 'f17-updates-testing')
+        if not os.path.exists(repo_path):
+            os.makedirs(repo_path)
+
     def setUp(self):
         engine = create_engine(DB_PATH)
         DBSession.configure(bind=engine)
@@ -45,9 +51,17 @@ class TestExtendedMetadata(unittest.TestCase):
         self.db = DBSession()
         populate(self.db)
 
+        # Initialize our temporary repo
+        self.tempdir = tempfile.mkdtemp('bodhi')
+        self.temprepo = join(self.tempdir, 'f17-updates-testing')
+        mkmetadatadir(join(self.temprepo, 'i386'))
+        self.repodata = join(self.temprepo, 'i386', 'repodata')
+        assert exists(join(self.repodata, 'repomd.xml'))
+
     def tearDown(self):
         DBSession.remove()
         get_session().clear()
+        shutil.rmtree(self.tempdir)
 
     def _verify_updateinfo(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml.gz"))
@@ -67,23 +81,12 @@ class TestExtendedMetadata(unittest.TestCase):
         update.request = None
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
-        # Initialize our temporary repo
-        tempdir = tempfile.mkdtemp('bodhi')
-        temprepo = join(tempdir, 'f17-updates-testing')
-        mkmetadatadir(join(temprepo, 'i386'))
-        repodata = join(temprepo, 'i386', 'repodata')
-        assert exists(join(repodata, 'repomd.xml'))
-
         # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, tempdir)
-
-        repo_path = os.path.join(config.get('mashed_dir'), 'f17-updates-testing')
-        if not os.path.exists(repo_path):
-            os.makedirs(repo_path)
+        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
-        updateinfo = self._verify_updateinfo(repodata)
+        updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -115,9 +118,6 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(bug['id'], '12345')
         self.assertEquals(bug['type'], 'bugzilla')
 
-        # Clean up
-        shutil.rmtree(tempdir)
-
     def test_extended_metadata_updating(self):
         update = self.db.query(Update).one()
 
@@ -140,25 +140,14 @@ class TestExtendedMetadata(unittest.TestCase):
             'version': '2.0'
         }]
 
-        # Initialize our temporary repo
-        tempdir = tempfile.mkdtemp('bodhi')
-        temprepo = join(tempdir, 'f17-updates-testing')
-        mkmetadatadir(join(temprepo, 'i386'))
-        repodata = join(temprepo, 'i386', 'repodata')
-        assert exists(join(repodata, 'repomd.xml'))
-
         # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, tempdir)
-
-        repo_path = os.path.join(config.get('mashed_dir'), 'f17-updates-testing')
-        if not os.path.exists(repo_path):
-            os.makedirs(repo_path)
+        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
         md.cache_repodata()
 
-        updateinfo = self._verify_updateinfo(repodata)
+        updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -191,16 +180,15 @@ class TestExtendedMetadata(unittest.TestCase):
         # Change the notes on the update, but not the date_modified, so we can
         # ensure that the notice came from the cache
         update.notes = u'x'
-        self.db.flush()
 
         # Re-initialize our temporary repo
         shutil.rmtree(temprepo)
         os.mkdir(temprepo)
         mkmetadatadir(join(temprepo, 'i386'))
 
-        md = ExtendedMetadata(update.release, update.request, self.db, tempdir)
+        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
         md.insert_updateinfo()
-        updateinfo = self._verify_updateinfo(repodata)
+        updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
         uinfo = UpdateMetadata()
@@ -226,6 +214,3 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(bug['href'], update.bugs[0].url)
         self.assertEquals(bug['id'], '12345')
         self.assertEquals(bug['type'], 'bugzilla')
-
-        # Clean up
-        shutil.rmtree(tempdir)
