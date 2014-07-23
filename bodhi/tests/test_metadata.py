@@ -58,6 +58,20 @@ class TestExtendedMetadata(unittest.TestCase):
         self.repodata = join(self.temprepo, 'i386', 'repodata')
         assert exists(join(self.repodata, 'repomd.xml'))
 
+        DevBuildsys.__rpms__ = [{
+            'arch': 'src',
+            'build_id': 6475,
+            'buildroot_id': 1883,
+            'buildtime': 1178868422,
+            'epoch': None,
+            'id': 62330,
+            'name': 'bodhi',
+            'nvr': 'bodhi-2.0-1.fc17',
+            'release': '1.fc17',
+            'size': 761742,
+            'version': '2.0'
+        }]
+
     def tearDown(self):
         DBSession.remove()
         get_session().clear()
@@ -126,19 +140,6 @@ class TestExtendedMetadata(unittest.TestCase):
         update.status = UpdateStatus.testing
         update.request = None
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
-        DevBuildsys.__rpms__ = [{
-            'arch': 'src',
-            'build_id': 6475,
-            'buildroot_id': 1883,
-            'buildtime': 1178868422,
-            'epoch': None,
-            'id': 62330,
-            'name': 'bodhi',
-            'nvr': 'bodhi-2.0-1.fc17',
-            'release': '1.fc17',
-            'size': 761742,
-            'version': '2.0'
-        }]
 
         # Generate the XML
         md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
@@ -223,19 +224,6 @@ class TestExtendedMetadata(unittest.TestCase):
         update.status = UpdateStatus.testing
         update.request = None
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
-        DevBuildsys.__rpms__ = [{
-            'arch': 'src',
-            'build_id': 6475,
-            'buildroot_id': 1883,
-            'buildtime': 1178868422,
-            'epoch': None,
-            'id': 62330,
-            'name': 'bodhi',
-            'nvr': 'bodhi-2.0-1.fc17',
-            'release': '1.fc17',
-            'size': 761742,
-            'version': '2.0'
-        }]
 
         # Generate the XML
         md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
