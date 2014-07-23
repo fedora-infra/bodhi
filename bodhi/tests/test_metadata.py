@@ -70,7 +70,6 @@ class TestExtendedMetadata(unittest.TestCase):
         # Initialize our temporary repo
         tempdir = tempfile.mkdtemp('bodhi')
         temprepo = join(tempdir, 'f17-updates-testing')
-        print("Inserting updateinfo into temprepo: %s" % temprepo)
         mkmetadatadir(join(temprepo, 'i386'))
         repodata = join(temprepo, 'i386', 'repodata')
         assert exists(join(repodata, 'repomd.xml'))
@@ -91,6 +90,100 @@ class TestExtendedMetadata(unittest.TestCase):
         uinfo.add(updateinfo)
         notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
         self.assertIsNone(notice)
+
+        notices = uinfo.get_notices()
+        self.assertEquals(len(notices), 1)
+        notice = notices[0]
+
+        self.assertIsNotNone(notice)
+        self.assertEquals(notice['title'], update.title)
+        self.assertEquals(notice['release'], update.release.long_name)
+        self.assertEquals(notice['status'], update.status.value)
+        self.assertEquals(notice['updated'], update.date_modified)
+        self.assertEquals(notice['from'], str(config.get('bodhi_email')))
+        self.assertEquals(notice['description'], update.notes)
+        self.assertIsNotNone(notice['issued'])
+        self.assertEquals(notice['update_id'], update.alias)
+        self.assertIsNone(notice['epoch'])
+        cve = notice['references'][0]
+        self.assertIsNone(cve['title'])
+        self.assertEquals(cve['type'], 'cve')
+        self.assertEquals(cve['href'], update.cves[0].url)
+        self.assertEquals(cve['id'], update.cves[0].cve_id)
+        bug = notice['references'][1]
+        self.assertEquals(bug['href'], update.bugs[0].url)
+        self.assertEquals(bug['id'], '12345')
+        self.assertEquals(bug['type'], 'bugzilla')
+
+        # Clean up
+        shutil.rmtree(tempdir)
+
+    def test_extended_metadata_updating(self):
+        update = self.db.query(Update).one()
+
+        # Pretend it's pushed to testing
+        update.assign_alias()
+        update.status = UpdateStatus.testing
+        update.request = None
+        DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
+
+        # Initialize our temporary repo
+        tempdir = tempfile.mkdtemp('bodhi')
+        temprepo = join(tempdir, 'f17-updates-testing')
+        mkmetadatadir(join(temprepo, 'i386'))
+        repodata = join(temprepo, 'i386', 'repodata')
+        assert exists(join(repodata, 'repomd.xml'))
+
+        # Generate the XML
+        md = ExtendedMetadata(update.release, update.request, self.db, tempdir)
+
+        repo_path = os.path.join(config.get('mashed_dir'), 'f17-updates-testing')
+        if not os.path.exists(repo_path):
+            os.makedirs(repo_path)
+
+        # Insert the updateinfo.xml into the repository
+        md.insert_updateinfo()
+        updateinfo = self._verify_updateinfo(repodata)
+
+        # Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
+        self.assertIsNone(notice)
+
+        notices = uinfo.get_notices()
+        self.assertEquals(len(notices), 1)
+        notice = notices[0]
+
+        self.assertIsNotNone(notice)
+        self.assertEquals(notice['title'], update.title)
+        self.assertEquals(notice['release'], update.release.long_name)
+        self.assertEquals(notice['status'], update.status.value)
+        self.assertEquals(notice['updated'], update.date_modified)
+        self.assertEquals(notice['from'], str(config.get('bodhi_email')))
+        self.assertEquals(notice['description'], update.notes)
+        self.assertIsNotNone(notice['issued'])
+        self.assertEquals(notice['update_id'], update.alias)
+        self.assertIsNone(notice['epoch'])
+        cve = notice['references'][0]
+        self.assertIsNone(cve['title'])
+        self.assertEquals(cve['type'], 'cve')
+        self.assertEquals(cve['href'], update.cves[0].url)
+        self.assertEquals(cve['id'], update.cves[0].cve_id)
+        bug = notice['references'][1]
+        self.assertEquals(bug['href'], update.bugs[0].url)
+        self.assertEquals(bug['id'], '12345')
+        self.assertEquals(bug['type'], 'bugzilla')
+
+        # Now test using the cached updatinfo
+        md = ExtendedMetadata(update.release, update.request, self.db, tempdir,
+                              cacheduinfo=updateinfo)
+        md.insert_updateinfo()
+        updateinfo = self._verify_updateinfo(repodata)
+
+        ## Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
 
         notices = uinfo.get_notices()
         self.assertEquals(len(notices), 1)
