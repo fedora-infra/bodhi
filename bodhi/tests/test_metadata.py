@@ -182,9 +182,9 @@ class TestExtendedMetadata(unittest.TestCase):
         update.notes = u'x'
 
         # Re-initialize our temporary repo
-        shutil.rmtree(temprepo)
-        os.mkdir(temprepo)
-        mkmetadatadir(join(temprepo, 'i386'))
+        shutil.rmtree(self.temprepo)
+        os.mkdir(self.temprepo)
+        mkmetadatadir(join(self.temprepo, 'i386'))
 
         md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
         md.insert_updateinfo()
@@ -214,3 +214,85 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(bug['href'], update.bugs[0].url)
         self.assertEquals(bug['id'], '12345')
         self.assertEquals(bug['type'], 'bugzilla')
+
+    def test_metadata_updating_with_edited_update(self):
+        update = self.db.query(Update).one()
+
+        # Pretend it's pushed to testing
+        update.assign_alias()
+        update.status = UpdateStatus.testing
+        update.request = None
+        DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
+        DevBuildsys.__rpms__ = [{
+            'arch': 'src',
+            'build_id': 6475,
+            'buildroot_id': 1883,
+            'buildtime': 1178868422,
+            'epoch': None,
+            'id': 62330,
+            'name': 'bodhi',
+            'nvr': 'bodhi-2.0-1.fc17',
+            'release': '1.fc17',
+            'size': 761742,
+            'version': '2.0'
+        }]
+
+        # Generate the XML
+        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
+
+        # Insert the updateinfo.xml into the repository
+        md.insert_updateinfo()
+        md.cache_repodata()
+
+        updateinfo = self._verify_updateinfo(self.repodata)
+
+        # Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
+        self.assertIsNone(notice)
+
+        notice = uinfo.get_notice(get_nvr(update.title))
+
+        self.assertIsNotNone(notice)
+        self.assertEquals(notice['title'], update.title)
+        self.assertEquals(notice['release'], update.release.long_name)
+        self.assertEquals(notice['status'], update.status.value)
+        self.assertEquals(notice['updated'], update.date_modified)
+        self.assertEquals(notice['from'], str(config.get('bodhi_email')))
+        self.assertEquals(notice['description'], update.notes)
+        self.assertIsNotNone(notice['issued'])
+        self.assertEquals(notice['update_id'], update.alias)
+        self.assertIsNone(notice['epoch'])
+        cve = notice['references'][0]
+        self.assertIsNone(cve['title'])
+        self.assertEquals(cve['type'], 'cve')
+        self.assertEquals(cve['href'], update.cves[0].url)
+        self.assertEquals(cve['id'], update.cves[0].cve_id)
+        bug = notice['references'][1]
+        self.assertEquals(bug['href'], update.bugs[0].url)
+        self.assertEquals(bug['id'], '12345')
+        self.assertEquals(bug['type'], 'bugzilla')
+
+        # Change the notes on the update *and* the date_modified
+        update.notes = u'x'
+        update.date_modified = datetime.utcnow()
+
+        # Re-initialize our temporary repo
+        shutil.rmtree(self.temprepo)
+        os.mkdir(self.temprepo)
+        mkmetadatadir(join(self.temprepo, 'i386'))
+
+        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
+        md.insert_updateinfo()
+        updateinfo = self._verify_updateinfo(self.repodata)
+
+        # Read an verify the updateinfo.xml.gz
+        uinfo = UpdateMetadata()
+        uinfo.add(updateinfo)
+
+        notice = uinfo.get_notice(get_nvr(update.title))
+        self.assertIsNotNone(notice)
+        self.assertEquals(notice['description'], u'x')
+        self.assertEquals(notice['updated'],
+                update.date_modified.strftime('%Y-%m-%d %H:%M:%S'))
