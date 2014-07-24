@@ -161,8 +161,11 @@ def save_override(request):
                 request.errors.add('body', 'edited', 'No such build')
                 return
 
-            override = BuildrootOverride.edit(request, edited=edited,
-                                              submitter=request.user, **data)
+            override = BuildrootOverride.edit(
+                    request, edited=edited, submitter=request.user,
+                    notes=data["notes"], expired=data["expired"],
+                    expiration_date=data["expiration_date"]
+                    )
 
     except Exception as e:
         log.exception(e)
