@@ -1752,6 +1752,16 @@ class BuildrootOverride(Base):
             request.errors.add('body', 'nvr', 'This build already is in a buildroot override')
             return
 
+        old_build = db.query(Build).filter(and_(
+                Build.package_id==build.package_id,
+                Build.release_id==build.release_id)).first()
+
+        if old_build is not None and old_build.override is not None:
+            # There already is a buildroot override for an older build of this
+            # package in this release. Expire it
+            old_build.override.expire()
+            db.add(old_build.override)
+
         override = cls(**data)
         override.tag_build()
         db.add(override)

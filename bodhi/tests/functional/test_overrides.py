@@ -208,6 +208,37 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(o['expired_date'], None)
 
     @mock.patch('bodhi.notifications.publish')
+    def test_create_override_for_newer_build(self, publish):
+        session = DBSession()
+        old_build = Build.get(u'bodhi-2.0-1.fc17', session)
+
+        build = Build(nvr=u'bodhi-2.0-2.fc17', package=old_build.package,
+                      release=old_build.release)
+        session.add(build)
+        session.flush()
+
+        expiration_date = datetime.now() + timedelta(days=1)
+
+        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date}
+        res = self.app.post('/overrides/', data)
+
+        publish.assert_any_call(topic='buildroot_override.tag', msg=mock.ANY)
+        publish.assert_any_call(
+            topic='buildroot_override.untag', msg=mock.ANY)
+
+        o = res.json_body
+        self.assertEquals(o['build_id'], build.id)
+        self.assertEquals(o['notes'], 'blah blah blah')
+        self.assertEquals(o['expiration_date'],
+                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(o['expired_date'], None)
+
+        old_build = Build.get(u'bodhi-2.0-1.fc17', session)
+
+        self.assertNotEquals(old_build.override['expired_date'], None)
+
+    @mock.patch('bodhi.notifications.publish')
     def test_cannot_edit_override_build(self, publish):
         session = DBSession()
 
