@@ -36,7 +36,17 @@ log = logging.getLogger(__name__)
 
 
 class ExtendedMetadata(object):
+    """This class represents the updateinfo.xml yum metadata.
 
+    It is generated during push time by the bodhi masher based on koji tags
+    and is injected into the yum repodata using the `modifyrepo` tool,
+    which is included in the `createrepo` package.
+
+    The metadata is then parsed client-side with
+    :class:`yum.update_md.UpdateMetadata` by things like the `yum-security`
+    plugin and `PackageKit`.
+
+    """
     def __init__(self, release, request, db, path=config.get('mashed_dir')):
         if request is UpdateRequest.stable:
             self.tag = release.stable_tag
