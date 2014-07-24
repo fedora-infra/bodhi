@@ -26,6 +26,16 @@
       <div class="col-md-12">
         <h2 class="pull-left">New Override</span>
       </div>
+      %elif override.expired_date is None:
+      <div class="alert alert-info col-sm-8 col-sm-offset-2">
+        <p>Use the following to ensure the override is active:</p>
+        <!--! FIXME: Add a Release.build_tag column to the model? -->
+        <p><code>$ koji wait-repo ${override.build.release.dist_tag}-build --build=${override.build.nvr}</code></pre>
+      </div>
+      %else:
+      <div class="alert alert-warning col-sm-8 col-sm-offset-2">
+        <p>This override is expired, set its expiration date into the future to unexpire it</p>
+      </div>
       %endif
     </div>
 

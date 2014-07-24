@@ -5,6 +5,9 @@ $(document).ready(function() {
     OverridesForm.prototype = new Form("#new-override-form", "/overrides/");
     OverridesForm.prototype.success = function(data) {
         Form.prototype.success.call(this, data);
+
+        // Now redirect to the override display page
+        document.location.href = "/overrides/" + data.build.nvr;
     };
 
     // These next couple blocks of code wire up the auto-complete search for
