@@ -82,12 +82,14 @@ class DevBuildsys(Buildsystem):
     __moved__ = []
     __added__ = []
     __tagged__ = {}
+    __rpms__ = []
 
     def clear(self):
         DevBuildsys.__untag__ = []
         DevBuildsys.__moved__ = []
         DevBuildsys.__added__ = []
         DevBuildsys.__tagged__ = {}
+        DevBuildsys.__rpms__ = []
 
     def multiCall(self):
         return []
@@ -190,6 +192,7 @@ class DevBuildsys(Buildsystem):
         if id == 16059:  # for updateinfo.xml tests
             rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
             rpms[0]['release'] = rpms[1]['release'] = '3.fc7'
+        rpms += DevBuildsys.__rpms__
         return rpms
 
     def listTags(self, build, *args, **kw):
@@ -217,10 +220,14 @@ class DevBuildsys(Buildsystem):
         builds = []
         for build in [self.getBuild(), self.getBuild(other=True)]:
             if build['nvr'] in self.__untag__:
-                print('Pruning koji build %s' % build['nvr'])
+                log.debug('Pruning koji build %s' % build['nvr'])
                 continue
             else:
                 builds.append(build)
+        for build in DevBuildsys.__tagged__:
+            for tag_ in DevBuildsys.__tagged__[build]:
+                if tag_ == tag:
+                    builds.append(self.getBuild(build))
         return builds
 
     def getLatestBuilds(self, *args, **kw):

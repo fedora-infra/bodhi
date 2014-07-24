@@ -24,6 +24,7 @@ from bodhi.util import sorted_updates
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
                           UpdateStatus, ReleaseState)
+from bodhi.metadata import ExtendedMetadata
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
@@ -115,7 +116,7 @@ Once mash is done:
             if update:
                 releases[update.release.name][update.request.value].append(update.title)
             else:
-                log.warn('Cannot find update: %s' % title)
+                self.log.warn('Cannot find update: %s' % title)
         return releases
 
 
@@ -170,6 +171,7 @@ class MasherThread(threading.Thread):
                 #self.mash()
                 self.generate_testing_digest()
                 self.complete_requests()
+                self.generate_updateinfo()
 
             success = True
             self.remove_state()
@@ -307,6 +309,14 @@ class MasherThread(threading.Thread):
             self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
     def generate_testing_digest(self):
+        self.log.info('Generating testing digest for %s' % self.release.name)
         for update in self.updates:
             if update.request is UpdateRequest.testing:
                 self.add_to_digest(update)
+
+    def generate_updateinfo(self):
+        self.log.info('Generating updateinfo for %s' % self.release.name)
+        uinfo = ExtendedMetadata(self.release, self.request, self.db)
+        uinfo.insert_updateinfo()
+        uinfo.insert_pkgtags()
+        uinfo.cache_repodata()
