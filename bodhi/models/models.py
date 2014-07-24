@@ -1753,7 +1753,7 @@ class BuildrootOverride(Base):
             return
 
         override = cls(**data)
-        override.set_build(build)
+        override.tag_build()
         db.add(override)
         db.flush()
 
@@ -1772,16 +1772,6 @@ class BuildrootOverride(Base):
                                'No buildroot override for this build')
             return
 
-        build = data['build']
-
-        if build.override is not None and build.override is not override:
-            request.errors.add('body', 'nvr',
-                               'This build is already in another override')
-            return
-
-        if edited != build:
-            override.set_build(build)
-
         override.submitter = data['submitter']
         override.notes = data['notes']
         override.expiration_date = data['expiration_date']
@@ -1794,21 +1784,10 @@ class BuildrootOverride(Base):
 
         return override
 
-    def set_build(self, build):
+    def tag_build(self):
         koji_session = buildsys.get_session()
+        koji_session.tagBuild(self.build.release.override_tag, self.build.nvr)
 
-        if build != self.build:
-            koji_session.untagBuild(self.build.release.override_tag,
-                                    self.build.nvr, strict=True)
-            notifications.publish(
-                topic='buildroot_override.untag',
-                msg=dict(override=self),
-            )
-
-        koji_session.tagBuild(build.release.override_tag,
-                              build.nvr)
-
-        self.build = build
         notifications.publish(
             topic='buildroot_override.tag',
             msg=dict(override=self),

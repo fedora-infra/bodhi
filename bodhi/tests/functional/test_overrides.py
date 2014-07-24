@@ -203,65 +203,31 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(o['expired_date'], None)
 
     @mock.patch('bodhi.notifications.publish')
-    def test_edit_override_build(self, publish):
+    def test_cannot_edit_override_build(self, publish):
         session = DBSession()
 
         release = Release.get(u'F17', session)
-
-        build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
-        session.add(build)
-        session.flush()
 
         old_nvr = u'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr)
         o = res.json_body
         expiration_date = o['expiration_date']
-
-        o.update({'nvr': build.nvr, 'edited': old_nvr})
-        res = self.app.post('/overrides/', o)
-
-        override = res.json_body
-        self.assertEquals(override['build_id'], build.id)
-        self.assertEquals(override['notes'], 'blah blah blah')
-        self.assertEquals(override['expiration_date'], expiration_date)
-        self.assertEquals(override['expired_date'], None)
-        self.assertEquals(len(publish.call_args_list), 2)
-
-    @mock.patch('bodhi.notifications.publish')
-    def test_edit_override_build_already_in_other_override(self, publish):
-        # Get the override ot edit
-        res = self.app.get('/overrides/bodhi-2.0-1.fc17')
-        o1 = res.json_body
-
-        # Create a second one
-        session = DBSession()
-
-        release = Release.get(u'F17', session)
+        old_build_id = o['build_id']
 
         build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
         session.add(build)
         session.flush()
 
-        expiration_date = datetime.now() + timedelta(days=1)
+        o.update({'nvr': build.nvr, 'edited': old_nvr})
+        res = self.app.post('/overrides/', o)
 
-        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
-                'expiration_date': expiration_date}
-        res = self.app.post('/overrides/', data)
-        self.assertEquals(len(publish.call_args_list), 1)
-
-        o2 = res.json_body
-
-        # Edit the first one
-        o1.update({'nvr': build.nvr, 'edited': o1['build']['nvr']})
-        res = self.app.post('/overrides/', o1, status=400)
-
-        errors = res.json_body['errors']
-        self.assertEquals(len(errors), 1)
-        self.assertEquals(errors[0]['name'], 'nvr')
-        self.assertEquals(errors[0]['description'],
-                          'This build is already in another override')
-        self.assertEquals(len(publish.call_args_list), 1)
+        override = res.json_body
+        self.assertEquals(override['build_id'], old_build_id)
+        self.assertEquals(override['notes'], 'blah blah blah')
+        self.assertEquals(override['expiration_date'], expiration_date)
+        self.assertEquals(override['expired_date'], None)
+        self.assertEquals(len(publish.call_args_list), 0)
 
     def test_edit_override_build_does_not_exist(self):
         old_nvr = u'bodhi-2.0-1.fc17'
