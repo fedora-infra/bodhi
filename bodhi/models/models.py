@@ -1804,12 +1804,14 @@ class BuildrootOverride(Base):
         )
 
     def expire(self):
-        koji_session = buildsys.get_session()
+        if self.expired_date is not None:
+            return
 
+        koji_session = buildsys.get_session()
         koji_session.untagBuild(self.build.release.override_tag,
                                 self.build.nvr, strict=True)
-
         self.expired_date = datetime.utcnow()
+
         notifications.publish(
             topic='buildroot_override.untag',
             msg=dict(override=self),
