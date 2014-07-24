@@ -321,7 +321,6 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(override['expired_date'], None)
 
-
     @mock.patch('bodhi.notifications.publish')
     def test_expire_override(self, publish):
         old_nvr = u'bodhi-2.0-1.fc17'
@@ -340,3 +339,37 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertNotEquals(override['expired_date'], None)
         publish.assert_called_once_with(
             topic='buildroot_override.untag', msg=mock.ANY)
+
+    @mock.patch('bodhi.notifications.publish')
+    def test_unexpire_override(self, publish):
+        session = DBSession()
+
+        # First expire a buildroot override
+        old_nvr = u'bodhi-2.0-1.fc17'
+        override = Build.get(old_nvr, session).override
+        override.expire()
+        session.add(override)
+        session.flush()
+
+        publish.assert_called_once_with(
+            topic='buildroot_override.untag', msg=mock.ANY)
+        publish.reset_mock()
+
+        # And now push its expiration_date into the future
+        res = self.app.get('/overrides/%s' % old_nvr)
+        o = res.json_body
+
+        expiration_date = datetime.now() + timedelta(days=1)
+        expiration_date = expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+
+        o.update({'nvr': o['build']['nvr'],
+                  'edited': old_nvr, 'expiration_date': expiration_date})
+        res = self.app.post('/overrides/', o)
+
+        override = res.json_body
+        self.assertEquals(override['build'], o['build'])
+        self.assertEquals(override['notes'], o['notes'])
+        self.assertEquals(override['expiration_date'], o['expiration_date'])
+        self.assertEquals(override['expired_date'], None)
+        publish.assert_called_once_with(
+            topic='buildroot_override.tag', msg=mock.ANY)

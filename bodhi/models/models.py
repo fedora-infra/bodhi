@@ -1786,7 +1786,14 @@ class BuildrootOverride(Base):
         override.notes = data['notes']
         override.expiration_date = data['expiration_date']
 
-        if data['expired']:
+        now = datetime.utcnow()
+
+        if override.expired_date is not None and override.expiration_date > now:
+            # Buildroot override had expired, we need to unexpire it
+            override.expired_date = None
+            override.tag_build()
+
+        elif data['expired']:
             override.expire()
 
         db.add(override)
