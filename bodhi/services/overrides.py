@@ -36,7 +36,7 @@ overrides = Service(name='overrides', path='/overrides/',
 
 @override.get(accept=("application/json", "text/json"), renderer="json")
 @override.get(accept=("application/javascript"), renderer="jsonp")
-#@override.get(accept=("text/html"), renderer="override.html")
+@override.get(accept=("text/html"), renderer="override.html")
 def get_override(request):
     db = request.db
     nvr = request.matchdict.get('nvr')
@@ -54,7 +54,7 @@ def get_override(request):
         request.errors.status = HTTPNotFound.code
         return
 
-    return build.override
+    return dict(override=build.override)
 
 
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,

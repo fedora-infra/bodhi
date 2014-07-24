@@ -22,9 +22,11 @@
   <div id="new-override-form" class="col-md-12 hidden">
 
     <div class="row">
+      %if override is UNDEFINED:
       <div class="col-md-12">
         <h2 class="pull-left">New Override</span>
       </div>
+      %endif
     </div>
 
     <div class="row">
@@ -35,8 +37,15 @@
             <span class="pull-left">Candidate Build</span>
           </div>
           <div id="candidates-search" class="form-group noui">
+            %if override is UNDEFINED:
             <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
                 placeholder="Add a build, like package-0.2.1-5.fc20">
+            %else:
+            <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
+                placeholder="Add a build, like package-0.2.1-5.fc20"
+                value="${override.build.nvr}" readonly>
+            <input id="edited" name="edited" type="hidden" value="${override.build.nvr}">
+            %endif
           </div>
         </div>
       </div>
@@ -49,7 +58,11 @@
           <div class="form-group noui">
             <input class="form-control noui" id="expiration_date"
                 name="expiration_date" type="text"
-                placeholder="Add a date, like 2014-06-06">
+                placeholder="Add a date, like 2014-06-06"
+                %if override is not UNDEFINED:
+                value="${override.expiration_date.strftime('%Y-%m-%d')}"
+                %endif
+                >
           </div>
         </div>
       </div>
@@ -64,7 +77,7 @@
           </div>
           <div class="panel-body">
             <textarea class="form-control" id="notes" name="notes" rows="6"
-              placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please.  You can use **markdown** to make them look nice." required="true"></textarea>
+              placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please.  You can use **markdown** to make them look nice." required="true">${override.notes if override is not UNDEFINED else ''}</textarea>
           </div>
         </div>
       </div>
@@ -95,3 +108,10 @@
   </div>
 </div>
 <script src="${request.static_url('bodhi:static/js/override_form.js')}"></script>
+<script>
+$(document).ready(function() {
+%if override is not UNDEFINED:
+    update_markdown_preview("${override.notes}");
+%endif
+});
+</script>

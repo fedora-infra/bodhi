@@ -29,7 +29,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_get_single_override(self):
         res = self.app.get('/overrides/bodhi-2.0-1.fc17')
 
-        override = res.json_body
+        override = res.json_body['override']
 
         self.assertEquals(override['build']['nvr'], "bodhi-2.0-1.fc17")
         self.assertEquals(override['submitter']['name'], 'guest')
@@ -247,7 +247,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         old_nvr = u'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr)
-        o = res.json_body
+        o = res.json_body['override']
         expiration_date = o['expiration_date']
         old_build_id = o['build_id']
 
@@ -289,7 +289,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         old_nvr = u'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr)
-        o = res.json_body
+        o = res.json_body['override']
         build_id = o['build_id']
         expiration_date = o['expiration_date']
 
@@ -307,7 +307,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         old_nvr = u'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr)
-        o = res.json_body
+        o = res.json_body['override']
         expiration_date = datetime.utcnow() + timedelta(days=2)
 
         o.update({'nvr': o['build']['nvr'],
@@ -326,7 +326,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         old_nvr = u'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr)
-        o = res.json_body
+        o = res.json_body['override']
 
         o.update({'nvr': o['build']['nvr'], 'expired': True,
                   'edited': old_nvr})
@@ -357,7 +357,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # And now push its expiration_date into the future
         res = self.app.get('/overrides/%s' % old_nvr)
-        o = res.json_body
+        o = res.json_body['override']
 
         expiration_date = datetime.now() + timedelta(days=1)
         expiration_date = expiration_date.strftime("%Y-%m-%d %H:%M:%S")
