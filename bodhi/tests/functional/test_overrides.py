@@ -246,7 +246,9 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_edit_unexisting_override(self):
         session = DBSession()
-        build = Build(nvr=u'bodhi-2.0-2.fc17')
+        release = Release.get(u'F17', session)
+
+        build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
         session.add(build)
         session.flush()
 
