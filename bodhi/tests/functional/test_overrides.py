@@ -183,7 +183,10 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
         release = Release.get(u'F17', session)
 
-        build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
+        package = Package(name=u'not-bodhi')
+        session.add(package)
+        build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
+                      release=release)
         session.add(build)
         session.flush()
 
@@ -192,8 +195,10 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         data = {'nvr': build.nvr, 'notes': u'blah blah blah',
                 'expiration_date': expiration_date}
         res = self.app.post('/overrides/', data)
+
         publish.assert_called_once_with(
             topic='buildroot_override.tag', msg=mock.ANY)
+        self.assertEquals(len(publish.call_args_list), 1)
 
         o = res.json_body
         self.assertEquals(o['build_id'], build.id)
