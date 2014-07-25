@@ -10,6 +10,23 @@ $(document).ready(function() {
         document.location.href = "/overrides/" + data.build.nvr;
     };
 
+    OverridesForm.prototype.expire = function() {
+        var self = this;
+        self.start();
+
+        var formdata = self.data();
+        formdata['expired'] = true;
+
+        $.ajax(this.url, {
+            method: 'POST',
+            data: JSON.stringify(formdata),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(data) { return self.success(data); },
+            error: function(data) { return self.error(data); },
+        });
+    };
+
     // These next couple blocks of code wire up the auto-complete search for
     // candidates in the override form.  Two technologies are at play here.  The
     // first is 'bloodhound' which is a suggestion engine.  Its suggestions are
@@ -47,6 +64,11 @@ $(document).ready(function() {
     $("#submit").click(function (e) {
         var theform = new OverridesForm();
         theform.submit();
+    });
+
+    $("#expire").click(function() {
+        var theform = new OverridesForm();
+        theform.expire();
     });
 
     // Lastly, hide our warning and show the main form

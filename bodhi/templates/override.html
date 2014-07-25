@@ -109,6 +109,9 @@
         <div class="panel panel-default">
             <span class="pull-right">
               <button id="submit" class="btn btn-success">Submit</button>
+              %if override is not UNDEFINED and override.expired_date is None:
+              <button id="expire" class="btn btn-warning">Expire</button>
+              %endif
             </span>
           </div>
         </div>
