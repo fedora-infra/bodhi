@@ -48,30 +48,7 @@
         </a>
       </div>
     </div>
-    <table class="table">
-      <thead><tr>
-          <th>Update</th>
-          <th>Age</th>
-          <th>Release(s)</th>
-          <th>Status</th>
-      </tr></thead>
-      <tbody>
-      % for update in user['recent_updates']:
-      <tr>
-        <td> ${self.util.update2html(update) | n} </td>
-        <td>${self.util.age(update['date_submitted'])}</td>
-        <td>
-          % if update['release']:
-          <a href="${request.route_url('release', name=update['release']['name'])}">
-            ${update['release']['name']}
-          </a>
-          % endif
-        </td>
-        <td>${update['status']}</td>
-      </tr>
-      % endfor
-      </tbody>
-    </table>
+    ${self.tables.updates(user['recent_updates'], display_user=False)}
   </div>
   %endif
   %if user['recent_overrides']:
@@ -85,36 +62,7 @@
         </a>
       </div>
     </div>
-    <table class="table">
-      <thead><tr>
-          <th>Override</th>
-          <th>Age</th>
-          <th>Status</th>
-      </tr></thead>
-      <tbody>
-      % for override in user['recent_overrides']:
-        <tr>
-          <td>
-            <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
-              ${override['build']['nvr']}
-            </a>
-          </td>
-          <td>
-            <span title="${override['submission_date']} UTC">
-              ${self.util.age(override['submission_date'], True)}
-            </span>
-          </td>
-          <td>
-            % if override['expired_date'] is None:
-            Active
-            % else:
-            Expired
-            % endif
-          </td>
-        </tr>
-      % endfor
-      </tbody>
-    </table>
+    ${self.tables.overrides(user['recent_overrides'], display_user=False)}
   </div>
   % endif
 </div>
