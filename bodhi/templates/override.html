@@ -65,10 +65,10 @@
           <div class="panel-heading clearfix">
             <span class="pull-left">Expiration date</span>
           </div>
-          <div class="form-group noui">
+          <div class="form-group noui input-group">
+            <span class="input-group-addon glyphicon glyphicon-calendar"></span>
             <input class="form-control noui" id="expiration_date"
                 name="expiration_date" type="text"
-                placeholder="Add a date, like 2014-06-06"
                 %if override is not UNDEFINED:
                 value="${override.expiration_date.strftime('%Y-%m-%d')}"
                 %endif
@@ -118,8 +118,32 @@
   </div>
 </div>
 <script src="${request.static_url('bodhi:static/js/override_form.js')}"></script>
+<script src="${request.static_url('bodhi:static/datepicker/js/bootstrap-datepicker.js')}"></script>
+<link href="${request.static_url('bodhi:static/datepicker/css/datepicker.css')}" rel="stylesheet" />
 <script>
 $(document).ready(function() {
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+                         0, 0, 0, 0);
+    var tomorrow = new Date(today.getTime() + 24*60*60*1000);
+
+    var expiration = $('#expiration_date').datepicker({
+        format: 'yyyy-mm-dd',
+        onRender: function(date) {
+            if (date.valueOf() < tomorrow.valueOf()) {
+                return 'disabled';
+            } else {
+                return '';
+            }
+        }
+    }).on('changeDate', function(ev) {
+        expiration.hide();
+    }).data('datepicker');
+
+%if override is UNDEFINED:
+    expiration.setValue(tomorrow);
+%endif
+
 %if override is not UNDEFINED:
     update_markdown_preview("${override.notes}");
 %endif
