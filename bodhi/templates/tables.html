@@ -73,9 +73,9 @@
       %endif
       <td class="hidejs">
         % if override['expired_date'] is None:
-        Active
+        <span title="Expires on ${override['expiration_date']}">Active</span>
         % else:
-        Expired
+        <span title="Expired since ${override['expired_date']}">Expired</span>
         % endif
       </td>
     </tr>
