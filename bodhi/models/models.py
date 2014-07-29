@@ -1763,7 +1763,7 @@ class BuildrootOverride(Base):
             db.add(old_build.override)
 
         override = cls(**data)
-        override.tag_build()
+        override.enable()
         db.add(override)
         db.flush()
 
@@ -1790,8 +1790,7 @@ class BuildrootOverride(Base):
 
         if override.expired_date is not None and override.expiration_date > now:
             # Buildroot override had expired, we need to unexpire it
-            override.expired_date = None
-            override.tag_build()
+            override.enable()
 
         elif data['expired']:
             override.expire()
@@ -1801,7 +1800,7 @@ class BuildrootOverride(Base):
 
         return override
 
-    def tag_build(self):
+    def enable(self):
         koji_session = buildsys.get_session()
         koji_session.tagBuild(self.build.release.override_tag, self.build.nvr)
 
@@ -1809,6 +1808,8 @@ class BuildrootOverride(Base):
             topic='buildroot_override.tag',
             msg=dict(override=self),
         )
+
+        self.expired_date = None
 
     def expire(self):
         if self.expired_date is not None:
