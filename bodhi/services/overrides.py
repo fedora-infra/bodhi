@@ -22,7 +22,7 @@ from sqlalchemy.sql import or_
 from bodhi import log
 from bodhi.models import Build, BuildrootOverride, Package, Release
 import bodhi.schemas
-from bodhi.validators import (validate_build, validate_expiration_date,
+from bodhi.validators import (validate_override_build, validate_expiration_date,
                               validate_packages, validate_releases,
                               validate_username)
 
@@ -36,7 +36,7 @@ overrides = Service(name='overrides', path='/overrides/',
 
 @override.get(accept=("application/json", "text/json"), renderer="json")
 @override.get(accept=("application/javascript"), renderer="jsonp")
-#@override.get(accept=("text/html"), renderer="override.html")
+@override.get(accept=("text/html"), renderer="override.html")
 def get_override(request):
     db = request.db
     nvr = request.matchdict.get('nvr')
@@ -54,7 +54,7 @@ def get_override(request):
         request.errors.status = HTTPNotFound.code
         return
 
-    return build.override
+    return dict(override=build.override)
 
 
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
@@ -72,11 +72,11 @@ def get_override(request):
                validators=(validate_packages, validate_releases,
                            validate_username)
                )
-#@overrides.get(schema=bodhi.schemas.ListOverrideSchema,
-#               accept=('text/html'), renderer='overrides.html',
-#               validators=(validate_packages, validate_releases,
-#                           validate_username)
-#               )
+@overrides.get(schema=bodhi.schemas.ListOverrideSchema,
+               accept=('text/html'), renderer='overrides.html',
+               validators=(validate_packages, validate_releases,
+                           validate_username)
+               )
 def query_overrides(request):
     db = request.db
     data = request.validated
@@ -123,12 +123,12 @@ def query_overrides(request):
 @overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
                 acl=bodhi.security.packagers_allowed_acl,
                 accept=("application/json", "text/json"), renderer='json',
-                validators=(validate_build, validate_expiration_date),
+                validators=(validate_override_build, validate_expiration_date),
                 )
 @overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
                 acl=bodhi.security.packagers_allowed_acl,
                 accept=("application/javascript"), renderer="jsonp",
-                validators=(validate_build, validate_expiration_date),
+                validators=(validate_override_build, validate_expiration_date),
                 )
 def save_override(request):
     """Save a buildroot override
@@ -144,10 +144,6 @@ def save_override(request):
 
     try:
         if edited is None:
-            if build.override is not None:
-                request.errors.add('body', 'nvr', 'This build already is in a buildroot override')
-                return
-
             log.info("Creating a new buildroot override: %s" % data['nvr'])
 
             override = BuildrootOverride.new(request, build=build,
@@ -165,8 +161,11 @@ def save_override(request):
                 request.errors.add('body', 'edited', 'No such build')
                 return
 
-            override = BuildrootOverride.edit(request, edited=edited,
-                                              submitter=request.user, **data)
+            override = BuildrootOverride.edit(
+                    request, edited=edited, submitter=request.user,
+                    notes=data["notes"], expired=data["expired"],
+                    expiration_date=data["expiration_date"]
+                    )
 
     except Exception as e:
         log.exception(e)

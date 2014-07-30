@@ -19,7 +19,14 @@ from sqlalchemy.sql import or_, and_
 import math
 
 from bodhi import log
-from bodhi.models import Update, Package, User, Comment, Group
+from bodhi.models import (
+    BuildrootOverride,
+    Comment,
+    Group,
+    Package,
+    Update,
+    User,
+)
 import bodhi.services.updates
 import bodhi.schemas
 from bodhi.validators import (
@@ -84,12 +91,18 @@ def get_user(request):
         .order_by(Update.date_submitted.desc())\
         .limit(14).all()
 
+    overrides = db.query(BuildrootOverride)
+    overrides = overrides.filter(BuildrootOverride.submitter == user)
+    overrides = overrides.order_by(BuildrootOverride.submission_date)
+    overrides = overrides.limit(14).all()
+
     # And stuff the results in the dict
     result['comments_by'] = comments_by
     result['comments_on'] = comments_on
     result['comments_by_count'] = comments_by_count
     result['comments_on_count'] = comments_on_count
     result['recent_updates'] = updates
+    result['recent_overrides'] = overrides
     result['user'] = user
 
     return dict(user=result)

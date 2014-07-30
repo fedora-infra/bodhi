@@ -1752,8 +1752,18 @@ class BuildrootOverride(Base):
             request.errors.add('body', 'nvr', 'This build already is in a buildroot override')
             return
 
+        old_build = db.query(Build).filter(and_(
+                Build.package_id==build.package_id,
+                Build.release_id==build.release_id)).first()
+
+        if old_build is not None and old_build.override is not None:
+            # There already is a buildroot override for an older build of this
+            # package in this release. Expire it
+            old_build.override.expire()
+            db.add(old_build.override)
+
         override = cls(**data)
-        override.set_build(build)
+        override.enable()
         db.add(override)
         db.flush()
 
@@ -1765,28 +1775,24 @@ class BuildrootOverride(Base):
         db = request.db
 
         edited = data.pop('edited')
-        build = data['build']
-
-        override = db.query(cls).get(edited.id)
+        override = cls.get(edited.id, db)
 
         if override is None:
             request.errors.add('body', 'edited',
                                'No buildroot override for this build')
             return
 
-        if build.override is not None and build.override is not override:
-            request.errors.add('body', 'nvr',
-                               'This build is already in another override')
-            return
-
-        if edited != build:
-            override.set_build(build)
-
         override.submitter = data['submitter']
         override.notes = data['notes']
         override.expiration_date = data['expiration_date']
 
-        if data['expired']:
+        now = datetime.utcnow()
+
+        if override.expired_date is not None and override.expiration_date > now:
+            # Buildroot override had expired, we need to unexpire it
+            override.enable()
+
+        elif data['expired']:
             override.expire()
 
         db.add(override)
@@ -1794,32 +1800,26 @@ class BuildrootOverride(Base):
 
         return override
 
-    def set_build(self, build):
+    def enable(self):
         koji_session = buildsys.get_session()
+        koji_session.tagBuild(self.build.release.override_tag, self.build.nvr)
 
-        if build != self.build:
-            koji_session.untagBuild(self.build.release.override_tag,
-                                    self.build.nvr, strict=True)
-            notifications.publish(
-                topic='buildroot_override.untag',
-                msg=dict(override=self),
-            )
-
-        koji_session.tagBuild(build.release.override_tag,
-                              self.build.nvr, strict=True)
-        self.build = build
         notifications.publish(
             topic='buildroot_override.tag',
             msg=dict(override=self),
         )
 
-    def expire(self):
-        koji_session = buildsys.get_session()
+        self.expired_date = None
 
+    def expire(self):
+        if self.expired_date is not None:
+            return
+
+        koji_session = buildsys.get_session()
         koji_session.untagBuild(self.build.release.override_tag,
                                 self.build.nvr, strict=True)
-
         self.expired_date = datetime.utcnow()
+
         notifications.publish(
             topic='buildroot_override.untag',
             msg=dict(override=self),

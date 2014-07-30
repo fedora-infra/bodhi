@@ -79,6 +79,16 @@
                   Submit
                 </a>
               </li>
+              % if request.matched_route.name == 'new_override':
+              <li class="active">
+              % else:
+              <li>
+              % endif
+                <a href="${request.route_url('new_override')}">
+                  <span class="glyphicon glyphicon-plus"></span>
+                  Submit Buildroot Override
+                </a>
+              </li>
               % endif
               % if request.matched_route.name == 'metrics':
               <li class="active">

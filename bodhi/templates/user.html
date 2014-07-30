@@ -48,30 +48,21 @@
         </a>
       </div>
     </div>
-    <table class="table">
-      <thead><tr>
-          <th>Update</th>
-          <th>Age</th>
-          <th>Release(s)</th>
-          <th>Status</th>
-      </tr></thead>
-      <tbody>
-      % for update in user['recent_updates']:
-      <tr>
-        <td> ${self.util.update2html(update) | n} </td>
-        <td>${self.util.age(update['date_submitted'])}</td>
-        <td>
-          % if update['release']:
-          <a href="${request.route_url('release', name=update['release']['name'])}">
-            ${update['release']['name']}
-          </a>
-          % endif
-        </td>
-        <td>${update['status']}</td>
-      </tr>
-      % endfor
-      </tbody>
-    </table>
+    ${self.tables.updates(user['recent_updates'], display_user=False)}
+  </div>
+  %endif
+  %if user['recent_overrides']:
+  <div class="col-md-12">
+    <div>
+      <h3 class="pull-left nomargin nopadding">${user['name']}'s latest buildroot overrides</h3>
+      <div class="pull-right">
+        <a href="${request.route_url('overrides')}?submitter=${user['name']}">
+          View all ${len(user['user'].buildroot_overrides)}
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </div>
+    </div>
+    ${self.tables.overrides(user['recent_overrides'], display_user=False)}
   </div>
   % endif
 </div>
