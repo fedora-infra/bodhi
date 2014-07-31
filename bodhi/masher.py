@@ -170,7 +170,7 @@ class MasherThread(threading.Thread):
                 self.save_state()
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
-                #self.mash()
+                self.mash()
                 self.generate_testing_digest()
                 self.complete_requests()
                 self.generate_updateinfo()
@@ -293,6 +293,13 @@ class MasherThread(threading.Thread):
                 update.remove_tag(update.release.pending_testing_tag, koji=self.koji)
         result = self.koji.multiCall()
         log.debug('result = %r' % result)
+
+    def mash(self):
+        # TODO: mash in koji
+        # TODO: get mash `tag-date` directory
+        #self.mashed_repo = os.path.join(config.get('mashed_dir'), self.tag)
+        self.mashdir = os.path.join(config.get('mashed_dir'), self.id + '-' +
+                                    time.strftime("%y%m%d.%H%M"))
 
     def complete_requests(self):
         log.debug("Running post-request actions on updates")
