@@ -264,3 +264,13 @@ References:
 --------------------------------------------------------------------------------
 
 """)
+
+    def test_sanity_check(self):
+        #msg = makemsg()
+        #self.masher.consume(msg)
+        # test with valid repodata
+        # test with truncated/busted repodata
+        pass
+
+    def test_stage(self):
+        pass

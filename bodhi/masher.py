@@ -14,13 +14,15 @@
 
 import os
 import json
+import time
+import shutil
 import threading
 import fedmsg.consumers
 
 from collections import defaultdict
 
 from bodhi import log, buildsys, notifications, mail
-from bodhi.util import sorted_updates
+from bodhi.util import sorted_updates, sanity_check_repodata
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
                           UpdateStatus, ReleaseState)
@@ -172,6 +174,8 @@ class MasherThread(threading.Thread):
                 self.generate_testing_digest()
                 self.complete_requests()
                 self.generate_updateinfo()
+                #self.sanity_check_repo()
+                #self.stage_repo()
 
             success = True
             self.remove_state()
@@ -320,3 +324,66 @@ class MasherThread(threading.Thread):
         uinfo.insert_updateinfo()
         uinfo.insert_pkgtags()
         uinfo.cache_repodata()
+
+    def sanity_check_repo(self):
+        """Sanity check our repo.
+
+            - make sure each repo contains all supported arches
+            - make sure we didn't compose a repo full of symlinks
+            - sanity check our repodata
+        """
+        arches = os.listdir(self.mashdir)
+        log.debug("Running sanity checks on %s" % self.mashdir)
+
+        # make sure the new repository has our arches
+        for arch in config.get('arches').split():
+            if '/' in arch:  # 'ppc/ppc64'
+                one, other = arch.split('/')
+                if one not in arches and other not in arches:
+                    self.log.error("Cannot find arch %s OR %s in %s" %
+                                   (one, other, self.mashdir))
+                    raise Exception
+                else:
+                    if one in arches:
+                        arch = one
+                    else:
+                        arch = other
+            elif arch not in arches:
+                self.log.error("Cannot find arch %s in %s" % (arch, self.mashdir))
+                raise Exception
+
+            # sanity check our repodata
+            try:
+                sanity_check_repodata(os.path.join(self.mashdir, arch, 'repodata'))
+            except Exception, e:
+                log.error("Repodata sanity check failed!\n%s" % str(e))
+                raise
+
+        # make sure that mash didn't symlink our packages
+        for pkg in os.listdir(os.path.join(self.mashdir, arches[0])):
+            if pkg.endswith('.rpm'):
+                if os.path.islink(os.path.join(self.mashdir, arches[0], pkg)):
+                    log.error("Mashed repository full of symlinks!")
+                    raise Exception
+                break
+
+        return True
+
+    def stage_repo(self):
+        """Stage our updates repository.
+
+        Bodhi moves the newly mashed repository to the mashed_stage_dir, and
+        updates the live symlinks appropriately.
+        """
+        link = os.path.join(self.mashed_dir, self.id)
+        stage_dir = config.get('mashed_stage_dir')
+        if self.mashed_dir != stage_dir:
+            self.log.info("Moving %s => %s" % (self.mashdir, stage_dir))
+            shutil.move(self.mashdir, stage_dir)
+
+        # create a mashed_stage_dir/repo symlink so it goes live
+        if os.path.islink(link):
+            os.unlink(link)
+
+        os.symlink(self.mashdir, link)
+        self.log.info("Created symlink: %s => %s" % (self.mashdir, link))
