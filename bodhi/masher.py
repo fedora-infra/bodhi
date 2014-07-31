@@ -50,13 +50,14 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - request_complete
     - Send fedmsgs
 
-    - TODO: mash
+    - TODO: mash (update comps before hand?)
 Things to do while we're waiting on mash
     - Add testing updates to updates-testing digest
     - Generate/update updateinfo.xml
 
 Once mash is done:
     - inject the updateinfo it into the repodata
+
     - Sanity check the repo
     - Flip the symlinks to the new repo
     - Generate and email stable update notices
@@ -255,10 +256,11 @@ class MasherThread(threading.Thread):
                     raise Exception
 
                 if (self.release.state is ReleaseState.pending and
-                    update.request is UpdateRequest.stable):
+                        update.request is UpdateRequest.stable):
                     self.add_tags.append((update.requested_tag, build.nvr))
                 else:
-                    self.move_tags.append((from_tag, update.requested_tag, build.nvr))
+                    self.move_tags.append((from_tag, update.requested_tag,
+                                           build.nvr))
 
     def perform_tag_actions(self):
         self.koji.multicall = True
