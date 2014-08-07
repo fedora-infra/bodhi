@@ -39,8 +39,8 @@ VENV = 'bodhi-python{major}.{minor}'.format(
     minor=sys.version_info[1],
 )
 
-VENVWAPPER = os.path.exists('/usr/bin/virtualenvwrapper.sh')
-if not VENVWAPPER:
+VENVWRAPPER = os.path.exists('/usr/bin/virtualenvwrapper.sh')
+if not VENVWRAPPER:
     ENVS = os.getcwd()
 
 
@@ -62,7 +62,7 @@ if "check_output" not in dir( subprocess ): # duck punch it in!
 
 def _link_system_lib(lib):
     workon = '.'
-    if VENVWAPPER:
+    if VENVWRAPPER:
         workon=os.getenv("WORKON_HOME")
     for libdir in ('lib', 'lib64'):
         location = '{libdir}/python{major}.{minor}/site-packages'.format(
@@ -104,7 +104,7 @@ def _do_virtualenvwrapper_command(cmd):
     """
     print("Trying '%s'" % cmd)
     cmds = cmd.split(' ')
-    if VENVWAPPER:
+    if VENVWRAPPER:
         cmds = ['bash', '-c', '. /usr/bin/virtualenvwrapper.sh; %s' % cmd]
     out, err = subprocess.Popen(
         cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -117,7 +117,7 @@ def rebuild():
     """ Completely destroy and rebuild the virtualenv. """
     try:
         cmd = 'rm -rf %s' % VENV
-        if VENVWAPPER:
+        if VENVWRAPPER:
             cmd = 'rmvirtualenv %s' % VENV
         _do_virtualenvwrapper_command(cmd)
     except Exception as e:
@@ -129,7 +129,7 @@ def rebuild():
                 minor=sys.version_info[1],
                 v=VENV,
             )
-    if VENVWAPPER:
+    if VENVWRAPPER:
         cmd = 'mkvirtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
             .format(
                 major=sys.version_info[0],
@@ -153,7 +153,7 @@ def rebuild():
 def setup_develop():
     """ `python setup.py develop` in our virtualenv """
     workon = '.'
-    if VENVWAPPER:
+    if VENVWRAPPER:
         workon=os.getenv("WORKON_HOME")
     cmd = '{workon}/{env}/bin/python setup.py develop'.format(
         envs=ENVS, env=VENV, workon=workon)
@@ -167,7 +167,7 @@ def install_test_deps():
     directory
     """
     workon = '.'
-    if VENVWAPPER:
+    if VENVWRAPPER:
         workon=os.getenv("WORKON_HOME")
     cmd = '{workon}/{env}/bin/pip install nose-cov webtest mock'.format(
         envs=ENVS, env=VENV, workon=workon)
