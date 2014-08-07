@@ -234,7 +234,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertNotEquals(comment1, comment2)
 
     def test_list_comments_by_since(self):
-        tomorrow = datetime.now() + timedelta(days=1)
+        tomorrow = datetime.utcnow() + timedelta(days=1)
         fmt = "%Y-%m-%d %H:%M:%S"
 
         # Try with no comments first
@@ -267,7 +267,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_list_comments_by_future_date(self):
         """test filtering by future date"""
-        tomorrow = datetime.now() + timedelta(days=1)
+        tomorrow = datetime.utcnow() + timedelta(days=1)
         tomorrow = tomorrow.strftime("%Y-%m-%d %H:%M:%S")
 
         res = self.app.get('/comments/', {"since": tomorrow})

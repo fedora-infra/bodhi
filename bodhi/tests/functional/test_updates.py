@@ -268,7 +268,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertNotEquals(update1, update2)
 
     def test_list_updates_by_approved_since(self):
-        now = datetime.now()
+        now = datetime.utcnow()
 
         # Try with no approved updates first
         res = self.app.get('/updates/',
@@ -439,7 +439,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_list_updates_by_date_submitted_future_date(self):
         """test filtering by submitted date with future date"""
-        tomorrow = datetime.now() + timedelta(days=1)
+        tomorrow = datetime.utcnow() + timedelta(days=1)
         tomorrow = tomorrow.strftime("%Y-%m-%d")
 
         res = self.app.get('/updates/', {"submitted_since": tomorrow})
@@ -505,7 +505,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                           '"maybe" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
     def test_list_updates_by_modified_since(self):
-        now = datetime.now()
+        now = datetime.utcnow()
 
         # Try with no modified updates first
         res = self.app.get('/updates/',
@@ -618,7 +618,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                           '"who knows?" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
     def test_list_updates_by_pushed_since(self):
-        now = datetime.now()
+        now = datetime.utcnow()
 
         # Try with no pushed updates first
         res = self.app.get('/updates/',

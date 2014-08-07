@@ -190,7 +190,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         session.add(build)
         session.flush()
 
-        expiration_date = datetime.now() + timedelta(days=1)
+        expiration_date = datetime.utcnow() + timedelta(days=1)
 
         data = {'nvr': build.nvr, 'notes': u'blah blah blah',
                 'expiration_date': expiration_date}
@@ -217,7 +217,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         session.add(build)
         session.flush()
 
-        expiration_date = datetime.now() + timedelta(days=1)
+        expiration_date = datetime.utcnow() + timedelta(days=1)
 
         data = {'nvr': build.nvr, 'notes': u'blah blah blah',
                 'expiration_date': expiration_date}
@@ -273,7 +273,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         session.add(build)
         session.flush()
 
-        expiration_date = datetime.now() + timedelta(days=1)
+        expiration_date = datetime.utcnow() + timedelta(days=1)
 
         o = {'nvr': build.nvr, 'notes': 'blah blah blah',
              'expiration_date': expiration_date, 'edited': build.nvr}

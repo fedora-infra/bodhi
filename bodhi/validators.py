@@ -592,7 +592,7 @@ def validate_expiration_date(request):
     if expiration_date is None:
         return
 
-    now = datetime.now()
+    now = datetime.utcnow()
 
     if expiration_date <= now:
         request.errors.add('body', 'nvr', 'Expiration date in the past')

@@ -68,7 +68,7 @@ def populate(db):
     update.comments.append(comment)
     db.add(update)
 
-    expiration_date = datetime.now()
+    expiration_date = datetime.utcnow()
     expiration_date = expiration_date + timedelta(days=1)
 
     override = BuildrootOverride(build=build, submitter=user,
