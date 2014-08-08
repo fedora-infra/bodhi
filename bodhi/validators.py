@@ -22,7 +22,7 @@ from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
-                     Bug, TestCase, ReleaseState)
+                     Bug, TestCase, ReleaseState, Stack)
 from .util import get_nvr
 
 try:
@@ -632,3 +632,14 @@ def validate_captcha(request):
                                'Incorrect response to the captcha.')
             request.errors.status = HTTPBadRequest.code
             return
+
+
+def validate_stack(request):
+    """Make sure this singular stack exists"""
+    stackname = request.validated.get("stack")
+    stack = request.db.query(Stack).filter_by(name=stackname).first()
+    if stack:
+        request.validated["stack"] = stack
+    else:
+        request.errors.add("querystring", "stack",
+                           "Invalid stack specified: {}".format(stackname))
