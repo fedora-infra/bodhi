@@ -39,6 +39,11 @@ VENV = 'bodhi-python{major}.{minor}'.format(
     minor=sys.version_info[1],
 )
 
+VENVWRAPPER = os.path.exists('/usr/bin/virtualenvwrapper.sh')
+if not VENVWRAPPER:
+    ENVS = os.getcwd()
+
+
 if "check_output" not in dir( subprocess ): # duck punch it in!
     def f(*popenargs, **kwargs):
         if 'stdout' in kwargs:
@@ -56,6 +61,9 @@ if "check_output" not in dir( subprocess ): # duck punch it in!
 
 
 def _link_system_lib(lib):
+    workon = '.'
+    if VENVWRAPPER:
+        workon=os.getenv("WORKON_HOME")
     for libdir in ('lib', 'lib64'):
         location = '{libdir}/python{major}.{minor}/site-packages'.format(
             major=sys.version_info[0], minor=sys.version_info[1],
@@ -70,8 +78,7 @@ def _link_system_lib(lib):
         template = 'ln -s /usr/{location}/{lib} {workon}/{venv}/{location}/'
         print("Linking in global module: %s" % lib)
         cmd = template.format(
-            location=location, venv=VENV, lib=lib,
-            workon=os.getenv("WORKON_HOME"))
+            location=location, venv=VENV, lib=lib, workon=workon)
         try:
             subprocess.check_output(cmd.split())
             return True
@@ -96,9 +103,11 @@ def _do_virtualenvwrapper_command(cmd):
     other executables.
     """
     print("Trying '%s'" % cmd)
+    cmds = cmd.split(' ')
+    if VENVWRAPPER:
+        cmds = ['bash', '-c', '. /usr/bin/virtualenvwrapper.sh; %s' % cmd]
     out, err = subprocess.Popen(
-        ['bash', '-c', '. /usr/bin/virtualenvwrapper.sh; %s' % cmd],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     ).communicate()
     print(out)
     print(err)
@@ -107,11 +116,21 @@ def _do_virtualenvwrapper_command(cmd):
 def rebuild():
     """ Completely destroy and rebuild the virtualenv. """
     try:
-        _do_virtualenvwrapper_command('rmvirtualenv %s' % VENV)
+        cmd = 'rm -rf %s' % VENV
+        if VENVWRAPPER:
+            cmd = 'rmvirtualenv %s' % VENV
+        _do_virtualenvwrapper_command(cmd)
     except Exception as e:
         print(unicode(e))
 
-    cmd = 'mkvirtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
+    cmd = 'virtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
+            .format(
+                major=sys.version_info[0],
+                minor=sys.version_info[1],
+                v=VENV,
+            )
+    if VENVWRAPPER:
+        cmd = 'mkvirtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
             .format(
                 major=sys.version_info[0],
                 minor=sys.version_info[1],
@@ -133,18 +152,25 @@ def rebuild():
 
 def setup_develop():
     """ `python setup.py develop` in our virtualenv """
+    workon = '.'
+    if VENVWRAPPER:
+        workon=os.getenv("WORKON_HOME")
     cmd = '{workon}/{env}/bin/python setup.py develop'.format(
-        envs=ENVS, env=VENV, workon=os.getenv("WORKON_HOME"))
+        envs=ENVS, env=VENV, workon=workon)
     print(cmd)
     subprocess.call(cmd.split())
+
 
 def install_test_deps():
     """
     To work around `python setup.py test` downloadling egg files to the current
     directory
     """
+    workon = '.'
+    if VENVWRAPPER:
+        workon=os.getenv("WORKON_HOME")
     cmd = '{workon}/{env}/bin/pip install nose-cov webtest mock'.format(
-        envs=ENVS, env=VENV, workon=os.getenv("WORKON_HOME"))
+        envs=ENVS, env=VENV, workon=workon)
     print(cmd)
     subprocess.call(cmd.split())
 
