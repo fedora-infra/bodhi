@@ -1157,9 +1157,12 @@ class Update(Base):
             notes = wrap(
                 self.notes, width=67, subsequent_indent=' ' * 11 + ': ')
             val += u"\n      Notes: %s" % '\n'.join(notes)
+        username = None
+        if self.user:
+            username = self.user.name
         val += u"""
   Submitter: %s
-  Submitted: %s\n""" % (self.user.name, self.date_submitted)
+  Submitted: %s\n""" % (username, self.date_submitted)
         if len(self.comments):
             val += u"   Comments: "
             comments = []
