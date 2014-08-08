@@ -309,6 +309,8 @@ class Package(Base):
     committers = relationship('User', secondary=user_package_table,
                               backref='packages')
 
+    stack_id = Column(Integer, ForeignKey('stacks.id'))
+
     def get_pkg_pushers(self, branch, settings):
         """ Pull users who can commit and are watching a package.
 
@@ -1830,11 +1832,13 @@ class BuildrootOverride(Base):
         )
 
 
-#class Stack(Base):
-#    """
-#    A Stack in bodhi represents a group of packages that are commonly pushed
-#    together as a group.
-#    """
-#    # name
-#    # packages =  Many to many?
-#    # updates
+class Stack(Base):
+    """
+    A Stack in bodhi represents a group of packages that are commonly pushed
+    together as a group.
+    """
+    __tablename__ = 'stacks'
+    __get_by__ = ('name',)
+
+    name = Column(UnicodeText, unique=True, nullable=False)
+    packages = relationship('Package', backref=backref('stack', lazy='joined'))
