@@ -837,7 +837,7 @@ class Update(Base):
                             .filter_by(id_prefix=self.release.id_prefix) \
                             .all()
 
-        update = DBSession.query(Update) \
+        subquery = DBSession.query(Update.id) \
                           .filter(
                               and_(Update.date_pushed != None,
                                    Update.alias != None,
@@ -845,8 +845,11 @@ class Update(Base):
                                          for release in releases]))) \
                           .order_by(Update.date_pushed.desc()) \
                           .group_by(Update.date_pushed) \
-                          .limit(1) \
-                          .first()
+                          .limit(1)
+
+        update = DBSession.query(Update).filter(
+             Update.id.in_(subquery.subquery())
+        ).first()
 
         if not update:
             id = 1
