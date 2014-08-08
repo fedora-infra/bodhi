@@ -83,3 +83,31 @@
     </tbody>
   </table>
 </%def>
+<%def name="stacks(stacks)">
+  <table class="table">
+    <thead><tr>
+        <th>Stack</th>
+        <th class="nobreak">Age</th>
+        <th>Number of packages</th>
+    </tr></thead>
+    <tbody>
+    % for stack in stacks:
+    <tr>
+      <td>
+        <a href="${request.route_url('stack', nvr=stack['name'])}">
+          ${stack['name']}
+        </a>
+      </td>
+      <td class="nobreak">
+        <span title="${stack['creation_date']} UTC">
+          ${util.age(stack['creation_date'], True)}
+        </span>
+      </td>
+      <td>
+          <span title="${len(stack['packages'])} packages in this stack">${len(stack['packages'])}</span>
+      </td>
+    </tr>
+    % endfor
+    </tbody>
+  </table>
+</%def>
