@@ -843,19 +843,22 @@ class Update(Base):
                                    Update.alias != None,
                                    or_(*[Update.release == release
                                          for release in releases]))) \
-                          .order_by(Update.date_pushed.desc()) \
-                          .group_by(Update.date_pushed) \
-                          .limit(1)
+                          .order_by(Update.date_pushed.desc())
 
         update = DBSession.query(Update).filter(
              Update.id.in_(subquery.subquery())
-        ).first()
+        ).all()
 
         if not update:
             id = 1
         else:
-            split = update.alias.split('-')
-            year, id = split[-2:]
+            aliases = []
+            for upd in update:
+                split = upd.alias.split('-')
+                year, id = split[-2:]
+                aliases.append((int(year), int(id)))
+
+            year, id = max(aliases)
             prefix = '-'.join(split[:-2])
             if int(year) != time.localtime()[0]:  # new year
                 id = 0
