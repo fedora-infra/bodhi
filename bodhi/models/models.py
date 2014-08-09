@@ -837,7 +837,7 @@ class Update(Base):
                             .filter_by(id_prefix=self.release.id_prefix) \
                             .all()
 
-        subquery = DBSession.query(Update.id) \
+        subquery = DBSession.query(Update.date_pushed) \
                           .filter(
                               and_(Update.date_pushed != None,
                                    Update.alias != None,
@@ -848,14 +848,19 @@ class Update(Base):
                           .limit(1)
 
         update = DBSession.query(Update).filter(
-             Update.id.in_(subquery.subquery())
-        ).first()
+             Update.date_pushed.in_(subquery.subquery())
+        ).all()
 
         if not update:
             id = 1
         else:
-            split = update.alias.split('-')
-            year, id = split[-2:]
+            aliases = []
+            for upd in update:
+                split = upd.alias.split('-')
+                year, id = split[-2:]
+                aliases.append((int(year), int(id)))
+
+            year, id = max(aliases)
             prefix = '-'.join(split[:-2])
             if int(year) != time.localtime()[0]:  # new year
                 id = 0
