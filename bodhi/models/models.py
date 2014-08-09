@@ -837,16 +837,18 @@ class Update(Base):
                             .filter_by(id_prefix=self.release.id_prefix) \
                             .all()
 
-        subquery = DBSession.query(Update.id) \
+        subquery = DBSession.query(Update.date_pushed) \
                           .filter(
                               and_(Update.date_pushed != None,
                                    Update.alias != None,
                                    or_(*[Update.release == release
                                          for release in releases]))) \
-                          .order_by(Update.date_pushed.desc())
+                          .order_by(Update.date_pushed.desc()) \
+                          .group_by(Update.date_pushed) \
+                          .limit(1)
 
         update = DBSession.query(Update).filter(
-             Update.id.in_(subquery.subquery())
+             Update.date_pushed.in_(subquery.subquery())
         ).all()
 
         if not update:
