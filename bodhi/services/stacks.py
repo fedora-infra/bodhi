@@ -51,12 +51,8 @@ stacks = Service(name='stacks', path='/stacks/',
 @stack.get(accept=('application/json', 'text/json'), renderer='json')
 @stack.get(accept=('application/javascript'), renderer='jsonp')
 def get_stack(request):
-    id = request.matchdict.get('name')
-    stack = Stack.get(id, request.db)
-    if not stack:
-        request.errors.add('body', 'name', 'No such stack')
-        request.errors.status = HTTPNotFound.code
-    return stack
+    """Return a single Stack from its name"""
+    return dict(stack=request.validated['stack'])
 
 
 @stacks.get(accept="text/html", schema=bodhi.schemas.ListStacksSchema,
