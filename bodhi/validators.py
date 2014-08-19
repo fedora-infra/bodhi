@@ -636,10 +636,11 @@ def validate_captcha(request):
 
 def validate_stack(request):
     """Make sure this singular stack exists"""
-    stackname = request.validated.get("stack")
-    stack = request.db.query(Stack).filter_by(name=stackname).first()
+    name = request.matchdict.get('name')
+    stack = Stack.get(name, request.db)
     if stack:
-        request.validated["stack"] = stack
+        request.validated['stack'] = stack
     else:
-        request.errors.add("querystring", "stack",
-                           "Invalid stack specified: {}".format(stackname))
+        request.errors.add('querystring', 'stack',
+                           'Invalid stack specified: {}'.format(name))
+        request.errors.status = HTTPNotFound.code
