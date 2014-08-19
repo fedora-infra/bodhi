@@ -27,11 +27,11 @@ from bodhi.models import (
     Group,
     Package,
     Release,
-    stackstate,
     Update,
     UpdateType,
     UpdateStatus,
     UpdateRequest,
+    Stack,
 )
 
 
@@ -47,9 +47,9 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
     def test_404(self):
         self.app.get('/stacks/watwatwat', status=404)
 
-    def test_get_single_stack_by_lower(self):
-        res = self.app.get('/stacks/f22')
-        self.assertEquals(res.json_body['name'], 'F22')
+    def test_get_single_stack(self):
+        res = self.app.get('/stacks/GNOME')
+        self.assertEquals(res.json_body['stack']['name'], u'GNOME')
 
     #def test_get_single_stack_by_upper(self):
     #    res = self.app.get('/stacks/F22')
