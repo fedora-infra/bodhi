@@ -39,8 +39,11 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
 
     def setUp(self):
         super(TestStacksService, self).setUp()
-        session = DBSession()
-        stack = Stack(name=u'GNOME')
+        self.session = session = DBSession()
+        package = Package(name=u'gnome-shell')
+        session.add(package)
+        session.flush()
+        stack = Stack(name=u'GNOME', packages=[package])
         session.add(stack)
         session.flush()
 
