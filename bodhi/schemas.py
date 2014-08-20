@@ -281,6 +281,14 @@ class SaveReleaseSchema(colander.MappingSchema):
     )
 
 
+class ListStackSchema(PaginatedSchema, SearchableSchema):
+    name = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
+
 class ListUserSchema(PaginatedSchema, SearchableSchema):
     name = colander.SchemaNode(
         colander.String(),
