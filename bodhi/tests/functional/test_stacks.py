@@ -104,33 +104,6 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['stacks']), 1)
         self.assertEquals(body['stacks'][0]['name'], 'GNOME')
 
-    #def test_list_stacks_by_name_match_miss(self):
-    #    res = self.app.get('/stacks/', {"name": '%wat%'})
-    #    self.assertEquals(len(res.json_body['stacks']), 0)
-
-    #def test_list_stacks_by_update_title(self):
-    #    res = self.app.get('/stacks/', {"updates": 'bodhi-2.0-1.fc17'})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 1)
-    #    self.assertEquals(body['stacks'][0]['name'], 'F17')
-
-    #def test_list_stacks_by_update_alias(self):
-    #    session = DBSession()
-    #    update = session.query(Update).first()
-    #    update.alias = 'some_alias'
-    #    session.flush()
-
-    #    res = self.app.get('/stacks/', {"updates": 'some_alias'})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 1)
-    #    self.assertEquals(body['stacks'][0]['name'], 'F17')
-
-    #def test_list_stacks_by_nonexistant_update(self):
-    #    res = self.app.get('/stacks/', {"updates": 'carbunkle'}, status=400)
-    #    self.assertEquals(res.json_body['errors'][0]['name'], 'updates')
-    #    self.assertEquals(res.json_body['errors'][0]['description'],
-    #                      'Invalid updates specified: carbunkle')
-
     #def test_list_stacks_by_package_name(self):
     #    res = self.app.get('/stacks/', {"packages": 'bodhi'})
     #    body = res.json_body
