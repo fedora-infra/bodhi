@@ -55,16 +55,25 @@ def get_stack(request):
     return dict(stack=request.validated['stack'])
 
 
-@stacks.get(accept="text/html", renderer='stacks.html')
-def query_stacks_html(request):
+@stacks.get(accept="text/html", renderer='stacks.html',
+            schema=bodhi.schemas.ListStackSchema)
+@stacks.get(accept=('application/json', 'text/json'),
+            schema=bodhi.schemas.ListStackSchema, renderer='json')
+def query_stacks(request):
     """Return a paginated list of stacks"""
     data = request.validated
     query = request.db.query(Stack).order_by(Stack.name.desc())
+
+    like = data.get('like')
+    if like is not None:
+        query = query.filter(Stack.name.like('%%%s%%' % like))
+
     total = query.count()
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')
     pages = int(math.ceil(total / float(rows_per_page)))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+
     return dict(
         stacks=query.all(),
         page=page,
