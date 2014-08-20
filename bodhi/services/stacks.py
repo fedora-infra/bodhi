@@ -94,76 +94,31 @@ def query_stacks(request):
     )
 
 
-#@stacks.get(accept=('application/json', 'text/json'),
-#              schema=bodhi.schemas.Liststackschema, renderer='json',
-#              validators=(validate_release, validate_updates,
-#                          validate_packages))
-#def query_stacks_json(request):
-#    db = request.db
-#    data = request.validated
-#    query = db.query(Release)
-#
-#    name = data.get('name')
-#    if name is not None:
-#        query = query.filter(Release.name.like(name))
-#
-#    updates = data.get('updates')
-#    if updates is not None:
-#        query = query.join(Release.builds).join(Build.update)
-#        args = \
-#            [Update.title == update.title for update in updates] +\
-#            [Update.alias == update.alias for update in updates]
-#        query = query.filter(or_(*args))
-#
-#    packages = data.get('packages')
-#    if packages is not None:
-#        query = query.join(Release.builds).join(Build.package)
-#        query = query.filter(or_(*[Package.id == p.id for p in packages]))
-#
-#    total = query.count()
-#
-#    page = data.get('page')
-#    rows_per_page = data.get('rows_per_page')
-#    pages = int(math.ceil(total / float(rows_per_page)))
-#    query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
-#
-#    return dict(
-#        stacks=query.all(),
-#        page=page,
-#        pages=pages,
-#        rows_per_page=rows_per_page,
-#        total=total,
-#    )
-#
-#@stacks.post(schema=bodhi.schemas.SaveStackSchema,
-#               acl=bodhi.security.packagers_allowed_acl, renderer='json',
-#               #validators=(validate_tags, validate_enums)
-#               )
-#def save_release(request):
-#    """Save a stack"""
-#    data = request.validated
-#
-#    edited = data.pop("edited", None)
-#
-#    try:
-#        if edited is None:
-#            log.info("Creating a new release: %s" % data['name'])
-#            r = Release(**data)
-#
-#        else:
-#            log.info("Editing release: %s" % edited)
-#            r = request.db.query(Release).filter(Release.name==edited).one()
-#            for k, v in data.items():
-#                setattr(r, k, v)
-#
-#    except Exception as e:
-#        log.exception(e)
-#        request.errors.add('body', 'release',
-#                           'Unable to create update: %s' % e)
-#        return
-#
-#
-#    request.db.add(r)
-#    request.db.flush()
-#
-#    return r
+@stacks.post(schema=bodhi.schemas.SaveStackSchema,
+             acl=bodhi.security.packagers_allowed_acl,
+             renderer='json')
+def save_stack(request):
+    """Save a stack"""
+    data = request.validated
+    db = request.db
+
+    stack = Stack.get(data['name'], db)
+    if not stack:
+        stack = Stack(name=data['name'])
+        db.add(stack)
+        db.flush()
+
+    packages = data['packages']
+    if packages:
+        for package in packages:
+            pkg = Package.get(package, db)
+            # FIXME: validate that this package exists from koji?
+            if not pkg:
+                pkg = Package(name=package)
+                db.add(pkg)
+                db.flush()
+            stack.packages.append(pkg)
+
+    log.info('Saved %r', stack)
+
+    return stack
