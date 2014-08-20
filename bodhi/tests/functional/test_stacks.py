@@ -138,3 +138,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['name'], 'GNOME')
         self.assertEquals(len(body['packages']), 2)
         self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
+
+    def test_delete_stack(self):
+        res = self.app.delete("/stacks/GNOME")
+        self.assertEquals(res.json_body['status'], 'success')
+        self.assertEquals(self.session.query(Stack).count(), 0)
