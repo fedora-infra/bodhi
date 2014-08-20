@@ -53,44 +53,56 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
     def test_get_single_stack(self):
         res = self.app.get('/stacks/GNOME')
         self.assertEquals(res.json_body['stack']['name'], u'GNOME')
+        self.assertEquals(res.json_body['stack']['packages'][0]['name'], u'gnome-shell')
 
-    #def test_get_single_stack_by_upper(self):
-    #    res = self.app.get('/stacks/F22')
-    #    self.assertEquals(res.json_body['name'], 'F22')
+    def test_list_stacks(self):
+        res = self.app.get('/stacks/')
+        body = res.json_body
+        self.assertEquals(len(body['stacks']), 1)
+        self.assertEquals(body['stacks'][0]['name'], u'GNOME')
+        self.assertEquals(body['stacks'][0]['packages'][0]['name'], u'gnome-shell')
 
-    #def test_list_stacks(self):
-    #    res = self.app.get('/stacks/')
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 2)
-    #    self.assertEquals(body['stacks'][0]['name'], u'F17')
-    #    self.assertEquals(body['stacks'][1]['name'], u'F22')
+    def test_list_stacks_with_pagination(self):
+        # Create a second stack
+        pkg1 = Package(name=u'firefox')
+        pkg2 = Package(name=u'xulrunner')
+        self.session.add(pkg1)
+        self.session.add(pkg2)
+        self.session.flush()
+        ff = Stack(name=u'Firefox', packages=[pkg1, pkg2])
+        self.session.flush()
 
-    #def test_list_stacks_with_pagination(self):
-    #    res = self.app.get('/stacks/')
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 2)
+        res = self.app.get('/stacks/')
+        body = res.json_body
+        self.assertEquals(len(body['stacks']), 2)
 
-    #    res = self.app.get('/stacks/', {'rows_per_page': 1})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 1)
-    #    self.assertEquals(body['stacks'][0]['name'], 'F17')
+        res = self.app.get('/stacks/', {'rows_per_page': 1})
+        body = res.json_body
+        self.assertEquals(len(body['stacks']), 1)
+        self.assertEquals(body['stacks'][0]['name'], u'GNOME')
 
-    #    res = self.app.get('/stacks/', {'rows_per_page': 1, 'page': 2})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 1)
-    #    self.assertEquals(body['stacks'][0]['name'], 'F22')
+        res = self.app.get('/stacks/', {'rows_per_page': 1, 'page': 2})
+        body = res.json_body
+        self.assertEquals(len(body['stacks']), 1)
+        self.assertEquals(body['stacks'][0]['name'], 'Firefox')
+        self.assertEquals(body['stacks'][0]['packages'][0]['name'], 'firefox')
 
-    #def test_list_stacks_by_name(self):
-    #    res = self.app.get('/stacks/', {"name": 'F22'})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 1)
-    #    self.assertEquals(body['stacks'][0]['name'], 'F22')
+    def test_list_stacks_by_name(self):
+        res = self.app.get('/stacks/', {'name': 'GNOME'})
+        body = res.json_body
+        self.assertEquals(len(body['stacks']), 1)
+        self.assertEquals(body['stacks'][0]['name'], 'GNOME')
 
-    #def test_list_stacks_by_name_match(self):
-    #    res = self.app.get('/stacks/', {"name": '%1%'})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 1)
-    #    self.assertEquals(body['stacks'][0]['name'], 'F17')
+    def test_list_stacks_by_name_mismatch(self):
+        res = self.app.get('/stacks/', {'like': '%KDE%'})
+        body = res.json_body
+        self.assertEquals(len(body['stacks']), 0)
+
+    def test_list_stacks_by_name_match(self):
+        res = self.app.get('/stacks/', {'like': '%GN%'})
+        body = res.json_body
+        self.assertEquals(len(body['stacks']), 1)
+        self.assertEquals(body['stacks'][0]['name'], 'GNOME')
 
     #def test_list_stacks_by_name_match_miss(self):
     #    res = self.app.get('/stacks/', {"name": '%wat%'})

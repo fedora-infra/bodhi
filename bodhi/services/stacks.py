@@ -64,8 +64,12 @@ def query_stacks(request):
     data = request.validated
     query = request.db.query(Stack).order_by(Stack.name.desc())
 
+    name = data.get('name')
+    if name:
+        query = query.filter_by(name=name)
+
     like = data.get('like')
-    if like is not None:
+    if like:
         query = query.filter(Stack.name.like('%%%s%%' % like))
 
     total = query.count()
