@@ -122,3 +122,12 @@ def save_stack(request):
     log.info('Saved %r', stack)
 
     return stack
+
+
+@stack.delete(acl=bodhi.security.packagers_allowed_acl, renderer='json')
+def delete_stack(request):
+    """Delete a stack"""
+    stack = request.validated['stack']
+    request.db.delete(stack)
+    log.info('Deleted stack: %s', stack.name)
+    return dict(status=u'success')
