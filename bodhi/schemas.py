@@ -296,6 +296,18 @@ class ListStackSchema(PaginatedSchema, SearchableSchema):
     )
 
 
+class SaveStackSchema(colander.MappingSchema):
+    name = colander.SchemaNode(
+        colander.String(),
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        missing=None,
+        preparer=[splitter],
+    )
+
+
 class ListUserSchema(PaginatedSchema, SearchableSchema):
     name = colander.SchemaNode(
         colander.String(),
