@@ -262,7 +262,7 @@ def validate_packages(request):
     validated_packages = []
 
     for p in packages:
-        package = db.query(Package).filter(Package.name==p).first()
+        package = Package.get(p, db)
 
         if not package:
             bad_packages.append(p)
