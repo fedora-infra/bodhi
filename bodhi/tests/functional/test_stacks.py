@@ -116,24 +116,17 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid packages specified: carbunkle')
 
-    #def test_new_stack(self):
-    #    attrs = {"name": "KDE"}
-    #    res = self.app.post("/stacks/", attrs, status=200)
-    #    r = DBSession().query(Stack).filter(Stack.name==attrs["name"]).one()
+    def test_new_stack(self):
+        attrs = {'name': 'KDE', 'packages': 'kde-filesystem kdegames'}
+        res = self.app.post("/stacks/", attrs, status=200)
+        body = res.json_body
+        self.assertEquals(body['name'], 'KDE')
+        r = self.session.query(Stack).filter(Stack.name==attrs["name"]).one()
+        self.assertEquals(r.name, 'KDE')
+        self.assertEquals(len(r.packages), 2)
+        self.assertEquals(r.packages[0].name, 'kde-filesystem')
 
-    #    for k, v in attrs.items():
-    #        self.assertEquals(getattr(r, k), v)
-
-    #def test_edit_stack(self):
-    #    name = "GNOME"
-
-    #    res = self.app.get('/stacks/%s' % name, status=200)
-    #    r = res.json_body
-
-    #    r["edited"] = name
-    #    r["state"] = "current"
-
-    #    res = self.app.post("/stacks/", r, status=200)
-
-    #    r = DBSession().query(Release).filter(Release.name==name).one()
-    #    self.assertEquals(r.state, stackstate.current)
+    def test_new_stack_invalid_name(self):
+        attrs = {"name": ""}
+        res = self.app.post("/stacks/", attrs, status=400)
+        self.assertEquals(res.json_body['status'], 'error')
