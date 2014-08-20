@@ -104,17 +104,17 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['stacks']), 1)
         self.assertEquals(body['stacks'][0]['name'], 'GNOME')
 
-    #def test_list_stacks_by_package_name(self):
-    #    res = self.app.get('/stacks/', {"packages": 'bodhi'})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['stacks']), 1)
-    #    self.assertEquals(body['stacks'][0]['name'], 'F17')
+    def test_list_stacks_by_package_name(self):
+        res = self.app.get('/stacks/', {"packages": 'gnome-shell'})
+        body = res.json_body
+        self.assertEquals(len(body['stacks']), 1)
+        self.assertEquals(body['stacks'][0]['name'], 'GNOME')
 
-    #def test_list_stacks_by_nonexistant_package(self):
-    #    res = self.app.get('/stacks/', {"packages": 'carbunkle'}, status=400)
-    #    self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
-    #    self.assertEquals(res.json_body['errors'][0]['description'],
-    #                      'Invalid packages specified: carbunkle')
+    def test_list_stacks_by_nonexistant_package(self):
+        res = self.app.get('/stacks/', {"packages": 'carbunkle'}, status=400)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid packages specified: carbunkle')
 
     #def test_new_stack(self):
     #    attrs = {"name": "KDE"}

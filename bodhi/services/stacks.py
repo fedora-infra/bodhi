@@ -56,9 +56,11 @@ def get_stack(request):
 
 
 @stacks.get(accept="text/html", renderer='stacks.html',
-            schema=bodhi.schemas.ListStackSchema)
+            schema=bodhi.schemas.ListStackSchema,
+            validators=(validate_packages,))
 @stacks.get(accept=('application/json', 'text/json'),
-            schema=bodhi.schemas.ListStackSchema, renderer='json')
+            schema=bodhi.schemas.ListStackSchema,
+            validators=(validate_packages,), renderer='json')
 def query_stacks(request):
     """Return a paginated list of stacks"""
     data = request.validated
@@ -71,6 +73,11 @@ def query_stacks(request):
     like = data.get('like')
     if like:
         query = query.filter(Stack.name.like('%%%s%%' % like))
+
+    packages = data.get('packages')
+    if packages:
+        query = query.join(Package.stack)
+        query = query.filter(or_(*[Package.name==pkg.name for pkg in packages]))
 
     total = query.count()
     page = data.get('page')

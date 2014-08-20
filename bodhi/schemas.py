@@ -288,6 +288,13 @@ class ListStackSchema(PaginatedSchema, SearchableSchema):
         missing=None,
     )
 
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
 
 class ListUserSchema(PaginatedSchema, SearchableSchema):
     name = colander.SchemaNode(
