@@ -130,3 +130,11 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         attrs = {"name": ""}
         res = self.app.post("/stacks/", attrs, status=400)
         self.assertEquals(res.json_body['status'], 'error')
+
+    def test_edit_stack(self):
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music'}
+        res = self.app.post("/stacks/", attrs, status=200)
+        body = res.json_body
+        self.assertEquals(body['name'], 'GNOME')
+        self.assertEquals(len(body['packages']), 2)
+        self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
