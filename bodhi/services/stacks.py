@@ -120,6 +120,7 @@ def save_stack(request):
                 db.add(pkg)
                 db.flush()
             stack.packages.append(pkg)
+        # TODO: remove packages that aren't passed in?
 
     log.info('Saved %r', stack)
 

@@ -1842,3 +1842,4 @@ class Stack(Base):
 
     name = Column(UnicodeText, unique=True, nullable=False)
     packages = relationship('Package', backref=backref('stack', lazy='joined'))
+    description = Column(UnicodeText)
