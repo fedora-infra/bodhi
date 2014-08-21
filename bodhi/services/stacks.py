@@ -16,7 +16,9 @@ import math
 
 from datetime import datetime, timedelta
 from cornice import Service
-from pyramid.exceptions import HTTPNotFound
+from pyramid.view import view_config
+from pyramid.exceptions import HTTPNotFound, HTTPForbidden
+from pyramid.security import authenticated_userid
 from sqlalchemy.sql import or_
 
 from bodhi import log
@@ -131,3 +133,12 @@ def delete_stack(request):
     request.db.delete(stack)
     log.info('Deleted stack: %s', stack.name)
     return dict(status=u'success')
+
+
+@view_config(route_name='new_stack', renderer='stack.html')
+def new_stack(request):
+    """ Returns the new stack form """
+    user = authenticated_userid(request)
+    if not user:
+        raise HTTPForbidden("You must be logged in.")
+    return dict()

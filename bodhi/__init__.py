@@ -149,8 +149,11 @@ def main(global_config, testing=None, **settings):
 
     # Frontpage
     config.add_route('home', '/')
+
+    # Views for creating new objects
     config.add_route('new_update', '/updates/new')
     config.add_route('new_override', '/overrides/new')
+    config.add_route('new_stack', '/stacks/new')
 
     # Metrics
     config.add_route('metrics', '/metrics')
