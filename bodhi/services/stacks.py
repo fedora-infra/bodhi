@@ -122,9 +122,9 @@ def save_stack(request):
             stack.packages.append(pkg)
         # TODO: remove packages that aren't passed in?
 
-    log.info('Saved %r', stack)
+    log.info('Saved %s stack', data['name'])
 
-    return stack
+    return dict(stack=stack)
 
 
 @stack.delete(acl=bodhi.security.packagers_allowed_acl, renderer='json')
