@@ -64,13 +64,6 @@ $(document).ready(function() {
             type: 'error',
         });
     }
-    //var bugs_error = function(package) {
-    //    $("#bugs-checkboxes .spinner").remove();
-    //    messenger.post({
-    //        message: 'No bugs found for ' + package,
-    //        type: 'error',
-    //    });
-    //}
 
     // A utility for adding another candidate build to the checkbox list of
     // candidate builds this update could include.
@@ -82,8 +75,8 @@ $(document).ready(function() {
             [
                 '<div class="checkbox">',
                 '<label>',
-                '<input name="builds" data-build-nvr="' + nvr + '"' +
-                    (idx ? '" data-build-id="' + idx + '" ' : ' ') +
+                '<input name="packages" data-package-name="' + nvr + '"' +
+                    (idx ? '" data-package-id="' + idx + '" ' : ' ') +
                     'type="checkbox" value="' + nvr + '"' + (checked ? ' checked' : '') + '>',
                 nvr,
                 '</label>',
@@ -115,7 +108,12 @@ $(document).ready(function() {
         });
     }
 
-        //});
+    // This wires up the action that happens when the user selects something
+    // from the "add a package" typeahead search box.  When they do that, we
+    // fire off two async js calls to get bugs and builds.  Those are then
+    // added to their respective checkbox lists once they are retrieved.
+    $('#builds-adder').on('typeahead:selected', function (e, datum) {
+        add_build_checkbox(datum.name, false, true);
     });
 
     $("#builds-adder").keypress(function (e) {
