@@ -38,6 +38,9 @@
             <form id="search" role="search">
               <div id="stack-name" class="form-group noui">
                 <input class="typeahead form-control noui" name="name" type="text"
+            % if stack is not UNDEFINED:
+                       value="${stack.name}" readonly
+            % endif
                        placeholder="The name of this stack">
               </div>
             </form>
@@ -52,7 +55,19 @@
             <input id="builds-adder" class="typeahead form-control noui" type="text"
                 placeholder="Add a package name">
             <input name="builds" type="hidden"/>
-            <div id="candidate-checkboxes"> </div>
+            <div id="candidate-checkboxes">
+            % if stack is not UNDEFINED:
+                % for pkg in stack.packages:
+                    <div class="checkbox">
+                        <label>
+                            <input name="packages" data-package-name="${pkg.name}"
+                                   type="checkbox" value="${pkg.name}" checked>
+                            ${pkg.name}
+                        </label>
+                    </div>
+                % endfor
+            % endif
+            </div>
           </div>
         </div>
       </div>
@@ -67,7 +82,8 @@
           </div>
           <div class="panel-body">
             <textarea class="form-control" id="description" name="description" rows="6"
-              placeholder="Stack description goes here. You can use **markdown** to make it look nice." required="true"></textarea>
+              placeholder="Stack description goes here. You can use **markdown** to make it look nice."
+              required="true">${stack.description if stack is not UNDEFINED else ''}</textarea>
           </div>
         </div>
       </div>
@@ -86,7 +102,7 @@
 
     <div class="row">
       <div class="col-md-6 pull-right">
-            <button id="submit" class="btn btn-success">Submit</button>
+            <button id="submit" class="btn btn-success">Save</button>
       </div>
     </div> <!-- end row -->
 
