@@ -144,7 +144,7 @@ def delete_stack(request):
     return dict(status=u'success')
 
 
-@view_config(route_name='new_stack', renderer='stack.html')
+@view_config(route_name='new_stack', renderer='new_stack.html')
 def new_stack(request):
     """ Returns the new stack form """
     user = authenticated_userid(request)
