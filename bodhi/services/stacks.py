@@ -113,6 +113,10 @@ def save_stack(request):
         db.add(stack)
         db.flush()
 
+    desc = data['description']
+    if desc:
+        stack.description = desc
+
     packages = data['packages']
     if packages:
         for package in packages:
