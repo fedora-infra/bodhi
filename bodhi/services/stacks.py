@@ -20,6 +20,7 @@ from pyramid.view import view_config
 from pyramid.exceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import authenticated_userid
 from sqlalchemy.sql import or_
+from sqlalchemy import func
 
 from bodhi import log
 from bodhi.models import Update, Build, Package, Release, Stack
@@ -66,7 +67,9 @@ def get_stack(request):
 def query_stacks(request):
     """Return a paginated list of stacks"""
     data = request.validated
-    query = request.db.query(Stack).order_by(Stack.name.desc())
+    query = request.db.query(Stack, func.count(Package.id))\
+            .outerjoin(Package).group_by(Stack.id)\
+            .order_by(func.count(Package.id).desc())
 
     name = data.get('name')
     if name:

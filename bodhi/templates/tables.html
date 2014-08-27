@@ -91,7 +91,7 @@
         <th>Number of packages</th>
     </tr></thead>
     <tbody>
-    % for stack in stacks:
+    % for stack, num in stacks:
     <tr>
       <td>
         <a href="${request.route_url('stack', nvr=stack['name'])}">
@@ -104,7 +104,7 @@
         </span>
       </td>
       <td>
-          <span title="${len(stack['packages'])} packages in this stack">${len(stack['packages'])}</span>
+          <span title="${num} packages in this stack">${num}</span>
       </td>
     </tr>
     % endfor
