@@ -307,6 +307,10 @@ class SaveStackSchema(colander.MappingSchema):
         preparer=[splitter],
     )
 
+    description = colander.SchemaNode(
+        colander.String(),
+    )
+
 
 class ListUserSchema(PaginatedSchema, SearchableSchema):
     name = colander.SchemaNode(
