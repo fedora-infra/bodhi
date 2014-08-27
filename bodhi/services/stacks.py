@@ -126,7 +126,8 @@ def save_stack(request):
                 pkg = Package(name=package)
                 db.add(pkg)
                 db.flush()
-            stack.packages.append(pkg)
+            if pkg not in stack.packages:
+                stack.packages.append(pkg)
 
         # Remove packages that were unchecked
         for package in stack.packages:
