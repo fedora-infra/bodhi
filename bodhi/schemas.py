@@ -309,6 +309,7 @@ class SaveStackSchema(colander.MappingSchema):
 
     description = colander.SchemaNode(
         colander.String(),
+        missing=None,
     )
 
 
