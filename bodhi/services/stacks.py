@@ -123,7 +123,12 @@ def save_stack(request):
                 db.add(pkg)
                 db.flush()
             stack.packages.append(pkg)
-        # TODO: remove packages that aren't passed in?
+
+        # Remove packages that were unchecked
+        for package in stack.packages:
+            if package.name not in packages:
+                log.info('Removing %s from %s stack', package.name, stack.name)
+                stack.packages.remove(package)
 
     log.info('Saved %s stack', data['name'])
 
