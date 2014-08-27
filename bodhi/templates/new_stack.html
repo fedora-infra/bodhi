@@ -101,6 +101,11 @@
     </div> <!-- end row -->
 
     <div class="row">
+      % if stack is not UNDEFINED:
+      <div class="col-md-6 pull-left">
+            <button id="delete" class="btn btn-danger">Delete</button>
+      </div>
+      % endif
       <div class="col-md-6 pull-right">
             <button id="submit" class="btn btn-success">Save</button>
       </div>

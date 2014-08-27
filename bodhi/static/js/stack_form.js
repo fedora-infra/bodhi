@@ -132,6 +132,18 @@ $(document).ready(function() {
         theform.submit();
     });
 
+    // Wire up the delete button
+    $("#delete").click(function (e) {
+      $.ajax({
+        url: '/stacks/' + $('#stack-name input').val(),
+        type: 'DELETE',
+        success: function(result) {
+            document.location.href = "/stacks/";
+        }
+      });
+    });
+
+
     // Lastly, hide our warning and show the main form
     $("#js-warning").addClass('hidden');
     $("#new-stack-form").removeClass('hidden');
