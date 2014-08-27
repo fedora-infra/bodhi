@@ -49,7 +49,7 @@ stacks = Service(name='stacks', path='/stacks/',
                  description='Bodhi Stacks')
 
 
-@stack.get(accept="text/html", renderer="stacks.html")
+@stack.get(accept="text/html", renderer="new_stack.html")
 @stack.get(accept=('application/json', 'text/json'), renderer='json')
 @stack.get(accept=('application/javascript'), renderer='jsonp')
 def get_stack(request):
