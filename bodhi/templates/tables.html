@@ -90,7 +90,7 @@
         <th>Number of packages</th>
     </tr></thead>
     <tbody>
-    % for stack in stacks:
+    % for stack in sorted(stacks, cmp=lambda x, y: cmp(len(x.packages), len(y.packages)), reverse=True):
     <tr>
       <td>
         <a href="${request.route_url('stack', name=stack['name'])}">
