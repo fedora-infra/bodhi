@@ -6,7 +6,7 @@ $(document).ready(function() {
     StackForm.prototype.success = function(data) {
         Form.prototype.success.call(this, data);
 
-        // Now redirect to the update display
+        // Now redirect to the stack display
         document.location.href = "/stacks/" + data.stack.name;
     }
 
@@ -55,16 +55,6 @@ $(document).ready(function() {
         },
     });
 
-    // candidate_error and bug_error are just two handy utilities for reporting
-    // errors when stuff in the code blocks below this goes wrong.
-    var candidate_error = function(package) {
-        $("#candidate-checkboxes .spinner").remove();
-        messenger.post({
-            message: 'No candidate builds found for ' + package,
-            type: 'error',
-        });
-    }
-
     // A utility for adding another candidate build to the checkbox list of
     // candidate builds this update could include.
     // The code here is a little long because we need to additionally wire up
@@ -109,9 +99,7 @@ $(document).ready(function() {
     }
 
     // This wires up the action that happens when the user selects something
-    // from the "add a package" typeahead search box.  When they do that, we
-    // fire off two async js calls to get bugs and builds.  Those are then
-    // added to their respective checkbox lists once they are retrieved.
+    // from the "add a package" typeahead search box.
     $('#builds-adder').on('typeahead:selected', function (e, datum) {
         add_build_checkbox(datum.name, false, true);
     });
@@ -142,7 +130,6 @@ $(document).ready(function() {
         }
       });
     });
-
 
     // Lastly, hide our warning and show the main form
     $("#js-warning").addClass('hidden');
