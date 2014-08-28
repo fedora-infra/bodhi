@@ -8,7 +8,8 @@
          alt="Loading..."
          id="loader" />
     <script id="datagrepper-widget"
-            src="https://apps.fedoraproject.org/datagrepper/widget.js?css=false"
+            src="${request.registry.settings.get('datagrepper_url', 'https://apps.fedoraproject.org/datagrepper')}/widget.js?css=false"
+            data-grouped="true"
             data-category="bodhi">
     </script>
     <script>
