@@ -592,6 +592,15 @@ class TestPackageUpdate(testutil.DBTest):
         update.release = self._get_epel_release()
         assert update.release.stable_tag == 'dist-5E-epel'
 
+    def test_epel7_tags(self):
+        el7 = Release(name='EPEL-7', long_name='Fedora EPEL 7',
+                      id_prefix='FEDORA-EPEL', dist_tag='epel7')
+        assert el7.get_version() == 7
+        assert el7.candidate_tag == 'epel7-testing-candidate'
+        assert el7.testing_tag == 'epel7-testing'
+        assert el7.stable_tag == 'epel7'
+        assert el7.stable_repo == 'epel7'
+
     def test_bullets_in_notes(self):
         update = self.get_update(name='foo-1.2.3-4')
         update.notes = u'\xb7'

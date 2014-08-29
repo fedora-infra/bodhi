@@ -76,10 +76,14 @@ class Release(SQLObject):
 
     @property
     def branchname(self):
+        version = self.get_version()
         if self.id_prefix == 'FEDORA-EPEL':
-            return 'el%d' % self.get_version()
+            if version >= 7:
+                return 'epel%d' % version
+            else:
+                return 'el%d' % version
         else:
-            return 'f%d' % self.get_version()
+            return 'f%d' % version
 
     def get_version(self):
         regex = re.compile('\D+(\d+)$')
@@ -92,7 +96,7 @@ class Release(SQLObject):
 
     @property
     def candidate_tag(self):
-        if self.name.startswith('EL'):  # EPEL Hack.
+        if self.name.startswith('E'):  # EPEL Hack.
             return '%s-testing-candidate' % self.dist_tag
         else:
             return '%s-updates-candidate' % self.dist_tag
@@ -107,7 +111,7 @@ class Release(SQLObject):
     def stable_tag(self):
         if self.locked:
             return self.dist_tag
-        if self.name.startswith('EL'):  # EPEL Hack.
+        if self.name.startswith('E'):  # EPEL Hack.
             return self.dist_tag
         else:
             return '%s-updates' % self.dist_tag
@@ -129,16 +133,22 @@ class Release(SQLObject):
     @property
     def stable_repo(self):
         id = self.name.replace('-', '').lower()
-        if self.name.startswith('EL'):  # EPEL Hack.
-            return '%s-epel' % id
+        if self.name.startswith('E'):  # EPEL Hack.
+            if self.get_version() >= 7:
+                return id
+            else:
+                return '%s-epel' % id
         else:
             return '%s-updates' % id
 
     @property
     def testing_repo(self):
         id = self.name.replace('-', '').lower()
-        if self.name.startswith('EL'):
-            return '%s-epel-testing' % id
+        if self.name.startswith('E'):
+            if self.get_version() >= 7:
+                return '%s-testing' % id
+            else:
+                return '%s-epel-testing' % id
         else:
             return '%s-updates-testing' % id
 
@@ -1493,7 +1503,7 @@ class Bugzilla(SQLObject):
                 if build.package.suggest_reboot:
                     reboot = ', then reboot'
                     break
-            if update.release.name.startswith('EL'):
+            if update.release.name.startswith('E'):
                 repo = 'epel-testing'
             message = self.testing_msg % (
                 update.get_title(delim=', '),

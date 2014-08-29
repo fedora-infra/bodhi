@@ -232,7 +232,7 @@ def clean_pending_tags():
     koji = get_session()
     for release in Release.select():
         log.info("Finding all stray pending-testing builds...")
-        if release.name.startswith('EL'):
+        if release.name.startswith('E'):
             continue
 
         tag = release.pending_testing_tag
