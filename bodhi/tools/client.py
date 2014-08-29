@@ -12,10 +12,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
-# Copyright 2007-2010  Red Hat, Inc
+# Copyright 2007-2014  Red Hat, Inc
 # Authors: Luke Macken <lmacken@redhat.com>
 
-__version__ = '0.9.10'
+__version__ = '0.9.11'
 __description__ = 'Command line tool for interacting with Bodhi'
 
 import os
