@@ -25,7 +25,7 @@ def main():
     # Clean up any stray pending tags
     for release in Release.select():
         print "Finding all pending-testing builds..."
-        if release.name.startswith('EL'):
+        if release.name.startswith('E'):
             continue
 
         tag = release.pending_testing_tag
