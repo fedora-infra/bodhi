@@ -134,7 +134,10 @@ class Release(SQLObject):
     def stable_repo(self):
         id = self.name.replace('-', '').lower()
         if self.name.startswith('E'):  # EPEL Hack.
-            return id
+            if self.get_version() >= 7:
+                return id
+            else:
+                return '%s-epel' % id
         else:
             return '%s-updates' % id
 
@@ -142,7 +145,10 @@ class Release(SQLObject):
     def testing_repo(self):
         id = self.name.replace('-', '').lower()
         if self.name.startswith('E'):
-            return '%s-epel-testing' % id
+            if self.get_version() >= 7:
+                return '%s-testing' % id
+            else:
+                return '%s-epel-testing' % id
         else:
             return '%s-updates-testing' % id
 
