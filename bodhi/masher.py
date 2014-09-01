@@ -571,7 +571,10 @@ class MashTask(Thread):
             log.debug("Running sanity checks on %s" % newrepo)
 
             # make sure the new repository has our arches
-            for arch in config.get('arches').split():
+            expected_arches = config.get('%s_arches' % repo,
+                                         config.get('arches'))
+
+            for arch in expected_arches:
                 if '/' in arch:  # 'ppc/ppc64'
                     one, other = arch.split('/')
                     if one not in arches and other not in arches:
