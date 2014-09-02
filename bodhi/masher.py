@@ -952,14 +952,10 @@ class MashTask(Thread):
         for repo, mashdir in self.mashed_repos.items():
             # File name is prefixed with a hash, use a glob to find it
             olduinfos = glob.glob(os.path.join(config.get('mashed_dir'),
-                                               '%s.repodata' % repo, 'i386',
+                                               '%s.repodata' % repo, '*',
                                                "*updateinfo.xml.gz"))
 
-            if len(olduinfos) > 1:
-                # TODO: Shouldn't that be an error?
-                olduinfo = olduinfos[0]
-
-            if len(olduinfos) == 1:
+            if len(olduinfos) >= 1:
                 olduinfo = olduinfos[0]
 
             else:
