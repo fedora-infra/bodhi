@@ -574,7 +574,7 @@ class MashTask(Thread):
             expected_arches = config.get('%s_arches' % repo,
                                          config.get('arches'))
 
-            for arch in expected_arches:
+            for arch in expected_arches.split():
                 if '/' in arch:  # 'ppc/ppc64'
                     one, other = arch.split('/')
                     if one not in arches and other not in arches:
