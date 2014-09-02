@@ -571,7 +571,10 @@ class MashTask(Thread):
             log.debug("Running sanity checks on %s" % newrepo)
 
             # make sure the new repository has our arches
-            for arch in config.get('arches').split():
+            expected_arches = config.get('%s_arches' % repo,
+                                         config.get('arches'))
+
+            for arch in expected_arches:
                 if '/' in arch:  # 'ppc/ppc64'
                     one, other = arch.split('/')
                     if one not in arches and other not in arches:
@@ -952,14 +955,10 @@ class MashTask(Thread):
         for repo, mashdir in self.mashed_repos.items():
             # File name is prefixed with a hash, use a glob to find it
             olduinfos = glob.glob(os.path.join(config.get('mashed_dir'),
-                                               '%s.repodata' % repo, 'i386',
+                                               '%s.repodata' % repo, '*',
                                                "*updateinfo.xml.gz"))
 
-            if len(olduinfos) > 1:
-                # TODO: Shouldn't that be an error?
-                olduinfo = olduinfos[0]
-
-            if len(olduinfos) == 1:
+            if len(olduinfos) >= 1:
                 olduinfo = olduinfos[0]
 
             else:
