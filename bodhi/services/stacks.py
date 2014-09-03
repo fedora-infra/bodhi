@@ -114,23 +114,7 @@ def save_stack(request):
     if desc:
         stack.description = desc
 
-    packages = data['packages']
-    if packages:
-        for package in packages:
-            pkg = Package.get(package, db)
-            # FIXME: validate that this package exists from koji?
-            if not pkg:
-                pkg = Package(name=package)
-                db.add(pkg)
-                db.flush()
-            if pkg not in stack.packages:
-                stack.packages.append(pkg)
-
-        # Remove packages that were unchecked
-        for package in stack.packages:
-            if package.name not in packages:
-                log.info('Removing %s from %s stack', package.name, stack.name)
-                stack.packages.remove(package)
+    stack.update_packages(data['packages'], db)
 
     log.info('Saved %s stack', data['name'])
 

@@ -1843,3 +1843,21 @@ class Stack(Base):
     name = Column(UnicodeText, unique=True, nullable=False)
     packages = relationship('Package', backref=backref('stack', lazy='joined'))
     description = Column(UnicodeText)
+
+    def update_packages(self, packages, db):
+        if packages:
+            for package in packages:
+                pkg = Package.get(package, db)
+                # TODO: validate that this package exists from koji
+                if not pkg:
+                    pkg = Package(name=package)
+                    db.add(pkg)
+                    db.flush()
+                if pkg not in self.packages:
+                    self.packages.append(pkg)
+
+            # Prune packages that were removed
+            for package in self.packages:
+                if package.name not in packages:
+                    log.info('Removing %s from %s stack', package.name, self.name)
+                    self.packages.remove(package)
