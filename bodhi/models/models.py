@@ -130,6 +130,29 @@ class BodhiBase(object):
             columns.append(col.name)
         return columns
 
+    def update_relationship(self, name, model, data, db):
+        """Add items to or remove items from a many-to-many relationship
+
+        :name: The name of the relationship column on self, as well as
+               the key in `data`
+        :model: The model class of the relationship that we're updating
+        :data: A dict containing the key `name` with a list of values
+        """
+        rel = getattr(self, name)
+        items = data.get(name)
+        if items:
+            for item in items:
+                obj = model.get(item, db)
+                if not obj:
+                    obj = model(name=item)
+                    db.add(obj)
+                if obj not in rel:
+                    rel.append(obj)
+            for item in rel:
+                if item.name not in items:
+                    log.info('Removing %r from %r', item, self)
+                    rel.remove(item)
+
 
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
@@ -1843,21 +1866,3 @@ class Stack(Base):
     name = Column(UnicodeText, unique=True, nullable=False)
     packages = relationship('Package', backref=backref('stack', lazy='joined'))
     description = Column(UnicodeText)
-
-    def update_packages(self, packages, db):
-        if packages:
-            for package in packages:
-                pkg = Package.get(package, db)
-                # TODO: validate that this package exists from koji
-                if not pkg:
-                    pkg = Package(name=package)
-                    db.add(pkg)
-                    db.flush()
-                if pkg not in self.packages:
-                    self.packages.append(pkg)
-
-            # Prune packages that were removed
-            for package in self.packages:
-                if package.name not in packages:
-                    log.info('Removing %s from %s stack', package.name, self.name)
-                    self.packages.remove(package)
