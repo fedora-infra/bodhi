@@ -1715,6 +1715,11 @@ user_group_table = Table('user_group_table', Base.metadata,
                          Column('user_id', Integer, ForeignKey('users.id')),
                          Column('group_id', Integer, ForeignKey('groups.id')))
 
+stack_group_table = Table('stack_group_table', Base.metadata,
+                          Column('stack_id', Integer, ForeignKey('stacks.id')),
+                          Column('group_id', Integer, ForeignKey('groups.id')))
+
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -1866,3 +1871,6 @@ class Stack(Base):
     name = Column(UnicodeText, unique=True, nullable=False)
     packages = relationship('Package', backref=backref('stack', lazy='joined'))
     description = Column(UnicodeText)
+
+    # Many-to-many relationships
+    groups = relationship("Group", secondary=stack_group_table, backref='stacks')
