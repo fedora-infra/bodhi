@@ -56,7 +56,7 @@ def get_user(request):
     from bodhi.models import User
     userid = unauthenticated_userid(request)
     if userid is not None:
-        return request.db.query(User).filter_by(name=unicode(userid)).one()
+        return request.db.query(User).filter_by(name=unicode(userid)).first()
 
 
 def groupfinder(userid, request):
