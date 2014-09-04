@@ -21,7 +21,7 @@ from pyramid.exceptions import HTTPNotFound, HTTPForbidden
 from pyramid.security import authenticated_userid
 from sqlalchemy.sql import or_
 
-from bodhi import log
+from bodhi import log, notifications
 from bodhi.models import Update, Build, Package, Release, Stack, Group
 import bodhi.schemas
 import bodhi.security
@@ -118,6 +118,7 @@ def save_stack(request):
     stack.update_relationship('groups', Group, data, db)
 
     log.info('Saved %s stack', data['name'])
+    notifications.publish(topic='stack.save', msg=dict(stack=stack))
 
     return dict(stack=stack)
 
@@ -126,6 +127,7 @@ def save_stack(request):
 def delete_stack(request):
     """Delete a stack"""
     stack = request.validated['stack']
+    notifications.publish(topic='stack.delete', msg=dict(stack=stack))
     request.db.delete(stack)
     log.info('Deleted stack: %s', stack.name)
     return dict(status=u'success')
