@@ -22,7 +22,7 @@ from pyramid.security import authenticated_userid
 from sqlalchemy.sql import or_
 
 from bodhi import log
-from bodhi.models import Update, Build, Package, Release, Stack
+from bodhi.models import Update, Build, Package, Release, Stack, Group
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -114,7 +114,8 @@ def save_stack(request):
     if desc:
         stack.description = desc
 
-    stack.update_packages(data['packages'], db)
+    stack.update_relationship('packages', Package, data, db)
+    stack.update_relationship('groups', Group, data, db)
 
     log.info('Saved %s stack', data['name'])
 
