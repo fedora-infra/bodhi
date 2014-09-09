@@ -73,29 +73,6 @@ $(document).ready(function() {
                 '</div>',
         ].join('\n'));
 
-        $("#candidate-checkboxes .checkbox:first-child input").click(function() {
-            var self = $(this);
-            if (! self.is(':checked')) { return; }
-            if (self.attr('data-build-id') == null) { return; }
-
-            var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
-            var prefix = '/koji/query/query_changelogs/%7B%22filters%22:%7B%22build_id%22:%22';
-            var suffix = '%22,%22version%22:%22%22%7D,%22rows_per_page%22:8,%22start_row%22:0%7D';
-
-            $.ajax({
-                url: base + prefix + self.attr('data-build-id') + suffix,
-                success: function(data) {
-                    data = JSON.parse(data);
-                    if (data.rows.length == 0) {console.log('error');}
-                    $("#description").val( [
-                            $("#description").val(), "",
-                            self.attr('data-build-nvr'), "",
-                            data.rows[0].text, "",
-                    ].join('\n'));
-                    update_markdown_preview($("#description").val());
-                }
-            })
-        });
     }
 
     // This wires up the action that happens when the user selects something
