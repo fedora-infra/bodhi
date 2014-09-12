@@ -18,6 +18,7 @@
 
 #datagrepper-widget .datetime {
     font-style: italic;
+    font-size: 75%;
     float: right;
     color: #777;
 }
