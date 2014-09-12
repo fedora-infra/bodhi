@@ -1,21 +1,19 @@
 <%inherit file="master.html"/>
 
-<script src="${request.static_url('bodhi:static/js/resize-newsfeed.js')}"></script>
+<script src="${request.static_url('bodhi:static/js/generate-newsfeed.js')}"></script>
 
 <div class="row">
   <div id="newsfeed" class="col-md-6 onlyjs">
     <img src="${request.static_url('bodhi:static/img/spinner.gif')}"
          alt="Loading..."
          id="loader" />
-    <script id="datagrepper-widget"
-            src="${request.registry.settings.get('datagrepper_url', 'https://apps.fedoraproject.org/datagrepper')}/widget.js?css=false"
-            data-grouped="true"
-            data-category="bodhi">
-    </script>
+    <div id="datagrepper-widget"></div>
     <script>
-      $('body').on('DOMNodeInserted', '#datagrepper-widget', function () {
-        $('#loader').hide();
-      });
+        $(document).ready(function() {
+          generate_newsfeed(
+            "${request.registry.settings.get('datagrepper_url', 'https://apps.fedoraproject.org/datagrepper')}",
+            ${str([idx.strip() for idx in request.registry.settings.get('badge_ids', '').split('|') if idx.strip()]) | n});
+        });
     </script>
   </div>
 

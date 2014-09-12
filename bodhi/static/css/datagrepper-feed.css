@@ -3,8 +3,8 @@
 }
 
 #datagrepper-widget img {
-    height: 32px;
-    width: 32px;
+    height: 24px;
+    width: 24px;
 }
 
 #datagrepper-widget .message-card:before {
@@ -14,11 +14,6 @@
     display: block;
     margin-top: 10px;
     clear: both;
-}
-
-#datagrepper-widget .message-card a img {
-    visibility: hidden;
-    display: none;
 }
 
 #datagrepper-widget .datetime {
