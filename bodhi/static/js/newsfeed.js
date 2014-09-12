@@ -1,3 +1,27 @@
+var prepend_newsfeed_card = function(msg) {
+    // This is a utility used first at page load to render each message from
+    // the datagrepper history.  It is then used again later by the websocket
+    // connection to render new events as they stream in.
+    if (msg.secondary_icon === undefined || msg.secondary_icon == '') {
+        msg.secondary_icon = msg.icon;
+    }
+
+    var card = '<div class="message-card">';
+    card = card + '<img class="img-circle" src="' +
+        msg.secondary_icon + '"></img>' + '<p>';
+    if (msg.link != undefined && msg.link != '') {
+        card = card + '<a href="' + msg.link + '">'
+    }
+    card = card + msg.subtitle;
+    if (msg.link != undefined && msg.link != '') {
+        card = card + '</a>';
+    }
+    card = card + '</p><div class="datetime">' + msg.date + '</div>' +
+        '</div>';
+    $("#datagrepper-widget").prepend(card);
+}
+
+
 var generate_newsfeed = function(url, badge_ids) {
     $('.onlyjs').css('visibility', 'visible');
     $('.onlyjs').css('display', 'block');
@@ -26,14 +50,7 @@ var generate_newsfeed = function(url, badge_ids) {
                 grouped: true,
             }),
             dataType: 'jsonp',
-            success: function(data) {
-                messages.bodhi = $.map(data.raw_messages, function (msg) {
-                    if (msg.secondary_icon == '') {
-                        msg.secondary_icon = msg.icon;
-                    }
-                    return msg
-                });
-            },
+            success: function(data) { messages.bodhi = data.raw_messages; },
             error: function(e1, e2, e3) {
                 console.log(e1);
                 console.log(e2);
@@ -72,27 +89,12 @@ var generate_newsfeed = function(url, badge_ids) {
         })
     ).then(function() {
         var comparator = function(a, b) {
-            // Reverse sort
-            if (b.timestamp > a.timestamp) return 1;
-            if (b.timestamp < a.timestamp) return -1;
+            if (a.timestamp > b.timestamp) return 1;
+            if (a.timestamp < b.timestamp) return -1;
             return 0;
         }
         messages = $.merge(messages.bodhi, messages.badges).sort(comparator);
         $("#loader").hide();
-        $.each(messages, function(i, msg) {
-            var card = '<div class="message-card">';
-            card = card + '<img class="img-circle" src="' +
-                msg.secondary_icon + '"></img>' + '<p>';
-            if (msg.link != undefined && msg.link != '') {
-                card = card + '<a href="' + msg.link + '">'
-            }
-            card = card + msg.subtitle;
-            if (msg.link != undefined && msg.link != '') {
-                card = card + '</a>';
-            }
-            card = card + '</p><div class="datetime">' + msg.date + '</div>' +
-                '</div>';
-            $("#datagrepper-widget").append(card);
-        });
+        $.each(messages, function(i, msg) { prepend_newsfeed_card(msg); });
     })
 };
