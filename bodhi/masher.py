@@ -386,7 +386,7 @@ class MasherThread(threading.Thread):
         """
         link = os.path.join(self.mashed_dir, self.id)
         stage_dir = config.get('mashed_stage_dir')
-        if self.mashed_dir != stage_dir:
+        if stage_dir and self.mashed_dir != stage_dir:
             self.log.info("Moving %s => %s" % (self.mashdir, stage_dir))
             shutil.move(self.mashdir, stage_dir)
 
