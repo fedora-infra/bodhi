@@ -305,4 +305,13 @@ References:
         shutil.rmtree(tmpdir)
 
     def test_stage(self):
-        pass
+        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                         log, self.db_factory)
+        tmpdir = tempfile.mkdtemp()
+        t.id = 'f17-updates-testing'
+        t.mashed_dir = tmpdir
+        t.mash()
+        t.stage_repo()
+        link = os.path.join(tmpdir, t.id)
+        self.assertTrue(os.path.islink(link))
+        shutil.rmtree(tmpdir)
