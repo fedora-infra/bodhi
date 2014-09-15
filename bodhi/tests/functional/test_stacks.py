@@ -31,6 +31,7 @@ from bodhi.models import (
     UpdateType,
     UpdateStatus,
     UpdateRequest,
+    User,
     Stack,
 )
 
@@ -43,7 +44,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         package = Package(name=u'gnome-shell')
         session.add(package)
         session.flush()
-        stack = Stack(name=u'GNOME', packages=[package])
+        self.stack = stack = Stack(name=u'GNOME', packages=[package])
         session.add(stack)
         session.flush()
 
@@ -153,3 +154,17 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['name'], 'GNOME')
         self.assertEquals(len(body['packages']), 1)
         self.assertEquals(body['packages'][0]['name'], 'gnome-music')
+
+    def test_edit_stack_with_no_group_privs(self):
+        self.stack.users = []
+        group = Group(name=u'gnome-team')
+        self.session.add(group)
+        self.session.flush()
+        self.stack.groups.append(group)
+        self.session.flush()
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell'}
+        res = self.app.post("/stacks/", attrs, status=403)
+        body = res.json_body
+        self.assertEquals(body['status'], 'error')
+        self.assertEquals(body['errors'][0]['description'],
+                'guest does not have privileges to modify the GNOME stack')
