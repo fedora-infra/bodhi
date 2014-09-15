@@ -22,7 +22,7 @@ from pyramid.security import authenticated_userid
 from sqlalchemy.sql import or_
 
 from bodhi import log, notifications
-from bodhi.models import Update, Build, Package, Release, Stack, Group
+from bodhi.models import Update, Package, Stack, Group, User
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -103,10 +103,11 @@ def save_stack(request):
     """Save a stack"""
     data = request.validated
     db = request.db
+    user = request.user
 
     stack = Stack.get(data['name'], db)
     if not stack:
-        stack = Stack(name=data['name'])
+        stack = Stack(name=data['name'], users=[user])
         db.add(stack)
         db.flush()
 
