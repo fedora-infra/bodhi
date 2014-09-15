@@ -15,6 +15,7 @@
 import os
 import mock
 import json
+import shutil
 import unittest
 import tempfile
 import transaction
@@ -29,6 +30,8 @@ from bodhi.models import (DBSession, Base, Update, User, Group, Release,
                           Package, Build, TestCase, UpdateRequest, UpdateType,
                           Bug, CVE, Comment, ReleaseState, BuildrootOverride)
 from bodhi.tests import populate
+
+from bodhi.util import mkmetadatadir
 
 
 class FakeHub(object):
@@ -266,11 +269,40 @@ References:
 """)
 
     def test_sanity_check(self):
-        #msg = makemsg()
-        #self.masher.consume(msg)
+        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                         log, self.db_factory)
+        tmpdir = tempfile.mkdtemp()
+        t.mashdir = tmpdir
+
+        # test without any arches
+        try:
+            t.sanity_check_repo()
+            assert False, "Sanity check didn't fail with empty dir"
+        except:
+            pass
+
         # test with valid repodata
+        for arch in ('i386', 'x86_64', 'armhfp'):
+            repo = os.path.join(tmpdir, arch)
+            os.mkdir(repo)
+            mkmetadatadir(repo)
+
+        t.sanity_check_repo()
+
         # test with truncated/busted repodata
-        pass
+        xml = os.path.join(tmpdir, 'i386', 'repodata', 'repomd.xml')
+        repomd = open(xml).read()
+        with open(xml, 'w') as f:
+            f.write(repomd[:-10])
+
+        from yum.Errors import RepoMDError
+        try:
+            t.sanity_check_repo()
+            assert False, 'Busted metadata passed'
+        except RepoMDError:
+            pass
+
+        shutil.rmtree(tmpdir)
 
     def test_stage(self):
         pass
