@@ -135,6 +135,7 @@ def save_stack(request):
         stack.description = desc
 
     stack.update_relationship('packages', Package, data, db)
+    stack.update_relationship('users', User, data, db)
     stack.update_relationship('groups', Group, data, db)
 
     log.info('Saved %s stack', data['name'])
