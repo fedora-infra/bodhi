@@ -105,12 +105,31 @@ def save_stack(request):
     db = request.db
     user = request.user
 
+    # Fetch or create the stack
     stack = Stack.get(data['name'], db)
     if not stack:
         stack = Stack(name=data['name'], users=[user])
         db.add(stack)
         db.flush()
 
+    if stack.users or stack.groups:
+        if user in stack.users:
+            log.info('%s is an owner of the %s', user.name, stack.name)
+        else:
+            for group in user.groups:
+                if group in stack.groups:
+                    log.info('%s is a member of the %s group', user.name, stack.name)
+                    break
+            else:
+                log.warn('%s is not an owner of the %s stack',
+                         user.name, stack.name)
+                log.debug('owners = %s; groups = %s', stack.users, stack.groups)
+                request.errors.add('body', 'name', '%s does not have privileges'
+                        ' to modify the %s stack' % (user.name, stack.name))
+                request.errors.status = HTTPForbidden.code
+                return
+
+    # Update the stack description
     desc = data['description']
     if desc:
         stack.description = desc
