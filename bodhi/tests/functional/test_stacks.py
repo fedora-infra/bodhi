@@ -192,3 +192,19 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['name'], 'GNOME')
         self.assertEquals(len(body['packages']), 2)
         self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
+
+    def test_edit_stack_with_group_privs(self):
+        self.stack.users = []
+        user = self.session.query(User).filter_by(name=u'guest').one()
+        group = Group(name=u'gnome-team')
+        self.session.add(group)
+        self.session.flush()
+        self.stack.groups.append(group)
+        user.groups.append(group)
+        self.session.flush()
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell'}
+        res = self.app.post("/stacks/", attrs, status=200)
+        body = res.json_body['stack']
+        self.assertEquals(body['name'], 'GNOME')
+        self.assertEquals(len(body['packages']), 2)
+        self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
