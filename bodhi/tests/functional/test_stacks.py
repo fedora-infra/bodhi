@@ -208,3 +208,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['name'], 'GNOME')
         self.assertEquals(len(body['packages']), 2)
         self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
+
+    def test_new_stack_form(self):
+        res = self.app.get('/stacks/new', status=200)
+        self.assertIn('New Stack', res)
