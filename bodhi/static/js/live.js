@@ -6,6 +6,8 @@ function popup(data) {
   msg = Messenger({theme: 'flat'}).post({
     message: "<a href='" + data.meta.link + "'>" + data.meta.subtitle + "</a>",
   });
+  // Furthermore, throw it on the newsfeed if its on the page
+  if (prepend_newsfeed_card != undefined) { prepend_newsfeed_card(data.meta); }
 }
 
 function error(jqXHR, status, error) {
@@ -36,7 +38,7 @@ function WebSocketSetup(attempts) {
         var data = JSON.parse(evt.data).body;
         var params = $.param({
           'id': data['msg_id'],
-          'meta': ['subtitle', 'link'],
+          'meta': ['subtitle', 'link', 'secondary_icon', 'icon', 'date'],
         }, traditional=true);
         $.ajax({
           url: "https://apps.fedoraproject.org/datagrepper/id/",

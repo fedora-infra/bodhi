@@ -3,8 +3,8 @@
 }
 
 #datagrepper-widget img {
-    height: 32px;
-    width: 32px;
+    height: 24px;
+    width: 24px;
 }
 
 #datagrepper-widget .message-card:before {
@@ -16,13 +16,9 @@
     clear: both;
 }
 
-#datagrepper-widget .message-card a img {
-    visibility: hidden;
-    display: none;
-}
-
 #datagrepper-widget .datetime {
     font-style: italic;
+    font-size: 75%;
     float: right;
     color: #777;
 }
