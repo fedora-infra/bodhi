@@ -1719,6 +1719,9 @@ stack_group_table = Table('stack_group_table', Base.metadata,
                           Column('stack_id', Integer, ForeignKey('stacks.id')),
                           Column('group_id', Integer, ForeignKey('groups.id')))
 
+stack_user_table = Table('stack_user_table', Base.metadata,
+                         Column('stack_id', Integer, ForeignKey('stacks.id')),
+                         Column('user_id', Integer, ForeignKey('users.id')))
 
 
 class User(Base):
@@ -1874,3 +1877,4 @@ class Stack(Base):
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=stack_group_table, backref='stacks')
+    users = relationship("User", secondary=stack_user_table, backref='stacks')
