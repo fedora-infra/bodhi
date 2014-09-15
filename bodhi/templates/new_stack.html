@@ -87,7 +87,46 @@
           </div>
         </div>
       </div>
+    </div> <!-- end row -->
 
+    <div class="row">
+      <div class="col-md-5">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Users</span>
+          </div>
+          <div class="panel-body">
+            <div id="stack-users" class="form-group noui">
+              <input class="typeahead form-control noui" name="users" type="text"
+            % if stack is not UNDEFINED:
+                       value="${' '.join([u.name for u in stack.users])}"
+            % endif
+                       placeholder="An optional list of FAS users that can modify this stack."">
+              </div>
+
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+    <div class="row">
+      <div class="col-md-5">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Groups</span>
+          </div>
+          <div class="panel-body">
+            <div id="stack-groups" class="form-group noui">
+              <input class="typeahead form-control noui" name="roups" type="text"
+            % if stack is not UNDEFINED:
+                       value="${' '.join([g.name for g in stack.groups])}"
+            % endif
+                       placeholder="An optional list of FAS groups that can modify this stack."">
+              </div>
+
+          </div>
+        </div>
+      </div>
     </div> <!-- end row -->
 
     <div class="row col-md-5">
