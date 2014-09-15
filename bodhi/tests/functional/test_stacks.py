@@ -168,3 +168,16 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['status'], 'error')
         self.assertEquals(body['errors'][0]['description'],
                 'guest does not have privileges to modify the GNOME stack')
+
+    def test_edit_stack_with_no_user_privs(self):
+        user = User(name=u'bob')
+        self.session.add(user)
+        self.session.flush()
+        self.stack.users.append(user)
+        self.session.flush()
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell'}
+        res = self.app.post("/stacks/", attrs, status=403)
+        body = res.json_body
+        self.assertEquals(body['status'], 'error')
+        self.assertEquals(body['errors'][0]['description'],
+                'guest does not have privileges to modify the GNOME stack')
