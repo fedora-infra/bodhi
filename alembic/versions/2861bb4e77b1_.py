@@ -1,4 +1,4 @@
-"""empty message
+"""Add the stacks table.
 
 Revision ID: 2861bb4e77b1
 Revises: 5735e34a4ba

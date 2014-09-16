@@ -1,4 +1,4 @@
-"""empty message
+"""Add a description field to the stacks
 
 Revision ID: d58f9439269
 Revises: 2861bb4e77b1
