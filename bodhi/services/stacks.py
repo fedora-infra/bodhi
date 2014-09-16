@@ -139,7 +139,8 @@ def save_stack(request):
     stack.update_relationship('groups', Group, data, db)
 
     log.info('Saved %s stack', data['name'])
-    notifications.publish(topic='stack.save', msg=dict(stack=stack))
+    notifications.publish(topic='stack.save', msg=dict(
+        stack=stack, agent=user.name))
 
     return dict(stack=stack)
 
@@ -148,7 +149,8 @@ def save_stack(request):
 def delete_stack(request):
     """Delete a stack"""
     stack = request.validated['stack']
-    notifications.publish(topic='stack.delete', msg=dict(stack=stack))
+    notifications.publish(topic='stack.delete', msg=dict(
+        stack=stack, agent=request.user.name))
     request.db.delete(stack)
     log.info('Deleted stack: %s', stack.name)
     return dict(status=u'success')
