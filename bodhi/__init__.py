@@ -56,7 +56,7 @@ def get_user(request):
     from bodhi.models import User
     userid = unauthenticated_userid(request)
     if userid is not None:
-        return request.db.query(User).filter_by(name=unicode(userid)).one()
+        return request.db.query(User).filter_by(name=unicode(userid)).first()
 
 
 def groupfinder(userid, request):
@@ -149,8 +149,11 @@ def main(global_config, testing=None, **settings):
 
     # Frontpage
     config.add_route('home', '/')
+
+    # Views for creating new objects
     config.add_route('new_update', '/updates/new')
     config.add_route('new_override', '/overrides/new')
+    config.add_route('new_stack', '/stacks/new')
 
     # Metrics
     config.add_route('metrics', '/metrics')

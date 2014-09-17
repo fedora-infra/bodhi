@@ -97,23 +97,22 @@ def remember_me(context, request, info, *args, **kw):
         db.add(user)
         db.flush()
 
-    # See if they are a member of any important groups
-    important_groups = unicode(request.registry.settings['important_groups'])
-    for important_group in important_groups.split():
-        group = db.query(Group).filter_by(name=important_group).first()
+    # Keep track of what groups the user is a memeber of
+    for group_name in info['groups']:
+        group = db.query(Group).filter_by(name=group_name).first()
         if not group:
-            group = Group(name=important_group)
+            group = Group(name=group_name)
             db.add(group)
             db.flush()
+        if group not in user.groups:
+            log.info('Adding %s to %s group', user.name, group.name)
+            user.groups.append(group)
 
-        if important_group in info['groups']:
-            if group not in user.groups:
-                user.groups.append(group)
-                db.flush()
-        else:
-            if group in user.groups:
-                user.groups.remove(group)
-                db.flush()
+    # See if the user was removed from any groups
+    for group in user.groups:
+        if group.name not in info['groups']:
+            log.info('Removing %s from %s group', user.name, group.name)
+            user.groups.remove(group)
 
     headers = remember(request, username)
     came_from = request.session['came_from']

@@ -130,6 +130,29 @@ class BodhiBase(object):
             columns.append(col.name)
         return columns
 
+    def update_relationship(self, name, model, data, db):
+        """Add items to or remove items from a many-to-many relationship
+
+        :name: The name of the relationship column on self, as well as
+               the key in `data`
+        :model: The model class of the relationship that we're updating
+        :data: A dict containing the key `name` with a list of values
+        """
+        rel = getattr(self, name)
+        items = data.get(name)
+        if items:
+            for item in items:
+                obj = model.get(item, db)
+                if not obj:
+                    obj = model(name=item)
+                    db.add(obj)
+                if obj not in rel:
+                    rel.append(obj)
+            for item in rel:
+                if item.name not in items:
+                    log.info('Removing %r from %r', item, self)
+                    rel.remove(item)
+
 
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
@@ -308,6 +331,8 @@ class Package(Base):
     test_cases = relationship('TestCase', backref='package')
     committers = relationship('User', secondary=user_package_table,
                               backref='packages')
+
+    stack_id = Column(Integer, ForeignKey('stacks.id'))
 
     def get_pkg_pushers(self, branch, settings):
         """ Pull users who can commit and are watching a package.
@@ -1701,6 +1726,14 @@ user_group_table = Table('user_group_table', Base.metadata,
                          Column('user_id', Integer, ForeignKey('users.id')),
                          Column('group_id', Integer, ForeignKey('groups.id')))
 
+stack_group_table = Table('stack_group_table', Base.metadata,
+                          Column('stack_id', Integer, ForeignKey('stacks.id')),
+                          Column('group_id', Integer, ForeignKey('groups.id')))
+
+stack_user_table = Table('stack_user_table', Base.metadata,
+                         Column('stack_id', Integer, ForeignKey('stacks.id')),
+                         Column('user_id', Integer, ForeignKey('users.id')))
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -1841,11 +1874,18 @@ class BuildrootOverride(Base):
         )
 
 
-#class Stack(Base):
-#    """
-#    A Stack in bodhi represents a group of packages that are commonly pushed
-#    together as a group.
-#    """
-#    # name
-#    # packages =  Many to many?
-#    # updates
+class Stack(Base):
+    """
+    A Stack in bodhi represents a group of packages that are commonly pushed
+    together as a group.
+    """
+    __tablename__ = 'stacks'
+    __get_by__ = ('name',)
+
+    name = Column(UnicodeText, unique=True, nullable=False)
+    packages = relationship('Package', backref=backref('stack', lazy='joined'))
+    description = Column(UnicodeText)
+
+    # Many-to-many relationships
+    groups = relationship("Group", secondary=stack_group_table, backref='stacks')
+    users = relationship("User", secondary=stack_user_table, backref='stacks')

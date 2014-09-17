@@ -83,3 +83,25 @@
     </tbody>
   </table>
 </%def>
+<%def name="stacks(stacks)">
+  <table class="table">
+    <thead><tr>
+        <th>Stack</th>
+        <th>Number of packages</th>
+    </tr></thead>
+    <tbody>
+    % for stack in sorted(stacks, cmp=lambda x, y: cmp(len(x.packages), len(y.packages)), reverse=True):
+    <tr>
+      <td>
+        <a href="${request.route_url('stack', name=stack['name'])}">
+          ${stack['name']}
+        </a>
+      </td>
+      <td>
+          <span title="${len(stack['packages'])} packages in this stack">${len(stack['packages'])}</span>
+      </td>
+    </tr>
+    % endfor
+    </tbody>
+  </table>
+</%def>

@@ -22,7 +22,7 @@ from . import log
 from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
-                     Bug, TestCase, ReleaseState)
+                     Bug, TestCase, ReleaseState, Stack)
 from .util import get_nvr
 
 try:
@@ -262,7 +262,7 @@ def validate_packages(request):
     validated_packages = []
 
     for p in packages:
-        package = db.query(Package).filter(Package.name==p).first()
+        package = Package.get(p, db)
 
         if not package:
             bad_packages.append(p)
@@ -632,3 +632,15 @@ def validate_captcha(request):
                                'Incorrect response to the captcha.')
             request.errors.status = HTTPBadRequest.code
             return
+
+
+def validate_stack(request):
+    """Make sure this singular stack exists"""
+    name = request.matchdict.get('name')
+    stack = Stack.get(name, request.db)
+    if stack:
+        request.validated['stack'] = stack
+    else:
+        request.errors.add('querystring', 'stack',
+                           'Invalid stack specified: {}'.format(name))
+        request.errors.status = HTTPNotFound.code

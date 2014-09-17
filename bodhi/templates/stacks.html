@@ -1,0 +1,16 @@
+<%inherit file="master.html"/>
+
+<div class="row">
+  <div class="col-md-12">
+    <h3>Stacks <small>page #${page} of ${pages} pages</small></h3>
+    <div>
+    <a href="${request.route_url('new_stack')}">
+      <span class="glyphicon glyphicon-plus"></span>
+      New Stack
+    </a>
+</div>
+    ${self.pager.render(page, pages)}
+    ${self.tables.stacks(stacks)}
+    ${self.pager.render(page, pages)}
+  </div>
+</div>

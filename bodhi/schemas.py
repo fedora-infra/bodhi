@@ -281,6 +281,38 @@ class SaveReleaseSchema(colander.MappingSchema):
     )
 
 
+class ListStackSchema(PaginatedSchema, SearchableSchema):
+    name = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
+
+class SaveStackSchema(colander.MappingSchema):
+    name = colander.SchemaNode(
+        colander.String(),
+    )
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        missing=None,
+        preparer=[splitter],
+    )
+
+    description = colander.SchemaNode(
+        colander.String(),
+        missing=None,
+    )
+
+
 class ListUserSchema(PaginatedSchema, SearchableSchema):
     name = colander.SchemaNode(
         colander.String(),

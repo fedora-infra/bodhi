@@ -89,6 +89,16 @@
                   Submit Buildroot Override
                 </a>
               </li>
+              % if request.matched_route.name == 'stacks':
+              <li class="active">
+              % else:
+              <li>
+              % endif
+                <a href="${request.route_url('stacks')}">
+                  <span class="glyphicon glyphicon-tasks"></span>
+                  Stacks
+                </a>
+              </li>
               % endif
               % if request.matched_route.name == 'metrics':
               <li class="active">
