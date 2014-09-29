@@ -156,6 +156,7 @@ class MasherThread(threading.Thread):
         self.id = getattr(self.release, '%s_tag' % self.request.value)
         self.log.info('Running MasherThread(%s)' % self.id)
         self.init_state()
+        self.init_path()
 
         notifications.publish(topic="mashtask.mashing", msg=dict(repo=self.id,
             updates=self.state['updates']))
@@ -204,6 +205,12 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             update.locked = True
         self.db.flush()
+
+    def init_path(self):
+        self.path = os.path.join(self.mash_dir, self.id + '-' +
+                                 time.strftime("%y%m%d.%H%M"))
+        if not os.path.isdir(self.path):
+            os.makedirs(self.path)
 
     def init_state(self):
         if not os.path.exists(self.mash_dir):
