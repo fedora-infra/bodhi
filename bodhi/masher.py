@@ -157,7 +157,8 @@ class MasherThread(threading.Thread):
         self.log.info('Running MasherThread(%s)' % self.id)
         self.init_state()
 
-        notifications.publish(topic="mashtask.mashing", msg=dict(repo=self.id))
+        notifications.publish(topic="mashtask.mashing", msg=dict(repo=self.id,
+            updates=self.state['updates']))
 
         success = False
         try:
