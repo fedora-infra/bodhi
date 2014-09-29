@@ -228,9 +228,10 @@ class MasherThread(threading.Thread):
         """Save the state of this push so it can be resumed later if necessary"""
         with file(self.mash_lock, 'w') as lock:
             json.dump(self.state, lock)
-        self.log.info('Masher lock created: %s' % self.mash_lock)
+        self.log.info('Masher lock saved: %s', self.mash_lock)
 
     def remove_state(self):
+        self.log.info('Removing state: %s', self.mash_lock)
         os.remove(self.mash_lock)
 
     def finish(self, success):
