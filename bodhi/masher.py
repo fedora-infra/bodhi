@@ -180,7 +180,7 @@ class MasherThread(threading.Thread):
                 self.complete_requests()
                 self.generate_updateinfo()
                 self.sanity_check_repo()
-                #self.stage_repo()
+                self.stage_repo()
             else:
                 raise NotImplementedError
 
@@ -391,20 +391,13 @@ class MasherThread(threading.Thread):
         return True
 
     def stage_repo(self):
-        """Stage our updates repository.
-
-        Bodhi moves the newly mashed repository to the mashed_stage_dir, and
-        updates the live symlinks appropriately.
-        """
-        link = os.path.join(self.mashed_dir, self.id)
-        stage_dir = config.get('mashed_stage_dir')
-        if stage_dir and self.mashed_dir != stage_dir:
-            self.log.info("Moving %s => %s" % (self.mashdir, stage_dir))
-            shutil.move(self.mashdir, stage_dir)
-
-        # create a mashed_stage_dir/repo symlink so it goes live
+        """Symlink our updates repository into the staging directory"""
+        stage_dir = config.get('mash_stage_dir')
+        if not os.path.isdir(stage_dir):
+            self.log.info('Creating mash_stage_dir %s', stage_dir)
+            os.mkdir(stage_dir)
+        link = os.path.join(stage_dir, self.id)
         if os.path.islink(link):
             os.unlink(link)
-
-        os.symlink(self.mashdir, link)
-        self.log.info("Created symlink: %s => %s" % (self.mashdir, link))
+        self.log.info("Creating symlink: %s => %s" % (self.path, link))
+        os.symlink(self.path, link)
