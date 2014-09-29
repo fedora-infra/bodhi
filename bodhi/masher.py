@@ -72,8 +72,9 @@ Once mash is done:
     """
     config_key = 'masher'
 
-    def __init__(self, hub, db_factory, *args, **kw):
+    def __init__(self, hub, db_factory, mash_dir=config.get('mash_dir'), *args, **kw):
         self.db_factory = db_factory
+        self.mash_dir = mash_dir
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
         self.topic = prefix + '.' + env + '.' + hub.config.get('masher_topic')
@@ -125,10 +126,11 @@ Once mash is done:
 
 class MasherThread(threading.Thread):
 
-    def __init__(self, release, request, updates, log, db_factory, resume=False):
+    def __init__(self, release, request, updates, log, db_factory, mash_dir, resume=False):
         super(MasherThread, self).__init__()
         self.db_factory = db_factory
         self.log = log
+        self.mash_dir = mash_dir
         self.request = UpdateRequest.from_string(request)
         self.release = release
         self.resume = resume
@@ -203,11 +205,10 @@ class MasherThread(threading.Thread):
         self.db.flush()
 
     def init_state(self):
-        self.mashed_dir = config.get('mashed_dir')
-        if not os.path.exists(self.mashed_dir):
-            log.info('Creating %s' % self.mashed_dir)
-            os.makedirs(self.mashed_dir)
-        self.mash_lock = os.path.join(self.mashed_dir, 'MASHING-%s' % self.id)
+        if not os.path.exists(self.mash_dir):
+            log.info('Creating %s' % self.mash_dir)
+            os.makedirs(self.mash_dir)
+        self.mash_lock = os.path.join(self.mash_dir, 'MASHING-%s' % self.id)
         if os.path.exists(self.mash_lock) and not self.resume:
             self.log.error('Trying to do a fresh push and masher lock already '
                            'exists: %s' % self.mash_lock)
