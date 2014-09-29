@@ -179,7 +179,7 @@ class MasherThread(threading.Thread):
                 self.generate_testing_digest()
                 self.complete_requests()
                 self.generate_updateinfo()
-                #self.sanity_check_repo()
+                self.sanity_check_repo()
                 #self.stage_repo()
 
             success = True
@@ -350,8 +350,8 @@ class MasherThread(threading.Thread):
             - make sure we didn't compose a repo full of symlinks
             - sanity check our repodata
         """
-        arches = os.listdir(self.mashdir)
-        log.debug("Running sanity checks on %s" % self.mashdir)
+        arches = os.listdir(self.path)
+        log.debug("Running sanity checks on %s" % self.path)
 
         # make sure the new repository has our arches
         for arch in config.get('arches').split():
@@ -359,7 +359,7 @@ class MasherThread(threading.Thread):
                 one, other = arch.split('/')
                 if one not in arches and other not in arches:
                     self.log.error("Cannot find arch %s OR %s in %s" %
-                                   (one, other, self.mashdir))
+                                   (one, other, self.path))
                     raise Exception
                 else:
                     if one in arches:
@@ -367,20 +367,20 @@ class MasherThread(threading.Thread):
                     else:
                         arch = other
             elif arch not in arches:
-                self.log.error("Cannot find arch %s in %s" % (arch, self.mashdir))
+                self.log.error("Cannot find arch %s in %s" % (arch, self.path))
                 raise Exception
 
             # sanity check our repodata
             try:
-                sanity_check_repodata(os.path.join(self.mashdir, arch, 'repodata'))
+                sanity_check_repodata(os.path.join(self.path, arch, 'repodata'))
             except Exception, e:
                 log.error("Repodata sanity check failed!\n%s" % str(e))
                 raise
 
         # make sure that mash didn't symlink our packages
-        for pkg in os.listdir(os.path.join(self.mashdir, arches[0])):
+        for pkg in os.listdir(os.path.join(self.path, arches[0])):
             if pkg.endswith('.rpm'):
-                if os.path.islink(os.path.join(self.mashdir, arches[0], pkg)):
+                if os.path.islink(os.path.join(self.path, arches[0], pkg)):
                     log.error("Mashed repository full of symlinks!")
                     raise Exception
                 break
