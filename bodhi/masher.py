@@ -181,6 +181,8 @@ class MasherThread(threading.Thread):
                 self.generate_updateinfo()
                 self.sanity_check_repo()
                 #self.stage_repo()
+            else:
+                raise NotImplementedError
 
             success = True
             self.remove_state()
