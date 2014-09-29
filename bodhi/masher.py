@@ -341,7 +341,7 @@ class MasherThread(threading.Thread):
 
     def generate_updateinfo(self):
         self.log.info('Generating updateinfo for %s' % self.release.name)
-        uinfo = ExtendedMetadata(self.release, self.request, self.db)
+        uinfo = ExtendedMetadata(self.release, self.request, self.db, self.path)
         uinfo.insert_updateinfo()
         uinfo.insert_pkgtags()
         uinfo.cache_repodata()

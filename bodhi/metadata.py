@@ -47,16 +47,12 @@ class ExtendedMetadata(object):
     plugin and `PackageKit`.
 
     """
-    def __init__(self, release, request, db, path=config.get('mashed_dir')):
+    def __init__(self, release, request, db, path):
+        self.repo = path
         if request is UpdateRequest.stable:
             self.tag = release.stable_tag
         else:
             self.tag = release.testing_tag
-
-        self.repo = join(path, self.tag)
-        if not os.path.isdir(self.repo):
-            log.info('Creating %s' % self.repo)
-            os.mkdir(self.repo)
 
         log.debug('repo = %r' % self.repo)
         self.doc = None
@@ -69,9 +65,9 @@ class ExtendedMetadata(object):
         self._fetch_updates()
         self.missing_ids = []
 
-        cached_repodata = self.repo + '.repodata'
-        if os.path.isdir(cached_repodata):
-            self._load_cached_updateinfo(cached_repodata)
+        self.cached_repodata = os.path.join(self.repo, '..', self.tag + '.repodata')
+        if os.path.isdir(self.cached_repodata):
+            self._load_cached_updateinfo()
         else:
             log.debug("Generating new updateinfo.xml")
             for update in self.updates:
@@ -84,9 +80,10 @@ class ExtendedMetadata(object):
             log.error("%d updates with missing ID!" % len(self.missing_ids))
             log.debug(self.missing_ids)
 
-    def _load_cached_updateinfo(self, cached_repodata):
-        cacheduinfo = glob.glob(join(cached_repodata, "*-updateinfo.xml.gz"))[0]
-        log.debug("Loading cached %s" % cacheduinfo)
+    def _load_cached_updateinfo(self):
+        log.debug("Loading cached %s" % self.cached_repodata)
+        cacheduinfo = glob.glob(join(self.cached_repodata,
+                                     "*-updateinfo.xml.gz"))[0]
         umd = UpdateMetadata()
         umd.add(cacheduinfo)
 
@@ -133,7 +130,7 @@ class ExtendedMetadata(object):
                 self._add_notice(notice)
             else:
                 # Keep all security notices in the stable repo
-                if 'testing' not in self.repo:
+                if 'testing' not in self.tag:
                     if notice['type'] == 'security':
                         if notice['update_id'] not in seen_ids:
                             log.debug("Keeping existing security notice: %s" %
@@ -332,8 +329,8 @@ class ExtendedMetadata(object):
 
     def insert_updateinfo(self):
         for arch in os.listdir(self.repo):
-            repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
             log.debug("Inserting updateinfo.xml.gz into %s/%s" % (self.repo, arch))
+            repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
             repomd.add(self.doc)
 
     def insert_pkgtags(self):
@@ -354,11 +351,12 @@ class ExtendedMetadata(object):
                 shutil.rmtree(tempdir)
 
     def cache_repodata(self):
-        repodata = os.path.join(self.repo, 'i386', 'repodata')
+        arch = os.listdir(self.repo)[0]  # Take the first arch
+        repodata = os.path.join(self.repo, arch, 'repodata')
         if not os.path.isdir(repodata):
             log.warning('Cannot find repodata to cache: %s' % repodata)
             return
-        cache = self.repo + '.repodata'
+        cache = self.cached_repodata
         if os.path.isdir(cache):
             shutil.rmtree(cache)
         shutil.copytree(repodata, cache)
