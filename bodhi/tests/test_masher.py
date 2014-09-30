@@ -150,8 +150,11 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(msg)
         self.assertEquals(len(publish.call_args_list), 1)
 
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.notifications.publish')
-    def test_update_locking(self, publish):
+    def test_update_locking(self, publish, *args):
         with self.db_factory() as session:
             up = session.query(Update).one()
             self.assertFalse(up.locked)
@@ -171,8 +174,11 @@ class TestMasher(unittest.TestCase):
             up = session.query(Update).one()
             self.assertTrue(up.locked)
 
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.notifications.publish')
-    def test_tags(self, publish):
+    def test_tags(self, publish, *args):
         # Make the build a buildroot override as well
         title = self.msg['body']['msg']['updates']
         with self.db_factory() as session:
