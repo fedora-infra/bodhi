@@ -20,11 +20,11 @@ import unittest
 import tempfile
 import transaction
 
-from datetime import datetime
 from contextlib import contextmanager
 from sqlalchemy import create_engine
 
 from bodhi import buildsys, log
+from bodhi.config import config
 from bodhi.masher import Masher, MasherThread
 from bodhi.models import (DBSession, Base, Update, User, Group, Release,
                           Package, Build, TestCase, UpdateRequest, UpdateType,
@@ -111,9 +111,11 @@ class TestMasher(unittest.TestCase):
         self.koji.clear()  # clear out our dev introspection
 
         self.msg = makemsg()
-        self.masher = Masher(FakeHub(), db_factory=self.db_factory)
+        self.tempdir = tempfile.mkdtemp('bodhi')
+        self.masher = Masher(FakeHub(), db_factory=self.db_factory, mash_dir=self.tempdir)
 
     def tearDown(self):
+        shutil.rmtree(self.tempdir)
         try:
             DBSession.remove()
         finally:
@@ -229,7 +231,7 @@ class TestMasher(unittest.TestCase):
             self.assertIsNone(up.request)
 
     def test_statefile(self):
-        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log, self.db_factory)
+        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log, self.db_factory, self.tempdir)
         t.id = 'f17-updates-testing'
         t.init_state()
         t.save_state()
@@ -244,7 +246,7 @@ class TestMasher(unittest.TestCase):
 
     def test_testing_digest(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         log, self.db_factory)
+                         log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
             t.db = session
             t.work()
@@ -270,9 +272,9 @@ References:
 
     def test_sanity_check(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         log, self.db_factory)
-        tmpdir = tempfile.mkdtemp()
-        t.mashdir = tmpdir
+                         log, self.db_factory, self.tempdir)
+        t.id = 'f17-updates-testing'
+        t.init_path()
 
         # test without any arches
         try:
@@ -283,14 +285,14 @@ References:
 
         # test with valid repodata
         for arch in ('i386', 'x86_64', 'armhfp'):
-            repo = os.path.join(tmpdir, arch)
+            repo = os.path.join(t.path, arch)
             os.mkdir(repo)
             mkmetadatadir(repo)
 
         t.sanity_check_repo()
 
         # test with truncated/busted repodata
-        xml = os.path.join(tmpdir, 'i386', 'repodata', 'repomd.xml')
+        xml = os.path.join(t.path, 'i386', 'repodata', 'repomd.xml')
         repomd = open(xml).read()
         with open(xml, 'w') as f:
             f.write(repomd[:-10])
@@ -302,16 +304,12 @@ References:
         except RepoMDError:
             pass
 
-        shutil.rmtree(tmpdir)
-
     def test_stage(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         log, self.db_factory)
-        tmpdir = tempfile.mkdtemp()
+                         log, self.db_factory, self.tempdir)
         t.id = 'f17-updates-testing'
-        t.mashed_dir = tmpdir
-        t.mash()
+        t.init_path()
         t.stage_repo()
-        link = os.path.join(tmpdir, t.id)
+        stage_dir = config.get('mash_stage_dir')
+        link = os.path.join(stage_dir, t.id)
         self.assertTrue(os.path.islink(link))
-        shutil.rmtree(tmpdir)
