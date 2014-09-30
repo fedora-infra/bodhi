@@ -310,10 +310,7 @@ class MasherThread(threading.Thread):
 
     def mash(self):
         # TODO: mash in koji
-        # TODO: get mash `tag-date` directory
-        #self.mashed_repo = os.path.join(config.get('mashed_dir'), self.tag)
-        self.mashdir = os.path.join(config.get('mashed_dir'), self.id + '-' +
-                                    time.strftime("%y%m%d.%H%M"))
+        pass
 
     def complete_requests(self):
         log.debug("Running post-request actions on updates")
