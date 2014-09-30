@@ -104,7 +104,8 @@ Once mash is done:
         threads = []
         for release in releases:
             for request, updates in releases[release].items():
-                thread = MasherThread(release, request, updates, self.log, self.db_factory)
+                thread = MasherThread(release, request, updates, self.log,
+                                      self.db_factory, self.mash_dir)
                 threads.append(thread)
                 thread.start()
         for thread in threads:
