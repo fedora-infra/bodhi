@@ -32,6 +32,7 @@ import hashlib
 from xml.dom import minidom
 from kitchen.text.converters import to_bytes
 
+from bodhi import log
 
 class RepoMetadata(object):
 
@@ -98,7 +99,7 @@ class RepoMetadata(object):
         hashed_destmd = os.path.join(self.repodir, hashed_mdname)
         os.rename(destmd, hashed_destmd)
 
-        print "Wrote:", hashed_destmd
+        log.debug("Wrote: %s", hashed_destmd)
 
         ## Remove any stale metadata
         for elem in self.doc.getElementsByTagName('data'):
@@ -120,7 +121,7 @@ class RepoMetadata(object):
         outmd = file(self.repomdxml, 'w')
         self.doc.writexml(outmd)
         outmd.close()
-        print "Wrote:", self.repomdxml
+        log.debug("Wrote: %s", self.repomdxml)
 
 
 if __name__ == '__main__':
