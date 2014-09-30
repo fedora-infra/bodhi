@@ -40,7 +40,7 @@ class TestExtendedMetadata(unittest.TestCase):
 
     def __init__(self, *args, **kw):
         super(TestExtendedMetadata, self).__init__(*args, **kw)
-        repo_path = os.path.join(config.get('mashed_dir'), 'f17-updates-testing')
+        repo_path = os.path.join(config.get('mash_dir'), 'f17-updates-testing')
         if not os.path.exists(repo_path):
             os.makedirs(repo_path)
 
@@ -96,7 +96,7 @@ class TestExtendedMetadata(unittest.TestCase):
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
+        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
@@ -142,7 +142,7 @@ class TestExtendedMetadata(unittest.TestCase):
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
+        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
@@ -187,7 +187,7 @@ class TestExtendedMetadata(unittest.TestCase):
         os.mkdir(self.temprepo)
         mkmetadatadir(join(self.temprepo, 'i386'))
 
-        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
+        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
         md.insert_updateinfo()
         updateinfo = self._verify_updateinfo(self.repodata)
 
@@ -226,7 +226,7 @@ class TestExtendedMetadata(unittest.TestCase):
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
+        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
@@ -271,7 +271,7 @@ class TestExtendedMetadata(unittest.TestCase):
         os.mkdir(self.temprepo)
         mkmetadatadir(join(self.temprepo, 'i386'))
 
-        md = ExtendedMetadata(update.release, update.request, self.db, self.tempdir)
+        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
         md.insert_updateinfo()
         updateinfo = self._verify_updateinfo(self.repodata)
 
@@ -299,7 +299,7 @@ class TestExtendedMetadata(unittest.TestCase):
 
         # Generate the XML
         md = ExtendedMetadata(update.release, UpdateRequest.stable,
-                              self.db, self.tempdir)
+                              self.db, repo)
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
@@ -344,7 +344,7 @@ class TestExtendedMetadata(unittest.TestCase):
         os.mkdir(repo)
         mkmetadatadir(join(repo, 'i386'))
 
-        md = ExtendedMetadata(update.release, UpdateRequest.stable, self.db, self.tempdir)
+        md = ExtendedMetadata(update.release, UpdateRequest.stable, self.db, repo)
         md.insert_updateinfo()
         updateinfo = self._verify_updateinfo(self.repodata)
 
@@ -368,7 +368,7 @@ class TestExtendedMetadata(unittest.TestCase):
 
         # Generate the XML
         md = ExtendedMetadata(update.release, UpdateRequest.testing,
-                              self.db, self.tempdir)
+                              self.db, self.temprepo)
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo()
@@ -416,7 +416,7 @@ class TestExtendedMetadata(unittest.TestCase):
         mkmetadatadir(join(self.temprepo, 'i386'))
 
         md = ExtendedMetadata(update.release, UpdateRequest.testing,
-                              self.db, self.tempdir)
+                              self.db, self.temprepo)
         md.insert_updateinfo()
         updateinfo = self._verify_updateinfo(self.repodata)
 
