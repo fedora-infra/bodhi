@@ -112,20 +112,35 @@ Once mash is done:
         return important, normal
 
     def work(self, session, msg):
+        """Begin the push process.
+
+        Here we organize & prioritize the updates, and fire off seperate
+        threads for each reop tag being mashed.
+
+        If there are any security updates in the push, then those repositories
+        will be execute before all others.
+        """
         body = msg['body']['msg']
         notifications.publish(topic="mashtask.start", msg=dict())
         releases = self.organize_updates(session, body)
 
-        # Fire off seperate masher threads for each tag being mashed
-        threads = []
-        for release in releases:
-            for request, updates in releases[release].items():
-                thread = MasherThread(release, request, updates, self.log,
-                                      self.db_factory, self.mash_dir)
-                threads.append(thread)
-                thread.start()
-        for thread in threads:
-            thread.join()
+        # Important repos first, then normal
+        for batch in self.prioritize_updates(releases):
+            # Stable first, then testing
+            for req in ('stable', 'testing'):
+                threads = []
+                for release, request, updates in batch:
+                    if request == req:
+                        updates = [update.title for update in updates]
+                        log.debug('Starting thread for %s %s for %d updates',
+                                  release, request, len(updates))
+                        thread = MasherThread(release, request, updates,
+                                              self.log, self.db_factory,
+                                              self.mash_dir)
+                        threads.append(thread)
+                        thread.start()
+                for thread in threads:
+                    thread.join()
 
         self.log.info('Push complete!')
 
@@ -135,7 +150,7 @@ Once mash is done:
         for title in body['updates'].split():
             update = session.query(Update).filter_by(title=title).first()
             if update:
-                releases[update.release.name][update.request.value].append(update.title)
+                releases[update.release.name][update.request.value].append(update)
             else:
                 self.log.warn('Cannot find update: %s' % title)
         return releases
