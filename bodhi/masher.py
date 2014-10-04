@@ -93,7 +93,10 @@ Once mash is done:
                 # TODO: send email notifications
                 return
         with self.db_factory() as session:
-            self.work(session, msg)
+            try:
+                self.work(session, msg)
+            except:
+                log.exception('Problem in Masher.work')
 
     def prioritize_updates(self, releases):
         """Return 2 batches of repos: important, and normal.
