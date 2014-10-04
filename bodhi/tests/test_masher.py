@@ -28,7 +28,8 @@ from bodhi.config import config
 from bodhi.masher import Masher, MasherThread
 from bodhi.models import (DBSession, Base, Update, User, Group, Release,
                           Package, Build, TestCase, UpdateRequest, UpdateType,
-                          Bug, CVE, Comment, ReleaseState, BuildrootOverride)
+                          Bug, CVE, Comment, ReleaseState, BuildrootOverride,
+                          UpdateStatus)
 from bodhi.tests import populate
 
 from bodhi.util import mkmetadatadir
@@ -319,3 +320,53 @@ References:
         stage_dir = config.get('mash_stage_dir')
         link = os.path.join(stage_dir, t.id)
         self.assertTrue(os.path.islink(link))
+
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.notifications.publish')
+    def test_security_update_priority(self, publish, *args):
+        with self.db_factory() as db:
+            up = db.query(Update).one()
+            user = db.query(User).one()
+
+            # Create a security update for a different release
+            release = Release(
+                name=u'F18', long_name=u'Fedora 18',
+                id_prefix=u'FEDORA', version='18',
+                dist_tag=u'f18', stable_tag=u'f18-updates',
+                testing_tag=u'f18-updates-testing',
+                candidate_tag=u'f18-updates-candidate',
+                pending_testing_tag=u'f18-updates-testing-pending',
+                pending_stable_tag=u'f18-updates-pending',
+                override_tag=u'f18-override')
+            db.add(release)
+            build = Build(nvr=u'bodhi-2.0-1.fc18', release=release,
+                          package=up.builds[0].package)
+            db.add(build)
+            update = Update(
+                title=u'bodhi-2.0-1.fc18',
+                builds=[build], user=user,
+                status=UpdateStatus.testing,
+                request=UpdateRequest.stable,
+                notes=u'Useful details!', release=release)
+            update.type = UpdateType.security
+            db.add(update)
+
+            # Wipe out the tag cache so it picks up our new release
+            Release._tag_cache = None
+
+        self.msg['body']['msg']['updates'] += ' bodhi-2.0-1.fc18'
+
+        self.masher.consume(self.msg)
+
+        # Ensure that F18 runs before F17
+        calls = publish.mock_calls
+        self.assertEquals(calls[1], mock.call(msg={'repo': u'f18-updates',
+            'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
+        self.assertEquals(calls[3], mock.call(msg={'success': True},
+            topic='mashtask.complete'))
+        self.assertEquals(calls[4], mock.call(msg={'repo': u'f17-updates-testing',
+            'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
+        self.assertEquals(calls[-1], mock.call(msg={'success': True},
+            topic='mashtask.complete'))
