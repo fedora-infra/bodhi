@@ -329,7 +329,8 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             if update.request is UpdateRequest.stable:
                 for build in update.builds:
-                    build.override.expire()
+                    if build.override:
+                        build.override.expire()
 
     def remove_pending_tags(self):
         """ Remove all pending tags from these updates """
