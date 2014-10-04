@@ -95,6 +95,22 @@ Once mash is done:
         with self.db_factory() as session:
             self.work(session, msg)
 
+    def prioritize_updates(self, releases):
+        """Return 2 batches of repos: important, and normal.
+
+        At the moment an important repo is one that contains a security update.
+        """
+        important, normal = [], []
+        for release in releases:
+            for request, updates in releases[release].items():
+                for update in updates:
+                    if update.type is UpdateType.security:
+                        important.append((release, request, updates))
+                        break
+                else:
+                    normal.append((release, request, updates))
+        return important, normal
+
     def work(self, session, msg):
         body = msg['body']['msg']
         notifications.publish(topic="mashtask.start", msg=dict())
