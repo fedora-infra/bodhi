@@ -121,7 +121,7 @@ Once mash is done:
         threads for each reop tag being mashed.
 
         If there are any security updates in the push, then those repositories
-        will be execute before all others.
+        will be executed before all others.
         """
         body = msg['body']['msg']
         notifications.publish(topic="mashtask.start", msg=dict())
