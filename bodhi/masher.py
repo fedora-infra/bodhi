@@ -93,23 +93,57 @@ Once mash is done:
                 # TODO: send email notifications
                 return
         with self.db_factory() as session:
-            self.work(session, msg)
+            try:
+                self.work(session, msg)
+            except:
+                log.exception('Problem in Masher.work')
+
+    def prioritize_updates(self, releases):
+        """Return 2 batches of repos: important, and normal.
+
+        At the moment an important repo is one that contains a security update.
+        """
+        important, normal = [], []
+        for release in releases:
+            for request, updates in releases[release].items():
+                for update in updates:
+                    if update.type is UpdateType.security:
+                        important.append((release, request, updates))
+                        break
+                else:
+                    normal.append((release, request, updates))
+        return important, normal
 
     def work(self, session, msg):
+        """Begin the push process.
+
+        Here we organize & prioritize the updates, and fire off seperate
+        threads for each reop tag being mashed.
+
+        If there are any security updates in the push, then those repositories
+        will be executed before all others.
+        """
         body = msg['body']['msg']
         notifications.publish(topic="mashtask.start", msg=dict())
         releases = self.organize_updates(session, body)
 
-        # Fire off seperate masher threads for each tag being mashed
-        threads = []
-        for release in releases:
-            for request, updates in releases[release].items():
-                thread = MasherThread(release, request, updates, self.log,
-                                      self.db_factory, self.mash_dir)
-                threads.append(thread)
-                thread.start()
-        for thread in threads:
-            thread.join()
+        # Important repos first, then normal
+        for batch in self.prioritize_updates(releases):
+            # Stable first, then testing
+            for req in ('stable', 'testing'):
+                threads = []
+                for release, request, updates in batch:
+                    if request == req:
+                        updates = [update.title for update in updates]
+                        log.debug('Starting thread for %s %s for %d updates',
+                                  release, request, len(updates))
+                        thread = MasherThread(release, request, updates,
+                                              self.log, self.db_factory,
+                                              self.mash_dir)
+                        threads.append(thread)
+                        thread.start()
+                for thread in threads:
+                    thread.join()
 
         self.log.info('Push complete!')
 
@@ -119,7 +153,7 @@ Once mash is done:
         for title in body['updates'].split():
             update = session.query(Update).filter_by(title=title).first()
             if update:
-                releases[update.release.name][update.request.value].append(update.title)
+                releases[update.release.name][update.request.value].append(update)
             else:
                 self.log.warn('Cannot find update: %s' % title)
         return releases
@@ -295,7 +329,8 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             if update.request is UpdateRequest.stable:
                 for build in update.builds:
-                    build.override.expire()
+                    if build.override:
+                        build.override.expire()
 
     def remove_pending_tags(self):
         """ Remove all pending tags from these updates """
