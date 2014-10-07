@@ -211,6 +211,7 @@ class MasherThread(threading.Thread):
                 self.save_state()
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
+                self.update_comps()
                 self.mash()
                 self.generate_testing_digest()
                 self.complete_requests()
@@ -357,6 +358,23 @@ class MasherThread(threading.Thread):
         if err:
             log.error(err)
         return out, err, p.returncode
+
+    def update_comps(self):
+        """
+        Update our comps git module and merge the latest translations so we can
+        pass it to mash insert into the repodata.
+        """
+        log.info("Updating comps")
+        comps_dir = config.get('comps_dir')
+        comps_url = config.get('comps_url')
+        if not os.path.exists(comps_dir):
+            self.cmd(['git', 'clone', comps_url], os.path.dirname(comps_dir))
+        if comps_url.startswith('git://'):
+            self.cmd(['git', 'pull'], comps_dir)
+        else:
+            log.error('comps_url must start with git://')
+            return
+        self.cmd(['make'], comps_dir)
 
     def mash(self):
         # TODO: mash in koji
