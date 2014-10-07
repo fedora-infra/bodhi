@@ -17,6 +17,7 @@ import json
 import time
 import shutil
 import threading
+import subprocess
 import fedmsg.consumers
 
 from collections import defaultdict
@@ -343,6 +344,19 @@ class MasherThread(threading.Thread):
                 update.remove_tag(update.release.pending_testing_tag, koji=self.koji)
         result = self.koji.multiCall()
         log.debug('result = %r' % result)
+
+    def cmd(self, cmd, cwd=None):
+        log.info('Running %r', cmd)
+        if isinstance(cmd, basestring):
+            cmd = cmd.split()
+        p = subprocess.Popen(cmd, cwd=cwd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        log.debug(out)
+        if err:
+            log.error(err)
+        return out, err, p.returncode
 
     def mash(self):
         # TODO: mash in koji
