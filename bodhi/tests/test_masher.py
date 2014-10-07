@@ -151,6 +151,8 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(msg)
         self.assertEquals(len(publish.call_args_list), 1)
 
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MasherThread.mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
@@ -175,6 +177,8 @@ class TestMasher(unittest.TestCase):
             up = session.query(Update).one()
             self.assertTrue(up.locked)
 
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MasherThread.mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
@@ -251,7 +255,13 @@ class TestMasher(unittest.TestCase):
         finally:
             t.remove_state()
 
-    def test_testing_digest(self):
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.notifications.publish')
+    def test_testing_digest(self, *args):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
                          log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
@@ -321,6 +331,8 @@ References:
         link = os.path.join(stage_dir, t.id)
         self.assertTrue(os.path.islink(link))
 
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MasherThread.mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
@@ -371,6 +383,8 @@ References:
         self.assertEquals(calls[-1], mock.call(msg={'success': True},
             topic='mashtask.complete'))
 
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MasherThread.mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
@@ -423,6 +437,8 @@ References:
         self.assertEquals(calls[-1], mock.call(msg={'success': True},
             topic='mashtask.complete'))
 
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MasherThread.mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
