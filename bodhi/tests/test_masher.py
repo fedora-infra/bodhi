@@ -487,3 +487,13 @@ References:
             'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
         self.assertEquals(calls[2], mock.call(msg={'repo': u'f17-updates',
             'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
+
+    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.cmd')
+    def test_update_comps(self, cmd, *args):
+        self.masher.consume(self.msg)
+        self.assertIn(mock.call(['git', 'pull'], mock.ANY), cmd.mock_calls)
+        self.assertIn(mock.call(['make'], mock.ANY), cmd.mock_calls)
