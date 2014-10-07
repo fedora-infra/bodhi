@@ -93,7 +93,7 @@ def link_system_libs():
     for mod in ('koji', 'rpm', 'OpenSSL', 'urlgrabber', 'pycurl', 'yum',
                 'rpmUtils', 'sqlitecachec', '_sqlitecache', 'psycopg2',
                 'krbVmodule', 'createrepo', 'deltarpm', '_deltarpmmodule',
-                'fedora_cert'):
+                'fedora_cert', 'libxml2', 'libxml2mod'):
         _link_system_lib(mod)
 
 
