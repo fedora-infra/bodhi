@@ -497,3 +497,12 @@ References:
         self.masher.consume(self.msg)
         self.assertIn(mock.call(['git', 'pull'], mock.ANY), cmd.mock_calls)
         self.assertIn(mock.call(['make'], mock.ANY), cmd.mock_calls)
+
+    def test_cmd_failure(self):
+        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log,
+                         self.db_factory, self.tempdir)
+        try:
+            t.cmd('false')
+            assert False
+        except Exception:
+            pass
