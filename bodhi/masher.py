@@ -354,7 +354,8 @@ class MasherThread(threading.Thread):
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         out, err = p.communicate()
-        log.debug(out)
+        if out:
+            log.debug(out)
         if err:
             log.error(err)
         if p.returncode != 0:
