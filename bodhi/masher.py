@@ -357,6 +357,9 @@ class MasherThread(threading.Thread):
         log.debug(out)
         if err:
             log.error(err)
+        if p.returncode != 0:
+            log.error('return code %s', p.returncode)
+            raise Exception
         return out, err, p.returncode
 
     def update_comps(self):
