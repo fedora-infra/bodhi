@@ -8,14 +8,20 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+The Bodhi "Masher".
+
+This module is responsible for the process of "pushing" updates out. It's
+comprised of a fedmsg consumer that launches threads for each repository being
+mashed.
+"""
 
 import os
 import json
 import time
-import shutil
 import threading
 import subprocess
 import fedmsg.consumers
@@ -50,23 +56,25 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Remove pending tags
     - request_complete
     - Send fedmsgs
+    - Update comps
+    - TODO: mash
 
-    - TODO: mash (update comps before hand?)
 Things to do while we're waiting on mash
     - Add testing updates to updates-testing digest
     - Generate/update updateinfo.xml
 
 Once mash is done:
     - inject the updateinfo it into the repodata
-
     - Sanity check the repo
     - Flip the symlinks to the new repo
-    - Generate and email stable update notices
     - Cache the new repodata
+
+    - Generate and email stable update notices
     - Wait for the repo to hit the master mirror
     - Update bugzillas
     - Add comments to updates
     - Email updates-testing digest
+
     - Unlock repo
         - unlock updates
         - see if any updates now meet the stable criteria, and set the request
@@ -195,7 +203,7 @@ class MasherThread(threading.Thread):
         self.init_path()
 
         notifications.publish(topic="mashtask.mashing", msg=dict(repo=self.id,
-            updates=self.state['updates']))
+                              updates=self.state['updates']))
 
         success = False
         try:
