@@ -81,7 +81,8 @@ Once mash is done:
     """
     config_key = 'masher'
 
-    def __init__(self, hub, db_factory, mash_dir=config.get('mash_dir'), *args, **kw):
+    def __init__(self, hub, db_factory, mash_dir=config.get('mash_dir'),
+                 *args, **kw):
         self.db_factory = db_factory
         self.mash_dir = mash_dir
         prefix = hub.config.get('topic_prefix')
@@ -89,7 +90,8 @@ Once mash is done:
         self.topic = prefix + '.' + env + '.' + hub.config.get('masher_topic')
         self.valid_signer = hub.config.get('releng_fedmsg_certname')
         if not self.valid_signer:
-            log.warn('No releng_fedmsg_certname defined. Cert validation disabled')
+            log.warn('No releng_fedmsg_certname defined'
+                     'Cert validation disabled')
         super(Masher, self).__init__(hub, *args, **kw)
         log.info('Bodhi masher listening on topic: %s' % self.topic)
 
@@ -98,7 +100,8 @@ Once mash is done:
         if self.valid_signer:
             if not fedmsg.crypto.validate_signed_by(msg, self.valid_signer,
                                                     **self.hub.config):
-                self.log.error('Received message with invalid signature! Ignoring.')
+                self.log.error('Received message with invalid signature!'
+                               'Ignoring.')
                 # TODO: send email notifications
                 return
         with self.db_factory() as session:
@@ -162,7 +165,8 @@ Once mash is done:
         for title in body['updates'].split():
             update = session.query(Update).filter_by(title=title).first()
             if update:
-                releases[update.release.name][update.request.value].append(update)
+                repo = releases[update.release.name][update.request.value]
+                repo.append(update)
             else:
                 self.log.warn('Cannot find update: %s' % title)
         return releases
@@ -170,7 +174,8 @@ Once mash is done:
 
 class MasherThread(threading.Thread):
 
-    def __init__(self, release, request, updates, log, db_factory, mash_dir, resume=False):
+    def __init__(self, release, request, updates, log, db_factory,
+                 mash_dir, resume=False):
         super(MasherThread, self).__init__()
         self.db_factory = db_factory
         self.log = log
@@ -196,7 +201,8 @@ class MasherThread(threading.Thread):
 
     def work(self):
         self.koji = buildsys.get_session()
-        self.release = self.db.query(Release).filter_by(name=self.release).one()
+        self.release = self.db.query(Release)\
+                              .filter_by(name=self.release).one()
         self.id = getattr(self.release, '%s_tag' % self.request.value)
         self.log.info('Running MasherThread(%s)' % self.id)
         self.init_state()
@@ -245,7 +251,8 @@ class MasherThread(threading.Thread):
             if update:
                 updates.append(update)
         if not updates:
-            raise Exception('Unable to load updates: %r' % self.state['updates'])
+            raise Exception('Unable to load updates: %r' %
+                            self.state['updates'])
         self.updates = updates
 
     def lock_updates(self):
@@ -270,7 +277,9 @@ class MasherThread(threading.Thread):
             raise Exception
 
     def save_state(self):
-        """Save the state of this push so it can be resumed later if necessary"""
+        """
+        Save the state of this push so it can be resumed later if necessary
+        """
         with file(self.mash_lock, 'w') as lock:
             json.dump(self.state, lock)
         self.log.info('Masher lock saved: %s', self.mash_lock)
@@ -327,7 +336,8 @@ class MasherThread(threading.Thread):
             self.koji.tagBuild(tag, build, force=True)
         for action in self.move_tags:
             from_tag, to_tag, build = action
-            self.log.info('Moving %s from %s to %s' % (build, from_tag, to_tag))
+            self.log.info('Moving %s from %s to %s' % (
+                          build, from_tag, to_tag))
             self.koji.moveBuild(from_tag, to_tag, build, force=True)
         results = self.koji.multiCall()
         failed_tasks = buildsys.wait_for_tasks([task[0] for task in results])
@@ -348,11 +358,13 @@ class MasherThread(threading.Thread):
         self.koji.multicall = True
         for update in self.updates:
             if update.request is UpdateRequest.stable:
-                update.remove_tag(update.release.pending_stable_tag, koji=self.koji)
+                update.remove_tag(update.release.pending_stable_tag,
+                                  koji=self.koji)
             elif update.request is UpdateRequest.testing:
-                update.remove_tag(update.release.pending_testing_tag, koji=self.koji)
+                update.remove_tag(update.release.pending_testing_tag,
+                                  koji=self.koji)
         result = self.koji.multiCall()
-        log.debug('result = %r' % result)
+        log.debug('remove_pending_tags koji.multiCall result = %r' % result)
 
     def cmd(self, cmd, cwd=None):
         log.info('Running %r', cmd)
@@ -418,7 +430,8 @@ class MasherThread(threading.Thread):
 
     def generate_updateinfo(self):
         self.log.info('Generating updateinfo for %s' % self.release.name)
-        uinfo = ExtendedMetadata(self.release, self.request, self.db, self.path)
+        uinfo = ExtendedMetadata(self.release, self.request,
+                                 self.db, self.path)
         uinfo.insert_updateinfo()
         uinfo.insert_pkgtags()
         uinfo.cache_repodata()
@@ -452,7 +465,8 @@ class MasherThread(threading.Thread):
 
             # sanity check our repodata
             try:
-                sanity_check_repodata(os.path.join(self.path, arch, 'repodata'))
+                repodata = os.path.join(self.path, arch, 'repodata')
+                sanity_check_repodata(repodata)
             except Exception, e:
                 log.error("Repodata sanity check failed!\n%s" % str(e))
                 raise
