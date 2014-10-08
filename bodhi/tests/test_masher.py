@@ -483,10 +483,15 @@ References:
 
         # Ensure that F18 and F17 run in parallel
         calls = publish.mock_calls
-        self.assertEquals(calls[1], mock.call(msg={'repo': u'f18-updates',
-            'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[2], mock.call(msg={'repo': u'f17-updates',
-            'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
+        if calls[1] == mock.call(msg={'repo': u'f18-updates',
+            'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'):
+            self.assertEquals(calls[2], mock.call(msg={'repo': u'f17-updates',
+                'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
+        elif calls[1] == self.assertEquals(calls[1], mock.call(msg={'repo': u'f18-updates',
+            'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing')):
+            self.assertEquals(calls[2], mock.call(msg={'repo': u'f18-updates',
+                'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
+
 
     @mock.patch('bodhi.masher.MasherThread.mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
