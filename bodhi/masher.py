@@ -8,15 +8,22 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+The Bodhi "Masher".
+
+This module is responsible for the process of "pushing" updates out. It's
+comprised of a fedmsg consumer that launches threads for each repository being
+mashed.
+"""
 
 import os
 import json
 import time
-import shutil
 import threading
+import subprocess
 import fedmsg.consumers
 
 from collections import defaultdict
@@ -49,23 +56,25 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Remove pending tags
     - request_complete
     - Send fedmsgs
+    - Update comps
+    - TODO: mash
 
-    - TODO: mash (update comps before hand?)
 Things to do while we're waiting on mash
     - Add testing updates to updates-testing digest
     - Generate/update updateinfo.xml
 
 Once mash is done:
     - inject the updateinfo it into the repodata
-
     - Sanity check the repo
     - Flip the symlinks to the new repo
-    - Generate and email stable update notices
     - Cache the new repodata
+
+    - Generate and email stable update notices
     - Wait for the repo to hit the master mirror
     - Update bugzillas
     - Add comments to updates
     - Email updates-testing digest
+
     - Unlock repo
         - unlock updates
         - see if any updates now meet the stable criteria, and set the request
@@ -194,7 +203,7 @@ class MasherThread(threading.Thread):
         self.init_path()
 
         notifications.publish(topic="mashtask.mashing", msg=dict(repo=self.id,
-            updates=self.state['updates']))
+                              updates=self.state['updates']))
 
         success = False
         try:
@@ -210,6 +219,7 @@ class MasherThread(threading.Thread):
                 self.save_state()
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
+                self.update_comps()
                 self.mash()
                 self.generate_testing_digest()
                 self.complete_requests()
@@ -343,6 +353,40 @@ class MasherThread(threading.Thread):
                 update.remove_tag(update.release.pending_testing_tag, koji=self.koji)
         result = self.koji.multiCall()
         log.debug('result = %r' % result)
+
+    def cmd(self, cmd, cwd=None):
+        log.info('Running %r', cmd)
+        if isinstance(cmd, basestring):
+            cmd = cmd.split()
+        p = subprocess.Popen(cmd, cwd=cwd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if out:
+            log.debug(out)
+        if err:
+            log.error(err)
+        if p.returncode != 0:
+            log.error('return code %s', p.returncode)
+            raise Exception
+        return out, err, p.returncode
+
+    def update_comps(self):
+        """
+        Update our comps git module and merge the latest translations so we can
+        pass it to mash insert into the repodata.
+        """
+        log.info("Updating comps")
+        comps_dir = config.get('comps_dir')
+        comps_url = config.get('comps_url')
+        if not os.path.exists(comps_dir):
+            self.cmd(['git', 'clone', comps_url], os.path.dirname(comps_dir))
+        if comps_url.startswith('git://'):
+            self.cmd(['git', 'pull'], comps_dir)
+        else:
+            log.error('comps_url must start with git://')
+            return
+        self.cmd(['make'], comps_dir)
 
     def mash(self):
         # TODO: mash in koji
