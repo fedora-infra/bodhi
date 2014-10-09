@@ -511,3 +511,23 @@ References:
             assert False
         except Exception:
             pass
+
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.masher.MasherThread.cmd')
+    def test_mash(self, cmd, publish, *args):
+        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log,
+                         self.db_factory, self.tempdir)
+        with self.db_factory() as session:
+            t.db = session
+            t.work()
+            t.db = None
+
+        # Also, ensure we reported success
+        publish.assert_called_with(topic="mashtask.complete",
+                                   msg=dict(success=True))
+
+        self.assertIn(mock.call(['mash'] + [mock.ANY] * 6), cmd.mock_calls)
+        self.assertEquals(len(t.state['completed_repos']), 1)
