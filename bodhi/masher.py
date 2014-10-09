@@ -27,7 +27,7 @@ import fedmsg.consumers
 
 from collections import defaultdict
 
-from bodhi import log, buildsys, notifications, mail
+from bodhi import log, buildsys, notifications, mail, util
 from bodhi.util import sorted_updates, sanity_check_repodata
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
@@ -225,12 +225,27 @@ class MasherThread(threading.Thread):
                 self.expire_buildroot_overrides()
                 self.remove_pending_tags()
                 self.update_comps()
-                self.mash()
+
+                mash_thread = self.mash()
+
+                # Things we can do while we're mashing
                 self.generate_testing_digest()
-                self.complete_requests()
-                self.generate_updateinfo()
+                uinfo = self.generate_updateinfo()
+
+                self.wait_for_mash(mash_thread)
+
+                uinfo.insert_updateinfo()
+                uinfo.insert_pkgtags()
+                uinfo.cache_repodata()
                 self.sanity_check_repo()
                 self.stage_repo()
+
+                # TODO:
+                # Wait for them to hit the mirror
+                # Update bugzillas
+                # Add comments to updates
+                # Email updates-testing digest
+                self.complete_requests()
             else:
                 raise NotImplementedError
 
@@ -383,28 +398,26 @@ class MasherThread(threading.Thread):
         util.cmd(['make'], comps_dir)
 
     def mash(self):
-        start = time.time()
         if self.path in self.state['completed_repos']:
             log.info('Skipping completed repo: %s', self.path)
             return
 
-        log.info('Mashing %s', self.id)
         comps = os.path.join(config.get('comps_dir'), 'comps-%s.xml' %
                              self.release.branch)
-        assert os.path.exists(comps), comps
-
-        mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile}'
-        mash_conf = config.get('mash_conf', '/etc/mash/mash.conf')
         previous = os.path.join(config.get('mash_stage_dir'), self.id)
-        if os.path.exists(previous):
-            mash_cmd += ' -p {}'.format(previous)
 
-        self.cmd(mash_cmd.format(outputdir=self.path, config=mash_conf,
-                                 compsfile=comps).split())
-        log.info('Took %s seconds to mash %s', time.time() - start, self.id)
+        mash_thread = MashThread(self.id, self.path, comps, previous)
+        mash_thread.start()
+        return mash_thread
 
-        self.state['completed_repos'].append(self.path)
-        self.save_state()
+    def wait_for_mash(self, mash_thread):
+        log.debug('Waiting for mash thread to finish')
+        mash_thread.join()
+        if mash_thread.success:
+            self.state['completed_repos'].append(self.path)
+            self.save_state()
+        else:
+            raise Exception
 
     def complete_requests(self):
         log.debug("Running post-request actions on updates")
@@ -434,9 +447,7 @@ class MasherThread(threading.Thread):
         self.log.info('Generating updateinfo for %s' % self.release.name)
         uinfo = ExtendedMetadata(self.release, self.request,
                                  self.db, self.path)
-        uinfo.insert_updateinfo()
-        uinfo.insert_pkgtags()
-        uinfo.cache_repodata()
+        return uinfo
 
     def sanity_check_repo(self):
         """Sanity check our repo.
@@ -494,3 +505,27 @@ class MasherThread(threading.Thread):
             os.unlink(link)
         self.log.info("Creating symlink: %s => %s" % (self.path, link))
         os.symlink(self.path, link)
+
+
+class MashThread(threading.Thread):
+
+    def __init__(self, tag, outputdir, comps, previous):
+        super(MashThread, self).__init__()
+        self.tag = tag
+        self.success = False
+        mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile} {tag}'
+        mash_conf = config.get('mash_conf', '/etc/mash/mash.conf')
+        if os.path.exists(previous):
+            mash_cmd += ' -p {}'.format(previous)
+        self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
+                                        compsfile=comps, tag=self.tag).split()
+
+    def run(self):
+        start = time.time()
+        log.info('Mashing %s', self.tag)
+        try:
+            util.cmd(self.mash_cmd)
+            log.info('Took %s seconds to mash %s', time.time() - start, self.tag)
+            self.success = True
+        except:
+            log.exception('There was a problem running mash')
