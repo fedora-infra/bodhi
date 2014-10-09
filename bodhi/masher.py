@@ -22,6 +22,8 @@ mashed.
 import os
 import json
 import time
+import urllib2
+import hashlib
 import threading
 import fedmsg.consumers
 
@@ -240,8 +242,12 @@ class MasherThread(threading.Thread):
                 self.sanity_check_repo()
                 self.stage_repo()
 
+                # Wait for the repo to hit the master mirror
+                notifications.publish(topic="mashtask.sync.wait", msg=dict())
+                self.wait_for_sync()
+                notifications.publish(topic="mashtask.sync.done", msg=dict())
+
                 # TODO:
-                # Wait for them to hit the mirror
                 # Update bugzillas
                 # Add comments to updates
                 # Email updates-testing digest
@@ -505,6 +511,32 @@ class MasherThread(threading.Thread):
             os.unlink(link)
         self.log.info("Creating symlink: %s => %s" % (self.path, link))
         os.symlink(self.path, link)
+
+    def wait_for_sync(self):
+        """Block until our repomd.xml hits the master mirror"""
+        log.info('Waiting for updates to hit the master mirror')
+        arch = os.listdir(self.path)[0]
+        release = self.release.id_prefix.lower().replace('-', '_')
+        master_repomd = config.get('%s_master_repomd' % release)
+        repomd = os.path.join(self.path, arch, 'repodata', 'repomd.xml')
+        if not os.path.exists(repomd):
+            log.error('Cannot find local repomd: %s', repomd)
+            return
+        checksum = hashlib.sha1(file(repomd).read()).hexdigest()
+        while True:
+            time.sleep(600)
+            try:
+                masterrepomd = urllib2.urlopen(master_repomd %
+                                               self.release.get_version())
+            except (urllib2.URLError, urllib2.HTTPError):
+                log.exception('Error fetching repomd.xml')
+                continue
+            newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
+            if newsum == checksum:
+                log.info("master repomd.xml matches!")
+                return
+            log.debug("master repomd.xml doesn't match! %s != %s" % (checksum,
+                                                                     newsum))
 
 
 class MashThread(threading.Thread):
