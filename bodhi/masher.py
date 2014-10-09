@@ -401,8 +401,28 @@ class MasherThread(threading.Thread):
         self.cmd(['make'], comps_dir)
 
     def mash(self):
-        # TODO: mash in koji
-        pass
+        start = time.time()
+        if self.path in self.state['completed_repos']:
+            log.info('Skipping completed repo: %s', self.path)
+            return
+
+        log.info('Mashing %s', self.id)
+        comps = os.path.join(config.get('comps_dir'), 'comps-%s.xml' %
+                             self.release.branch)
+        assert os.path.exists(comps), comps
+
+        mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile}'
+        mash_conf = config.get('mash_conf', '/etc/mash/mash.conf')
+        previous = os.path.join(config.get('mash_stage_dir'), self.id)
+        if os.path.exists(previous):
+            mash_cmd += ' -p {}'.format(previous)
+
+        self.cmd(mash_cmd.format(outputdir=self.path, config=mash_conf,
+                                 compsfile=comps).split())
+        log.info('Took %s seconds to mash %s', time.time() - start, self.id)
+
+        self.state['completed_repos'].append(self.path)
+        self.save_state()
 
     def complete_requests(self):
         log.debug("Running post-request actions on updates")
