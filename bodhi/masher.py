@@ -53,10 +53,9 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Move build tags
     - Expire buildroot overrides
     - Remove pending tags
-    - request_complete
     - Send fedmsgs
     - Update comps
-    - TODO: mash
+    - mash
 
 Things to do while we're waiting on mash
     - Add testing updates to updates-testing digest
@@ -73,6 +72,7 @@ Once mash is done:
     - Update bugzillas
     - Add comments to updates
     - Email updates-testing digest
+    - request_complete
 
     - Unlock repo
         - unlock updates
