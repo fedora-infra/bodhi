@@ -497,26 +497,17 @@ References:
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
-    @mock.patch('bodhi.masher.MasherThread.cmd')
+    @mock.patch('bodhi.util.cmd')
     def test_update_comps(self, cmd, *args):
         self.masher.consume(self.msg)
         self.assertIn(mock.call(['git', 'pull'], mock.ANY), cmd.mock_calls)
         self.assertIn(mock.call(['make'], mock.ANY), cmd.mock_calls)
 
-    def test_cmd_failure(self):
-        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log,
-                         self.db_factory, self.tempdir)
-        try:
-            t.cmd('false')
-            assert False
-        except Exception:
-            pass
-
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.notifications.publish')
-    @mock.patch('bodhi.masher.MasherThread.cmd')
+    @mock.patch('bodhi.util.cmd')
     def test_mash(self, cmd, publish, *args):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log,
                          self.db_factory, self.tempdir)

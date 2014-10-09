@@ -23,7 +23,6 @@ import os
 import json
 import time
 import threading
-import subprocess
 import fedmsg.consumers
 
 from collections import defaultdict
@@ -366,23 +365,6 @@ class MasherThread(threading.Thread):
         result = self.koji.multiCall()
         log.debug('remove_pending_tags koji.multiCall result = %r' % result)
 
-    def cmd(self, cmd, cwd=None):
-        log.info('Running %r', cmd)
-        if isinstance(cmd, basestring):
-            cmd = cmd.split()
-        p = subprocess.Popen(cmd, cwd=cwd,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        if out:
-            log.debug(out)
-        if err:
-            log.error(err)
-        if p.returncode != 0:
-            log.error('return code %s', p.returncode)
-            raise Exception
-        return out, err, p.returncode
-
     def update_comps(self):
         """
         Update our comps git module and merge the latest translations so we can
@@ -392,13 +374,13 @@ class MasherThread(threading.Thread):
         comps_dir = config.get('comps_dir')
         comps_url = config.get('comps_url')
         if not os.path.exists(comps_dir):
-            self.cmd(['git', 'clone', comps_url], os.path.dirname(comps_dir))
+            util.cmd(['git', 'clone', comps_url], os.path.dirname(comps_dir))
         if comps_url.startswith('git://'):
-            self.cmd(['git', 'pull'], comps_dir)
+            util.cmd(['git', 'pull'], comps_dir)
         else:
             log.error('comps_url must start with git://')
             return
-        self.cmd(['make'], comps_dir)
+        util.cmd(['make'], comps_dir)
 
     def mash(self):
         start = time.time()

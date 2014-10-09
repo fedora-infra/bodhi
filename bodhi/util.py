@@ -541,3 +541,21 @@ def sorted_updates(updates):
                 ordered_updates.append(update)
     log.debug('ordered_updates = %s' % ordered_updates)
     return ordered_updates[::-1]
+
+
+def cmd(cmd, cwd=None):
+    log.info('Running %r', cmd)
+    if isinstance(cmd, basestring):
+        cmd = cmd.split()
+    p = subprocess.Popen(cmd, cwd=cwd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    if out:
+        log.debug(out)
+    if err:
+        log.error(err)
+    if p.returncode != 0:
+        log.error('return code %s', p.returncode)
+        raise Exception
+    return out, err, p.returncode
