@@ -36,7 +36,8 @@ def populate(db):
         candidate_tag=u'f17-updates-candidate',
         pending_testing_tag=u'f17-updates-testing-pending',
         pending_stable_tag=u'f17-updates-pending',
-        override_tag=u'f17-override')
+        override_tag=u'f17-override',
+        branch=u'f17')
     db.add(release)
     pkg = Package(name=u'bodhi')
     db.add(pkg)

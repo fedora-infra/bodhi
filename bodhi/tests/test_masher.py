@@ -152,10 +152,12 @@ class TestMasher(unittest.TestCase):
         self.assertEquals(len(publish.call_args_list), 1)
 
     @mock.patch('bodhi.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.notifications.publish')
     def test_update_locking(self, publish, *args):
         with self.db_factory() as session:
@@ -165,7 +167,7 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(self.msg)
 
         # Ensure that fedmsg was called 4 times
-        self.assertEquals(len(publish.call_args_list), 4)
+        self.assertEquals(len(publish.call_args_list), 6)
 
         # Also, ensure we reported success
         publish.assert_called_with(
@@ -178,10 +180,12 @@ class TestMasher(unittest.TestCase):
             self.assertTrue(up.locked)
 
     @mock.patch('bodhi.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.notifications.publish')
     def test_tags(self, publish, *args):
         # Make the build a buildroot override as well
@@ -199,7 +203,7 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(self.msg)
 
         # Ensure that fedmsg was called 3 times
-        self.assertEquals(len(publish.call_args_list), 4)
+        self.assertEquals(len(publish.call_args_list), 6)
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
@@ -256,10 +260,12 @@ class TestMasher(unittest.TestCase):
             t.remove_state()
 
     @mock.patch('bodhi.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.notifications.publish')
     def test_testing_digest(self, *args):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
@@ -332,10 +338,12 @@ References:
         self.assertTrue(os.path.islink(link))
 
     @mock.patch('bodhi.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.notifications.publish')
     def test_security_update_priority(self, publish, *args):
         with self.db_factory() as db:
@@ -376,18 +384,20 @@ References:
         calls = publish.mock_calls
         self.assertEquals(calls[1], mock.call(msg={'repo': u'f18-updates',
             'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[3], mock.call(msg={'success': True},
+        self.assertEquals(calls[5], mock.call(msg={'success': True},
             topic='mashtask.complete'))
-        self.assertEquals(calls[4], mock.call(msg={'repo': u'f17-updates-testing',
+        self.assertEquals(calls[6], mock.call(msg={'repo': u'f17-updates-testing',
             'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(msg={'success': True},
             topic='mashtask.complete'))
 
     @mock.patch('bodhi.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.notifications.publish')
     def test_security_update_priority_testing(self, publish, *args):
         with self.db_factory() as db:
@@ -430,18 +440,20 @@ References:
         calls = publish.mock_calls
         self.assertEquals(calls[1], mock.call(msg={'repo': u'f17-updates-testing',
             'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[3], mock.call(msg={'success': True},
+        self.assertEquals(calls[5], mock.call(msg={'success': True},
             topic='mashtask.complete'))
-        self.assertEquals(calls[4], mock.call(msg={'repo': u'f18-updates',
+        self.assertEquals(calls[6], mock.call(msg={'repo': u'f18-updates',
             'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(msg={'success': True},
             topic='mashtask.complete'))
 
     @mock.patch('bodhi.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.notifications.publish')
     def test_security_updates_parallel(self, publish, *args):
         with self.db_factory() as db:
@@ -493,21 +505,36 @@ References:
                 'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
 
 
-    @mock.patch('bodhi.masher.MasherThread.mash')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
-    @mock.patch('bodhi.masher.MasherThread.cmd')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.util.cmd')
     def test_update_comps(self, cmd, *args):
         self.masher.consume(self.msg)
         self.assertIn(mock.call(['git', 'pull'], mock.ANY), cmd.mock_calls)
         self.assertIn(mock.call(['make'], mock.ANY), cmd.mock_calls)
 
-    def test_cmd_failure(self):
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    def test_mash(self, cmd, publish, *args):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log,
                          self.db_factory, self.tempdir)
-        try:
-            t.cmd('false')
-            assert False
-        except Exception:
-            pass
+
+        with self.db_factory() as session:
+            t.db = session
+            t.work()
+            t.db = None
+
+        # Also, ensure we reported success
+        publish.assert_called_with(topic="mashtask.complete",
+                                   msg=dict(success=True))
+
+        self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
+        self.assertEquals(len(t.state['completed_repos']), 1)

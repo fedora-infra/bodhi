@@ -14,7 +14,7 @@
 
 from bodhi.models import Update
 from bodhi.util import (get_db_from_config, get_critpath_pkgs, markup,
-                        get_rpm_header)
+                        get_rpm_header, cmd)
 from bodhi.config import config
 
 
@@ -43,3 +43,10 @@ class TestUtils(object):
     def test_rpm_header(self):
         h = get_rpm_header('')
         assert h['name'] == 'libseccomp', h
+
+    def test_cmd_failure(self):
+        try:
+            cmd('false')
+            assert False
+        except Exception:
+            pass
