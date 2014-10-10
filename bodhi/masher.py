@@ -932,7 +932,7 @@ class MashTask(Thread):
         while True:
             sleep(600)
             try:
-                masterrepomd = urllib2.urlopen(master_repomd % release.get_version())
+                masterrepomd = urllib2.urlopen(master_repomd % (release.get_version(), arch))
             except urllib2.URLError, e:
                 log.error("Error fetching repomd.xml: %s" % str(e))
                 continue
