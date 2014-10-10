@@ -922,7 +922,7 @@ class PackageUpdate(SQLObject):
         if email:
             mail.send(self.people_to_notify(), 'comment', self)
 
-        if author not in ('bodhi', 'autoqa'):
+        if author not in ('bodhi', 'autoqa', 'taskotron'):
             fedmsg.publish(topic='update.comment', msg=dict(
                 comment=c,
                 agent=identity.current.user_name
@@ -930,7 +930,7 @@ class PackageUpdate(SQLObject):
 
         # Disable karma automatism autoqa test failures
         # https://github.com/fedora-infra/bodhi/issues/36
-        if author == 'autoqa':
+        if author in ('autoqa', 'taskotron'):
             if 'FAILED' in text:
                 if self.stable_karma != 0:
                     log.info('Disabling autokarma due to AutoQA failure')
