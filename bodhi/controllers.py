@@ -96,7 +96,8 @@ class Root(controllers.RootController):
             'comments' : [
                 Comment.select(
                     AND(Comment.q.author != 'bodhi',
-                        Comment.q.author != 'autoqa'),
+                        Comment.q.author != 'autoqa',
+                        Comment.q.author != 'taskotron'),
                     orderBy=Comment.q.timestamp).reversed(),
                 [
                     ('Update', make_update_link),

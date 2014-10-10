@@ -89,7 +89,7 @@ def main():
             testingtime_done = False
 
             for comment in update.comments:
-                if comment.author_name  == 'autoqa':
+                if comment.author_name in ('autoqa', 'taskotron'):
                     continue
 
                 # Track the # of +1's, -1's, and +0's.
