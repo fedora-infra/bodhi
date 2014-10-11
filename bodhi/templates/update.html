@@ -2,6 +2,116 @@
 <%namespace name="captcha" module="bodhi.captcha"/>
 
 <script type="text/javascript">
+  $(document).ready(function() {
+    // TODO parameterize the URL based on bodhi config file so we can point
+    // staging bodhi at staging taskotron.
+    var url = 'https://taskotron.fedoraproject.org/resultsdb_api/api/v1.0/results';
+
+    // Some handy lookups that map taskotron states to bootstrap CSS classes.
+    var classes = {
+      PASSED: '',
+      INFO: 'info',
+      FAILED: 'danger',
+      NEEDS_INSPECTION: 'warning',
+      ABORTED: 'warning',
+      CRASHED: 'warning',
+    }
+    var icons = {
+      PASSED: 'ok-circle',
+      INFO: 'info-sign',
+      FAILED: 'remove-circle',
+      NEEDS_INSPECTION: 'exclamation-sign',
+      ABORTED: 'trash',
+      CRASHED: 'fire', // no joke.
+    }
+
+    // XXX - For development, we typically have updates in our development
+    // bodhi DB from a snapshot from over a year ago -- before the deployment
+    // of taskotron.  As such, taskotron doesn't know about the updates that
+    // we ask about.  Therefore, it is useful sometimes to mess around here
+    // and hardcode something like this:
+    //var update = 'ugene-1.14.2-1.fc21';
+    var update = '${update.title}';
+
+    $.ajax(url, {
+      data: $.param({item: update}),
+      dataType: 'jsonp',
+      cache: false,
+      success: function(data) {
+        $('#resultsdb .spinner').remove();
+
+        // First, prune duplicate results.  For instance, some depcheck runs
+        // happen multiple times on an update.  We only (imho) want to display
+        // the latest ones for each arch.  So, prune like this:
+        var latest = {};
+        $.each(data.data, function(i, result) {
+          var name = result.testcase.name;
+          var arch = result.result_data.arch;
+          var submit_time = new Date(result.submit_time);
+          if (latest[name] === undefined)
+            latest[name] = {};
+          if (latest[name][arch] === undefined)
+            latest[name][arch] = result;
+          if (new Date(latest[name][arch].submit_time) < submit_time)
+            latest[name][arch] = result;
+        });
+
+        // To complete pruning, collapse that nested structure back to a list.
+        var data = [];
+        $.each(latest, function(name, obj) {
+          $.each(obj, function(arch, result) {
+            data.push(result);
+          });
+        });
+
+        // Then, once we have pruned, build a bunch of cells and render each
+        // result in the table
+        $.each(data, function(i, result) {
+          var icon = '<span data-toggle="tooltip" data-placement="top" ' +
+            'title="' + result.outcome + '" ' +
+            'class="glyphicon glyphicon-' + icons[result.outcome] + '">' +
+            '</span>';
+
+          var check = result.testcase.name;
+
+          var item = result.result_data.item;
+          if (result.result_data.arch != undefined) {
+            item = item + "<small>(" + result.result_data.arch + ")</small>";
+          }
+
+          $('#resultsdb table').append(
+            '<tr class="' + classes[result.outcome] + '" ' +
+            'style="cursor: pointer;"' +
+            'data-href="' + result.log_url + '">' +
+            '<td>' + icon + '</td>' +
+            '<td>' + check + '</td>' +
+            '<td>' + item + '</td>' +
+            '</tr>'
+          );
+        });
+
+        // Make each cell clickable and awesome
+        $('#resultsdb tr').click(function(event, row) {
+          window.open($(this).attr('data-href'));
+        });
+
+        // And just incase everything above was a no-op, hang an 'out to lunch'
+        // sign on the door.
+        if (data.length == 0) {
+          $('#resultsdb').append(
+            '<h4 class="text-warning">No results found.</h4>');
+        }
+      },
+      error: function(v1, v2, v3) {
+        $('#resultsdb .spinner').remove();
+        $('#resultsdb').append(
+          '<h4 class="text-danger">Error getting results.</h4>');
+      },
+    });
+  });
+</script>
+
+<script type="text/javascript">
 var form;
 $(document).ready(function(){
   CommentsForm = function() {};
@@ -181,25 +291,15 @@ $(document).ready(function(){
 
     <hr/>
 
-    ## TODO -- implement this in javascript once resultsdb gets JSONP support
-    ## which is tracked here https://phab.qadevel.cloud.fedoraproject.org/D120
-    ## http://resultsdb-stg.cloud.fedoraproject.org/resultsdb/api/v1.0/results?item=kernel-3.14.5-200.fc20.i686.rpm
-    <h3>Automated Test Results <span class="badge">2</span> <small>mockup</small></h3>
+    <div id="resultsdb">
+    <h3>Automated Test Results</h3>
+    <img class='spinner' src='/static/img/spinner.gif'>
     <table class="table">
       <colgroup class='strip' span="1"></colgroup>
       <colgroup span="1"></colgroup>
       <colgroup span="1"></colgroup>
-      <tr>
-        <td><span data-toggle="tooltip" data-placement="top" title="PASS" class="glyphicon glyphicon-ok-circle"></span></td>
-        <td>depcheck</td>
-        <td>kernel-3.14.5-200.fc20.i686.rpm</td>
-      </tr>
-      <tr class="danger">
-        <td><span data-toggle="tooltip" data-placement="top" title="FAIL" class="glyphicon glyphicon-remove-circle"></span></td>
-        <td>rpmlint</td>
-        <td>kernel-3.14.5-200.fc20.i686.rpm</td>
-      </tr>
     </table>
+    </div>
   </div>
 
   <div class="col-md-7">
