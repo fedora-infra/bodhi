@@ -243,9 +243,7 @@ class MasherThread(threading.Thread):
                 self.stage_repo()
 
                 # Wait for the repo to hit the master mirror
-                notifications.publish(topic="mashtask.sync.wait", msg=dict())
                 self.wait_for_sync()
-                notifications.publish(topic="mashtask.sync.done", msg=dict())
 
                 # TODO:
                 # Update bugzillas
@@ -515,6 +513,7 @@ class MasherThread(threading.Thread):
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
         log.info('Waiting for updates to hit the master mirror')
+        notifications.publish(topic="mashtask.sync.wait", msg=dict())
         arch = os.listdir(self.path)[0]
         release = self.release.id_prefix.lower().replace('-', '_')
         master_repomd = config.get('%s_master_repomd' % release)
@@ -534,6 +533,7 @@ class MasherThread(threading.Thread):
             newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             if newsum == checksum:
                 log.info("master repomd.xml matches!")
+                notifications.publish(topic="mashtask.sync.done", msg=dict())
                 return
             log.debug("master repomd.xml doesn't match! %s != %s" % (checksum,
                                                                      newsum))
