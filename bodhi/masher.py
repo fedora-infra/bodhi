@@ -232,6 +232,7 @@ class MasherThread(threading.Thread):
 
                 # Things we can do while we're mashing
                 self.generate_testing_digest()
+                self.complete_requests()
                 uinfo = self.generate_updateinfo()
 
                 self.wait_for_mash(mash_thread)
@@ -239,6 +240,7 @@ class MasherThread(threading.Thread):
                 uinfo.insert_updateinfo()
                 uinfo.insert_pkgtags()
                 uinfo.cache_repodata()
+
                 self.sanity_check_repo()
                 self.stage_repo()
 
@@ -249,7 +251,7 @@ class MasherThread(threading.Thread):
                 # Update bugzillas
                 # Add comments to updates
                 # Email updates-testing digest
-                self.complete_requests()
+
             else:
                 raise NotImplementedError
 
