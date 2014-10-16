@@ -415,8 +415,6 @@ class TestUpdate(ModelTest):
         self.obj.request_complete()
         assert self.obj.date_pushed
         eq_(self.obj.status, UpdateStatus.testing)
-        publish.assert_called_once_with(
-            topic='update.complete.testing', msg=mock.ANY)
 
     def test_status_comment(self):
         self.obj.status = UpdateStatus.testing

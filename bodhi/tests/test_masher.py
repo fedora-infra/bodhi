@@ -167,7 +167,7 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(self.msg)
 
         # Ensure that fedmsg was called 4 times
-        self.assertEquals(len(publish.call_args_list), 6)
+        self.assertEquals(len(publish.call_args_list), 4)
 
         # Also, ensure we reported success
         publish.assert_called_with(
@@ -203,7 +203,7 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(self.msg)
 
         # Ensure that fedmsg was called 3 times
-        self.assertEquals(len(publish.call_args_list), 6)
+        self.assertEquals(len(publish.call_args_list), 4)
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
@@ -384,9 +384,9 @@ References:
         calls = publish.mock_calls
         self.assertEquals(calls[1], mock.call(msg={'repo': u'f18-updates',
             'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[5], mock.call(msg={'success': True},
+        self.assertEquals(calls[3], mock.call(msg={'success': True},
             topic='mashtask.complete'))
-        self.assertEquals(calls[6], mock.call(msg={'repo': u'f17-updates-testing',
+        self.assertEquals(calls[4], mock.call(msg={'repo': u'f17-updates-testing',
             'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(msg={'success': True},
             topic='mashtask.complete'))
@@ -440,9 +440,9 @@ References:
         calls = publish.mock_calls
         self.assertEquals(calls[1], mock.call(msg={'repo': u'f17-updates-testing',
             'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[5], mock.call(msg={'success': True},
+        self.assertEquals(calls[3], mock.call(msg={'success': True},
             topic='mashtask.complete'))
-        self.assertEquals(calls[6], mock.call(msg={'repo': u'f18-updates',
+        self.assertEquals(calls[4], mock.call(msg={'repo': u'f18-updates',
             'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(msg={'success': True},
             topic='mashtask.complete'))
@@ -535,6 +535,8 @@ References:
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    msg=dict(success=True))
+        publish.assert_any_call(topic='update.complete.testing',
+                                msg=mock.ANY)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
         self.assertEquals(len(t.state['completed_repos']), 1)
