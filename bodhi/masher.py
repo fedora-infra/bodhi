@@ -247,6 +247,8 @@ class MasherThread(threading.Thread):
                 # Wait for the repo to hit the master mirror
                 self.wait_for_sync()
 
+                self.send_notifications()
+
                 # TODO:
                 # Update bugzillas
                 # Add comments to updates
@@ -537,8 +539,17 @@ class MasherThread(threading.Thread):
                 log.info("master repomd.xml matches!")
                 notifications.publish(topic="mashtask.sync.done", msg=dict())
                 return
-            log.debug("master repomd.xml doesn't match! %s != %s" % (checksum,
-                                                                     newsum))
+            log.debug("master repomd.xml doesn't match! %s != %s",
+                      checksum, newsum)
+
+    def send_notifications(self):
+        log.info('Sending notifications')
+        for update in self.updates:
+            topic = u'update.complete.%s' % update.status
+            notifications.publish(topic=topic, msg=dict(
+                update=update,
+                agent=os.getlogin(),  # Should almost always be "masher"
+            ))
 
 
 class MashThread(threading.Thread):

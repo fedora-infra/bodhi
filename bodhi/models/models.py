@@ -1060,11 +1060,6 @@ class Update(Base):
         self.request = None
         self.date_pushed = datetime.utcnow()
         self.assign_alias()
-        topic = u'update.complete.%s' % self.status
-        notifications.publish(topic=topic, msg=dict(
-            update=self,
-            agent=os.getlogin(),  # Should almost always be "masher"
-        ))
 
     def modify_bugs(self):
         """
