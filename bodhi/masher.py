@@ -432,6 +432,8 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             if update.request:
                 update.request_complete()
+            else:
+                log.warn('Update %s missing request', update.title)
 
     def add_to_digest(self, update):
         """Add an package to the digest dictionary.
