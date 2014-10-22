@@ -211,7 +211,14 @@ def load_sqlalchemy_db():
                 db.query(Release).filter_by(name=release['name']).one()
             except NoResultFound:
                 del(release['metrics'])
+                del(release['locked'])
                 r = Release(**release)
+                r.stable_tag = "%s-updates" % r.dist_tag
+                r.testing_tag = "%s-testing" % r.stable_tag
+                r.candidate_tag = "%s-candidate" % r.stable_tag
+                r.pending_testing_tag = "%s-pending" % r.testing_tag
+                r.pending_stable_tag = "%s-pending" % r.stable_tag
+                r.override_tag = "%s-override" % r.dist_tag
                 db.add(r)
         data = data['updates']
 
