@@ -9,7 +9,7 @@ virtenv
 build
 bodhi-pickledb*
 *.egg*
-bodhi.db
+bodhi.db*
 .coverage
 dogpile-cache.dbm*
 html-docs
