@@ -826,8 +826,11 @@ class Update(Base):
         return u' '.join([cve.cve_id for cve in self.cves])
 
     def get_bug_karma(self, bug):
-        good, bad = 0, 0
-        for comment in self.comments:
+        good, bad, seen = 0, 0, set()
+        for comment in reversed(self.comments):
+            if comment.user.name in seen:
+                continue
+            seen.add(comment.user.name)
             for feedback in comment.bug_feedback:
                 if feedback.bug == bug:
                     if feedback.karma > 0:
@@ -837,8 +840,11 @@ class Update(Base):
         return good, bad * -1
 
     def get_testcase_karma(self, testcase):
-        good, bad = 0, 0
-        for comment in self.comments:
+        good, bad, seen = 0, 0, set()
+        for comment in reversed(self.comments):
+            if comment.user.name in seen:
+                continue
+            seen.add(comment.user.name)
             for feedback in comment.testcase_feedback:
                 if feedback.testcase == testcase:
                     if feedback.karma > 0:
