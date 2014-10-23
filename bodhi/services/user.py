@@ -59,10 +59,10 @@ def get_user(request):
     # Throw some extra information in there
     rurl = request.route_url  # Just shorthand
     urls = {
-        'comments_by': rurl('comments') + '?user={username}' % user,
-        'comments_on': rurl('comments') + '?update_owner={username}' % user,
-        'recent_updates': rurl('updates') + '?user={username}' % user,
-        'recent_overrides': rurl('overrides') + '?user={username}' % user,
+        'comments_by': rurl('comments') + '?user=%s' % id,
+        'comments_on': rurl('comments') + '?update_owner=%s' % id,
+        'recent_updates': rurl('updates') + '?user=%s' % id,
+        'recent_overrides': rurl('overrides') + '?user=%s' % id,
     }
 
     return dict(user=user, urls=urls)
