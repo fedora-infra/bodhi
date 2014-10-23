@@ -185,6 +185,12 @@ class SaveUpdateSchema(colander.MappingSchema):
 
 
 class PaginatedSchema(colander.MappingSchema):
+    chrome = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=True,
+    )
+
     page = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=1),

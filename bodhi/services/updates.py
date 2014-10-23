@@ -184,6 +184,7 @@ def query_updates(request):
         pages=pages,
         rows_per_page=rows_per_page,
         total=total,
+        chrome=data.get('chrome'),
     )
 
 
