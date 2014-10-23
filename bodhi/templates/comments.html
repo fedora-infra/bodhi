@@ -1,25 +1,38 @@
-<%inherit file="master.html"/>
+<%!
+def inherit(context):
+  if context.get('chrome'):
+    return 'master.html'
+  return None
+%>
+<%inherit file="${inherit(context)}"/>
 
+<%namespace name="util" module="bodhi.util"/>
+<%namespace name="tables" file="tables.html"/>
+
+% if chrome:
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
     <h3>Comments <small>page #${page} of ${pages} pages</small></h3>
     ${self.pager.render(page, pages)}
+% endif
     <ul>
     % for comment in comments:
     <li>
       % if comment.user:
       <a href="${request.route_url('user', name=comment.user.name)}">
-      <img class="img-circle" src="${self.util.avatar(comment.user.name, size=24)}"/>
+      <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
       ${comment.user.name}
       </a>
       % endif
       commented
-      ${self.util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
-      on ${self.util.update2html(comment.update) | n}
-      ${self.util.markup(comment.text) | n}
+      ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
+      on ${util.update2html(comment.update) | n}
+      ${util.markup(comment.text) | n}
     </li>
     % endfor
     </ul>
+% if chrome:
     ${self.pager.render(page, pages)}
   </div>
 </div>
+% endif

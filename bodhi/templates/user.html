@@ -38,6 +38,26 @@
               },
 
           });
+      $.ajax(
+          "${urls['comments_on']}" + "&chrome=False&rows_per_page=10",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#comments_on').parent().append(html);
+                  $('#comments_on').next('ul').addClass('linkable');
+                  $('#comments_on').remove();
+              },
+          });
+      $.ajax(
+          "${urls['comments_by']}" + "&chrome=False&rows_per_page=10",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#comments_by').parent().append(html);
+                  $('#comments_by').next('ul').addClass('linkable');
+                  $('#comments_by').remove();
+              },
+          });
   });
 </script>
 
@@ -109,9 +129,7 @@
         </a>
       </span>
     </div>
-    <script>
-      console.log('Querying ${urls['comments_on']} for comments_on.');
-    </script>
+    <div id="comments_on" class="spinner"></div>
   </div>
 
   <div class="col-md-6">
@@ -126,8 +144,6 @@
         </a>
       </span>
     </div>
-    <script>
-      console.log('Querying ${urls['comments_by']} for comments_by.');
-    </script>
+    <div id="comments_by" class="spinner"></div>
   </div>
 </div>
