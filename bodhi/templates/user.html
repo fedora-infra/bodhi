@@ -37,78 +37,75 @@
 <hr style="margin: 15px 0;" />
 
 <div class="row">
-  % if user['recent_updates']:
   <div class="col-md-12">
     <div>
       <h3 class="pull-left nomargin nopadding">${user['name']}'s latest updates</h3>
       <div class="pull-right">
         <a href="${request.route_url('updates')}?user=${user['name']}">
-          View all ${len(user['user'].updates)}
+          View all <span class="count"></span>
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </div>
     </div>
-    ${self.tables.updates(user['recent_updates'], display_user=False)}
+    <script>
+      console.log('Querying ${urls['recent_updates']} for updates.');
+    </script>
   </div>
-  %endif
-  %if user['recent_overrides']:
+</div>
+
+<hr style="margin-bottom: 15px;" />
+
+<div class="row">
   <div class="col-md-12">
     <div>
       <h3 class="pull-left nomargin nopadding">${user['name']}'s latest buildroot overrides</h3>
       <div class="pull-right">
-        <a href="${request.route_url('overrides')}?submitter=${user['name']}">
-          View all ${len(user['user'].buildroot_overrides)}
+        <a href="${urls['recent_overrides']}">
+          View all <span class="count"></span>
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </div>
     </div>
-    ${self.tables.overrides(user['recent_overrides'], display_user=False)}
+    <script>
+      console.log('Querying ${urls['recent_overrides']} for overrides.');
+    </script>
   </div>
-  % endif
 </div>
 
 <hr style="margin-bottom: 15px;" />
 
 <div class="row">
   <div class="col-md-6">
-    % if user['comments_on']:
     <div style="margin-bottom: 40px;">
       <h3 class="nomargin nopadding pull-left">
-        Feedback received on updates (${user['comments_on_count']})
+        Feedback received on updates <span class="count"></span>
       </h3>
       <span class="pull-right">
-        <a href="${request.route_url('comments')}?update_owner=${user['name']}">
+        <a href="${urls['comments_on']}">
           View all
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </span>
     </div>
-    <ul class="linkable">
-      % for comment in user['comments_on']:
-      <li>${self.fragments.comment(comment)}</li>
-      % endfor
-    </ul>
-    % endif
+    <script>
+      console.log('Querying ${urls['comments_on']} for comments_on.');
+    </script>
   </div>
 
-  % if user['comments_by']:
   <div class="col-md-6">
     <div style="margin-bottom: 40px;">
       <h3 class="nomargin nopadding pull-left">
-        Feedback sent on updates (${user['comments_by_count']})
+        Feedback sent on updates <span class="count"></span>
       </h3>
       <span class="pull-right">
-        <a href="${request.route_url('comments')}?user=${user['name']}">
+        <a href="${urls['comments_by']}">
           View all
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </span>
     </div>
-    <ul class="linkable">
-      % for comment in user['comments_by']:
-      <li>${self.fragments.comment(comment)}</li>
-      % endfor
-    </ul>
-    % endif
+    <script>
+      console.log('Querying ${urls['comments_by']} for comments_by.');
+    </script>
   </div>
 </div>
