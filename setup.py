@@ -62,6 +62,9 @@ requires = [
     'click',
     ]
 
+if sys.version_info[:3] < (2,7,0):
+    requires.append('importlib')
+
 if sys.version_info[:3] < (2,5,0):
     requires.append('pysqlite')
 
