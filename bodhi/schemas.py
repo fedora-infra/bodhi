@@ -184,7 +184,21 @@ class SaveUpdateSchema(colander.MappingSchema):
     )
 
 
+class Cosmetics(colander.MappingSchema):
+    display_user = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=True,
+    )
+
+
 class PaginatedSchema(colander.MappingSchema):
+    chrome = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=True,
+    )
+
     page = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=1),
@@ -342,7 +356,7 @@ class ListUserSchema(PaginatedSchema, SearchableSchema):
     )
 
 
-class ListUpdateSchema(PaginatedSchema, SearchableSchema):
+class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     approved_since = colander.SchemaNode(
         colander.DateTime(),
         location="querystring",
@@ -531,7 +545,7 @@ class ListCommentSchema(PaginatedSchema, SearchableSchema):
     )
 
 
-class ListOverrideSchema(PaginatedSchema, SearchableSchema):
+class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     expired = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",

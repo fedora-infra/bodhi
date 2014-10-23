@@ -2,15 +2,61 @@
 
 <script>
   $(function() {
-      $("#lastactive").html('<img src="/static/img/spinner.gif" alt="loading..." />');
+      $('.onlyjs').css('visibility', 'visible');
+      $('.onlyjs').css('display', 'block');
+
+      $('.hidejs').css('visibility', 'hidden');
+      $('.hidejs').css('display', 'none');
+      $(".spinner").html('<img src="/static/img/spinner.gif" alt="loading..." />');
       $.ajax(
-          'http://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi&order=desc&rows_per_page=1', {
+          'http://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi&order=desc&rows_per_page=1',
+          {
               dataType: 'jsonp',
               success: function(e) {
                   var date = e.raw_messages[0].meta.date;
                   $('#lastactive').text('Last bodhi-related activity: ' + date);
               },
 
+          });
+      $.ajax(
+          "${urls['recent_updates']}" + "&chrome=False&rows_per_page=12&display_user=False",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#recent_updates').parent().append(html);
+                  $('#recent_updates').remove();
+              },
+
+          });
+      $.ajax(
+          "${urls['recent_overrides']}" + "&chrome=False&rows_per_page=6&display_user=False",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#recent_overrides').parent().append(html);
+                  $('#recent_overrides').remove();
+              },
+
+          });
+      $.ajax(
+          "${urls['comments_on']}" + "&chrome=False&rows_per_page=10",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#comments_on').parent().append(html);
+                  $('#comments_on').next('ul').addClass('linkable');
+                  $('#comments_on').remove();
+              },
+          });
+      $.ajax(
+          "${urls['comments_by']}" + "&chrome=False&rows_per_page=10",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#comments_by').parent().append(html);
+                  $('#comments_by').next('ul').addClass('linkable');
+                  $('#comments_by').remove();
+              },
           });
   });
 </script>
@@ -29,7 +75,7 @@
     </div>
     <div class="pull-left" style="margin-left: 15px">
       <h1 class="nomargin nopadding">${user['name']}</h1>
-      <h3 id="lastactive" class="nomargin nopadding" style="color: #666;"></h3>
+      <h3 id="lastactive" class="spinner nomargin nopadding" style="color: #666;"></h3>
     </div>
   </div>
 </div>
@@ -37,78 +83,71 @@
 <hr style="margin: 15px 0;" />
 
 <div class="row">
-  % if user['recent_updates']:
-  <div class="col-md-12">
+  <div class="col-md-12 onlyjs">
     <div>
       <h3 class="pull-left nomargin nopadding">${user['name']}'s latest updates</h3>
       <div class="pull-right">
-        <a href="${request.route_url('updates')}?user=${user['name']}">
-          View all ${len(user['user'].updates)}
+        <a href="${urls['recent_updates']}">
+          View all <span class="count"></span>
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </div>
     </div>
-    ${self.tables.updates(user['recent_updates'], display_user=False)}
+    <div class="clearfix"></div>
+    <div id="recent_updates" class="spinner"></div>
   </div>
-  %endif
-  %if user['recent_overrides']:
+</div>
+
+<hr style="margin-bottom: 15px;" />
+
+<div class="row">
   <div class="col-md-12">
     <div>
       <h3 class="pull-left nomargin nopadding">${user['name']}'s latest buildroot overrides</h3>
       <div class="pull-right">
-        <a href="${request.route_url('overrides')}?submitter=${user['name']}">
-          View all ${len(user['user'].buildroot_overrides)}
+        <a href="${urls['recent_overrides']}">
+          View all <span class="count"></span>
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </div>
     </div>
-    ${self.tables.overrides(user['recent_overrides'], display_user=False)}
+    <div class="clearfix"></div>
+    <div id="recent_overrides" class="spinner"></div>
   </div>
-  % endif
 </div>
 
 <hr style="margin-bottom: 15px;" />
 
 <div class="row">
   <div class="col-md-6">
-    % if user['comments_on']:
     <div style="margin-bottom: 40px;">
       <h3 class="nomargin nopadding pull-left">
-        Feedback received on updates (${user['comments_on_count']})
+        Feedback received on updates <span class="count"></span>
       </h3>
       <span class="pull-right">
-        <a href="${request.route_url('comments')}?update_owner=${user['name']}">
+        <a href="${urls['comments_on']}">
           View all
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </span>
     </div>
-    <ul class="linkable">
-      % for comment in user['comments_on']:
-      <li>${self.fragments.comment(comment)}</li>
-      % endfor
-    </ul>
-    % endif
+    <div class="clearfix"></div>
+    <div id="comments_on" class="spinner"></div>
   </div>
 
-  % if user['comments_by']:
   <div class="col-md-6">
     <div style="margin-bottom: 40px;">
       <h3 class="nomargin nopadding pull-left">
-        Feedback sent on updates (${user['comments_by_count']})
+        Feedback sent on updates <span class="count"></span>
       </h3>
       <span class="pull-right">
-        <a href="${request.route_url('comments')}?user=${user['name']}">
+        <a href="${urls['comments_by']}">
           View all
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </span>
     </div>
-    <ul class="linkable">
-      % for comment in user['comments_by']:
-      <li>${self.fragments.comment(comment)}</li>
-      % endfor
-    </ul>
-    % endif
+    <div class="clearfix"></div>
+    <div id="comments_by" class="spinner"></div>
   </div>
 </div>

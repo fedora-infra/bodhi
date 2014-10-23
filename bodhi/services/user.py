@@ -18,7 +18,6 @@ from sqlalchemy.sql import or_, and_
 
 import math
 
-from bodhi import log
 from bodhi.models import (
     BuildrootOverride,
     Comment,
@@ -30,17 +29,8 @@ from bodhi.models import (
 import bodhi.services.updates
 import bodhi.schemas
 from bodhi.validators import (
-    validate_nvrs,
-    validate_version,
-    validate_uniqueness,
-    validate_acls,
-    validate_builds,
-    validate_enums,
     validate_updates,
     validate_packages,
-    validate_releases,
-    validate_release,
-    validate_username,
     validate_groups,
 )
 
@@ -64,48 +54,18 @@ def get_user(request):
         request.errors.status = HTTPNotFound.code
         return
 
-    result = user.__json__(request)
+    user = user.__json__(request)
 
     # Throw some extra information in there
+    rurl = request.route_url  # Just shorthand
+    urls = {
+        'comments_by': rurl('comments') + '?user=%s' % id,
+        'comments_on': rurl('comments') + '?update_owner=%s' % id,
+        'recent_updates': rurl('updates') + '?user=%s' % id,
+        'recent_overrides': rurl('overrides') + '?user=%s' % id,
+    }
 
-    # First, build a blacklist of users whose comments we don't want to see.
-    blacklist = request.registry.settings.get('system_users').split()
-    blacklist = db.query(User)\
-        .filter(or_(*[User.name == name for name in blacklist]))
-    blacklist = [u.id for u in blacklist]
-
-    query = db.query(Comment)
-    query = query.filter(and_(*[Comment.user_id != i for i in blacklist]))
-
-    # Then, make a couple different queries
-    execute = lambda q: q.order_by(Comment.timestamp.desc()).limit(10).all()
-    comments_by = execute(query.filter(Comment.user==user))
-    comments_on = execute(query.join(Update).filter(Update.user==user))
-
-    execute_count = lambda q: q.order_by(Comment.timestamp.desc()).count()
-    comments_by_count = execute_count(query.filter(Comment.user==user))
-    comments_on_count = execute_count(query.join(Update).filter(Update.user==user))
-
-    updates = db.query(Update)\
-        .filter(Update.user == user)\
-        .order_by(Update.date_submitted.desc())\
-        .limit(14).all()
-
-    overrides = db.query(BuildrootOverride)
-    overrides = overrides.filter(BuildrootOverride.submitter == user)
-    overrides = overrides.order_by(BuildrootOverride.submission_date)
-    overrides = overrides.limit(14).all()
-
-    # And stuff the results in the dict
-    result['comments_by'] = comments_by
-    result['comments_on'] = comments_on
-    result['comments_by_count'] = comments_by_count
-    result['comments_on_count'] = comments_on_count
-    result['recent_updates'] = updates
-    result['recent_overrides'] = overrides
-    result['user'] = user
-
-    return dict(user=result)
+    return dict(user=user, urls=urls)
 
 
 @users.get(schema=bodhi.schemas.ListUserSchema,
