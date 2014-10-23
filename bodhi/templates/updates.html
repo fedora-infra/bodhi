@@ -14,7 +14,7 @@ def inherit(context):
     <h3>Updates <small>page #${page} of ${pages} pages</small></h3>
     ${self.pager.render(page, pages)}
 % endif
-    ${tables.updates(updates)}
+    ${tables.updates(updates, display_user)}
 % if chrome:
     ${self.pager.render(page, pages)}
   </div>

@@ -14,7 +14,7 @@ def inherit(context):
     <h3>Overrides <small>page #${page} of ${pages} pages</small></h3>
     ${self.pager.render(page, pages)}
 % endif
-    ${tables.overrides(overrides)}
+    ${tables.overrides(overrides, display_user)}
 % if chrome:
     ${self.pager.render(page, pages)}
   </div>
