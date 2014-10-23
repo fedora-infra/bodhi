@@ -1,10 +1,22 @@
-<%inherit file="master.html"/>
+<%!
+def inherit(context):
+  if context.get('chrome'):
+    return 'master.html'
+  return None
+%>
+<%inherit file="${inherit(context)}"/>
 
+<%namespace name="tables" file="tables.html"/>
+
+% if chrome:
 <div class="row">
   <div class="col-md-12">
     <h3>Overrides <small>page #${page} of ${pages} pages</small></h3>
     ${self.pager.render(page, pages)}
-    ${self.tables.overrides(overrides)}
+% endif
+    ${tables.overrides(overrides)}
+% if chrome:
     ${self.pager.render(page, pages)}
   </div>
 </div>
+% endif

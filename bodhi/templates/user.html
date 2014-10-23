@@ -28,7 +28,16 @@
               },
 
           });
-      // TODO -- three other ajax calls here... one for overrides, and two for different kinds of comments.
+      $.ajax(
+          "${urls['recent_overrides']}" + "&chrome=False&rows_per_page=14",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#recent_overrides').parent().append(html);
+                  $('#recent_overrides').remove();
+              },
+
+          });
   });
 </script>
 
@@ -81,9 +90,7 @@
         </a>
       </div>
     </div>
-    <script>
-      console.log('Querying ${urls['recent_overrides']} for overrides.');
-    </script>
+    <div id="recent_overrides" class="spinner"></div>
   </div>
 </div>
 
