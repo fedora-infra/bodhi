@@ -2,9 +2,15 @@
 
 <script>
   $(function() {
-      $("#lastactive").html('<img src="/static/img/spinner.gif" alt="loading..." />');
+      $('.onlyjs').css('visibility', 'visible');
+      $('.onlyjs').css('display', 'block');
+
+      $('.hidejs').css('visibility', 'hidden');
+      $('.hidejs').css('display', 'none');
+      $(".spinner").html('<img src="/static/img/spinner.gif" alt="loading..." />');
       $.ajax(
-          'http://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi&order=desc&rows_per_page=1', {
+          'http://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi&order=desc&rows_per_page=1',
+          {
               dataType: 'jsonp',
               success: function(e) {
                   var date = e.raw_messages[0].meta.date;
@@ -12,6 +18,17 @@
               },
 
           });
+      $.ajax(
+          "${urls['recent_updates']}" + "&chrome=False&rows_per_page=14",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#recent_updates').parent().append(html);
+                  $('#recent_updates').remove();
+              },
+
+          });
+      // TODO -- three other ajax calls here... one for overrides, and two for different kinds of comments.
   });
 </script>
 
@@ -29,7 +46,7 @@
     </div>
     <div class="pull-left" style="margin-left: 15px">
       <h1 class="nomargin nopadding">${user['name']}</h1>
-      <h3 id="lastactive" class="nomargin nopadding" style="color: #666;"></h3>
+      <h3 id="lastactive" class="spinner nomargin nopadding" style="color: #666;"></h3>
     </div>
   </div>
 </div>
@@ -37,19 +54,17 @@
 <hr style="margin: 15px 0;" />
 
 <div class="row">
-  <div class="col-md-12">
+  <div class="col-md-12 onlyjs">
     <div>
       <h3 class="pull-left nomargin nopadding">${user['name']}'s latest updates</h3>
       <div class="pull-right">
-        <a href="${request.route_url('updates')}?user=${user['name']}">
+        <a href="${urls['recent_updates']}">
           View all <span class="count"></span>
           <span class="glyphicon glyphicon-chevron-right"></span>
         </a>
       </div>
     </div>
-    <script>
-      console.log('Querying ${urls['recent_updates']} for updates.');
-    </script>
+    <div id="recent_updates" class="spinner"></div>
   </div>
 </div>
 
