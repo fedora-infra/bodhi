@@ -35,31 +35,7 @@
     <tbody>
     % for override in overrides:
     <tr>
-      <td>
-        <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
-          ${override['build']['nvr']}
-        </a>
-      </td>
-      <td class="nobreak">
-        <span title="${override['submission_date']} UTC">
-          ${util.age(override['submission_date'], True)}
-        </span>
-      </td>
-      %if display_user:
-      <td class="nobreak">
-        <a href="${request.route_url('user', name=override['submitter']['name'])}">
-          <img class="img-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
-          ${override['submitter']['name']}
-        </a>
-      </td>
-      %endif
-      <td class="hidejs">
-        % if override['expired_date'] is None:
-        <span title="Expires on ${override['expiration_date']}">Active</span>
-        % else:
-        <span title="Expired since ${override['expired_date']}">Expired</span>
-        % endif
-      </td>
+      ${fragments.override(override, display_user)}
     </tr>
     % endfor
     </tbody>
