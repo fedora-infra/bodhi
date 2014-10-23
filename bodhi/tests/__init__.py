@@ -22,6 +22,8 @@ from bodhi.models import (
 def populate(db):
     user = User(name=u'guest')
     db.add(user)
+    anonymous = User(name=u'anonymous')
+    db.add(anonymous)
     provenpackager = Group(name=u'provenpackager')
     db.add(provenpackager)
     packager = Group(name=u'packager')
@@ -65,6 +67,7 @@ def populate(db):
     comment.user = user
     update.comments.append(comment)
     comment = Comment(karma=0, text="srsly.  pretty good.", anonymous=True)
+    comment.user = anonymous
     db.add(comment)
     update.comments.append(comment)
     db.add(update)
