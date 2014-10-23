@@ -19,7 +19,7 @@
 
           });
       $.ajax(
-          "${urls['recent_updates']}" + "&chrome=False&rows_per_page=14",
+          "${urls['recent_updates']}" + "&chrome=False&rows_per_page=12&display_user=False",
           {
               dataType: 'html',
               success: function(html) {
@@ -29,7 +29,7 @@
 
           });
       $.ajax(
-          "${urls['recent_overrides']}" + "&chrome=False&rows_per_page=14",
+          "${urls['recent_overrides']}" + "&chrome=False&rows_per_page=6&display_user=False",
           {
               dataType: 'html',
               success: function(html) {
