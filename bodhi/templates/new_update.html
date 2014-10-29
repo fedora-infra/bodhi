@@ -104,12 +104,12 @@
             <span class="pull-left">Final details</span>
           </div>
           <div class="panel-body">
-            <p class="lead">Crazy karma policy widget goes here.</p>
 
             <div class="row">
               <div class="col-md-7">
                 <dl id='radios' class="dl-horizontal">
-                  <dt>Type</dt>
+                  <dt data-toggle="tooltip" title="What kind of update is this?">
+                  Type</dt>
                   <dd>
                     % for value in types:
                     <label class="radio-inline">
@@ -119,7 +119,8 @@
                     % endfor
                   </dd>
 
-                  <dt>Severity</dt>
+                  <dt data-toggle="tooltip" title="How important is this update, really?">
+                  Severity</dt>
                   <dd>
                     % for value in severities:
                     <label class="radio-inline">
@@ -128,7 +129,8 @@
                     % endfor
                   </dd>
 
-                  <dt>Suggestion</dt>
+                  <dt data-toggle="tooltip" title="What action should testers take after installing the update?  Do they need to update or reboot to see if things are really working?">
+                  Suggestion</dt>
                   <dd>
                     % for value in suggestions:
                     <label class="radio-inline">
@@ -136,30 +138,47 @@
                     </label>
                     % endfor
                   </dd>
+
+                  <hr/>
+
+                  <dt data-toggle="tooltip" title="If checked, then associated bugs in RHBZ will be closed once this update is pushed to the stable repository.">
+                  Close bugs on stable?</dt>
+                  <dd> <input type="checkbox" name="close_bugs" checked> </dd>
                 </dl>
               </div>
 
               <div class="col-md-5">
                 <dl id='radios' class="dl-horizontal">
-                  <dt>Close bugs?</dt>
-                  <dd>
-                    <input type="checkbox" name="close_bugs" checked>
-                  </dd>
+                  <dt data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough positive karma has been given.">
+                  Auto-request stable?</dt>
+                  <dd> <input type="checkbox" name="autokarma" checked> </dd>
 
-                  <dt>Autokarma</dt>
-                  <dd>
-                    <input type="checkbox" name="autokarma" checked>
-                  </dd>
+                  <dt data-toggle="tooltip" title="This is the threshold of positive karma required to automatically push an update from testing to stable.">
+                  Stable karma</dt>
+                  <dd> <input type="number" name="stable_karma" min="1"
+                  required value="3"> </dd>
 
-                  <dt>Stable karma threshhold</dt>
-                  <dd>
-                    <input type="number" name="stable_karma" min="1" required value="3">
-                  </dd>
+                  <dt data-toggle="tooltip" title="This is the threshold of negative karma required to automatically unpush an update from testing.">
+                  Unstable karma</dt>
+                  <dd> <input type="number" name="unstable_karma" max="-1"
+                  required value="-3"> </dd>
 
-                  <dt>Unstable karma threshhold</dt>
-                  <dd>
-                    <input type="number" name="unstable_karma" max="-1" required value="-3">
-                  </dd>
+                  <hr/>
+
+                  <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated bugs before the update can pass to stable.  If your update has no associated bugs, this option has no effect.">
+                  Require bugs
+                  </dt>
+                  <dd> <input type="checkbox" name="require_bugs" checked> </dd>
+
+                  <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated wiki test cases before the update can pass to stable.  If your update has no associated wiki test cases, this option has no effect.">
+                  Require testcases</dt>
+                  <dd> <input type="checkbox" name="require_testcases" checked> </dd>
+
+                  <dt data-toggle="tooltip" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">
+                  Required checks <a target="_blank" href="https://fedoraproject.org/wiki/Taskotron/Tasks"><span class="glyphicon glyphicon-question-sign"></span></a></dt>
+                  <dd> <input type="text" name="requirements"
+                  placeholder="Required taskotron tasks"></dd>
+
                 </dl>
               </div>
             </div>
@@ -170,6 +189,7 @@
       </div>
     </div> <!-- end row -->
 
-  </div>
+  <div>
 </div>
 <script src="${request.static_url('bodhi:static/js/update_form.js')}"></script>
+<script> $(document).ready(function() { $('dt').tooltip(); }); </script>
