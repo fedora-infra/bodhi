@@ -43,7 +43,7 @@ from bodhi.util import (
     get_age, get_critpath_pkgs, get_rpm_header
 )
 
-from bodhi.util import get_age_in_days, avatar as get_avatar
+from bodhi.util import get_age_in_days, avatar as get_avatar, tokenize
 from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import LockedUpdateException
 from bodhi.config import config
@@ -652,6 +652,15 @@ class Update(Base):
             bugtracker.comment(bug_num, config['initial_bug_msg'] % (
                        data['title'], data['release'].long_name, bug.url))
         data['bugs'] = bugs
+
+        # If no requirements are provided, then gather some defaults from the
+        # packages of the associated builds.
+        # See https://github.com/fedora-infra/bodhi/issues/101
+        if not data['requirements']:
+            data['requirements']= " ".join(list(set(sum([
+                list(tokenize(pkg.requirements)) for pkg in [
+                    build.package for build in data['builds']
+                ] if pkg.requirements], []))))
 
         if not data['autokarma']:
             del(data['stable_karma'])
