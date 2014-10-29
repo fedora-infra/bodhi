@@ -559,3 +559,14 @@ def cmd(cmd, cwd=None):
         log.error('return code %s', p.returncode)
         raise Exception
     return out, err, p.returncode
+
+def tokenize(string):
+    """ Given something like "a b, c d" return ['a', 'b', 'c', 'd']. """
+
+    for substring in string.split(','):
+        substring = substring.strip()
+        if substring:
+            for token in substring.split():
+                token = token.strip()
+                if token:
+                    yield token

@@ -340,6 +340,7 @@ class Package(Base):
     __get_by__ = ('name',)
 
     name = Column(Unicode(50), unique=True, nullable=False)
+    requirements = Column(UnicodeText)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
     test_cases = relationship('TestCase', backref='package')
@@ -533,6 +534,7 @@ class Update(Base):
     karma = Column(Integer, default=0)
     stable_karma = Column(Integer, nullable=True)
     unstable_karma = Column(Integer, nullable=True)
+    requirements = Column(UnicodeText)
 
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
@@ -1894,6 +1896,7 @@ class Stack(Base):
     name = Column(UnicodeText, unique=True, nullable=False)
     packages = relationship('Package', backref=backref('stack', lazy='joined'))
     description = Column(UnicodeText)
+    requirements = Column(UnicodeText)
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=stack_group_table, backref='stacks')

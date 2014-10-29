@@ -93,6 +93,28 @@
       <div class="col-md-5">
         <div class="panel formpanel panel-default">
           <div class="panel-heading clearfix">
+            <span class="pull-left">Required Checks</span>
+          </div>
+          <div class="panel-body">
+            <div id="stack-requirements" class="form-group noui">
+              <input class="typeahead form-control noui" name="requirements" type="text"
+            % if stack is not UNDEFINED:
+                         value="${stack.requirements}"
+            % else:
+                         value="${request.registry.settings.get('site_requirements', '')}"
+            % endif
+                         placeholder="An optional list of Taskotron checks required for updates of this stack.">
+              </div>
+
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+    <div class="row">
+      <div class="col-md-5">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
             <span class="pull-left">Users</span>
           </div>
           <div class="panel-body">
@@ -101,7 +123,7 @@
             % if stack is not UNDEFINED:
                        value="${' '.join([u.name for u in stack.users])}"
             % endif
-                       placeholder="An optional list of FAS users that can modify this stack."">
+                       placeholder="An optional list of FAS users that can modify this stack.">
               </div>
 
           </div>
@@ -121,7 +143,7 @@
             % if stack is not UNDEFINED:
                        value="${' '.join([g.name for g in stack.groups])}"
             % endif
-                       placeholder="An optional list of FAS groups that can modify this stack."">
+                       placeholder="An optional list of FAS groups that can modify this stack.">
               </div>
 
           </div>

@@ -14,6 +14,8 @@
 
 from datetime import datetime
 
+import requests
+
 from sqlalchemy.sql import or_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 
@@ -23,7 +25,7 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
                      Bug, TestCase, ReleaseState, Stack)
-from .util import get_nvr
+from .util import get_nvr, tokenize
 
 try:
     import rpm
@@ -644,3 +646,44 @@ def validate_stack(request):
         request.errors.add('querystring', 'stack',
                            'Invalid stack specified: {}'.format(name))
         request.errors.status = HTTPNotFound.code
+
+
+def _get_valid_requirements(request):
+    """ Returns a list of valid testcases from taskotron. """
+
+    # TODO - We should really cache this with dogpile.  The cache object should
+    # be hanging off the request somewhere.
+
+    # TODO - do pagination to step through all the many testcases we will
+    # someday have.
+
+    path = "/api/v1.0/testcases"
+    url = request.registry.settings.get('resultsdb_api_url') + path
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise IOError("status code was %r" % response.status_code)
+        return [case['name'] for case in response.json()['data']]
+    except Exception:
+        log.exception("Problem talking to %r")
+        return []
+
+
+def validate_requirements(request):
+    requirements = request.validated.get('requirements')
+
+    if requirements is None:  # None is okay
+        request.validated['requirements'] = None
+        return
+
+    requirements =  tokenize(requirements)
+    valid_requirements = _get_valid_requirements(request)
+
+    for requirement in requirements:
+        if requirement not in valid_requirements:
+            request.errors.add(
+                'querystring', 'requirements',
+                'Invalid requirement specified: %s.  Must be one of %s' % (
+                    requirement, ", ".join(valid_requirements)))
+            request.errors.status = HTTPBadRequest.code
+            return
