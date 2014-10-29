@@ -16,6 +16,7 @@
 
 import os
 import re
+import copy
 import time
 import logging
 import xmlrpclib
@@ -137,9 +138,14 @@ class BodhiBase(object):
                the key in `data`
         :model: The model class of the relationship that we're updating
         :data: A dict containing the key `name` with a list of values
+
+        Returns a three-tuple of lists, `new`, `same`, and `removed` indicating
+        which items have been added and removed, and which remain unchanged.
         """
+
         rel = getattr(self, name)
         items = data.get(name)
+        new, same, removed = [], copy.copy(items), []
         if items:
             for item in items:
                 obj = model.get(item, db)
@@ -148,10 +154,18 @@ class BodhiBase(object):
                     db.add(obj)
                 if obj not in rel:
                     rel.append(obj)
+                    new.append(item)
+                    same.remove(item)
+
             for item in rel:
                 if item.name not in items:
                     log.info('Removing %r from %r', item, self)
                     rel.remove(item)
+                    removed.append(item)
+                    same.remove(item)
+
+        return new, same, removed
+
 
 
 Base = declarative_base(cls=BodhiBase)
