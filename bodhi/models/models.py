@@ -25,14 +25,14 @@ from textwrap import wrap
 from datetime import datetime
 from collections import defaultdict
 
-from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
+from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship, backref
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.properties import RelationshipProperty
-from sqlalchemy.ext.declarative import declarative_base, synonym_for
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.exc import NoResultFound
 from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.settings import asbool
@@ -392,7 +392,6 @@ class Package(Base):
         from simplemediawiki import MediaWiki
         wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
         cat_page = 'Category:Package %s test cases' % self.name
-        limit = 10
 
         def list_categorymembers(wiki, cat_page, limit=10):
             # Build query arguments and call wiki
@@ -904,7 +903,6 @@ class Update(Base):
                 aliases.append((int(year), int(id)))
 
             year, id = max(aliases)
-            prefix = '-'.join(split[:-2])
             if int(year) != time.localtime()[0]:  # new year
                 id = 0
             id = int(id) + 1
