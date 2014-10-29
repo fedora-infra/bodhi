@@ -145,8 +145,6 @@ def save_stack(request):
             original = package.requirements
             original = [] if not original else list(tokenize(original))
             package.requirements = " ".join(list(set(original + additional)))
-            print "-" * 80
-            print "SETTING package %r like crazy to %r" % (name, package.requirements)
 
     log.info('Saved %s stack', data['name'])
     notifications.publish(topic='stack.save', msg=dict(
