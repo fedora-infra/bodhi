@@ -186,6 +186,14 @@ class SaveUpdateSchema(colander.MappingSchema):
         colander.String(),
         missing=None,
     )
+    require_bugs = colander.SchemaNode(
+        colander.Boolean(),
+        missing=True,
+    )
+    require_testcases = colander.SchemaNode(
+        colander.Boolean(),
+        missing=True,
+    )
 
 
 class Cosmetics(colander.MappingSchema):

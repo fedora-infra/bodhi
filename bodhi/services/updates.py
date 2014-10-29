@@ -33,6 +33,7 @@ from bodhi.validators import (
     validate_releases,
     validate_username,
     validate_update_id,
+    validate_requirements,
 )
 
 
@@ -194,7 +195,7 @@ def query_updates(request):
               validators=(
                   validate_nvrs, validate_version, validate_builds,
                   validate_uniqueness, validate_build_tags, validate_acls,
-                  validate_enums))
+                  validate_enums, validate_requirements))
 def new_update(request):
     """ Save an update.
 
