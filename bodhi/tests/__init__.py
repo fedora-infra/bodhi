@@ -22,6 +22,8 @@ from bodhi.models import (
 def populate(db):
     user = User(name=u'guest')
     db.add(user)
+    anonymous = User(name=u'anonymous')
+    db.add(anonymous)
     provenpackager = Group(name=u'provenpackager')
     db.add(provenpackager)
     packager = Group(name=u'packager')
@@ -60,13 +62,18 @@ def populate(db):
     cve = CVE(cve_id="CVE-1985-0110")
     db.add(cve)
     update.cves.append(cve)
+
     comment = Comment(karma=1, text="wow. amaze.")
     db.add(comment)
     comment.user = user
     update.comments.append(comment)
+    update.karma = 1
+
     comment = Comment(karma=0, text="srsly.  pretty good.", anonymous=True)
+    comment.user = anonymous
     db.add(comment)
     update.comments.append(comment)
+
     db.add(update)
 
     expiration_date = datetime.utcnow()

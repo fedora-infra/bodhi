@@ -129,6 +129,80 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['comment']['user_id'], 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
+    @mock.patch('bodhi.notifications.publish')
+    def test_commenting_twice_with_neutral_karma(self, publish):
+        res = self.app.post_json('/comments/', self.make_comment())
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
+
+        res = self.app.post_json('/comments/', self.make_comment())
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        self.assertEquals(publish.call_count, 2)
+
+    @mock.patch('bodhi.notifications.publish')
+    def test_commenting_twice_with_double_positive_karma(self, publish):
+        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        self.assertEquals(res.json_body['comment']['karma'], 1)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
+        self.assertEquals(res.json_body['comment']['update']['karma'], 1)
+
+        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        self.assertEquals(publish.call_count, 2)
+
+        # Mainly, ensure that the karma didn't increase *again*
+        self.assertEquals(res.json_body['comment']['update']['karma'], 1)
+
+    @mock.patch('bodhi.notifications.publish')
+    def test_commenting_twice_with_positive_then_negative_karma(self, publish):
+        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
+        self.assertEquals(res.json_body['comment']['update']['karma'], 1)
+
+        res = self.app.post_json('/comments/', self.make_comment(karma=-1))
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        self.assertEquals(publish.call_count, 2)
+
+        # Mainly, ensure that original karma is overwritten..
+        self.assertEquals(res.json_body['comment']['update']['karma'], -1)
+
+    @mock.patch('bodhi.notifications.publish')
+    def test_commenting_with_negative_karma(self, publish):
+        res = self.app.post_json('/comments/', self.make_comment(karma=-1))
+        self.assertNotIn('errors', res.json_body)
+        self.assertIn('comment', res.json_body)
+        self.assertEquals(res.json_body['comment']['anonymous'], False)
+        self.assertEquals(res.json_body['comment']['text'], 'Test')
+        self.assertEquals(res.json_body['comment']['user_id'], 1)
+        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
+        self.assertEquals(res.json_body['comment']['update']['karma'], -1)
+
     #def test_anonymous_commenting_without_email(self):
     #    settings = self.app_settings.copy()
     #    app = TestApp(main({}, testing=None, **settings))
