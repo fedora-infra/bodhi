@@ -530,11 +530,12 @@ class Update(Base):
 
     title = Column(UnicodeText, default=None)
 
-    # TODO: more flexible karma schema
     karma = Column(Integer, default=0)
     stable_karma = Column(Integer, nullable=True)
     unstable_karma = Column(Integer, nullable=True)
     requirements = Column(UnicodeText)
+    require_bugs = Column(Boolean, default=False)
+    require_testcases = Column(Boolean, default=False)
 
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
