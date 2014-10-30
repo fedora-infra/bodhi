@@ -793,7 +793,7 @@ class Update(Base):
                 # Ensure the same number of builds are present
                 if len(oldBuild.update.builds) != len(self.builds):
                     obsoletable = False
-                    submitter = oldBuild.update.user
+                    submitter = oldBuild.update.submitter
                     if submitter and submitter.name != self.user.name:
                         request.session.flash('Please be aware that %s is'
                                 'part of a multi-build update that is currently '
