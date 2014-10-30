@@ -161,8 +161,7 @@ class BodhiBase(object):
                 if item.name not in items:
                     log.info('Removing %r from %r', item, self)
                     rel.remove(item)
-                    removed.append(item)
-                    same.remove(item)
+                    removed.append(item.name)
 
         return new, same, removed
 
