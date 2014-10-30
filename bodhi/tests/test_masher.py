@@ -148,6 +148,13 @@ class TestMasher(unittest.TestCase):
             except:
                 pass
 
+    def set_stable_request(self, title):
+        with self.db_factory() as session:
+            query = session.query(Update).filter_by(title=title)
+            update = query.one()
+            update.request = UpdateRequest.stable
+            session.flush()
+
     @mock.patch('bodhi.notifications.publish')
     def test_invalid_signature(self, publish):
         """Make sure the masher ignores messages that aren't signed with the
@@ -555,7 +562,11 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_mash(self, cmd, publish, *args):
-        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log,
+
+        # Set the request to stable right out the gate so we can test gating
+        self.set_stable_request('bodhi-2.0-1.fc17')
+
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
                          self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
@@ -566,7 +577,7 @@ References:
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    msg=dict(success=True))
-        publish.assert_any_call(topic='update.complete.testing',
+        publish.assert_any_call(topic='update.complete.stable',
                                 msg=mock.ANY)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
@@ -581,6 +592,10 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_failed_gating(self, cmd, publish, *args):
+
+        # Set the request to stable right out the gate so we can test gating
+        self.set_stable_request('bodhi-2.0-1.fc17')
+
         t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
                          self.db_factory, self.tempdir)
 
@@ -606,6 +621,10 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_absent_gating(self, cmd, publish, *args):
+
+        # Set the request to stable right out the gate so we can test gating
+        self.set_stable_request('bodhi-2.0-1.fc17')
+
         t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
                          self.db_factory, self.tempdir)
 
