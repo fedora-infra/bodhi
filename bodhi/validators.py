@@ -658,7 +658,7 @@ def _get_valid_requirements(request):
     # someday have.
 
     path = "/api/v1.0/testcases"
-    url = request.registry.settings.get('resultsdb_api_url') + path
+    url = request.registry.settings['resultsdb_api_url'] + path
     try:
         response = requests.get(url)
         if response.status_code != 200:
