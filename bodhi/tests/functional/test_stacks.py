@@ -40,7 +40,7 @@ from bodhi.models import (
 
 mock_valid_requirements = {
     'target': 'bodhi.validators._get_valid_requirements',
-    'return_value': ['rpmlint'],
+    'return_value': ['rpmlint', 'upgradepath'],
 }
 
 
@@ -167,13 +167,14 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack(self, *args):
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
-                 'description': 'foo'}
+                 'description': 'foo', 'requirements': 'upgradepath'}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'GNOME')
         self.assertEquals(len(body['packages']), 2)
         self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
         self.assertEquals(body['description'], 'foo')
+        self.assertEquals(body['requirements'], 'upgradepath')
 
     def test_delete_stack(self):
         res = self.app.delete("/stacks/GNOME")
