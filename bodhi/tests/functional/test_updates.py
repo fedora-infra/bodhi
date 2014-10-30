@@ -14,10 +14,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import unittest
-
 import mock
-from nose.tools import eq_, raises
+from nose.tools import eq_
 from datetime import datetime, timedelta
 from webtest import TestApp
 
@@ -26,16 +24,11 @@ import bodhi.tests.functional.base
 from bodhi import main
 from bodhi.config import config
 from bodhi.models import (
-    Base,
-    Bug,
     Build,
-    CVE,
     DBSession,
     Group,
     Package,
-    Release,
     Update,
-    UpdateType,
     User,
     UpdateStatus,
     UpdateRequest,
@@ -179,9 +172,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('bodhi-2.0-1.fc17', res)
 
     def test_get_single_update_rss(self):
-        res = self.app.get('/updates/bodhi-2.0-1.fc17',
-                           headers={'Accept': 'application/rss'},
-                           status=406)
+        self.app.get('/updates/bodhi-2.0-1.fc17',
+                     headers={'Accept': 'application/rss'},
+                     status=406)
 
     def test_get_single_update_html(self):
         id = 'bodhi-2.0-1.fc17'
