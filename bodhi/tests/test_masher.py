@@ -26,13 +26,22 @@ from sqlalchemy import create_engine
 from bodhi import buildsys, log
 from bodhi.config import config
 from bodhi.masher import Masher, MasherThread
-from bodhi.models import (DBSession, Base, Update, User, Group, Release,
-                          Package, Build, TestCase, UpdateRequest, UpdateType,
-                          Bug, CVE, Comment, ReleaseState, BuildrootOverride,
+from bodhi.models import (DBSession, Base, Update, User, Release,
+                          Build, UpdateRequest, UpdateType,
+                          ReleaseState, BuildrootOverride,
                           UpdateStatus)
 from bodhi.tests import populate
 
 from bodhi.util import mkmetadatadir
+
+mock_taskotron_results = {
+    'target': 'bodhi.util.taskotron_results',
+    'return_value': [{
+        "outcome": "PASSED",
+        "result_data": {},
+        "testcase": { "name": "rpmlint", }
+    }],
+}
 
 
 class FakeHub(object):
@@ -151,6 +160,7 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(msg)
         self.assertEquals(len(publish.call_args_list), 1)
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.update_comps')
     @mock.patch('bodhi.masher.MashThread.run')
     @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
@@ -179,6 +189,7 @@ class TestMasher(unittest.TestCase):
             up = session.query(Update).one()
             self.assertTrue(up.locked)
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.update_comps')
     @mock.patch('bodhi.masher.MashThread.run')
     @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
@@ -259,6 +270,7 @@ class TestMasher(unittest.TestCase):
         finally:
             t.remove_state()
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.update_comps')
     @mock.patch('bodhi.masher.MashThread.run')
     @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
@@ -337,6 +349,7 @@ References:
         link = os.path.join(stage_dir, t.id)
         self.assertTrue(os.path.islink(link))
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.update_comps')
     @mock.patch('bodhi.masher.MashThread.run')
     @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
@@ -391,6 +404,7 @@ References:
         self.assertEquals(calls[-1], mock.call(msg={'success': True},
             topic='mashtask.complete'))
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.update_comps')
     @mock.patch('bodhi.masher.MashThread.run')
     @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
@@ -447,6 +461,7 @@ References:
         self.assertEquals(calls[-1], mock.call(msg={'success': True},
             topic='mashtask.complete'))
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.update_comps')
     @mock.patch('bodhi.masher.MashThread.run')
     @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
@@ -505,6 +520,7 @@ References:
                 'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
 
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MashThread.run')
     @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
@@ -517,6 +533,7 @@ References:
         self.assertIn(mock.call(['git', 'pull'], mock.ANY), cmd.mock_calls)
         self.assertIn(mock.call(['make'], mock.ANY), cmd.mock_calls)
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')

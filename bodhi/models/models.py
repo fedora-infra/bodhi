@@ -43,7 +43,12 @@ from bodhi.util import (
     get_age, get_critpath_pkgs, get_rpm_header
 )
 
-from bodhi.util import get_age_in_days, avatar as get_avatar, tokenize
+from bodhi.util import (
+    get_age_in_days,
+    avatar as get_avatar,
+    tokenize,
+)
+import bodhi.util
 from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import LockedUpdateException
 from bodhi.config import config
@@ -1468,6 +1473,38 @@ class Update(Base):
                 for committer in build.package.committers:
                     people.add(committer.name)
         return list(people)
+
+    def check_requirements(self, session, settings):
+        """ Check that an update meets its self-prescribed policy to be pushed
+
+        Returns a tuple containing (result, reason) where result is a boolean
+        and reason is a string.
+        """
+
+        requirements = tokenize(self.requirements or '')
+        requirements = list(requirements)
+
+        results = bodhi.util.taskotron_results(settings, self)
+        for testcase in requirements:
+            relevant = [result for result in results
+                        if result['testcase']['name'] == testcase]
+
+            if not relevant:
+                return False, 'No result found for required %s' % testcase
+
+            by_arch = defaultdict(list)
+            for r in relevant:
+                by_arch[r['result_data'].get('arch', ['noarch'])[0]].append(r)
+
+            for arch, results in by_arch.items():
+                latest = results[0]  # TODO - do these need to be sorted still?
+                if latest['outcome'] not in ['PASSED', 'INFO']:
+                    return False, "Required task %s returned %s" % (
+                        latest['testcase']['name'], latest['outcome'])
+
+        # TODO - check require_bugs and require_testcases also?
+
+        return True, "All checks pass."
 
     @property
     def critpath_approved(self):

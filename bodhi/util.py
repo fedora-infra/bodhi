@@ -23,6 +23,7 @@ import socket
 import urllib
 import tempfile
 import markdown
+import requests
 import subprocess
 import libravatar
 import hashlib
@@ -570,3 +571,16 @@ def tokenize(string):
                 token = token.strip()
                 if token:
                     yield token
+
+def taskotron_results(settings, update):
+    """ Given an update object, return resultsdb results. """
+    path = "/api/v1.0/results"
+    url = settings['resultsdb_api_url'] + path
+    try:
+        response = requests.get(url, params=dict(item=update.title))
+        if response.status_code != 200:
+            raise IOError("status code was %r" % response.status_code)
+        return response.json()['data']
+    except Exception:
+        log.exception("Problem talking to %r")
+        return []

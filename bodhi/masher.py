@@ -219,6 +219,7 @@ class MasherThread(threading.Thread):
 
             if not self.resume:
                 self.lock_updates()
+                self.perform_gating()
                 self.update_security_bugs()
                 self.determine_tag_actions()
                 self.perform_tag_actions()
@@ -266,7 +267,7 @@ class MasherThread(threading.Thread):
             self.finish(success)
 
     def load_updates(self):
-        self.log.debug('Locking updates')
+        self.log.debug('Loading updates')
         updates = []
         for title in self.state['updates']:
             update = self.db.query(Update).filter_by(title=title).first()
@@ -278,9 +279,25 @@ class MasherThread(threading.Thread):
         self.updates = updates
 
     def lock_updates(self):
+        self.log.debug('Locking updates')
         for update in self.updates:
             update.locked = True
         self.db.flush()
+
+    def perform_gating(self):
+        self.log.debug('Performing gating.')
+        for update in list(self.updates):
+            result, reason = update.check_requirements(self.db, config)
+            if not result:
+                self.log.warn("%s failed gating: %s" % (update.title, reason))
+                self.eject_from_mash(update, reason)
+
+    def eject_from_mash(self, update, reason):
+        update.locked = False
+        text = '%s ejected from the push because %r' % (update.title, reason)
+        update.comment(text, author='bodhi')
+        update.request = None
+        self.updates.remove(update)
 
     def init_path(self):
         self.path = os.path.join(self.mash_dir, self.id + '-' +
