@@ -128,4 +128,5 @@ class BaseWSGICase(unittest.TestCase):
             'type': u'bugfix',
             'stable_karma': stable_karma,
             'unstable_karma': unstable_karma,
+            'requirements': 'rpmlint',
         }

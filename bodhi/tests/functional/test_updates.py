@@ -120,6 +120,13 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         assert 'Update for bodhi-2.0-1.fc17 already exists' in res, res
 
     @mock.patch(**mock_valid_requirements)
+    def test_invalid_requirements(self, resultsdb):
+        update = self.get_update()
+        update['requirements'] = 'rpmlint silly-dilly'
+        res = self.app.post_json('/updates/', update, status=400)
+        assert 'Invalid requirement' in res, res
+
+    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
     def test_no_privs(self, publish, resultsdb):
         session = DBSession()
@@ -962,6 +969,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -972,6 +980,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         r = self.app.post_json('/updates/', args)
         args['edited'] = args['builds']
         args['builds'] = 'bodhi-2.0.0-3.fc17'
+        args['requirements'] = 'upgradepath'
         r = self.app.post_json('/updates/', args)
         up = r.json_body
         self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
@@ -991,12 +1000,31 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
         self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['requirements'], 'upgradepath')
         self.assertEquals(up['comments'][-1]['text'],
                           u'guest edited this update. New build(s): ' +
                           u'bodhi-2.0.0-3.fc17. Removed build(s): bodhi-2.0.0-2.fc17.')
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
         self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_cascade_package_requirements_to_update(self, publish, resultsdb):
+
+        package = DBSession.query(Package).filter_by(name='bodhi').one()
+        package.requirements = 'upgradepath rpmlint'
+        DBSession.flush()
+
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        # Don't specify any requirements so that they cascade from the package
+        del args['requirements']
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEquals(up['requirements'], 'upgradepath rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
