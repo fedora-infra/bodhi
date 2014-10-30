@@ -126,8 +126,13 @@ def save_stack(request):
         stack.description = desc
 
     # Update the stack requirements
+    # If the user passed in no value at all for requirements, then use
+    # the site defaults.  If, however, the user passed in the empty string, we
+    # assume they mean *really*, no requirements so we leave the value null.
     reqs = data['requirements']
-    if reqs:
+    if reqs is None:
+        stack.requirements = request.registry.settings.get('site_requirements')
+    elif reqs:
         stack.requirements = reqs
 
     stack.update_relationship('users', User, data, db)

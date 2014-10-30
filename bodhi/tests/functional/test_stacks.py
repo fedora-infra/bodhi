@@ -135,6 +135,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(r.name, 'KDE')
         self.assertEquals(len(r.packages), 2)
         self.assertEquals(r.packages[0].name, 'kde-filesystem')
+        self.assertEquals(r.requirements, 'rpmlint')
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_invalid_name(self, *args):
