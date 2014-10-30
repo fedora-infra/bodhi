@@ -51,6 +51,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
       - track which packages are in the push
       - lock updates
     - Make sure things are safe to move? (ideally we should trust our own state)
+    - Check with taskotron to see if updates are pushable.
     - Update security bug titles
     - Move build tags
     - Expire buildroot overrides
@@ -219,7 +220,10 @@ class MasherThread(threading.Thread):
 
             if not self.resume:
                 self.lock_updates()
-                self.perform_gating()
+
+                if self.request is UpdateRequest.stable:
+                    self.perform_gating()
+
                 self.update_security_bugs()
                 self.determine_tag_actions()
                 self.perform_tag_actions()
@@ -297,7 +301,16 @@ class MasherThread(threading.Thread):
         text = '%s ejected from the push because %r' % (update.title, reason)
         update.comment(text, author='bodhi')
         update.request = None
-        self.updates.remove(update)
+        if update in self.state['updates']:
+            self.state['updates'].remove(update)
+        if update in self.updates:
+            self.updates.remove(update)
+        notifications.publish(topic="update.ejected", msg=dict(
+            update=update,
+            reason=reason,
+            request=self.request,
+            release=self.release,
+        ))
 
     def init_path(self):
         self.path = os.path.join(self.mash_dir, self.id + '-' +

@@ -43,6 +43,20 @@ mock_taskotron_results = {
     }],
 }
 
+mock_failed_taskotron_results = {
+    'target': 'bodhi.util.taskotron_results',
+    'return_value': [{
+        "outcome": "FAILED",
+        "result_data": {},
+        "testcase": { "name": "rpmlint", }
+    }],
+}
+
+mock_absent_taskotron_results = {
+    'target': 'bodhi.util.taskotron_results',
+    'return_value': [],
+}
+
 
 class FakeHub(object):
     def __init__(self):
@@ -553,6 +567,57 @@ References:
         publish.assert_called_with(topic="mashtask.complete",
                                    msg=dict(success=True))
         publish.assert_any_call(topic='update.complete.testing',
+                                msg=mock.ANY)
+
+        self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
+        self.assertEquals(len(t.state['completed_repos']), 1)
+
+
+    @mock.patch(**mock_failed_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    def test_failed_gating(self, cmd, publish, *args):
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
+                         self.db_factory, self.tempdir)
+
+        with self.db_factory() as session:
+            t.db = session
+            t.work()
+            t.db = None
+
+        # Also, ensure we reported success
+        publish.assert_called_with(topic="mashtask.complete",
+                                   msg=dict(success=True))
+        publish.assert_any_call(topic='update.ejected',
+                                msg=mock.ANY)
+
+        self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
+        self.assertEquals(len(t.state['completed_repos']), 1)
+
+    @mock.patch(**mock_absent_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    def test_absent_gating(self, cmd, publish, *args):
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
+                         self.db_factory, self.tempdir)
+
+        with self.db_factory() as session:
+            t.db = session
+            t.work()
+            t.db = None
+
+        # Also, ensure we reported success
+        publish.assert_called_with(topic="mashtask.complete",
+                                   msg=dict(success=True))
+        publish.assert_any_call(topic='update.ejected',
                                 msg=mock.ANY)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
