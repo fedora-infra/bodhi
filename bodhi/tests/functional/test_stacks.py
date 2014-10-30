@@ -176,6 +176,16 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['description'], 'foo')
         self.assertEquals(body['requirements'], 'upgradepath')
 
+        # Adding gnome-music to the stack should change its requirements, too.
+        package = self.session.query(Package)\
+            .filter(Package.name=='gnome-music').one()
+        self.assertEquals(package.requirements, attrs['requirements'])
+
+        # But not gnome-shell, since it was already in the stack.
+        package = self.session.query(Package)\
+            .filter(Package.name=='gnome-shell').one()
+        self.assertEquals(package.requirements, None)
+
     def test_delete_stack(self):
         res = self.app.delete("/stacks/GNOME")
         self.assertEquals(res.json_body['status'], 'success')
