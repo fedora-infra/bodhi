@@ -48,6 +48,20 @@ mock_taskotron_results = {
     }],
 }
 
+mock_failed_taskotron_results = {
+    'target': 'bodhi.util.taskotron_results',
+    'return_value': [{
+        "outcome": "FAILED",
+        "result_data": {},
+        "testcase": { "name": "rpmlint", }
+    }],
+}
+
+mock_absent_taskotron_results = {
+    'target': 'bodhi.util.taskotron_results',
+    'return_value': [],
+}
+
 
 class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
@@ -1238,6 +1252,46 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp.json['update']['request'], 'stable')
         publish.assert_called_with(
             topic='update.request.stable', msg=mock.ANY)
+
+    @mock.patch(**mock_failed_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_stable_request_failed_taskotron_results(self, publish, *args):
+        """Test submitting a stable request, but with bad taskotron results"""
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = DBSession.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comments[-1].timestamp -= timedelta(days=7)
+        DBSession.flush()
+        eq_(up.days_in_testing, 7)
+        eq_(up.meets_testing_requirements, True)
+        resp = self.app.post_json('/updates/%s/request' % args['builds'],
+                                  {'request': 'stable'}, status=400)
+        self.assertIn('errors', resp)
+        self.assertIn('Required task', resp)
+
+    @mock.patch(**mock_absent_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_stable_request_absent_taskotron_results(self, publish, *args):
+        """Test submitting a stable request, but with absent task results"""
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = DBSession.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comments[-1].timestamp -= timedelta(days=7)
+        DBSession.flush()
+        eq_(up.days_in_testing, 7)
+        eq_(up.meets_testing_requirements, True)
+        resp = self.app.post_json('/updates/%s/request' % args['builds'],
+                                  {'request': 'stable'}, status=400)
+        self.assertIn('errors', resp)
+        self.assertIn('No result found for', resp)
 
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_build(self, *args):

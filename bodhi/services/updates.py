@@ -19,7 +19,7 @@ from sqlalchemy.sql import or_
 
 from bodhi import log
 from bodhi.exceptions import LockedUpdateException
-from bodhi.models import Update, Build, Bug, CVE, Package
+from bodhi.models import Update, Build, Bug, CVE, Package, UpdateRequest
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -70,6 +70,14 @@ def set_request(request):
         request.errors.add('body', 'request',
                            "Can't change request on a locked update")
         return
+
+    if action is UpdateRequest.stable:
+        settings = request.registry.settings
+        result, reason = update.check_requirements(request.db, settings)
+        if not result:
+            request.errors.add('body', 'request',
+                               'Requirement not met %s' % reason)
+            return
 
     update.set_request(action, request)
     return dict(update=update)
