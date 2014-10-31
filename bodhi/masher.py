@@ -221,6 +221,8 @@ class MasherThread(threading.Thread):
             if not self.resume:
                 self.lock_updates()
 
+                self.verify_updates()
+
                 if self.request is UpdateRequest.stable:
                     self.perform_gating()
 
@@ -287,6 +289,20 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             update.locked = True
         self.db.flush()
+
+    def verify_updates(self):
+        for update in list(self.updates):
+            if not update.request is self.request:
+                reason = "Request %s inconsistent with mash request %s" % (
+                    update.request, self.Request)
+                self.eject_from_mash(update, reason)
+                continue
+
+            if not update.release is self.release:
+                reason = "Release %s inconsistent with mash release %s" % (
+                    update.release, self.release)
+                self.eject_from_mash(update, reason)
+                continue
 
     def perform_gating(self):
         self.log.debug('Performing gating.')
