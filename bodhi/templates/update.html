@@ -102,6 +102,8 @@
           item = item + "<small>(" + result.result_data.arch + ")</small>";
         }
 
+        var age = moment(result.submit_time).fromNow();
+
         $('#resultsdb table').append(
           '<tr class="' + classes[result.outcome] + '" ' +
           'style="cursor: pointer;"' +
@@ -109,6 +111,7 @@
           '<td>' + icon + '</td>' +
           '<td>' + check + '</td>' +
           '<td>' + item + '</td>' +
+          '<td>' + age + '</td>' +
           '</tr>'
         );
       });
