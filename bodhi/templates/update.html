@@ -4,9 +4,7 @@
 
 <script type="text/javascript">
   $(document).ready(function() {
-    // TODO parameterize the URL based on bodhi config file so we can point
-    // staging bodhi at staging taskotron.
-    var url = 'https://taskotron.fedoraproject.org/resultsdb_api/api/v1.0/results';
+    var base_url = '${request.registry.settings["resultsdb_api_url"]}' + '/api/v1.0/';
 
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {
@@ -75,13 +73,18 @@
       }
 
       // Otherwise, go ahead an request the next page async while we render.
-      request_resultsdb_page(data.next);
-
-      // If nothing changed as of the last page, then go ahead and bail.  Wait for the next page.
-      if (! changed) { return; }
+      // If nothing changed as of the last page, then go ahead and bail.  Wait
+      // for the next page.
+      if (! changed) {
+        request_resultsdb_page(data.next);
+        return;
+      }
 
       // Remove all our old rows.  Something changed, so we're going to write new ones.
       $('#resultsdb tr').remove();
+
+      // Furthermore, remove the spinner if its still around.
+      $('#resultsdb .spinner').remove();
 
       // So, let's complete pruning.  Collapse that nested structure back to a list.
       var data = [];
@@ -151,8 +154,35 @@
       });
     };
 
-    var initial_url = url + "?" + $.param({item: update});
-    request_resultsdb_page(initial_url);
+    var receive_testcases = function(data) {
+      if (data.data.length == 0) { return; }
+      // Queue up the next page of possible testcases
+      gather_testcases(data.next);
+      // And queue up requests for the results of the testcases we already know about.
+      $.each(data.data, function(i, testcase) {
+        var url = base_url + 'testcases/' + testcase.name + '/results?' + $.param({item: update});
+        request_resultsdb_page(url);
+      });
+    }
+
+    var gather_testcases = function(url) {
+      $.ajax(url, {
+        dataType: 'jsonp',
+        cache: false,
+        success: receive_testcases,
+        error: function(v1, v2, v3) {
+          $('#resultsdb .spinner').remove();
+          $('#resultsdb').append(
+            '<h4 class="text-danger">Error getting testcases.</h4>');
+        },
+      });
+
+    }
+
+    // Kick off a few chains of paginated queries.  One for each of the
+    // possible testcases.
+    gather_testcases(base_url + 'testcases');
+
   });
 </script>
 
