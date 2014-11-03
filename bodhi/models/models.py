@@ -1484,7 +1484,7 @@ class Update(Base):
         requirements = tokenize(self.requirements or '')
         requirements = list(requirements)
 
-        results = bodhi.util.taskotron_results(settings, self)
+        results = bodhi.util.taskotron_results(settings, title=self.title)
         for testcase in requirements:
             relevant = [result for result in results
                         if result['testcase']['name'] == testcase]

@@ -490,6 +490,7 @@ def page_url(context, page):
     params['page'] = page
     return request.path_url + "?" + urllib.urlencode(params)
 
+
 def bug_link(context, bug, short=False):
     url = "https://bugzilla.redhat.com/show_bug.cgi?id=" + str(bug.bug_id)
     display = "#%i" % bug.bug_id
@@ -497,6 +498,7 @@ def bug_link(context, bug, short=False):
     if not short:
         link = link + " " + str(bug.title)
     return link
+
 
 def testcase_link(context, test, short=False):
     settings = context['request'].registry
@@ -561,6 +563,7 @@ def cmd(cmd, cwd=None):
         raise Exception
     return out, err, p.returncode
 
+
 def tokenize(string):
     """ Given something like "a b, c d" return ['a', 'b', 'c', 'd']. """
 
@@ -572,15 +575,23 @@ def tokenize(string):
                 if token:
                     yield token
 
-def taskotron_results(settings, update):
-    """ Given an update object, return resultsdb results. """
-    path = "/api/v1.0/results"
-    url = settings['resultsdb_api_url'] + path
+
+def taskotron_results(settings, entity='results', **kwargs):
+    """ Given an update object, yield resultsdb results. """
+    url = settings['resultsdb_api_url'] + "/api/v1.0/" + entity
+    if kwargs:
+        url = url + "?" + urllib.urlencode(kwargs)
+    data = True
+
     try:
-        response = requests.get(url, params=dict(item=update.title))
-        if response.status_code != 200:
-            raise IOError("status code was %r" % response.status_code)
-        return response.json()['data']
+        while data:
+            log.debug("Grabbing %r" % url)
+            response = requests.get(url)
+            if response.status_code != 200:
+                raise IOError("status code was %r" % response.status_code)
+            json = response.json()
+            url, data = json['next'], json['data']
+            for datum in data:
+                yield datum
     except Exception:
-        log.exception("Problem talking to %r")
-        return []
+        log.exception("Problem talking to %r" % url)

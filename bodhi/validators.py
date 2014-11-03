@@ -25,7 +25,7 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
                      Bug, TestCase, ReleaseState, Stack)
-from .util import get_nvr, tokenize
+from .util import get_nvr, tokenize, taskotron_results
 
 try:
     import rpm
@@ -650,23 +650,8 @@ def validate_stack(request):
 
 def _get_valid_requirements(request):
     """ Returns a list of valid testcases from taskotron. """
-
-    # TODO - We should really cache this with dogpile.  The cache object should
-    # be hanging off the request somewhere.
-
-    # TODO - do pagination to step through all the many testcases we will
-    # someday have.
-
-    path = "/api/v1.0/testcases"
-    url = request.registry.settings['resultsdb_api_url'] + path
-    try:
-        response = requests.get(url)
-        if response.status_code != 200:
-            raise IOError("status code was %r" % response.status_code)
-        return [case['name'] for case in response.json()['data']]
-    except Exception:
-        log.exception("Problem talking to %r")
-        return []
+    for testcase in taskotron_results(request.registry.settings, testcases):
+        yield testcase['name']
 
 
 def validate_requirements(request):
