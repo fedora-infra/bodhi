@@ -133,6 +133,9 @@
       $('#resultsdb tr').click(function(event, row) {
         window.open($(this).attr('data-href'));
       });
+
+      // And, re-do tooltips for newly created spans.
+      $('#resultsdb span').tooltip();
     };
 
     var request_resultsdb_page = function(url) {
