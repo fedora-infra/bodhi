@@ -14,8 +14,6 @@
 
 from datetime import datetime
 
-import requests
-
 from sqlalchemy.sql import or_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 
@@ -111,7 +109,7 @@ def validate_tags(request):
             request.koji.getTag(tag_name, strict=True)
             request.validated["%s_tag" % tag_type] = tag_name
 
-        except Exception as e:
+        except Exception:
             request.errors.add('body', "%s_tag" % tag_type,
                                'Invalid tag: %s' % tag_name)
 
