@@ -14,6 +14,7 @@
       NEEDS_INSPECTION: 'warning',
       ABORTED: 'warning',
       CRASHED: 'warning',
+      ABSENT: 'warning',
     }
     var icons = {
       PASSED: 'ok-circle',
@@ -22,6 +23,7 @@
       NEEDS_INSPECTION: 'exclamation-sign',
       ABORTED: 'trash',
       CRASHED: 'fire', // no joke.
+      ABSENT: 'question-sign',
     }
 
     // XXX - For development, we typically have updates in our development
@@ -29,11 +31,45 @@
     // of taskotron.  As such, taskotron doesn't know about the updates that
     // we ask about.  Therefore, it is useful sometimes to mess around here
     // and hardcode something like this:
-    var update = 'ugene-1.14.2-1.fc21';
-    //var update = '${update.title}';
+    //var update = 'ugene-1.14.2-1.fc21';
+    var update = '${update.title}';
 
     // These are the required taskotron tests
     var requirements = ${update.requirements_json | n};
+
+    var make_row = function(outcome, testcase, item, arch, time, url) {
+      var icon = '<span data-toggle="tooltip" data-placement="top" ' +
+        'title="' + outcome + '" ' +
+        'class="glyphicon glyphicon-' + icons[outcome] + '">' +
+        '</span>';
+
+      var required = '';
+      if ($.inArray(testcase, requirements) != -1) {
+        required = '<span data-toggle="tooltip" data-placement="top" ' +
+          'title="' + testcase + ' is a required test" ' +
+          'class="glyphicon glyphicon-asterisk">' +
+          '</span>';
+      }
+
+      if (arch != undefined) {
+        item = item + "<small>(" + arch + ")</small>";
+      }
+
+      var age = '';
+      if (time != undefined) {
+        var age = moment(time).fromNow();
+      }
+
+      return '<tr class="' + classes[outcome] + '" ' +
+        'style="cursor: pointer;"' +
+        'data-href="' + url + '">' +
+        '<td>' + required + '</td>' +
+        '<td>' + icon + '</td>' +
+        '<td>' + testcase + '</td>' +
+        '<td>' + item + '</td>' +
+        '<td>' + age + '</td>' +
+        '</tr>';
+    };
 
     var latest = {};
     var receive_resultsdb = function(data) {
@@ -66,8 +102,21 @@
 
         // Furthermore, if no rows got written.. then we have no results at
         // all!  So, hang an 'out to lunch' sign on the door.
-        if ($('#resultsdb tr').length == 0) $('#resultsdb').append(
-            '<h4 class="text-warning">No results found.</h4>');
+        if ($('#resultsdb tr:not(.warning)').length == 0) {
+          var testcase = data.href.match(/testcases\/(.*)\/results/)[1];
+          if ($.inArray(testcase, requirements) != -1) {
+            $('#resultsdb table').append(make_row(
+                  'ABSENT',
+                  testcase,
+                  'No result found',
+                  undefined,
+                  undefined,
+                  data.href
+            ));
+          }
+        }
+
+        finish();
 
         return;
       }
@@ -83,9 +132,6 @@
       // Remove all our old rows.  Something changed, so we're going to write new ones.
       $('#resultsdb tr').remove();
 
-      // Furthermore, remove the spinner if its still around.
-      $('#resultsdb .spinner').remove();
-
       // So, let's complete pruning.  Collapse that nested structure back to a list.
       var data = [];
       $.each(latest, function(name, obj) {
@@ -97,49 +143,31 @@
       // Then, once we have pruned, build a bunch of cells and render each
       // result in the table
       $.each(data, function(i, result) {
-        var icon = '<span data-toggle="tooltip" data-placement="top" ' +
-          'title="' + result.outcome + '" ' +
-          'class="glyphicon glyphicon-' + icons[result.outcome] + '">' +
-          '</span>';
-
-        var check = result.testcase.name;
-
-        var required = '';
-        if ($.inArray(check, requirements) != -1) {
-          required = '<span data-toggle="tooltip" data-placement="top" ' +
-            'title="' + check + ' is a required test" ' +
-            'class="glyphicon glyphicon-asterisk">' +
-            '</span>';
-        }
-
-        var item = result.result_data.item;
-        if (result.result_data.arch != undefined) {
-          item = item + "<small>(" + result.result_data.arch + ")</small>";
-        }
-
-        var age = moment(result.submit_time).fromNow();
-
-        $('#resultsdb table').append(
-          '<tr class="' + classes[result.outcome] + '" ' +
-          'style="cursor: pointer;"' +
-          'data-href="' + result.log_url + '">' +
-          '<td>' + required + '</td>' +
-          '<td>' + icon + '</td>' +
-          '<td>' + check + '</td>' +
-          '<td>' + item + '</td>' +
-          '<td>' + age + '</td>' +
-          '</tr>'
-        );
+        $('#resultsdb table').append(make_row(
+              result.outcome,
+              result.testcase.name,
+              result.result_data.item,
+              result.result_data.arch,
+              result.submit_time,
+              result.log_url
+        ));
       });
 
+      finish();
+    };
+
+    var finish = function() {
+      // Furthermore, remove the spinner if its still around.
+      $('#resultsdb .spinner').remove();
+
       // Make each cell clickable and awesome
-      $('#resultsdb tr').click(function(event, row) {
+      $('#resultsdb tr').off().click(function(event, row) {
         window.open($(this).attr('data-href'));
       });
 
       // And, re-do tooltips for newly created spans.
       $('#resultsdb span').tooltip();
-    };
+    }
 
     var request_resultsdb_page = function(url) {
       $.ajax(url, {
