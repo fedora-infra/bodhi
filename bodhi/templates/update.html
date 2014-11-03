@@ -1,5 +1,6 @@
 <%inherit file="master.html"/>
 <%namespace name="captcha" module="bodhi.captcha"/>
+<%namespace name="json" module="json"/>
 
 <script type="text/javascript">
   $(document).ready(function() {
@@ -32,6 +33,9 @@
     // and hardcode something like this:
     var update = 'ugene-1.14.2-1.fc21';
     //var update = '${update.title}';
+
+    // These are the required taskotron tests
+    var requirements = ${update.requirements_json | n};
 
     var latest = {};
     var receive_resultsdb = function(data) {
@@ -97,6 +101,15 @@
 
         var check = result.testcase.name;
 
+        var required = '';
+        if ($.inArray(check, requirements) != -1) {
+        console.log(check); console.log(requirements);
+          required = '<span data-toggle="tooltip" data-placement="top" ' +
+            'title="' + check + ' is a required test" ' +
+            'class="glyphicon glyphicon-asterisk">' +
+            '</span>';
+        }
+
         var item = result.result_data.item;
         if (result.result_data.arch != undefined) {
           item = item + "<small>(" + result.result_data.arch + ")</small>";
@@ -104,10 +117,12 @@
 
         var age = moment(result.submit_time).fromNow();
 
+
         $('#resultsdb table').append(
           '<tr class="' + classes[result.outcome] + '" ' +
           'style="cursor: pointer;"' +
           'data-href="' + result.log_url + '">' +
+          '<td>' + required + '</td>' +
           '<td>' + icon + '</td>' +
           '<td>' + check + '</td>' +
           '<td>' + item + '</td>' +

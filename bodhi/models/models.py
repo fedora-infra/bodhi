@@ -17,6 +17,7 @@
 import os
 import re
 import copy
+import json
 import time
 import logging
 import xmlrpclib
@@ -1505,6 +1506,10 @@ class Update(Base):
         # TODO - check require_bugs and require_testcases also?
 
         return True, "All checks pass."
+
+    @property
+    def requirements_json(self):
+        return json.dumps(list(tokenize(self.requirements or '')))
 
     @property
     def critpath_approved(self):
