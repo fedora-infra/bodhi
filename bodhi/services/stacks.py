@@ -14,31 +14,21 @@
 
 import math
 
-from datetime import datetime, timedelta
 from cornice import Service
 from pyramid.view import view_config
-from pyramid.exceptions import HTTPNotFound, HTTPForbidden
+from pyramid.exceptions import HTTPForbidden
 from pyramid.security import authenticated_userid
 from sqlalchemy.sql import or_
 
 from bodhi import log, notifications
-from bodhi.models import Update, Package, Stack, Group, User
+from bodhi.models import Package, Stack, Group, User
 import bodhi.schemas
 import bodhi.security
+from bodhi.util import tokenize
 from bodhi.validators import (
-    validate_nvrs,
-    validate_version,
-    validate_uniqueness,
-    validate_tags,
-    validate_acls,
-    validate_builds,
-    validate_enums,
-    validate_updates,
     validate_packages,
     validate_stack,
-    validate_release,
-    validate_username,
-    validate_groups,
+    validate_requirements,
 )
 
 
@@ -98,6 +88,7 @@ def query_stacks(request):
 
 @stacks.post(schema=bodhi.schemas.SaveStackSchema,
              acl=bodhi.security.packagers_allowed_acl,
+             validators=(validate_requirements,),
              renderer='json')
 def save_stack(request):
     """Save a stack"""
@@ -134,9 +125,31 @@ def save_stack(request):
     if desc:
         stack.description = desc
 
-    stack.update_relationship('packages', Package, data, db)
+    # Update the stack requirements
+    # If the user passed in no value at all for requirements, then use
+    # the site defaults.  If, however, the user passed in the empty string, we
+    # assume they mean *really*, no requirements so we leave the value null.
+    reqs = data['requirements']
+    if reqs is None:
+        stack.requirements = request.registry.settings.get('site_requirements')
+    elif reqs:
+        stack.requirements = reqs
+
     stack.update_relationship('users', User, data, db)
     stack.update_relationship('groups', Group, data, db)
+
+    # We make a special case out of packages here, since when a package is
+    # added to a stack, we want to give it the same requirements as the stack
+    # has. See https://github.com/fedora-infra/bodhi/issues/101
+    new, same, rem = stack.update_relationship('packages', Package, data, db)
+    if stack.requirements:
+        additional = list(tokenize(stack.requirements))
+
+        for name in new:
+            package = Package.get(name, db)
+            original = package.requirements
+            original = [] if not original else list(tokenize(original))
+            package.requirements = " ".join(list(set(original + additional)))
 
     log.info('Saved %s stack', data['name'])
     notifications.publish(topic='stack.save', msg=dict(

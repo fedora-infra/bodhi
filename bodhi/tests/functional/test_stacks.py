@@ -15,6 +15,8 @@
 from datetime import datetime, timedelta
 from webtest import TestApp
 
+import mock
+
 import bodhi.tests.functional.base
 
 from bodhi import main
@@ -34,6 +36,12 @@ from bodhi.models import (
     User,
     Stack,
 )
+
+
+mock_valid_requirements = {
+    'target': 'bodhi.validators._get_valid_requirements',
+    'return_value': ['rpmlint', 'upgradepath'],
+}
 
 
 class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
@@ -117,7 +125,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid packages specified: carbunkle')
 
-    def test_new_stack(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_new_stack(self, *args):
         attrs = {'name': 'KDE', 'packages': 'kde-filesystem kdegames'}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
@@ -126,28 +135,64 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(r.name, 'KDE')
         self.assertEquals(len(r.packages), 2)
         self.assertEquals(r.packages[0].name, 'kde-filesystem')
+        self.assertEquals(r.requirements, 'rpmlint')
 
-    def test_new_stack_invalid_name(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_new_stack_invalid_name(self, *args):
         attrs = {"name": ""}
         res = self.app.post("/stacks/", attrs, status=400)
         self.assertEquals(res.json_body['status'], 'error')
 
-    def test_edit_stack(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_new_stack_invalid_requirement(self, *args):
+        attrs = {"name": "Hackey", "packages": "nethack",
+                 "requirements": "silly-dilly"}
+        res = self.app.post("/stacks/", attrs, status=400)
+        self.assertEquals(res.json_body['status'], 'error')
+        c = self.session.query(Stack).filter(Stack.name==attrs["name"]).count()
+        self.assertEquals(c, 0)
+
+    @mock.patch(**mock_valid_requirements)
+    def test_new_stack_valid_requirement(self, *args):
+        attrs = {"name": "Hackey", "packages": "nethack",
+                 "requirements": "rpmlint"}
+        res = self.app.post("/stacks/", attrs)#, status=200)
+        body = res.json_body['stack']
+        self.assertEquals(body['name'], 'Hackey')
+        r = self.session.query(Stack).filter(Stack.name==attrs["name"]).one()
+        self.assertEquals(r.name, 'Hackey')
+        self.assertEquals(len(r.packages), 1)
+        self.assertEquals(r.requirements, attrs['requirements'])
+
+    @mock.patch(**mock_valid_requirements)
+    def test_edit_stack(self, *args):
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
-                 'description': 'foo'}
+                 'description': 'foo', 'requirements': 'upgradepath'}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'GNOME')
         self.assertEquals(len(body['packages']), 2)
         self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
         self.assertEquals(body['description'], 'foo')
+        self.assertEquals(body['requirements'], 'upgradepath')
+
+        # Adding gnome-music to the stack should change its requirements, too.
+        package = self.session.query(Package)\
+            .filter(Package.name=='gnome-music').one()
+        self.assertEquals(package.requirements, attrs['requirements'])
+
+        # But not gnome-shell, since it was already in the stack.
+        package = self.session.query(Package)\
+            .filter(Package.name=='gnome-shell').one()
+        self.assertEquals(package.requirements, None)
 
     def test_delete_stack(self):
         res = self.app.delete("/stacks/GNOME")
         self.assertEquals(res.json_body['status'], 'success')
         self.assertEquals(self.session.query(Stack).count(), 0)
 
-    def test_edit_stack_remove_package(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_edit_stack_remove_package(self, *args):
         attrs = {'name': 'GNOME', 'packages': 'gnome-music'}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
@@ -155,7 +200,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['packages']), 1)
         self.assertEquals(body['packages'][0]['name'], 'gnome-music')
 
-    def test_edit_stack_with_no_group_privs(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_edit_stack_with_no_group_privs(self, *args):
         self.stack.users = []
         group = Group(name=u'gnome-team')
         self.session.add(group)
@@ -169,7 +215,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['errors'][0]['description'],
                 'guest does not have privileges to modify the GNOME stack')
 
-    def test_edit_stack_with_no_user_privs(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_edit_stack_with_no_user_privs(self, *args):
         user = User(name=u'bob')
         self.session.add(user)
         self.session.flush()
@@ -182,7 +229,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['errors'][0]['description'],
                 'guest does not have privileges to modify the GNOME stack')
 
-    def test_edit_stack_with_user_privs(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_edit_stack_with_user_privs(self, *args):
         user = self.session.query(User).filter_by(name=u'guest').one()
         self.stack.users.append(user)
         self.session.flush()
@@ -193,7 +241,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['packages']), 2)
         self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
 
-    def test_edit_stack_with_group_privs(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_edit_stack_with_group_privs(self, *args):
         self.stack.users = []
         user = self.session.query(User).filter_by(name=u'guest').one()
         group = Group(name=u'gnome-team')

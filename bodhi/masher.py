@@ -51,6 +51,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
       - track which packages are in the push
       - lock updates
     - Make sure things are safe to move? (ideally we should trust our own state)
+    - Check with taskotron to see if updates are pushable.
     - Update security bug titles
     - Move build tags
     - Expire buildroot overrides
@@ -219,6 +220,12 @@ class MasherThread(threading.Thread):
 
             if not self.resume:
                 self.lock_updates()
+
+                self.verify_updates()
+
+                if self.request is UpdateRequest.stable:
+                    self.perform_gating()
+
                 self.update_security_bugs()
                 self.determine_tag_actions()
                 self.perform_tag_actions()
@@ -266,7 +273,7 @@ class MasherThread(threading.Thread):
             self.finish(success)
 
     def load_updates(self):
-        self.log.debug('Locking updates')
+        self.log.debug('Loading updates')
         updates = []
         for title in self.state['updates']:
             update = self.db.query(Update).filter_by(title=title).first()
@@ -278,9 +285,48 @@ class MasherThread(threading.Thread):
         self.updates = updates
 
     def lock_updates(self):
+        self.log.debug('Locking updates')
         for update in self.updates:
             update.locked = True
         self.db.flush()
+
+    def verify_updates(self):
+        for update in list(self.updates):
+            if not update.request is self.request:
+                reason = "Request %s inconsistent with mash request %s" % (
+                    update.request, self.Request)
+                self.eject_from_mash(update, reason)
+                continue
+
+            if not update.release is self.release:
+                reason = "Release %s inconsistent with mash release %s" % (
+                    update.release, self.release)
+                self.eject_from_mash(update, reason)
+                continue
+
+    def perform_gating(self):
+        self.log.debug('Performing gating.')
+        for update in list(self.updates):
+            result, reason = update.check_requirements(self.db, config)
+            if not result:
+                self.log.warn("%s failed gating: %s" % (update.title, reason))
+                self.eject_from_mash(update, reason)
+
+    def eject_from_mash(self, update, reason):
+        update.locked = False
+        text = '%s ejected from the push because %r' % (update.title, reason)
+        update.comment(text, author='bodhi')
+        update.request = None
+        if update in self.state['updates']:
+            self.state['updates'].remove(update)
+        if update in self.updates:
+            self.updates.remove(update)
+        notifications.publish(topic="update.ejected", msg=dict(
+            update=update,
+            reason=reason,
+            request=self.request,
+            release=self.release,
+        ))
 
     def init_path(self):
         self.path = os.path.join(self.mash_dir, self.id + '-' +

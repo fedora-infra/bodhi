@@ -1,11 +1,10 @@
 <%inherit file="master.html"/>
 <%namespace name="captcha" module="bodhi.captcha"/>
+<%namespace name="json" module="json"/>
 
 <script type="text/javascript">
   $(document).ready(function() {
-    // TODO parameterize the URL based on bodhi config file so we can point
-    // staging bodhi at staging taskotron.
-    var url = 'https://taskotron.fedoraproject.org/resultsdb_api/api/v1.0/results';
+    var base_url = '${request.registry.settings["resultsdb_api_url"]}' + '/api/v1.0/';
 
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {
@@ -15,6 +14,7 @@
       NEEDS_INSPECTION: 'warning',
       ABORTED: 'warning',
       CRASHED: 'warning',
+      ABSENT: 'warning',
     }
     var icons = {
       PASSED: 'ok-circle',
@@ -23,6 +23,7 @@
       NEEDS_INSPECTION: 'exclamation-sign',
       ABORTED: 'trash',
       CRASHED: 'fire', // no joke.
+      ABSENT: 'question-sign',
     }
 
     // XXX - For development, we typically have updates in our development
@@ -33,81 +34,183 @@
     //var update = 'ugene-1.14.2-1.fc21';
     var update = '${update.title}';
 
-    $.ajax(url, {
-      data: $.param({item: update}),
-      dataType: 'jsonp',
-      cache: false,
-      success: function(data) {
-        $('#resultsdb .spinner').remove();
+    // These are the required taskotron tests
+    var requirements = ${update.requirements_json | n};
 
-        // First, prune duplicate results.  For instance, some depcheck runs
-        // happen multiple times on an update.  We only (imho) want to display
-        // the latest ones for each arch.  So, prune like this:
-        var latest = {};
-        $.each(data.data, function(i, result) {
-          var name = result.testcase.name;
-          var arch = result.result_data.arch;
-          var submit_time = new Date(result.submit_time);
-          if (latest[name] === undefined)
-            latest[name] = {};
-          if (latest[name][arch] === undefined)
-            latest[name][arch] = result;
-          if (new Date(latest[name][arch].submit_time) < submit_time)
-            latest[name][arch] = result;
-        });
+    var make_row = function(outcome, testcase, item, arch, time, url) {
+      var icon = '<span data-toggle="tooltip" data-placement="top" ' +
+        'title="' + outcome + '" ' +
+        'class="glyphicon glyphicon-' + icons[outcome] + '">' +
+        '</span>';
 
-        // To complete pruning, collapse that nested structure back to a list.
-        var data = [];
-        $.each(latest, function(name, obj) {
-          $.each(obj, function(arch, result) {
-            data.push(result);
-          });
-        });
+      var required = '';
+      if ($.inArray(testcase, requirements) != -1) {
+        required = '<span data-toggle="tooltip" data-placement="top" ' +
+          'title="' + testcase + ' is a required test" ' +
+          'class="glyphicon glyphicon-asterisk">' +
+          '</span>';
+      }
 
-        // Then, once we have pruned, build a bunch of cells and render each
-        // result in the table
-        $.each(data, function(i, result) {
-          var icon = '<span data-toggle="tooltip" data-placement="top" ' +
-            'title="' + result.outcome + '" ' +
-            'class="glyphicon glyphicon-' + icons[result.outcome] + '">' +
-            '</span>';
+      if (arch != undefined) {
+        item = item + "<small>(" + arch + ")</small>";
+      }
 
-          var check = result.testcase.name;
+      var age = '';
+      if (time != undefined) {
+        var age = moment(time).fromNow();
+      }
 
-          var item = result.result_data.item;
-          if (result.result_data.arch != undefined) {
-            item = item + "<small>(" + result.result_data.arch + ")</small>";
-          }
+      return '<tr class="' + classes[outcome] + '" ' +
+        'style="cursor: pointer;"' +
+        'data-href="' + url + '">' +
+        '<td>' + required + '</td>' +
+        '<td>' + icon + '</td>' +
+        '<td>' + testcase + '</td>' +
+        '<td>' + item + '</td>' +
+        '<td>' + age + '</td>' +
+        '</tr>';
+    };
 
-          $('#resultsdb table').append(
-            '<tr class="' + classes[result.outcome] + '" ' +
-            'style="cursor: pointer;"' +
-            'data-href="' + result.log_url + '">' +
-            '<td>' + icon + '</td>' +
-            '<td>' + check + '</td>' +
-            '<td>' + item + '</td>' +
-            '</tr>'
-          );
-        });
+    var latest = {};
+    var receive_resultsdb = function(data) {
 
-        // Make each cell clickable and awesome
-        $('#resultsdb tr').click(function(event, row) {
-          window.open($(this).attr('data-href'));
-        });
-
-        // And just incase everything above was a no-op, hang an 'out to lunch'
-        // sign on the door.
-        if (data.length == 0) {
-          $('#resultsdb').append(
-            '<h4 class="text-warning">No results found.</h4>');
+      // First, prune duplicate results.  For instance, some depcheck runs
+      // happen multiple times on an update.  We only (imho) want to display
+      // the latest ones for each arch.  So, prune like this:
+      var changed = false;
+      $.each(data.data, function(i, result) {
+        var name = result.testcase.name;
+        var arch = result.result_data.arch;
+        var submit_time = new Date(result.submit_time);
+        if (latest[name] === undefined)
+          latest[name] = {};
+        if (latest[name][arch] === undefined) {
+          latest[name][arch] = result;
+          changed = true;
         }
-      },
-      error: function(v1, v2, v3) {
+        if (new Date(latest[name][arch].submit_time) < submit_time) {
+          latest[name][arch] = result;
+          changed = true;
+        }
+      });
+
+      // If this was the last page of data, then bail out.
+      if (data.data.length == 0) {
+        // Kill the thing showing that we're still loading data, since we're
+        // done-done now.
         $('#resultsdb .spinner').remove();
-        $('#resultsdb').append(
-          '<h4 class="text-danger">Error getting results.</h4>');
-      },
-    });
+
+        // Furthermore, if no rows got written.. then we have no results at
+        // all!  So, hang an 'out to lunch' sign on the door.
+        if ($('#resultsdb tr:not(.warning)').length == 0) {
+          var testcase = data.href.match(/testcases\/(.*)\/results/)[1];
+          if ($.inArray(testcase, requirements) != -1) {
+            $('#resultsdb table').append(make_row(
+                  'ABSENT',
+                  testcase,
+                  'No result found',
+                  undefined,
+                  undefined,
+                  data.href
+            ));
+          }
+        }
+
+        finish();
+
+        return;
+      }
+
+      // Otherwise, go ahead an request the next page async while we render.
+      // If nothing changed as of the last page, then go ahead and bail.  Wait
+      // for the next page.
+      if (! changed) {
+        request_resultsdb_page(data.next);
+        return;
+      }
+
+      // Remove all our old rows.  Something changed, so we're going to write new ones.
+      $('#resultsdb tr').remove();
+
+      // So, let's complete pruning.  Collapse that nested structure back to a list.
+      var data = [];
+      $.each(latest, function(name, obj) {
+        $.each(obj, function(arch, result) {
+          data.push(result);
+        });
+      });
+
+      // Then, once we have pruned, build a bunch of cells and render each
+      // result in the table
+      $.each(data, function(i, result) {
+        $('#resultsdb table').append(make_row(
+              result.outcome,
+              result.testcase.name,
+              result.result_data.item,
+              result.result_data.arch,
+              result.submit_time,
+              result.log_url
+        ));
+      });
+
+      finish();
+    };
+
+    var finish = function() {
+      // Furthermore, remove the spinner if its still around.
+      $('#resultsdb .spinner').remove();
+
+      // Make each cell clickable and awesome
+      $('#resultsdb tr').off().click(function(event, row) {
+        window.open($(this).attr('data-href'));
+      });
+
+      // And, re-do tooltips for newly created spans.
+      $('#resultsdb span').tooltip();
+    }
+
+    var request_resultsdb_page = function(url) {
+      $.ajax(url, {
+        dataType: 'jsonp',
+        cache: false,
+        success: receive_resultsdb,
+        error: function(v1, v2, v3) {
+          $('#resultsdb .spinner').remove();
+          $('#resultsdb').append(
+            '<h4 class="text-danger">Error getting results.</h4>');
+        },
+      });
+    };
+
+    var receive_testcases = function(data) {
+      if (data.data.length == 0) { return; }
+      // Queue up the next page of possible testcases
+      gather_testcases(data.next);
+      // And queue up requests for the results of the testcases we already know about.
+      $.each(data.data, function(i, testcase) {
+        var url = base_url + 'testcases/' + testcase.name + '/results?' + $.param({item: update});
+        request_resultsdb_page(url);
+      });
+    }
+
+    var gather_testcases = function(url) {
+      $.ajax(url, {
+        dataType: 'jsonp',
+        cache: false,
+        success: receive_testcases,
+        error: function(v1, v2, v3) {
+          $('#resultsdb .spinner').remove();
+          $('#resultsdb').append(
+            '<h4 class="text-danger">Error getting testcases.</h4>');
+        },
+      });
+
+    }
+
+    // Kick off a few chains of paginated queries.  One for each of the
+    // possible testcases.
+    gather_testcases(base_url + 'testcases');
+
   });
 </script>
 

@@ -76,7 +76,7 @@
               % endif
                 <a href="${request.route_url('new_update')}">
                   <span class="glyphicon glyphicon-plus"></span>
-                  Submit
+                  Update
                 </a>
               </li>
               % if request.matched_route.name == 'new_override':
@@ -86,7 +86,7 @@
               % endif
                 <a href="${request.route_url('new_override')}">
                   <span class="glyphicon glyphicon-plus"></span>
-                  Submit Buildroot Override
+                  Override
                 </a>
               </li>
               % if request.matched_route.name == 'stacks':
@@ -150,6 +150,7 @@
     <script src="${request.static_url('bodhi:static/jquery.flot.js')}"></script>
     <script src="${request.static_url('bodhi:static/jquery.flot.stack.js')}"></script>
     <script src="${request.static_url('bodhi:static/bootstrap/js/bootstrap.min.js')}"></script>
+    <script src="${request.static_url('bodhi:static/moment/moment.min.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/cabbage.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/forms.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/site.js')}"></script>

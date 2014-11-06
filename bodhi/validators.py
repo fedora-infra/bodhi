@@ -23,7 +23,7 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
                      Bug, TestCase, ReleaseState, Stack)
-from .util import get_nvr
+from .util import get_nvr, tokenize, taskotron_results
 
 try:
     import rpm
@@ -109,7 +109,7 @@ def validate_tags(request):
             request.koji.getTag(tag_name, strict=True)
             request.validated["%s_tag" % tag_type] = tag_name
 
-        except Exception as e:
+        except Exception:
             request.errors.add('body', "%s_tag" % tag_type,
                                'Invalid tag: %s' % tag_name)
 
@@ -644,3 +644,29 @@ def validate_stack(request):
         request.errors.add('querystring', 'stack',
                            'Invalid stack specified: {}'.format(name))
         request.errors.status = HTTPNotFound.code
+
+
+def _get_valid_requirements(request):
+    """ Returns a list of valid testcases from taskotron. """
+    for testcase in taskotron_results(request.registry.settings, 'testcases'):
+        yield testcase['name']
+
+
+def validate_requirements(request):
+    requirements = request.validated.get('requirements')
+
+    if requirements is None:  # None is okay
+        request.validated['requirements'] = None
+        return
+
+    requirements =  tokenize(requirements)
+    valid_requirements = _get_valid_requirements(request)
+
+    for requirement in requirements:
+        if requirement not in valid_requirements:
+            request.errors.add(
+                'querystring', 'requirements',
+                'Invalid requirement specified: %s.  Must be one of %s' % (
+                    requirement, ", ".join(valid_requirements)))
+            request.errors.status = HTTPBadRequest.code
+            return

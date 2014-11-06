@@ -88,6 +88,7 @@ class BaseWSGICase(unittest.TestCase):
         'openid.provider': 'https://id.stg.fedoraproject.org',
         'test_case_base_url': 'https://fedoraproject.org/wiki/',
         'openid_template': '{username}.id.fedoraproject.org',
+        'site_requirements': 'rpmlint',
     }
 
     def setUp(self):
@@ -127,4 +128,5 @@ class BaseWSGICase(unittest.TestCase):
             'type': u'bugfix',
             'stable_karma': stable_karma,
             'unstable_karma': unstable_karma,
+            'requirements': 'rpmlint',
         }

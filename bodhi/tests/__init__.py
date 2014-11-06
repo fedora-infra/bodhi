@@ -54,7 +54,9 @@ def populate(db):
         builds=[build], user=user,
         request=UpdateRequest.testing,
         notes=u'Useful details!', release=release,
-        date_submitted=datetime(1984, 11, 02))
+        date_submitted=datetime(1984, 11, 02),
+        requirements='rpmlint',
+    )
     update.type = UpdateType.bugfix
     bug = Bug(bug_id=12345)
     db.add(bug)

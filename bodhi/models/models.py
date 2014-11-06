@@ -16,6 +16,8 @@
 
 import os
 import re
+import copy
+import json
 import time
 import logging
 import xmlrpclib
@@ -24,14 +26,14 @@ from textwrap import wrap
 from datetime import datetime
 from collections import defaultdict
 
-from sqlalchemy import Unicode, UnicodeText, PickleType, Integer, Boolean
+from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship, backref
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.properties import RelationshipProperty
-from sqlalchemy.ext.declarative import declarative_base, synonym_for
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.exc import NoResultFound
 from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.settings import asbool
@@ -42,7 +44,12 @@ from bodhi.util import (
     get_age, get_critpath_pkgs, get_rpm_header
 )
 
-from bodhi.util import get_age_in_days, avatar as get_avatar
+from bodhi.util import (
+    get_age_in_days,
+    avatar as get_avatar,
+    tokenize,
+)
+import bodhi.util
 from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import LockedUpdateException
 from bodhi.config import config
@@ -137,9 +144,14 @@ class BodhiBase(object):
                the key in `data`
         :model: The model class of the relationship that we're updating
         :data: A dict containing the key `name` with a list of values
+
+        Returns a three-tuple of lists, `new`, `same`, and `removed` indicating
+        which items have been added and removed, and which remain unchanged.
         """
+
         rel = getattr(self, name)
         items = data.get(name)
+        new, same, removed = [], copy.copy(items), []
         if items:
             for item in items:
                 obj = model.get(item, db)
@@ -148,10 +160,17 @@ class BodhiBase(object):
                     db.add(obj)
                 if obj not in rel:
                     rel.append(obj)
+                    new.append(item)
+                    same.remove(item)
+
             for item in rel:
                 if item.name not in items:
                     log.info('Removing %r from %r', item, self)
                     rel.remove(item)
+                    removed.append(item.name)
+
+        return new, same, removed
+
 
 
 Base = declarative_base(cls=BodhiBase)
@@ -326,6 +345,7 @@ class Package(Base):
     __get_by__ = ('name',)
 
     name = Column(Unicode(50), unique=True, nullable=False)
+    requirements = Column(UnicodeText)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
     test_cases = relationship('TestCase', backref='package')
@@ -377,7 +397,6 @@ class Package(Base):
         from simplemediawiki import MediaWiki
         wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
         cat_page = 'Category:Package %s test cases' % self.name
-        limit = 10
 
         def list_categorymembers(wiki, cat_page, limit=10):
             # Build query arguments and call wiki
@@ -515,10 +534,12 @@ class Update(Base):
 
     title = Column(UnicodeText, default=None)
 
-    # TODO: more flexible karma schema
     karma = Column(Integer, default=0)
     stable_karma = Column(Integer, nullable=True)
     unstable_karma = Column(Integer, nullable=True)
+    requirements = Column(UnicodeText)
+    require_bugs = Column(Boolean, default=False)
+    require_testcases = Column(Boolean, default=False)
 
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
@@ -636,6 +657,15 @@ class Update(Base):
             bugtracker.comment(bug_num, config['initial_bug_msg'] % (
                        data['title'], data['release'].long_name, bug.url))
         data['bugs'] = bugs
+
+        # If no requirements are provided, then gather some defaults from the
+        # packages of the associated builds.
+        # See https://github.com/fedora-infra/bodhi/issues/101
+        if not data['requirements']:
+            data['requirements']= " ".join(list(set(sum([
+                list(tokenize(pkg.requirements)) for pkg in [
+                    build.package for build in data['builds']
+                ] if pkg.requirements], []))))
 
         if not data['autokarma']:
             del(data['stable_karma'])
@@ -769,7 +799,8 @@ class Update(Base):
                 # Ensure the same number of builds are present
                 if len(oldBuild.update.builds) != len(self.builds):
                     obsoletable = False
-                    if oldBuild.update.submitter.name != self.user.name:
+                    submitter = oldBuild.update.submitter
+                    if submitter and submitter.name != self.user.name:
                         request.session.flash('Please be aware that %s is'
                                 'part of a multi-build update that is currently '
                                 'in testing' % oldBuild.nvr)
@@ -892,7 +923,6 @@ class Update(Base):
                 aliases.append((int(year), int(id)))
 
             year, id = max(aliases)
-            prefix = '-'.join(split[:-2])
             if int(year) != time.localtime()[0]:  # new year
                 id = 0
             id = int(id) + 1
@@ -1451,6 +1481,42 @@ class Update(Base):
                     people.add(committer.name)
         return list(people)
 
+    def check_requirements(self, session, settings):
+        """ Check that an update meets its self-prescribed policy to be pushed
+
+        Returns a tuple containing (result, reason) where result is a boolean
+        and reason is a string.
+        """
+
+        requirements = tokenize(self.requirements or '')
+        requirements = list(requirements)
+
+        results = bodhi.util.taskotron_results(settings, title=self.title)
+        for testcase in requirements:
+            relevant = [result for result in results
+                        if result['testcase']['name'] == testcase]
+
+            if not relevant:
+                return False, 'No result found for required %s' % testcase
+
+            by_arch = defaultdict(list)
+            for r in relevant:
+                by_arch[r['result_data'].get('arch', ['noarch'])[0]].append(r)
+
+            for arch, results in by_arch.items():
+                latest = results[0]  # TODO - do these need to be sorted still?
+                if latest['outcome'] not in ['PASSED', 'INFO']:
+                    return False, "Required task %s returned %s" % (
+                        latest['testcase']['name'], latest['outcome'])
+
+        # TODO - check require_bugs and require_testcases also?
+
+        return True, "All checks pass."
+
+    @property
+    def requirements_json(self):
+        return json.dumps(list(tokenize(self.requirements or '')))
+
     @property
     def critpath_approved(self):
         """ Return whether or not this critpath update has been approved """
@@ -1886,6 +1952,7 @@ class Stack(Base):
     name = Column(UnicodeText, unique=True, nullable=False)
     packages = relationship('Package', backref=backref('stack', lazy='joined'))
     description = Column(UnicodeText)
+    requirements = Column(UnicodeText)
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=stack_group_table, backref='stacks')
