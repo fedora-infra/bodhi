@@ -924,7 +924,7 @@ class PackageUpdate(SQLObject):
 
         if author not in ('bodhi', 'autoqa', 'taskotron'):
             fedmsg.publish(topic='update.comment', msg=dict(
-                comment=c,
+                comment=c.__json__(anonymize=True),
                 agent=identity.current.user_name
             ))
 
@@ -1396,8 +1396,11 @@ class Comment(SQLObject):
                                             self.timestamp, karma, ignored,
                                             self.text)
 
-    def __json__(self):
-        return dict(author=self.author_name, group=self.author_group,
+    def __json__(self, anonymize=False):
+        author = self.author_name
+        if anonymize and self.anonymous:
+            author = 'anonymous'
+        return dict(author=author, group=self.author_group,
                     text=self.text, anonymous=self.anonymous,
                     karma=self.karma, timestamp=self.timestamp,
                     update_title=self.update.title,
