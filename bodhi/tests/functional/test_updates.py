@@ -254,7 +254,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_jsonp(self):
         res = self.app.get('/updates/',
@@ -345,7 +345,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
@@ -380,7 +380,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
@@ -419,7 +419,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_invalid_critpath(self):
         res = self.app.get('/updates/', {"critpath": "lalala"},
@@ -452,7 +452,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
         self.assertEquals(up['cves'][0]['cve_id'], "CVE-1985-0110")
 
     def test_list_updates_by_unexisting_cve(self):
@@ -511,7 +511,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_locked(self):
         res = self.app.get('/updates/', {"locked": "false"})
@@ -535,7 +535,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_invalid_locked(self):
         res = self.app.get('/updates/', {"locked": "maybe"},
@@ -583,7 +583,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
@@ -618,7 +618,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_package(self):
         res = self.app.get('/updates/', {"packages": "flash-player"})
@@ -647,7 +647,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
         self.assertEquals(up['pushed'], False)
 
     def test_list_updates_by_invalid_pushed(self):
@@ -695,7 +695,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
@@ -730,7 +730,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_release_version(self):
         res = self.app.get('/updates/', {"releases": "17"})
@@ -754,7 +754,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_release(self):
         res = self.app.get('/updates/', {"releases": "WinXP"}, status=400)
@@ -786,7 +786,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_request(self):
         res = self.app.get('/updates/', {"request": "impossible"},
@@ -819,7 +819,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_severity(self):
         res = self.app.get('/updates/', {"severity": "schoolmaster"},
@@ -852,7 +852,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_status(self):
         res = self.app.get('/updates/', {"status": "single"},
@@ -885,7 +885,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_suggest(self):
         res = self.app.get('/updates/', {"suggest": "no idea"},
@@ -918,7 +918,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_type(self):
         res = self.app.get('/updates/', {"type": "not_my"},
@@ -951,7 +951,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], None)
-        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_username(self):
         res = self.app.get('/updates/', {"user": "santa"},

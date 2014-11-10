@@ -89,6 +89,7 @@ class BaseWSGICase(unittest.TestCase):
         'test_case_base_url': 'https://fedoraproject.org/wiki/',
         'openid_template': '{username}.id.fedoraproject.org',
         'site_requirements': 'rpmlint',
+        'resultsdb_api_url': 'whatever',
     }
 
     def setUp(self):
