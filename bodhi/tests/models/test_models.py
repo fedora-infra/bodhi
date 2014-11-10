@@ -433,13 +433,15 @@ class TestUpdate(ModelTest):
 
     @mock.patch('bodhi.notifications.publish')
     def test_anonymous_comment(self, publish):
-        self.obj.comment(u'testing', author='anon', anonymous=True, karma=1)
+        self.obj.comment(u'testing', author='me', anonymous=True, karma=1)
         c = self.obj.comments[-1]
         assert str(c).endswith('testing')
         eq_(c.anonymous, True)
         eq_(c.text, 'testing')
         publish.assert_called_once_with(
             topic='update.comment', msg=mock.ANY)
+        args, kwargs = publish.call_args
+        eq_(kwargs['msg']['comment']['author'], 'anonymous')
 
     def test_get_url(self):
         eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
