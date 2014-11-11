@@ -83,10 +83,10 @@ class BodhiBase(object):
     def __repr__(self):
         return '<{0} {1}>'.format(self.__class__.__name__, self.__json__())
 
-    def __json__(self, request=None):
-        return self._to_json(self, request=request)
+    def __json__(self, request=None, anonymize=False):
+        return self._to_json(self, request=request, anonymize=anonymize)
 
-    def _to_json(self, obj, seen=None, request=None):
+    def _to_json(self, obj, seen=None, request=None, anonymize=False):
         if not seen:
             seen = []
         if not obj:
@@ -113,6 +113,16 @@ class BodhiBase(object):
                 d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
             if isinstance(value, EnumSymbol):
                 d[key] = unicode(value)
+
+        # If explicitly asked to, we will overwrite some fields if the
+        # corresponding condition of each evaluates to True.
+        # This is primarily for anonymous Comments.  We want to serialize
+        # authenticated FAS usernames in the 'author' field, but we want to
+        # scrub out anonymous users' email addresses.
+        if anonymize:
+            for key1, key2 in getattr(obj, '__anonymity_map__', {}).items():
+                if getattr(obj, key2):
+                    d[key1] = 'anonymous'
 
         return d
 
@@ -1382,7 +1392,7 @@ class Update(Base):
 
         if author not in ('bodhi', 'autoqa'):
             notifications.publish(topic='update.comment', msg=dict(
-                comment=comment,
+                comment=comment.__json__(anonymize=True),
                 agent=author,
             ))
 
@@ -1687,6 +1697,8 @@ class Comment(Base):
     __tablename__ = 'comments'
     __exclude_columns__ = tuple()
     __get_by__ = ('id',)
+    # If 'anonymous' is true, then scrub the 'author' field in __json__(...)
+    __anonymity_map__ = {'author': 'anonymous'}
 
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)

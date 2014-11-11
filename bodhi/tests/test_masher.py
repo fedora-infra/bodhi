@@ -382,7 +382,7 @@ References:
     def test_security_update_priority(self, publish, *args):
         with self.db_factory() as db:
             up = db.query(Update).one()
-            user = db.query(User).one()
+            user = db.query(User).first()
 
             # Create a security update for a different release
             release = Release(
@@ -439,7 +439,7 @@ References:
             up = db.query(Update).one()
             up.type = UpdateType.security
             up.request = UpdateRequest.testing
-            user = db.query(User).one()
+            user = db.query(User).first()
 
             # Create a security update for a different release
             release = Release(
@@ -497,7 +497,7 @@ References:
             up.type = UpdateType.security
             up.status = UpdateStatus.testing
             up.request = UpdateRequest.stable
-            user = db.query(User).one()
+            user = db.query(User).first()
 
             # Create a security update for a different release
             release = Release(
