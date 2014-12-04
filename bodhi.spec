@@ -71,6 +71,8 @@ Requires: python-fedora-turbogears
 # 0.3.3+ for thread safety
 Requires: fedmsg >= 0.3.3
 
+Requires: fedmsg-atomic-composer
+
 
 %description server
 Bodhi is a modular framework that facilitates the process of publishing
