@@ -34,7 +34,7 @@ from os.path import exists, join, islink, isdir, basename
 from time import sleep
 
 from fedmsg_atomic_composer.composer import AtomicComposer
-from fedmsg_atomic_composer.config import atomic_config
+from fedmsg_atomic_composer.config import config as atomic_config
 
 from bodhi import buildsys, mail
 from bodhi.util import synchronized, sanity_check_repodata, get_nvr, sorted_builds
