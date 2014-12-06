@@ -1035,10 +1035,19 @@ class MashTask(Thread):
 
             # Update the repo URLs to point to our local mashes
             release = atomic_config['releases'][tag]
+            mash_path = 'file://' + os.path.join(mash_path, tag, release['arch'])
+
             if 'updates-testing' in tag:
                 release['repos']['updates-testing'] = mash_path
                 updates_tag = tag.replace('-testing', '')
-                release['repos']['updates'] = mashed_repos[updates_tag]
+                if updates_tag in mashed_repos:
+                    release['repos']['updates'] = 'file://' + mashed_repos[updates_tag]
+                else:
+                    updates_repo = os.path.join(release['prod_dir'], updates_tag, release['arch'])
+                    if os.path.exists(updates_repo):
+                        release['repos']['updates'] = 'file://%s' % updates_repo
+                    else:
+                        release['repos']['updates'] = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/{version}/{arch}/'.format(**release)
             else:
                 release['repos']['updates'] = mash_path
 
