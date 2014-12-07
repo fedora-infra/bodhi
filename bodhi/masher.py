@@ -1047,7 +1047,7 @@ class MashTask(Thread):
                     if os.path.exists(updates_repo):
                         release['repos']['updates'] = 'file://%s' % updates_repo
                     else:
-                        release['repos']['updates'] = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/{version}/{arch}/'.format(**release)
+                        release['repos']['updates'] = config.get('internal_dl_url').format(**release)
             else:
                 release['repos']['updates'] = mash_path
 
