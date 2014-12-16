@@ -1042,13 +1042,11 @@ class MashTask(Thread):
                 release['repos']['updates-testing'] = mash_path
                 updates_tag = tag.replace('-testing', '')
                 if updates_tag in mashed_repos:
-                    release['repos']['updates'] = 'file://' + mashed_repos[updates_tag]
-                else:
-                    updates_repo = os.path.join(release['prod_dir'], updates_tag, release['arch'])
-                    if os.path.exists(updates_repo):
-                        release['repos']['updates'] = 'file://%s' % updates_repo
-                    else:
-                        release['repos']['updates'] = config.get('internal_dl_url').format(**release)
+                    release['repos']['updates'] = 'file://' + os.path.join(
+                            mashed_repos[updates_tag], updates_tag,
+                            release['arch'])
+                log.debug('Using the updates repo from %s',
+                          release['repos']['updates'])
             else:
                 release['repos']['updates'] = mash_path
 
