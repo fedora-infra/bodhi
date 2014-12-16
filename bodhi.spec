@@ -2,7 +2,7 @@
 %{!?pyver: %global pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.9.13
+Version:        0.9.14
 Release:        1%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
@@ -70,6 +70,8 @@ Requires: python-fedora-turbogears
 
 # 0.3.3+ for thread safety
 Requires: fedmsg >= 0.3.3
+
+Requires: fedmsg-atomic-composer
 
 
 %description server

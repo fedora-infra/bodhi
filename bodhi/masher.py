@@ -17,6 +17,7 @@
 import glob
 import os
 import sha
+import copy
 import time
 import shutil
 import urllib2
@@ -32,6 +33,9 @@ from threading import Thread, Lock
 from turbogears import config, url
 from os.path import exists, join, islink, isdir, basename
 from time import sleep
+
+from fedmsg_atomic_composer.composer import AtomicComposer
+from fedmsg_atomic_composer.config import config as atomic_config
 
 from bodhi import buildsys, mail
 from bodhi.util import synchronized, sanity_check_repodata, get_nvr, sorted_builds
@@ -736,6 +740,9 @@ class MashTask(Thread):
             # Mash our repositories
             self.mash()
 
+            # Compose OSTrees from our freshly mashed repos
+            self.compose_atomic_trees()
+
             # Change the state of the updates, and generate the updates-testing
             # notification digest as well.
             log.debug("Running post-request actions on updates")
@@ -932,7 +939,7 @@ class MashTask(Thread):
         while True:
             sleep(600)
             try:
-                masterrepomd = urllib2.urlopen(master_repomd % release.get_version())
+                masterrepomd = urllib2.urlopen(master_repomd % (release.get_version(), arch))
             except urllib2.URLError, e:
                 log.error("Error fetching repomd.xml: %s" % str(e))
                 continue
@@ -1016,5 +1023,40 @@ class MashTask(Thread):
         else:
             log.info(val)
         return val
+
+    def compose_atomic_trees(self):
+        """Compose Atomic OSTrees for each tag that we mashed"""
+        composer = AtomicComposer()
+        mashed_repos = dict([('-'.join(basename(repo).split('-')[:-1]), repo)
+                             for repo in self.composed_repos])
+        for tag, mash_path in mashed_repos.items():
+            if tag not in atomic_config['releases']:
+                log.warn('Cannot find atomic configuration for %r', tag)
+                continue
+
+            # Update the repo URLs to point to our local mashes
+            release = copy.deepcopy(atomic_config['releases'][tag])
+            mash_path = 'file://' + os.path.join(mash_path, tag, release['arch'])
+
+            if 'updates-testing' in tag:
+                release['repos']['updates-testing'] = mash_path
+                updates_tag = tag.replace('-testing', '')
+                if updates_tag in mashed_repos:
+                    release['repos']['updates'] = 'file://' + os.path.join(
+                            mashed_repos[updates_tag], updates_tag,
+                            release['arch'])
+                log.debug('Using the updates repo from %s',
+                          release['repos']['updates'])
+            else:
+                release['repos']['updates'] = mash_path
+
+            # Compose the tree, and raise an exception upon failure
+            result = composer.compose(release)
+            if result['result'] != 'success':
+                log.error(result)
+                raise MashTaskException('%s atomic compose failed' % tag)
+            else:
+                log.info('%s atomic tree compose successful', tag)
+
 
 masher = Masher()
