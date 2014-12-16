@@ -17,6 +17,7 @@
 import glob
 import os
 import sha
+import copy
 import time
 import shutil
 import urllib2
@@ -1034,7 +1035,7 @@ class MashTask(Thread):
                 continue
 
             # Update the repo URLs to point to our local mashes
-            release = atomic_config['releases'][tag]
+            release = copy.deepcopy(atomic_config['releases'][tag])
             mash_path = 'file://' + os.path.join(mash_path, tag, release['arch'])
 
             if 'updates-testing' in tag:
