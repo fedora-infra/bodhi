@@ -353,7 +353,7 @@ class PackageUpdate(SQLObject):
     status           = EnumCol(enumValues=['pending', 'testing', 'stable',
                                            'obsolete'], default='pending')
     pushed           = BoolCol(default=False)
-    # [NBRS] See comment below about wrapping `notes`
+    # See comment below about wrapping `notes`
     notes_           = UnicodeCol(dbName="notes")
     request          = EnumCol(enumValues=['testing', 'stable', 'obsolete',
                                            None], default=None)
@@ -366,9 +366,10 @@ class PackageUpdate(SQLObject):
     stable_karma    = IntCol(default=3)
     unstable_karma  = IntCol(default=-3)
 
-    # [NBRS] No idea why, but SQLObject or PostgreSQL seem to be escaping
+    # No idea why, but SQLObject or PostgreSQL seem to be escaping
     # characters like `\n`, which is obviously wrong for us.
     # The following just wraps the `notes` to unescape them when read.
+    # https://fedorahosted.org/bodhi/ticket/767
     def __init__(self, **kwargs):
         if "notes" in kwargs:
             notes = kwargs.pop("notes")
@@ -1361,13 +1362,14 @@ class Comment(SQLObject):
     update      = ForeignKey("PackageUpdate", notNone=True)
     author      = UnicodeCol(notNone=True)
     karma       = IntCol(default=0)
-    # [NBRS] See comment about wrapping `text`
+    # See comment about wrapping `text`
     text_        = UnicodeCol(dbName="text")
     anonymous   = BoolCol(default=False)
 
-    # [NBRS] No idea why, but SQLObject or PostgreSQL seem to be escaping
+    # No idea why, but SQLObject or PostgreSQL seem to be escaping
     # characters like `\n`, which is obviously wrong for us.
     # The following just wraps the `text` to unescape them when read.
+    # https://fedorahosted.org/bodhi/ticket/767
     def __init__(self, **kwargs):
         if "text" in kwargs:
             text = kwargs.pop("text")
