@@ -353,7 +353,8 @@ class PackageUpdate(SQLObject):
     status           = EnumCol(enumValues=['pending', 'testing', 'stable',
                                            'obsolete'], default='pending')
     pushed           = BoolCol(default=False)
-    notes            = UnicodeCol()
+    # [NBRS] See comment below about wrapping `notes`
+    notes_           = UnicodeCol(dbName="notes")
     request          = EnumCol(enumValues=['testing', 'stable', 'obsolete',
                                            None], default=None)
     comments         = MultipleJoin('Comment', joinColumn='update_id', orderBy='timestamp')
@@ -364,6 +365,22 @@ class PackageUpdate(SQLObject):
 
     stable_karma    = IntCol(default=3)
     unstable_karma  = IntCol(default=-3)
+
+    # [NBRS] No idea why, but SQLObject or PostgreSQL seem to be escaping
+    # characters like `\n`, which is obviously wrong for us.
+    # The following just wraps the `notes` to unescape them when read.
+    def __init__(self, **kwargs):
+        if "notes" in kwargs:
+            notes = kwargs.pop("notes")
+            kwargs["notes_"] = notes
+        return super(PackageUpdate, self).__init__(**kwargs)
+    def get_notes(self):
+        return self.notes_.encode('utf-8').decode('string_escape').decode('string_escape').decode('utf-8')
+    def set_notes(self, value):
+        self.notes_ = value
+    def del_notes(self):
+        del self.notes_
+    notes = property(get_notes, set_notes, del_notes)
 
     def get_title(self, delim=' '):
         return delim.join([build.nvr for build in self.builds])
