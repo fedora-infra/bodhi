@@ -375,7 +375,7 @@ class PackageUpdate(SQLObject):
             kwargs["notes_"] = notes
         return super(PackageUpdate, self).__init__(**kwargs)
     def get_notes(self):
-        return self.notes_.encode('utf-8').decode('string_escape').decode('utf-8')
+        return self.notes_.encode('utf-8').decode('string_escape').decode('string_escape').decode('utf-8')
     def set_notes(self, value):
         self.notes_ = value
     def del_notes(self):
