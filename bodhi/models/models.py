@@ -1402,12 +1402,6 @@ class Update(Base):
         session.add(comment)
         session.flush()
 
-        if author not in ('bodhi', 'autoqa'):
-            notifications.publish(topic='update.comment', msg=dict(
-                comment=comment.__json__(anonymize=True),
-                agent=author,
-            ))
-
         for feedback_dict in bug_feedback:
             feedback = BugKarma(**feedback_dict)
             session.add(feedback)
@@ -1432,6 +1426,13 @@ class Update(Base):
         user.comments.append(comment)
         self.comments.append(comment)
         session.flush()
+
+        # Publish to fedmsg
+        if author not in ('bodhi', 'autoqa'):
+            notifications.publish(topic='update.comment', msg=dict(
+                comment=comment.__json__(anonymize=True),
+                agent=author,
+            ))
 
         # Send a notification to everyone that has commented on this update
         people = set()
