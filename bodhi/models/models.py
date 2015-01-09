@@ -1739,7 +1739,7 @@ class Comment(Base):
     __exclude_columns__ = tuple()
     __get_by__ = ('id',)
     # If 'anonymous' is true, then scrub the 'author' field in __json__(...)
-    __anonymity_map__ = {'author': 'anonymous'}
+    __anonymity_map__ = {'user': 'anonymous'}
 
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
@@ -1753,6 +1753,19 @@ class Comment(Base):
     def url(self):
         url = '/updates/' + self.update.title + '#comment-' + str(self.id)
         return url
+
+    def __json__(self, *args, **kwargs):
+        result = super(Comment, self).__json__(*args, **kwargs)
+        # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
+        # Things like fedmsg and fedbadges rely on this.
+        if not self.anonymous and result['user']:
+            result['author'] = result['user']['name']
+        else:
+            result['author'] = 'anonymous'
+
+        # Similarly, duplicate the update's title as update_title.
+        result['update_title'] = result['update']['title']
+        return result
 
     def __str__(self):
         karma = '0'
