@@ -254,10 +254,13 @@ class MasherThread(threading.Thread):
                 # Wait for the repo to hit the master mirror
                 self.wait_for_sync()
 
+                # Send fedmsg notifications
                 self.send_notifications()
 
-                # TODO:
                 # Update bugzillas
+                self.modify_bugs()
+
+                # TODO:
                 # Add comments to updates
                 # Email updates-testing digest
 
@@ -598,6 +601,11 @@ class MasherThread(threading.Thread):
                 update=update,
                 agent=os.getlogin(),  # Should almost always be "masher"
             ))
+
+    def modify_bugs(self):
+        log.info('Updating bugs')
+        for update in self.updates:
+            update.modify_bugs()
 
 
 class MashThread(threading.Thread):
