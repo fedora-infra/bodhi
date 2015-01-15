@@ -651,7 +651,31 @@ References:
     @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
+    @mock.patch('bodhi.bugs.bugtracker.modified')
     @mock.patch('bodhi.bugs.bugtracker.on_qa')
-    def test_modify_testing_bugs(self, on_qa, *args):
+    def test_modify_testing_bugs(self, on_qa, modified, *args):
         self.masher.consume(self.msg)
         on_qa.assert_called_once_with(12345, u"bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\\nIf you want to test the update, you can install it with \\n su -c 'yum --enablerepo=updates-testing update bodhi'. You can provide feedback for this update here: http://localhost:8084/F17/FEDORA-2015-0001")
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    @mock.patch('bodhi.bugs.bugtracker.comment')
+    @mock.patch('bodhi.bugs.bugtracker.close')
+    def test_modify_stable_bugs(self, close, comment, *args):
+        self.set_stable_request('bodhi-2.0-1.fc17')
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
+                         self.db_factory, self.tempdir)
+        with self.db_factory() as session:
+            t.db = session
+            t.work()
+            t.db = None
+        close.assert_called_with(12345, fixedin=u'2.0-1.fc17')
+        comment.assert_called_with(12345, u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If problems still persist, please make note of it in this bug report.')
