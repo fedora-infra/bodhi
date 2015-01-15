@@ -1113,9 +1113,11 @@ class Update(Base):
         """
         if self.status is UpdateStatus.testing:
             for bug in self.bugs:
+                log.debug('Adding testing comment to bugs for %s', self.title)
                 bug.testing(self)
         elif self.status is UpdateStatus.stable:
             for bug in self.bugs:
+                log.debug('Adding stable comment to bugs for %s', self.title)
                 bug.add_comment(self)
 
             if self.close_bugs:

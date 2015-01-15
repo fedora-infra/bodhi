@@ -24,7 +24,7 @@ log = logging.getLogger('bodhi')
 
 class BugTracker(object):
 
-    def _(self, *args, **kw):
+    def _(self, *args, **kw):  # pragma: no cover
         raise NotImplementedError
 
     getbug = update_details = modified = on_qa = close = update_details = _
@@ -36,7 +36,7 @@ class FakeBugTracker(BugTracker):
         return Bunch(bug_id=int(bug_id))
 
     def __noop__(self, *args, **kw):
-        pass
+        log.debug('__noop__(%s)' % str(args))
 
     comment = update_details = modified = close = on_qa = __noop__
 
@@ -124,8 +124,8 @@ class Bugzilla(BugTracker):
 
 if config.get('bugtracker') == 'bugzilla':
     import bugzilla
-    log.debug('Using python-bugzilla')
+    log.info('Using python-bugzilla')
     bugtracker = Bugzilla()
 else:
-    log.debug('Using the dummy BugTracker')
+    log.info('Using the FakeBugTracker')
     bugtracker = FakeBugTracker()

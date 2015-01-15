@@ -605,6 +605,7 @@ class MasherThread(threading.Thread):
     def modify_bugs(self):
         log.info('Updating bugs')
         for update in self.updates:
+            log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
 
