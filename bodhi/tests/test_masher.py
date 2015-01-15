@@ -679,3 +679,50 @@ References:
             t.db = None
         close.assert_called_with(12345, fixedin=u'2.0-1.fc17')
         comment.assert_called_with(12345, u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If problems still persist, please make note of it in this bug report.')
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    def test_status_comment_testing(self,  *args):
+        title = self.msg['body']['msg']['updates']
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+            self.assertEquals(len(up.comments), 2)
+
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+            self.assertEquals(len(up.comments), 3)
+            self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to testing')
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    def test_status_comment_stable(self,  *args):
+        title = self.msg['body']['msg']['updates']
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+            up.request = UpdateRequest.stable
+            self.assertEquals(len(up.comments), 2)
+
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+            self.assertEquals(len(up.comments), 3)
+            self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to stable')

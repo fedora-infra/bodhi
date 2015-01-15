@@ -260,8 +260,9 @@ class MasherThread(threading.Thread):
                 # Update bugzillas
                 self.modify_bugs()
 
-                # TODO:
                 # Add comments to updates
+                self.status_comments()
+
                 # Email updates-testing digest
 
             else:
@@ -607,6 +608,11 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
+
+    def status_comments(self):
+        log.info('Commenting on updates')
+        for update in self.updates:
+            update.status_comment()
 
 
 class MashThread(threading.Thread):
