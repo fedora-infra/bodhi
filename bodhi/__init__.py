@@ -109,6 +109,16 @@ def main(global_config, testing=None, **settings):
     from pyramid.session import SignedCookieSessionFactory
     session_factory = SignedCookieSessionFactory(settings['session.secret'])
 
+    # Construct a list of all groups we're interested in
+    default = ' '.join([settings.get(key, '') for key in [
+        'important_groups',
+        'admin_packager_groups',
+        'mandatory_packager_groups',
+        'admin_groups',
+    ]])
+    # pyramid_fas_openid looks for this setting
+    settings['openid.groups'] = settings.get('openid.groups', default).split()
+
     config = Configurator(settings=settings,
                           session_factory=session_factory)
 
