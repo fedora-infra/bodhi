@@ -114,6 +114,7 @@ def main(global_config, testing=None, **settings):
         'important_groups',
         'admin_packager_groups',
         'mandatory_packager_groups',
+        'admin_groups',
     ]])
     # pyramid_fas_openid looks for this setting
     settings['openid.groups'] = settings.get('openid.groups', default).split()
