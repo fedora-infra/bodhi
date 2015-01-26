@@ -15,6 +15,7 @@
 import math
 
 from cornice import Service
+from pyramid.security import has_permission
 from sqlalchemy.sql import or_
 
 from bodhi import log
@@ -39,7 +40,8 @@ from bodhi.validators import (
 
 update = Service(name='update', path='/updates/{id}',
                  validators=(validate_update_id,),
-                 description='Update submission service')
+                 description='Update submission service',
+                 acl=bodhi.security.package_maintainers_only_acl)
 
 updates = Service(name='updates', path='/updates/',
                   acl=bodhi.security.packagers_allowed_acl,
@@ -55,7 +57,8 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
 @update.get(accept="text/html", renderer="update.html")
 def get_update(request):
     """Return a single update from an id, title, or alias"""
-    return dict(update=request.validated['update'])
+    can_edit = has_permission('edit', request.context, request)
+    return dict(update=request.validated['update'], can_edit=can_edit)
 
 
 @update_request.post(schema=bodhi.schemas.UpdateRequestSchema,

@@ -406,12 +406,25 @@ $(document).ready(function(){
   </div>
 
   <div class="col-md-7">
+    % if can_edit:
+    % if update.locked:
+    <div class="alert alert-info" role="alert">
+      <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+      <span class="sr-only">Locked:</span>
+      This update is currently locked and cannot be modified.
+    </div>
+    % else:
+    TODO - lots of conditionals go into figuring out what buttons get shown here...
+    ${ self.util.request2html('testing', True) | n}
+    ${ self.util.request2html('stable', True) | n}
+    % endif
+    <hr />
+    % endif
     % if update.notes:
     <h3 class="nomargin">Notes about this update:</h3>
     ${self.util.markup(update.notes) | n}
-    % endif
-
     <hr />
+    % endif
 
     % if update.bugs:
     <h3>Related Bugs <span class="badge">${len(update.bugs)}</span></h3>
