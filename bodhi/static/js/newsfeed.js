@@ -48,6 +48,7 @@ var generate_newsfeed = function(url, badge_ids) {
             data: $.param({
                 category: 'bodhi',
                 grouped: true,
+                delta: 1209600, // two weeks in seconds (this makes it faster)
             }),
             dataType: 'jsonp',
             success: function(data) { messages.bodhi = data.raw_messages; },
@@ -63,7 +64,8 @@ var generate_newsfeed = function(url, badge_ids) {
                     'org.fedoraproject.prod.fedbadges.badge.award',
                     'org.fedoraproject.stg.fedbadges.badge.award',
                 ],
-                meta: ['subtitle', 'link', 'icon', 'date']
+                meta: ['subtitle', 'link', 'icon', 'date'],
+                delta: 1209600, // two weeks in seconds (this makes it faster)
             }, true),
             dataType: 'jsonp',
             success: function(data) {
