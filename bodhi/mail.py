@@ -410,8 +410,8 @@ def send_mail(from_addr, to_addr, subject, body_text):
             'To: %s' % to_addr,
             'Subject: %s' % subject,
             body_text))
-            server = smtplib.SMTP(smtp_server)
-            server.sendmail(from_addr, [to_addr], body)
+        server = smtplib.SMTP(smtp_server)
+        server.sendmail(from_addr, [to_addr], body)
     except:
         log.exception('Unable to send mail')
     finally:
