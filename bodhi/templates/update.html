@@ -218,9 +218,8 @@
 $(document).ready(function() {
     var messenger = Messenger({theme: 'flat'});
     var update_id = '${update.title}';
-    $("#updatebuttons #edit").click(function() {
-        alert('not implemented');
-    });
+    $("#updatebuttons #edit").attr('href',
+        '${request.route_url("update_edit", id=update.title)}');
 
     $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
       $("#updatebuttons #" + action).click(function() {

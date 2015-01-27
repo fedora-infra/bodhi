@@ -101,6 +101,7 @@ def new_update(request):
     if not user:
         raise HTTPForbidden("You must be logged in.")
     return dict(
+        update=None,
         types=reversed(bodhi.models.UpdateType.values()),
         severities=reversed(bodhi.models.UpdateSeverity.values()),
         suggestions=reversed(bodhi.models.UpdateSuggestion.values()),

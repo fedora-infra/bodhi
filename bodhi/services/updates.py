@@ -43,6 +43,11 @@ update = Service(name='update', path='/updates/{id}',
                  description='Update submission service',
                  acl=bodhi.security.package_maintainers_only_acl)
 
+update_edit = Service(name='update_edit', path='/updates/{id}/edit',
+                 validators=(validate_update_id,),
+                 description='Update submission service',
+                 acl=bodhi.security.package_maintainers_only_acl)
+
 updates = Service(name='updates', path='/updates/',
                   acl=bodhi.security.packagers_allowed_acl,
                   description='Update submission service')
@@ -59,6 +64,17 @@ def get_update(request):
     """Return a single update from an id, title, or alias"""
     can_edit = has_permission('edit', request.context, request)
     return dict(update=request.validated['update'], can_edit=can_edit)
+
+
+@update_edit.get(accept="text/html", renderer="new_update.html")
+def get_update_for_editing(request):
+    """Return a single update from an id, title, or alias for the edit form"""
+    return dict(
+        update=request.validated['update'],
+        types=reversed(bodhi.models.UpdateType.values()),
+        severities=reversed(bodhi.models.UpdateSeverity.values()),
+        suggestions=reversed(bodhi.models.UpdateSuggestion.values()),
+    )
 
 
 @update_request.post(schema=bodhi.schemas.UpdateRequestSchema,
