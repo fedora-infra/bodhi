@@ -19,7 +19,7 @@ from pyramid.security import has_permission
 from sqlalchemy.sql import or_
 
 from bodhi import log
-from bodhi.exceptions import LockedUpdateException
+from bodhi.exceptions import BodhiException, LockedUpdateException
 from bodhi.models import Update, Build, Bug, CVE, Package, UpdateRequest
 import bodhi.schemas
 import bodhi.security
@@ -82,7 +82,11 @@ def set_request(request):
                                'Requirement not met %s' % reason)
             return
 
-    update.set_request(action, request)
+    try:
+        update.set_request(action, request)
+    except BodhiException as e:
+        request.errors.add('body', 'request', e.message)
+
     return dict(update=update)
 
 

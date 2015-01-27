@@ -51,7 +51,7 @@ from bodhi.util import (
 )
 import bodhi.util
 from bodhi.models.enum import DeclEnum, EnumSymbol
-from bodhi.exceptions import LockedUpdateException
+from bodhi.exceptions import BodhiException, LockedUpdateException
 from bodhi.config import config
 from bodhi.bugs import bugtracker
 
@@ -213,6 +213,7 @@ class UpdateRequest(DeclEnum):
     stable = 'stable', 'stable'
     obsolete = 'obsolete', 'obsolete'
     unpush = 'unpush', 'unpush'
+    revoke = 'revoke', 'revoke'
 
 
 class UpdateSeverity(DeclEnum):
@@ -1457,7 +1458,7 @@ class Update(Base):
         self.untag()
 
         for build in self.builds:
-            koji.tagBuild(self.candidate_tag, build.nvr, force=True)
+            koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
 
         self.pushed = False
         self.status = UpdateStatus.unpushed
@@ -1540,7 +1541,11 @@ class Update(Base):
         requirements = tokenize(self.requirements or '')
         requirements = list(requirements)
 
-        results = bodhi.util.taskotron_results(settings, title=self.title)
+        try:
+            results = bodhi.util.taskotron_results(settings, title=self.title)
+        except IOError as e:
+            return False, "Failed to talk to taskotron: %r" % e.message
+
         for testcase in requirements:
             relevant = [result for result in results
                         if result['testcase']['name'] == testcase]
