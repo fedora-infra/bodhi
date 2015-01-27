@@ -984,7 +984,7 @@ class Update(Base):
             return
         elif action is UpdateRequest.revoke:
             self.revoke()
-            flash_log("%s has been obsoleted" % self.title)
+            flash_log("%s has been revoked" % self.title)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=request.user.name))
             return
