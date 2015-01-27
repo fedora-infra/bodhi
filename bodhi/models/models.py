@@ -1468,9 +1468,14 @@ class Update(Base):
         """ Remove pending request for this update """
         log.debug("Revoking %s" % self.title)
 
-        if self.status is not UpdateStatus.pending:
-            raise BodhiException("Can only revoke a pending update, not "
-                                 "one that is %s" % self.status.description)
+        if not self.request:
+            raise BodhiException(
+                "Can only revoke an update with an existing request")
+
+        if not self.status in [UpdateStatus.pending, UpdateStatus.testing]:
+            raise BodhiException(
+                "Can only revoke a pending or testing update, not "
+                "one that is %s" % self.status.description)
 
         # Remove the 'pending' koji tags from this update so taskotron stops
         # evalulating them.
