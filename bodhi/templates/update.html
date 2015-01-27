@@ -215,6 +215,40 @@
 </script>
 
 <script type="text/javascript">
+$(document).ready(function() {
+    var messenger = Messenger({theme: 'flat'});
+    var update_id = '${update.title}';
+    $("#updatebuttons #edit").attr('href',
+        '${request.route_url("update_edit", id=update.title)}');
+
+    $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
+      $("#updatebuttons #" + action).click(function() {
+          var url = '${request.route_url("update_request", id=update.title)}';
+          $.ajax({
+              url: url,
+              data: {request: action},
+              method: 'POST',
+              dataType: 'json',
+              success: function(response) {
+                // Just reload the page if all went well..
+                location.reload();
+              },
+              error: function(response) {
+                $.each(response.responseJSON.errors, function(i, error) {
+                    msg = messenger.post({
+                      message: error.description,
+                      type: "error"
+                    });
+                });
+              },
+          });
+      });
+    });
+
+});
+</script>
+
+<script type="text/javascript">
 var form;
 $(document).ready(function(){
   CommentsForm = function() {};
@@ -406,12 +440,44 @@ $(document).ready(function(){
   </div>
 
   <div class="col-md-7">
+    % if can_edit:
+      % if update.locked:
+        <div class="alert alert-info" role="alert">
+          <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+          <span class="sr-only">Locked:</span>
+          This update is currently locked and cannot be modified.
+        </div>
+      % else:
+        <div id='updatebuttons' class="btn-group pull-right" role="group" aria-label="...">
+        % if not update.pushed:
+          <a href="#" id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
+          % if update.request is None:
+            % if update.status.description != 'testing':
+            <a href="#" id='testing' class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Testing</a>
+            % endif
+            % if update.status.description != 'stable':
+              <a href="#" id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
+            % endif
+          % else:
+            <a href="#" id='revoke' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Revoke</a>
+          % endif
+        % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in groups)):
+          <a href="#" id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
+          % if update.status.description != 'testing':
+            <a href="#" id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
+          % endif
+          <a href="#" id='unpush' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Unpush</a>
+        % endif
+        </div>
+        <div class="clearfix"></div>
+      % endif
+      <hr />
+    % endif
     % if update.notes:
     <h3 class="nomargin">Notes about this update:</h3>
     ${self.util.markup(update.notes) | n}
-    % endif
-
     <hr />
+    % endif
 
     % if update.bugs:
     <h3>Related Bugs <span class="badge">${len(update.bugs)}</span></h3>

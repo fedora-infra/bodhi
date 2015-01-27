@@ -193,10 +193,8 @@ $(document).ready(function() {
         theform.submit();
     });
 
-    // Pre-select radio buttons
-    $("#radios dd label:first-child input").attr('checked', true);
-
     // Lastly, hide our warning and show the main form
     $("#js-warning").addClass('hidden');
     $("#new-update-form").removeClass('hidden');
+    update_markdown_preview($("#notes").val());
 });

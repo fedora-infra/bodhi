@@ -4,7 +4,13 @@
   <div id='js-warning' class="col-md-6 col-md-offset-3">
     <div class=" panel panel-warning">
       <div class="panel-heading clearfix">
-        <span class="pull-left">New Update Form Requires JavaScript</span>
+        <span class="pull-left">
+          % if not update:
+          New Update Form Requires JavaScript
+          % else:
+          Edit Update Form Requires JavaScript
+          % endif
+        </span>
       </div>
       <div class="panel-body">
         <p class="lead">This page only works with JavaScript enabled.</p>
@@ -23,7 +29,22 @@
 
     <div class="row">
       <div class="col-md-12">
-        <h2 class="pull-left">New Update</span>
+        % if not update:
+          <h2 class="pull-left">New Update</span>
+        % else:
+          <h2 class="pull-left">Edit
+            % if update.alias:
+            ${update.alias}
+            % else:
+            ${update.get_title(', ', 2, ", &hellip;") | n}
+            <div>
+              <span title="${(', ').join(map(lambda x: x.nvr, update.builds[2:]))}">
+                <small>${ "(+ " + str(len(update.builds) - 2) + " more)" if len(update.builds) > 2 else "" }</small>
+              </span>
+            </div>
+          % endif
+        </h2>
+        % endif
       </div>
     </div>
 
@@ -54,7 +75,18 @@
             <input id="builds-adder" class="form-control noui" type="text"
                 placeholder="Add a build, like package-0.2.1-5.fc20">
             <input name="builds" type="hidden"/>
-            <div id="candidate-checkboxes"> </div>
+            <div id="candidate-checkboxes">
+
+              % if update:
+                % for build in update.builds:
+                  <div class="checkbox"><label>
+                      <input name="builds" data-build-nvr="${build.nvr}"
+                      type="checkbox" value="${build.nvr}" checked> ${build.nvr}
+                  </label></div>
+                % endfor
+              % endif
+
+            </div>
           </div>
         </div>
       </div>
@@ -69,7 +101,21 @@
             <input id="bugs-adder" class="form-control noui" type="text"
                    placeholder="Add #RHBZ">
             <input name="bugs" type="hidden"/>
-            <div id="bugs-checkboxes"></div>
+            <div id="bugs-checkboxes">
+
+              % if update:
+                % for bug in update.bugs:
+                <div class="checkbox">
+                  <label>
+                    <input name="bugs" type="checkbox" value="${bug.bug_id}" checked>
+                    <a href="https://bugzilla.redhat.com/show_bug.cgi?id=${bug.bug_id}">
+                      #${bug.bug_id}</a> ${bug.title}
+                  </label>
+                </div>
+                % endfor
+              % endif
+
+            </div>
           </div>
         </div>
       </div>
@@ -84,7 +130,11 @@
           </div>
           <div class="panel-body">
             <textarea class="form-control" id="notes" name="notes" rows="6"
-              placeholder="Update notes go here.  They're really *really* useful, so feel free to write as you please.  You can use **markdown** to make them look nice." required="true"></textarea>
+              placeholder="Update notes go here.  They're really *really* useful, so feel free to write as you please.  You can use **markdown** to make them look nice." required="true">
+% if update:
+${update.notes}
+% endif
+</textarea>
           </div>
         </div>
       </div>
@@ -96,7 +146,7 @@
             Preview</span>
           </div>
           <div class="panel-body">
-            <span id="preview"><h3><small>Preview</small></h3></span>
+            <div id="preview"><h3><small>Preview</small></h3></div>
           </div>
         </div>
       </div>
@@ -118,8 +168,11 @@
                   <dd>
                     % for value in types:
                     <label class="radio-inline">
-                      <input type="radio" name="type" value="${value}">
-                      ${value}
+                      <input type="radio" name="type" value="${value}"
+                      % if update and update.type.description == value:
+                      checked="checked"
+                      % endif
+                      > ${value}
                     </label>
                     % endfor
                   </dd>
@@ -129,7 +182,11 @@
                   <dd>
                     % for value in severities:
                     <label class="radio-inline">
-                      <input type="radio" name="severity" value="${value}"> ${value}
+                      <input type="radio" name="severity" value="${value}"
+                      % if update and update.severity.description == value:
+                      checked="checked"
+                      % endif
+                      > ${value}
                     </label>
                     % endfor
                   </dd>
@@ -139,7 +196,11 @@
                   <dd>
                     % for value in suggestions:
                     <label class="radio-inline">
-                      <input type="radio" name="suggest" value="${value}"> ${value}
+                      <input type="radio" name="suggest" value="${value}"
+                      % if update and update.suggest.description == value:
+                      checked="checked"
+                      % endif
+                      > ${value}
                     </label>
                     % endfor
                   </dd>
@@ -148,7 +209,13 @@
 
                   <dt data-toggle="tooltip" title="If checked, then associated bugs in RHBZ will be closed once this update is pushed to the stable repository.">
                   Close bugs on stable?</dt>
-                  <dd> <input type="checkbox" name="close_bugs" checked> </dd>
+                  <dd> <input type="checkbox" name="close_bugs"
+                      % if update and update.close_bugs:
+                      checked
+                      % elif not update:
+                      checked
+                      % endif
+                    ></dd>
                 </dl>
               </div>
 
@@ -156,39 +223,80 @@
                 <dl id='radios' class="dl-horizontal">
                   <dt data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough positive karma has been given.">
                   Auto-request stable?</dt>
-                  <dd> <input type="checkbox" name="autokarma" checked> </dd>
-
+                  <dd> <input type="checkbox" name="autokarma"
+                      % if update and update.stable_karma != None and update.unstable_karma != None:
+                      checked
+                      % elif not update:
+                      checked
+                      % endif
+                    ></dd>
                   <dt data-toggle="tooltip" title="This is the threshold of positive karma required to automatically push an update from testing to stable.">
                   Stable karma</dt>
-                  <dd> <input type="number" name="stable_karma" min="1"
-                  required value="3"> </dd>
+                  <dd> <input type="number" name="stable_karma" min="1" required
+                      % if update:
+                      value="${update.stable_karma}"
+                      % elif not update:
+                      value="3"
+                      % endif
+                    ></dd>
 
                   <dt data-toggle="tooltip" title="This is the threshold of negative karma required to automatically unpush an update from testing.">
                   Unstable karma</dt>
-                  <dd> <input type="number" name="unstable_karma" max="-1"
-                  required value="-3"> </dd>
+                  <dd> <input type="number" name="unstable_karma" max="-1" required
+                      % if update:
+                      value="${update.unstable_karma}"
+                      % elif not update:
+                      value="-3"
+                      % endif
+                    ></dd>
 
                   <hr/>
 
                   <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated bugs before the update can pass to stable.  If your update has no associated bugs, this option has no effect.">
                   Require bugs
                   </dt>
-                  <dd> <input type="checkbox" name="require_bugs" checked> </dd>
+                  <dd> <input type="checkbox" name="require_bugs"
+                      % if update and update.require_bugs:
+                      checked
+                      % elif not update:
+                      checked
+                      % endif
+                    ></dd>
 
                   <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated wiki test cases before the update can pass to stable.  If your update has no associated wiki test cases, this option has no effect.">
                   Require testcases</dt>
-                  <dd> <input type="checkbox" name="require_testcases" checked> </dd>
+                  <dd> <input type="checkbox" name="require_testcases"
+                      % if update and update.require_testcases:
+                      checked
+                      % elif not update:
+                      checked
+                      % endif
+                    ></dd>
 
                   <dt data-toggle="tooltip" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">
                   Required checks <a target="_blank" href="https://fedoraproject.org/wiki/Taskotron/Tasks"><span class="glyphicon glyphicon-question-sign"></span></a></dt>
                   <dd> <input type="text" name="requirements"
-                  placeholder="Required taskotron tasks"></dd>
+                  placeholder="Required taskotron tasks"
+                      % if update and update.requirements:
+                      value="${update.requirements}"
+                      % endif
+                    ></dd>
 
                 </dl>
               </div>
             </div>
 
-            <button id="submit" class="btn btn-success">Submit</button>
+            % if update:
+            <input type="hidden" name="edited" value="${update.title}">
+            % endif
+
+            <button id="submit" class="btn btn-success">
+              % if update:
+              Edit
+              % else:
+              Submit
+              % endif
+            </button>
           </div>
         </div>
       </div>
@@ -198,3 +306,8 @@
 </div>
 <script src="${request.static_url('bodhi:static/js/update_form.js')}"></script>
 <script> $(document).ready(function() { $('.panel-heading > span, dt').tooltip(); }); </script>
+% if not update:
+<!-- Pre-select the radio buttons -->
+<script> $(document).ready(function() { $("#radios dd label:first-child input").attr('checked', true); }); </script>
+% endif
+

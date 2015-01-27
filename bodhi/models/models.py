@@ -51,7 +51,7 @@ from bodhi.util import (
 )
 import bodhi.util
 from bodhi.models.enum import DeclEnum, EnumSymbol
-from bodhi.exceptions import LockedUpdateException
+from bodhi.exceptions import BodhiException, LockedUpdateException
 from bodhi.config import config
 from bodhi.bugs import bugtracker
 
@@ -213,6 +213,7 @@ class UpdateRequest(DeclEnum):
     stable = 'stable', 'stable'
     obsolete = 'obsolete', 'obsolete'
     unpush = 'unpush', 'unpush'
+    revoke = 'revoke', 'revoke'
 
 
 class UpdateSeverity(DeclEnum):
@@ -809,7 +810,7 @@ class Update(Base):
                 # Ensure the same number of builds are present
                 if len(oldBuild.update.builds) != len(self.builds):
                     obsoletable = False
-                    submitter = oldBuild.update.submitter
+                    submitter = oldBuild.update.user
                     if submitter and submitter.name != self.user.name:
                         request.session.flash('Please be aware that %s is'
                                 'part of a multi-build update that is currently '
@@ -838,6 +839,10 @@ class Update(Base):
                     self.comment('This update has obsoleted %s, and has '
                                  'inherited its bugs and notes.' % oldBuild.nvr,
                                  author='bodhi')
+
+    def get_tags(self):
+        """ Return all koji tags for all builds on this update. """
+        return list(set(sum([b.get_tags() for b in self.builds], [])))
 
     def get_title(self, delim=' ', limit=None, after_limit='…'):
         all_nvrs = map(lambda x: x.nvr, self.builds)
@@ -977,7 +982,12 @@ class Update(Base):
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=request.user.name))
             return
-
+        elif action is UpdateRequest.revoke:
+            self.revoke()
+            flash_log("%s has been revoked" % self.title)
+            notifications.publish(topic=topic, msg=dict(
+                update=self, agent=request.user.name))
+            return
         elif action is UpdateRequest.stable and pathcheck:
             # Make sure we don't break update paths by trying to push out
             # an update that is older than than the latest.
@@ -1450,11 +1460,35 @@ class Update(Base):
         self.untag()
 
         for build in self.builds:
-            koji.tagBuild(self.candidate_tag, build.nvr, force=True)
+            koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
 
         self.pushed = False
         self.status = UpdateStatus.unpushed
         mail.send_admin('unpushed', self)
+
+    def revoke(self):
+        """ Remove pending request for this update """
+        log.debug("Revoking %s" % self.title)
+
+        if not self.request:
+            raise BodhiException(
+                "Can only revoke an update with an existing request")
+
+        if not self.status in [UpdateStatus.pending, UpdateStatus.testing]:
+            raise BodhiException(
+                "Can only revoke a pending or testing update, not "
+                "one that is %s" % self.status.description)
+
+        # Remove the 'pending' koji tags from this update so taskotron stops
+        # evalulating them.
+        if self.request is UpdateRequest.testing:
+            self.remove_tag(self.release.pending_testing_tag)
+        elif self.request is UpdateRequest.stable:
+            self.remove_tag(self.release.pending_stable_tag)
+
+        self.request = None
+
+        mail.send_admin('revoked', self)
 
     def untag(self):
         """ Untag all of the builds in this update """
@@ -1503,7 +1537,11 @@ class Update(Base):
         requirements = tokenize(self.requirements or '')
         requirements = list(requirements)
 
-        results = bodhi.util.taskotron_results(settings, title=self.title)
+        try:
+            results = bodhi.util.taskotron_results(settings, title=self.title)
+        except IOError as e:
+            return False, "Failed to talk to taskotron: %r" % e.message
+
         for testcase in requirements:
             relevant = [result for result in results
                         if result['testcase']['name'] == testcase]

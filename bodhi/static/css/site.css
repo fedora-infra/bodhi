@@ -144,3 +144,7 @@ ul.updateslist li {
     font-size: 0.9em;
     margin-left: 27px; /* avatar + 2px pad */
 }
+
+#preview {
+    padding: 10px;
+}
