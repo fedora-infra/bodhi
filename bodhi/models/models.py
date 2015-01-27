@@ -1479,17 +1479,6 @@ class Update(Base):
         elif self.request is UpdateRequest.stable:
             self.remove_tag(self.release.pending_stable_tag)
 
-        # If we're revoking a request we need to set the status back to what it
-        # was before the request.  The only way to tell what status this update
-        # was in before the request is to look at koji tags.
-        current_tags = self.get_tags()
-        if self.release.testing_tag in current_tags:
-            self.status = UpdateRequest.testing
-        elif self.release.stable_tag in current_tags:
-            self.status = UpdateRequest.stable
-        else:
-            self.status = None
-
         self.request = None
 
         mail.send_admin('revoked', self)
