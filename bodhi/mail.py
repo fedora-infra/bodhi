@@ -16,7 +16,7 @@ import logging
 import smtplib
 
 from textwrap import wrap
-from kitchen.text.converters import to_unicode
+from kitchen.text.converters import to_unicode, to_bytes
 from kitchen.iterutils import iterate
 
 from .util import get_rpm_header
@@ -400,6 +400,10 @@ def send_mail(from_addr, to_addr, subject, body_text):
     if not from_addr:
         log.warn('Unable to send mail: bodhi_email not defined in the config')
         return
+    from_addr = to_bytes(from_addr)
+    to_addr = to_bytes(to_addr)
+    subject = to_bytes(subject)
+    body_text = to_bytes(body_text)
     body = '\r\n'.join((
         'From: %s' % from_addr,
         'To: %s' % to_addr,
