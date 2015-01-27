@@ -13,11 +13,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import logging
+import smtplib
 
 from textwrap import wrap
 from kitchen.text.converters import to_unicode
+from kitchen.iterutils import iterate
 
 from .util import get_rpm_header
+from .config import config
 
 log = logging.getLogger(__name__)
 
@@ -386,42 +389,41 @@ def get_template(update, use_template='fedora_errata_template'):
 
     return templates
 
-def send_mail(sender, to, subject, body):
-    message = turbomail.Message(sender, to, subject)
-    message.plain = body
-    try:
-        log.debug("Sending mail: %r" % message.plain)
-        message.send()
-    except MailNotEnabledException:
-        log.warning("TurboMail is not enabled!")
-    except Exception, e:
-        log.exception(e)
-        log.error("Exception thrown when trying to send mail: %s" % str(e))
+
+def send_mail(from_addr, to_addr, subject, body_text):
+    smtp_server = config.get('smtp_server')
+    if not smtp_server:
+        log.debug('Not sending email: No smtp_server defined')
+        return
+    if not from_addr:
+        from_addr = config.get('bodhi_email')
+    if not from_addr:
+        log.warn('Unable to send mail: bodhi_email not defined in the config')
+        return
+    body = '\r\n'.join((
+        'From: %s' % from_addr,
+        'To: %s' % to_addr,
+        'Subject: %s' % subject,
+        body_text))
+    server = smtplib.SMTP(smtp_server)
+    server.sendmail(from_addr, [to_addr], body)
+    server.quit()
+
 
 def send(to, msg_type, update, sender=None):
     """ Send an update notification email to a given recipient """
-    # TODO: port to pyramid mail sender?
-    return
-
-    if not sender:
-        sender = config.get('bodhi_email')
-    if not sender:
-        log.warning("bodhi_email not defined in app.cfg; unable to send mail")
-        return
-    if type(to) not in (list, set, tuple):
-        to = [to]
-    for person in to:
+    for person in iterate(to):
         send_mail(sender, person, '[Fedora Update] [%s] %s' % (msg_type,
-                  update.title), messages[msg_type]['body'] % 
+                  update.title), messages[msg_type]['body'] %
                   messages[msg_type]['fields'](update))
+
 
 def send_releng(subject, body):
     """ Send the Release Engineering team a message """
     send_mail(config.get('bodhi_email'), config.get('release_team_address'),
               subject, body)
 
+
 def send_admin(msg_type, update, sender=None):
     """ Send an update notification to the admins/release team. """
-    # TODO: port to pyramid mail handler
-    return
     send(config.get('release_team_address'), msg_type, update, sender)
