@@ -435,7 +435,7 @@ def suggestion2html(context, suggestion):
     return "<span class='label label-%s'>%s</span>" % (cls, suggestion)
 
 
-def request2html(context, request, link=False):
+def request2html(context, request):
     request = unicode(request)
     cls = {
         'unpush': 'danger',
@@ -444,10 +444,7 @@ def request2html(context, request, link=False):
         'stable': 'success',
     }.get(request)
 
-    if not link:
-        return "<span class='label label-%s'>%s</span>" % (cls, request)
-    else:
-        return "<a href='#' class='btn btn-%s'>%s</a>" % (cls, request)
+    return "<span class='label label-%s'>%s</span>" % (cls, request)
 
 
 def update2html(context, update):
