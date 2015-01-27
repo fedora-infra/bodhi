@@ -839,6 +839,10 @@ class Update(Base):
                                  'inherited its bugs and notes.' % oldBuild.nvr,
                                  author='bodhi')
 
+    def get_tags(self):
+        """ Return all koji tags for all builds on this update. """
+        return list(set(sum([b.get_tags() for b in self.builds], [])))
+
     def get_title(self, delim=' ', limit=None, after_limit='…'):
         all_nvrs = map(lambda x: x.nvr, self.builds)
         nvrs     = all_nvrs[:limit]
@@ -977,7 +981,12 @@ class Update(Base):
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=request.user.name))
             return
-
+        elif action is UpdateRequest.revoke:
+            self.revoke()
+            flash_log("%s has been obsoleted" % self.title)
+            notifications.publish(topic=topic, msg=dict(
+                update=self, agent=request.user.name))
+            return
         elif action is UpdateRequest.stable and pathcheck:
             # Make sure we don't break update paths by trying to push out
             # an update that is older than than the latest.
@@ -1453,6 +1462,36 @@ class Update(Base):
         self.pushed = False
         self.status = UpdateStatus.unpushed
         mail.send_admin('unpushed', self)
+
+    def revoke(self):
+        """ Remove pending request for this update """
+        log.debug("Revoking %s" % self.title)
+
+        if self.status is not UpdateStatus.pending:
+            raise BodhiException("Can only revoke a pending update, not "
+                                 "one that is %s" % self.status.description)
+
+        # Remove the 'pending' koji tags from this update so taskotron stops
+        # evalulating them.
+        if self.request is UpdateRequest.testing:
+            self.remove_tag(self.release.pending_testing_tag)
+        elif self.request is UpdateRequest.stable:
+            self.remove_tag(self.release.pending_stable_tag)
+
+        # If we're revoking a request we need to set the status back to what it
+        # was before the request.  The only way to tell what status this update
+        # was in before the request is to look at koji tags.
+        current_tags = self.get_tags()
+        if self.release.testing_tag in current_tags:
+            self.status = UpdateRequest.testing
+        elif self.release.stable_tag in current_tags:
+            self.status = UpdateRequest.stable
+        else:
+            self.status = None
+
+        self.request = None
+
+        mail.send_admin('revoked', self)
 
     def untag(self):
         """ Untag all of the builds in this update """
