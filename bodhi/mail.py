@@ -400,18 +400,22 @@ def send_mail(from_addr, to_addr, subject, body_text):
     if not from_addr:
         log.warn('Unable to send mail: bodhi_email not defined in the config')
         return
-    from_addr = to_bytes(from_addr)
-    to_addr = to_bytes(to_addr)
-    subject = to_bytes(subject)
-    body_text = to_bytes(body_text)
-    body = '\r\n'.join((
-        'From: %s' % from_addr,
-        'To: %s' % to_addr,
-        'Subject: %s' % subject,
-        body_text))
-    server = smtplib.SMTP(smtp_server)
-    server.sendmail(from_addr, [to_addr], body)
-    server.quit()
+    try:
+        from_addr = to_bytes(from_addr)
+        to_addr = to_bytes(to_addr)
+        subject = to_bytes(subject)
+        body_text = to_bytes(body_text)
+        body = '\r\n'.join((
+            'From: %s' % from_addr,
+            'To: %s' % to_addr,
+            'Subject: %s' % subject,
+            body_text))
+            server = smtplib.SMTP(smtp_server)
+            server.sendmail(from_addr, [to_addr], body)
+    except:
+        log.exception('Unable to send mail')
+    finally:
+        server.quit()
 
 
 def send(to, msg_type, update, sender=None):
