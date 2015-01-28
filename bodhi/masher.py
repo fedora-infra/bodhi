@@ -300,7 +300,7 @@ class MasherThread(threading.Thread):
         for update in list(self.updates):
             if not update.request is self.request:
                 reason = "Request %s inconsistent with mash request %s" % (
-                    update.request, self.Request)
+                    update.request, self.request)
                 self.eject_from_mash(update, reason)
                 continue
 
