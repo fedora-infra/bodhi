@@ -33,8 +33,8 @@ messages = {
         'body'    : u"""\
 %(email)s has submitted a new update for %(release)s\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
-                        'email'     : identity.current.user_name,
+        'fields'  : lambda agent, x: {
+                        'email'     : agent,
                         'release'   : x.release.long_name,
                         'updatestr' : unicode(x)
                     }
@@ -44,9 +44,9 @@ messages = {
         'body'    : u"""\
 %(email)s has deleted the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
+        'fields'  : lambda agent, x: {
                         'package'   : x.title,
-                        'email'     : identity.current.user_name,
+                        'email'     : agent,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : unicode(x)
                     }
@@ -56,9 +56,9 @@ messages = {
         'body'    : u"""\
 %(email)s has edited the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
+        'fields'  : lambda agent, x: {
                         'package'   : x.title,
-                        'email'     : identity.current.user_name,
+                        'email'     : agent,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : unicode(x)
                     }
@@ -68,7 +68,7 @@ messages = {
         'body'    : u"""\
 %(package)s has been successfully pushed for %(release)s.\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
+        'fields'  : lambda agent, x: {
                         'package'   : x.title,
                         'release'   : '%s %s' % (x.release.long_name, x.status),
                         'updatestr' : unicode(x)
@@ -79,8 +79,8 @@ messages = {
         'body'    : u"""\
 %(submitter)s has requested the pushing of the following update to testing:\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
-                        'submitter' : identity.current.user_name,
+        'fields'  : lambda agent, x: {
+                        'submitter' : agent,
                         'updatestr' : unicode(x)
                     }
     },
@@ -89,8 +89,8 @@ messages = {
         'body'    : u"""\
 %(submitter)s has requested the unpushing of the following update:\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
-                        'submitter' : identity.current.user_name,
+        'fields'  : lambda agent, x: {
+                        'submitter' : agent,
                         'updatestr' : unicode(x)
                     }
     },
@@ -99,8 +99,8 @@ messages = {
         'body'    : u"""\
 %(submitter)s has obsoleted the following update:\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
-                        'submitter' : identity.current.user_name,
+        'fields'  : lambda agent, x: {
+                        'submitter' : agent,
                         'updatestr' : unicode(x)
                     }
     },
@@ -109,7 +109,7 @@ messages = {
         'body'    : u"""\
 The following update has been unpushed\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
+        'fields'  : lambda agent, x: {
                         'updatestr' : unicode(x)
                     }
     },
@@ -118,8 +118,8 @@ The following update has been unpushed\n\n%(updatestr)s
         'body'    : u"""\
 %(submitter)s has revoked the request of the following update:\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
-                        'submitter' : identity.current.user_name,
+        'fields'  : lambda agent, x: {
+                        'submitter' : agent,
                         'updatestr' : unicode(x)
                     }
         },
@@ -128,8 +128,8 @@ The following update has been unpushed\n\n%(updatestr)s
         'body'    : u"""\
 %(submitter)s has requested the pushing of the following update stable:\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
-                        'submitter' : identity.current.user_name,
+        'fields'  : lambda agent, x: {
+                        'submitter' : agent,
                         'updatestr' : unicode(x)
                     }
     },
@@ -138,7 +138,7 @@ The following update has been unpushed\n\n%(updatestr)s
         'body'    : u"""\
 The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
+        'fields'  : lambda agent, x: {
                         'updatestr' : unicode(x)
                     }
     },
@@ -148,9 +148,9 @@ The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 The following update has reached a karma of %(karma)d and is being automatically
 marked as stable.\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
+        'fields'  : lambda agent, x: {
                         'karma'     : x.karma,
-                        'updatestr' : unicode(x) 
+                        'updatestr' : unicode(x)
                     }
     },
 
@@ -159,9 +159,9 @@ marked as stable.\n\n%(updatestr)s
 The following update has reached a karma of %(karma)d and is being automatically
 marked as unstable.  This update will be unpushed from the repository.\n\n%(updatestr)s
 """,
-        'fields'  : lambda x: {
+        'fields'  : lambda agent, x: {
                         'karma'     : x.karma,
-                        'updatestr' : unicode(x) 
+                        'updatestr' : unicode(x)
                     }
     },
 
@@ -175,7 +175,7 @@ To reply to this comment, please visit the URL at the bottom of this mail
 
 %(updatestr)s
 """,
-        'fields' : lambda x: {
+        'fields' : lambda agent, x: {
                         'package'   : x.title,
                         'comment'   : x.comments[-1],
                         'updatestr' : unicode(x)
@@ -202,7 +202,7 @@ or by running the following command with the bodhi-client:
 
 %(updatestr)s
 """,
-        'fields' : lambda x: {
+        'fields' : lambda agent, x: {
                         'package'     : x.title,
                         'stablekarma' : x.builds[0].package.stable_karma,
                         'updatestr'   : unicode(x)
@@ -220,9 +220,9 @@ the link below:
 
     https://admin.fedoraproject.org/updates/approve/%(package)s
 """,
-        'fields'  : lambda x: {
+        'fields'  : lambda agent, x: {
                         'package'   : x.title,
-                        'submitter' : identity.current.user_name,
+                        'submitter' : agent,
                         'updatestr' : unicode(x)
                     }
     },
@@ -420,10 +420,14 @@ def send_mail(from_addr, to_addr, subject, body_text):
 
 def send(to, msg_type, update, sender=None):
     """ Send an update notification email to a given recipient """
+    # The value of agent used to be identity.current.user_name in TG land, but
+    # now we need to somehow get it off of the pyramid request, or have it
+    # passed into this function.
+    agent = 'TBD'
     for person in iterate(to):
         send_mail(sender, person, '[Fedora Update] [%s] %s' % (msg_type,
                   update.title), messages[msg_type]['body'] %
-                  messages[msg_type]['fields'](update))
+                  messages[msg_type]['fields'](agent, update))
 
 
 def send_releng(subject, body):
