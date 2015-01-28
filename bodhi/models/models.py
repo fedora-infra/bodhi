@@ -1492,7 +1492,7 @@ class Update(Base):
 
         self.request = None
 
-        mail.send_admin('revoked', self)
+        mail.send_admin('revoke', self)
 
     def untag(self):
         """ Untag all of the builds in this update """
