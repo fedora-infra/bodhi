@@ -583,7 +583,8 @@ def validate_override_build(request):
         else:
             # The build is tagged neither as a candidate or testing, it can't
             # be in a buildroot override
-            request.errors.add('body', 'nvr', 'Invalid build')
+            request.errors.add('body', 'nvr', 'Invalid build.  It must be '
+                               'tagged as either candidate or testing.')
             return
 
     else:
