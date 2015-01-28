@@ -783,6 +783,9 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
+        notifications.publish(topic='update.edit', msg=dict(
+            update=up, agent=request.user.name))
+
         return up
 
     def obsolete_older_updates(self, request):
