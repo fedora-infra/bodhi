@@ -596,8 +596,10 @@ class MasherThread(threading.Thread):
                 notifications.publish(topic="mashtask.sync.done", msg=dict(
                     repo=self.id))
                 return
-            log.debug("master repomd.xml doesn't match! %s != %s",
-                      checksum, newsum)
+
+            # This seems like a pretty big deal..
+            log.error("master repomd.xml doesn't match! %s != %s for %r",
+                      checksum, newsum, self.id)
 
     def send_notifications(self):
         log.info('Sending notifications')
