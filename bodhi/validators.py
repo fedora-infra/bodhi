@@ -556,6 +556,25 @@ def validate_override_build(request):
     build = Build.get(nvr, request.db)
 
     if build is not None:
+
+        if not build.release:
+            # Oddly, the build has no associated release.  Let's try to figure
+            # that out and apply it.
+            tag_types, tag_rels = Release.get_tags()
+            valid_tags = tag_types['candidate'] + tag_types['testing']
+
+            tags = [tag['name'] for tag in request.koji.listTags(nvr)
+                    if tag['name'] in valid_tags]
+
+            release = Release.from_tags(tags, request.db)
+
+            if release is None:
+                request.errors.add('body', 'nvr', 'Invalid build.  Couldn\'t '
+                                   'determine release from koji tags.')
+                return
+
+            build.release = release
+
         for tag in build.get_tags():
             if tag in (build.release.candidate_tag, build.release.testing_tag):
                 # The build is tagged as a candidate or testing
@@ -564,7 +583,8 @@ def validate_override_build(request):
         else:
             # The build is tagged neither as a candidate or testing, it can't
             # be in a buildroot override
-            request.errors.add('body', 'nvr', 'Invalid build')
+            request.errors.add('body', 'nvr', 'Invalid build.  It must be '
+                               'tagged as either candidate or testing.')
             return
 
     else:
