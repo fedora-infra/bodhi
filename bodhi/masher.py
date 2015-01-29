@@ -598,7 +598,7 @@ class MasherThread(threading.Thread):
                 return
 
             # This seems like a pretty big deal..
-            log.error("master repomd.xml doesn't match! %s != %s for %r",
+            log.debug("master repomd.xml doesn't match! %s != %s for %r",
                       checksum, newsum, self.id)
 
     def send_notifications(self):
