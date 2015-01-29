@@ -223,6 +223,7 @@ $(document).ready(function() {
 
     $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
       $("#updatebuttons #" + action).click(function() {
+          cabbage.spin(); // for real!
           var url = '${request.route_url("update_request", id=update.title)}';
           $.ajax({
               url: url,
@@ -230,10 +231,12 @@ $(document).ready(function() {
               method: 'POST',
               dataType: 'json',
               success: function(response) {
+                cabbage.finish();
                 // Just reload the page if all went well..
                 location.reload();
               },
               error: function(response) {
+                cabbage.finish();
                 $.each(response.responseJSON.errors, function(i, error) {
                     msg = messenger.post({
                       message: error.description,
