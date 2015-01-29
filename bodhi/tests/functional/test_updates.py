@@ -795,7 +795,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'request')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"impossible" is not one of unpush, testing, obsolete, stable')
+                          '"impossible" is not one of unpush, testing, revoke,'
+                          ' obsolete, stable')
 
     def test_list_updates_by_severity(self):
         res = self.app.get('/updates/', {"severity": "unspecified"})
@@ -1199,7 +1200,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                                   {'request': 'foo'}, status=400)
         resp = resp.json_body
         eq_(resp['status'], 'error')
-        eq_(resp['errors'][0]['description'], u'"foo" is not one of unpush, testing, obsolete, stable')
+        eq_(resp['errors'][0]['description'], u'"foo" is not one of unpush, testing, revoke, obsolete, stable')
 
         # Now try with None
         resp = self.app.post_json('/updates/%s/request' % args['builds'],
