@@ -36,7 +36,7 @@ requires = [
 
     # for captchas
     'cryptography',
-    'PIL',
+    'Pillow',
 
     # Useful tools
     'kitchen',

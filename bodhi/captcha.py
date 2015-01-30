@@ -20,9 +20,7 @@ import cryptography.fernet
 import random
 import six
 
-import Image
-import ImageDraw
-import ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 from pyramid.view import view_config
 
