@@ -597,7 +597,6 @@ class MasherThread(threading.Thread):
                     repo=self.id))
                 return
 
-            # This seems like a pretty big deal..
             log.debug("master repomd.xml doesn't match! %s != %s for %r",
                       checksum, newsum, self.id)
 
