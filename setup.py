@@ -60,6 +60,9 @@ requires = [
 
     # For the bodhi-client
     'click',
+
+    # For updateinfo parsing
+    'xmldict',
     ]
 
 if sys.version_info[:3] < (2,7,0):
