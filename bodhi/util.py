@@ -49,13 +49,6 @@ try:
 except ImportError:
     log.warning("Could not import 'rpm'")
 
-try:
-    import yum
-    import yum.misc
-except ImportError:
-    log.warning("Could not import 'yum'")
-
-
 _ = TranslationStringFactory('bodhi')
 
 ## Display a given message as a heading
@@ -231,51 +224,29 @@ class Singleton(object):
 def sanity_check_repodata(myurl):
     """
     Sanity check the repodata for a given repository.
-    Initial implementation by Seth Vidal.
     """
 
-    import urlgrabber
+    import librepo
+    h = librepo.Handle()
+    r = librepo.Result()
+    h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+    h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
 
-    tempdir = tempfile.mkdtemp()
     errorstrings = []
     if myurl[-1] != '/':
         myurl += '/'
     baseurl = myurl
-    if not myurl.endswith('repodata/'):
-        myurl += 'repodata/'
-    else:
-        baseurl = baseurl.replace('repodata/', '/')
+    if myurl.endswith('repodata/'):
+        myurl = myurl.replace('repodata/', '')
 
-    rf = myurl + 'repomd.xml'
+    h.setopt(librepo.LRO_URLS, [myurl])
+    h.setopt(librepo.LRO_LOCAL, True)
+    h.setopt(librepo.LRO_CHECKSUM, True)
     try:
-        rm = urlgrabber.urlopen(rf)
-        repomd = yum.repoMDObject.RepoMD('foo', rm)
-        for t in repomd.fileTypes():
-            data = repomd.getData(t)
-            base, href = data.location
-            if base:
-                loc = base + '/' + href
-            else:
-                loc = baseurl + href
-
-            destfn = tempdir + '/' + os.path.basename(href)
-            dest = urlgrabber.urlgrab(loc, destfn)
-            ctype, known_csum = data.checksum
-            csum = yum.misc.checksum(ctype, dest)
-            if csum != known_csum:
-                errorstrings.append("checksum: %s" % t)
-
-            if href.find('xml') != -1:
-                retcode = subprocess.call(
-                    ['/usr/bin/xmllint', '--noout', dest])
-                if retcode != 0:
-                    errorstrings.append("failed xml read: %s" % t)
-
-    except urlgrabber.grabber.URLGrabError, e:
-        errorstrings.append('Error accessing repository %s' % e)
-
-    if errorstrings:
-        raise RepodataException(','.join(errorstrings))
+        h.perform()
+    except librepo.LibrepoException as e:
+        rc, msg, general_msg = e
+        raise RepodataException(msg)
 
     updateinfo = os.path.join(myurl, 'updateinfo.xml.gz')
     if os.path.exists(updateinfo):
