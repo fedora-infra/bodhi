@@ -783,6 +783,9 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
+        notifications.publish(topic='update.edit', msg=dict(
+            update=up, agent=request.user.name))
+
         return up
 
     def obsolete_older_updates(self, request):
@@ -810,7 +813,7 @@ class Update(Base):
                 # Ensure the same number of builds are present
                 if len(oldBuild.update.builds) != len(self.builds):
                     obsoletable = False
-                    submitter = oldBuild.update.user
+                    submitter = oldBuild.update.submitter
                     if submitter and submitter.name != self.user.name:
                         request.session.flash('Please be aware that %s is'
                                 'part of a multi-build update that is currently '
@@ -1402,12 +1405,6 @@ class Update(Base):
         session.add(comment)
         session.flush()
 
-        if author not in ('bodhi', 'autoqa'):
-            notifications.publish(topic='update.comment', msg=dict(
-                comment=comment.__json__(anonymize=True),
-                agent=author,
-            ))
-
         for feedback_dict in bug_feedback:
             feedback = BugKarma(**feedback_dict)
             session.add(feedback)
@@ -1432,6 +1429,13 @@ class Update(Base):
         user.comments.append(comment)
         self.comments.append(comment)
         session.flush()
+
+        # Publish to fedmsg
+        if author not in ('bodhi', 'autoqa'):
+            notifications.publish(topic='update.comment', msg=dict(
+                comment=comment.__json__(anonymize=True),
+                agent=author,
+            ))
 
         # Send a notification to everyone that has commented on this update
         people = set()
@@ -1488,7 +1492,7 @@ class Update(Base):
 
         self.request = None
 
-        mail.send_admin('revoked', self)
+        mail.send_admin('revoke', self)
 
     def untag(self):
         """ Untag all of the builds in this update """
@@ -1738,7 +1742,7 @@ class Comment(Base):
     __exclude_columns__ = tuple()
     __get_by__ = ('id',)
     # If 'anonymous' is true, then scrub the 'author' field in __json__(...)
-    __anonymity_map__ = {'author': 'anonymous'}
+    __anonymity_map__ = {'user': 'anonymous'}
 
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
@@ -1752,6 +1756,19 @@ class Comment(Base):
     def url(self):
         url = '/updates/' + self.update.title + '#comment-' + str(self.id)
         return url
+
+    def __json__(self, *args, **kwargs):
+        result = super(Comment, self).__json__(*args, **kwargs)
+        # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
+        # Things like fedmsg and fedbadges rely on this.
+        if not self.anonymous and result['user']:
+            result['author'] = result['user']['name']
+        else:
+            result['author'] = 'anonymous'
+
+        # Similarly, duplicate the update's title as update_title.
+        result['update_title'] = result['update']['title']
+        return result
 
     def __str__(self):
         karma = '0'

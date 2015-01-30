@@ -13,8 +13,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import fedmsg
+import fedmsg.config
+
 import bodhi
 import bodhi.config
+
+
+def init():
+    if not bodhi.config.config.get('fedmsg_enabled'):
+        bodhi.log.warn("fedmsg disabled.  not initializing.")
+        return
+
+    fedmsg_config = fedmsg.config.load_config()
+    fedmsg.init(**fedmsg_config)
+    bodhi.log.info("fedmsg initialized")
 
 
 def publish(topic, msg):

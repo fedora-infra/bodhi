@@ -178,6 +178,10 @@ def install_test_deps():
 if __name__ == '__main__':
     print("Bootstrapping bodhi...")
     rebuild()
+    # TODO - yum install
+    #   - pcaro-hermit
+    #   - freetype-devel
+    #   - libjpeg-turbo-devel
     link_system_libs()
     setup_develop()
     install_test_deps()

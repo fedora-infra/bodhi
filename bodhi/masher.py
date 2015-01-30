@@ -210,8 +210,10 @@ class MasherThread(threading.Thread):
         self.init_state()
         self.init_path()
 
-        notifications.publish(topic="mashtask.mashing", msg=dict(repo=self.id,
-                              updates=self.state['updates']))
+        notifications.publish(topic="mashtask.mashing", msg=dict(
+            repo=self.id,
+            updates=self.state['updates'],
+        ))
 
         success = False
         try:
@@ -298,7 +300,7 @@ class MasherThread(threading.Thread):
         for update in list(self.updates):
             if not update.request is self.request:
                 reason = "Request %s inconsistent with mash request %s" % (
-                    update.request, self.Request)
+                    update.request, self.request)
                 self.eject_from_mash(update, reason)
                 continue
 
@@ -325,7 +327,8 @@ class MasherThread(threading.Thread):
             self.state['updates'].remove(update)
         if update in self.updates:
             self.updates.remove(update)
-        notifications.publish(topic="update.ejected", msg=dict(
+        notifications.publish(topic="update.eject", msg=dict(
+            repo=self.id,
             update=update,
             reason=reason,
             request=self.request,
@@ -363,7 +366,7 @@ class MasherThread(threading.Thread):
     def finish(self, success):
         self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
         notifications.publish(topic="mashtask.complete", msg=dict(
-            success=success))
+            success=success, repo=self.id))
 
     def update_security_bugs(self):
         """Update the bug titles for security updates"""
@@ -569,7 +572,8 @@ class MasherThread(threading.Thread):
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
         log.info('Waiting for updates to hit the master mirror')
-        notifications.publish(topic="mashtask.sync.wait", msg=dict())
+        notifications.publish(topic="mashtask.sync.wait", msg=dict(
+            repo=self.id))
         arch = os.listdir(self.path)[0]
         release = self.release.id_prefix.lower().replace('-', '_')
         master_repomd = config.get('%s_master_repomd' % release)
@@ -589,10 +593,12 @@ class MasherThread(threading.Thread):
             newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             if newsum == checksum:
                 log.info("master repomd.xml matches!")
-                notifications.publish(topic="mashtask.sync.done", msg=dict())
+                notifications.publish(topic="mashtask.sync.done", msg=dict(
+                    repo=self.id))
                 return
-            log.debug("master repomd.xml doesn't match! %s != %s",
-                      checksum, newsum)
+
+            log.debug("master repomd.xml doesn't match! %s != %s for %r",
+                      checksum, newsum, self.id)
 
     def send_notifications(self):
         log.info('Sending notifications')
