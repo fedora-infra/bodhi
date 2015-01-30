@@ -353,11 +353,11 @@ References:
         with open(xml, 'w') as f:
             f.write(repomd[:-10])
 
-        from yum.Errors import RepoMDError
+        from bodhi.exceptions import RepodataException
         try:
             t.sanity_check_repo()
             assert False, 'Busted metadata passed'
-        except RepoMDError:
+        except RepodataException:
             pass
 
     def test_stage(self):
