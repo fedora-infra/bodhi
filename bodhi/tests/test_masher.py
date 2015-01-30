@@ -203,7 +203,7 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=True))
+            msg=dict(success=True, repo='f17-updates-testing'))
 
         with self.db_factory() as session:
             # Ensure that the update was locked
@@ -239,7 +239,7 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=True))
+            msg=dict(success=True, repo='f17-updates-testing'))
 
         # Ensure our single update was moved
         self.assertEquals(len(self.koji.__moved__), 1)
@@ -416,13 +416,18 @@ References:
 
         # Ensure that F18 runs before F17
         calls = publish.mock_calls
-        self.assertEquals(calls[1], mock.call(msg={'repo': u'f18-updates',
-            'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[3], mock.call(msg={'success': True},
+        self.assertEquals(calls[1], mock.call(
+            msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18']},
+            topic='mashtask.mashing'))
+        self.assertEquals(calls[3], mock.call(
+            msg={'success': True, 'repo': 'f18-updates'},
             topic='mashtask.complete'))
-        self.assertEquals(calls[4], mock.call(msg={'repo': u'f17-updates-testing',
-            'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[-1], mock.call(msg={'success': True},
+        self.assertEquals(calls[4], mock.call(
+            msg={'repo': u'f17-updates-testing',
+                 'updates': [u'bodhi-2.0-1.fc17']},
+            topic='mashtask.mashing'))
+        self.assertEquals(calls[-1], mock.call(
+            msg={'success': True, 'repo': 'f17-updates-testing'},
             topic='mashtask.complete'))
 
     @mock.patch(**mock_taskotron_results)
@@ -473,13 +478,19 @@ References:
 
         # Ensure that F17 updates-testing runs before F18
         calls = publish.mock_calls
-        self.assertEquals(calls[1], mock.call(msg={'repo': u'f17-updates-testing',
-            'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[3], mock.call(msg={'success': True},
+        self.assertEquals(calls[1], mock.call(
+            msg={'repo': u'f17-updates-testing',
+                 'updates': [u'bodhi-2.0-1.fc17']},
+            topic='mashtask.mashing'))
+        self.assertEquals(calls[3], mock.call(
+            msg={'success': True, 'repo': 'f17-updates-testing'},
             topic='mashtask.complete'))
-        self.assertEquals(calls[4], mock.call(msg={'repo': u'f18-updates',
-            'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
-        self.assertEquals(calls[-1], mock.call(msg={'success': True},
+        self.assertEquals(calls[4], mock.call(
+            msg={'repo': u'f18-updates',
+                 'updates': [u'bodhi-2.0-1.fc18']},
+            topic='mashtask.mashing'))
+        self.assertEquals(calls[-1], mock.call(
+            msg={'success': True, 'repo': 'f18-updates'},
             topic='mashtask.complete'))
 
     @mock.patch(**mock_taskotron_results)
@@ -576,7 +587,7 @@ References:
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
-                                   msg=dict(success=True))
+                                   msg=dict(success=True, repo='f17-updates'))
         publish.assert_any_call(topic='update.complete.stable',
                                 msg=mock.ANY)
 
@@ -606,9 +617,8 @@ References:
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
-                                   msg=dict(success=True))
-        publish.assert_any_call(topic='update.ejected',
-                                msg=mock.ANY)
+                                   msg=dict(success=True, repo='f17-updates'))
+        publish.assert_any_call(topic='update.eject', msg=mock.ANY)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
         self.assertEquals(len(t.state['completed_repos']), 1)
@@ -635,9 +645,8 @@ References:
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
-                                   msg=dict(success=True))
-        publish.assert_any_call(topic='update.ejected',
-                                msg=mock.ANY)
+                                   msg=dict(success=True, repo='f17-updates'))
+        publish.assert_any_call(topic='update.eject', msg=mock.ANY)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
         self.assertEquals(len(t.state['completed_repos']), 1)
