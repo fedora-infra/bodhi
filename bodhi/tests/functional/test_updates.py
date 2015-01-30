@@ -15,6 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import mock
+from mock import ANY
 from nose.tools import eq_
 from datetime import datetime, timedelta
 from webtest import TestApp
@@ -1004,6 +1005,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_edit_update(self, publish, *args):
         args = self.get_update('bodhi-2.0.0-2.fc17')
         r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
         args['edited'] = args['builds']
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         args['requirements'] = 'upgradepath'
@@ -1033,8 +1035,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
         self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
-        publish.assert_called_once_with(
-            topic='update.request.testing', msg=mock.ANY)
+        self.assertEquals(len(publish.call_args_list), 2)
+        publish.assert_called_with(topic='update.edit', msg=ANY)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
@@ -1087,6 +1089,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         r = self.app.post_json('/updates/', args, status=200)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = DBSession.query(Update).filter_by(title=nvr).one()
         up.locked = True
@@ -1130,8 +1133,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up.notes, 'Some new notes')
         self.assertEquals(up.builds, [build])
         self.assertEquals(up.request, None)
-        publish.assert_called_once_with(
-            topic='update.request.testing', msg=mock.ANY)
+
+        # At the end of the day, two fedmsg messages should have gone out.
+        self.assertEquals(len(publish.call_args_list), 2)
+        publish.assert_called_with(topic='update.edit', msg=ANY)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
