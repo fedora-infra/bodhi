@@ -66,7 +66,7 @@ class ExtendedMetadata(object):
         self.missing_ids = []
 
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
-                                            '.repodata', 'repodata')
+                                            '.repodata', 'repodata/')
         if os.path.isdir(self.cached_repodata):
             self._load_cached_updateinfo()
         else:
