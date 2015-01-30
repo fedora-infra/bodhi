@@ -88,11 +88,12 @@ class ExtendedMetadata(object):
         r = librepo.Result()
         h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
         h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
-        h.setopt(librepo.LRO_URLS, [self.cached_repodata.replace(
-                                        "repodata/", "/")])
+        h.setopt(librepo.LRO_URLS, [self.cached_repodata.replace("repodata/", "/")])
         h.setopt(librepo.LRO_LOCAL, True)
         h.perform(r)
-        doc = xmltodict.parse(GzipFile(r.getinfo(librepo.LRR_YUM_REPO)["updateinfo"]))
+        updateinfo = r.getinfo(librepo.LRR_YUM_REPO)["updateinfo"]
+        doc = xmltodict.parse(GzipFile(updateinfo))
+        os.unlink(updateinfo)
 
         existing_ids = set()
         for key, value in doc['updates'].iteritems():
