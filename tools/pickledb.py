@@ -22,156 +22,11 @@ in the format of bodhi-pickledb-YYYYMMDD.HHMM
 __requires__ = 'bodhi'
 
 import sys
-import time
 import cPickle as pickle
-
-from os.path import isfile
 
 from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
 
 from bodhi.util import get_db_from_config, get_critpath_pkgs
-
-
-def save_db():
-    ## Save each release and it's metrics
-    releases = []
-    for release in Release.select():
-        rel = {}
-        for attr in ('name', 'long_name', 'id_prefix', 'dist_tag',
-                     'locked', 'metrics'):
-            rel[attr] = getattr(release, attr)
-        releases.append(rel)
-
-    updates = []
-    all_updates = PackageUpdate.select()
-    progress = ProgressBar(maxval=all_updates.count())
-
-    for update in progress(all_updates):
-        data = {}
-        data['title'] = update.title
-        data['builds'] = [(build.package.name, build.nvr) for build in update.builds]
-        data['date_submitted'] = update.date_submitted
-        data['date_pushed'] = update.date_pushed
-        data['date_modified'] = update.date_modified
-        data['release'] = [update.release.name, update.release.long_name,
-                           update.release.id_prefix, update.release.dist_tag]
-        data['submitter'] = update.submitter
-        data['update_id'] = hasattr(update, 'update_id') and update.update_id or update.updateid
-        data['type'] = update.type
-        data['karma'] = update.karma
-        data['cves'] = [cve.cve_id for cve in update.cves]
-        data['bugs'] = []
-        for bug in update.bugs:
-            data['bugs'].append([bug.bz_id, bug.title, bug.security])
-            if hasattr(bug, 'parent'):
-                data['bugs'][-1].append(bug.parent)
-            else:
-                data['bugs'][-1].append(False)
-        data['status'] = update.status
-        data['pushed'] = update.pushed
-        data['notes'] = update.notes
-        data['request'] = update.request
-        data['comments'] = [(c.timestamp, c.author, c.text, c.karma, c.anonymous) for c in update.comments]
-        if hasattr(update, 'approved'):
-            data['approved'] = update.approved
-        else:
-            data['approved'] = None
-
-        updates.append(data)
-
-    dump = file('bodhi-pickledb-%s' % time.strftime("%y%m%d.%H%M"), 'w')
-    pickle.dump({'updates': updates, 'releases': releases}, dump)
-    dump.close()
-
-def load_db():
-    print "\nLoading pickled database %s" % sys.argv[2]
-    db = file(sys.argv[2], 'r')
-    data = pickle.load(db)
-
-    # Legacy format was just a list of update dictionaries
-    # Now we'll pull things out into an organized dictionary:
-    # {'updates': [], 'releases': []}
-    if isinstance(data, dict):
-        for release in data['releases']:
-            try:
-                Release.byName(release['name'])
-            except SQLObjectNotFound:
-                Release(**release)
-        data = data['updates']
-
-    progress = ProgressBar()
-
-    for u in progress(data):
-        try:
-            release = Release.byName(u['release'][0])
-        except SQLObjectNotFound:
-            release = Release(name=u['release'][0], long_name=u['release'][1],
-                              id_prefix=u['release'][2], dist_tag=u['release'][3])
-
-        ## Backwards compatbility
-        request = u['request']
-        if u['request'] == 'move':
-            request = 'stable'
-        elif u['request'] == 'push':
-            request = 'testing'
-        elif u['request'] == 'unpush':
-            request = 'obsolete'
-        if u['approved'] in (True, False):
-            u['approved'] = None
-        if u.has_key('update_id'):
-            u['updateid'] = u['update_id']
-        if not u.has_key('date_modified'):
-            u['date_modified'] = None
-
-        try:
-            update = PackageUpdate.byTitle(u['title'])
-        except SQLObjectNotFound:
-            update = PackageUpdate(title=u['title'],
-                                   date_submitted=u['date_submitted'],
-                                   date_pushed=u['date_pushed'],
-                                   date_modified=u['date_modified'],
-                                   release=release,
-                                   submitter=u['submitter'],
-                                   updateid=u['updateid'],
-                                   type=u['type'],
-                                   status=u['status'],
-                                   pushed=u['pushed'],
-                                   notes=u['notes'],
-                                   karma=u['karma'],
-                                   request=request,
-                                   approved=u['approved'])
-
-        ## Create Package and PackageBuild objects
-        for pkg, nvr in u['builds']:
-            try:
-                package = Package.byName(pkg)
-            except SQLObjectNotFound:
-                package = Package(name=pkg)
-            try:
-                build = PackageBuild.byNvr(nvr)
-            except SQLObjectNotFound:
-                build = PackageBuild(nvr=nvr, package=package)
-            update.addPackageBuild(build)
-
-        ## Create all Bugzilla objects for this update
-        for bug_num, bug_title, security, parent in u['bugs']:
-            try:
-                bug = Bugzilla.byBz_id(bug_num)
-            except SQLObjectNotFound:
-                bug = Bugzilla(bz_id=bug_num, security=security, parent=parent)
-                bug.title = bug_title
-            update.addBugzilla(bug)
-
-        ## Create all CVE objects for this update
-        for cve_id in u['cves']:
-            try:
-                cve = CVE.byCve_id(cve_id)
-            except SQLObjectNotFound:
-                cve = CVE(cve_id=cve_id)
-            update.addCVE(cve)
-        for timestamp, author, text, karma, anonymous in u['comments']:
-            comment = Comment(timestamp=timestamp, author=author, text=text,
-                              karma=karma, update=update, anonymous=anonymous)
 
 
 def load_sqlalchemy_db():
@@ -427,23 +282,17 @@ def load_sqlalchemy_db():
     print(" * %d bugs" % db.query(Bug).count())
     print(" * %d CVEs" % db.query(CVE).count())
 
+
 def usage():
-    print "Usage: ./pickledb.py [ save | load <file> ] [--release <r1,r2>]"
+    print "Usage: ./pickledb.py [ load <file> ] [--release <r1,r2>]"
     sys.exit(-1)
 
+
 def main():
-    #load_config()
     if len(sys.argv) < 2:
         usage()
-    elif sys.argv[1] == 'save':
-        print "Pickling database..."
-        save_db()
     elif sys.argv[1] == 'load' and len(sys.argv) == 3:
-        try:
-            hub.begin()
-            load_db()
-        finally:
-            hub.commit()
+        load_sqlalchemy_db()
     elif sys.argv[1] == 'migrate' and len(sys.argv) >= 3:
         load_sqlalchemy_db()
     else:
