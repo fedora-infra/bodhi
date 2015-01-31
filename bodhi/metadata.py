@@ -30,8 +30,6 @@ from bodhi.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
 from bodhi.buildsys import get_session
 from bodhi.modifyrepo import RepoMetadata
 
-from yum.update_md import UpdateMetadata
-
 log = logging.getLogger(__name__)
 
 
@@ -66,7 +64,7 @@ class ExtendedMetadata(object):
         self.missing_ids = []
 
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
-                                            '.repodata', 'repodata/')
+                                            '.repocache', 'repodata/')
         if os.path.isdir(self.cached_repodata):
             self._load_cached_updateinfo()
         else:
@@ -83,15 +81,23 @@ class ExtendedMetadata(object):
 
     def _load_cached_updateinfo(self):
         log.debug("Loading cached %s" % self.cached_repodata)
-        cacheduinfo = glob.glob(join(self.cached_repodata,
-                                     "*-updateinfo.xml.gz"))[0]
-        umd = UpdateMetadata()
-        umd.add(cacheduinfo)
+        import librepo
+        import xmltodict
+        from gzip import GzipFile
+        h = librepo.Handle()
+        r = librepo.Result()
+        h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+        h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
+        h.setopt(librepo.LRO_URLS, [self.cached_repodata.replace("repodata/", "/")])
+        h.setopt(librepo.LRO_LOCAL, True)
+        h.perform(r)
+        updateinfo = r.getinfo(librepo.LRR_YUM_REPO)["updateinfo"]
+        doc = xmltodict.parse(GzipFile(updateinfo))
+        os.unlink(updateinfo)
 
-        # Drop the old cached updateinfo.xml.gz, it's unneeded now
-        os.unlink(cacheduinfo)
-
-        existing_ids = set([up['update_id'] for up in umd.get_notices()])
+        existing_ids = set()
+        for key, value in doc['updates'].iteritems():
+            existing_ids.add(value['id'])
         seen_ids = set()
         from_cache = set()
 
@@ -100,12 +106,15 @@ class ExtendedMetadata(object):
             if update.alias:
                 seen_ids.add(update.alias)
                 if update.alias in existing_ids:
-                    notice = umd.get_notice(update.title)
+                    notice = {}
+                    for key, value in doc['updates'].iteritems():
+                        if value['title'] == update.title:
+                            notice = value
                     if not notice:
                         log.warn('%s ID in cache but notice cannot be found' % (update.title))
                         self.add_update(update)
                         continue
-                    if notice['updated']:
+                    if 'updated' in notice:
                         if datetime.strptime(notice['updated'], '%Y-%m-%d %H:%M:%S') < update.date_modified:
                             log.debug('Update modified, generating new notice: %s' % update.title)
                             self.add_update(update)
@@ -125,15 +134,15 @@ class ExtendedMetadata(object):
                 self.missing_ids.append(update.title)
 
         # Add all relevant notices from the cache to this document
-        for notice in umd.get_notices():
-            if notice['update_id'] in from_cache:
+        for key, notice in doc['updates'].iteritems():
+            if notice['id'] in from_cache:
                 log.debug("Keeping existing notice: %s" % notice['title'])
                 self._add_notice(notice)
             else:
                 # Keep all security notices in the stable repo
                 if 'testing' not in self.tag:
-                    if notice['type'] == 'security':
-                        if notice['update_id'] not in seen_ids:
+                    if notice['@type'] == 'security':
+                        if notice['id'] not in seen_ids:
                             log.debug("Keeping existing security notice: %s" %
                                       notice['title'])
                             self._add_notice(notice)
@@ -191,27 +200,30 @@ class ExtendedMetadata(object):
         """ Add a yum.update_md.UpdateNotice to the metadata """
 
         root = self._insert(self.doc.firstChild, 'update', attrs={
-            'type': notice['type'],
-            'status': notice['status'],
+            'type': notice['@type'],
+            'status': notice['@status'],
             'version': __version__,
             'from': self._from,
         })
 
-        self._insert(root, 'id', text=notice['update_id'])
+        self._insert(root, 'id', text=notice['id'])
         self._insert(root, 'title', text=notice['title'])
         self._insert(root, 'release', text=notice['release'])
         self._insert(root, 'issued', attrs={'date': notice['issued']})
-        if notice['updated']:
+        if 'updated' in notice:
             self._insert(root, 'updated', attrs={'date': notice['updated']})
-        self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
+        if notice.get('reboot_suggested'):
+            self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
+        else:
+            self._insert(root, 'reboot_suggested', text="False")
 
         # Build the references
         refs = self.doc.createElement('references')
-        for ref in notice._md['references']:
+        for ref in notice['references']['reference']:
             attrs = {
-                'type': ref['type'],
-                'href': ref['href'],
-                'id': ref['id'],
+                'type': ref['@type'],
+                'href': ref['@href'],
+                'id': ref['@id'],
             }
             if ref.get('title'):
                 attrs['title'] = ref['title']
@@ -223,18 +235,18 @@ class ExtendedMetadata(object):
 
         # The package list
         pkglist = self.doc.createElement('pkglist')
-        for group in notice['pkglist']:
+        for key, group in notice['pkglist'].iteritems():
             collection = self.doc.createElement('collection')
-            collection.setAttribute('short', group['short'])
+            collection.setAttribute('short', group['@short'])
             self._insert(collection, 'name', text=group['name'])
-            for pkg in group['packages']:
+            for pkg in group['package']:
                 p = self._insert(collection, 'package', attrs={
-                    'name': pkg['name'],
-                    'version': pkg['version'],
-                    'release': pkg['release'],
-                    'arch': pkg['arch'],
-                    'src': pkg['src'],
-                    'epoch': pkg.get('epoch', 0) or '0',
+                    'name': pkg['@name'],
+                    'version': pkg['@version'],
+                    'release': pkg['@release'],
+                    'arch': pkg['@arch'],
+                    'src': pkg['@src'],
+                    'epoch': pkg.get('@epoch', 0) or '0',
                 })
                 self._insert(p, 'filename', text=pkg['filename'])
                 collection.appendChild(p)

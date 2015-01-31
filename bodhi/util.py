@@ -228,7 +228,6 @@ def sanity_check_repodata(myurl):
 
     import librepo
     h = librepo.Handle()
-    r = librepo.Result()
     h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
     h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
 
