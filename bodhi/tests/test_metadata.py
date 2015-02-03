@@ -22,7 +22,8 @@ from datetime import datetime
 from hashlib import sha256
 from os.path import join, exists, basename
 from sqlalchemy import create_engine
-from yum.update_md import UpdateMetadata
+
+import createrepo_c
 
 from bodhi import log
 from bodhi.config import config
@@ -86,6 +87,11 @@ class TestExtendedMetadata(unittest.TestCase):
         assert hash == hashed, "File: %s\nHash: %s" % (basename(updateinfo), hashed)
         return updateinfo
 
+    def get_notice(self, uinfo, title):
+        for record in uinfo.updates:
+            if record.title == title:
+                return record
+
     def test_extended_metadata(self):
         update = self.db.query(Update).one()
 
@@ -103,34 +109,32 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
-        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
+        notice = self.get_notice(uinfo, 'mutt-1.5.14-1.fc13')
         self.assertIsNone(notice)
 
-        notices = uinfo.get_notices()
-        self.assertEquals(len(notices), 1)
-        notice = notices[0]
+        self.assertEquals(len(uinfo.updates), 1)
+        notice = uinfo.updates[0]
 
         self.assertIsNotNone(notice)
-        self.assertEquals(notice['title'], update.title)
-        self.assertEquals(notice['release'], update.release.long_name)
-        self.assertEquals(notice['status'], update.status.value)
-        self.assertEquals(notice['updated'], update.date_modified)
-        self.assertEquals(notice['from'], str(config.get('bodhi_email')))
-        self.assertEquals(notice['description'], update.notes)
-        self.assertIsNotNone(notice['issued'])
-        self.assertEquals(notice['update_id'], update.alias)
-        self.assertIsNone(notice['epoch'])
-        cve = notice['references'][0]
-        self.assertIsNone(cve['title'])
-        self.assertEquals(cve['type'], 'cve')
-        self.assertEquals(cve['href'], update.cves[0].url)
-        self.assertEquals(cve['id'], update.cves[0].cve_id)
-        bug = notice['references'][1]
-        self.assertEquals(bug['href'], update.bugs[0].url)
-        self.assertEquals(bug['id'], '12345')
-        self.assertEquals(bug['type'], 'bugzilla')
+        self.assertEquals(notice.title, update.title)
+        self.assertEquals(notice.release, update.release.long_name)
+        self.assertEquals(notice.status, update.status.value)
+        self.assertEquals(notice.updated_date, update.date_modified)
+        self.assertEquals(notice.fromstr, str(config.get('bodhi_email')))
+        self.assertEquals(notice.description, update.notes)
+        self.assertIsNotNone(notice.issued_date)
+        self.assertEquals(notice.id, update.alias)
+        #self.assertIsNone(notice.epoch)
+        cve = notice.references[0]
+        self.assertIsNone(cve.title)
+        self.assertEquals(cve.type, 'cve')
+        self.assertEquals(cve.href, update.cves[0].url)
+        self.assertEquals(cve.id, update.cves[0].cve_id)
+        bug = notice.references[1]
+        self.assertEquals(bug.href, update.bugs[0].url)
+        self.assertEquals(bug.id, '12345')
+        self.assertEquals(bug.type, 'bugzilla')
 
     def test_extended_metadata_updating(self):
         update = self.db.query(Update).one()
@@ -151,32 +155,28 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
-        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
-        self.assertIsNone(notice)
-
-        notice = uinfo.get_notice(get_nvr(update.title))
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
+        notice = self.get_notice(uinfo, update.title)
 
         self.assertIsNotNone(notice)
-        self.assertEquals(notice['title'], update.title)
-        self.assertEquals(notice['release'], update.release.long_name)
-        self.assertEquals(notice['status'], update.status.value)
-        self.assertEquals(notice['updated'], update.date_modified)
-        self.assertEquals(notice['from'], str(config.get('bodhi_email')))
-        self.assertEquals(notice['description'], update.notes)
-        self.assertIsNotNone(notice['issued'])
-        self.assertEquals(notice['update_id'], update.alias)
-        self.assertIsNone(notice['epoch'])
-        cve = notice['references'][0]
-        self.assertIsNone(cve['title'])
-        self.assertEquals(cve['type'], 'cve')
-        self.assertEquals(cve['href'], update.cves[0].url)
-        self.assertEquals(cve['id'], update.cves[0].cve_id)
-        bug = notice['references'][1]
-        self.assertEquals(bug['href'], update.bugs[0].url)
-        self.assertEquals(bug['id'], '12345')
-        self.assertEquals(bug['type'], 'bugzilla')
+        self.assertEquals(notice.title, update.title)
+        self.assertEquals(notice.release, update.release.long_name)
+        self.assertEquals(notice.status, update.status.value)
+        self.assertEquals(notice.updated_date, update.date_modified)
+        self.assertEquals(notice.fromstr, str(config.get('bodhi_email')))
+        self.assertEquals(notice.description, update.notes)
+        self.assertIsNotNone(notice.issued_date)
+        self.assertEquals(notice.id, update.alias)
+        #self.assertIsNone(notice.epoch)
+        cve = notice.references[0]
+        self.assertIsNone(cve.title)
+        self.assertEquals(cve.type, 'cve')
+        self.assertEquals(cve.href, update.cves[0].url)
+        self.assertEquals(cve.id, update.cves[0].cve_id)
+        bug = notice.references[1]
+        self.assertEquals(bug.href, update.bugs[0].url)
+        self.assertEquals(bug.id, '12345')
+        self.assertEquals(bug.type, 'bugzilla')
 
         # Change the notes on the update, but not the date_modified, so we can
         # ensure that the notice came from the cache
@@ -192,29 +192,11 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
+        notice = self.get_notice(uinfo, update.title)
 
-        notice = uinfo.get_notice(get_nvr(update.title))
         self.assertIsNotNone(notice)
-        self.assertEquals(notice['description'], u'Useful details!')  # not u'x'
-        self.assertEquals(notice['title'], update.title)
-        self.assertEquals(notice['release'], update.release.long_name)
-        self.assertEquals(notice['status'], update.status.value)
-        self.assertEquals(notice['updated'], update.date_modified)
-        self.assertEquals(notice['from'], str(config.get('bodhi_email')))
-        self.assertIsNotNone(notice['issued'])
-        self.assertEquals(notice['update_id'], update.alias)
-        self.assertIsNone(notice['epoch'])
-        cve = notice['references'][0]
-        self.assertIsNone(cve['title'])
-        self.assertEquals(cve['type'], 'cve')
-        self.assertEquals(cve['href'], update.cves[0].url)
-        self.assertEquals(cve['id'], update.cves[0].cve_id)
-        bug = notice['references'][1]
-        self.assertEquals(bug['href'], update.bugs[0].url)
-        self.assertEquals(bug['id'], '12345')
-        self.assertEquals(bug['type'], 'bugzilla')
+        self.assertEquals(notice.description, u'Useful details!')  # not u'x'
 
     def test_metadata_updating_with_edited_update(self):
         update = self.db.query(Update).one()
@@ -235,32 +217,28 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
-        notice = uinfo.get_notice(('mutt', '1.5.14', '1.fc13'))
-        self.assertIsNone(notice)
-
-        notice = uinfo.get_notice(get_nvr(update.title))
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
+        notice = self.get_notice(uinfo, update.title)
 
         self.assertIsNotNone(notice)
-        self.assertEquals(notice['title'], update.title)
-        self.assertEquals(notice['release'], update.release.long_name)
-        self.assertEquals(notice['status'], update.status.value)
-        self.assertEquals(notice['updated'], update.date_modified)
-        self.assertEquals(notice['from'], str(config.get('bodhi_email')))
-        self.assertEquals(notice['description'], update.notes)
-        self.assertIsNotNone(notice['issued'])
-        self.assertEquals(notice['update_id'], update.alias)
-        self.assertIsNone(notice['epoch'])
-        cve = notice['references'][0]
-        self.assertIsNone(cve['title'])
-        self.assertEquals(cve['type'], 'cve')
-        self.assertEquals(cve['href'], update.cves[0].url)
-        self.assertEquals(cve['id'], update.cves[0].cve_id)
-        bug = notice['references'][1]
-        self.assertEquals(bug['href'], update.bugs[0].url)
-        self.assertEquals(bug['id'], '12345')
-        self.assertEquals(bug['type'], 'bugzilla')
+        self.assertEquals(notice.title, update.title)
+        self.assertEquals(notice.release, update.release.long_name)
+        self.assertEquals(notice.status, update.status.value)
+        self.assertEquals(notice.updated_date, update.date_modified)
+        self.assertEquals(notice.fromstr, str(config.get('bodhi_email')))
+        self.assertEquals(notice.description, update.notes)
+        self.assertIsNotNone(notice.issued_date)
+        self.assertEquals(notice.id, update.alias)
+        #self.assertIsNone(notice.epoch)
+        cve = notice.references[0]
+        self.assertIsNone(cve.title)
+        self.assertEquals(cve.type, 'cve')
+        self.assertEquals(cve.href, update.cves[0].url)
+        self.assertEquals(cve.id, update.cves[0].cve_id)
+        bug = notice.references[1]
+        self.assertEquals(bug.href, update.bugs[0].url)
+        self.assertEquals(bug.id, '12345')
+        self.assertEquals(bug.type, 'bugzilla')
 
         # Change the notes on the update *and* the date_modified
         update.notes = u'x'
@@ -276,13 +254,12 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
+        notice = self.get_notice(uinfo, update.title)
 
-        notice = uinfo.get_notice(get_nvr(update.title))
         self.assertIsNotNone(notice)
-        self.assertEquals(notice['description'], u'x')
-        self.assertEquals(notice['updated'],
+        self.assertEquals(notice.description, u'x')
+        self.assertEquals(notice.updated_date.strftime('%Y-%m-%d %H:%M:%S'),
                           update.date_modified.strftime('%Y-%m-%d %H:%M:%S'))
 
     def test_metadata_updating_with_old_stable_security(self):
@@ -308,10 +285,8 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
-
-        notice = uinfo.get_notice(get_nvr(update.title))
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
+        notice = self.get_notice(uinfo, update.title)
         self.assertIsNotNone(notice)
 
         # Create a new non-security update for the same package
@@ -349,13 +324,13 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
 
-        self.assertEquals(len(uinfo.get_notices()), 2)
-        notice = uinfo.get_notice(get_nvr('bodhi-2.0-1.fc17'))
+        self.assertEquals(len(uinfo.updates), 2)
+
+        notice = self.get_notice(uinfo, 'bodhi-2.0-1.fc17')
         self.assertIsNotNone(notice)
-        notice = uinfo.get_notice(get_nvr('bodhi-2.0-2.fc17'))
+        notice = self.get_notice(uinfo, 'bodhi-2.0-2.fc17')
         self.assertIsNotNone(notice)
 
     def test_metadata_updating_with_old_testing_security(self):
@@ -377,10 +352,8 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
-
-        notice = uinfo.get_notice(get_nvr(update.title))
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
+        notice = self.get_notice(uinfo, update.title)
         self.assertIsNotNone(notice)
 
         # Create a new non-security update for the same package
@@ -421,11 +394,10 @@ class TestExtendedMetadata(unittest.TestCase):
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
-        uinfo = UpdateMetadata()
-        uinfo.add(updateinfo)
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
 
-        self.assertEquals(len(uinfo.get_notices()), 1)
-        notice = uinfo.get_notice(get_nvr('bodhi-2.0-1.fc17'))
+        self.assertEquals(len(uinfo.updates), 1)
+        notice = self.get_notice(uinfo, 'bodhi-2.0-1.fc17')
         self.assertIsNone(notice)
-        notice = uinfo.get_notice(get_nvr('bodhi-2.0-2.fc17'))
+        notice = self.get_notice(uinfo, 'bodhi-2.0-2.fc17')
         self.assertIsNotNone(notice)
