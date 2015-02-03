@@ -90,10 +90,10 @@ def _link_system_lib(lib):
 
 
 def link_system_libs():
-    for mod in ('koji', 'rpm', 'OpenSSL', 'urlgrabber', 'pycurl', 'yum',
+    for mod in ('koji', 'rpm', 'OpenSSL', 'urlgrabber', 'pycurl',
                 'rpmUtils', 'sqlitecachec', '_sqlitecache', 'psycopg2',
                 'krbVmodule', 'createrepo', 'deltarpm', '_deltarpmmodule',
-                'fedora_cert', 'libxml2', 'libxml2mod', 'librepo'):
+                'fedora_cert', 'libxml2', 'libxml2mod', 'librepo', 'createrepo_c'):
         _link_system_lib(mod)
 
 

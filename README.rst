@@ -3,7 +3,7 @@ bodhi v2.0
 
 Setup virtualenvwrapper
 -----------------------
-``sudo yum -y install python-virtualenvwrapper``
+``sudo yum -y install python-virtualenvwrapper python-createrepo_c``
 
 Add the following to your `~/.bashrc`::
 

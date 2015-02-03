@@ -21,6 +21,7 @@ import sys
 import arrow
 import socket
 import urllib
+import shutil
 import tempfile
 import markdown
 import requests
@@ -74,30 +75,14 @@ def get_nvr(nvr):
     return ['-'.join(x[:-2]), x[-2], x[-1]]
 
 
-def mkmetadatadir(dir):
+def mkmetadatadir(path):
     """
     Generate package metadata for a given directory; if it doesn't exist, then
     create it.
     """
-    log.debug("mkmetadatadir(%s)" % dir)
-    if not isdir(dir):
-        os.makedirs(dir)
-    cache = config.get('createrepo_cache_dir')
-    try:
-        import createrepo
-        conf = createrepo.MetaDataConfig()
-        conf.cachedir = cache
-        conf.outputdir = dir
-        conf.directory = dir
-        conf.quiet = True
-        mdgen = createrepo.MetaDataGenerator(conf)
-        mdgen.doPkgMetadata()
-        mdgen.doRepoMetadata()
-        mdgen.doFinalMove()
-    except ImportError:
-        sys.path.append('/usr/share/createrepo')
-        import genpkgmetadata
-        genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    subprocess.check_call(['createrepo_c',  '--xz', '--database', '--quiet', path])
 
 
 def get_age(date):
