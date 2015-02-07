@@ -29,7 +29,6 @@ import createrepo_c as cr
 from bodhi.config import config
 from bodhi.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
 from bodhi.buildsys import get_session
-from bodhi.modifyrepo import RepoMetadata
 
 log = logging.getLogger(__name__)
 
