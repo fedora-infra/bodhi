@@ -122,6 +122,7 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.status, update.status.value)
         self.assertEquals(notice.updated_date, update.date_modified)
         self.assertEquals(notice.fromstr, config.get('bodhi_email'))
+        self.assertEquals(notice.rights, config.get('updateinfo_rights'))
         self.assertEquals(notice.description, update.notes)
         self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
