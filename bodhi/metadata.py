@@ -187,11 +187,6 @@ class ExtendedMetadata(object):
 
     def add_update(self, update):
         """Generate the extended metadata for a given update"""
-        # TODO: ensure we can't add duplicates here
-        #if self._get_notice(update):
-        #    log.debug("Update %s already in updateinfo" % update.title)
-        #    return
-
         rec = cr.UpdateRecord()
         rec.version = __version__
         rec.fromstr = config.get('bodhi_email')
