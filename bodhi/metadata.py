@@ -15,15 +15,16 @@
 __version__ = '1.4'
 
 import os
-import glob
 import logging
 import shutil
 import tempfile
+import subprocess
 
-from xml.dom import minidom
-from os.path import join, exists
 from datetime import datetime
 from urlgrabber.grabber import urlgrab
+from kitchen.text.converters import to_bytes
+
+import createrepo_c as cr
 
 from bodhi.config import config
 from bodhi.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
@@ -37,38 +38,42 @@ class ExtendedMetadata(object):
     """This class represents the updateinfo.xml yum metadata.
 
     It is generated during push time by the bodhi masher based on koji tags
-    and is injected into the yum repodata using the `modifyrepo` tool,
-    which is included in the `createrepo` package.
-
-    The metadata is then parsed client-side with
-    :class:`yum.update_md.UpdateMetadata` by things like the `yum-security`
-    plugin and `PackageKit`.
+    and is injected into the yum repodata using the `modifyrepo_c` tool,
+    which is included in the `createrepo_c` package.
 
     """
     def __init__(self, release, request, db, path):
         self.repo = path
+        log.debug('repo = %r' % self.repo)
+        self.request = request
         if request is UpdateRequest.stable:
             self.tag = release.stable_tag
         else:
             self.tag = release.testing_tag
 
-        log.debug('repo = %r' % self.repo)
-        self.doc = None
         self.db = db
         self.updates = set()
         self.builds = {}
+        self.missing_ids = []
         self._from = config.get('bodhi_email')
         self.koji = get_session()
-        self._create_document()
         self._fetch_updates()
-        self.missing_ids = []
 
+        self.uinfo = cr.UpdateInfo()
+
+        self.hash_type = 'sha256'
+        # yum on py2.4 doesn't support sha256 (#1080373)
+        if 'el5' in self.repo:
+            self.hash_type = 'sha1'
+
+        # Load from the cache if it exists
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
                                             '.repocache', 'repodata/')
         if os.path.isdir(self.cached_repodata):
             self._load_cached_updateinfo()
         else:
             log.debug("Generating new updateinfo.xml")
+            self.uinfo = cr.UpdateInfo()
             for update in self.updates:
                 if update.alias:
                     self.add_update(update)
@@ -80,78 +85,84 @@ class ExtendedMetadata(object):
             log.debug(self.missing_ids)
 
     def _load_cached_updateinfo(self):
-        log.debug("Loading cached %s" % self.cached_repodata)
-        import librepo
-        import xmltodict
-        from gzip import GzipFile
-        h = librepo.Handle()
-        r = librepo.Result()
-        h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
-        h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
-        h.setopt(librepo.LRO_URLS, [self.cached_repodata.replace("repodata/", "/")])
-        h.setopt(librepo.LRO_LOCAL, True)
-        h.perform(r)
-        updateinfo = r.getinfo(librepo.LRR_YUM_REPO)["updateinfo"]
-        doc = xmltodict.parse(GzipFile(updateinfo))
-        os.unlink(updateinfo)
-
-        existing_ids = set()
-        for key, value in doc['updates'].iteritems():
-            existing_ids.add(value['id'])
+        """
+        Load the cached updateinfo.xml from '../{tag}.repocache/repodata'
+        """
         seen_ids = set()
         from_cache = set()
+        existing_ids = set()
+
+        # Parse the updateinfo out of the repomd
+        repomd_xml = os.path.join(self.cached_repodata, 'repomd.xml')
+        repomd = cr.Repomd()
+        cr.xml_parse_repomd(repomd_xml, repomd)
+        for record in repomd.records:
+            if record.type == 'updateinfo':
+                updateinfo = os.path.join(os.path.dirname(
+                    os.path.dirname(self.cached_repodata)),
+                    record.location_href)
+                break
+
+        # Load the metadata with createrepo_c
+        log.info("Loading cached updateinfo: %s", updateinfo)
+        uinfo = cr.UpdateInfo(updateinfo)
+
+        # Determine which updates are present in the cache
+        for update in uinfo.updates:
+            existing_ids.add(update.id)
 
         # Generate metadata for any new builds
         for update in self.updates:
-            if update.alias:
-                seen_ids.add(update.alias)
-                if update.alias in existing_ids:
-                    notice = {}
-                    for key, value in doc['updates'].iteritems():
-                        if value['title'] == update.title:
-                            notice = value
-                    if not notice:
-                        log.warn('%s ID in cache but notice cannot be found' % (update.title))
-                        self.add_update(update)
-                        continue
-                    if 'updated' in notice:
-                        if datetime.strptime(notice['updated'], '%Y-%m-%d %H:%M:%S') < update.date_modified:
-                            log.debug('Update modified, generating new notice: %s' % update.title)
-                            self.add_update(update)
-                        else:
-                            log.debug('Loading updated %s from cache' % update.title)
-                            from_cache.add(update.alias)
-                    elif update.date_modified:
+            seen_ids.add(update.alias)
+            if not update.alias:
+                self.missing_ids.append(update.title)
+                continue
+            if update.alias in existing_ids:
+                notice = None
+                for value in uinfo.updates:
+                    if value.title == update.title:
+                        notice = value
+                        break
+                if not notice:
+                    log.warn('%s ID in cache but notice cannot be found', update.title)
+                    self.add_update(update)
+                    continue
+                if notice.updated_date:
+                    if datetime.strptime(notice.updated_date, '%Y-%m-%d %H:%M:%S') < update.date_modified:
                         log.debug('Update modified, generating new notice: %s' % update.title)
                         self.add_update(update)
                     else:
-                        log.debug('Loading %s from cache' % update.title)
+                        log.debug('Loading updated %s from cache' % update.title)
                         from_cache.add(update.alias)
-                else:
-                    log.debug('Adding new update notice: %s' % update.title)
+                elif update.date_modified:
+                    log.debug('Update modified, generating new notice: %s' % update.title)
                     self.add_update(update)
+                else:
+                    log.debug('Loading %s from cache' % update.title)
+                    from_cache.add(update.alias)
             else:
-                self.missing_ids.append(update.title)
+                log.debug('Adding new update notice: %s' % update.title)
+                self.add_update(update)
 
         # Add all relevant notices from the cache to this document
-        for key, notice in doc['updates'].iteritems():
-            if notice['id'] in from_cache:
-                log.debug("Keeping existing notice: %s" % notice['title'])
-                self._add_notice(notice)
+        for notice in uinfo.updates:
+            if notice.id in from_cache:
+                log.debug('Keeping existing notice: %s', notice.title)
+                self.uinfo.append(notice)
             else:
                 # Keep all security notices in the stable repo
-                if 'testing' not in self.tag:
-                    if notice['@type'] == 'security':
-                        if notice['id'] not in seen_ids:
-                            log.debug("Keeping existing security notice: %s" %
-                                      notice['title'])
-                            self._add_notice(notice)
+                if self.request is not UpdateRequest.testing:
+                    if notice.type == 'security':
+                        if notice.id not in seen_ids:
+                            log.debug('Keeping existing security notice: %s',
+                                      notice.title)
+                            self.uinfo.append(notice)
                         else:
-                            log.debug('%s already added?' % notice['title'])
+                            log.debug('%s already added?', notice.title)
                     else:
-                        log.debug('Purging cached stable notice %s' % notice['title'])
+                        log.debug('Purging cached stable notice %s', notice.title)
                 else:
-                    log.debug('Purging cached testing update %s' % notice['title'])
+                    log.debug('Purging cached testing update %s', notice.title)
 
     def _fetch_updates(self):
         """Based on our given koji tag, populate a list of Update objects"""
@@ -170,181 +181,109 @@ class ExtendedMetadata(object):
             log.warning("Couldn't find the following koji builds tagged as "
                         "%s in bodhi: %s" % (self.tag, nonexistent))
 
-    def _create_document(self):
-        log.debug("Creating new updateinfo Document for %s" % self.tag)
-        self.doc = minidom.Document()
-        updates = self.doc.createElement('updates')
-        self.doc.appendChild(updates)
-
-    def _insert(self, parent, name, attrs=None, text=None):
-        """ Helper function to trivialize inserting an element into the doc """
-        if not attrs:
-            attrs = {}
-        child = self.doc.createElement(name)
-        for item in attrs.items():
-            child.setAttribute(item[0], unicode(item[1]))
-        if text:
-            txtnode = self.doc.createTextNode(unicode(text))
-            child.appendChild(txtnode)
-        parent.appendChild(child)
-        return child
-
     def _get_notice(self, update):
-        for elem in self.doc.getElementsByTagName('update'):
-            for child in elem.childNodes:
-                if child.nodeName == 'id' and child.firstChild and \
-                   child.firstChild.nodeValue == update.alias:
-                    return elem
-
-    def _add_notice(self, notice):
-        """ Add a yum.update_md.UpdateNotice to the metadata """
-
-        root = self._insert(self.doc.firstChild, 'update', attrs={
-            'type': notice['@type'],
-            'status': notice['@status'],
-            'version': __version__,
-            'from': self._from,
-        })
-
-        self._insert(root, 'id', text=notice['id'])
-        self._insert(root, 'title', text=notice['title'])
-        self._insert(root, 'release', text=notice['release'])
-        self._insert(root, 'issued', attrs={'date': notice['issued']})
-        if 'updated' in notice:
-            self._insert(root, 'updated', attrs={'date': notice['updated']})
-        if notice.get('reboot_suggested'):
-            self._insert(root, 'reboot_suggested', text=notice['reboot_suggested'])
-        else:
-            self._insert(root, 'reboot_suggested', text="False")
-
-        # Build the references
-        refs = self.doc.createElement('references')
-        for ref in notice['references']['reference']:
-            attrs = {
-                'type': ref['@type'],
-                'href': ref['@href'],
-                'id': ref['@id'],
-            }
-            if ref.get('title'):
-                attrs['title'] = ref['title']
-            self._insert(refs, 'reference', attrs=attrs)
-        root.appendChild(refs)
-
-        # Errata description
-        self._insert(root, 'description', text=notice['description'])
-
-        # The package list
-        pkglist = self.doc.createElement('pkglist')
-        for key, group in notice['pkglist'].iteritems():
-            collection = self.doc.createElement('collection')
-            collection.setAttribute('short', group['@short'])
-            self._insert(collection, 'name', text=group['name'])
-            for pkg in group['package']:
-                p = self._insert(collection, 'package', attrs={
-                    'name': pkg['@name'],
-                    'version': pkg['@version'],
-                    'release': pkg['@release'],
-                    'arch': pkg['@arch'],
-                    'src': pkg['@src'],
-                    'epoch': pkg.get('@epoch', 0) or '0',
-                })
-                self._insert(p, 'filename', text=pkg['filename'])
-                collection.appendChild(p)
-
-        pkglist.appendChild(collection)
-        root.appendChild(pkglist)
+        for update in self.uinfo.updates:
+            if update.id == update.alias:
+                return update
 
     def add_update(self, update):
         """Generate the extended metadata for a given update"""
-        if self._get_notice(update):
-            log.debug("Update %s already in updateinfo" % update.title)
-            return
+        # TODO: ensure we can't add duplicates here
+        #if self._get_notice(update):
+        #    log.debug("Update %s already in updateinfo" % update.title)
+        #    return
 
-        root = self._insert(self.doc.firstChild, 'update', attrs={
-            'type': update.type.value,
-            'status': update.status.value,
-            'version': __version__,
-            'from': config.get('bodhi_email'),
-        })
+        rec = cr.UpdateRecord()
+        rec.version = __version__
+        rec.fromstr = config.get('bodhi_email')
+        rec.status = update.status.value
+        rec.type = update.type.value
+        rec.id = to_bytes(update.alias)
+        rec.title = to_bytes(update.title)
+        rec.summary = to_bytes('%s %s update' % (update.get_title(),
+                                                 update.type.value))
+        rec.description = to_bytes(update.notes)
+        rec.release = to_bytes(update.release.long_name)
+        rec.rights = config.get('updateinfo_rights')
 
-        self._insert(root, 'id', text=update.alias)
-        self._insert(root, 'title', text=update.title)
-        self._insert(root, 'release', text=update.release.long_name)
-        self._insert(root, 'issued', attrs={
-            'date': update.date_pushed.strftime('%Y-%m-%d %H:%M:%S'),
-        })
+        rec.issued_date = update.date_pushed
         if update.date_modified:
-            self._insert(root, 'updated', attrs={
-                'date': update.date_modified.strftime('%Y-%m-%d %H:%M:%S'),
-            })
+            rec.updated_date = update.date_modified
 
-        # Build the references
-        refs = self.doc.createElement('references')
-        for cve in update.cves:
-            self._insert(refs, 'reference', attrs={
-                'type': 'cve',
-                'href': cve.url,
-                'id': cve.cve_id
-            })
-        for bug in update.bugs:
-            self._insert(refs, 'reference', attrs={
-                'type': 'bugzilla',
-                'href': bug.url,
-                'id': bug.bug_id,
-                'title': bug.title
-            })
-        root.appendChild(refs)
-
-        # Update description
-        self._insert(root, 'description', text=update.notes)
-
-        # The package list
-        pkglist = self.doc.createElement('pkglist')
-        collection = self.doc.createElement('collection')
-        collection.setAttribute('short', update.release.name)
-        self._insert(collection, 'name', text=update.release.long_name)
+        col = cr.UpdateCollection()
+        col.name = to_bytes(update.release.long_name)
+        col.shortname = to_bytes(update.release.name)
 
         for build in update.builds:
-            kojiBuild = None
             try:
                 kojiBuild = self.builds[build.nvr]
             except:
                 kojiBuild = self.koji.getBuild(build.nvr)
+
             rpms = self.koji.listBuildRPMs(kojiBuild['id'])
             for rpm in rpms:
-                filename = "%s.%s.rpm" % (rpm['nvr'], rpm['arch'])
+                pkg = cr.UpdateCollectionPackage()
+                pkg.name = rpm['name']
+                pkg.version = rpm['version']
+                pkg.release = rpm['release']
+                pkg.epoch = rpm['epoch'] or '0'
+                pkg.arch = rpm['arch']
+
+                # TODO: how do we handle UpdateSuggestion.logout, etc?
+                pkg.reboot_suggested = update.suggest is UpdateSuggestion.reboot
+
+                filename = '%s.%s.rpm' % (rpm['nvr'], rpm['arch'])
+                pkg.filename = filename
+
+                # Build the URL
                 if rpm['arch'] == 'src':
                     arch = 'SRPMS'
                 elif rpm['arch'] in ('noarch', 'i686'):
                     arch = 'i386'
                 else:
                     arch = rpm['arch']
-                urlpath = join(config.get('file_url'),
-                               update.status is UpdateStatus.testing and 'testing' or '',
-                               str(update.release.version), arch, filename)
-                pkg = self._insert(collection, 'package', attrs={
-                    'name': rpm['name'],
-                    'version': rpm['version'],
-                    'release': rpm['release'],
-                    'epoch': rpm['epoch'] or '0',
-                    'arch': rpm['arch'],
-                    'src': urlpath,
-                })
-                self._insert(pkg, 'filename', text=filename)
 
-                if build.update.suggest is UpdateSuggestion.reboot:
-                    self._insert(pkg, 'reboot_suggested', text='True')
+                pkg.src = os.path.join(config.get('file_url'), update.status is
+                        UpdateStatus.testing and 'testing' or '',
+                        str(update.release.version), arch, filename)
 
-                collection.appendChild(pkg)
+                col.append(pkg)
 
-        pkglist.appendChild(collection)
-        root.appendChild(pkglist)
+        rec.append_collection(col)
+
+        # Create references for each bug
+        for bug in update.bugs:
+            ref = cr.UpdateReference()
+            ref.type = 'bugzilla'
+            ref.id = to_bytes(bug.bug_id)
+            ref.href = to_bytes(bug.url)
+            ref.title = to_bytes(bug.title)
+            rec.append_reference(ref)
+
+        # Create references for each CVE
+        for cve in update.cves:
+            ref = cr.UpdateReference()
+            ref.type = 'cve'
+            ref.id = to_bytes(cve.cve_id)
+            ref.href = to_bytes(cve.url)
+            rec.append_reference(ref)
+
+        self.uinfo.append(rec)
 
     def insert_updateinfo(self):
+        fd, name = tempfile.mkstemp()
+        os.write(fd, self.uinfo.xml_dump())
+        os.close(fd)
+        self.modifyrepo(name)
+        os.unlink(name)
+
+    def modifyrepo(self, filename):
+        """Inject a file into the repodata for each architecture"""
         for arch in os.listdir(self.repo):
-            log.debug("Inserting updateinfo.xml.gz into %s/%s" % (self.repo, arch))
-            repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
-            repomd.add(self.doc)
+            repodata = os.path.join(self.repo, arch, 'repodata')
+            log.info('Inserting %s into %s', filename, repodata)
+            subprocess.check_call(['modifyrepo_c', '--new-name=updateinfo.xml',
+                                   '-s', self.hash_type, filename, repodata])
 
     def insert_pkgtags(self):
         """Download and inject the pkgtags sqlite from fedora-tagger"""
@@ -352,12 +291,10 @@ class ExtendedMetadata(object):
             try:
                 tags_url = config.get('pkgtags_url')
                 tempdir = tempfile.mkdtemp('bodhi')
-                local_tags = join(tempdir, 'pkgtags.sqlite')
+                local_tags = os.path.join(tempdir, 'pkgtags.sqlite')
                 log.info('Downloading %s' % tags_url)
                 urlgrab(tags_url, filename=local_tags)
-                for arch in os.listdir(self.repo):
-                    repomd = RepoMetadata(join(self.repo, arch, 'repodata'))
-                    repomd.add(local_tags)
+                self.modifyrepo(local_tags)
             except:
                 log.exception("There was a problem injecting pkgtags")
             finally:
