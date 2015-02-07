@@ -180,11 +180,6 @@ class ExtendedMetadata(object):
             log.warning("Couldn't find the following koji builds tagged as "
                         "%s in bodhi: %s" % (self.tag, nonexistent))
 
-    def _get_notice(self, update):
-        for update in self.uinfo.updates:
-            if update.id == update.alias:
-                return update
-
     def add_update(self, update):
         """Generate the extended metadata for a given update"""
         rec = cr.UpdateRecord()
