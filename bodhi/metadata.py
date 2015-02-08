@@ -291,6 +291,7 @@ class ExtendedMetadata(object):
             repomd.set_record(uinfo_rec_comp)
             with file(repomd_xml, 'w') as repomd_file:
                 repomd_file.write(repomd.xml_dump())
+            os.unlink(uinfo_xml)
 
     def insert_pkgtags(self):
         """Download and inject the pkgtags sqlite from fedora-tagger"""
