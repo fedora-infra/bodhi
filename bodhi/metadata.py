@@ -18,7 +18,6 @@ import os
 import logging
 import shutil
 import tempfile
-import subprocess
 
 from datetime import datetime
 from urlgrabber.grabber import urlgrab
@@ -60,10 +59,17 @@ class ExtendedMetadata(object):
 
         self.uinfo = cr.UpdateInfo()
 
-        self.hash_type = 'sha256'
-        # yum on py2.4 doesn't support sha256 (#1080373)
-        if 'el5' in self.repo:
-            self.hash_type = 'sha1'
+        self.hash_type = cr.SHA256
+        self.comp_type = cr.XZ
+
+        if release.id_prefix == u'FEDORA-EPEL':
+            # yum on py2.4 doesn't support sha256 (#1080373)
+            if 'el5' in self.repo:
+                self.hash_type = cr.SHA1
+
+            # FIXME: I'm not sure which versions of RHEL support xz metadata
+            # compression, so use the lowest common denominator for now.
+            self.comp_type = cr.BZ2
 
         # Load from the cache if it exists
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
@@ -92,6 +98,7 @@ class ExtendedMetadata(object):
         existing_ids = set()
 
         # Parse the updateinfo out of the repomd
+        updateinfo = None
         repomd_xml = os.path.join(self.cached_repodata, 'repomd.xml')
         repomd = cr.Repomd()
         cr.xml_parse_repomd(repomd_xml, repomd)
@@ -102,8 +109,10 @@ class ExtendedMetadata(object):
                     record.location_href)
                 break
 
+        assert updateinfo, 'Unable to find updateinfo'
+
         # Load the metadata with createrepo_c
-        log.info("Loading cached updateinfo: %s", updateinfo)
+        log.info('Loading cached updateinfo: %s', updateinfo)
         uinfo = cr.UpdateInfo(updateinfo)
 
         # Determine which updates are present in the cache
@@ -271,8 +280,17 @@ class ExtendedMetadata(object):
         for arch in os.listdir(self.repo):
             repodata = os.path.join(self.repo, arch, 'repodata')
             log.info('Inserting %s into %s', filename, repodata)
-            subprocess.check_call(['modifyrepo_c', '--new-name=updateinfo.xml',
-                                   '-s', self.hash_type, filename, repodata])
+            uinfo_xml = os.path.join(repodata, 'updateinfo.xml')
+            shutil.copyfile(filename, uinfo_xml)
+            repomd_xml = os.path.join(repodata, 'repomd.xml')
+            repomd = cr.Repomd(repomd_xml)
+            uinfo_rec = cr.RepomdRecord('updateinfo', uinfo_xml)
+            uinfo_rec_comp = uinfo_rec.compress_and_fill(self.hash_type, self.comp_type)
+            uinfo_rec_comp.rename_file()
+            uinfo_rec_comp.type = 'updateinfo'
+            repomd.set_record(uinfo_rec_comp)
+            with file(repomd_xml, 'w') as repomd_file:
+                repomd_file.write(repomd.xml_dump())
 
     def insert_pkgtags(self):
         """Download and inject the pkgtags sqlite from fedora-tagger"""
