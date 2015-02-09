@@ -79,7 +79,7 @@ class TestExtendedMetadata(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def _verify_updateinfo(self, repodata):
-        updateinfos = glob.glob(join(repodata, "*-updateinfo.xml.gz"))
+        updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))
         assert len(updateinfos) == 1, "We generated %d updateinfo metadata" % len(updateinfos)
         updateinfo = updateinfos[0]
         hash = basename(updateinfo).split("-", 1)[0]
@@ -121,20 +121,32 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.release, update.release.long_name)
         self.assertEquals(notice.status, update.status.value)
         self.assertEquals(notice.updated_date, update.date_modified)
-        self.assertEquals(notice.fromstr, str(config.get('bodhi_email')))
+        self.assertEquals(notice.fromstr, config.get('bodhi_email'))
+        self.assertEquals(notice.rights, config.get('updateinfo_rights'))
         self.assertEquals(notice.description, update.notes)
         self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
-        #self.assertIsNone(notice.epoch)
-        cve = notice.references[0]
-        self.assertIsNone(cve.title)
-        self.assertEquals(cve.type, 'cve')
-        self.assertEquals(cve.href, update.cves[0].url)
-        self.assertEquals(cve.id, update.cves[0].cve_id)
-        bug = notice.references[1]
+        bug = notice.references[0]
         self.assertEquals(bug.href, update.bugs[0].url)
         self.assertEquals(bug.id, '12345')
         self.assertEquals(bug.type, 'bugzilla')
+        cve = notice.references[1]
+        self.assertEquals(cve.type, 'cve')
+        self.assertEquals(cve.href, update.cves[0].url)
+        self.assertEquals(cve.id, update.cves[0].cve_id)
+
+        col = notice.collections[0]
+        self.assertEquals(col.name, update.release.long_name)
+        self.assertEquals(col.shortname, update.release.name)
+
+        pkg = col.packages[0]
+        self.assertEquals(pkg.epoch, '0')
+        self.assertEquals(pkg.name, 'TurboGears')
+        self.assertEquals(pkg.src, 'http://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/TurboGears-1.0.2.2-2.fc7.src.rpm')
+        self.assertEquals(pkg.version, '1.0.2.2')
+        self.assertFalse(pkg.reboot_suggested)
+        self.assertEquals(pkg.arch, 'src')
+        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc7.src.rpm')
 
     def test_extended_metadata_updating(self):
         update = self.db.query(Update).one()
@@ -163,20 +175,19 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.release, update.release.long_name)
         self.assertEquals(notice.status, update.status.value)
         self.assertEquals(notice.updated_date, update.date_modified)
-        self.assertEquals(notice.fromstr, str(config.get('bodhi_email')))
+        self.assertEquals(notice.fromstr, config.get('bodhi_email'))
         self.assertEquals(notice.description, update.notes)
         self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
         #self.assertIsNone(notice.epoch)
-        cve = notice.references[0]
-        self.assertIsNone(cve.title)
-        self.assertEquals(cve.type, 'cve')
-        self.assertEquals(cve.href, update.cves[0].url)
-        self.assertEquals(cve.id, update.cves[0].cve_id)
-        bug = notice.references[1]
+        bug = notice.references[0]
         self.assertEquals(bug.href, update.bugs[0].url)
         self.assertEquals(bug.id, '12345')
         self.assertEquals(bug.type, 'bugzilla')
+        cve = notice.references[1]
+        self.assertEquals(cve.type, 'cve')
+        self.assertEquals(cve.href, update.cves[0].url)
+        self.assertEquals(cve.id, update.cves[0].cve_id)
 
         # Change the notes on the update, but not the date_modified, so we can
         # ensure that the notice came from the cache
@@ -225,20 +236,19 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.release, update.release.long_name)
         self.assertEquals(notice.status, update.status.value)
         self.assertEquals(notice.updated_date, update.date_modified)
-        self.assertEquals(notice.fromstr, str(config.get('bodhi_email')))
+        self.assertEquals(notice.fromstr, config.get('bodhi_email'))
         self.assertEquals(notice.description, update.notes)
         self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
         #self.assertIsNone(notice.epoch)
-        cve = notice.references[0]
-        self.assertIsNone(cve.title)
-        self.assertEquals(cve.type, 'cve')
-        self.assertEquals(cve.href, update.cves[0].url)
-        self.assertEquals(cve.id, update.cves[0].cve_id)
-        bug = notice.references[1]
+        bug = notice.references[0]
         self.assertEquals(bug.href, update.bugs[0].url)
         self.assertEquals(bug.id, '12345')
         self.assertEquals(bug.type, 'bugzilla')
+        cve = notice.references[1]
+        self.assertEquals(cve.type, 'cve')
+        self.assertEquals(cve.href, update.cves[0].url)
+        self.assertEquals(cve.id, update.cves[0].cve_id)
 
         # Change the notes on the update *and* the date_modified
         update.notes = u'x'
