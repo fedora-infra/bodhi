@@ -1313,7 +1313,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp.json['title'], 'bodhi-2.0.0-3.fc17')
 
     @mock.patch(**mock_valid_requirements)
-    def test_update_with_older_build_in_testing_from_diff_submitter(self, r):
+    def test_update_with_older_build_in_testing_from_diff_user(self, r):
         """
         Test submitting an update for a package that has an older build within
         a multi-build update currently in testing submitted by a different
@@ -1330,7 +1330,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up = session.query(Update).filter_by(title=title).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.submitter = newuser
+        up.user = newuser
         session.flush()
 
         newtitle = u'bodhi-2.0-3.fc17'
@@ -1339,7 +1339,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # The TestResponse doesn't track the session, so we can't peek at the
         # flash messages. So, let's just make sure the session cookie was set.
-        assert resp.headers['Set-Cookie'].startswith('session='), resp.headers
+        assert resp.headers.get('Set-Cookie', '').startswith('session='), '%s\n%s' % (resp.headers, resp)
 
         # Ensure the second update was created successfully
         session.query(Update).filter_by(title=newtitle).one()
