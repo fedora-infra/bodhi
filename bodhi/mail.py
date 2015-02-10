@@ -390,7 +390,7 @@ def get_template(update, use_template='fedora_errata_template'):
     return templates
 
 
-def send_mail(from_addr, to_addr, subject, body_text):
+def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     smtp_server = config.get('smtp_server')
     if not smtp_server:
         log.debug('Not sending email: No smtp_server defined')
@@ -400,16 +400,20 @@ def send_mail(from_addr, to_addr, subject, body_text):
     if not from_addr:
         log.warn('Unable to send mail: bodhi_email not defined in the config')
         return
+
+    from_addr = to_bytes(from_addr)
+    to_addr = to_bytes(to_addr)
+    subject = to_bytes(subject)
+    body_text = to_bytes(body_text)
+
+    msg = ['From: %s' % from_addr, 'To: %s' % to_addr]
+    if headers:
+        for key, value in headers.items():
+            msg.append('%s: %s' % (key, value))
+    msg += ['Subject: %s' % subject, '', body_text]
+    body = '\r\n'.join(msg)
+
     try:
-        from_addr = to_bytes(from_addr)
-        to_addr = to_bytes(to_addr)
-        subject = to_bytes(subject)
-        body_text = to_bytes(body_text)
-        body = '\r\n'.join((
-            'From: %s' % from_addr,
-            'To: %s' % to_addr,
-            'Subject: %s' % subject,
-            body_text))
         server = smtplib.SMTP(smtp_server)
         server.sendmail(from_addr, [to_addr], body)
     except:
@@ -451,7 +455,7 @@ def send(to, msg_type, update, sender=None):
     for person in iterate(to):
         send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (critpath,
                   msg_type, update.title), messages[msg_type]['body'] %
-                  messages[msg_type]['fields'](agent, update))
+                  messages[msg_type]['fields'](agent, update), headers)
 
 
 def send_releng(subject, body):
