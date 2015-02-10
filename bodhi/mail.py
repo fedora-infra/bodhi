@@ -10,7 +10,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
 
 import logging
 import smtplib
@@ -24,149 +25,155 @@ from .config import config
 
 log = logging.getLogger(__name__)
 
-##
-## All of the email messages that bodhi is going to be sending around.
-##
+#
+# All of the email messages that bodhi is going to be sending around.
+#
 messages = {
 
-    'new' : {
-        'body'    : u"""\
+    'new': {
+        'body': u"""\
 %(email)s has submitted a new update for %(release)s\n\n%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'email'     : agent,
-                        'release'   : x.release.long_name,
-                        'updatestr' : unicode(x)
-                    }
-        },
+        'fields': lambda agent, x: {
+            'email': agent,
+            'release': x.release.long_name,
+            'updatestr': unicode(x)
+        }
+    },
 
-    'deleted' : {
-        'body'    : u"""\
+    'deleted': {
+        'body': u"""\
 %(email)s has deleted the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'package'   : x.title,
-                        'email'     : agent,
-                        'release'   : '%s %s' % (x.release.long_name, x.status),
-                        'updatestr' : unicode(x)
-                    }
-        },
+        'fields': lambda agent, x: {
+            'package': x.title,
+            'email': agent,
+            'release': '%s %s' % (x.release.long_name, x.status),
+            'updatestr': unicode(x)
+        }
+    },
 
-    'edited' : {
-        'body'    : u"""\
+    'edited': {
+        'body': u"""\
 %(email)s has edited the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'package'   : x.title,
-                        'email'     : agent,
-                        'release'   : '%s %s' % (x.release.long_name, x.status),
-                        'updatestr' : unicode(x)
-                    }
-        },
+        'fields': lambda agent, x: {
+            'package': x.title,
+            'email': agent,
+            'release': '%s %s' % (x.release.long_name, x.status),
+            'updatestr': unicode(x)
+        }
+    },
 
-    'pushed' : {
-        'body'    : u"""\
+    'pushed': {
+        'body': u"""\
 %(package)s has been successfully pushed for %(release)s.\n\n%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'package'   : x.title,
-                        'release'   : '%s %s' % (x.release.long_name, x.status),
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'package': x.title,
+            'release': '%s %s' % (x.release.long_name, x.status),
+            'updatestr': unicode(x)
+        }
     },
 
-    'testing' : {
-        'body'    : u"""\
-%(submitter)s has requested the pushing of the following update to testing:\n\n%(updatestr)s
+    'testing': {
+        'body': u"""\
+%(submitter)s has requested the pushing of the following update to testing:\n
+%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'submitter' : agent,
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'submitter': agent,
+            'updatestr': unicode(x)
+        }
     },
 
-    'unpush' : {
-        'body'    : u"""\
-%(submitter)s has requested the unpushing of the following update:\n\n%(updatestr)s
+    'unpush': {
+        'body': u"""\
+%(submitter)s has requested the unpushing of the following update:\n
+%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'submitter' : agent,
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'submitter': agent,
+            'updatestr': unicode(x)
+        }
     },
 
-    'obsolete' : {
-        'body'    : u"""\
+    'obsolete': {
+        'body': u"""\
 %(submitter)s has obsoleted the following update:\n\n%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'submitter' : agent,
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'submitter': agent,
+            'updatestr': unicode(x)
+        }
     },
 
-    'unpushed' : {
-        'body'    : u"""\
+    'unpushed': {
+        'body': u"""\
 The following update has been unpushed\n\n%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'updatestr': unicode(x)
+        }
     },
 
-    'revoke' : {
-        'body'    : u"""\
+    'revoke': {
+        'body': u"""\
 %(submitter)s has revoked the request of the following update:\n\n%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'submitter' : agent,
-                        'updatestr' : unicode(x)
-                    }
-        },
-
-    'stable' : {
-        'body'    : u"""\
-%(submitter)s has requested the pushing of the following update stable:\n\n%(updatestr)s
-""",
-        'fields'  : lambda agent, x: {
-                        'submitter' : agent,
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'submitter': agent,
+            'updatestr': unicode(x)
+        }
     },
 
-    'moved' : {
-        'body'    : u"""\
+    'stable': {
+        'body': u"""\
+%(submitter)s has requested the pushing of the following update stable:\n
+%(updatestr)s
+""",
+        'fields': lambda agent, x: {
+            'submitter': agent,
+            'updatestr': unicode(x)
+        }
+    },
+
+    'moved': {
+        'body': u"""\
 The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'updatestr': unicode(x)
+        }
     },
 
-    'stablekarma' : {
-        'body'    : u"""\
-The following update has reached a karma of %(karma)d and is being automatically
-marked as stable.\n\n%(updatestr)s
+    'stablekarma': {
+        'body': u"""\
+The following update has reached a karma of %(karma)d and is being
+automatically marked as stable.\n
+%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'karma'     : x.karma,
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'karma': x.karma,
+            'updatestr': unicode(x)
+        }
     },
 
-    'unstable' : {
-        'body'    : u"""\
-The following update has reached a karma of %(karma)d and is being automatically
-marked as unstable.  This update will be unpushed from the repository.\n\n%(updatestr)s
+    'unstable': {
+        'body': u"""\
+The following update has reached a karma of %(karma)d and is being
+automatically marked as unstable. This update will be unpushed from the
+repository.\n
+%(updatestr)s
 """,
-        'fields'  : lambda agent, x: {
-                        'karma'     : x.karma,
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'karma': x.karma,
+            'updatestr': unicode(x)
+        }
     },
 
-    'comment' : {
-        'body'    : u"""\
+    'comment': {
+        'body': u"""\
 The following comment has been added to the %(package)s update:
 
 %(comment)s
@@ -175,18 +182,18 @@ To reply to this comment, please visit the URL at the bottom of this mail
 
 %(updatestr)s
 """,
-        'fields' : lambda agent, x: {
-                        'package'   : x.title,
-                        'comment'   : x.comments[-1],
-                        'updatestr' : unicode(x)
-                   }
+        'fields': lambda agent, x: {
+            'package': x.title,
+            'comment': x.comments[-1],
+            'updatestr': unicode(x)
+        }
     },
 
-    'old_testing' : {
-        'body'    : u"""\
+    'old_testing': {
+        'body': u"""\
 The update for %(package)s has been in 'testing' status for over 2 weeks.
-This update can be marked as stable after it achieves a karma of %(stablekarma)d
-or by clicking 'Push to Stable'.
+This update can be marked as stable after it achieves a karma of
+%(stablekarma)d or by clicking 'Push to Stable'.
 
 This is just a courtesy nagmail.  Updates may reside in the testing repository
 for more than 2 weeks if you deem it necessary.
@@ -202,29 +209,29 @@ or by running the following command with the bodhi-client:
 
 %(updatestr)s
 """,
-        'fields' : lambda agent, x: {
-                        'package'     : x.title,
-                        'stablekarma' : x.builds[0].package.stable_karma,
-                        'updatestr'   : unicode(x)
-                   }
+        'fields': lambda agent, x: {
+            'package': x.title,
+            'stablekarma': x.builds[0].package.stable_karma,
+            'updatestr': unicode(x)
+        }
     },
 
-    'security' : {
-        'body'    : u"""\
+    'security': {
+        'body': u"""\
 %(submitter)s has submitted the following update.
 
 %(updatestr)s
 
-To approve this update and request that it be pushed to stable, you can use 
-the link below:
+To approve this update and request that it be pushed to stable, you can use the
+link below:
 
     https://admin.fedoraproject.org/updates/approve/%(package)s
 """,
-        'fields'  : lambda agent, x: {
-                        'package'   : x.title,
-                        'submitter' : agent,
-                        'updatestr' : unicode(x)
-                    }
+        'fields': lambda agent, x: {
+            'package': x.title,
+            'submitter': agent,
+            'updatestr': unicode(x)
+        }
     },
 
 }
@@ -247,7 +254,7 @@ Description :
 
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
-This update can be installed with the "yum" update program.  Use 
+This update can be installed with the "yum" update program. Use
 su -c 'yum%(yum_repository)s update %(name)s' at the command line.
 For more information, refer to "Managing Software with yum",
 available at https://docs.fedoraproject.org/yum/.
@@ -314,7 +321,7 @@ def get_template(update, use_template='fedora_errata_template'):
         info['summary'] = h['summary']
         info['version'] = h['version']
         info['release'] = h['release']
-        info['url']     = h['url']
+        info['url'] = h['url']
         if update.status is UpdateStatus.testing:
             info['testing'] = ' Test'
             info['yum_repository'] = ' --enablerepo=updates-testing'
@@ -323,15 +330,15 @@ def get_template(update, use_template='fedora_errata_template'):
             info['yum_repository'] = ''
 
         info['subject'] = u"%s%s%s Update: %s" % (
-                update.type is UpdateType.security and '[SECURITY] ' or '',
-                update.release.long_name, info['testing'], build.nvr)
+            update.type is UpdateType.security and '[SECURITY] ' or '',
+            update.release.long_name, info['testing'], build.nvr)
         info['updateid'] = update.alias
         info['description'] = h['description']
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
             info['notes'] = u"Update Information:\n\n%s\n" % \
-                    '\n'.join(wrap(update.notes, width=80))
+                '\n'.join(wrap(update.notes, width=80))
             info['notes'] += line
 
         # Add this updates referenced Bugzillas and CVEs
@@ -349,7 +356,7 @@ def get_template(update, use_template='fedora_errata_template'):
                         continue
                 title = (bug.title != 'Unable to fetch title' and
                          bug.title != 'Invalid bug number') and \
-                        ' - %s' % bug.title or ''
+                    ' - %s' % bug.title or ''
                 info['references'] += u"  [ %d ] Bug #%d%s\n        %s\n" % \
                                       (i, bug.bug_id, title, bug.url)
                 i += 1
@@ -361,7 +368,6 @@ def get_template(update, use_template='fedora_errata_template'):
 
         # Find the most recent update for this package, other than this one
         lastpkg = build.get_latest()
-        #log.debug("lastpkg = %s" % lastpkg)
 
         # Grab the RPM header of the previous update, and generate a ChangeLog
         info['changelog'] = u""
@@ -375,7 +381,7 @@ def get_template(update, use_template='fedora_errata_template'):
             elif len(text) != 1:
                 oldtime = oldtime[0]
             info['changelog'] = u"ChangeLog:\n\n%s%s" % \
-                    (to_unicode(build.get_changelog(oldtime)), line)
+                (to_unicode(build.get_changelog(oldtime)), line)
 
         try:
             templates.append((info['subject'], use_template % info))
