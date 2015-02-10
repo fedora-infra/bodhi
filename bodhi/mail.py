@@ -425,6 +425,29 @@ def send(to, msg_type, update, sender=None):
     # passed into this function.
     agent = 'TBD'
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
+    headers = {}
+
+    if msg_type != 'buildroot_override':
+        headers = {
+            "X-Bodhi-Update-Type": update.type,
+            "X-Bodhi-Update-Release": update.release.name,
+            "X-Bodhi-Update-Status": update.status,
+            "X-Bodhi-Update-Builds": ",".join([b.nvr for b in update.builds]),
+            "X-Bodhi-Update-Title": update.title,
+            "X-Bodhi-Update-Pushed": update.pushed,
+            "X-Bodhi-Update-Request": update.request,
+            "X-Bodhi-Update-Submitter": update.user.name,
+        }
+        initial_message_id = "<bodhi-update-%s-%s-%s@%s>" % (
+            update.id, update.user.name, update.release.name,
+            config.get('message_id_email_domain'))
+
+        if msg_type == 'new':
+            headers["Message-ID"] = initial_message_id
+        else:
+            headers["References"] = initial_message_id
+            headers["In-Reply-To"] = initial_message_id
+
     for person in iterate(to):
         send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (critpath,
                   msg_type, update.title), messages[msg_type]['body'] %
