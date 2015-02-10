@@ -240,8 +240,8 @@ class MasherThread(threading.Thread):
                 mash_thread = self.mash()
 
                 # Things we can do while we're mashing
-                self.generate_testing_digest()
                 self.complete_requests()
+                self.generate_testing_digest()
                 uinfo = self.generate_updateinfo()
 
                 self.wait_for_mash(mash_thread)
@@ -503,7 +503,7 @@ class MasherThread(threading.Thread):
     def generate_testing_digest(self):
         self.log.info('Generating testing digest for %s' % self.release.name)
         for update in self.updates:
-            if update.request is UpdateRequest.testing:
+            if update.status is UpdateStatus.testing:
                 self.add_to_digest(update)
 
     def generate_updateinfo(self):

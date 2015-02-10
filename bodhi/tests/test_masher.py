@@ -14,6 +14,7 @@
 
 import os
 import mock
+import time
 import json
 import shutil
 import unittest
@@ -309,7 +310,7 @@ class TestMasher(unittest.TestCase):
             t.db = None
         self.assertEquals(t.testing_digest[u'Fedora 17'][u'bodhi-2.0-1.fc17'], """\
 ================================================================================
- libseccomp-2.1.0-1.fc20 (None)
+ libseccomp-2.1.0-1.fc20 (FEDORA-%s-0001)
  Enhanced seccomp library
 --------------------------------------------------------------------------------
 Update Information:
@@ -324,7 +325,7 @@ References:
         http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110
 --------------------------------------------------------------------------------
 
-""")
+""" % time.strftime('%Y'))
 
     def test_sanity_check(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
