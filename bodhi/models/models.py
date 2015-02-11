@@ -1389,7 +1389,6 @@ class Update(Base):
                 self.request = UpdateRequest.stable
                 self.date_pushed = None
                 mail.send(self.get_maintainers(), 'stablekarma', self)
-                mail.send_admin('stablekarma', self)
             if self.status is UpdateStatus.testing \
                     and self.unstable_karma != 0 \
                     and self.karma == self.unstable_karma:
@@ -1467,7 +1466,6 @@ class Update(Base):
 
         self.pushed = False
         self.status = UpdateStatus.unpushed
-        mail.send_admin('unpushed', self)
 
     def revoke(self):
         """ Remove pending request for this update """
@@ -1490,8 +1488,6 @@ class Update(Base):
             self.remove_tag(self.release.pending_stable_tag)
 
         self.request = None
-
-        mail.send_admin('revoke', self)
 
     def untag(self):
         """ Untag all of the builds in this update """
