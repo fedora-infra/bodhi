@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 #
 # All of the email messages that bodhi is going to be sending around.
 #
-messages = {
+MESSAGES = {
 
     'new': {
         'body': u"""\
@@ -460,8 +460,8 @@ def send(to, msg_type, update, sender=None):
 
     for person in iterate(to):
         send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (critpath,
-                  msg_type, update.title), messages[msg_type]['body'] %
-                  messages[msg_type]['fields'](agent, update), headers)
+                  msg_type, update.title), MESSAGES[msg_type]['body'] %
+                  MESSAGES[msg_type]['fields'](agent, update), headers)
 
 
 def send_releng(subject, body):
