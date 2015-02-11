@@ -1475,7 +1475,7 @@ class Update(Base):
             raise BodhiException(
                 "Can only revoke an update with an existing request")
 
-        if not self.status in [UpdateStatus.pending, UpdateStatus.testing]:
+        if self.status not in [UpdateStatus.pending, UpdateStatus.testing]:
             raise BodhiException(
                 "Can only revoke a pending or testing update, not "
                 "one that is %s" % self.status.description)
