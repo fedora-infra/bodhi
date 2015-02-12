@@ -265,6 +265,9 @@ class MasherThread(threading.Thread):
                 # Add comments to updates
                 self.status_comments()
 
+                # Announce stable updates to the mailing list
+                self.send_stable_announcements()
+
                 # Email updates-testing digest
 
             else:
@@ -619,6 +622,12 @@ class MasherThread(threading.Thread):
         log.info('Commenting on updates')
         for update in self.updates:
             update.status_comment()
+
+    def send_stable_announcements(self):
+        log.info('Sending stable update announcements')
+        for update in self.updates:
+            if update.status is UpdateStatus.stable:
+                update.send_update_notice()
 
 
 class MashThread(threading.Thread):
