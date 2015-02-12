@@ -396,11 +396,22 @@ def get_template(update, use_template='fedora_errata_template'):
     return templates
 
 
-def send_mail(from_addr, to_addr, subject, body_text, headers=None):
+def _send_mail(from_addr, to_addr, body):
+    """A lower level function to send emails with smtplib"""
     smtp_server = config.get('smtp_server')
     if not smtp_server:
-        log.debug('Not sending email: No smtp_server defined')
+        log.info('Not sending email: No smtp_server defined')
         return
+    try:
+        smtp = smtplib.SMTP(smtp_server)
+        smtp.sendmail(from_addr, [to_addr], body)
+    except:
+        log.exception('Unable to send mail')
+    finally:
+        smtp.quit()
+
+
+def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     if not from_addr:
         from_addr = config.get('bodhi_email')
     if not from_addr:
@@ -419,13 +430,8 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     msg += ['Subject: %s' % subject, '', body_text]
     body = '\r\n'.join(msg)
 
-    try:
-        server = smtplib.SMTP(smtp_server)
-        server.sendmail(from_addr, [to_addr], body)
-    except:
-        log.exception('Unable to send mail')
-    finally:
-        server.quit()
+    log.info('Sending mail to %s: %s', to_addr, subject)
+    _send_mail(from_addr, to_addr, subject, body)
 
 
 def send(to, msg_type, update, sender=None):
