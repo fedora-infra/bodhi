@@ -1190,23 +1190,20 @@ class Update(Base):
             log.error("bodhi_email not defined in configuration!  Unable " +
                       "to send update notice")
             return
+
+        # eg: fedora_epel
+        release_name = self.release.id_prefix.lower().replace('-', '_')
         if self.status is UpdateStatus.stable:
-            mailinglist = config.get('%s_announce_list' %
-                              self.release.id_prefix.lower())
+            mailinglist = config.get('%s_announce_list' % release_name)
         elif self.status is UpdateStatus.testing:
-            mailinglist = config.get('%s_test_announce_list' %
-                              self.release.id_prefix.lower())
+            mailinglist = config.get('%s_test_announce_list' % release_name)
+        templatetype = '%s_errata_template' % release_name
         if mailinglist:
-            for subject, body in mail.get_template(self):
-                message = turbomail.Message(sender, mailinglist, subject)
-                message.plain = body
-                try:
-                    log.debug("Sending mail: %s" % subject)
-                    message.send()
-                except turbomail.MailNotEnabledException:
-                    log.warning("mail.on is not True!")
+            for subject, body in mail.get_template(self, templatetype):
+                mail.send_mail(sender, mailinglist, subject, body)
         else:
             log.error("Cannot find mailing list address for update notice")
+            log.error("release_name = %r", release_name)
 
     def get_url(self):
         """ Return the relative URL to this update """
