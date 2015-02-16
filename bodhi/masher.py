@@ -613,21 +613,37 @@ class MasherThread(threading.Thread):
             ))
 
     def modify_bugs(self):
-        log.info('Updating bugs')
+        self.log.info('Updating bugs')
         for update in self.updates:
-            log.debug('Modifying bugs for %s', update.title)
+            self.log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
     def status_comments(self):
-        log.info('Commenting on updates')
+        self.log.info('Commenting on updates')
         for update in self.updates:
             update.status_comment()
 
     def send_stable_announcements(self):
-        log.info('Sending stable update announcements')
+        self.log.info('Sending stable update announcements')
         for update in self.updates:
             if update.status is UpdateStatus.stable:
                 update.send_update_notice()
+
+    def get_security_updates(self, release):
+        release = self.db.query(Release).filter_by(long_name=release).one()
+        updates = self.db.query(Update).filter(
+                Update.type == UpdateType.security,
+                Update.status == UpdateStatus.testing,
+                Update.release == release,
+                Update.request == None
+        ).all()
+        updates = self.sort_by_days_in_testing(updates)
+        return updates
+
+    def sort_by_days_in_testing(self, updates):
+        updates = list(updates)
+        updates.sort(key=lambda update: update.days_in_testing, reverse=True)
+        return updates
 
 
 class MashThread(threading.Thread):

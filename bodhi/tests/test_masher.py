@@ -736,3 +736,27 @@ References:
             up = session.query(Update).filter_by(title=title).one()
             self.assertEquals(len(up.comments), 3)
             self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to stable')
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    def test_get_security_updates(self,  *args):
+        build = u'bodhi-2.0-1.fc17'
+        t = MasherThread(u'F17', u'testing', [build],
+                         log, self.db_factory, self.tempdir)
+        with self.db_factory() as session:
+            t.db = session
+            u = session.query(Update).one()
+            u.type = UpdateType.security
+            u.status = UpdateStatus.testing
+            u.request = None
+            release = session.query(Release).one()
+            updates = t.get_security_updates(release.long_name)
+            self.assertEquals(len(updates), 1)
+            self.assertEquals(updates[0].title, build)
