@@ -346,7 +346,7 @@ class MasherThread(threading.Thread):
 
     def init_state(self):
         if not os.path.exists(self.mash_dir):
-            log.info('Creating %s' % self.mash_dir)
+            self.log.info('Creating %s' % self.mash_dir)
             os.makedirs(self.mash_dir)
         self.mash_lock = os.path.join(self.mash_dir, 'MASHING-%s' % self.id)
         if os.path.exists(self.mash_lock) and not self.resume:
@@ -432,7 +432,7 @@ class MasherThread(threading.Thread):
 
     def remove_pending_tags(self):
         """ Remove all pending tags from these updates """
-        log.debug("Removing pending tags from builds")
+        self.log.debug("Removing pending tags from builds")
         self.koji.multicall = True
         for update in self.updates:
             if update.request is UpdateRequest.stable:
@@ -442,14 +442,14 @@ class MasherThread(threading.Thread):
                 update.remove_tag(update.release.pending_testing_tag,
                                   koji=self.koji)
         result = self.koji.multiCall()
-        log.debug('remove_pending_tags koji.multiCall result = %r' % result)
+        self.log.debug('remove_pending_tags koji.multiCall result = %r' % result)
 
     def update_comps(self):
         """
         Update our comps git module and merge the latest translations so we can
         pass it to mash insert into the repodata.
         """
-        log.info("Updating comps")
+        self.log.info("Updating comps")
         comps_dir = config.get('comps_dir')
         comps_url = config.get('comps_url')
         if not os.path.exists(comps_dir):
@@ -457,13 +457,13 @@ class MasherThread(threading.Thread):
         if comps_url.startswith('git://'):
             util.cmd(['git', 'pull'], comps_dir)
         else:
-            log.error('comps_url must start with git://')
+            self.log.error('comps_url must start with git://')
             return
         util.cmd(['make'], comps_dir)
 
     def mash(self):
         if self.path in self.state['completed_repos']:
-            log.info('Skipping completed repo: %s', self.path)
+            self.log.info('Skipping completed repo: %s', self.path)
             return
 
         comps = os.path.join(config.get('comps_dir'), 'comps-%s.xml' %
@@ -475,7 +475,7 @@ class MasherThread(threading.Thread):
         return mash_thread
 
     def wait_for_mash(self, mash_thread):
-        log.debug('Waiting for mash thread to finish')
+        self.log.debug('Waiting for mash thread to finish')
         mash_thread.join()
         if mash_thread.success:
             self.state['completed_repos'].append(self.path)
@@ -484,12 +484,12 @@ class MasherThread(threading.Thread):
             raise Exception
 
     def complete_requests(self):
-        log.debug("Running post-request actions on updates")
+        self.log.info("Running post-request actions on updates")
         for update in self.updates:
             if update.request:
                 update.request_complete()
             else:
-                log.warn('Update %s missing request', update.title)
+                self.log.warn('Update %s missing request', update.title)
 
     def add_to_digest(self, update):
         """Add an package to the digest dictionary.
@@ -523,7 +523,7 @@ class MasherThread(threading.Thread):
             - sanity check our repodata
         """
         arches = os.listdir(self.path)
-        log.debug("Running sanity checks on %s" % self.path)
+        self.log.debug("Running sanity checks on %s" % self.path)
 
         # make sure the new repository has our arches
         for arch in config.get('arches').split():
@@ -547,14 +547,14 @@ class MasherThread(threading.Thread):
                 repodata = os.path.join(self.path, arch, 'repodata')
                 sanity_check_repodata(repodata)
             except Exception, e:
-                log.error("Repodata sanity check failed!\n%s" % str(e))
+                self.log.error("Repodata sanity check failed!\n%s" % str(e))
                 raise
 
         # make sure that mash didn't symlink our packages
         for pkg in os.listdir(os.path.join(self.path, arches[0])):
             if pkg.endswith('.rpm'):
                 if os.path.islink(os.path.join(self.path, arches[0], pkg)):
-                    log.error("Mashed repository full of symlinks!")
+                    self.log.error("Mashed repository full of symlinks!")
                     raise Exception
                 break
 
@@ -574,7 +574,7 @@ class MasherThread(threading.Thread):
 
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
-        log.info('Waiting for updates to hit the master mirror')
+        self.log.info('Waiting for updates to hit the master mirror')
         notifications.publish(topic="mashtask.sync.wait", msg=dict(
             repo=self.id))
         arch = os.listdir(self.path)[0]
@@ -582,7 +582,7 @@ class MasherThread(threading.Thread):
         master_repomd = config.get('%s_master_repomd' % release)
         repomd = os.path.join(self.path, arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
-            log.error('Cannot find local repomd: %s', repomd)
+            self.log.error('Cannot find local repomd: %s', repomd)
             return
         checksum = hashlib.sha1(file(repomd).read()).hexdigest()
         while True:
@@ -591,20 +591,20 @@ class MasherThread(threading.Thread):
                 masterrepomd = urllib2.urlopen(master_repomd %
                                                self.release.get_version())
             except (urllib2.URLError, urllib2.HTTPError):
-                log.exception('Error fetching repomd.xml')
+                self.log.exception('Error fetching repomd.xml')
                 continue
             newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             if newsum == checksum:
-                log.info("master repomd.xml matches!")
+                self.log.info("master repomd.xml matches!")
                 notifications.publish(topic="mashtask.sync.done", msg=dict(
                     repo=self.id))
                 return
 
-            log.debug("master repomd.xml doesn't match! %s != %s for %r",
-                      checksum, newsum, self.id)
+            self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
+                           checksum, newsum, self.id)
 
     def send_notifications(self):
-        log.info('Sending notifications')
+        self.log.info('Sending notifications')
         for update in self.updates:
             topic = u'update.complete.%s' % update.status
             notifications.publish(topic=topic, msg=dict(
