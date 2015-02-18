@@ -400,13 +400,16 @@ def _send_mail(from_addr, to_addr, body):
     if not smtp_server:
         log.info('Not sending email: No smtp_server defined')
         return
+    smtp = None
     try:
+        log.debug('Connecting to %s', smtp_server)
         smtp = smtplib.SMTP(smtp_server)
         smtp.sendmail(from_addr, [to_addr], body)
     except:
         log.exception('Unable to send mail')
     finally:
-        smtp.quit()
+        if smtp:
+            smtp.quit()
 
 
 def send_mail(from_addr, to_addr, subject, body_text, headers=None):
