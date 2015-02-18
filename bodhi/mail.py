@@ -427,7 +427,7 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     msg = ['From: %s' % from_addr, 'To: %s' % to_addr]
     if headers:
         for key, value in headers.items():
-            msg.append('%s: %s' % (key, value))
+            msg.append('%s: %s' % (key, to_bytes(value)))
     msg += ['Subject: %s' % subject, '', body_text]
     body = '\r\n'.join(msg)
 
