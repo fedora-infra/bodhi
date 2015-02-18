@@ -13,17 +13,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import logging
 import smtplib
 
 from textwrap import wrap
 from kitchen.text.converters import to_unicode, to_bytes
 from kitchen.iterutils import iterate
 
+from . import log
 from .util import get_rpm_header
 from .config import config
-
-log = logging.getLogger(__name__)
 
 #
 # All of the email messages that bodhi is going to be sending around.

@@ -38,7 +38,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.settings import asbool
 
-from bodhi import buildsys, mail, notifications
+from bodhi import buildsys, mail, notifications, log
 from bodhi.util import (
     header, build_evr, get_nvr, flash_log,
     get_age, get_critpath_pkgs, get_rpm_header
@@ -54,8 +54,6 @@ from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import BodhiException, LockedUpdateException
 from bodhi.config import config
 from bodhi.bugs import bugtracker
-
-log = logging.getLogger(__name__)
 
 try:
     import rpm
