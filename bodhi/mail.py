@@ -432,7 +432,7 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     body = '\r\n'.join(msg)
 
     log.info('Sending mail to %s: %s', to_addr, subject)
-    _send_mail(from_addr, to_addr, subject, body)
+    _send_mail(from_addr, to_addr, body)
 
 
 def send(to, msg_type, update, sender=None):
