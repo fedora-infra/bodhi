@@ -446,15 +446,16 @@ def send(to, msg_type, update, sender=None):
 
     if msg_type != 'buildroot_override':
         headers = {
-            "X-Bodhi-Update-Type": update.type,
+            "X-Bodhi-Update-Type": update.type.description,
             "X-Bodhi-Update-Release": update.release.name,
-            "X-Bodhi-Update-Status": update.status,
+            "X-Bodhi-Update-Status": update.status.description,
             "X-Bodhi-Update-Builds": ",".join([b.nvr for b in update.builds]),
             "X-Bodhi-Update-Title": update.title,
             "X-Bodhi-Update-Pushed": update.pushed,
-            "X-Bodhi-Update-Request": update.request,
             "X-Bodhi-Update-Submitter": update.user.name,
         }
+        if update.request:
+            headers["X-Bodhi-Update-Request"] = update.request.description
         initial_message_id = "<bodhi-update-%s-%s-%s@%s>" % (
             update.id, update.user.name, update.release.name,
             config.get('message_id_email_domain'))
