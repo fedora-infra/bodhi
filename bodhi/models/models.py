@@ -40,14 +40,8 @@ from pyramid.settings import asbool
 
 from bodhi import buildsys, mail, notifications, log
 from bodhi.util import (
-    header, build_evr, get_nvr, flash_log,
-    get_age, get_critpath_pkgs, get_rpm_header
-)
-
-from bodhi.util import (
-    get_age_in_days,
-    avatar as get_avatar,
-    tokenize,
+    header, build_evr, get_nvr, flash_log, get_age, get_critpath_pkgs,
+    get_rpm_header, get_age_in_days, avatar as get_avatar, tokenize,
 )
 import bodhi.util
 from bodhi.models.enum import DeclEnum, EnumSymbol
