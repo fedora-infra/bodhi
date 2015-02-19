@@ -209,7 +209,7 @@ or by running the following command with the bodhi-client:
 """,
         'fields': lambda agent, x: {
             'package': x.title,
-            'stablekarma': x.builds[0].package.stable_karma,
+            'stablekarma': x.stable_karma,
             'updatestr': unicode(x)
         }
     },
