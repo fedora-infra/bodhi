@@ -1383,13 +1383,13 @@ class Update(Base):
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = UpdateRequest.stable
                 self.date_pushed = None
-                mail.send(self.get_maintainers(), 'stablekarma', self)
+                mail.send(self.get_maintainers(), 'stablekarma', self, author, author)
             if self.status is UpdateStatus.testing \
                     and self.unstable_karma != 0 \
                     and self.karma == self.unstable_karma:
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
-                mail.send(self.get_maintainers(), 'unstable', self)
+                mail.send(self.get_maintainers(), 'unstable', self, author, author)
 
         session = DBSession()
         comment = Comment(
@@ -1438,7 +1438,7 @@ class Update(Base):
             if comment.anonymous or comment.user.name == u'bodhi':
                 continue
             people.add(comment.user.name)
-        mail.send(people, 'comment', self)
+        mail.send(people, 'comment', self, author, author)
         return comment
 
     def unpush(self):

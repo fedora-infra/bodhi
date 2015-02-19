@@ -435,12 +435,10 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     _send_mail(from_addr, to_addr, body)
 
 
-def send(to, msg_type, update, sender=None):
+def send(to, msg_type, update, sender=None, agent=None):
     """ Send an update notification email to a given recipient """
-    # The value of agent used to be identity.current.user_name in TG land, but
-    # now we need to somehow get it off of the pyramid request, or have it
-    # passed into this function.
-    agent = 'TBD'
+    assert agent, 'No agent given'
+
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
     headers = {}
 
