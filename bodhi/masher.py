@@ -269,6 +269,7 @@ class MasherThread(threading.Thread):
                 self.send_stable_announcements()
 
                 # Email updates-testing digest
+                self.send_testing_digest()
 
             else:
                 raise NotImplementedError
@@ -628,6 +629,53 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             if update.status is UpdateStatus.stable:
                 update.send_update_notice()
+
+    def send_testing_digest(self):
+        """Send digest mail to mailing lists"""
+        self.log.info('Sending updates-testing digest')
+        sechead = u'The following %s Security updates need testing:\n Age  URL\n'
+        crithead = u'The following %s Critical Path updates have yet to be approved:\n Age URL\n'
+        testhead = u'The following builds have been pushed to %s updates-testing\n\n'
+
+        for prefix, content in self.testing_digest.iteritems():
+            log.debug("Sending digest for updates-testing %s" % prefix)
+            maildata = u''
+            security_updates = self.get_security_updates(prefix)
+            if security_updates:
+                maildata += sechead % prefix
+                for update in security_updates:
+                    maildata += u' %3i  %s%s\n' % (
+                        update.days_in_testing,
+                        config.get('base_address'),
+                        update.get_url())
+                maildata += '\n\n'
+
+            critpath_updates = self.get_unapproved_critpath_updates(prefix)
+            if critpath_updates:
+                maildata += crithead % prefix
+                for update in self.get_unapproved_critpath_updates(prefix):
+                    maildata += u' %3i  %s%s\n' % (
+                        update.days_in_testing,
+                        config.get('base_address'),
+                        update.get_url())
+                maildata += '\n\n'
+
+            maildata += testhead % prefix
+            updlist = content.keys()
+            updlist.sort()
+            for pkg in updlist:
+                maildata += u'    %s\n' % pkg
+            maildata += u'\nDetails about builds:\n\n'
+            for nvr in updlist:
+                maildata += u"\n" + self.testing_digest[prefix][nvr]
+
+            release = self.db.query(Release).filter_by(long_name=prefix).one()
+            mail.send_mail(config.get('bodhi_email'),
+                           config.get('%s_test_announce_list' %
+                                      release.id_prefix.lower()
+                                             .replace('-', '_')),
+                           '%s updates-testing report' % prefix,
+                           maildata)
 
     def get_security_updates(self, release):
         release = self.db.query(Release).filter_by(long_name=release).one()
