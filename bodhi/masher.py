@@ -640,6 +640,17 @@ class MasherThread(threading.Thread):
         updates = self.sort_by_days_in_testing(updates)
         return updates
 
+    def get_unapproved_critpath_updates(self, release):
+        release = self.db.query(Release).filter_by(long_name=release).one()
+        updates = self.db.query(Update).filter_by(
+            critpath=True,
+            status=UpdateStatus.testing,
+            request=None,
+            release=release,
+        ).order_by(Update.date_submitted.desc()).all()
+        updates = self.sort_by_days_in_testing(updates)
+        return updates
+
     def sort_by_days_in_testing(self, updates):
         updates = list(updates)
         updates.sort(key=lambda update: update.days_in_testing, reverse=True)
