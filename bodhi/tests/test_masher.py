@@ -301,7 +301,8 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.notifications.publish')
-    def test_testing_digest(self, *args):
+    @mock.patch('bodhi.mail._send_mail')
+    def test_testing_digest(self, mail, *args):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
                          log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
@@ -326,6 +327,11 @@ References:
 --------------------------------------------------------------------------------
 
 """ % time.strftime('%Y'))
+
+        mail.assert_called_with(config.get('bodhi_email'), config.get('fedora_test_announce_list'), mock.ANY)
+        assert len(mail.mock_calls) == 2, len(mail.mock_calls)
+        body = mail.mock_calls[1][1][2]
+        assert body.startswith('From: updates@fedoraproject.org\r\nTo: %s\r\nSubject: Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n================================================================================\n libseccomp-2.1.0-1.fc20 (FEDORA-%s-0001)\n Enhanced seccomp library\n--------------------------------------------------------------------------------\nUpdate Information:\n\nUseful details!\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------------------------------------------------------------------\n\n' % (config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
     def test_sanity_check(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
@@ -736,3 +742,27 @@ References:
             up = session.query(Update).filter_by(title=title).one()
             self.assertEquals(len(up.comments), 3)
             self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to stable')
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    def test_get_security_updates(self,  *args):
+        build = u'bodhi-2.0-1.fc17'
+        t = MasherThread(u'F17', u'testing', [build],
+                         log, self.db_factory, self.tempdir)
+        with self.db_factory() as session:
+            t.db = session
+            u = session.query(Update).one()
+            u.type = UpdateType.security
+            u.status = UpdateStatus.testing
+            u.request = None
+            release = session.query(Release).one()
+            updates = t.get_security_updates(release.long_name)
+            self.assertEquals(len(updates), 1)
+            self.assertEquals(updates[0].title, build)

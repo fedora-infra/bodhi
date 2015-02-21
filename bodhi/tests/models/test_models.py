@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from pyramid.testing import DummyRequest
 
-from bodhi import models as model, buildsys
+from bodhi import models as model, buildsys, mail
 from bodhi.models import (UpdateStatus, UpdateType, UpdateRequest,
                           UpdateSeverity, UpdateSuggestion)
 from bodhi.tests.models import ModelTest
@@ -461,6 +461,12 @@ class TestUpdate(ModelTest):
     def test_cve(self):
         cve = self.obj.cves[0]
         eq_(cve.url, 'http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-0001')
+
+    def test_expand_messages(self):
+        """Ensure all messages can be expanded properly"""
+        self.obj.comment('test', 0, 'guest')
+        for value in mail.MESSAGES.values():
+            value['body'] % value['fields']('guest', self.obj)
 
 
 class TestUser(ModelTest):

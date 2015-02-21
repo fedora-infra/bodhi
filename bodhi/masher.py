@@ -269,6 +269,7 @@ class MasherThread(threading.Thread):
                 self.send_stable_announcements()
 
                 # Email updates-testing digest
+                self.send_testing_digest()
 
             else:
                 raise NotImplementedError
@@ -346,7 +347,7 @@ class MasherThread(threading.Thread):
 
     def init_state(self):
         if not os.path.exists(self.mash_dir):
-            log.info('Creating %s' % self.mash_dir)
+            self.log.info('Creating %s' % self.mash_dir)
             os.makedirs(self.mash_dir)
         self.mash_lock = os.path.join(self.mash_dir, 'MASHING-%s' % self.id)
         if os.path.exists(self.mash_lock) and not self.resume:
@@ -432,7 +433,7 @@ class MasherThread(threading.Thread):
 
     def remove_pending_tags(self):
         """ Remove all pending tags from these updates """
-        log.debug("Removing pending tags from builds")
+        self.log.debug("Removing pending tags from builds")
         self.koji.multicall = True
         for update in self.updates:
             if update.request is UpdateRequest.stable:
@@ -442,14 +443,14 @@ class MasherThread(threading.Thread):
                 update.remove_tag(update.release.pending_testing_tag,
                                   koji=self.koji)
         result = self.koji.multiCall()
-        log.debug('remove_pending_tags koji.multiCall result = %r' % result)
+        self.log.debug('remove_pending_tags koji.multiCall result = %r' % result)
 
     def update_comps(self):
         """
         Update our comps git module and merge the latest translations so we can
         pass it to mash insert into the repodata.
         """
-        log.info("Updating comps")
+        self.log.info("Updating comps")
         comps_dir = config.get('comps_dir')
         comps_url = config.get('comps_url')
         if not os.path.exists(comps_dir):
@@ -457,13 +458,13 @@ class MasherThread(threading.Thread):
         if comps_url.startswith('git://'):
             util.cmd(['git', 'pull'], comps_dir)
         else:
-            log.error('comps_url must start with git://')
+            self.log.error('comps_url must start with git://')
             return
         util.cmd(['make'], comps_dir)
 
     def mash(self):
         if self.path in self.state['completed_repos']:
-            log.info('Skipping completed repo: %s', self.path)
+            self.log.info('Skipping completed repo: %s', self.path)
             return
 
         comps = os.path.join(config.get('comps_dir'), 'comps-%s.xml' %
@@ -475,7 +476,7 @@ class MasherThread(threading.Thread):
         return mash_thread
 
     def wait_for_mash(self, mash_thread):
-        log.debug('Waiting for mash thread to finish')
+        self.log.debug('Waiting for mash thread to finish')
         mash_thread.join()
         if mash_thread.success:
             self.state['completed_repos'].append(self.path)
@@ -484,12 +485,12 @@ class MasherThread(threading.Thread):
             raise Exception
 
     def complete_requests(self):
-        log.debug("Running post-request actions on updates")
+        self.log.info("Running post-request actions on updates")
         for update in self.updates:
             if update.request:
                 update.request_complete()
             else:
-                log.warn('Update %s missing request', update.title)
+                self.log.warn('Update %s missing request', update.title)
 
     def add_to_digest(self, update):
         """Add an package to the digest dictionary.
@@ -523,7 +524,7 @@ class MasherThread(threading.Thread):
             - sanity check our repodata
         """
         arches = os.listdir(self.path)
-        log.debug("Running sanity checks on %s" % self.path)
+        self.log.debug("Running sanity checks on %s" % self.path)
 
         # make sure the new repository has our arches
         for arch in config.get('arches').split():
@@ -547,14 +548,14 @@ class MasherThread(threading.Thread):
                 repodata = os.path.join(self.path, arch, 'repodata')
                 sanity_check_repodata(repodata)
             except Exception, e:
-                log.error("Repodata sanity check failed!\n%s" % str(e))
+                self.log.error("Repodata sanity check failed!\n%s" % str(e))
                 raise
 
         # make sure that mash didn't symlink our packages
         for pkg in os.listdir(os.path.join(self.path, arches[0])):
             if pkg.endswith('.rpm'):
                 if os.path.islink(os.path.join(self.path, arches[0], pkg)):
-                    log.error("Mashed repository full of symlinks!")
+                    self.log.error("Mashed repository full of symlinks!")
                     raise Exception
                 break
 
@@ -574,7 +575,7 @@ class MasherThread(threading.Thread):
 
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
-        log.info('Waiting for updates to hit the master mirror')
+        self.log.info('Waiting for updates to hit the master mirror')
         notifications.publish(topic="mashtask.sync.wait", msg=dict(
             repo=self.id))
         arch = os.listdir(self.path)[0]
@@ -582,7 +583,7 @@ class MasherThread(threading.Thread):
         master_repomd = config.get('%s_master_repomd' % release)
         repomd = os.path.join(self.path, arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
-            log.error('Cannot find local repomd: %s', repomd)
+            self.log.error('Cannot find local repomd: %s', repomd)
             return
         checksum = hashlib.sha1(file(repomd).read()).hexdigest()
         while True:
@@ -591,20 +592,20 @@ class MasherThread(threading.Thread):
                 masterrepomd = urllib2.urlopen(master_repomd %
                                                self.release.get_version())
             except (urllib2.URLError, urllib2.HTTPError):
-                log.exception('Error fetching repomd.xml')
+                self.log.exception('Error fetching repomd.xml')
                 continue
             newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             if newsum == checksum:
-                log.info("master repomd.xml matches!")
+                self.log.info("master repomd.xml matches!")
                 notifications.publish(topic="mashtask.sync.done", msg=dict(
                     repo=self.id))
                 return
 
-            log.debug("master repomd.xml doesn't match! %s != %s for %r",
-                      checksum, newsum, self.id)
+            self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
+                           checksum, newsum, self.id)
 
     def send_notifications(self):
-        log.info('Sending notifications')
+        self.log.info('Sending notifications')
         for update in self.updates:
             topic = u'update.complete.%s' % update.status
             notifications.publish(topic=topic, msg=dict(
@@ -613,21 +614,99 @@ class MasherThread(threading.Thread):
             ))
 
     def modify_bugs(self):
-        log.info('Updating bugs')
+        self.log.info('Updating bugs')
         for update in self.updates:
-            log.debug('Modifying bugs for %s', update.title)
+            self.log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
     def status_comments(self):
-        log.info('Commenting on updates')
+        self.log.info('Commenting on updates')
         for update in self.updates:
             update.status_comment()
 
     def send_stable_announcements(self):
-        log.info('Sending stable update announcements')
+        self.log.info('Sending stable update announcements')
         for update in self.updates:
             if update.status is UpdateStatus.stable:
                 update.send_update_notice()
+
+    def send_testing_digest(self):
+        """Send digest mail to mailing lists"""
+        self.log.info('Sending updates-testing digest')
+        sechead = u'The following %s Security updates need testing:\n Age  URL\n'
+        crithead = u'The following %s Critical Path updates have yet to be approved:\n Age URL\n'
+        testhead = u'The following builds have been pushed to %s updates-testing\n\n'
+
+        for prefix, content in self.testing_digest.iteritems():
+            release = self.db.query(Release).filter_by(long_name=prefix).one()
+            test_list_key = '%s_test_announce_list' % (
+                release.id_prefix.lower().replace('-', '_'))
+            test_list = config.get(test_list_key)
+            if not test_list:
+                log.warn('%r undefined. Not sending updates-testing digest',
+                         test_list_key)
+                continue
+
+            log.debug("Sending digest for updates-testing %s" % prefix)
+            maildata = u''
+            security_updates = self.get_security_updates(prefix)
+            if security_updates:
+                maildata += sechead % prefix
+                for update in security_updates:
+                    maildata += u' %3i  %s%s\n' % (
+                        update.days_in_testing,
+                        config.get('base_address'),
+                        update.get_url())
+                maildata += '\n\n'
+
+            critpath_updates = self.get_unapproved_critpath_updates(prefix)
+            if critpath_updates:
+                maildata += crithead % prefix
+                for update in self.get_unapproved_critpath_updates(prefix):
+                    maildata += u' %3i  %s%s\n' % (
+                        update.days_in_testing,
+                        config.get('base_address'),
+                        update.get_url())
+                maildata += '\n\n'
+
+            maildata += testhead % prefix
+            updlist = content.keys()
+            updlist.sort()
+            for pkg in updlist:
+                maildata += u'    %s\n' % pkg
+            maildata += u'\nDetails about builds:\n\n'
+            for nvr in updlist:
+                maildata += u"\n" + self.testing_digest[prefix][nvr]
+
+            mail.send_mail(config.get('bodhi_email'), test_list,
+                           '%s updates-testing report' % prefix, maildata)
+
+    def get_security_updates(self, release):
+        release = self.db.query(Release).filter_by(long_name=release).one()
+        updates = self.db.query(Update).filter(
+                Update.type == UpdateType.security,
+                Update.status == UpdateStatus.testing,
+                Update.release == release,
+                Update.request == None
+        ).all()
+        updates = self.sort_by_days_in_testing(updates)
+        return updates
+
+    def get_unapproved_critpath_updates(self, release):
+        release = self.db.query(Release).filter_by(long_name=release).one()
+        updates = self.db.query(Update).filter_by(
+            critpath=True,
+            status=UpdateStatus.testing,
+            request=None,
+            release=release,
+        ).order_by(Update.date_submitted.desc()).all()
+        updates = self.sort_by_days_in_testing(updates)
+        return updates
+
+    def sort_by_days_in_testing(self, updates):
+        updates = list(updates)
+        updates.sort(key=lambda update: update.days_in_testing, reverse=True)
+        return updates
 
 
 class MashThread(threading.Thread):

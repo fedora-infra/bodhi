@@ -13,17 +13,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import logging
 import smtplib
 
 from textwrap import wrap
 from kitchen.text.converters import to_unicode, to_bytes
 from kitchen.iterutils import iterate
 
+from . import log
 from .util import get_rpm_header
 from .config import config
-
-log = logging.getLogger(__name__)
 
 #
 # All of the email messages that bodhi is going to be sending around.
@@ -211,7 +209,7 @@ or by running the following command with the bodhi-client:
 """,
         'fields': lambda agent, x: {
             'package': x.title,
-            'stablekarma': x.builds[0].package.stable_karma,
+            'stablekarma': x.stable_karma,
             'updatestr': unicode(x)
         }
     },
@@ -402,13 +400,16 @@ def _send_mail(from_addr, to_addr, body):
     if not smtp_server:
         log.info('Not sending email: No smtp_server defined')
         return
+    smtp = None
     try:
+        log.debug('Connecting to %s', smtp_server)
         smtp = smtplib.SMTP(smtp_server)
         smtp.sendmail(from_addr, [to_addr], body)
     except:
         log.exception('Unable to send mail')
     finally:
-        smtp.quit()
+        if smtp:
+            smtp.quit()
 
 
 def send_mail(from_addr, to_addr, subject, body_text, headers=None):
@@ -426,34 +427,33 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     msg = ['From: %s' % from_addr, 'To: %s' % to_addr]
     if headers:
         for key, value in headers.items():
-            msg.append('%s: %s' % (key, value))
+            msg.append('%s: %s' % (key, to_bytes(value)))
     msg += ['Subject: %s' % subject, '', body_text]
     body = '\r\n'.join(msg)
 
     log.info('Sending mail to %s: %s', to_addr, subject)
-    _send_mail(from_addr, to_addr, subject, body)
+    _send_mail(from_addr, to_addr, body)
 
 
-def send(to, msg_type, update, sender=None):
+def send(to, msg_type, update, sender=None, agent=None):
     """ Send an update notification email to a given recipient """
-    # The value of agent used to be identity.current.user_name in TG land, but
-    # now we need to somehow get it off of the pyramid request, or have it
-    # passed into this function.
-    agent = 'TBD'
+    assert agent, 'No agent given'
+
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
     headers = {}
 
     if msg_type != 'buildroot_override':
         headers = {
-            "X-Bodhi-Update-Type": update.type,
+            "X-Bodhi-Update-Type": update.type.description,
             "X-Bodhi-Update-Release": update.release.name,
-            "X-Bodhi-Update-Status": update.status,
+            "X-Bodhi-Update-Status": update.status.description,
             "X-Bodhi-Update-Builds": ",".join([b.nvr for b in update.builds]),
             "X-Bodhi-Update-Title": update.title,
             "X-Bodhi-Update-Pushed": update.pushed,
-            "X-Bodhi-Update-Request": update.request,
             "X-Bodhi-Update-Submitter": update.user.name,
         }
+        if update.request:
+            headers["X-Bodhi-Update-Request"] = update.request.description
         initial_message_id = "<bodhi-update-%s-%s-%s@%s>" % (
             update.id, update.user.name, update.release.name,
             config.get('message_id_email_domain'))

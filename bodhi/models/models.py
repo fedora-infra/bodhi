@@ -38,24 +38,16 @@ from sqlalchemy.orm.exc import NoResultFound
 from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.settings import asbool
 
-from bodhi import buildsys, mail, notifications
+from bodhi import buildsys, mail, notifications, log
 from bodhi.util import (
-    header, build_evr, get_nvr, flash_log,
-    get_age, get_critpath_pkgs, get_rpm_header
-)
-
-from bodhi.util import (
-    get_age_in_days,
-    avatar as get_avatar,
-    tokenize,
+    header, build_evr, get_nvr, flash_log, get_age, get_critpath_pkgs,
+    get_rpm_header, get_age_in_days, avatar as get_avatar, tokenize,
 )
 import bodhi.util
 from bodhi.models.enum import DeclEnum, EnumSymbol
 from bodhi.exceptions import BodhiException, LockedUpdateException
 from bodhi.config import config
 from bodhi.bugs import bugtracker
-
-log = logging.getLogger(__name__)
 
 try:
     import rpm
@@ -1385,13 +1377,13 @@ class Update(Base):
                 log.info("Automatically marking %s as stable" % self.title)
                 self.request = UpdateRequest.stable
                 self.date_pushed = None
-                mail.send(self.get_maintainers(), 'stablekarma', self)
+                mail.send(self.get_maintainers(), 'stablekarma', self, author, author)
             if self.status is UpdateStatus.testing \
                     and self.unstable_karma != 0 \
                     and self.karma == self.unstable_karma:
                 log.info("Automatically unpushing %s" % self.title)
                 self.obsolete()
-                mail.send(self.get_maintainers(), 'unstable', self)
+                mail.send(self.get_maintainers(), 'unstable', self, author, author)
 
         session = DBSession()
         comment = Comment(
@@ -1440,7 +1432,7 @@ class Update(Base):
             if comment.anonymous or comment.user.name == u'bodhi':
                 continue
             people.add(comment.user.name)
-        mail.send(people, 'comment', self)
+        mail.send(people, 'comment', self, author, author)
         return comment
 
     def unpush(self):
