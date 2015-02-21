@@ -638,6 +638,15 @@ class MasherThread(threading.Thread):
         testhead = u'The following builds have been pushed to %s updates-testing\n\n'
 
         for prefix, content in self.testing_digest.iteritems():
+            release = self.db.query(Release).filter_by(long_name=prefix).one()
+            test_list_key = '%s_test_announce_list' % (
+                release.id_prefix.lower().replace('-', '_'))
+            test_list = config.get(test_list_key)
+            if not test_list:
+                log.warn('%r undefined. Not sending updates-testing digest',
+                         test_list_key)
+                continue
+
             log.debug("Sending digest for updates-testing %s" % prefix)
             maildata = u''
             security_updates = self.get_security_updates(prefix)
@@ -669,13 +678,8 @@ class MasherThread(threading.Thread):
             for nvr in updlist:
                 maildata += u"\n" + self.testing_digest[prefix][nvr]
 
-            release = self.db.query(Release).filter_by(long_name=prefix).one()
-            mail.send_mail(config.get('bodhi_email'),
-                           config.get('%s_test_announce_list' %
-                                      release.id_prefix.lower()
-                                             .replace('-', '_')),
-                           '%s updates-testing report' % prefix,
-                           maildata)
+            mail.send_mail(config.get('bodhi_email'), test_list,
+                           '%s updates-testing report' % prefix, maildata)
 
     def get_security_updates(self, release):
         release = self.db.query(Release).filter_by(long_name=release).one()
