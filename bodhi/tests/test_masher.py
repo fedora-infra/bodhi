@@ -35,6 +35,10 @@ from bodhi.tests import populate
 
 from bodhi.util import mkmetadatadir
 
+mock_exc = mock.Mock()
+mock_exc.side_effect = Exception
+
+
 mock_taskotron_results = {
     'target': 'bodhi.util.taskotron_results',
     'return_value': [{
@@ -190,6 +194,7 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch.object(MasherThread, 'verify_updates', mock_exc)
     @mock.patch('bodhi.notifications.publish')
     def test_update_locking(self, publish, *args):
         with self.db_factory() as session:
@@ -199,12 +204,12 @@ class TestMasher(unittest.TestCase):
         self.masher.consume(self.msg)
 
         # Ensure that fedmsg was called 4 times
-        self.assertEquals(len(publish.call_args_list), 4)
+        self.assertEquals(len(publish.call_args_list), 3)
 
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=True, repo='f17-updates-testing'))
+            msg=dict(success=False, repo='f17-updates-testing'))
 
         with self.db_factory() as session:
             # Ensure that the update was locked
