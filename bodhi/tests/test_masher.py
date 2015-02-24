@@ -788,6 +788,7 @@ References:
             up = session.query(Update).filter_by(title=title).one()
             up.request = UpdateRequest.stable
             self.assertEquals(len(up.comments), 2)
+            self.assertEquals(up.locked, False)
 
         self.masher.consume(self.msg)
 
