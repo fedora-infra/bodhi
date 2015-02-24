@@ -309,13 +309,13 @@ class MasherThread(threading.Thread):
 
     def verify_updates(self):
         for update in list(self.updates):
-            if not update.request is self.request:
+            if update.request is not self.request:
                 reason = "Request %s inconsistent with mash request %s" % (
                     update.request, self.request)
                 self.eject_from_mash(update, reason)
                 continue
 
-            if not update.release is self.release:
+            if update.release is not self.release:
                 reason = "Release %s inconsistent with mash release %s" % (
                     update.release, self.release)
                 self.eject_from_mash(update, reason)
@@ -450,7 +450,8 @@ class MasherThread(threading.Thread):
                 update.remove_tag(update.release.pending_testing_tag,
                                   koji=self.koji)
         result = self.koji.multiCall()
-        self.log.debug('remove_pending_tags koji.multiCall result = %r' % result)
+        self.log.debug('remove_pending_tags koji.multiCall result = %r',
+                       result)
 
     def update_comps(self):
         """
@@ -734,7 +735,8 @@ class MashThread(threading.Thread):
         log.info('Mashing %s', self.tag)
         try:
             util.cmd(self.mash_cmd)
-            log.info('Took %s seconds to mash %s', time.time() - start, self.tag)
+            log.info('Took %s seconds to mash %s', time.time() - start,
+                     self.tag)
             self.success = True
         except:
             log.exception('There was a problem running mash')
