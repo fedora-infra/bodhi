@@ -276,6 +276,7 @@ class MasherThread(threading.Thread):
 
             success = True
             self.remove_state()
+            self.unlock_updates()
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             self.save_state()
@@ -298,6 +299,12 @@ class MasherThread(threading.Thread):
         self.log.debug('Locking updates')
         for update in self.updates:
             update.locked = True
+        self.db.flush()
+
+    def unlock_updates(self):
+        self.log.debug('Unlocking updates')
+        for update in self.updates:
+            update.locked = False
         self.db.flush()
 
     def verify_updates(self):
