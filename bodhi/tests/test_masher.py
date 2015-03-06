@@ -216,6 +216,14 @@ class TestMasher(unittest.TestCase):
             up = session.query(Update).one()
             self.assertTrue(up.locked)
 
+            # Ensure we can't set a request
+            from bodhi.exceptions import LockedUpdateException
+            try:
+                up.set_request(UpdateRequest.stable)
+                assert False, 'Set the request on a locked update'
+            except LockedUpdateException:
+                pass
+
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.update_comps')
     @mock.patch('bodhi.masher.MashThread.run')
