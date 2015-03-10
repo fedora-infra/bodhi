@@ -23,6 +23,7 @@ import transaction
 
 from contextlib import contextmanager
 from sqlalchemy import create_engine
+from pyramid.paster import bootstrap
 
 from bodhi import buildsys, log
 from bodhi.config import config
@@ -219,7 +220,10 @@ class TestMasher(unittest.TestCase):
             # Ensure we can't set a request
             from bodhi.exceptions import LockedUpdateException
             try:
-                up.set_request(UpdateRequest.stable)
+                env = bootstrap('development.ini')
+                request = env['request']
+
+                up.set_request(UpdateRequest.stable, request)
                 assert False, 'Set the request on a locked update'
             except LockedUpdateException:
                 pass
