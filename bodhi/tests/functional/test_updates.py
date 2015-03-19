@@ -179,9 +179,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         app = TestApp(main({}, testing=u'bodhi', **self.app_settings))
         res = app.post_json('/updates/', self.get_update(u'bodhi-2.1-1.fc17'))
         assert 'bodhi does not have commit access to bodhi' not in res, res
-        # TODO; uncomment once we're actually creating updates properly
-        #build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1').one()
-        #assert len(build.updates) == 1
+        build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1.fc17').one()
+        assert build.update is not None
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
