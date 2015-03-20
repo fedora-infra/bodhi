@@ -807,3 +807,39 @@ References:
             up = session.query(Update).filter_by(title=title).one()
             self.assertEquals(up.locked, False)
             self.assertEquals(up.status, UpdateStatus.stable)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    def test_resume_push(self,  *args):
+        title = self.msg['body']['msg']['updates']
+        with mock.patch.object(MasherThread, 'verify_updates', mock_exc):
+            with self.db_factory() as session:
+                up = session.query(Update).filter_by(title=title).one()
+                up.request = UpdateRequest.testing
+                up.status = UpdateStatus.pending
+
+            # Simulate a failed push
+            self.masher.consume(self.msg)
+
+        # Ensure that the update hasn't changed state
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+            self.assertEquals(up.request, UpdateRequest.testing)
+            self.assertEquals(up.status, UpdateStatus.pending)
+
+        # Resume the push
+        self.msg['body']['msg']['resume'] = True
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+            self.assertEquals(up.status, UpdateStatus.testing)
+            self.assertEquals(up.request, None)

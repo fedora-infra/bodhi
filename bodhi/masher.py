@@ -138,6 +138,7 @@ Once mash is done:
         will be executed before all others.
         """
         body = msg['body']['msg']
+        resume = body.get('resume', False)
         notifications.publish(topic="mashtask.start", msg=dict())
         releases = self.organize_updates(session, body)
 
@@ -153,7 +154,7 @@ Once mash is done:
                                   release, request, len(updates))
                         thread = MasherThread(release, request, updates,
                                               self.log, self.db_factory,
-                                              self.mash_dir)
+                                              self.mash_dir, resume)
                         threads.append(thread)
                         thread.start()
                 for thread in threads:
@@ -223,56 +224,57 @@ class MasherThread(threading.Thread):
             if not self.resume:
                 self.lock_updates()
 
-                self.verify_updates()
+            self.verify_updates()
 
-                if self.request is UpdateRequest.stable:
-                    self.perform_gating()
+            if self.request is UpdateRequest.stable:
+                self.perform_gating()
 
-                self.update_security_bugs()
+            self.update_security_bugs()
+
+
+            if not self.state.get('tagged', False):
                 self.determine_tag_actions()
                 self.perform_tag_actions()
                 self.state['tagged'] = True
                 self.save_state()
-                self.expire_buildroot_overrides()
-                self.remove_pending_tags()
-                self.update_comps()
 
-                mash_thread = self.mash()
+            self.expire_buildroot_overrides()
+            self.remove_pending_tags()
+            self.update_comps()
 
-                # Things we can do while we're mashing
-                self.complete_requests()
-                self.generate_testing_digest()
-                uinfo = self.generate_updateinfo()
+            mash_thread = self.mash()
 
-                self.wait_for_mash(mash_thread)
+            # Things we can do while we're mashing
+            self.complete_requests()
+            self.generate_testing_digest()
+            uinfo = self.generate_updateinfo()
 
-                uinfo.insert_updateinfo()
-                uinfo.insert_pkgtags()
-                uinfo.cache_repodata()
+            self.wait_for_mash(mash_thread)
 
-                self.sanity_check_repo()
-                self.stage_repo()
+            uinfo.insert_updateinfo()
+            uinfo.insert_pkgtags()
+            uinfo.cache_repodata()
 
-                # Wait for the repo to hit the master mirror
-                self.wait_for_sync()
+            self.sanity_check_repo()
+            self.stage_repo()
 
-                # Send fedmsg notifications
-                self.send_notifications()
+            # Wait for the repo to hit the master mirror
+            self.wait_for_sync()
 
-                # Update bugzillas
-                self.modify_bugs()
+            # Send fedmsg notifications
+            self.send_notifications()
 
-                # Add comments to updates
-                self.status_comments()
+            # Update bugzillas
+            self.modify_bugs()
 
-                # Announce stable updates to the mailing list
-                self.send_stable_announcements()
+            # Add comments to updates
+            self.status_comments()
 
-                # Email updates-testing digest
-                self.send_testing_digest()
+            # Announce stable updates to the mailing list
+            self.send_stable_announcements()
 
-            else:
-                raise NotImplementedError
+            # Email updates-testing digest
+            self.send_testing_digest()
 
             success = True
             self.remove_state()
