@@ -1193,6 +1193,8 @@ class Update(Base):
         if mailinglist:
             for subject, body in mail.get_template(self, templatetype):
                 mail.send_mail(sender, mailinglist, subject, body)
+                notifications.publish(topic='errata.publish',
+                    msg=dict(subject=subject, body=body, update=self))
         else:
             log.error("Cannot find mailing list address for update notice")
             log.error("release_name = %r", release_name)
