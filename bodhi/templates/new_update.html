@@ -286,6 +286,8 @@ ${update.notes}
               </div>
             </div>
 
+            <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
+
             % if update:
             <input type="hidden" name="edited" value="${update.title}">
             % endif

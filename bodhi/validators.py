@@ -16,6 +16,9 @@ from datetime import datetime
 
 from sqlalchemy.sql import or_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
+import pyramid.threadlocal
+
+import colander
 
 from . import captcha
 from . import log
@@ -29,6 +32,15 @@ try:
     import rpm
 except ImportError:
     log.warning("Could not import 'rpm'")
+
+
+# This one is a colander validator which is different from the cornice
+# validators defined elsehwere.
+def validate_csrf_token(node, value):
+    request = pyramid.threadlocal.get_current_request()
+    expected = request.session.get_csrf_token()
+    if value != expected:
+        raise colander.Invalid(node, 'Tokens do not match')
 
 
 def validate_nvrs(request):

@@ -21,6 +21,8 @@ from kitchen.iterutils import iterate
 from bodhi.models import (UpdateRequest, UpdateSeverity, UpdateStatus,
                           UpdateSuggestion, UpdateType, ReleaseState)
 
+from bodhi.validators import validate_csrf_token
+
 
 CVE_REGEX = re.compile(r"CVE-[0-9]{4,4}-[0-9]{4,}")
 
@@ -40,6 +42,14 @@ def splitter(value):
             items.append(v)
 
     return items
+
+
+class CSRFProtectedSchema(colander.MappingSchema):
+    csrf_token = colander.SchemaNode(
+        colander.String(),
+        name="csrf_token",
+        validator=validate_csrf_token,
+    )
 
 
 class Bugs(colander.SequenceSchema):
@@ -104,7 +114,7 @@ class TestcaseFeedbacks(colander.SequenceSchema):
     testcase_feedback = TestcaseFeedback()
 
 
-class SaveCommentSchema(colander.MappingSchema):
+class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
     update = colander.SchemaNode(colander.String())
     text = colander.SchemaNode(colander.String())
     karma = colander.SchemaNode(
@@ -130,7 +140,7 @@ class SaveCommentSchema(colander.MappingSchema):
     )
 
 
-class SaveUpdateSchema(colander.MappingSchema):
+class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     builds = Builds(colander.Sequence(accept_scalar=True),
                     preparer=[splitter])
 
@@ -256,7 +266,7 @@ class ListReleaseSchema(PaginatedSchema):
     )
 
 
-class SaveReleaseSchema(colander.MappingSchema):
+class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     name = colander.SchemaNode(
         colander.String(),
     )
@@ -322,7 +332,7 @@ class ListStackSchema(PaginatedSchema, SearchableSchema):
     )
 
 
-class SaveStackSchema(colander.MappingSchema):
+class SaveStackSchema(CSRFProtectedSchema, colander.MappingSchema):
     name = colander.SchemaNode(
         colander.String(),
     )
@@ -515,7 +525,7 @@ class ListBuildSchema(PaginatedSchema):
     )
 
 
-class UpdateRequestSchema(colander.MappingSchema):
+class UpdateRequestSchema(CSRFProtectedSchema, colander.MappingSchema):
     request = colander.SchemaNode(
         colander.String(),
         validator=colander.OneOf(UpdateRequest.values()),
@@ -591,7 +601,7 @@ class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     )
 
 
-class SaveOverrideSchema(colander.MappingSchema):
+class SaveOverrideSchema(CSRFProtectedSchema, colander.MappingSchema):
     nvr = colander.SchemaNode(
         colander.String(),
     )

@@ -14,7 +14,6 @@
 
 import math
 
-from datetime import datetime, timedelta
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy.sql import or_
@@ -24,19 +23,11 @@ from bodhi.models import Update, Build, Package, Release
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
-    validate_nvrs,
-    validate_version,
-    validate_uniqueness,
     validate_tags,
-    validate_acls,
-    validate_builds,
     validate_enums,
     validate_updates,
     validate_packages,
-    validate_releases,
     validate_release,
-    validate_username,
-    validate_groups,
 )
 
 
@@ -59,10 +50,6 @@ def get_release_html(request):
     updates_count = request.db.query(Update.date_submitted, Update.type).filter(
         Update.release==release).order_by(
             Update.date_submitted.desc())
-
-    now = updates[0].date_submitted
-    year = timedelta(days=365)
-    diff = now - year
 
     date_commits = {}
     dates = set()
@@ -167,6 +154,10 @@ def save_release(request):
     data = request.validated
 
     edited = data.pop("edited", None)
+
+    # This has already been validated at this point, but we need to ditch
+    # it since the models don't care about a csrf argument.
+    data.pop('csrf_token')
 
     try:
         if edited is None:

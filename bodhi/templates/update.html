@@ -228,7 +228,10 @@ $(document).ready(function() {
           var url = '${request.route_url("update_request", id=update.title)}';
           $.ajax({
               url: url,
-              data: {request: action},
+              data: {
+                request: action,
+                csrf_token: "${request.session.get_csrf_token()}",
+              },
               method: 'POST',
               dataType: 'json',
               success: function(response) {
@@ -554,6 +557,7 @@ $(document).ready(function(){
 
       <div class="clearfix"></div>
 
+      <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
       <input type="hidden" name="update" value="${update.title}"/>
 
       <div class="row">

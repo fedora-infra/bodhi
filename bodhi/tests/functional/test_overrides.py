@@ -15,10 +15,9 @@
 from datetime import datetime, timedelta
 
 import mock
-import colander
 
 import bodhi.tests.functional.base
-from bodhi.models import (DBSession, Build, BuildrootOverride, Package,
+from bodhi.models import (DBSession, Build, Package,
                           Release, User)
 
 
@@ -193,7 +192,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
         data = {'nvr': build.nvr, 'notes': u'blah blah blah',
-                'expiration_date': expiration_date}
+                'expiration_date': expiration_date,
+                'csrf_token': self.get_csrf_token()}
         res = self.app.post('/overrides/', data)
 
         publish.assert_called_once_with(
@@ -220,7 +220,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
         data = {'nvr': build.nvr, 'notes': u'blah blah blah',
-                'expiration_date': expiration_date}
+                'expiration_date': expiration_date,
+                'csrf_token': self.get_csrf_token()}
         res = self.app.post('/overrides/', data)
 
         publish.assert_any_call(topic='buildroot_override.tag', msg=mock.ANY)
@@ -255,7 +256,11 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         session.add(build)
         session.flush()
 
-        o.update({'nvr': build.nvr, 'edited': old_nvr})
+        o.update({
+            'nvr': build.nvr,
+            'edited': old_nvr,
+            'csrf_token': self.get_csrf_token(),
+        })
         res = self.app.post('/overrides/', o)
 
         override = res.json_body
@@ -275,8 +280,13 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
-        o = {'nvr': build.nvr, 'notes': 'blah blah blah',
-             'expiration_date': expiration_date, 'edited': build.nvr}
+        o = {
+            'nvr': build.nvr,
+            'notes': 'blah blah blah',
+            'expiration_date': expiration_date,
+            'edited': build.nvr,
+            'csrf_token': self.get_csrf_token(),
+        }
         res = self.app.post('/overrides/', o, status=400)
 
         errors = res.json_body['errors']
@@ -294,7 +304,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         expiration_date = o['expiration_date']
 
         o.update({'nvr': old_nvr, 'notes': 'blah blah blah blah',
-                  'edited': old_nvr})
+                  'edited': old_nvr, 'csrf_token': self.get_csrf_token()})
         res = self.app.post('/overrides/', o)
 
         override = res.json_body
@@ -311,7 +321,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         expiration_date = datetime.utcnow() + timedelta(days=2)
 
         o.update({'nvr': o['build']['nvr'],
-                  'expiration_date': expiration_date, 'edited': old_nvr})
+                  'expiration_date': expiration_date, 'edited': old_nvr,
+                  'csrf_token': self.get_csrf_token()})
         res = self.app.post('/overrides/', o)
 
         override = res.json_body
@@ -329,7 +340,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         o = res.json_body['override']
 
         o.update({'nvr': o['build']['nvr'], 'expired': True,
-                  'edited': old_nvr})
+                  'edited': old_nvr, 'csrf_token': self.get_csrf_token()})
         res = self.app.post('/overrides/', o)
 
         override = res.json_body
@@ -363,7 +374,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         expiration_date = expiration_date.strftime("%Y-%m-%d %H:%M:%S")
 
         o.update({'nvr': o['build']['nvr'],
-                  'edited': old_nvr, 'expiration_date': expiration_date})
+                  'edited': old_nvr, 'expiration_date': expiration_date,
+                  'csrf_token': self.get_csrf_token()})
         res = self.app.post('/overrides/', o)
 
         override = res.json_body
