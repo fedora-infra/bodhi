@@ -15,7 +15,6 @@
 import os
 import unittest
 
-from datetime import datetime, timedelta
 from webtest import TestApp
 from sqlalchemy import create_engine
 from sqlalchemy import event
@@ -24,21 +23,7 @@ from bodhi import main, log
 from bodhi.tests import populate
 from bodhi.models import (
     Base,
-    Bug,
-    Build,
-    BuildrootOverride,
-    Comment,
-    CVE,
     DBSession,
-    Group,
-    Package,
-    Release,
-    Update,
-    UpdateType,
-    User,
-    UpdateStatus,
-    UpdateRequest,
-    TestCase,
 )
 
 FAITOUT = 'http://209.132.184.152/faitout/'
@@ -114,10 +99,12 @@ class BaseWSGICase(unittest.TestCase):
         if DB_NAME:
             try:
                 import requests
-                req = requests.get('%s/clean/%s' % (FAITOUT, DB_NAME))
+                requests.get('%s/clean/%s' % (FAITOUT, DB_NAME))
             except:
                 pass
 
+    def get_csrf_token(self):
+        return self.app.get('/csrf').json_body['csrf_token']
 
     def get_update(self, builds=u'bodhi-2.0-1.fc17', stable_karma=3, unstable_karma=-3):
         if isinstance(builds, list):
@@ -130,4 +117,5 @@ class BaseWSGICase(unittest.TestCase):
             'stable_karma': stable_karma,
             'unstable_karma': unstable_karma,
             'requirements': 'rpmlint',
+            'csrf_token': self.get_csrf_token(),
         }

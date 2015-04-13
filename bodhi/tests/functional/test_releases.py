@@ -12,26 +12,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from datetime import datetime, timedelta
-from webtest import TestApp
-
 import bodhi.tests.functional.base
 
-from bodhi import main
 from bodhi.models import (
-    Base,
-    Bug,
-    Build,
-    CVE,
     DBSession,
-    Group,
-    Package,
     Release,
     ReleaseState,
     Update,
-    UpdateType,
-    UpdateStatus,
-    UpdateRequest,
 )
 
 
@@ -151,8 +138,12 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
                  "candidate_tag": "f42-updates-candidate",
                  "pending_stable_tag": "f42-updates-pending",
                  "pending_testing_tag": "f42-updates-testing-pending",
-                 "override_tag": "f42-override"}
-        res = self.app.post("/releases/", attrs, status=200)
+                 "override_tag": "f42-override",
+                 "csrf_token": self.get_csrf_token(),
+                 }
+        self.app.post("/releases/", attrs, status=200)
+
+        attrs.pop('csrf_token')
 
         r = DBSession().query(Release).filter(Release.name==attrs["name"]).one()
 
@@ -167,7 +158,9 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
                  "dist_tag": "epel42", "stable_tag": "epel42",
                  "testing_tag": "epel42-testing",
                  "candidate_tag": "epel42-candidate",
-                 "override_tag": "epel42-override"}
+                 "override_tag": "epel42-override",
+                 "csrf_token": self.get_csrf_token(),
+                 }
         res = self.app.post("/releases/", attrs, status=400)
 
         self.assertEquals(len(res.json_body['errors']), 4)
@@ -182,6 +175,7 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
 
         r["edited"] = name
         r["state"] = "current"
+        r["csrf_token"] = self.get_csrf_token()
 
         res = self.app.post("/releases/", r, status=200)
 

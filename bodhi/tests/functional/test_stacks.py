@@ -12,27 +12,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from datetime import datetime, timedelta
-from webtest import TestApp
-
 import mock
 
 import bodhi.tests.functional.base
 
-from bodhi import main
 from bodhi.models import (
-    Base,
-    Bug,
-    Build,
-    CVE,
     DBSession,
     Group,
     Package,
-    Release,
-    Update,
-    UpdateType,
-    UpdateStatus,
-    UpdateRequest,
     User,
     Stack,
 )
@@ -78,7 +65,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.session.add(pkg1)
         self.session.add(pkg2)
         self.session.flush()
-        ff = Stack(name=u'Firefox', packages=[pkg1, pkg2])
+        Stack(name=u'Firefox', packages=[pkg1, pkg2])
         self.session.flush()
 
         res = self.app.get('/stacks/')
@@ -127,7 +114,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack(self, *args):
-        attrs = {'name': 'KDE', 'packages': 'kde-filesystem kdegames'}
+        attrs = {'name': 'KDE', 'packages': 'kde-filesystem kdegames',
+                 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'KDE')
@@ -139,14 +127,15 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_invalid_name(self, *args):
-        attrs = {"name": ""}
+        attrs = {"name": "", 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=400)
         self.assertEquals(res.json_body['status'], 'error')
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_invalid_requirement(self, *args):
         attrs = {"name": "Hackey", "packages": "nethack",
-                 "requirements": "silly-dilly"}
+                 "requirements": "silly-dilly",
+                 "csrf_token": self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=400)
         self.assertEquals(res.json_body['status'], 'error')
         c = self.session.query(Stack).filter(Stack.name==attrs["name"]).count()
@@ -155,7 +144,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_valid_requirement(self, *args):
         attrs = {"name": "Hackey", "packages": "nethack",
-                 "requirements": "rpmlint"}
+                 "requirements": "rpmlint",
+                 "csrf_token": self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs)#, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'Hackey')
@@ -167,7 +157,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack(self, *args):
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
-                 'description': 'foo', 'requirements': 'upgradepath'}
+                 'description': 'foo', 'requirements': 'upgradepath',
+                 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'GNOME')
@@ -193,7 +184,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_remove_package(self, *args):
-        attrs = {'name': 'GNOME', 'packages': 'gnome-music'}
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music',
+                 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'GNOME')
@@ -208,7 +200,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.session.flush()
         self.stack.groups.append(group)
         self.session.flush()
-        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell'}
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
+                 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=403)
         body = res.json_body
         self.assertEquals(body['status'], 'error')
@@ -222,7 +215,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.session.flush()
         self.stack.users.append(user)
         self.session.flush()
-        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell'}
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
+                 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=403)
         body = res.json_body
         self.assertEquals(body['status'], 'error')
@@ -234,7 +228,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         user = self.session.query(User).filter_by(name=u'guest').one()
         self.stack.users.append(user)
         self.session.flush()
-        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell'}
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
+                 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'GNOME')
@@ -251,7 +246,8 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.stack.groups.append(group)
         user.groups.append(group)
         self.session.flush()
-        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell'}
+        attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
+                 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'GNOME')

@@ -52,6 +52,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
             u'update': update,
             u'text': text,
             u'karma': karma,
+            u'csrf_token': self.get_csrf_token(),
         }
         comment.update(kwargs)
         return comment

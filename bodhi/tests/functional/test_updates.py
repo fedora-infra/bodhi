@@ -177,7 +177,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         user.groups.append(group)
 
         app = TestApp(main({}, testing=u'bodhi', **self.app_settings))
-        res = app.post_json('/updates/', self.get_update(u'bodhi-2.1-1.fc17'))
+        update = self.get_update(u'bodhi-2.1-1.fc17')
+        update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', update)
         assert 'bodhi does not have commit access to bodhi' not in res, res
         build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1.fc17').one()
         assert build.update is not None
@@ -191,8 +193,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         settings['acl_system'] = 'pkgdb'
         settings['pkgdb_url'] = 'invalidurl'
         app = TestApp(main({}, testing=u'guest', **settings))
-        res = app.post_json('/updates/', self.get_update(u'bodhi-2.0-2.fc17'),
-                            status=400)
+        update = self.get_update(u'bodhi-2.0-2.fc17')
+        update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', update, status=400)
         assert "Unable to access the Package Database. Please try again later." in res, res
 
     @mock.patch(**mock_valid_requirements)
@@ -1200,15 +1203,17 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_invalid_request(self, *args):
         """Test submitting an invalid request"""
         args = self.get_update()
-        resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'request': 'foo'}, status=400)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'foo','csrf_token': self.get_csrf_token()}, status=400)
         resp = resp.json_body
         eq_(resp['status'], 'error')
         eq_(resp['errors'][0]['description'], u'"foo" is not one of unpush, testing, revoke, obsolete, stable')
 
         # Now try with None
-        resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'request': None}, status=400)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': None, 'csrf_token': self.get_csrf_token()}, status=400)
         resp = resp.json_body
         eq_(resp['status'], 'error')
         eq_(resp['errors'][0]['name'], 'request')
@@ -1221,8 +1226,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         """Test submitting a valid testing request"""
         args = self.get_update()
         args['request'] = None
-        resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'request': 'testing'})
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'testing', 'csrf_token': self.get_csrf_token()})
         eq_(resp.json['update']['request'], 'testing')
         self.assertEquals(publish.call_args_list, [])
 
@@ -1231,8 +1237,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_invalid_stable_request(self, *args):
         """Test submitting a stable request for an update that has yet to meet the stable requirements"""
         args = self.get_update()
-        resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'request': 'stable'}, status=400)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'stable', 'csrf_token': self.get_csrf_token()},
+            status=400)
         eq_(resp.json['status'], 'error')
         eq_(resp.json['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
@@ -1252,8 +1260,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         DBSession.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
-        resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'request': 'stable'})
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'stable', 'csrf_token': self.get_csrf_token()})
         eq_(resp.json['update']['request'], 'stable')
         publish.assert_called_with(
             topic='update.request.stable', msg=mock.ANY)
@@ -1273,8 +1282,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         DBSession.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
-        resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'request': 'stable'}, status=400)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'stable', 'csrf_token': self.get_csrf_token()},
+            status=400)
         self.assertIn('errors', resp)
         self.assertIn('Required task', resp)
 
@@ -1293,8 +1304,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         DBSession.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
-        resp = self.app.post_json('/updates/%s/request' % args['builds'],
-                                  {'request': 'stable'}, status=400)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'stable', 'csrf_token': self.get_csrf_token()},
+            status=400)
         self.assertIn('errors', resp)
         self.assertIn('No result found for', resp)
 

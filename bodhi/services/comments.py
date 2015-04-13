@@ -157,6 +157,11 @@ def new_comment(request):
     """ Add a new comment to an update. """
     settings = request.registry.settings
     data = request.validated
+
+    # This has already been validated at this point, but we need to ditch
+    # it since the models don't care about a csrf argument.
+    data.pop('csrf_token')
+
     update = data.pop('update')
     email = data.pop('email', None)
     author = email or (request.user and request.user.name)

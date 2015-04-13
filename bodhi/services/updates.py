@@ -237,6 +237,10 @@ def new_update(request):
     data = request.validated
     log.debug('validated = %s' % data)
 
+    # This has already been validated at this point, but we need to ditch
+    # it since the models don't care about a csrf argument.
+    data.pop('csrf_token')
+
     try:
         if data.get('edited'):
             log.info('Editing update: %s' % data['edited'])
