@@ -104,6 +104,8 @@
       </div>
     </div> <!-- end row -->
 
+    <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
+
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">

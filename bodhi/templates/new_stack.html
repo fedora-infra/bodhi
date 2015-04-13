@@ -151,6 +151,8 @@
       </div>
     </div> <!-- end row -->
 
+    <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
+
     <div class="row col-md-5">
       % if stack is not UNDEFINED:
       <div class="pull-left">
