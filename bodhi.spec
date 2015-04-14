@@ -12,6 +12,13 @@ Source0:        https://fedorahosted.org/releases/b/o/bodhi/bodhi-%{version}.tar
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
+# For the tests
+BuildRequires:   python-nose
+BuildRequires:   python-nose-cov
+BuildRequires:   python-webtest
+BuildRequires:   python-mock
+
+# For the app
 BuildRequires:   python-pyramid
 BuildRequires:   python-pyramid-mako
 #BuildRequires:   python-pyramid-debugtoolbar
