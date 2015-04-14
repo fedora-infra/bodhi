@@ -222,8 +222,7 @@ class TestMasher(unittest.TestCase):
             try:
                 env = bootstrap('development.ini')
                 request = env['request']
-
-                up.set_request(UpdateRequest.stable, request)
+                up.set_request(UpdateRequest.stable, u'bodhi')
                 assert False, 'Set the request on a locked update'
             except LockedUpdateException:
                 pass

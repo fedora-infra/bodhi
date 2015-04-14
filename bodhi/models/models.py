@@ -681,7 +681,7 @@ class Update(Base):
 
         # Create the update
         up = Update(**data)
-        up.set_request(req, request)
+        up.set_request(req, request.user.name)
         db.add(up)
         db.flush()
 
@@ -768,7 +768,7 @@ class Update(Base):
 
         req = data.pop("request", None)
         if req is not None:
-            up.set_request(req, request)
+            up.set_request(req, request.user.name)
 
         for key, value in data.items():
             setattr(up, key, value)
@@ -943,7 +943,7 @@ class Update(Base):
         # FIXME: don't do this here:
         self.date_pushed = datetime.utcnow()
 
-    def set_request(self, action, request, pathcheck=True):
+    def set_request(self, action, username):
         """ Attempt to request an action for this update """
         log.debug('Attempting to set request %s' % action)
         notes = []
@@ -964,23 +964,22 @@ class Update(Base):
         topic = u'update.request.%s' % action
         if action is UpdateRequest.unpush:
             self.unpush()
-            self.comment(u'This update has been unpushed',
-                         author=request.user.name)
+            self.comment(u'This update has been unpushed', author=username)
             notifications.publish(topic=topic, msg=dict(
-                update=self, agent=request.user.name))
+                update=self, agent=username))
             flash_log("%s has been unpushed" % self.title)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete()
             flash_log("%s has been obsoleted" % self.title)
             notifications.publish(topic=topic, msg=dict(
-                update=self, agent=request.user.name))
+                update=self, agent=username))
             return
         elif action is UpdateRequest.revoke:
             self.revoke()
             flash_log("%s has been revoked" % self.title)
             notifications.publish(topic=topic, msg=dict(
-                update=self, agent=request.user.name))
+                update=self, agent=username))
             return
 
         # Disable pushing critical path updates for pending releases directly to stable
@@ -1055,10 +1054,9 @@ class Update(Base):
         flash_log("%s has been submitted for %s. %s%s" % (self.title,
             action.description, notes, flash_notes))
         self.comment(u'This update has been submitted for %s by %s. %s' % (
-            action.description, request.user.name, notes), author=u'bodhi')
+            action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
-        notifications.publish(topic=topic, msg=dict(
-            update=self, agent=request.user.name))
+        notifications.publish(topic=topic, msg=dict(update=self, agent=username))
 
         # FIXME: track date pushed to testing & stable in different fields
         self.date_pushed = None

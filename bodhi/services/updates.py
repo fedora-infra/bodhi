@@ -99,7 +99,7 @@ def set_request(request):
             return
 
     try:
-        update.set_request(action, request)
+        update.set_request(action, request.user.name)
     except BodhiException as e:
         request.errors.add('body', 'request', e.message)
 
