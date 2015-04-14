@@ -1320,7 +1320,8 @@ class Update(Base):
         return color
 
     def comment(self, text, karma=0, author=None, anonymous=False,
-                karma_critpath=0, bug_feedback=None, testcase_feedback=None):
+                karma_critpath=0, bug_feedback=None, testcase_feedback=None,
+                check_karma=True):
         """ Add a comment to this update, adjusting the karma appropriately.
 
         Each user has the ability to comment as much as they want, but only
@@ -1347,22 +1348,13 @@ class Update(Base):
             else:
                 self.karma += karma
 
-            # TODO -- this block of code should be moved out of here and to
-            # some kind of policy module.. so its not embedded in the model.
             log.info("Updated %s karma to %d" % (self.title, self.karma))
-            if self.stable_karma != 0 and self.stable_karma == self.karma:
-                # TODO, this should use ".set_request" so that fedmsg gets
-                # triggered
-                log.info("Automatically marking %s as stable" % self.title)
-                self.request = UpdateRequest.stable
-                self.date_pushed = None
-                mail.send(self.get_maintainers(), 'stablekarma', self, author, author)
-            if self.status is UpdateStatus.testing \
-                    and self.unstable_karma != 0 \
-                    and self.karma == self.unstable_karma:
-                log.info("Automatically unpushing %s" % self.title)
-                self.obsolete()
-                mail.send(self.get_maintainers(), 'unstable', self, author, author)
+
+            if check_karma and author not in config.get('system_users').split():
+                try:
+                    self.check_karma_thresholds(author)
+                except LockedUpdateException:
+                    pass
 
         session = DBSession()
         comment = Comment(
@@ -1529,6 +1521,24 @@ class Update(Base):
         # TODO - check require_bugs and require_testcases also?
 
         return True, "All checks pass."
+
+    def check_karma_thresholds(self, username):
+        """Check if we have reached either karma threshold, and call set_request if necessary"""
+        if not self.locked:
+            if self.status is UpdateStatus.testing:
+                if self.stable_karma != 0 and self.karma >= self.stable_karma:
+                    log.info("Automatically marking %s as stable" % self.title)
+                    self.set_request(UpdateRequest.stable, username)
+                    self.request = UpdateRequest.stable
+                    self.date_pushed = None
+                elif self.unstable_karma != 0 and self.karma <= self.unstable_karma:
+                    log.info("Automatically unpushing %s" % self.title)
+                    self.obsolete()
+            else:
+                # Ignore karma thresholds for pending/stable/obsolete updates
+                pass
+        else:
+            log.debug('%s locked. Ignoring karma thresholds.' % self.title)
 
     @property
     def requirements_json(self):
