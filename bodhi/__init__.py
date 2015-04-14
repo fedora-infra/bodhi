@@ -25,8 +25,6 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.renderers import JSONP
 from pyramid.exceptions import HTTPForbidden
 
-from fedora.client.pkgdb import PackageDB
-
 from . import buildsys
 
 import logging

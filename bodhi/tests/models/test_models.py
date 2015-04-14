@@ -30,6 +30,7 @@ from bodhi.models import (UpdateStatus, UpdateType, UpdateRequest,
                           UpdateSeverity, UpdateSuggestion)
 from bodhi.tests.models import ModelTest
 from bodhi.config import config
+from bodhi.exceptions import BodhiException
 
 
 class DummyUser(object):
@@ -299,6 +300,7 @@ class TestUpdate(ModelTest):
     def test_stable_karma(self, publish):
         update = self.obj
         update.request = None
+        update.status = UpdateStatus.testing
         eq_(update.karma, 0)
         eq_(update.request, None)
         update.comment(u"foo", 1, u'foo')
@@ -365,14 +367,18 @@ class TestUpdate(ModelTest):
         Ensure that we can't submit an update for stable if it hasn't met the
         minimum testing requirements.
         """
-        req = DummyRequest()
+        req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
         eq_(self.obj.status, UpdateStatus.pending)
-        self.obj.set_request(UpdateRequest.stable, req)
+        try:
+            self.obj.set_request(UpdateRequest.stable, req.user.name)
+            assert False
+        except BodhiException, e:
+            pass
         eq_(self.obj.request, UpdateRequest.testing)
         eq_(self.obj.status, UpdateStatus.pending)
-        eq_(req.errors[0]['description'], config.get('not_yet_tested_msg'))
+        eq_(e.message, config.get('not_yet_tested_msg'))
 
     @mock.patch('bodhi.notifications.publish')
     def test_set_request_stable_after_week_in_testing(self, publish):
@@ -401,7 +407,7 @@ class TestUpdate(ModelTest):
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         eq_(self.obj.status, UpdateStatus.pending)
-        self.obj.set_request(UpdateRequest.obsolete, req)
+        self.obj.set_request(UpdateRequest.obsolete, req.user.name)
         eq_(self.obj.status, UpdateStatus.obsolete)
         eq_(len(req.errors), 0)
         publish.assert_called_once_with(

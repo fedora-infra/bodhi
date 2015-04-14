@@ -681,7 +681,7 @@ class Update(Base):
 
         # Create the update
         up = Update(**data)
-        up.set_request(req, request)
+        up.set_request(req, request.user.name)
         db.add(up)
         db.flush()
 
@@ -768,7 +768,7 @@ class Update(Base):
 
         req = data.pop("request", None)
         if req is not None:
-            up.set_request(req, request)
+            up.set_request(req, request.user.name)
 
         for key, value in data.items():
             setattr(up, key, value)
@@ -943,7 +943,7 @@ class Update(Base):
         # FIXME: don't do this here:
         self.date_pushed = datetime.utcnow()
 
-    def set_request(self, action, request, pathcheck=True):
+    def set_request(self, action, username):
         """ Attempt to request an action for this update """
         log.debug('Attempting to set request %s' % action)
         notes = []
@@ -964,41 +964,23 @@ class Update(Base):
         topic = u'update.request.%s' % action
         if action is UpdateRequest.unpush:
             self.unpush()
-            self.comment(u'This update has been unpushed',
-                         author=request.user.name)
+            self.comment(u'This update has been unpushed', author=username)
             notifications.publish(topic=topic, msg=dict(
-                update=self, agent=request.user.name))
+                update=self, agent=username))
             flash_log("%s has been unpushed" % self.title)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete()
             flash_log("%s has been obsoleted" % self.title)
             notifications.publish(topic=topic, msg=dict(
-                update=self, agent=request.user.name))
+                update=self, agent=username))
             return
         elif action is UpdateRequest.revoke:
             self.revoke()
             flash_log("%s has been revoked" % self.title)
             notifications.publish(topic=topic, msg=dict(
-                update=self, agent=request.user.name))
+                update=self, agent=username))
             return
-        elif action is UpdateRequest.stable and pathcheck:
-            # Make sure we don't break update paths by trying to push out
-            # an update that is older than than the latest.
-            koji = request.koji
-            for build in self.builds:
-                mybuild = koji.getBuild(build.nvr)
-                kojiBuilds = koji.listTagged(self.release.stable_tag,
-                                             package=build.package.name,
-                                             latest=True)
-                for oldBuild in kojiBuilds:
-                    if rpm.labelCompare(build_evr(mybuild),
-                                        build_evr(oldBuild)) < 0:
-                        request.errors.add('body', 'build',
-                                           'Broken update path: %s is already '\
-                                           'released, and is newer than %s' %
-                                           (oldBuild['nvr'], mybuild['nvr']))
-                        return
 
         # Disable pushing critical path updates for pending releases directly to stable
         if action is UpdateRequest.stable and self.critpath:
@@ -1019,8 +1001,7 @@ class Update(Base):
                                     config.get('critpath.stable_after_days_without_negative_karma')))
                     if self.status is UpdateStatus.testing:
                         self.request = None
-                        request.error.add('body', 'update', '. '.join(notes))
-                        return
+                        raise BodhiException('. '.join(notes))
                     else:
                         log.info('Forcing critical path update into testing')
                         action = UpdateRequest.testing
@@ -1032,7 +1013,6 @@ class Update(Base):
             if (self.stable_karma not in (None, 0) and self.karma >=
                 self.stable_karma) or self.critpath_approved:
                 log.debug('%s meets stable karma requirements' % self.title)
-                pass
             else:
                 # If we haven't met the stable karma requirements, check if it
                 # has met the mandatory time-in-testing requirements
@@ -1042,11 +1022,9 @@ class Update(Base):
                         flash_notes = config.get('not_yet_tested_msg')
                         if self.status is UpdateStatus.testing:
                             self.request = None
-                            request.errors.add('body', 'update', flash_notes)
-                            return
+                            raise BodhiException(flash_notes)
                         elif self.request is UpdateRequest.testing:
-                            request.errors.add('body', 'update', flash_notes)
-                            return
+                            raise BodhiException(flash_notes)
                         else:
                             action = UpdateRequest.testing
 
@@ -1072,10 +1050,9 @@ class Update(Base):
         flash_log("%s has been submitted for %s. %s%s" % (self.title,
             action.description, notes, flash_notes))
         self.comment(u'This update has been submitted for %s by %s. %s' % (
-            action.description, request.user.name, notes), author=u'bodhi')
+            action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
-        notifications.publish(topic=topic, msg=dict(
-            update=self, agent=request.user.name))
+        notifications.publish(topic=topic, msg=dict(update=self, agent=username))
 
         # FIXME: track date pushed to testing & stable in different fields
         self.date_pushed = None
@@ -1343,7 +1320,8 @@ class Update(Base):
         return color
 
     def comment(self, text, karma=0, author=None, anonymous=False,
-                karma_critpath=0, bug_feedback=None, testcase_feedback=None):
+                karma_critpath=0, bug_feedback=None, testcase_feedback=None,
+                check_karma=True):
         """ Add a comment to this update, adjusting the karma appropriately.
 
         Each user has the ability to comment as much as they want, but only
@@ -1370,22 +1348,13 @@ class Update(Base):
             else:
                 self.karma += karma
 
-            # TODO -- this block of code should be moved out of here and to
-            # some kind of policy module.. so its not embedded in the model.
             log.info("Updated %s karma to %d" % (self.title, self.karma))
-            if self.stable_karma != 0 and self.stable_karma == self.karma:
-                # TODO, this should use ".set_request" so that fedmsg gets
-                # triggered
-                log.info("Automatically marking %s as stable" % self.title)
-                self.request = UpdateRequest.stable
-                self.date_pushed = None
-                mail.send(self.get_maintainers(), 'stablekarma', self, author, author)
-            if self.status is UpdateStatus.testing \
-                    and self.unstable_karma != 0 \
-                    and self.karma == self.unstable_karma:
-                log.info("Automatically unpushing %s" % self.title)
-                self.obsolete()
-                mail.send(self.get_maintainers(), 'unstable', self, author, author)
+
+            if check_karma and author not in config.get('system_users').split():
+                try:
+                    self.check_karma_thresholds(author)
+                except LockedUpdateException:
+                    pass
 
         session = DBSession()
         comment = Comment(
@@ -1552,6 +1521,25 @@ class Update(Base):
         # TODO - check require_bugs and require_testcases also?
 
         return True, "All checks pass."
+
+    def check_karma_thresholds(self, username):
+        """Check if we have reached either karma threshold, and call set_request if necessary"""
+        if not self.locked:
+            if self.status is UpdateStatus.testing:
+                if self.stable_karma != 0 and self.karma >= self.stable_karma:
+                    log.info("Automatically marking %s as stable" % self.title)
+                    self.set_request(UpdateRequest.stable, username)
+                    self.request = UpdateRequest.stable
+                    self.date_pushed = None
+                elif self.unstable_karma != 0 and self.karma <= self.unstable_karma:
+                    log.info("Automatically unpushing %s" % self.title)
+                    self.obsolete()
+            else:
+                # Ignore karma thresholds for pending/stable/obsolete updates
+                pass
+        else:
+            log.debug('%s locked. Ignoring karma thresholds.' % self.title)
+            raise LockedUpdateException
 
     @property
     def requirements_json(self):

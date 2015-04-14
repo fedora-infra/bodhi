@@ -222,8 +222,7 @@ class TestMasher(unittest.TestCase):
             try:
                 env = bootstrap('development.ini')
                 request = env['request']
-
-                up.set_request(UpdateRequest.stable, request)
+                up.set_request(UpdateRequest.stable, u'bodhi')
                 assert False, 'Set the request on a locked update'
             except LockedUpdateException:
                 pass
@@ -440,13 +439,22 @@ References:
 
         # Ensure that F18 runs before F17
         calls = publish.mock_calls
+        # Order of fedmsgs at the the moment:
+        # masher.start
+        # mashing f18
+        # complete.stable (for each update)
+        # errata.publish
+        # mashtask.complete
+        # mashing f17
+        # complete.testing
+        # mashtask.complete
         self.assertEquals(calls[1], mock.call(
             msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18']},
             topic='mashtask.mashing'))
-        self.assertEquals(calls[3], mock.call(
+        self.assertEquals(calls[4], mock.call(
             msg={'success': True, 'repo': 'f18-updates'},
             topic='mashtask.complete'))
-        self.assertEquals(calls[4], mock.call(
+        self.assertEquals(calls[5], mock.call(
             msg={'repo': u'f17-updates-testing',
                  'updates': [u'bodhi-2.0-1.fc17']},
             topic='mashtask.mashing'))
@@ -843,3 +851,62 @@ References:
             up = session.query(Update).filter_by(title=title).one()
             self.assertEquals(up.status, UpdateStatus.testing)
             self.assertEquals(up.request, None)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    def test_stable_requirements_met_during_push(self,  *args):
+        """
+        Test reaching the stablekarma threshold while the update is being
+        pushed to testing
+        """
+        title = self.msg['body']['msg']['updates']
+
+        # Simulate a failed push
+        with mock.patch.object(MasherThread, 'verify_updates', mock_exc):
+            with self.db_factory() as session:
+                up = session.query(Update).filter_by(title=title).one()
+                up.request = UpdateRequest.testing
+                up.status = UpdateStatus.pending
+                self.assertEquals(up.stable_karma, 3)
+            self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+
+            # Ensure the update is still locked and in testing
+            self.assertEquals(up.locked, True)
+            self.assertEquals(up.status, UpdateStatus.pending)
+            self.assertEquals(up.request, UpdateRequest.testing)
+
+            # Have the update reach the stable karma threshold
+            self.assertEquals(up.karma, 1)
+            up.comment(u"foo", 1, u'foo')
+            self.assertEquals(up.karma, 2)
+            self.assertEquals(up.request, UpdateRequest.testing)
+            up.comment(u"foo", 1, u'bar')
+            self.assertEquals(up.karma, 3)
+            self.assertEquals(up.request, UpdateRequest.testing)
+            up.comment(u"foo", 1, u'biz')
+            self.assertEquals(up.request, UpdateRequest.testing)
+            self.assertEquals(up.karma, 4)
+
+        # finish push and unlock updates
+        self.msg['body']['msg']['resume'] = True
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+            up.comment(u"foo", 1, u'baz')
+            self.assertEquals(up.karma, 5)
+
+            # Ensure the masher set the autokarma once the push is done
+            self.assertEquals(up.locked, False)
+            self.assertEquals(up.request, UpdateRequest.stable)
