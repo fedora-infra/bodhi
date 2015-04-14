@@ -851,3 +851,62 @@ References:
             up = session.query(Update).filter_by(title=title).one()
             self.assertEquals(up.status, UpdateStatus.testing)
             self.assertEquals(up.request, None)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.masher.MashThread.run')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    @mock.patch('bodhi.util.cmd')
+    def test_stable_requirements_met_during_push(self,  *args):
+        """
+        Test reaching the stablekarma threshold while the update is being
+        pushed to testing
+        """
+        title = self.msg['body']['msg']['updates']
+
+        # Simulate a failed push
+        with mock.patch.object(MasherThread, 'verify_updates', mock_exc):
+            with self.db_factory() as session:
+                up = session.query(Update).filter_by(title=title).one()
+                up.request = UpdateRequest.testing
+                up.status = UpdateStatus.pending
+                self.assertEquals(up.stable_karma, 3)
+            self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+
+            # Ensure the update is still locked and in testing
+            self.assertEquals(up.locked, True)
+            self.assertEquals(up.status, UpdateStatus.pending)
+            self.assertEquals(up.request, UpdateRequest.testing)
+
+            # Have the update reach the stable karma threshold
+            self.assertEquals(up.karma, 1)
+            up.comment(u"foo", 1, u'foo')
+            self.assertEquals(up.karma, 2)
+            self.assertEquals(up.request, UpdateRequest.testing)
+            up.comment(u"foo", 1, u'bar')
+            self.assertEquals(up.karma, 3)
+            self.assertEquals(up.request, UpdateRequest.testing)
+            up.comment(u"foo", 1, u'biz')
+            self.assertEquals(up.request, UpdateRequest.testing)
+            self.assertEquals(up.karma, 4)
+
+        # finish push and unlock updates
+        self.msg['body']['msg']['resume'] = True
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            up = session.query(Update).filter_by(title=title).one()
+            up.comment(u"foo", 1, u'baz')
+            self.assertEquals(up.karma, 5)
+
+            # Ensure the masher set the autokarma once the push is done
+            self.assertEquals(up.locked, False)
+            self.assertEquals(up.request, UpdateRequest.stable)
