@@ -1531,13 +1531,13 @@ class Update(Base):
                     self.request = UpdateRequest.stable
                     self.date_pushed = None
                     notifications.publish(
-                        topic='update.karma.threshold',
+                        topic='update.karma.threshold.reach',
                         msg=dict(update=self, status='stable'))
                 elif self.unstable_karma != 0 and self.karma <= self.unstable_karma:
                     log.info("Automatically unpushing %s" % self.title)
                     self.obsolete()
                     notifications.publish(
-                        topic='update.karma.threshold',
+                        topic='update.karma.threshold.reach',
                         msg=dict(update=self, status='unstable'))
             else:
                 # Ignore karma thresholds for pending/stable/obsolete updates
