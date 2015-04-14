@@ -982,23 +982,6 @@ class Update(Base):
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=request.user.name))
             return
-        elif action is UpdateRequest.stable and pathcheck:
-            # Make sure we don't break update paths by trying to push out
-            # an update that is older than than the latest.
-            koji = request.koji
-            for build in self.builds:
-                mybuild = koji.getBuild(build.nvr)
-                kojiBuilds = koji.listTagged(self.release.stable_tag,
-                                             package=build.package.name,
-                                             latest=True)
-                for oldBuild in kojiBuilds:
-                    if rpm.labelCompare(build_evr(mybuild),
-                                        build_evr(oldBuild)) < 0:
-                        request.errors.add('body', 'build',
-                                           'Broken update path: %s is already '\
-                                           'released, and is newer than %s' %
-                                           (oldBuild['nvr'], mybuild['nvr']))
-                        return
 
         # Disable pushing critical path updates for pending releases directly to stable
         if action is UpdateRequest.stable and self.critpath:
