@@ -1539,6 +1539,7 @@ class Update(Base):
                 pass
         else:
             log.debug('%s locked. Ignoring karma thresholds.' % self.title)
+            raise LockedUpdateException
 
     @property
     def requirements_json(self):
