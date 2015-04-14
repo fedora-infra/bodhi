@@ -56,6 +56,7 @@ def populate(db):
         notes=u'Useful details!', release=release,
         date_submitted=datetime(1984, 11, 02),
         requirements='rpmlint',
+        stable_karma=3, unstable_karma=-3,
     )
     update.type = UpdateType.bugfix
     bug = Bug(bug_id=12345)
