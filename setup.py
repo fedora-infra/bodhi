@@ -15,7 +15,6 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'pyramid',
     'pyramid_mako',
-    'pyramid_beaker',
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'waitress',
@@ -47,9 +46,9 @@ requires = [
     'arrow',
     'markdown',
 
-    # i18n
-    'Babel',
-    'lingua',
+    # i18n, that we're not actually doing yet.
+    #'Babel',
+    #'lingua',
 
     # External resources
     'python-bugzilla',
@@ -60,9 +59,6 @@ requires = [
 
     # For the bodhi-client
     'click',
-
-    # For updateinfo parsing
-    'xmldict',
     ]
 
 if sys.version_info[:3] < (2,7,0):
@@ -92,8 +88,8 @@ setup(name='bodhi',
       tests_require = ['nose', 'nose-cov', 'webtest', 'mock'],
       test_suite="nose.collector",
       message_extractors = { '.': [
-          ('**.py', 'lingua_python', None),
-          ('**.mak', 'lingua_xml', None),
+          #('**.py', 'lingua_python', None),
+          #('**.mak', 'lingua_xml', None),
       ]},
       entry_points = """\
       [paste.app_factory]
