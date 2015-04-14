@@ -1001,8 +1001,7 @@ class Update(Base):
                                     config.get('critpath.stable_after_days_without_negative_karma')))
                     if self.status is UpdateStatus.testing:
                         self.request = None
-                        request.error.add('body', 'update', '. '.join(notes))
-                        return
+                        raise BodhiException('. '.join(notes))
                     else:
                         log.info('Forcing critical path update into testing')
                         action = UpdateRequest.testing
@@ -1014,7 +1013,6 @@ class Update(Base):
             if (self.stable_karma not in (None, 0) and self.karma >=
                 self.stable_karma) or self.critpath_approved:
                 log.debug('%s meets stable karma requirements' % self.title)
-                pass
             else:
                 # If we haven't met the stable karma requirements, check if it
                 # has met the mandatory time-in-testing requirements
@@ -1024,11 +1022,9 @@ class Update(Base):
                         flash_notes = config.get('not_yet_tested_msg')
                         if self.status is UpdateStatus.testing:
                             self.request = None
-                            request.errors.add('body', 'update', flash_notes)
-                            return
+                            raise BodhiException(flash_notes)
                         elif self.request is UpdateRequest.testing:
-                            request.errors.add('body', 'update', flash_notes)
-                            return
+                            raise BodhiException(flash_notes)
                         else:
                             action = UpdateRequest.testing
 
