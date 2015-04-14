@@ -158,27 +158,28 @@ sed -i '/pyramid_debugtoolbar/d' setup.py
 %{__mkdir_p} -m 0755 %{buildroot}/%{_localstatedir}/log/bodhi
 
 %{__install} -m 644 apache/%{name}.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/%{name}.conf
-%{__install} -m 640 %{name}.cfg %{buildroot}%{_sysconfdir}/%{name}/
-%{__install} -m 640 %{name}/config/*mash* %{buildroot}%{_sysconfdir}/%{name}/
+%{__install} -m 640 production.ini %{buildroot}%{_sysconfdir}/%{name}/
+%{__install} -m 640 alembic.ini %{buildroot}%{_datadir}/%{name}/alembic.ini
+cp -rf alembic/ %{buildroot}%{_datadir}/%{name}/alembic
 %{__install} apache/%{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
 
-%{__install} %{name}/tools/client.py %{buildroot}%{_bindir}/%{name}
+# We used to copy in things like this for bodhi1
+#%{__install} -m 640 %{name}/config/*mash* %{buildroot}%{_sysconfdir}/%{name}/
 
 %check
-%{__python2} setup.py test
+PYTHONPATH=. nosetests
 
 %pre server
 %{_sbindir}/groupadd -r %{name} &>/dev/null || :
 %{_sbindir}/useradd  -r -s /sbin/nologin -d %{_datadir}/%{name} -M \
                      -c 'Bodhi Server' -g %{name} %{name} &>/dev/null || :
 
-
 %files server
 %defattr(-,root,root,-)
-%doc README COPYING
+%doc README.rst CHANGES.txt COPYING
 %{python_sitelib}/%{name}/
-%{_bindir}/start-%{name}
-%{_bindir}/%{name}-*
+%{_bindir}/initialize_bodhi_db
+%{_bindir}/bodhi-expire-overrides
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %dir %{_sysconfdir}/bodhi/
 %attr(-,bodhi,root) %{_datadir}/%{name}
@@ -189,11 +190,16 @@ sed -i '/pyramid_debugtoolbar/d' setup.py
 
 %files client
 %defattr(-,root,root,-)
+%doc README.rst CHANGES.txt COPYING
 %{_bindir}/bodhi
-%{_mandir}/man1/bodhi.1.gz
+# TODO .. get the man page back with help2man or something
+#%{_mandir}/man1/bodhi.1.gz
 
 
 %changelog
+* Tue Apr 14 2015 Ralph Bean <rbean@redhat.com> - 2.0-1
+- First draft at a spec file for the bodhi2 rewrite.
+
 * Tue Sep 02 2014 Luke Macken <lmacken@redhat.com> - 0.9.12.2-1
 - Updated to 0.9.12.2
 
