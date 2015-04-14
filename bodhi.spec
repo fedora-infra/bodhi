@@ -176,7 +176,8 @@ PYTHONPATH=. nosetests
 
 %files server
 %defattr(-,root,root,-)
-%doc README.rst CHANGES.txt COPYING
+%doc README.rst CHANGES.txt
+%license COPYING
 %{python_sitelib}/%{name}/
 %{_bindir}/initialize_bodhi_db
 %{_bindir}/bodhi-expire-overrides
@@ -190,7 +191,8 @@ PYTHONPATH=. nosetests
 
 %files client
 %defattr(-,root,root,-)
-%doc README.rst CHANGES.txt COPYING
+%doc README.rst CHANGES.txt
+%license COPYING
 %{_bindir}/bodhi
 # TODO .. get the man page back with help2man or something
 #%{_mandir}/man1/bodhi.1.gz
