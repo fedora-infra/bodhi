@@ -439,13 +439,22 @@ References:
 
         # Ensure that F18 runs before F17
         calls = publish.mock_calls
+        # Order of fedmsgs at the the moment:
+        # masher.start
+        # mashing f18
+        # complete.stable (for each update)
+        # errata.publish
+        # mashtask.complete
+        # mashing f17
+        # complete.testing
+        # mashtask.complete
         self.assertEquals(calls[1], mock.call(
             msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18']},
             topic='mashtask.mashing'))
-        self.assertEquals(calls[3], mock.call(
+        self.assertEquals(calls[4], mock.call(
             msg={'success': True, 'repo': 'f18-updates'},
             topic='mashtask.complete'))
-        self.assertEquals(calls[4], mock.call(
+        self.assertEquals(calls[5], mock.call(
             msg={'repo': u'f17-updates-testing',
                  'updates': [u'bodhi-2.0-1.fc17']},
             topic='mashtask.mashing'))
