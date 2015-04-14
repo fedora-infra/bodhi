@@ -33,6 +33,7 @@ from bodhi.models import (
     User,
     UpdateStatus,
     UpdateRequest,
+    Release,
 )
 
 mock_valid_requirements = {
@@ -1121,6 +1122,45 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
         self.assertEquals(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_update_with_different_release(self, publish, *args):
+        """
+        TODO:
+        Test editing an update for one release with builds from another.
+
+        Try doing it with 2 different release builds, and 1 of the same.
+        """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update('bodhi-2.0.0-2.fc17')
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        # Add another release and package
+        Release._tag_cache = None
+        release = Release(
+            name=u'F18', long_name=u'Fedora 18',
+            id_prefix=u'FEDORA', version='18',
+            dist_tag=u'f18', stable_tag=u'f18-updates',
+            testing_tag=u'f18-updates-testing',
+            candidate_tag=u'f18-updates-candidate',
+            pending_testing_tag=u'f18-updates-testing-pending',
+            pending_stable_tag=u'f18-updates-pending',
+            override_tag=u'f18-override',
+            branch=u'f18')
+        DBSession.add(release)
+        pkg = Package(name=u'nethack')
+        DBSession.add(pkg)
+
+        args = self.get_update('bodhi-2.0.0-2.fc17,nethack-4.0.0-1.fc18')
+        args['edited'] = nvr
+        r = self.app.post_json('/updates/', args, status=400)
+        up = r.json_body
+
+        self.assertEquals(up['status'], 'error')
+        self.assertEquals(up['errors'][0]['description'],
+                          'Cannot add a F18 build to an F17 update')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')

@@ -89,8 +89,14 @@ def validate_builds(request):
 def validate_build_tags(request):
     """ Ensure that all of the builds are tagged as candidates """
     tag_types, tag_rels = Release.get_tags()
-    if request.validated.get('edited'):
+    edited = request.validated.get('edited')
+    release = None
+    if edited:
         valid_tags = tag_types['candidate'] + tag_types['testing']
+        release = request.db.query(Update)\
+                         .filter_by(title=edited)\
+                         .first()\
+                         .release
     else:
         valid_tags = tag_types['candidate']
     for build in request.validated.get('builds', []):
@@ -98,6 +104,16 @@ def validate_build_tags(request):
         tags = request.buildinfo[build]['tags'] = [
             tag['name'] for tag in request.koji.listTags(build)
         ]
+
+        # Disallow adding builds for a different release
+        if edited:
+            build_rel = Release.from_tags(tags, request.db)
+            if build_rel is not release:
+                request.errors.add('body', 'builds',
+                        'Cannot add a %s build to an %s update' %
+                        (build_rel.name, release.name))
+                return
+
         for tag in tags:
             if tag in valid_tags:
                 valid = True
