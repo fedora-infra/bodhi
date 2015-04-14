@@ -186,6 +186,88 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_provenpackager_request_privs(self, publish, *args):
+        "Ensure provenpackagers can change the request for any update"
+        nvr = u'bodhi-2.1-1.fc17'
+        session = DBSession()
+        user = User(name=u'bob')
+        session.add(user)
+        session.add(User(name=u'ralph'))  # Add a non proventester
+        session.flush()
+        group = session.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+
+        app = TestApp(main({}, testing=u'ralph', **self.app_settings))
+        up_data = self.get_update(nvr)
+        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', up_data)
+        assert 'does not have commit access to bodhi' not in res, res
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        build = session.query(Build).filter_by(nvr=nvr).one()
+        eq_(build.update.request, UpdateRequest.testing)
+
+        # Try and submit the update to stable as a non-provenpackager
+        app = TestApp(main({}, testing=u'ralph', **self.app_settings))
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=app.get('/csrf').json_body['csrf_token'])
+        res = app.post_json('/updates/%s/request' % nvr, post_data, status=400)
+
+        # Ensure we can't push it until it meets the requirements
+        eq_(res.json_body['status'], 'error')
+        eq_(res.json_body['errors'][0]['description'], config.get('not_yet_tested_msg'))
+
+        update = session.query(Update).filter_by(title=nvr).one()
+        eq_(update.stable_karma, 3)
+        eq_(update.locked, False)
+        eq_(update.request, UpdateRequest.testing)
+
+        # Pretend it was pushed to testing
+        update.request = None
+        update.status = UpdateStatus.testing
+        update.pushed = True
+        session.flush()
+
+        eq_(update.karma, 0)
+        update.comment(u"foo", 1, u'foo')
+        update = session.query(Update).filter_by(title=nvr).one()
+        eq_(update.karma, 1)
+        eq_(update.request, None)
+        update.comment(u"foo", 1, u'bar')
+        update = session.query(Update).filter_by(title=nvr).one()
+        eq_(update.karma, 2)
+        eq_(update.request, None)
+        update.comment(u"foo", 1, u'biz')
+        update = session.query(Update).filter_by(title=nvr).one()
+        eq_(update.karma, 3)
+        eq_(update.request, UpdateRequest.stable)
+
+        # Set it back to testing
+        update.request = UpdateRequest.testing
+
+        # Try and submit the update to stable as a proventester
+        app = TestApp(main({}, testing=u'bob', **self.app_settings))
+        res = app.post_json('/updates/%s/request' % nvr,
+                            dict(update=nvr, request='stable',
+                                csrf_token=app.get('/csrf').json_body['csrf_token']),
+                            status=200)
+
+        eq_(res.json_body['update']['request'], 'stable')
+
+        app = TestApp(main({}, testing=u'bob', **self.app_settings))
+        res = app.post_json('/updates/%s/request' % nvr,
+                            dict(update=nvr, request='obsolete',
+                                 csrf_token=app.get('/csrf').json_body['csrf_token']),
+                            status=200)
+
+        eq_(res.json_body['update']['request'], None)
+        eq_(update.request, None)
+        eq_(update.status, UpdateStatus.obsolete)
+
     @mock.patch(**mock_valid_requirements)
     def test_pkgdb_outage(self, *args):
         "Test the case where our call to the pkgdb throws an exception"
