@@ -1126,12 +1126,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
     def test_edit_update_with_different_release(self, publish, *args):
-        """
-        TODO:
-        Test editing an update for one release with builds from another.
-
-        Try doing it with 2 different release builds, and 1 of the same.
-        """
+        """Test editing an update for one release with builds from another."""
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update('bodhi-2.0.0-2.fc17')
         r = self.app.post_json('/updates/', args)
