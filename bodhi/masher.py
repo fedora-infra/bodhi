@@ -631,8 +631,7 @@ class MasherThread(threading.Thread):
         try:
             agent = os.getlogin()
         except OSError:  # this can happen when building on koji
-            self.log.exception('Skipping notifications')
-            return
+            agent = u'masher'
         for update in self.updates:
             topic = u'update.complete.%s' % update.status
             notifications.publish(topic=topic, msg=dict(
