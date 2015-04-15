@@ -12,7 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.sql import or_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
@@ -643,7 +643,16 @@ def validate_expiration_date(request):
     now = datetime.utcnow()
 
     if expiration_date <= now:
-        request.errors.add('body', 'nvr', 'Expiration date in the past')
+        request.errors.add('body', 'expiration_date',
+                           'Expiration date in the past')
+        return
+
+    settings = request.registry.settings
+    days = int(settings.get('buildroot_limit', 31))
+    limit = now + timedelta(days=days)
+    if expiration_date > limit:
+        request.errors.add('body', 'expiration_date',
+                           'Expiration date may not be longer than %i' % days)
         return
 
     request.validated['expiration_date'] = expiration_date

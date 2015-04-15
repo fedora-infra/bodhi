@@ -208,6 +208,26 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(o['expired_date'], None)
 
     @mock.patch('bodhi.notifications.publish')
+    def test_create_override_too_long(self, publish):
+        session = DBSession()
+
+        release = Release.get(u'F17', session)
+
+        package = Package(name=u'not-bodhi')
+        session.add(package)
+        build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
+                      release=release)
+        session.add(build)
+        session.flush()
+
+        expiration_date = datetime.utcnow() + timedelta(days=60)
+
+        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date,
+                'csrf_token': self.get_csrf_token()}
+        self.app.post('/overrides/', data, status=400)
+
+    @mock.patch('bodhi.notifications.publish')
     def test_create_override_for_newer_build(self, publish):
         session = DBSession()
         old_build = Build.get(u'bodhi-2.0-1.fc17', session)
