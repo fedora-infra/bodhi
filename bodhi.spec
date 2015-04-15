@@ -51,6 +51,7 @@ BuildRequires:   python-pydns
 BuildRequires:   python-dogpile-cache
 BuildRequires:   python-arrow
 BuildRequires:   python-markdown
+BuildRequires:   python-createrepo_c
 
 ## i18n, stuff that we're not actually doing yet
 #BuildRequires:   python-babel
@@ -126,6 +127,7 @@ Requires:   python-pydns
 Requires:   python-dogpile-cache
 Requires:   python-arrow
 Requires:   python-markdown
+Requires:   python-createrepo_c
 
 ## i18n, that we're not actually doing yet
 #Requires:   python-babel
