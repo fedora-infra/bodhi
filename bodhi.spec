@@ -51,6 +51,7 @@ BuildRequires:   python-pydns
 BuildRequires:   python-dogpile-cache
 BuildRequires:   python-arrow
 BuildRequires:   python-markdown
+BuildRequires:   python-librepo
 BuildRequires:   python-createrepo_c
 BuildRequires:   createrepo_c
 
@@ -128,6 +129,7 @@ Requires:   python-pydns
 Requires:   python-dogpile-cache
 Requires:   python-arrow
 Requires:   python-markdown
+Requires:   python-librepo
 Requires:   python-createrepo_c
 Requires:   createrepo_c
 
