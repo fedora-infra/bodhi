@@ -1,2 +1,8 @@
 include *.txt *.ini *.cfg *.rst
 recursive-include bodhi *.ico *.png *.css *.gif *.jpg *.pt *.txt *.mak *.mako *.js *.html *.xml
+recursive-include apache *
+recursive-include alembic *
+recursive-include tools *
+recursive-include docs *
+include bodhi/locale/.placeholder
+include COPYING
