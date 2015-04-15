@@ -628,11 +628,14 @@ class MasherThread(threading.Thread):
 
     def send_notifications(self):
         self.log.info('Sending notifications')
+        try:
+            agent = os.getlogin()
+        except OSError:  # this can happen when building on koji
+            agent = u'masher'
         for update in self.updates:
             topic = u'update.complete.%s' % update.status
             notifications.publish(topic=topic, msg=dict(
-                update=update,
-                agent=os.getlogin(),  # Should almost always be "masher"
+                update=update, agent=agent,
             ))
 
     def modify_bugs(self):
