@@ -152,6 +152,7 @@ updates for a software distribution.
 
 # Kill some dev deps
 sed -i '/pyramid_debugtoolbar/d' setup.py
+sed -i '/pyramid_debugtoolbar/d' development.ini
 
 %build
 %{__python} setup.py build #--install-data=%{_datadir}
