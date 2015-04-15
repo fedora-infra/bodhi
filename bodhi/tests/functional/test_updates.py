@@ -190,6 +190,42 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
+    def test_provenpackager_edit_anything(self, publish, *args):
+        "Ensure provenpackagers can edit updates for any package"
+        nvr = u'bodhi-2.1-1.fc17'
+
+        session = DBSession()
+        user = User(name=u'lloyd')
+        session.add(user)
+        session.add(User(name=u'ralph'))  # Add a non proventester
+        session.flush()
+        group = session.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+
+        app = TestApp(main({}, testing=u'ralph', **self.app_settings))
+        up_data = self.get_update(nvr)
+        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', up_data)
+        assert 'does not have commit access to bodhi' not in res, res
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        app = TestApp(main({}, testing=u'lloyd', **self.app_settings))
+        update = self.get_update(nvr)
+        update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        update['notes'] = u'testing!!!'
+        update['edited'] = nvr
+        res = app.post_json('/updates/', update)
+        assert 'bodhi does not have commit access to bodhi' not in res, res
+        build = session.query(Build).filter_by(nvr=nvr).one()
+        assert build.update is not None
+        self.assertEquals(build.update.notes, u'testing!!!')
+        #publish.assert_called_once_with(
+        #    topic='update.request.testing', msg=mock.ANY)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
     def test_provenpackager_request_privs(self, publish, *args):
         "Ensure provenpackagers can change the request for any update"
         nvr = u'bodhi-2.1-1.fc17'
