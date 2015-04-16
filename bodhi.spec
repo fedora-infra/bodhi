@@ -156,6 +156,9 @@ updates for a software distribution.
 sed -i '/pyramid_debugtoolbar/d' setup.py
 sed -i '/pyramid_debugtoolbar/d' development.ini
 
+# Kill this from the egg-info deps so that bodhi-server doesn't demand it.
+sed -i '/click/d' setup.py
+
 %build
 %{__python} setup.py build #--install-data=%{_datadir}
 
@@ -172,7 +175,7 @@ sed -i '/pyramid_debugtoolbar/d' development.ini
 %{__mkdir_p} -m 0755 %{buildroot}/%{_localstatedir}/log/bodhi
 
 %{__install} -m 644 apache/%{name}.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/%{name}.conf
-%{__install} -m 640 production.ini %{buildroot}%{_sysconfdir}/%{name}/
+%{__install} -m 640 production.ini %{buildroot}%{_sysconfdir}/%{name}/production.ini
 %{__install} -m 640 alembic.ini %{buildroot}%{_datadir}/%{name}/alembic.ini
 cp -rf alembic/ %{buildroot}%{_datadir}/%{name}/alembic
 %{__install} apache/%{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
