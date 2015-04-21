@@ -14,7 +14,7 @@ BuildArch:      noarch
 
 # For the tests
 BuildRequires:   python-nose
-BuildRequires:   python-nose-cov
+#BuildRequires:   python-nose-cov
 BuildRequires:   python-webtest
 BuildRequires:   python-mock
 
@@ -41,7 +41,7 @@ BuildRequires:   python-bunch
 # for captchas
 BuildRequires:   python-cryptography
 BuildRequires:   python-pillow
-BuildRequires:   pcaro-hermit-fonts
+#BuildRequires:   pcaro-hermit-fonts
 
 # Useful tools
 BuildRequires:   python-kitchen
@@ -119,7 +119,7 @@ Requires:   python-bunch
 # for captchas
 Requires:   python-cryptography
 Requires:   python-pillow
-Requires:   pcaro-hermit-fonts
+#Requires:   pcaro-hermit-fonts
 
 # Useful tools
 Requires:   python-kitchen
@@ -155,6 +155,7 @@ updates for a software distribution.
 # Kill some dev deps
 sed -i '/pyramid_debugtoolbar/d' setup.py
 sed -i '/pyramid_debugtoolbar/d' development.ini
+sed -i 's/, \'nose-cov\'//' setup.py
 
 # Kill this from the egg-info deps so that bodhi-server doesn't demand it.
 sed -i '/click/d' setup.py
