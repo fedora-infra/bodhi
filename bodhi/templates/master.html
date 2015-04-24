@@ -162,5 +162,29 @@
     <script src="${request.static_url('bodhi:static/js/typeahead.bundle.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/search.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/konami.js')}"></script>
+
+    % if 'fedmenu.url' in request.registry.settings:
+    <script src="${request.registry.settings.get('fedmenu.url')}/js/fedora-libravatar.js"></script>
+    <script src="${request.registry.settings.get('fedmenu.url')}/js/fedmenu.js"></script>
+    <script>
+      fedmenu({
+          'url': '${request.registry.settings.get("fedmenu.data_url")}',
+          'mimeType': 'application/javascript',
+          'position': 'bottom-right',
+          % if update:
+            'user': '${update.user.name}',
+            % if len(update.builds) == 1:
+              'package': '${update.builds[0].package.name}',
+            % endif
+          % elif override:
+            'user': '${override.submitter.name}',
+            'package': '${override.build.package.name}',
+          % elif user:
+            'user': '${user["name"]}',
+          % endif
+      });
+    </script>
+    % endif
+
   </body>
 </html>
