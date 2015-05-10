@@ -28,7 +28,7 @@ import turbogears
 
 from kid import Element
 from yum import repoMDObject
-from yum.misc import checksum
+from yum.misc import checksum, decompress
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime, timedelta
 from decorator import decorator
@@ -469,7 +469,8 @@ def sanity_check_repodata(myurl):
                 errorstrings.append("checksum: %s" % t)
 
             if href.find('xml') != -1:
-                retcode = subprocess.call(['/usr/bin/xmllint', '--noout', dest])
+                decompressed = decompress(dest)
+                retcode = subprocess.call(['/usr/bin/xmllint', '--noout', decompressed])
                 if retcode != 0:
                     errorstrings.append("failed xml read: %s" % t)
 
