@@ -24,6 +24,7 @@ import tempfile
 import markdown
 import requests
 import subprocess
+<<<<<<< HEAD
 import libravatar
 import hashlib
 import collections
@@ -33,6 +34,17 @@ import transaction
 
 from os.path import join, dirname, basename, isfile
 from datetime import datetime
+=======
+import urlgrabber
+import turbogears
+
+from kid import Element
+from yum import repoMDObject
+from yum.misc import checksum, decompress
+from os.path import isdir, join, dirname, basename, isfile
+from datetime import datetime, timedelta
+from decorator import decorator
+>>>>>>> util: Use yum.misc.decompress in the repo sanity checker
 from collections import defaultdict
 from contextlib import contextmanager
 
