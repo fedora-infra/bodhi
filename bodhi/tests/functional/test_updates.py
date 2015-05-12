@@ -1172,7 +1172,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         Release._tag_cache = None
         release = Release(
             name=u'F18', long_name=u'Fedora 18',
-            id_prefix=u'FEDORA', version='18',
+            id_prefix=u'FEDORA', version=u'18',
             dist_tag=u'f18', stable_tag=u'f18-updates',
             testing_tag=u'f18-updates-testing',
             candidate_tag=u'f18-updates-candidate',
@@ -1197,11 +1197,11 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch('bodhi.notifications.publish')
     def test_cascade_package_requirements_to_update(self, publish, *args):
 
-        package = DBSession.query(Package).filter_by(name='bodhi').one()
-        package.requirements = 'upgradepath rpmlint'
+        package = DBSession.query(Package).filter_by(name=u'bodhi').one()
+        package.requirements = u'upgradepath rpmlint'
         DBSession.flush()
 
-        args = self.get_update('bodhi-2.0.0-3.fc17')
+        args = self.get_update(u'bodhi-2.0.0-3.fc17')
         # Don't specify any requirements so that they cascade from the package
         del args['requirements']
         r = self.app.post_json('/updates/', args)

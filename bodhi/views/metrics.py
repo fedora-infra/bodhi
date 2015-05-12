@@ -31,7 +31,7 @@ def metrics(request):
         'newpackage': 'New packages'
     }
 
-    releases = db.query(m.Release).filter(m.Release.name.like('F%')).all()
+    releases = db.query(m.Release).filter(m.Release.name.like(u'F%')).all()
 
     for i, release in enumerate(sorted(releases, cmp=lambda x, y:
             cmp(int(x.version_int), int(y.version_int)))):

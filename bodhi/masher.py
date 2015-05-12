@@ -346,7 +346,7 @@ class MasherThread(threading.Thread):
     def eject_from_mash(self, update, reason):
         update.locked = False
         text = '%s ejected from the push because %r' % (update.title, reason)
-        update.comment(text, author='bodhi')
+        update.comment(text, author=u'bodhi')
         update.request = None
         if update in self.state['updates']:
             self.state['updates'].remove(update)

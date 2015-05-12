@@ -109,6 +109,8 @@ class BaseWSGICase(unittest.TestCase):
     def get_update(self, builds=u'bodhi-2.0-1.fc17', stable_karma=3, unstable_karma=-3):
         if isinstance(builds, list):
             builds = u','.join(builds)
+        if not isinstance(builds, unicode):
+            builds = builds.decode('utf-8')
         return {
             'builds': builds,
             'bugs': u'',

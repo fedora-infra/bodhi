@@ -470,7 +470,7 @@ class TestUpdate(ModelTest):
 
     def test_expand_messages(self):
         """Ensure all messages can be expanded properly"""
-        self.obj.comment('test', 0, 'guest')
+        self.obj.comment(u'test', 0, u'guest')
         for value in mail.MESSAGES.values():
             value['body'] % value['fields']('guest', self.obj)
 

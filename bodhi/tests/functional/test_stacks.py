@@ -174,7 +174,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
 
         # But not gnome-shell, since it was already in the stack.
         package = self.session.query(Package)\
-            .filter(Package.name=='gnome-shell').one()
+            .filter(Package.name==u'gnome-shell').one()
         self.assertEquals(package.requirements, None)
 
     def test_delete_stack(self):

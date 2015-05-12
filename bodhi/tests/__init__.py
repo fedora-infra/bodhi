@@ -32,7 +32,7 @@ def populate(db):
     user.groups.append(packager)
     release = Release(
         name=u'F17', long_name=u'Fedora 17',
-        id_prefix=u'FEDORA', version='17',
+        id_prefix=u'FEDORA', version=u'17',
         dist_tag=u'f17', stable_tag=u'f17-updates',
         testing_tag=u'f17-updates-testing',
         candidate_tag=u'f17-updates-candidate',
@@ -55,24 +55,24 @@ def populate(db):
         request=UpdateRequest.testing,
         notes=u'Useful details!', release=release,
         date_submitted=datetime(1984, 11, 02),
-        requirements='rpmlint',
+        requirements=u'rpmlint',
         stable_karma=3, unstable_karma=-3,
     )
     update.type = UpdateType.bugfix
     bug = Bug(bug_id=12345)
     db.add(bug)
     update.bugs.append(bug)
-    cve = CVE(cve_id="CVE-1985-0110")
+    cve = CVE(cve_id=u"CVE-1985-0110")
     db.add(cve)
     update.cves.append(cve)
 
-    comment = Comment(karma=1, text="wow. amaze.")
+    comment = Comment(karma=1, text=u"wow. amaze.")
     db.add(comment)
     comment.user = user
     update.comments.append(comment)
     update.karma = 1
 
-    comment = Comment(karma=0, text="srsly.  pretty good.", anonymous=True)
+    comment = Comment(karma=0, text=u"srsly.  pretty good.", anonymous=True)
     comment.user = anonymous
     db.add(comment)
     update.comments.append(comment)

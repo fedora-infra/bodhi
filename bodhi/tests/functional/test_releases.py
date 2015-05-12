@@ -30,7 +30,7 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         session = DBSession()
         release = Release(
             name=u'F22', long_name=u'Fedora 22',
-            id_prefix=u'FEDORA', version='22',
+            id_prefix=u'FEDORA', version=u'22',
             dist_tag=u'f22', stable_tag=u'f22-updates',
             testing_tag=u'f22-updates-testing',
             candidate_tag=u'f22-updates-candidate',
@@ -104,7 +104,7 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_releases_by_update_alias(self):
         session = DBSession()
         update = session.query(Update).first()
-        update.alias = 'some_alias'
+        update.alias = u'some_alias'
         session.flush()
 
         res = self.app.get('/releases/', {"updates": 'some_alias'})
@@ -168,7 +168,7 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
             self.assertEquals(error["description"], "Invalid tag: %s" % attrs[error["name"]])
 
     def test_edit_release(self):
-        name = "F22"
+        name = u"F22"
 
         res = self.app.get('/releases/%s' % name, status=200)
         r = res.json_body

@@ -199,7 +199,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_users_by_update_alias(self):
         session = DBSession()
         update = session.query(Update).first()
-        update.alias = 'some_alias'
+        update.alias = u'some_alias'
         session.flush()
 
         res = self.app.get('/users/', {"updates": 'some_alias'})
