@@ -529,6 +529,14 @@ class Build(Base):
                 koji.untagBuild(tag, self.nvr)
 
 
+def generate_alias(context):
+    """A context-sensitive default function for the `Update.alias` column.
+
+    http://docs.sqlalchemy.org/en/latest/core/defaults.html#context-sensitive-default-functions
+    """
+    return Update.generate_alias(context.current_parameters)
+
+
 class Update(Base):
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
@@ -569,7 +577,7 @@ class Update(Base):
     date_pushed = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
-    alias = Column(Unicode(32), default=None, unique=True)
+    alias = Column(Unicode(32), default=generate_alias, unique=True)
 
     # deprecated: our legacy update ID
     old_updateid = Column(Unicode(32), default=None)
