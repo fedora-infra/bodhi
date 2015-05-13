@@ -261,6 +261,4 @@ def new_update(request):
 
     up.obsolete_older_updates(request)
 
-    # Send out email notifications
-
     return up
