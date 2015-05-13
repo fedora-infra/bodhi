@@ -96,9 +96,9 @@ class TestExtendedMetadata(unittest.TestCase):
         update = self.db.query(Update).one()
 
         # Pretend it's pushed to testing
-        update.assign_alias()
         update.status = UpdateStatus.testing
         update.request = None
+        update.date_pushed = datetime.utcnow()
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
@@ -120,11 +120,12 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.title, update.title)
         self.assertEquals(notice.release, update.release.long_name)
         self.assertEquals(notice.status, update.status.value)
-        self.assertEquals(notice.updated_date, update.date_modified)
+        if update.date_modified:
+            self.assertEquals(notice.updated_date, update.date_modified)
         self.assertEquals(notice.fromstr, config.get('bodhi_email'))
         self.assertEquals(notice.rights, config.get('updateinfo_rights'))
         self.assertEquals(notice.description, update.notes)
-        self.assertIsNotNone(notice.issued_date)
+        #self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
         bug = notice.references[0]
         self.assertEquals(bug.href, update.bugs[0].url)
@@ -152,9 +153,9 @@ class TestExtendedMetadata(unittest.TestCase):
         update = self.db.query(Update).one()
 
         # Pretend it's pushed to testing
-        update.assign_alias()
         update.status = UpdateStatus.testing
         update.request = None
+        update.date_pushed = datetime.utcnow()
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
@@ -177,11 +178,12 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.updated_date, update.date_modified)
         self.assertEquals(notice.fromstr, config.get('bodhi_email'))
         self.assertEquals(notice.description, update.notes)
-        self.assertIsNotNone(notice.issued_date)
+        #self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
         #self.assertIsNone(notice.epoch)
         bug = notice.references[0]
-        self.assertEquals(bug.href, update.bugs[0].url)
+        url = update.bugs[0].url
+        self.assertEquals(bug.href, url)
         self.assertEquals(bug.id, '12345')
         self.assertEquals(bug.type, 'bugzilla')
         cve = notice.references[1]
@@ -213,9 +215,9 @@ class TestExtendedMetadata(unittest.TestCase):
         update = self.db.query(Update).one()
 
         # Pretend it's pushed to testing
-        update.assign_alias()
         update.status = UpdateStatus.testing
         update.request = None
+        update.date_pushed = datetime.utcnow()
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
@@ -274,10 +276,10 @@ class TestExtendedMetadata(unittest.TestCase):
 
     def test_metadata_updating_with_old_stable_security(self):
         update = self.db.query(Update).one()
-        update.assign_alias()
         update.request = None
         update.type = UpdateType.security
         update.status = UpdateStatus.stable
+        update.date_pushed = datetime.utcnow()
         DevBuildsys.__tagged__[update.title] = ['f17-updates']
 
         repo = join(self.tempdir, 'f17-updates')
@@ -314,7 +316,6 @@ class TestExtendedMetadata(unittest.TestCase):
                            notes=u'x')
         self.db.add(newupdate)
         self.db.flush()
-        newupdate.assign_alias()
 
         # Untag the old security build
         DevBuildsys.__untag__.append(update.title)
@@ -345,10 +346,10 @@ class TestExtendedMetadata(unittest.TestCase):
 
     def test_metadata_updating_with_old_testing_security(self):
         update = self.db.query(Update).one()
-        update.assign_alias()
         update.request = None
         update.type = UpdateType.security
         update.status = UpdateStatus.testing
+        update.date_pushed = datetime.utcnow()
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
@@ -381,7 +382,6 @@ class TestExtendedMetadata(unittest.TestCase):
                            notes=u'x')
         self.db.add(newupdate)
         self.db.flush()
-        newupdate.assign_alias()
 
         # Untag the old security build
         del(DevBuildsys.__tagged__[update.title])
