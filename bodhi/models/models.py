@@ -1084,7 +1084,6 @@ class Update(Base):
             self.status = UpdateStatus.stable
         self.request = None
         self.date_pushed = datetime.utcnow()
-        self.assign_alias()
 
     def modify_bugs(self):
         """
