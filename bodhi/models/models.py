@@ -529,6 +529,14 @@ class Build(Base):
                 koji.untagBuild(tag, self.nvr)
 
 
+def generate_alias(context):
+    """A context-sensitive default function for the `Update.alias` column.
+
+    http://docs.sqlalchemy.org/en/latest/core/defaults.html#context-sensitive-default-functions
+    """
+    return Update.generate_alias(context.current_parameters)
+
+
 class Update(Base):
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
@@ -569,7 +577,7 @@ class Update(Base):
     date_pushed = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
-    alias = Column(Unicode(32), default=None, unique=True)
+    alias = Column(Unicode(32), default=generate_alias, unique=True)
 
     # deprecated: our legacy update ID
     old_updateid = Column(Unicode(32), default=None)
@@ -892,33 +900,27 @@ class Update(Base):
                         bad += 1
         return good, bad * -1
 
-    def assign_alias(self):
-        """Assign an update ID to this update.
+    @classmethod
+    def generate_alias(cls, params):
+        """Return the next available update ID.
 
         This function finds the next number in the sequence of pushed updates
         for this release, increments it and prefixes it with the id_prefix of
         the release and the year (ie FEDORA-2007-0001).
         """
-        if self.alias not in (None, u'None'):
-            log.debug("Keeping current update id %s" % self.alias)
-            return
-
-        releases = DBSession.query(Release) \
-                            .filter_by(id_prefix=self.release.id_prefix) \
+        release = DBSession.query(Release).get(params['release_id'])
+        releases = DBSession.query(Release)\
+                            .filter_by(id_prefix=release.id_prefix)\
                             .all()
-
-        subquery = DBSession.query(Update.date_pushed) \
-                          .filter(
-                              and_(Update.date_pushed != None,
-                                   Update.alias != None,
+        subquery = DBSession.query(Update.date_submitted).filter(
                                    or_(*[Update.release == release
-                                         for release in releases]))) \
-                          .order_by(Update.date_pushed.desc()) \
-                          .group_by(Update.date_pushed) \
+                                         for release in releases]))\
+                          .order_by(Update.date_submitted.desc())\
+                          .group_by(Update.date_submitted)\
                           .limit(1)
 
         update = DBSession.query(Update).filter(
-             Update.date_pushed.in_(subquery.subquery())
+             Update.date_submitted.in_(subquery.subquery())
         ).all()
 
         if not update:
@@ -935,12 +937,9 @@ class Update(Base):
                 id = 0
             id = int(id) + 1
 
-        self.alias = u'%s-%s-%0.4d' % (self.release.id_prefix,
-                                       time.localtime()[0], id)
-        log.debug("Setting alias for %s to %s" % (self.title, self.alias))
-
-        # FIXME: don't do this here:
-        self.date_pushed = datetime.utcnow()
+        alias = u'%s-%s-%0.4d' % (release.id_prefix, time.localtime()[0], id)
+        log.debug('Setting alias for %s to %s' % (params['title'], alias))
+        return alias
 
     def set_request(self, action, username):
         """ Attempt to request an action for this update """
@@ -1085,7 +1084,6 @@ class Update(Base):
             self.status = UpdateStatus.stable
         self.request = None
         self.date_pushed = datetime.utcnow()
-        self.assign_alias()
 
     def modify_bugs(self):
         """

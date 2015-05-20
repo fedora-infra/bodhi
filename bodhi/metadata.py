@@ -204,7 +204,8 @@ class ExtendedMetadata(object):
         rec.release = to_bytes(update.release.long_name)
         rec.rights = config.get('updateinfo_rights')
 
-        rec.issued_date = update.date_pushed
+        if update.date_pushed:
+            rec.issued_date = update.date_pushed
         if update.date_modified:
             rec.updated_date = update.date_modified
 

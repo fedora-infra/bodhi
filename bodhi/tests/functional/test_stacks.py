@@ -169,7 +169,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Adding gnome-music to the stack should change its requirements, too.
         package = self.session.query(Package)\
-            .filter(Package.name=='gnome-music').one()
+            .filter(Package.name==u'gnome-music').one()
         self.assertEquals(package.requirements, attrs['requirements'])
 
         # But not gnome-shell, since it was already in the stack.
