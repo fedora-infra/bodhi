@@ -1361,8 +1361,25 @@ class Comment(SQLObject):
     update      = ForeignKey("PackageUpdate", notNone=True)
     author      = UnicodeCol(notNone=True)
     karma       = IntCol(default=0)
-    text        = UnicodeCol()
+    text_       = UnicodeCol(dbName='text')
     anonymous   = BoolCol(default=False)
+
+    # No idea why, but SQLObject or PostgreSQL seem to be escaping
+    # characters like `\n`, which is obviously wrong for us.
+    # The following just wraps the `notes` to unescape them when read.
+    # https://github.com/fedora-infra/bodhi/issues/147
+    def __init__(self, **kwargs):
+        if "text" in kwargs:
+            text = kwargs.pop("text")
+            kwargs["text_"] = text
+        return super(Comment, self).__init__(**kwargs)
+    def get_text(self):
+        return self.text_.encode('utf-8').decode('string_escape').decode('utf-8')
+    def set_text(self, value):
+        self.text_ = value
+    def del_text(self):
+        del self.text_
+    text = property(get_text, set_text, del_text)
 
     @property
     def html_text(self):
