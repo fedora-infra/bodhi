@@ -181,3 +181,8 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
 
         r = DBSession().query(Release).filter(Release.name==name).one()
         self.assertEquals(r.state, ReleaseState.current)
+
+    def test_get_single_release_html(self):
+        res = self.app.get('/releases/f22', headers={'Accept': 'text/html'})
+        self.assertEquals(res.content_type, 'text/html')
+        self.assertIn('f22-updates-testing', res)
