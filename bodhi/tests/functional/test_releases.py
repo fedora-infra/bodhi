@@ -183,6 +183,14 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(r.state, ReleaseState.current)
 
     def test_get_single_release_html(self):
-        res = self.app.get('/releases/f22', headers={'Accept': 'text/html'})
+        res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})
         self.assertEquals(res.content_type, 'text/html')
-        self.assertIn('f22-updates-testing', res)
+        self.assertIn('f17-updates-testing', res)
+
+    def test_get_non_existent_release_html(self):
+        self.app.get('/releases/x', headers={'Accept': 'text/html'}, status=404)
+
+    def test_get_releases_html(self):
+        res = self.app.get('/releases/', headers={'Accept': 'text/html'})
+        self.assertEquals(res.content_type, 'text/html')
+        self.assertIn('Fedora 22', res)
