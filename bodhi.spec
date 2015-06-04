@@ -2,8 +2,13 @@
 %{!?pyver: %global pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
+<<<<<<< HEAD
 Version:        2.0
 Release:        4%{?dist}
+=======
+Version:        0.9.17
+Release:        0.1.infra%{?dist}
+>>>>>>> 0.9.17
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -11,6 +16,7 @@ URL:            https://fedorahosted.org/bodhi
 Source0:        https://fedorahosted.org/releases/b/o/bodhi/bodhi-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
+ExcludeArch:    ppc64 ppc
 
 # For the tests
 BuildRequires:   python-nose
@@ -243,6 +249,7 @@ PYTHONPATH=. %{__python} setup.py test
 
 
 %changelog
+<<<<<<< HEAD
 * Tue Apr 14 2015 Ralph Bean <rbean@redhat.com> - 2.0-1
 - First draft at a spec file for the bodhi2 rewrite.
 
@@ -251,6 +258,13 @@ PYTHONPATH=. %{__python} setup.py test
 
 * Fri Aug 29 2014 Luke Macken <lmacken@redhat.com> - 0.9.11-1
 - Updated to 0.9.11 for EPEL-7
+=======
+* Thu Jun 04 2015 Luke Macken <lmacken@redhat.com> - 0.9.17-0.1.infra
+- Update to 0.9.17 to fix https://github.com/fedora-infra/bodhi/issues/147
+
+* Tue Jan 06 2015 Luke Macken <lmacken@redhat.com> - 0.9.15-1
+- Update to 0.9.15
+>>>>>>> 0.9.17
 
 * Tue Jun 24 2014 Luke Macken <lmacken@redhat.com> - 0.9.10-1
 - Update to 0.9.10
