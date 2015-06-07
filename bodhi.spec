@@ -162,7 +162,7 @@ updates for a software distribution.
 # Kill some dev deps
 sed -i '/pyramid_debugtoolbar/d' setup.py
 sed -i '/pyramid_debugtoolbar/d' development.ini
-sed -i 's/, \'nose-cov\'//' setup.py
+sed -i '/nose-cov/d' setup.py
 
 # Kill this from the egg-info deps so that bodhi-server doesn't demand it.
 sed -i '/click/d' setup.py
