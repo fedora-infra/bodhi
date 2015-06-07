@@ -69,6 +69,13 @@ BuildRequires:   python-sphinx
 # For the bodhi-client
 BuildRequires:   python-click
 
+%if 0%{?rhel} <= 7
+BuildRequires:   python-webob1.4
+Requires:        python-webob1.4
+%endif
+
+Requires:       python-psycopg2
+
 %description
 Bodhi is a web application that facilitates the process of publishing
 updates for a software distribution.
