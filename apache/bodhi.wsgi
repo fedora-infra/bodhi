@@ -1,4 +1,5 @@
-__requires__ = ['WebOb >= 1.3.1']  # Force forward-compat packages on epel7
+import __main__
+__requires__ = __main__.__requires__ = 'WebOb>=1.4.1'  # Force forward-compat packages on epel7
 import pkg_resources
 
 import sys

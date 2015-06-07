@@ -1,3 +1,7 @@
+import __main__
+__requires__ = __main__.__requires__ = 'WebOb>=1.4.1'
+import pkg_resources
+
 # The following two imports are required to shut up an
 # atexit error when running tests with python 2.7
 import logging
@@ -59,6 +63,8 @@ requires = [
 
     # For the bodhi-client
     'click',
+
+    'WebOb>=1.4.1',
     ]
 
 if sys.version_info[:3] < (2,7,0):
