@@ -93,9 +93,10 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(len(body['users']), 3)
 
-        self.assertEquals(body['users'][0]['name'], u'guest')
-        self.assertEquals(body['users'][1]['name'], u'anonymous')
-        self.assertEquals(body['users'][2]['name'], u'bodhi')
+        users = [user['name'] for user in body['users']]
+        self.assertIn(u'guest', users)
+        self.assertIn(u'anonymous', users)
+        self.assertIn(u'bodhi', users)
 
     def test_list_users_jsonp(self):
         res = self.app.get('/users/',
@@ -135,20 +136,22 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(len(body['users']), 3)
 
+        users = [user['name'] for user in body['users']]
+
         res = self.app.get('/users/', {'rows_per_page': 1})
         body = res.json_body
         self.assertEquals(len(body['users']), 1)
-        self.assertEquals(body['users'][0]['name'], 'guest')
+        self.assertIn(body['users'][0]['name'], users)
 
         res = self.app.get('/users/', {'rows_per_page': 1, 'page': 2})
         body = res.json_body
         self.assertEquals(len(body['users']), 1)
-        self.assertEquals(body['users'][0]['name'], 'anonymous')
+        self.assertIn(body['users'][0]['name'], users)
 
         res = self.app.get('/users/', {'rows_per_page': 1, 'page': 3})
         body = res.json_body
         self.assertEquals(len(body['users']), 1)
-        self.assertEquals(body['users'][0]['name'], 'bodhi')
+        self.assertIn(body['users'][0]['name'], users)
 
     def test_list_users_by_name(self):
         res = self.app.get('/users/', {"name": 'guest'})
