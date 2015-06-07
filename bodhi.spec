@@ -192,7 +192,7 @@ cp -rf alembic/ %{buildroot}%{_datadir}/%{name}/alembic
 #%{__install} -m 640 %{name}/config/*mash* %{buildroot}%{_sysconfdir}/%{name}/
 
 %check
-PYTHONPATH=. nosetests
+PYTHONPATH=. %{__python} setup.py test
 
 %pre server
 %{_sbindir}/groupadd -r %{name} &>/dev/null || :
