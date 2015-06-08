@@ -42,10 +42,11 @@ def packagers_allowed_acl(request):
 
 def package_maintainers_only_acl(request):
     """An ACL that only allows package maintainers for a given package"""
-    update = Update.get(request.matchdict['id'], request.db)
     acl = admin_only_acl(request)
-    for committer in update.get_maintainers():
-        acl.insert(0, (Allow, committer, ALL_PERMISSIONS))
+    update = Update.get(request.matchdict['id'], request.db)
+    if update:
+        for committer in update.get_maintainers():
+            acl.insert(0, (Allow, committer, ALL_PERMISSIONS))
     return acl
 
 
