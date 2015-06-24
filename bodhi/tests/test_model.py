@@ -607,6 +607,13 @@ class TestPackageUpdate(testutil.DBTest):
         u = PackageUpdate.byTitle('foo-1.2.3-4')
         assert u.notes == u'\xb7'
 
+    def test_broken_notes(self):
+        """ Ensure our note encoding works as expected """
+        update = self.get_update(name='foo-1.2.3-4')
+        update.notes_ = u'update to version 3.09\r\n*\xa0Allow regex replacement variables in HAO commands (Roger Bowler)\r\n*\xa0Prevent duplicate EQID (Gordon Bonorchis)\r\n*\xa0Permit concurrent read access to printer and punch files (Roger Bowler)\r\n*\xa0DFP zoned-conversion facility (Roger Bowler)\r\n*\xa0Execution-hint facility (Roger Bowler)\r\n*\xa0Miscellaneous-instruction-extensions facility (Roger Bowler)\r\n*\xa0Load-and-trap facility (Roger Bowler)\r\n*\xa0Fix for VSAM Extended Format (David "Fish" Trout)\r\n*\xa0APL\\360 2741 patch (Max H. Parke)\r\n*\xa0Fix interval timer repeating interrupt (Ivan Warren, Kevin Leonard)\r\n*\xa0Corrections to build procedures (Mike Frysinger, Dan Horak)\r\n*\xa0Miscellaneous bug fixes (Roger Bowler)\r\n'
+        assert False, update.notes
+        assert update.notes
+
     def test_utf8_email(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
         bug = self.get_bug()
