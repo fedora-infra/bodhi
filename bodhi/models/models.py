@@ -1017,7 +1017,10 @@ class Update(Base):
                 if self.release.mandatory_days_in_testing:
                     if not self.met_testing_requirements and \
                        not self.meets_testing_requirements:
-                        flash_notes = config.get('not_yet_tested_msg')
+                        if self.release.id_prefix == "FEDORA-EPEL":
+                            flash_notes = config.get('not_yet_tested_epel_msg')
+                        else:
+                            flash_notes = config.get('not_yet_tested_msg')
                         if self.status is UpdateStatus.testing:
                             self.request = None
                             raise BodhiException(flash_notes)
