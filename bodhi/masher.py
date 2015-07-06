@@ -612,7 +612,7 @@ class MasherThread(threading.Thread):
             time.sleep(600)
             try:
                 masterrepomd = urllib2.urlopen(master_repomd %
-                                               self.release.get_version())
+                                               (self.release.get_version(), arch))
             except (urllib2.URLError, urllib2.HTTPError):
                 self.log.exception('Error fetching repomd.xml')
                 continue
