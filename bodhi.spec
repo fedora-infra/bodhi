@@ -177,6 +177,7 @@ sed -i '/click/d' setup.py
     #--install-data=%{_datadir}
 
 %{__mkdir_p} %{buildroot}/var/lib/bodhi
+%{__mkdir_p} %{buildroot}/var/cache/bodhi
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/httpd/conf.d
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/bodhi
 %{__mkdir_p} %{buildroot}%{_datadir}/%{name}
@@ -211,6 +212,7 @@ PYTHONPATH=. %{__python} setup.py test
 %attr(-,bodhi,root) %{_datadir}/%{name}
 %attr(-,bodhi,root) %config(noreplace) %{_sysconfdir}/bodhi/*
 %attr(-,bodhi,root) %{_localstatedir}/log/bodhi
+%attr(-,bodhi,root) %{_localstatedir}/cache/bodhi
 %{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
 
 
