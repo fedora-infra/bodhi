@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+__requires__ = 'WebOb>=1.4.1'
+import pkg_resources
 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
