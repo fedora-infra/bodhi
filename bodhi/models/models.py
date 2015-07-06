@@ -346,7 +346,7 @@ class Package(Base):
     __tablename__ = 'packages'
     __get_by__ = ('name',)
 
-    name = Column(Unicode(50), unique=True, nullable=False)
+    name = Column(UnicodeText, unique=True, nullable=False)
     requirements = Column(UnicodeText)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
