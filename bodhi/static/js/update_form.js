@@ -135,11 +135,11 @@ $(document).ready(function() {
     // fire off two async js calls to get bugs and builds.  Those are then
     // added to their respective checkbox lists once they are retrieved.
     $('#packages-search input.typeahead').on('typeahead:selected', function (e, datum) {
-        $("#candidate-checkboxes").prepend("<img class='spinner' src='/static/img/spinner.gif'>")
-        $("#bugs-checkboxes").prepend("<img class='spinner' src='/static/img/spinner.gif'>")
+        $("#candidate-checkboxes").prepend("<img class='spinner' src='../static/img/spinner.gif'>")
+        $("#bugs-checkboxes").prepend("<img class='spinner' src='../static/img/spinner.gif'>")
         // Get the candidate builds
         $.ajax({
-            url: '/latest_candidates',
+            url: '../latest_candidates',
             data: $.param({package: datum.name}),
             success: function(builds) {
                 $("#candidate-checkboxes .spinner").remove();

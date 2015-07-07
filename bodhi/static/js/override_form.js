@@ -32,7 +32,7 @@ $(document).ready(function() {
     // first is 'bloodhound' which is a suggestion engine.  Its suggestions are
     // then fed to 'typeahead.js' which is responsible for presenting and
     // acting on the suggestions.
-    var url = '/latest_candidates?package=';
+    var url = '../latest_candidates?package=';
 
     var candidates = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
