@@ -12,7 +12,7 @@ var update_markdown_preview = function(text) {
     delay(function() {
         $("#preview").html("<h3><small>Loading</small></h3>");
         $.ajax({
-            url: "/markdown",
+            url: "/updates/markdown",
             data: $.param({text: text}),
             dataType: 'json',
             success: function(data) {
