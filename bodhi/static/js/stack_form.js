@@ -100,10 +100,10 @@ $(document).ready(function() {
     // Wire up the delete button
     $("#delete").click(function (e) {
       $.ajax({
-        url: '/stacks/' + $('#stack-name input').val(),
+        url: '/updates/stacks/' + $('#stack-name input').val(),
         type: 'DELETE',
         success: function(result) {
-            document.location.href = "/stacks/";
+            document.location.href = "/updates/stacks/";
         }
       });
     });
