@@ -86,7 +86,7 @@ def edit(username, password, **kwargs):
         print("ERROR: Please specify the name of the release to edit")
         return
 
-    res = client.send_request('/releases/%s' % edited, verb='GET', auth=True)
+    res = client.send_request('releases/%s' % edited, verb='GET', auth=True)
 
     data = res.json()
 
@@ -112,7 +112,7 @@ def edit(username, password, **kwargs):
 def info(name):
     client = BodhiClient()
 
-    res = client.send_request('/releases/%s' % name, verb='GET', auth=True)
+    res = client.send_request('releases/%s' % name, verb='GET', auth=True)
 
     data = res.json()
 
@@ -125,7 +125,7 @@ def info(name):
 
 
 def save(client, **kwargs):
-    res = client.send_request('/releases/', verb='POST', auth=True,
+    res = client.send_request('releases/', verb='POST', auth=True,
                               data=kwargs)
 
     data = res.json()
