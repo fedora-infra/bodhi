@@ -49,6 +49,7 @@ def main():
 def create(username, password, **kwargs):
     client = BodhiClient()
     client.login(username, password)
+    kwargs['csrf_token'] = client.csrf()
 
     save(client, **kwargs)
 
@@ -78,7 +79,8 @@ def create(username, password, **kwargs):
               help='The state of the release')
 def edit(username, password, **kwargs):
     client = BodhiClient()
-    client.login(username, password)
+    res = client.login(username, password)
+    csrf = client.csrf()
 
     edited = kwargs.pop('name')
 
@@ -94,6 +96,7 @@ def edit(username, password, **kwargs):
         print_errors(data)
 
     data['edited'] = edited
+    data['csrf_token'] = csrf
 
     new_name = kwargs.pop('new_name')
 
