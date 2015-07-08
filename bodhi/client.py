@@ -31,6 +31,9 @@ class BodhiClient(OpenIdBaseClient):
     def query(self, **kwargs):
         return self.send_request('updates', verb='GET', params=kwargs)
 
+    def csrf(self, **kwargs):
+        return self.send_request('csrf', verb='GET', params=kwargs).json()['csrf_token']
+
     def parse_file(self, input_file):
         """ Parse an update template file.
 
