@@ -41,6 +41,7 @@ BuildRequires:   python-bunch
 # for captchas
 BuildRequires:   python-cryptography
 BuildRequires:   python-pillow
+BuildRequires:   liberation-mono-fonts
 #BuildRequires:   pcaro-hermit-fonts
 
 # Useful tools
@@ -126,6 +127,7 @@ Requires:   python-bunch
 # for captchas
 Requires:   python-cryptography
 Requires:   python-pillow
+Requires:   liberation-mono-fonts
 #Requires:   pcaro-hermit-fonts
 
 # Useful tools
