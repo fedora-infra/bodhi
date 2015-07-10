@@ -150,13 +150,13 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_markdown_with_bugzilla(self):
         res = self.app.get('/markdown', {
-            'text': 'Crazy.  #123 is still busted.',
+            'text': 'Crazy.  #12345 is still busted.',
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
             '<p>Crazy.  '
-            '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=123">'
-            '#123</a> is still busted.</p>',
+            '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=12345">'
+            '#12345</a> is still busted.</p>',
         )
 
     def test_metrics(self):

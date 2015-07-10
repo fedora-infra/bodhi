@@ -61,7 +61,7 @@ def inject():
             return el
 
     MENTION_RE = r'(@\w+)'
-    BUGZILLA_RE = r'(#[0-9]+)'
+    BUGZILLA_RE = r'(#[0-9]{5,})'
 
     # Lastly, monkey-patch the build_inlinepatterns func to insert our patterns
     original_builder = markdown.build_inlinepatterns
