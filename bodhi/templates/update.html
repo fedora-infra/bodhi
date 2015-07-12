@@ -470,7 +470,7 @@ $(document).ready(function(){
           % else:
             <a href="#" id='revoke' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Revoke</a>
           % endif
-        % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in groups)):
+        % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in [group.name for group in request.user.groups])):
           <a href="#" id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
           % if update.status.description != 'testing':
             <a href="#" id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
