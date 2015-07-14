@@ -4,7 +4,7 @@ $(document).ready(function() {
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
-            url: '/updates/?like=%QUERY',
+            url: 'updates/?like=%QUERY',
             filter: function(response) { return response.updates; },
         }
     });
@@ -12,7 +12,7 @@ $(document).ready(function() {
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
-            url: '/users/?like=%QUERY',
+            url: 'users/?like=%QUERY',
             filter: function(response) { return response.users; },
         }
     });

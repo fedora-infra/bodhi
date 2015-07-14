@@ -1178,7 +1178,7 @@ class Update(Base):
 
     def get_url(self):
         """ Return the relative URL to this update """
-        path = ['/']
+        path = []
         if self.alias:
             path.append(self.release.name)
             path.append(self.alias)

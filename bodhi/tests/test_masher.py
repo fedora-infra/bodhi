@@ -696,7 +696,7 @@ References:
     @mock.patch('bodhi.bugs.bugtracker.on_qa')
     def test_modify_testing_bugs(self, on_qa, modified, *args):
         self.masher.consume(self.msg)
-        on_qa.assert_called_once_with(12345, u"bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\\nIf you want to test the update, you can install it with \\n su -c 'yum --enablerepo=updates-testing update bodhi'. You can provide feedback for this update here: http://localhost:8084/F17/FEDORA-%s-0001" % time.localtime().tm_year)
+        on_qa.assert_called_once_with(12345, u"bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\\nIf you want to test the update, you can install it with \\n su -c 'yum --enablerepo=updates-testing update bodhi'. You can provide feedback for this update here: http://localhost:6543/F17/FEDORA-%s-0001" % time.localtime().tm_year)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.masher.MasherThread.update_comps')

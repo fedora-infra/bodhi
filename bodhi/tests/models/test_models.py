@@ -149,7 +149,7 @@ class TestBuild(ModelTest):
     #    eq_(self.obj.get_latest(), None)
 
     def test_url(self):
-        eq_(self.obj.get_url(), '/TurboGears-1.0.8-3.fc11')
+        eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
 
     def test_get_latest(self):
         eq_(self.obj.get_latest(), None)
@@ -456,7 +456,7 @@ class TestUpdate(ModelTest):
         eq_(kwargs['msg']['comment']['author'], 'anonymous')
 
     def test_get_url(self):
-        eq_(self.obj.get_url(), u'/F11/FEDORA-%s-0001' % time.localtime()[0])
+        eq_(self.obj.get_url(), u'F11/FEDORA-%s-0001' % time.localtime()[0])
 
     def test_bug(self):
         bug = self.obj.bugs[0]

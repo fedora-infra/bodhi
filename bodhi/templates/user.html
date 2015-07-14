@@ -7,7 +7,7 @@
 
       $('.hidejs').css('visibility', 'hidden');
       $('.hidejs').css('display', 'none');
-      $(".spinner").html('<img src="/static/img/spinner.gif" alt="loading..." />');
+      $(".spinner").html('<img src="static/img/spinner.gif" alt="loading..." />');
       $.ajax(
           'https://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi&order=desc&rows_per_page=1',
           {

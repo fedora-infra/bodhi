@@ -2,12 +2,12 @@
 
 $(document).ready(function() {
     StackForm = function() {};
-    StackForm.prototype = new Form("#new-stack-form", "/stacks/");
+    StackForm.prototype = new Form("#new-stack-form", document.baseURI + "stacks/");
     StackForm.prototype.success = function(data) {
         Form.prototype.success.call(this, data);
 
         // Now redirect to the stack display
-        document.location.href = "/stacks/" + data.stack.name;
+        document.location.href = document.baseURI + "stacks/" + data.stack.name;
     }
 
     var messenger = Messenger({theme: 'flat'});
