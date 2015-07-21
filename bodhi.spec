@@ -156,6 +156,8 @@ Requires:  git
 Requires:  libxml2-python
 Requires:  intltool
 
+Requires:  mash
+
 Requires:   python-sphinx
 
 
