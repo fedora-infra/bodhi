@@ -28,13 +28,16 @@ import threading
 import fedmsg.consumers
 
 from collections import defaultdict
+from pyramid.paster import get_appsettings
+from sqlalchemy import engine_from_config
 
 from bodhi import log, buildsys, notifications, mail, util
 from bodhi.util import sorted_updates, sanity_check_repodata
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
-                          UpdateStatus, ReleaseState)
+                          UpdateStatus, ReleaseState, DBSession, Base)
 from bodhi.metadata import ExtendedMetadata
+from bodhi.tests.test_masher import transactional_session_maker
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
@@ -83,9 +86,16 @@ Once mash is done:
     """
     config_key = 'masher'
 
-    def __init__(self, hub, db_factory, mash_dir=config.get('mash_dir'),
+    def __init__(self, hub, db_factory=None, mash_dir=config.get('mash_dir'),
                  *args, **kw):
-        self.db_factory = db_factory
+        if not db_factory:
+            settings = get_appsettings('/etc/bodhi/production.ini')
+            engine = engine_from_config(settings, 'sqlalchemy.')
+            DBSession.configure(bind=engine)
+            Base.metadata.create_all(engine)
+            self.db_factory = transactional_session_maker
+        else:
+            self.db_factory = db_factory
         self.mash_dir = mash_dir
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
