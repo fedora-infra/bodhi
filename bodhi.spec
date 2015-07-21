@@ -154,6 +154,7 @@ Requires:   fedmsg
 # For cloning comps
 Requires:  git
 Requires:  libxml2-python
+Requires:  intltool
 
 Requires:   python-sphinx
 
