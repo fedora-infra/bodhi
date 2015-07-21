@@ -4,5 +4,6 @@ recursive-include apache *
 recursive-include alembic *
 recursive-include tools *
 recursive-include docs *
+recursive-include fedmsg.d *
 include bodhi/locale/.placeholder
 include COPYING

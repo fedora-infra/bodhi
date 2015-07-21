@@ -181,6 +181,7 @@ sed -i '/click/d' setup.py
 %{__mkdir_p} %{buildroot}/var/lib/bodhi
 %{__mkdir_p} %{buildroot}/var/cache/bodhi
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/httpd/conf.d
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/fedmsg.d
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/bodhi
 %{__mkdir_p} %{buildroot}%{_datadir}/%{name}
 %{__mkdir_p} -m 0755 %{buildroot}/%{_localstatedir}/log/bodhi
@@ -190,6 +191,9 @@ sed -i '/click/d' setup.py
 %{__install} -m 640 alembic.ini %{buildroot}%{_datadir}/%{name}/alembic.ini
 cp -rf alembic/ %{buildroot}%{_datadir}/%{name}/alembic
 %{__install} apache/%{name}.wsgi %{buildroot}%{_datadir}/%{name}/%{name}.wsgi
+
+%{__install} -m 644 fedmsg.d/masher.py %{buildroot}%{_sysconfdir}/fedmsg.d/masher.py
+%{__install} -m 644 fedmsg.d/bodhi.py %{buildroot}%{_sysconfdir}/fedmsg.d/bodhi.py
 
 # We used to copy in things like this for bodhi1
 #%{__install} -m 640 %{name}/config/*mash* %{buildroot}%{_sysconfdir}/%{name}/
@@ -210,6 +214,7 @@ PYTHONPATH=. %{__python} setup.py test
 %{_bindir}/initialize_bodhi_db
 %{_bindir}/bodhi-expire-overrides
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
+%config(noreplace) %{_sysconfdir}/fedmsg.d/*
 %dir %{_sysconfdir}/bodhi/
 %attr(-,bodhi,root) %{_datadir}/%{name}
 %attr(-,bodhi,root) %config(noreplace) %{_sysconfdir}/bodhi/*
