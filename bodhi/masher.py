@@ -32,12 +32,11 @@ from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 
 from bodhi import log, buildsys, notifications, mail, util
-from bodhi.util import sorted_updates, sanity_check_repodata
+from bodhi.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
                           UpdateStatus, ReleaseState, DBSession, Base)
 from bodhi.metadata import ExtendedMetadata
-from bodhi.tests.test_masher import transactional_session_maker
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
@@ -240,7 +239,6 @@ class MasherThread(threading.Thread):
                 self.perform_gating()
 
             self.update_security_bugs()
-
 
             if not self.state.get('tagged', False):
                 self.determine_tag_actions()

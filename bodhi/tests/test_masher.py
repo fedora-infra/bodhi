@@ -19,9 +19,7 @@ import json
 import shutil
 import unittest
 import tempfile
-import transaction
 
-from contextlib import contextmanager
 from sqlalchemy import create_engine
 from pyramid.paster import bootstrap
 
@@ -34,7 +32,7 @@ from bodhi.models import (DBSession, Base, Update, User, Release,
                           UpdateStatus)
 from bodhi.tests import populate
 
-from bodhi.util import mkmetadatadir
+from bodhi.util import mkmetadatadir, transactional_session_maker
 
 mock_exc = mock.Mock()
 mock_exc.side_effect = Exception
@@ -92,21 +90,6 @@ def makemsg(body=None):
             u'username': u'lmacken',
         },
     }
-
-
-@contextmanager
-def transactional_session_maker():
-    """Provide a transactional scope around a series of operations."""
-    session = DBSession()
-    transaction.begin()
-    try:
-        yield session
-        transaction.commit()
-    except:
-        transaction.abort()
-        raise
-    finally:
-        session.close()
 
 
 class TestMasher(unittest.TestCase):

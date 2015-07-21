@@ -31,11 +31,12 @@ import hashlib
 import collections
 import pkg_resources
 import functools
-
+import transaction
 
 from os.path import isdir, join, dirname, basename, isfile
 from datetime import datetime
 from collections import defaultdict
+from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
@@ -550,3 +551,19 @@ def taskotron_results(settings, entity='results', **kwargs):
                 yield datum
     except Exception:
         log.exception("Problem talking to %r" % url)
+
+
+@contextmanager
+def transactional_session_maker():
+    """Provide a transactional scope around a series of operations."""
+    from .models import DBSession
+    session = DBSession()
+    transaction.begin()
+    try:
+        yield session
+        transaction.commit()
+    except:
+        transaction.abort()
+        raise
+    finally:
+        session.close()
