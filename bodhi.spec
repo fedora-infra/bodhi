@@ -151,6 +151,9 @@ Requires:   python-bugzilla
 Requires:   python-simplemediawiki
 Requires:   fedmsg
 
+# For cloning comps
+Requires:  git
+
 Requires:   python-sphinx
 
 
