@@ -762,10 +762,11 @@ class MashThread(threading.Thread):
         out, err, returncode = util.cmd(self.mash_cmd)
         self.log.info('Took %s seconds to mash %s', time.time() - start,
                  self.tag)
-        self.success = True
         if returncode != 0:
             self.log.error('There was a problem running mash (%d)' % returncode)
             self.log.error(out)
             self.log.error(err)
             raise Exception('mash failed')
+        else:
+            self.success = True
         return out, err, returncode
