@@ -501,7 +501,7 @@ class MasherThread(threading.Thread):
                              self.release.branch)
         previous = os.path.join(config.get('mash_stage_dir'), self.id)
 
-        mash_thread = MashThread(self.id, self.path, comps, previous)
+        mash_thread = MashThread(self.id, self.path, comps, previous, self.log)
         mash_thread.start()
         return mash_thread
 
@@ -744,9 +744,10 @@ class MasherThread(threading.Thread):
 
 class MashThread(threading.Thread):
 
-    def __init__(self, tag, outputdir, comps, previous):
+    def __init__(self, tag, outputdir, comps, previous, log):
         super(MashThread, self).__init__()
         self.tag = tag
+        self.log = log
         self.success = False
         mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile} {tag}'
         mash_conf = config.get('mash_conf', '/etc/mash/mash.conf')
@@ -757,11 +758,14 @@ class MashThread(threading.Thread):
 
     def run(self):
         start = time.time()
-        log.info('Mashing %s', self.tag)
-        try:
-            util.cmd(self.mash_cmd)
-            log.info('Took %s seconds to mash %s', time.time() - start,
-                     self.tag)
-            self.success = True
-        except:
-            log.exception('There was a problem running mash')
+        self.log.info('Mashing %s', self.tag)
+        out, err, returncode = util.cmd(self.mash_cmd)
+        self.log.info('Took %s seconds to mash %s', time.time() - start,
+                 self.tag)
+        self.success = True
+        if returncode != 0:
+            self.log.error('There was a problem running mash (%d)' % returncode)
+            self.log.error(out)
+            self.log.error(err)
+            raise Exception('mash failed')
+        return out, err, returncode
