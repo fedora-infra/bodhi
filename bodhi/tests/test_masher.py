@@ -576,6 +576,7 @@ References:
     @mock.patch('bodhi.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.util.cmd')
     def test_update_comps(self, cmd, *args):
+        cmd.return_value = '', '', 0
         self.masher.consume(self.msg)
         self.assertIn(mock.call(['git', 'pull'], mock.ANY), cmd.mock_calls)
         self.assertIn(mock.call(['make'], mock.ANY), cmd.mock_calls)
@@ -588,6 +589,7 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_mash(self, cmd, publish, *args):
+        cmd.return_value = '', '', 0
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
@@ -618,6 +620,7 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_failed_gating(self, cmd, publish, *args):
+        cmd.return_value = '', '', 0
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
@@ -646,6 +649,7 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_absent_gating(self, cmd, publish, *args):
+        cmd.return_value = '', '', 0
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
