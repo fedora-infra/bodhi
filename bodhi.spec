@@ -225,9 +225,9 @@ PYTHONPATH=. %{__python} setup.py test
 %config(noreplace) %{_sysconfdir}/fedmsg.d/*
 %dir %{_sysconfdir}/bodhi/
 %attr(-,bodhi,root) %{_datadir}/%{name}
-%attr(-,bodhi,root) %config(noreplace) %{_sysconfdir}/bodhi/*
+%attr(-,bodhi,bodhi) %config(noreplace) %{_sysconfdir}/bodhi/*
 %attr(-,bodhi,root) %{_localstatedir}/log/bodhi
-%attr(-,bodhi,root) %{_localstatedir}/cache/bodhi
+%attr(0775,bodhi,bodhi) %{_localstatedir}/cache/bodhi
 %{python_sitelib}/%{name}-%{version}-py%{pyver}.egg-info/
 
 
