@@ -516,7 +516,6 @@ def cmd(cmd, cwd=None):
         log.error(err)
     if p.returncode != 0:
         log.error('return code %s', p.returncode)
-        raise Exception
     return out, err, p.returncode
 
 
