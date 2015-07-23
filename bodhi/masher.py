@@ -28,7 +28,7 @@ import threading
 import fedmsg.consumers
 
 from collections import defaultdict
-from pyramid.paster import get_appsettings
+from pyramid.paster import get_appsettings, setup_logging
 from sqlalchemy import engine_from_config
 
 from bodhi import log, buildsys, notifications, mail, util
@@ -88,7 +88,9 @@ Once mash is done:
     def __init__(self, hub, db_factory=None, mash_dir=config.get('mash_dir'),
                  *args, **kw):
         if not db_factory:
-            settings = get_appsettings('/etc/bodhi/production.ini')
+            config_uri = '/etc/bodhi/production.ini'
+            setup_logging(config_uri)
+            settings = get_appsettings(config_uri)
             engine = engine_from_config(settings, 'sqlalchemy.')
             DBSession.configure(bind=engine)
             Base.metadata.create_all(engine)
