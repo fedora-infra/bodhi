@@ -95,6 +95,8 @@ Once mash is done:
             self.db_factory = transactional_session_maker
         else:
             self.db_factory = db_factory
+
+        buildsys.setup_buildsystem(config)
         self.mash_dir = mash_dir
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
