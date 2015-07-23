@@ -104,6 +104,7 @@ Group: Applications/Internet
 
 Requires:   mod_wsgi
 Requires:   httpd
+Requires:   python-psycopg2
 
 Requires:   python-pyramid
 Requires:   python-pyramid-mako
