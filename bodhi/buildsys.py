@@ -332,14 +332,15 @@ def setup_buildsystem(settings):
         _buildsystem = DevBuildsys
 
 
-def wait_for_tasks(tasks, sleep=300):
+def wait_for_tasks(tasks, session=None, sleep=300):
     """
     Wait for a list of koji tasks to complete.  Return the first task number
     to fail, otherwise zero.
     """
     log.debug("Waiting for %d tasks to complete: %s" % (len(tasks), tasks))
     failed_tasks = []
-    session = get_session()
+    if not session:
+        session = get_session()
     for task in tasks:
         if not task:
             log.debug("Skipping task: %s" % task)
