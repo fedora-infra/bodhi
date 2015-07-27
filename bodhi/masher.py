@@ -557,8 +557,9 @@ class MasherThread(threading.Thread):
             - make sure we didn't compose a repo full of symlinks
             - sanity check our repodata
         """
-        arches = os.listdir(self.path)
-        self.log.debug("Running sanity checks on %s" % self.path)
+        mash_path = os.path.join(self.path, self.id)
+        arches = os.listdir(mash_path)
+        self.log.debug("Running sanity checks on %s" % mash_path)
 
         # make sure the new repository has our arches
         for arch in config.get('arches').split():
@@ -566,7 +567,7 @@ class MasherThread(threading.Thread):
                 one, other = arch.split('/')
                 if one not in arches and other not in arches:
                     self.log.error("Cannot find arch %s OR %s in %s" %
-                                   (one, other, self.path))
+                                   (one, other, mash_path))
                     raise Exception
                 else:
                     if one in arches:
@@ -574,21 +575,21 @@ class MasherThread(threading.Thread):
                     else:
                         arch = other
             elif arch not in arches:
-                self.log.error("Cannot find arch %s in %s" % (arch, self.path))
+                self.log.error("Cannot find arch %s in %s" % (arch, mash_path))
                 raise Exception
 
             # sanity check our repodata
             try:
-                repodata = os.path.join(self.path, arch, 'repodata')
+                repodata = os.path.join(mash_path, arch, 'repodata')
                 sanity_check_repodata(repodata)
             except Exception, e:
                 self.log.error("Repodata sanity check failed!\n%s" % str(e))
                 raise
 
         # make sure that mash didn't symlink our packages
-        for pkg in os.listdir(os.path.join(self.path, arches[0])):
+        for pkg in os.listdir(os.path.join(mash_path, arches[0])):
             if pkg.endswith('.rpm'):
-                if os.path.islink(os.path.join(self.path, arches[0], pkg)):
+                if os.path.islink(os.path.join(mash_path, arches[0], pkg)):
                     self.log.error("Mashed repository full of symlinks!")
                     raise Exception
                 break
@@ -605,17 +606,18 @@ class MasherThread(threading.Thread):
         if os.path.islink(link):
             os.unlink(link)
         self.log.info("Creating symlink: %s => %s" % (self.path, link))
-        os.symlink(self.path, link)
+        os.symlink(os.path.join(self.path, self.id), link)
 
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
         self.log.info('Waiting for updates to hit the master mirror')
         notifications.publish(topic="mashtask.sync.wait", msg=dict(
             repo=self.id))
-        arch = os.listdir(self.path)[0]
+        mash_path = os.path.join(self.path, self.id)
+        arch = os.listdir(mash_path)[0]
         release = self.release.id_prefix.lower().replace('-', '_')
         master_repomd = config.get('%s_master_repomd' % release)
-        repomd = os.path.join(self.path, arch, 'repodata', 'repomd.xml')
+        repomd = os.path.join(mash_path, arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return

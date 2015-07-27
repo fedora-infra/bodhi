@@ -48,6 +48,7 @@ class ExtendedMetadata(object):
             self.tag = release.stable_tag
         else:
             self.tag = release.testing_tag
+        self.repo_path = os.path.join(self.repo, self.tag)
 
         self.db = db
         self.updates = set()
@@ -278,8 +279,8 @@ class ExtendedMetadata(object):
 
     def modifyrepo(self, filename):
         """Inject a file into the repodata for each architecture"""
-        for arch in os.listdir(self.repo):
-            repodata = os.path.join(self.repo, arch, 'repodata')
+        for arch in os.listdir(self.repo_path):
+            repodata = os.path.join(self.repo_path, arch, 'repodata')
             log.info('Inserting %s into %s', filename, repodata)
             uinfo_xml = os.path.join(repodata, 'updateinfo.xml')
             shutil.copyfile(filename, uinfo_xml)
@@ -310,8 +311,8 @@ class ExtendedMetadata(object):
                 shutil.rmtree(tempdir)
 
     def cache_repodata(self):
-        arch = os.listdir(self.repo)[0]  # Take the first arch
-        repodata = os.path.join(self.repo, arch, 'repodata')
+        arch = os.listdir(self.repo_path)[0]  # Take the first arch
+        repodata = os.path.join(self.repo_path, arch, 'repodata')
         if not os.path.isdir(repodata):
             log.warning('Cannot find repodata to cache: %s' % repodata)
             return

@@ -55,8 +55,8 @@ class TestExtendedMetadata(unittest.TestCase):
         # Initialize our temporary repo
         self.tempdir = tempfile.mkdtemp('bodhi')
         self.temprepo = join(self.tempdir, 'f17-updates-testing')
-        mkmetadatadir(join(self.temprepo, 'i386'))
-        self.repodata = join(self.temprepo, 'i386', 'repodata')
+        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
+        self.repodata = join(self.temprepo, 'f17-updates-testing', 'i386', 'repodata')
         assert exists(join(self.repodata, 'repomd.xml'))
 
         DevBuildsys.__rpms__ = [{
@@ -198,7 +198,7 @@ class TestExtendedMetadata(unittest.TestCase):
         # Re-initialize our temporary repo
         shutil.rmtree(self.temprepo)
         os.mkdir(self.temprepo)
-        mkmetadatadir(join(self.temprepo, 'i386'))
+        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
 
         md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
         md.insert_updateinfo()
@@ -259,7 +259,7 @@ class TestExtendedMetadata(unittest.TestCase):
         # Re-initialize our temporary repo
         shutil.rmtree(self.temprepo)
         os.mkdir(self.temprepo)
-        mkmetadatadir(join(self.temprepo, 'i386'))
+        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
 
         md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
         md.insert_updateinfo()
@@ -283,8 +283,8 @@ class TestExtendedMetadata(unittest.TestCase):
         DevBuildsys.__tagged__[update.title] = ['f17-updates']
 
         repo = join(self.tempdir, 'f17-updates')
-        mkmetadatadir(join(repo, 'i386'))
-        self.repodata = join(repo, 'i386', 'repodata')
+        mkmetadatadir(join(repo, 'f17-updates', 'i386'))
+        self.repodata = join(repo, 'f17-updates', 'i386', 'repodata')
 
         # Generate the XML
         md = ExtendedMetadata(update.release, UpdateRequest.stable,
@@ -328,7 +328,7 @@ class TestExtendedMetadata(unittest.TestCase):
         # Re-initialize our temporary repo
         shutil.rmtree(repo)
         os.mkdir(repo)
-        mkmetadatadir(join(repo, 'i386'))
+        mkmetadatadir(join(repo, 'f17-updates', 'i386'))
 
         md = ExtendedMetadata(update.release, UpdateRequest.stable, self.db, repo)
         md.insert_updateinfo()
@@ -396,7 +396,7 @@ class TestExtendedMetadata(unittest.TestCase):
         # Re-initialize our temporary repo
         shutil.rmtree(self.temprepo)
         os.mkdir(self.temprepo)
-        mkmetadatadir(join(self.temprepo, 'i386'))
+        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
 
         md = ExtendedMetadata(update.release, UpdateRequest.testing,
                               self.db, self.temprepo)

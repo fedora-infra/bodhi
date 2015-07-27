@@ -347,14 +347,14 @@ References:
 
         # test with valid repodata
         for arch in ('i386', 'x86_64', 'armhfp'):
-            repo = os.path.join(t.path, arch)
-            os.mkdir(repo)
+            repo = os.path.join(t.path, t.id, arch)
+            os.makedirs(repo)
             mkmetadatadir(repo)
 
         t.sanity_check_repo()
 
         # test with truncated/busted repodata
-        xml = os.path.join(t.path, 'i386', 'repodata', 'repomd.xml')
+        xml = os.path.join(t.path, t.id, 'i386', 'repodata', 'repomd.xml')
         repomd = open(xml).read()
         with open(xml, 'w') as f:
             f.write(repomd[:-10])
