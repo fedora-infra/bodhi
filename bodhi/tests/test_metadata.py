@@ -314,6 +314,7 @@ class TestExtendedMetadata(unittest.TestCase):
                            release=update.release,
                            builds=[build],
                            notes=u'x')
+        newupdate.assign_alias()
         self.db.add(newupdate)
         self.db.flush()
 
@@ -380,6 +381,7 @@ class TestExtendedMetadata(unittest.TestCase):
                            release=update.release,
                            builds=[build],
                            notes=u'x')
+        newupdate.assign_alias()
         self.db.add(newupdate)
         self.db.flush()
 

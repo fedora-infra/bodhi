@@ -118,6 +118,9 @@ def load_sqlalchemy_db():
             u['approved'] = None
         if u.has_key('update_id'):
             u['updateid'] = u['update_id']
+            u['alias'] = u['update_id']
+        else:
+            u['updateid'] = u['alias'] = None
         if not u.has_key('date_modified'):
             u['date_modified'] = None
 
@@ -164,6 +167,7 @@ def load_sqlalchemy_db():
                             date_modified=u['date_modified'],
                             release=release,
                             old_updateid=u['updateid'],
+                            alias=u['alias'],
                             pushed=u['pushed'],
                             notes=u['notes'],
                             karma=u['karma'],

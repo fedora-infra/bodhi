@@ -217,14 +217,12 @@ class TestUpdate(ModelTest):
 
     def test_assign_alias(self):
         update = self.obj
+        update.assign_alias()
         year = time.localtime()[0]
-        model.DBSession.add(update)
-        model.DBSession.flush()
         eq_(update.alias, u'%s-%s-0001' % (update.release.id_prefix, year))
 
         update = self.get_update(name=u'TurboGears-0.4.4-8.fc11')
-        model.DBSession.add(update)
-        model.DBSession.flush()
+        update.assign_alias()
         eq_(update.alias, u'%s-%s-0002' % (update.release.id_prefix, year))
 
         ## Create another update for another release that has the same
@@ -240,21 +238,18 @@ class TestUpdate(ModelTest):
                                  pending_stable_tag=u'dist-fc10-updates-pending',
                                  override_tag=u'dist-fc10-override')
         update.release = otherrel
-        model.DBSession.add(update)
-        model.DBSession.flush()
+        update.assign_alias()
         eq_(update.alias, u'%s-%s-0003' % (update.release.id_prefix, year))
 
         ## 10k bug
         update.alias = u'FEDORA-%s-9999' % year
         newupdate = self.get_update(name=u'nethack-2.5.6-1.fc10')
         newupdate.release = otherrel
-        model.DBSession.add(update)
-        model.DBSession.flush()
+        newupdate.assign_alias()
         eq_(newupdate.alias, u'FEDORA-%s-10000' % year)
 
         newerupdate = self.get_update(name=u'nethack-2.5.7-1.fc10')
-        model.DBSession.add(update)
-        model.DBSession.flush()
+        newerupdate.assign_alias()
         eq_(newerupdate.alias, u'FEDORA-%s-10001' % year)
 
         ## test updates that were pushed at the same time.  assign_alias should
@@ -264,8 +259,7 @@ class TestUpdate(ModelTest):
         newerupdate.date_pushed = now
 
         newest = self.get_update(name=u'nethack-2.5.8-1.fc10')
-        model.DBSession.add(update)
-        model.DBSession.flush()
+        newest.assign_alias()
         eq_(newest.alias, u'FEDORA-%s-10002' % year)
 
     def test_epel_id(self):
@@ -274,6 +268,7 @@ class TestUpdate(ModelTest):
         """
         # Create a normal Fedora update first
         update = self.obj
+        update.assign_alias()
         eq_(update.alias, u'FEDORA-%s-0001' % time.localtime()[0])
 
         update = self.get_update(name=u'TurboGears-2.1-1.el5')
@@ -286,14 +281,12 @@ class TestUpdate(ModelTest):
                           pending_stable_tag=u'dist-5E-epel-pending',
                           override_tag=u'dist-5E-epel-override')
         update.release = release
-        model.DBSession.add(update)
-        model.DBSession.flush()
+        update.assign_alias()
         eq_(update.alias, u'FEDORA-EPEL-%s-0001' % time.localtime()[0])
 
         update = self.get_update(name=u'TurboGears-2.2-1.el5')
         update.release = release
-        model.DBSession.add(update)
-        model.DBSession.flush()
+        update.assign_alias()
         eq_(update.alias, u'%s-%s-0002' % (release.id_prefix,
                                            time.localtime()[0]))
 
@@ -456,6 +449,8 @@ class TestUpdate(ModelTest):
         eq_(kwargs['msg']['comment']['author'], 'anonymous')
 
     def test_get_url(self):
+        eq_(self.obj.get_url(), u'TurboGears-1.0.8-3.fc11')
+        self.obj.assign_alias()
         eq_(self.obj.get_url(), u'F11/FEDORA-%s-0001' % time.localtime()[0])
 
     def test_bug(self):

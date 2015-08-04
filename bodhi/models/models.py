@@ -529,14 +529,6 @@ class Build(Base):
                 koji.untagBuild(tag, self.nvr)
 
 
-def generate_alias(context):
-    """A context-sensitive default function for the `Update.alias` column.
-
-    http://docs.sqlalchemy.org/en/latest/core/defaults.html#context-sensitive-default-functions
-    """
-    return Update.generate_alias(context.current_parameters)
-
-
 class Update(Base):
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
@@ -577,7 +569,7 @@ class Update(Base):
     date_pushed = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
-    alias = Column(Unicode(32), default=generate_alias, unique=True)
+    alias = Column(Unicode(32), unique=True, nullable=True)
 
     # deprecated: our legacy update ID
     old_updateid = Column(Unicode(32), default=None)
@@ -689,7 +681,10 @@ class Update(Base):
 
         # Create the update
         up = Update(**data)
+
         up.set_request(req, request.user.name)
+        up.assign_alias()
+
         db.add(up)
         db.flush()
 
@@ -901,21 +896,21 @@ class Update(Base):
                         bad += 1
         return good, bad * -1
 
-    @classmethod
-    def generate_alias(cls, params):
+    def assign_alias(self):
         """Return the next available update ID.
 
         This function finds the next number in the sequence of pushed updates
         for this release, increments it and prefixes it with the id_prefix of
         the release and the year (ie FEDORA-2007-0001).
         """
-        release = DBSession.query(Release).get(params['release_id'])
+        release = self.release
         releases = DBSession.query(Release)\
                             .filter_by(id_prefix=release.id_prefix)\
                             .all()
         subquery = DBSession.query(Update.date_submitted).filter(
+                                and_(Update.id != self.id,
                                    or_(*[Update.release == release
-                                         for release in releases]))\
+                                         for release in releases])))\
                           .order_by(Update.date_submitted.desc())\
                           .group_by(Update.date_submitted)\
                           .limit(1)
@@ -939,8 +934,8 @@ class Update(Base):
             id = int(id) + 1
 
         alias = u'%s-%s-%0.4d' % (release.id_prefix, time.localtime()[0], id)
-        log.debug('Setting alias for %s to %s' % (params['title'], alias))
-        return alias
+        log.debug('Setting alias for %s to %s' % (self.title, alias))
+        self.alias = alias
 
     def set_request(self, action, username):
         """ Attempt to request an action for this update """

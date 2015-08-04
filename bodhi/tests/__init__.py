@@ -77,6 +77,7 @@ def populate(db):
     db.add(comment)
     update.comments.append(comment)
 
+    update.assign_alias()
     db.add(update)
 
     expiration_date = datetime.utcnow()
