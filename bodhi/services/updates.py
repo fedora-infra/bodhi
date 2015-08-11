@@ -162,6 +162,11 @@ def query_updates(request):
         query = query.join(Update.builds).join(Build.package)
         query = query.filter(or_(*[Package.name==pkg for pkg in packages]))
 
+    builds = data.get('builds')
+    if builds is not None:
+        query = query.join(Update.builds)
+        query = query.filter(or_(*[Build.nvr==build for build in builds]))
+
     pushed = data.get('pushed')
     if pushed is not None:
         query = query.filter(Update.pushed==pushed)
