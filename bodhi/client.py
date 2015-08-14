@@ -49,14 +49,47 @@ class BodhiClient(OpenIdBaseClient):
 
     save = new  # backwards compat
 
+    def request(self, update, request):
+        """ Request an update state change.
+
+        :arg update: The title of the update
+        :arg request: The request (``testing``, ``stable``, ``obsolete``,
+                                   ``unpush``, ``revoke``)
+        """
+        return self.send_request('updates/{}/request'.format(update),
+                                 verb='POST', auth=True,
+                                 data={'update': update, 'request': request,
+                                       'csrf_token': self.csrf()})
+
+    def delete(self, update):
+        warnings.warn('Deleting updates has been disabled in Bodhi2. '
+                      'This API call will unpush the update instead. '
+                      'Please use `set_request(update, "unpush")` instead')
+        self.request(update, 'unpush')
+
     def query(self, **kwargs):
         if 'limit' in kwargs:  # bodhi1 compat
             kwargs['rows_per_page'] = kwargs['limit']
             del(kwargs['limit'])
         return self.send_request('updates', verb='GET', params=kwargs)
 
+    def comment(self, update, comment, karma=0, email=None):
+        """ Add a comment to an update.
+
+        :arg update: The title of the update comment on.
+        :arg comment: The text of the comment.
+        :kwarg karma: The karma of this comment (-1, 0, 1)
+        :kwarg email: Whether or not to trigger email notifications
+
+        """
+        return self.send_request('comments/', verb='POST', auth=True,
+                data={'update': update, 'text': comment,
+                      'karma': karma, 'email': email,
+                      'csrf_token': self.csrf()})
+
     def csrf(self, **kwargs):
-        return self.send_request('csrf', verb='GET', params=kwargs).json()['csrf_token']
+        return self.send_request('csrf', verb='GET',
+                                 params=kwargs).json()['csrf_token']
 
     def parse_file(self, input_file):
         """ Parse an update template file.
