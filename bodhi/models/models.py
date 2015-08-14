@@ -648,17 +648,18 @@ class Update(Base):
 
         # Create the Bug entities
         bugs = []
-        for bug_num in data['bugs']:
-            bug = db.query(Bug).filter_by(bug_id=bug_num).first()
-            if not bug:
-                bug = Bug(bug_id=bug_num)
-                bug.update_details()
-                db.add(bug)
-                if bug.security:
-                    data['type'] = UpdateType.security
-            bugs.append(bug)
-            bugtracker.comment(bug_num, config['initial_bug_msg'] % (
-                       data['title'], data['release'].long_name, bug.url))
+        if data['bugs']:
+            for bug_num in data['bugs']:
+                bug = db.query(Bug).filter_by(bug_id=bug_num).first()
+                if not bug:
+                    bug = Bug(bug_id=bug_num)
+                    bug.update_details()
+                    db.add(bug)
+                    if bug.security:
+                        data['type'] = UpdateType.security
+                bugs.append(bug)
+                bugtracker.comment(bug_num, config['initial_bug_msg'] % (
+                           data['title'], data['release'].long_name, bug.url))
         data['bugs'] = bugs
 
         # If no requirements are provided, then gather some defaults from the

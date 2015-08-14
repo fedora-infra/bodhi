@@ -144,8 +144,11 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     builds = Builds(colander.Sequence(accept_scalar=True),
                     preparer=[splitter])
 
-    bugs = Bugs(colander.Sequence(accept_scalar=True),
-                preparer=[splitter])
+    bugs = Bugs(
+            colander.Sequence(accept_scalar=True),
+            missing=None,
+            preparer=[splitter]
+    )
 
     close_bugs = colander.SchemaNode(
         colander.Boolean(),
