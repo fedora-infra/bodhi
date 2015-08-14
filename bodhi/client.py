@@ -12,17 +12,28 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import logging
+import warnings
+
 from fedora.client import OpenIdBaseClient
 import fedora.client.openidproxyclient
 
-BASE_URL = 'https://admin.stg.fedoraproject.org/updates/'
-fedora.client.openidproxyclient.FEDORA_OPENID_API = 'https://id.stg.fedoraproject.org/api/v1/'
+__version__ = '2.0.0'
+log = logging.getLogger(__name__)
+
+BASE_URL = 'https://admin.fedoraproject.org/updates/'
+STG_BASE_URL = 'https://admin.stg.fedoraproject.org/updates/'
+STG_OPENID_API = 'https://id.stg.fedoraproject.org/api/v1/'
 
 
 class BodhiClient(OpenIdBaseClient):
 
-    def __init__(self, base_url=BASE_URL, **kwargs):
-        super(BodhiClient, self).__init__(base_url, login_url=BASE_URL + 'login', debug=True, **kwargs)
+    def __init__(self, base_url=BASE_URL, username=None, password=None, staging=False, **kwargs):
+        if staging:
+            log.info('Using bodhi2 STAGING environment')
+            base_url = 'https://admin.stg.fedoraproject.org/updates/'
+            fedora.client.openidproxyclient.FEDORA_OPENID_API = 'https://id.stg.fedoraproject.org/api/v1/'
+        super(BodhiClient, self).__init__(base_url, login_url=base_url+ 'login', debug=True, **kwargs)
 
     def new(self, **kwargs):
         return self.send_request('updates/', verb='POST', auth=True,
