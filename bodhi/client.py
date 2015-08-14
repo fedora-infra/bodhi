@@ -39,6 +39,11 @@ class BodhiClient(OpenIdBaseClient):
             self.login(username, password)
 
     def new(self, **kwargs):
+        kwargs['csrf_token'] = self.csrf()
+        if 'type_' in kwargs:
+            # backwards compat
+            warnings.warn('Parameter "type_" is deprecated. Please use "type" instead.')
+            kwargs['type'] = kwargs['type_']
         return self.send_request('updates/', verb='POST', auth=True,
                                  data=kwargs)
 
