@@ -156,6 +156,25 @@ def latest_candidates(request):
     return result
 
 
+@view_config(route_name='latest_builds', renderer='json')
+def latest_builds(request):
+    """ Get a list of the latest builds for a given package.
+
+    Returns a dictionary of the release dist tag to the latest build.
+    """
+    builds = {}
+    koji = request.koji
+    package = request.params.get('package')
+    for tag_type, tags in bodhi.models.Release.get_tags()[0].iteritems():
+        for tag in tags:
+            try:
+                for build in koji.getLatestBuilds(tag, package=package):
+                    builds[tag] = build['nvr']
+            except:  # Things like EPEL don't have pending tags
+                pass
+    return builds
+
+
 @view_config(route_name='markdowner', renderer='json')
 def markdowner(request):
     """ Given some text, return the markdownified html version.

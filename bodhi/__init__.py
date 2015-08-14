@@ -172,6 +172,7 @@ def main(global_config, testing=None, **settings):
     # Auto-completion search
     config.add_route('search_packages', '/search/packages')
     config.add_route('latest_candidates', '/latest_candidates')
+    config.add_route('latest_builds', '/latest_builds')
 
     config.add_route('captcha_image', '/captcha/{cipherkey}/')
 

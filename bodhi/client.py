@@ -134,10 +134,8 @@ class BodhiClient(OpenIdBaseClient):
 
         return updates
 
-    # TODO:
     def latest_builds(self, package):
-        warnings.warn('This method has not been ported. Please file a bug if you need this')
-        raise NotImplementedError
+        return self.send_request('latest_builds', params={'package': package})
 
     def candidates(self):
         warnings.warn('This method has not been ported. Please file a bug if you need this')

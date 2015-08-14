@@ -162,3 +162,14 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
     def test_metrics(self):
         res = self.app.get('/metrics')
         self.assertIn('$.plot', res)
+
+    def test_latest_builds(self):
+        res = self.app.get('/latest_builds')
+        body = res.json_body
+        self.assertIn('f17-updates', body)
+        self.assertIn('f17-updates-pending', body)
+        self.assertIn('f17-updates-candidate', body)
+        self.assertIn('f17-updates-testing', body)
+        self.assertIn('f17-updates-testing-pending', body)
+        self.assertIn('f17-override', body)
+        self.assertEquals(body['f17-updates'], 'TurboGears-1.0.2.2-2.fc7')
