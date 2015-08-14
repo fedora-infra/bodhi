@@ -13,6 +13,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import logging
+import textwrap
 import warnings
 
 from fedora.client import OpenIdBaseClient
@@ -131,3 +132,89 @@ class BodhiClient(OpenIdBaseClient):
             updates.append(update)
 
         return updates
+
+    # TODO:
+    def latest_builds(self, package):
+        warnings.warn('This method has not been ported. Please file a bug if you need this')
+        raise NotImplementedError
+
+    def candidates(self):
+        warnings.warn('This method has not been ported. Please file a bug if you need this')
+        raise NotImplementedError
+
+    def testable(self):
+        warnings.warn('This method has not been ported. Please file a bug if you need this')
+        raise NotImplementedError
+
+    def update_str(self, update, minimal=False):
+        """ Return a string representation of a given update dictionary.
+
+        :arg update: An update dictionary, acquired by the ``list`` method.
+        :kwarg minimal: Return a minimal one-line representation of the update.
+
+        """
+        if isinstance(update, basestring):
+            return update
+        if minimal:
+            val = ""
+            date = update['date_pushed'] and update['date_pushed'].split()[0] \
+                or update['date_submitted'].split()[0]
+            val += ' %-43s  %-11s  %-8s  %10s ' % (update['builds'][0]['nvr'],
+                                                   update['type'],
+                                                   update['status'], date)
+            for build in update['builds'][1:]:
+                val += '\n %s' % build['nvr']
+            return val
+        val = "%s\n%s\n%s\n" % ('=' * 80, '\n'.join(
+            textwrap.wrap(update['title'].replace(',', ', '), width=80,
+                          initial_indent=' '*5, subsequent_indent=' '*5)), '=' * 80)
+        if update['alias']:
+            val += "  Update ID: %s\n" % update['alias']
+        val += """    Release: %s
+     Status: %s
+       Type: %s
+      Karma: %d""" % (update['release']['long_name'], update['status'],
+                      update['type'], update['karma'])
+        if update['request'] is not None:
+            val += "\n    Request: %s" % update['request']
+        if len(update['bugs']):
+            bugs = ''
+            i = 0
+            for bug in update['bugs']:
+                bugstr = '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
+                                          bug['bug_id'], bug['title'])
+                bugs += '\n'.join(textwrap.wrap(bugstr, width=67,
+                                                subsequent_indent=' '*11+': ')) + '\n'
+                i += 1
+            bugs = bugs[:-1]
+            val += "\n       Bugs: %s" % bugs
+        if update['notes']:
+            notes = textwrap.wrap(update['notes'], width=67,
+                                  subsequent_indent=' ' * 11 + ': ')
+            val += "\n      Notes: %s" % '\n'.join(notes)
+        val += """
+  Submitter: %s
+  Submitted: %s\n""" % (update['user']['name'], update['date_submitted'])
+        if len(update['comments']):
+            val += "   Comments: "
+            comments = []
+            for comment in update['comments']:
+                if comment['anonymous']:
+                    anonymous = " (unauthenticated)"
+                else:
+                    anonymous = ""
+                comments.append("%s%s%s - %s (karma %s)" % (' ' * 13,
+                                comment['user']['name'], anonymous,
+                                comment['timestamp'], comment['karma']))
+                if comment['text']:
+                    text = textwrap.wrap(comment['text'], initial_indent=' ' * 13,
+                                         subsequent_indent=' ' * 13, width=67)
+                    comments.append('\n'.join(text))
+            val += '\n'.join(comments).lstrip() + '\n'
+        if update['alias']:
+            val += "\n  %s\n" % ('%s%s/%s' % (self.base_url,
+                                              update['release']['name'],
+                                              update['alias']))
+        else:
+            val += "\n  %s\n" % ('%s%s' % (self.base_url, update['title']))
+        return val
