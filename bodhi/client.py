@@ -47,6 +47,8 @@ class BodhiClient(OpenIdBaseClient):
         return self.send_request('updates/', verb='POST', auth=True,
                                  data=kwargs)
 
+    save = new  # backwards compat
+
     def query(self, **kwargs):
         if 'limit' in kwargs:  # bodhi1 compat
             kwargs['rows_per_page'] = kwargs['limit']
