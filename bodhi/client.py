@@ -35,6 +35,9 @@ class BodhiClient(OpenIdBaseClient):
             fedora.client.openidproxyclient.FEDORA_OPENID_API = 'https://id.stg.fedoraproject.org/api/v1/'
         super(BodhiClient, self).__init__(base_url, login_url=base_url+ 'login', debug=True, **kwargs)
 
+        if username and password:
+            self.login(username, password)
+
     def new(self, **kwargs):
         return self.send_request('updates/', verb='POST', auth=True,
                                  data=kwargs)
