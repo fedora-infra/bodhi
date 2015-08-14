@@ -48,6 +48,9 @@ class BodhiClient(OpenIdBaseClient):
                                  data=kwargs)
 
     def query(self, **kwargs):
+        if 'limit' in kwargs:  # bodhi1 compat
+            kwargs['rows_per_page'] = kwargs['limit']
+            del(kwargs['limit'])
         return self.send_request('updates', verb='GET', params=kwargs)
 
     def csrf(self, **kwargs):
