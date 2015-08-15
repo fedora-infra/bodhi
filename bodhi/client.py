@@ -16,8 +16,9 @@ import os
 import logging
 import textwrap
 import warnings
+import requests
 
-from fedora.client import OpenIdBaseClient, FedoraClientError
+from fedora.client import OpenIdBaseClient, FedoraClientError, BaseClient
 import fedora.client.openidproxyclient
 
 __version__ = '2.0.0'
@@ -32,7 +33,24 @@ class BodhiClientException(FedoraClientError):
     pass
 
 
-class BodhiClient(OpenIdBaseClient):
+def BodhiClient(base_url=BASE_URL, staging=False, **kwargs):
+    if staging:
+        log.info('Using bodhi2 STAGING environment')
+        base_url = STG_BASE_URL
+        fedora.client.openidproxyclient.FEDORA_OPENID_API = STG_OPENID_API
+
+    log.debug('Querying bodhi API version')
+    api_url = base_url + 'api_version'
+    response = requests.head(api_url)
+    if response.status_code == 200:
+        print('Bodhi 2 detected')
+        return Bodhi2Client(base_url=base_url, staging=staging, **kwargs)
+    else:
+        print('Bodhi 1 detected')
+        return Bodhi1Client(base_url, **kwargs)
+
+
+class Bodhi2Client(OpenIdBaseClient):
 
     def __init__(self, base_url=BASE_URL, username=None, password=None,
                  staging=False, **kwargs):
