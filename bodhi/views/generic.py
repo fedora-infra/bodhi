@@ -19,7 +19,7 @@ from pyramid.security import authenticated_userid
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPNotFound, HTTPForbidden
 
-from bodhi import log
+from bodhi import log, version
 import bodhi.models
 from bodhi.util import markup
 
@@ -192,3 +192,9 @@ def new_override(request):
     if not user:
         raise HTTPForbidden("You must be logged in.")
     return dict()
+
+
+@view_config(route_name='api_version', renderer='json')
+def api_version(request):
+    """ Returns the Bodhi API version """
+    return dict(version=version())

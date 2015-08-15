@@ -173,3 +173,7 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('f17-updates-testing-pending', body)
         self.assertIn('f17-override', body)
         self.assertEquals(body['f17-updates'], 'TurboGears-1.0.2.2-2.fc7')
+
+    def test_version(self):
+        res = self.app.get('/api_version')
+        self.assertIn('version', res.json_body)

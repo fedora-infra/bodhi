@@ -12,6 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import pkg_resources
+
 from collections import defaultdict
 from dogpile.cache import make_region
 from sqlalchemy import engine_from_config
@@ -30,6 +32,11 @@ from . import buildsys
 import logging
 
 log = logging.getLogger(__name__)
+
+
+def version():
+    return pkg_resources.get_distribution('bodhi').version
+
 
 # TODO -- someday move this externally to "fedora_flavored_markdown"
 import bodhi.ffmarkdown
@@ -184,6 +191,8 @@ def main(global_config, testing=None, **settings):
     config.add_view('bodhi.security.logout', route_name='logout')
     config.add_route('verify_openid', pattern='/dologin.html')
     config.add_view('pyramid_fas_openid.verify_openid', route_name='verify_openid')
+
+    config.add_route('api_version', '/api_version')
 
     config.scan('bodhi.views')
     config.scan('bodhi.services')
