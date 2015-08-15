@@ -144,8 +144,29 @@ class BodhiClient(OpenIdBaseClient):
         return self.send_request('latest_builds', params={'package': package})
 
     def testable(self):
-        warnings.warn('This method has not been ported. Please file a bug if you need this')
-        raise NotImplementedError
+        """ Get a list of installed testing updates.
+
+        This method is a generate that yields packages that you currently
+        have installed that you have yet to test and provide feedback for.
+
+        """
+        import dnf
+        base = dnf.Base()
+        sack = base.fill_sack(load_system_repo=True)
+        query = sack.query()
+        installed = query.installed()
+        with open('/etc/fedora-release', 'r') as f:
+            fedora = f.readlines()[0].split()[2]
+        tag = 'f%s-updates-testing' % fedora
+        builds = self.get_koji_session(
+            login=False).listTagged(tag, latest=True)
+        for build in builds:
+            pkgs = installed.filter(name=build['name'], version=build['version'],
+                                    release=build['release']).run()
+            if len(pkgs):
+                update_list = self.query(builds=build['nvr'])['updates']
+                for update in update_list:
+                    yield update
 
     def update_str(self, update, minimal=False):
         """ Return a string representation of a given update dictionary.
