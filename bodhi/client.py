@@ -12,11 +12,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import os
 import logging
 import textwrap
 import warnings
 
-from fedora.client import OpenIdBaseClient
+from fedora.client import OpenIdBaseClient, FedoraClientError
 import fedora.client.openidproxyclient
 
 __version__ = '2.0.0'
@@ -27,9 +28,14 @@ STG_BASE_URL = 'https://admin.stg.fedoraproject.org/updates/'
 STG_OPENID_API = 'https://id.stg.fedoraproject.org/api/v1/'
 
 
+class BodhiClientException(FedoraClientError):
+    pass
+
+
 class BodhiClient(OpenIdBaseClient):
 
-    def __init__(self, base_url=BASE_URL, username=None, password=None, staging=False, **kwargs):
+    def __init__(self, base_url=BASE_URL, username=None, password=None,
+                 staging=False, **kwargs):
         if staging:
             log.info('Using bodhi2 STAGING environment')
             base_url = STG_BASE_URL
@@ -39,6 +45,7 @@ class BodhiClient(OpenIdBaseClient):
 
         if username and password:
             self.login(username, password)
+            self.username = username
 
     def new(self, **kwargs):
         kwargs['csrf_token'] = self.csrf()
@@ -103,7 +110,6 @@ class BodhiClient(OpenIdBaseClient):
 
         """
         from ConfigParser import SafeConfigParser
-        import os
 
         if not os.path.exists(input_file):
             raise ValueError("No such file or directory: %s" % input_file)
@@ -136,10 +142,6 @@ class BodhiClient(OpenIdBaseClient):
 
     def latest_builds(self, package):
         return self.send_request('latest_builds', params={'package': package})
-
-    def candidates(self):
-        warnings.warn('This method has not been ported. Please file a bug if you need this')
-        raise NotImplementedError
 
     def testable(self):
         warnings.warn('This method has not been ported. Please file a bug if you need this')
@@ -228,3 +230,42 @@ class BodhiClient(OpenIdBaseClient):
                  "locked": false, "name": "F12", "long_name": "Fedora 12"}]}
         """
         return self.send_request('releases', params=kwargs)
+
+    def get_koji_session(self, login=True):
+        """ Return an authenticated koji session """
+        import koji
+        from iniparse.compat import ConfigParser
+        config = ConfigParser()
+        if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):
+            config.readfp(open(os.path.join(os.path.expanduser('~'), '.koji', 'config')))
+        else:
+            config.readfp(open('/etc/koji.conf'))
+        cert = os.path.expanduser(config.get('koji', 'cert'))
+        ca = os.path.expanduser(config.get('koji', 'ca'))
+        serverca = os.path.expanduser(config.get('koji', 'serverca'))
+        session = koji.ClientSession(config.get('koji', 'server'))
+        if login:
+            session.ssl_login(cert=cert, ca=ca, serverca=serverca)
+        return session
+
+    koji_session = property(fget=get_koji_session)
+
+    def candidates(self):
+        """ Get a list list of update candidates.
+
+        This method is a generator that returns a list of koji builds that
+        could potentially be pushed as updates.
+        """
+        if not self.username:
+            raise BodhiClientException('You must specify a username')
+        builds = []
+        data = self.get_releases().json()
+        koji = self.get_koji_session(login=False)
+        for release in data['releases']:
+            try:
+                for build in koji.listTagged(release['candidate_tag'], latest=True):
+                    if build['owner_name'] == self.username:
+                        builds.append(build)
+            except:
+                pass
+        return builds
