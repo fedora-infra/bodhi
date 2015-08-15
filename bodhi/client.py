@@ -217,3 +217,14 @@ class BodhiClient(OpenIdBaseClient):
         else:
             val += "\n  %s\n" % ('%s%s' % (self.base_url, update['title']))
         return val
+
+    def get_releases(self, **kwargs):
+        """ Return a list of bodhi releases.
+
+        This method returns a dictionary in the following format::
+
+            {"releases": [
+                {"dist_tag": "dist-f12", "id_prefix": "FEDORA",
+                 "locked": false, "name": "F12", "long_name": "Fedora 12"}]}
+        """
+        return self.send_request('releases', params=kwargs)
