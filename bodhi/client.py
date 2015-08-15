@@ -58,14 +58,53 @@ class Bodhi2Client(OpenIdBaseClient):
             log.info('Using bodhi2 STAGING environment')
             base_url = STG_BASE_URL
             fedora.client.openidproxyclient.FEDORA_OPENID_API = STG_OPENID_API
-        super(BodhiClient, self).__init__(base_url, login_url=base_url +
+        super(Bodhi2Client, self).__init__(base_url, login_url=base_url +
                                           'login', debug=True, **kwargs)
 
         if username and password:
             self.login(username, password)
             self.username = username
 
-    def new(self, **kwargs):
+    def save(self, **kwargs):
+        """ Save an update.
+
+        This entails either creating a new update, or editing an existing one.
+        To edit an existing update, you must specify the update title in
+        the ``edited`` keyword argument.
+
+        :kwarg builds: A list of koji builds for this update.
+        :kwarg type: The type of this update: ``security``, ``bugfix``,
+            ``enhancement``, and ``newpackage``.
+        :kwarg bugs: A list of Red Hat Bugzilla ID's associated with this
+            update.
+        :kwarg notes: Details as to why this update exists.
+        :kwarg request: Request for this update to change state, either to
+            ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
+        :kwarg close_bugs: Close bugs when update is stable
+        :kwarg suggest: Suggest that the user reboot or logout after update.
+            (``reboot``, ``logout``)
+        :kwarg inheritance: Follow koji build inheritance, which may result in
+            this update being pushed out to additional releases.
+        :kwarg autokarma: Allow bodhi to automatically change the state of this
+            update based on the ``karma`` from user feedback.  It will
+            push your update to ``stable`` once it reaches the ``stable_karma``
+            and unpush your update when reaching ``unstable_karma``.
+        :kwarg stable_karma: The upper threshold for marking an update as
+            ``stable``.
+        :kwarg unstable_karma: The lower threshold for unpushing an update.
+        :kwarg edited: The update title of the existing update that we are
+            editing.
+        :kwarg severity: The severity of this update (``urgent``, ``high``,
+            ``medium``, ``low``)
+        :kwarg requirements: A list of required Taskotron tests that must pass
+            for this update to reach stable. (``depcheck``, ``upgradepath``,
+            ``rpmlint``)
+        :kwarg require_bugs: A boolean to require that all of the bugs in your
+            update have been confirmed by testers.
+        :kwarg require_testcases: A boolean to require that this update passes
+            all test cases before reaching stable.
+
+        """
         kwargs['csrf_token'] = self.csrf()
         if 'type_' in kwargs:
             # backwards compat
@@ -73,8 +112,6 @@ class Bodhi2Client(OpenIdBaseClient):
             kwargs['type'] = kwargs['type_']
         return self.send_request('updates/', verb='POST', auth=True,
                                  data=kwargs)
-
-    save = new  # backwards compat
 
     def request(self, update, request):
         """ Request an update state change.
