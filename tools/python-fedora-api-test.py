@@ -115,3 +115,21 @@ comment = result['comment']
 assert comment['author'] == username
 assert comment['text'] == u'yay'
 assert comment['update']['title'] == build
+
+print('Querying multiple pages of updates')
+query = dict(limit=100, release='F22', critpath=True)
+result = bodhi.query(**query)
+updates = result.updates
+total = result.total
+page = result.page
+pages = result.pages
+print('%r pages' % result.pages)
+print('%r page' % result.page)
+print('%r total' % result.total)
+while result.page < result.pages:
+    print('Querying page %d out of %d' % (result.page + 1, pages))
+    result = bodhi.query(page=result.page + 1, **query)
+    updates.extend(result.updates)
+
+print('Fetched %d updates total' % len(updates))
+assert len(updates) == total, len(updates)
