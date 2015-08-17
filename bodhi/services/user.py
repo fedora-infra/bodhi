@@ -75,7 +75,7 @@ def get_user(request):
            accept=("application/javascript"), renderer="jsonp",
            validators=(validate_groups, validate_updates, validate_packages))
 @users.get(schema=bodhi.schemas.ListUserSchema,
-           accept=("application/rss"), renderer="rss",
+           accept=("application/atom+xml"), renderer="rss",
            validators=(validate_groups, validate_updates, validate_packages))
 def query_users(request):
     db = request.db
