@@ -1687,6 +1687,13 @@ class Update(Base):
             log.error('Unable to determine requested tag for %s' % self.title)
         return tag
 
+    def __json__(self, *args, **kwargs):
+        result = super(Update, self).__json__(*args, **kwargs)
+        # Duplicate alias as updateid for backwards compat with bodhi1
+        result['updateid'] = result['alias']
+        return result
+
+
 
 # Used for many-to-many relationships between karma and a bug
 class BugKarma(Base):
