@@ -22,17 +22,14 @@ result = bodhi.save(
         type='bugfix',
         notes='The quick brown fox jumped over the lazy dog',
 )
-#assert result.status_code == 200
-print(result.text)
+print(result)
 
 print('Querying update')
 result = bodhi.query(builds='qt-creator-3.4.1-3.fc23')
-assert result.status_code == 200
-json = result.json()
-updates = json['updates']
+updates = result['updates']
 update = updates[0]
 assert len(updates) == 1, len(updates)
-assert json['total'] == 1, json
+assert result['total'] == 1, result
 alias = update['alias']
 print(alias)
 
@@ -42,13 +39,11 @@ print(bodhi.update_str(update, minimal=True))
 
 print('Call /latest_builds')
 result = bodhi.latest_builds('kernel')
-assert result.status_code == 200
-print(result.json())
-#
+print(result)
+
 print('Querying all releases')
 result = bodhi.get_releases()
 print(result)
-#print(result.json())
 
 print('Looking for candidate builds')
 print(bodhi.candidates())
