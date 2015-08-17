@@ -367,7 +367,10 @@ def validate_release(request):
         return
 
     db = request.db
-    release = db.query(Release).filter_by(name=releasename).first()
+    release = db.query(Release).filter(
+            or_(Release.name==releasename,
+                Release.name==releasename.upper(),
+                Release.version==releasename)).first()
 
     if release:
         request.validated["release"] = release
@@ -386,8 +389,10 @@ def validate_releases(request):
     validated_releases = []
 
     for r in releases:
-        release = db.query(Release).filter(or_(Release.name == r,
-                                               Release.version == r)).first()
+        release = db.query(Release).filter(
+                or_(Release.name==r,
+                    Release.name==r.upper(),
+                    Release.version==r)).first()
 
         if not release:
             bad_releases.append(r)
