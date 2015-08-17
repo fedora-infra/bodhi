@@ -1546,3 +1546,11 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0.0-3.fc17'))
         json = res.json_body
         self.assertEquals(json['alias'], json['updateid'])
+
+    def test_list_updates_by_lowercase_release_name(self):
+        res = self.app.get('/updates/', {"releases": "f17"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
