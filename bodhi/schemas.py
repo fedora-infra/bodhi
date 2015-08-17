@@ -458,6 +458,14 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         preparer=[splitter],
     )
 
+    # This singular version of the plural "releases" is purely for bodhi1
+    # backwards compat (mostly for RSS feeds) - threebean
+    release = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
     request = colander.SchemaNode(
         colander.String(),
         location="querystring",
@@ -602,7 +610,6 @@ class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         missing=None,
         preparer=[splitter],
     )
-
 
     user = colander.SchemaNode(
         colander.String(),
