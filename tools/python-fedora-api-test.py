@@ -133,3 +133,9 @@ while result.page < result.pages:
 
 print('Fetched %d updates total' % len(updates))
 assert len(updates) == total, len(updates)
+
+print('Querying for my updates')
+result = bodhi.query(mine=True)
+print(result)
+assert result.updates[0].user.name == username, result.updates[0].user.name
+
