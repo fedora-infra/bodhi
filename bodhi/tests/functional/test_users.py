@@ -84,7 +84,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_get_single_user_rss(self):
         res = self.app.get('/users/bodhi',
-                           headers=dict(accept='application/rss'),
+                           headers=dict(accept='application/atom+xml'),
                            status=406)
 
     def test_list_users(self):
@@ -112,7 +112,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_list_users_rss(self):
         res = self.app.get('/users/',
-                           headers=dict(accept='application/rss'))
+                           headers=dict(accept='application/atom+xml'))
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('bodhi', res)
         self.assertIn('guest', res)

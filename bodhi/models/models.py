@@ -1909,6 +1909,11 @@ class BuildrootOverride(Base):
                              backref=backref('buildroot_overrides',
                                              lazy='joined'))
 
+    @property
+    def nvr(self):
+        """ Convenience access to the build NVR. """
+        return self.build.nvr
+
     @classmethod
     def new(cls, request, **data):
         """Create a new buildroot override"""

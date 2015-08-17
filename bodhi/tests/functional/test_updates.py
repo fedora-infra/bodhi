@@ -348,7 +348,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_get_single_update_rss(self):
         self.app.get('/updates/bodhi-2.0-1.fc17',
-                     headers={'Accept': 'application/rss'},
+                     headers={'Accept': 'application/atom+xml'},
                      status=406)
 
     def test_get_single_update_html(self):
@@ -392,7 +392,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_list_updates_rss(self):
         res = self.app.get('/updates/',
-                           headers={'Accept': 'application/rss'})
+                           headers={'Accept': 'application/atom+xml'})
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('bodhi-2.0-1.fc17', res)
 

@@ -116,7 +116,7 @@ def set_request(request):
              validators=(validate_release, validate_releases,
                          validate_enums, validate_username))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
-             accept=('application/rss'), renderer='rss',
+             accept=('application/atom+xml'), renderer='rss',
              validators=(validate_release, validate_releases,
                          validate_enums, validate_username))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,

@@ -19,6 +19,8 @@ def rss(info):
             key = 'users'
         elif 'comments' in data:
             key = 'comments'
+        elif 'overrides' in data:
+            key = 'overrides'
         else:
             raise HTTPNotFound("RSS not implemented for this service")
 
@@ -49,6 +51,12 @@ def rss(info):
                 'link': linker('comment', 'id', 'id'),
                 'description': operator.itemgetter('text'),
                 'pubdate': operator.itemgetter('timestamp'),
+            },
+            'overrides': {
+                'title': operator.itemgetter('nvr'),
+                'link': linker('override', 'nvr', 'nvr'),
+                'description': operator.itemgetter('notes'),
+                'pubdate': operator.itemgetter('submission_date'),
             },
         }
 
