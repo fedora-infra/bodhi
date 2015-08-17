@@ -1,7 +1,10 @@
 import os
 import getpass
+import logging
 
 from fedora.client import BodhiClient
+
+log = logging.getLogger('fedora.client.bodhi')
 
 build = u'qt-creator-3.4.1-3.fc23'
 username = os.getenv('USER')
@@ -48,79 +51,67 @@ print(result)
 print('Looking for candidate builds')
 print(bodhi.candidates())
 
+print('Looking for local builds in updates-testing')
 for update in bodhi.testable():
     print(bodhi.update_str(update))
 
 print('Querying by release')
-result = bodhi.query(release='f23')
-assert result.status_code == 200
-updates = json['updates']
+result = bodhi.query(releases='f23')
+print(result)
+updates = result['updates']
+print(updates)
 assert len(updates) == 1, len(updates)
-assert json['total'] == 1, json
+assert result['total'] == 1, result
 assert updates[0]['alias'] == alias
 print('%d updates returned' % len(updates))
 
 print('Querying by release and package')
 result = bodhi.query(package='qt-creator', release='f23')
-assert result.status_code == 200
-updates = json['updates']
+updates = result['updates']
 assert len(updates) == 1, len(updates)
-assert json['total'] == 1, json
+assert result['total'] == 1, result
 assert updates[0]['alias'] == alias
 print('%d updates returned' % len(updates))
 
 print('Querying by release and package and status')
 result = bodhi.query(package='qt-creator', release='f23', status='pending')
-assert result.status_code == 200
-updates = json['updates']
+updates = result.updates
 assert len(updates) == 1, len(updates)
-assert json['total'] == 1, json
+assert result['total'] == 1, result
 assert updates[0]['alias'] == alias
 print('%d updates returned' % len(updates))
 
 print('Querying by release and package and status and limit')
 result = bodhi.query(type='security', limit=2)
-assert result.status_code == 200
-json = result.json()
-updates = json['updates']
+updates = result.updates
 assert len(updates) == 2, len(updates)
 assert updates[0]['type'] == 'security'
 print('%d updates returned' % len(updates))
 
 print('Querying by release with (blockerbugs)')
 result = bodhi.query(limit=100, release='f23')
-print(result.text)
-json = result.json()
-updates = json['updates']
+updates = result['updates']
 assert len(updates) == 2, len(updates)
 assert updates[0]['type'] == 'security'
 print('%d updates returned' % len(updates))
 
 print('Requesting stable')
 result = bodhi.request(update=alias, request='stable')
-json = result.json()
-assert json['status'] == 'error'
-assert len(json['errors']) == 1
-assert json['errors'][0]['name'] == 'request'
+assert result['status'] == 'error', result
+assert len(result['errors']) == 1
+assert result['errors'][0]['name'] == 'request'
 
 print('Requesting testing')
 result = bodhi.request(update=alias, request='testing')
-assert result.status_code == 200
-json = result.json()
-assert json['update']['request'] == 'testing'
+assert result['update']['request'] == 'testing'
 
 print('Revoking request')
 result = bodhi.request(update=alias, request='revoke')
-assert result.status_code == 200
-print(result.text)
-json = result.json()
-assert json['update']['request'] == None
+assert result['update']['request'] == None
 
 print('Adding comment')
 result = bodhi.comment(update=alias, comment='yay', karma=1)
-assert result.status_code == 200
-json = result.json()
-comment = json['comment']
+comment = result['comment']
 assert comment['author'] == username
 assert comment['text'] == u'yay'
 assert comment['update']['title'] == build
