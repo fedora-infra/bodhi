@@ -271,7 +271,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_list_comments_rss(self):
         res = self.app.get('/comments/',
-                           headers=dict(accept='application/rss'))
+                           headers=dict(accept='application/atom+xml'))
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('srsly.  pretty good', res)
 

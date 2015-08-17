@@ -68,7 +68,7 @@ def get_override(request):
                            validate_username)
                )
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
-               accept=('application/rss'), renderer='rss',
+               accept=('application/atom+xml'), renderer='rss',
                validators=(validate_packages, validate_releases,
                            validate_username)
                )
