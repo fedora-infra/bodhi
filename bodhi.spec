@@ -2,8 +2,8 @@
 %{!?pyver: %global pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:           bodhi
-Version:        0.9.15
-Release:        1%{?dist}
+Version:        0.9.17
+Release:        0.1.infra%{?dist}
 Summary:        A modular framework that facilitates publishing software updates
 Group:          Applications/Internet
 License:        GPLv2+
@@ -12,6 +12,7 @@ Source0:        bodhi-%{version}.tar.bz2
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
+ExcludeArch:    ppc64 ppc
 
 BuildRequires: python-setuptools
 BuildRequires: python-setuptools-devel
@@ -138,6 +139,9 @@ rm -rf bodhi/tests bodhi/tools/test-bodhi.py
 
 
 %changelog
+* Thu Jun 04 2015 Luke Macken <lmacken@redhat.com> - 0.9.17-0.1.infra
+- Update to 0.9.17 to fix https://github.com/fedora-infra/bodhi/issues/147
+
 * Tue Jan 06 2015 Luke Macken <lmacken@redhat.com> - 0.9.15-1
 - Update to 0.9.15
 
