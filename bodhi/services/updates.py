@@ -32,6 +32,7 @@ from bodhi.validators import (
     validate_builds,
     validate_enums,
     validate_releases,
+    validate_release,
     validate_username,
     validate_update_id,
     validate_requirements,
@@ -108,16 +109,20 @@ def set_request(request):
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/json', 'text/json'), renderer='json',
-             validators=(validate_releases, validate_enums, validate_username))
+             validators=(validate_release, validate_releases,
+                         validate_enums, validate_username))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/javascript'), renderer='jsonp',
-             validators=(validate_releases, validate_enums, validate_username))
+             validators=(validate_release, validate_releases,
+                         validate_enums, validate_username))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/rss'), renderer='rss',
-             validators=(validate_releases, validate_enums, validate_username))
+             validators=(validate_release, validate_releases,
+                         validate_enums, validate_username))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('text/html'), renderer='updates.html',
-             validators=(validate_releases, validate_enums, validate_username))
+             validators=(validate_release, validate_releases,
+                         validate_enums, validate_username))
 def query_updates(request):
     db = request.db
     data = request.validated
@@ -178,6 +183,12 @@ def query_updates(request):
     releases = data.get('releases')
     if releases is not None:
         query = query.filter(or_(*[Update.release==r for r in releases]))
+
+    # This singular version of the plural "releases" is purely for bodhi1
+    # backwards compat (mostly for RSS feeds) - threebean
+    release = data.get('release')
+    if release is not None:
+        query = query.filter(Update.release==release)
 
     req = data.get('request')
     if req is not None:
