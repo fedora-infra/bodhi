@@ -1540,3 +1540,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Ensure the second update was created successfully
         session.query(Update).filter_by(title=newtitle).one()
+
+    @mock.patch(**mock_valid_requirements)
+    def test_updateid_alias(self, *args):
+        res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0.0-3.fc17'))
+        json = res.json_body
+        self.assertEquals(json['alias'], json['updateid'])
