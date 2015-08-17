@@ -56,17 +56,17 @@ for update in bodhi.testable():
     print(bodhi.update_str(update))
 
 print('Querying by release')
-result = bodhi.query(releases='f23')
+result = bodhi.query(release='F23')
 print(result)
 updates = result['updates']
 print(updates)
 assert len(updates) == 1, len(updates)
 assert result['total'] == 1, result
-assert updates[0]['alias'] == alias
+assert updates[0].alias == alias
 print('%d updates returned' % len(updates))
 
 print('Querying by release and package')
-result = bodhi.query(package='qt-creator', release='f23')
+result = bodhi.query(package='qt-creator', release='F23')
 updates = result['updates']
 assert len(updates) == 1, len(updates)
 assert result['total'] == 1, result
@@ -74,7 +74,7 @@ assert updates[0]['alias'] == alias
 print('%d updates returned' % len(updates))
 
 print('Querying by release and package and status')
-result = bodhi.query(package='qt-creator', release='f23', status='pending')
+result = bodhi.query(package='qt-creator', release='F23', status='pending')
 updates = result.updates
 assert len(updates) == 1, len(updates)
 assert result['total'] == 1, result
@@ -88,11 +88,11 @@ assert len(updates) == 2, len(updates)
 assert updates[0]['type'] == 'security'
 print('%d updates returned' % len(updates))
 
-print('Querying by release with (blockerbugs)')
-result = bodhi.query(limit=100, release='f23')
+print('Querying by release with limit (blockerbugs)')
+result = bodhi.query(limit=100, release='F23')
 updates = result['updates']
-assert len(updates) == 2, len(updates)
-assert updates[0]['type'] == 'security'
+assert len(updates) == 1, len(updates)
+assert updates[0]['type'] == 'bugfix', updates[0].type
 print('%d updates returned' % len(updates))
 
 print('Requesting stable')
