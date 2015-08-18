@@ -16,6 +16,7 @@ from pyramid.security import (Allow, Deny, Everyone, Authenticated,
                               ALL_PERMISSIONS, DENY_ALL)
 from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound
+from pyramid.threadlocal import get_current_registry
 
 from . import log
 from .models import User, Group, Update
@@ -126,3 +127,55 @@ def remember_me(context, request, info, *args, **kw):
     response = HTTPFound(location=came_from)
     response.headerlist.extend(headers)
     return response
+
+
+class CorsOrigins(object):
+    """ Proxy-list class to load CORS config after scan-time.
+
+    This should appear to behave just like a list, but it loads values from the
+    pyramid configuration for its values.  AFAIK, we have to do things this way
+    since Cornice expects its cors configuration to be present at import-time,
+    but the configuration isn't available until later, at Pyramid scan-time.
+    Luckily, Cornice doesn't iterate over that configuration until
+    request-time, so we can load this then.
+
+        >>> cors_origins_ro = CorsOrigins('cors_origins_ro')
+        >>> cors_origins_ro[0]
+        ['*']
+        >>> cors_origins_rw = CorsOrigins('cors_origins_rw')
+        >>> cors_origins_rw[0]
+        ['bodhi.fedoraproject.org']
+
+    """
+    def __init__(self, name):
+        self.name = name
+        self.origins = None
+
+    def initialize(self):
+        if self.origins is None:
+            settings = get_current_registry().settings
+            self.origins = settings.get(self.name, 'localhost').split(',')
+
+    def __len__(self):
+        if self.origins is None:
+            self.initialize()
+        return len(self.origins)
+
+    def __getitem__(self, key):
+        if self.origins is None:
+            self.initialize()
+        return self.origins[key]
+
+    def __iter__(self):
+        if self.origins is None:
+            self.initialize()
+        return iter(self.originals)
+
+    def __contains__(self, item):
+        if self.origins is None:
+            self.initialize()
+        return item in self.originals
+
+
+cors_origins_ro = CorsOrigins('cors_origins_ro')
+cors_origins_rw = CorsOrigins('cors_origins_rw')

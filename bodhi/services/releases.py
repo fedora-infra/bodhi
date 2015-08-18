@@ -32,9 +32,13 @@ from bodhi.validators import (
 
 
 release = Service(name='release', path='/releases/{name}',
-                  description='Fedora Releases')
+                  description='Fedora Releases',
+                  cors_origins=bodhi.security.cors_origins_ro)
 releases = Service(name='releases', path='/releases/',
-                   description='Fedora Releases')
+                   description='Fedora Releases',
+                   # Note, this 'rw' is not a typo.  the @comments service has
+                   # a ``post`` section at the bottom.
+                   cors_origins=bodhi.security.cors_origins_rw)
 
 @release.get(accept="text/html", renderer="release.html")
 def get_release_html(request):

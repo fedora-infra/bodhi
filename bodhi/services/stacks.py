@@ -34,9 +34,13 @@ from bodhi.validators import (
 
 stack = Service(name='stack', path='/stacks/{name}',
                 validators=(validate_stack,),
-                description='Bodhi Stacks')
+                description='Bodhi Stacks',
+                # Note, this 'rw' is not a typo.  there are deletes and posts.
+                cors_origins=bodhi.security.cors_origins_rw)
 stacks = Service(name='stacks', path='/stacks/',
-                 description='Bodhi Stacks')
+                 description='Bodhi Stacks',
+                 # Not a typo.  there are deletes and posts in here.
+                 cors_origins=bodhi.security.cors_origins_rw)
 
 
 @stack.get(accept="text/html", renderer="new_stack.html")

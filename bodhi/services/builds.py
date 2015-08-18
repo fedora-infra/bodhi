@@ -39,9 +39,11 @@ from bodhi.validators import (
 
 
 build = Service(name='build', path='/builds/{nvr}',
-                 description='Koji builds')
+                 description='Koji builds',
+                 cors_origins=bodhi.security.cors_origins_ro)
 builds = Service(name='builds', path='/builds/',
-                 description='Koji builds')
+                 description='Koji builds',
+                 cors_origins=bodhi.security.cors_origins_ro)
 
 
 @build.get(renderer='json')

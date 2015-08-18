@@ -42,20 +42,24 @@ from bodhi.validators import (
 update = Service(name='update', path='/updates/{id}',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 acl=bodhi.security.package_maintainers_only_acl)
+                 acl=bodhi.security.package_maintainers_only_acl,
+                 cors_origins=bodhi.security.cors_origins_ro)
 
 update_edit = Service(name='update_edit', path='/updates/{id}/edit',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 acl=bodhi.security.package_maintainers_only_acl)
+                 acl=bodhi.security.package_maintainers_only_acl,
+                 cors_origins=bodhi.security.cors_origins_rw)
 
 updates = Service(name='updates', path='/updates/',
                   acl=bodhi.security.packagers_allowed_acl,
-                  description='Update submission service')
+                  description='Update submission service',
+                  cors_origins=bodhi.security.cors_origins_ro)
 
 update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
-                         acl=bodhi.security.package_maintainers_only_acl)
+                         acl=bodhi.security.package_maintainers_only_acl,
+                         cors_origins=bodhi.security.cors_origins_rw)
 
 
 @update.get(accept=('application/json', 'text/json'), renderer='json')
