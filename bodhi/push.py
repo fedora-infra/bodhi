@@ -43,7 +43,9 @@ def push(username, password, **kwargs):
     # Since there's currently no simple way to get a list of all updates with
     # any request, we'll take a comma/space-delimited list of them and query
     # one at a time.
-    releases = defaultdict(defaultdict(list))  # release->request->updates
+
+    # release->request->updates
+    releases = defaultdict(lambda: defaultdict(list))
     updates = []
     num_updates = 0
 
