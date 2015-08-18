@@ -275,11 +275,11 @@ def avatar(context, username, size):
     return work(username, size)
 
 
-def version(context):
+def version(context=None):
     return pkg_resources.get_distribution('bodhi').version
 
 
-def hostname(context):
+def hostname(context=None):
     return socket.gethostname()
 
 

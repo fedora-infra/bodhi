@@ -19,9 +19,9 @@ from pyramid.security import authenticated_userid
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPNotFound, HTTPForbidden
 
-from bodhi import log, version
+from bodhi import log
 import bodhi.models
-from bodhi.util import markup
+import bodhi.util
 
 
 @notfound_view_config(append_slash=True)
@@ -182,7 +182,7 @@ def markdowner(request):
     We use this for "previews" of comments and update notes.
     """
     text = request.params.get('text')
-    return dict(html=markup(request.context, text))
+    return dict(html=bodhi.util.markup(request.context, text))
 
 
 @view_config(route_name='new_override', renderer='override.html')
@@ -197,4 +197,4 @@ def new_override(request):
 @view_config(route_name='api_version', renderer='json')
 def api_version(request):
     """ Returns the Bodhi API version """
-    return dict(version=version())
+    return dict(version=bodhi.util.version())
