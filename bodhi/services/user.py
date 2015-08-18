@@ -28,6 +28,7 @@ from bodhi.models import (
 )
 import bodhi.services.updates
 import bodhi.schemas
+import bodhi.security
 from bodhi.validators import (
     validate_updates,
     validate_packages,
@@ -36,9 +37,13 @@ from bodhi.validators import (
 
 
 user = Service(name='user', path='/users/{name}',
-                 description='Bodhi users')
+                 description='Bodhi users',
+                 # These we leave wide-open since these are only GETs
+                 cors_origins=bodhi.security.cors_origins_ro)
 users = Service(name='users', path='/users/',
-                 description='Bodhi users')
+                 description='Bodhi users',
+                 # These we leave wide-open since these are only GETs
+                 cors_origins=bodhi.security.cors_origins_ro)
 
 
 @user.get(accept=("application/json", "text/json"), renderer="json")

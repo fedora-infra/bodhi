@@ -14,8 +14,15 @@
 
 from cornice import Service
 
+import bodhi.security
 
-csrf = Service(name='csrf', path='/csrf', description='CSRF Token')
+
+csrf = Service(name='csrf', path='/csrf', description='CSRF Token',
+               # XXX - even though this is really a read-only endpoint,
+               # we're going to **mark** it as read-write to CORS so
+               # that somebody's exploited browser can't make a cross-site
+               # request here to steal the CSRF token and escalate damage.
+               cors_origins=bodhi.security.cors_origins_rw)
 
 
 @csrf.get(accept="text/html", renderer="string")

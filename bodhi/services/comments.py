@@ -38,10 +38,14 @@ from bodhi.validators import (
 
 comment = Service(name='comment', path='/comments/{id}',
                  validators=(validate_comment_id,),
-                 description='Comment submission service')
+                 description='Comment submission service',
+                 cors_origins=bodhi.security.cors_origins_ro)
 
 comments = Service(name='comments', path='/comments/',
-                   description='Comment submission service')
+                   description='Comment submission service',
+                   # Note, this 'rw' is not a typo.  the @comments service has
+                   # a ``post`` section at the bottom.
+                   cors_origins=bodhi.security.cors_origins_rw)
 
 
 @comment.get(accept=('application/json', 'text/json'), renderer='json')

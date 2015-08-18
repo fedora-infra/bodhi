@@ -28,10 +28,14 @@ from bodhi.validators import (validate_override_build, validate_expiration_date,
 
 
 override = Service(name='override', path='/overrides/{nvr}',
-                   description='Buildroot Overrides')
+                   description='Buildroot Overrides',
+                   cors_origins=bodhi.security.cors_origins_ro)
 
 overrides = Service(name='overrides', path='/overrides/',
-                    description='Buildroot Overrides')
+                    description='Buildroot Overrides',
+                    # Note, this 'rw' is not a typo.  the @comments service has
+                    # a ``post`` section at the bottom.
+                    cors_origins=bodhi.security.cors_origins_rw)
 
 
 @override.get(accept=("application/json", "text/json"), renderer="json")
