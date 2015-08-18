@@ -43,8 +43,7 @@ def cli():
               type=click.Choice(['logout', 'reboot']))
 @click.option('--file', help='A text file containing all the update details')
 def new(username, password, **kwargs):
-    client = BodhiClient()
-    client.login(username, password)
+    client = BodhiClient(username, password)
 
     if kwargs['file'] is None:
         updates = [kwargs]
