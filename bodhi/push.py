@@ -33,9 +33,11 @@ import bodhi.notifications
 @click.option('--builds', help='Push updates for specific builds')
 @click.option('--username', envvar='USERNAME')
 @click.option('--password', prompt=True, hide_input=True)
+@click.option('--cert-prefix', default="releng",
+              help="The prefix of a fedmsg cert used to sign the message.")
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def push(username, password, **kwargs):
+def push(username, password, cert_prefix, **kwargs):
     client = BodhiClient(username=username, password=password,
                          staging=kwargs['staging'])
 
@@ -72,10 +74,13 @@ def push(username, password, **kwargs):
     doit = raw_input('Push these %d updates? (y/n)' % num_updates).lower().strip()
     if doit == 'y':
         click.echo('Sending masher.start fedmsg')
-        bodhi.notifications.init()
-        bodhi.notifications.publish(topic='masher.start',
-                msg=dict(updates=list(updates)),
-                agent=username)
+        # Because we're a script, we want to send to the fedmsg-relay,
+        # that's why we say active=True
+        bodhi.notifications.init(active=True, cert_prefix=cert_prefix)
+        bodhi.notifications.publish(topic='masher.start', msg=dict(
+            updates=list(updates),
+            agent=username,
+        ))
     else:
         click.echo('Aborting push')
 
