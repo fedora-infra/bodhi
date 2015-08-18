@@ -1554,3 +1554,12 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         up = body['updates'][0]
         self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+
+    def test_redirect_to_package(self):
+        "When you visit /updates/package, redirect to /updates/?packages=..."
+        res = self.app.get('/updates/bodhi', status=302)
+        target = 'http://localhost/updates/?packages=bodhi'
+        self.assertEquals(res.headers['Location'], target)
+
+        # But be sure that we don't redirect if the package doesn't exist
+        res = self.app.get('/updates/non-existant', status=404)

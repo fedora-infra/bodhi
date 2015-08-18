@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.sql import or_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
+from pyramid.httpexceptions import HTTPFound
 import pyramid.threadlocal
 
 import colander
@@ -460,6 +461,12 @@ def validate_update_id(request):
     if update:
         request.validated['update'] = update
     else:
+        package = Package.get(request.matchdict['id'], request.db)
+        if package:
+            query = dict(packages=package.name)
+            location = request.route_url('updates', _query=query)
+            raise HTTPFound(location=location)
+
         request.errors.add('url', 'id', 'Invalid update id')
         request.errors.status = HTTPNotFound.code
 
