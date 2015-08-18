@@ -91,6 +91,8 @@
                   Override
                 </a>
               </li>
+
+              % if request.registry.settings.get('stacks_enabled') == 'True':
               % if request.matched_route.name == 'stacks':
               <li class="active">
               % else:
@@ -102,6 +104,8 @@
                 </a>
               </li>
               % endif
+              % endif
+
               % if request.matched_route.name == 'metrics':
               <li class="active">
               % else:
