@@ -44,6 +44,7 @@ def push(username, password, **kwargs):
     # any request, we'll take a comma/space-delimited list of them and query
     # one at a time.
     releases = defaultdict(defaultdict(list))  # release->request->updates
+    updates = []
     num_updates = 0
 
     requests = kwargs['request'].replace(',', ' ').split(' ')
@@ -52,6 +53,7 @@ def push(username, password, **kwargs):
         resp = client.query(request=request, **kwargs)
         for update in resp.updates:
             num_updates += 1
+            updates.append(update.title)
             for build in update.builds:
                 releases[update.release.name][request].append(build.nvr)
 
