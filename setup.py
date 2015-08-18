@@ -108,6 +108,7 @@ setup(name='bodhi',
       [console_scripts]
       initialize_bodhi_db = bodhi.scripts.initializedb:main
       bodhi = bodhi.cli:cli
+      bodhi-push = bodhi.push:push
       bodhi-expire-overrides = bodhi.scripts.expire_overrides:main
       [moksha.consumer]
       masher = bodhi.masher:Masher
