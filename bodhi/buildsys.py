@@ -17,7 +17,7 @@ import logging
 
 from os.path import join, expanduser
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('bodhi')
 
 _buildsystem = None
 
