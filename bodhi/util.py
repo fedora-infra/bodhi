@@ -547,6 +547,10 @@ def taskotron_results(settings, entity='results', **kwargs):
             json = response.json()
             url, data = json['next'], json['data']
             for datum in data:
+                # Skip ABORTED results
+                # https://github.com/fedora-infra/bodhi/issues/167
+                if entity == 'results' and datum.get('outcome') == 'ABORTED':
+                    continue
                 yield datum
     except Exception:
         log.exception("Problem talking to %r" % url)
