@@ -222,6 +222,13 @@ def query_updates(request):
     if user is not None:
         query = query.filter(Update.user==user)
 
+    updateid = data.get('updateid')
+    if updateid is not None:
+        query = query.filter(or_(*[Update.alias==uid for uid in updateid]))
+    alias = data.get('alias')
+    if alias is not None:
+        query = query.filter(or_(*[Update.alias==a for a in alias]))
+
     query = query.order_by(Update.date_submitted.desc())
     total = query.count()
 

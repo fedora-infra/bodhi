@@ -1563,3 +1563,22 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # But be sure that we don't redirect if the package doesn't exist
         res = self.app.get('/updates/non-existant', status=404)
+
+    def test_list_updates_by_alias_and_updateid(self):
+        upd = self.db.query(Update).filter(Update.alias != None).first()
+        res = self.app.get('/updates/', {"alias": upd.alias})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        up = body['updates'][0]
+        self.assertEquals(up['title'], upd.title)
+        self.assertEquals(up['alias'], upd.alias)
+
+        res = self.app.get('/updates/', {"updateid": upd.alias})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        up = body['updates'][0]
+        self.assertEquals(up['title'], upd.title)
+
+        res = self.app.get('/updates/', {"updateid": 'BLARG'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
