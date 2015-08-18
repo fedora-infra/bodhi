@@ -19,12 +19,20 @@ import bodhi
 import bodhi.config
 
 
-def init():
+def init(active=None, cert_prefix=None):
     if not bodhi.config.config.get('fedmsg_enabled'):
         bodhi.log.warn("fedmsg disabled.  not initializing.")
         return
 
     fedmsg_config = fedmsg.config.load_config()
+
+    # Only override config from disk if explicitly argued.
+    if active is not None:
+        fedmsg_config['active'] = active
+        fedmsg_config['name'] = 'relay_inbound'
+    if cert_prefix is not None:
+        fedmsg_config['cert_prefix'] = cert_prefix
+
     fedmsg.init(**fedmsg_config)
     bodhi.log.info("fedmsg initialized")
 
