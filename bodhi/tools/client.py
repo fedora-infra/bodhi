@@ -228,6 +228,8 @@ def main():
                         if 'updates' in data:
                             for update in data['updates']:
                                 print(bodhi.update_str(update).encode("UTF-8"))
+                        elif 'title' in data:
+                            print(bodhi.update_str(data).encode("UTF-8"))
 
                 else:
                     builds = ",".join(args)
@@ -252,6 +254,8 @@ def main():
                     if 'updates' in data:
                         for update in data['updates']:
                             print(bodhi.update_str(update).encode("UTF-8"))
+                    elif 'title' in data:
+                        print(bodhi.update_str(data).encode("UTF-8"))
 
             elif opts.edit:
                 verify_args(args)
