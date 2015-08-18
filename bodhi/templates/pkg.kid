@@ -24,16 +24,12 @@ koji_url = config.get('koji_url')
             <a href="${tg.url('/rss/rss2.0?package=%s' % pkg.name)}">RSS Feed</a>
         </li>
         <li>
-            <img src="https://admin.fedoraproject.org/community/images/16_bodhi.png"/>
-            <a href="https://admin.fedoraproject.org/community/?package=${pkg.name}#package_maintenance">Fedora Community</a>
-        </li>
-        <li>
             <img src="https://admin.fedoraproject.org/community/images/16_bugs.png"/>
             <a href="${tg.url('http://bugz.fedoraproject.org/%s' % (pkg.name,))}">Open Bugs</a>
         </li>
         <li>
             <img src="https://fedoraproject.org/static/css/../images/icons/fedora-infra-icon_pkgdb.png"/>
-            <a href="${tg.url('https://admin.fedoraproject.org/pkgdb/acls/name/%s' % (pkg.name,))}">Package Database</a>
+            <a href="${tg.url('https://admin.fedoraproject.org/packages/%s' % (pkg.name,))}">Package Database</a>
         </li>
         <li>
             <img src="https://fedoraproject.org/static/images/icons/fedora-infra-icon_koji.png"/>
