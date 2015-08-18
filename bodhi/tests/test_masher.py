@@ -78,7 +78,7 @@ class FakeHub(object):
 
 def makemsg(body=None):
     if not body:
-        body = {'updates': 'bodhi-2.0-1.fc17'}
+        body = {'updates': ['bodhi-2.0-1.fc17']}
     return {
         'topic': u'org.fedoraproject.dev.bodhi.masher.start',
         'body': {
@@ -221,7 +221,7 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.notifications.publish')
     def test_tags(self, publish, *args):
         # Make the build a buildroot override as well
-        title = self.msg['body']['msg']['updates']
+        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             release = session.query(Update).one().release
             build = session.query(Build).one()
@@ -416,7 +416,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += ' bodhi-2.0-1.fc18'
+        self.msg['body']['msg']['updates'] += ['bodhi-2.0-1.fc18']
 
         self.masher.consume(self.msg)
 
@@ -487,7 +487,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += ' bodhi-2.0-1.fc18'
+        self.msg['body']['msg']['updates'] += ['bodhi-2.0-1.fc18']
 
         self.masher.consume(self.msg)
 
@@ -551,7 +551,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += ' bodhi-2.0-1.fc18'
+        self.msg['body']['msg']['updates'] += ['bodhi-2.0-1.fc18']
 
         self.masher.consume(self.msg)
 
@@ -719,7 +719,7 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_status_comment_testing(self,  *args):
-        title = self.msg['body']['msg']['updates']
+        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
             self.assertEquals(len(up.comments), 2)
@@ -742,7 +742,7 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_status_comment_stable(self,  *args):
-        title = self.msg['body']['msg']['updates']
+        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
             up.request = UpdateRequest.stable
@@ -790,7 +790,7 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_unlock_updates(self,  *args):
-        title = self.msg['body']['msg']['updates']
+        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
             up.request = UpdateRequest.stable
@@ -814,7 +814,7 @@ References:
     @mock.patch('bodhi.notifications.publish')
     @mock.patch('bodhi.util.cmd')
     def test_resume_push(self,  *args):
-        title = self.msg['body']['msg']['updates']
+        title = self.msg['body']['msg']['updates'][0]
         with mock.patch.object(MasherThread, 'verify_updates', mock_exc):
             with self.db_factory() as session:
                 up = session.query(Update).filter_by(title=title).one()
@@ -854,7 +854,7 @@ References:
         Test reaching the stablekarma threshold while the update is being
         pushed to testing
         """
-        title = self.msg['body']['msg']['updates']
+        title = self.msg['body']['msg']['updates'][0]
 
         # Simulate a failed push
         with mock.patch.object(MasherThread, 'verify_updates', mock_exc):
