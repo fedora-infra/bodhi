@@ -79,6 +79,11 @@
       // the latest ones for each arch.  So, prune like this:
       var changed = false;
       $.each(data.data, function(i, result) {
+
+        // However, we want to skip over any ABORTED results:
+        // https://github.com/fedora-infra/bodhi/issues/167
+        if (result.outcome == 'ABORTED') return;
+
         var name = result.testcase.name;
         var arch = result.result_data.arch;
         var submit_time = new Date(result.submit_time);
