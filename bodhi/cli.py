@@ -42,8 +42,10 @@ def cli():
 @click.option('--suggest', help='Post-update user suggestion',
               type=click.Choice(['logout', 'reboot']))
 @click.option('--file', help='A text file containing all the update details')
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
 def new(username, password, **kwargs):
-    client = BodhiClient(username, password)
+    client = BodhiClient(username, password, staging=kwargs['staging'])
 
     if kwargs['file'] is None:
         updates = [kwargs]
@@ -83,8 +85,10 @@ def new(username, password, **kwargs):
               type=click.Choice(['newpackage', 'security',
                                  'bugfix', 'enhancement',]))
 @click.option('--user', help='Updates submitted by a specific user')
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
 def query(**kwargs):
-    client = BodhiClient()
+    client = BodhiClient(staging=kwargs['staging'])
     resp = client.query(**kwargs)
     print_resp(resp)
 
