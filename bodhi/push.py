@@ -33,7 +33,7 @@ import bodhi.notifications
 @click.option('--builds', help='Push updates for specific builds')
 @click.option('--username', envvar='USERNAME')
 @click.option('--password', prompt=True, hide_input=True)
-@click.option('--cert-prefix', default="releng",
+@click.option('--cert-prefix', default="shell",
               help="The prefix of a fedmsg cert used to sign the message.")
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
