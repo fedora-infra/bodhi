@@ -14,6 +14,7 @@
 
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
+from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 import math
@@ -87,7 +88,12 @@ def query_builds(request):
         query = query.join(Build.release)
         query = query.filter(or_(*[Release.id==r.id for r in releases]))
 
-    total = query.count()
+    # We can't use ``query.count()`` here because it is naive with respect to
+    # all the joins that we're doing above.
+    count_query = query.statement\
+        .with_only_columns([func.count(distinct(Build.nvr))])\
+        .order_by(None)
+    total = db.execute(count_query).scalar()
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')
