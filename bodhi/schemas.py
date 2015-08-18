@@ -387,6 +387,13 @@ class ListUserSchema(PaginatedSchema, SearchableSchema):
 
 
 class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
+    alias = Builds(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
+    )
+
     approved_since = colander.SchemaNode(
         colander.DateTime(),
         location="querystring",
@@ -511,6 +518,13 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.String(),
         location="querystring",
         missing=None,
+    )
+
+    updateid = Builds(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[splitter],
     )
 
 

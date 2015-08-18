@@ -42,8 +42,10 @@ def cli():
 @click.option('--suggest', help='Post-update user suggestion',
               type=click.Choice(['logout', 'reboot']))
 @click.option('--file', help='A text file containing all the update details')
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
 def new(username, password, **kwargs):
-    client = BodhiClient(username, password)
+    client = BodhiClient(username, password, staging=kwargs['staging'])
 
     if kwargs['file'] is None:
         updates = [kwargs]
@@ -53,12 +55,14 @@ def new(username, password, **kwargs):
 
     for update in updates:
         resp = client.new(**update)
-        print_resp(resp)
+        print_resp(resp, client)
 
 
 @cli.command()
+@click.option('--updateid', help='Query by update ID (eg: FEDORA-2015-0001)')
 @click.option('--approved-since', help='Approved after a specific timestamp')
 @click.option('--modified-since', help='Modified after a specific timestamp')
+@click.option('--builds', help='Query updates based on builds')
 @click.option('--bugs', help='A list of bug numbers')
 @click.option('--critpath', is_flag=True, default=None,
               help='Query only critical path packages')
@@ -79,24 +83,29 @@ def new(username, password, **kwargs):
                                  'unpushed', 'processing']))
 @click.option('--suggest', help='Filter by post-update user suggestion',
               type=click.Choice(['logout', 'reboot']))
-@click.option('--type', default='bugfix', help='Filter by update type',
+@click.option('--type', default=None, help='Filter by update type',
               type=click.Choice(['newpackage', 'security',
                                  'bugfix', 'enhancement',]))
 @click.option('--user', help='Updates submitted by a specific user')
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
 def query(**kwargs):
-    client = BodhiClient()
+    client = BodhiClient(staging=kwargs['staging'])
     resp = client.query(**kwargs)
-    print_resp(resp)
+    print_resp(resp, client)
 
 
-def print_resp(resp):
-    if resp.status_code == 200:
-        try:
-            data = resp.json()
-            click.echo(data)
-        except ValueError:
-            click.echo('Unable to decode JSON:')
-            click.echo(resp.text)
+def print_resp(resp, client):
+    if 'updates' in resp:
+        if len(resp.updates) == 1:
+            click.echo(client.update_str(resp.updates[0]))
+        else:
+            for update in resp.updates:
+                click.echo(client.update_str(update, minimal=True).strip())
+        click.echo('%s updates found (%d shown)' % (resp.total,
+            len(resp.updates)))
+    elif 'title' in resp:
+        click.echo(client.update_str(resp))
     else:
         click.echo(resp.text)
 
