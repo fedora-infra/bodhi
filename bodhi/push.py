@@ -70,10 +70,11 @@ def push(username, password, cert_prefix, **kwargs):
                 for build in releases[release][request]:
                     out.write(build + '\n')
                     click.echo(build)
+            click.echo('')
 
     doit = raw_input('Push these %d updates? (y/n)' % num_updates).lower().strip()
     if doit == 'y':
-        click.echo('Sending masher.start fedmsg')
+        click.echo('\nSending masher.start fedmsg')
         # Because we're a script, we want to send to the fedmsg-relay,
         # that's why we say active=True
         bodhi.notifications.init(active=True, cert_prefix=cert_prefix)
@@ -82,7 +83,7 @@ def push(username, password, cert_prefix, **kwargs):
             agent=username,
         ))
     else:
-        click.echo('Aborting push')
+        click.echo('\nAborting push')
 
 
 if __name__ == '__main__':
