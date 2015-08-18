@@ -114,7 +114,7 @@ Once mash is done:
     def consume(self, msg):
         self.log.info(msg)
         if self.valid_signer:
-            if not fedmsg.crypto.validate_signed_by(msg, self.valid_signer,
+            if not fedmsg.crypto.validate_signed_by(msg['body'], self.valid_signer,
                                                     **self.hub.config):
                 self.log.error('Received message with invalid signature!'
                                'Ignoring.')
