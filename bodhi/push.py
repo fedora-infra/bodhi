@@ -28,8 +28,7 @@ import bodhi.notifications
 @click.option('--type', default=None, help='Push a specific type of update',
         type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
 @click.option('--request', default='testing,stable',
-        help='Push updates with a specific request (default: testing,stable)',
-        type=click.Choice(['testing', 'stable', 'unpush']))
+        help='Push updates with a specific request (default: testing,stable)')
 @click.option('--builds', help='Push updates for specific builds')
 @click.option('--username', envvar='USERNAME')
 @click.option('--password', prompt=True, hide_input=True)
