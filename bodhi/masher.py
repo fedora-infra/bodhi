@@ -179,7 +179,7 @@ Once mash is done:
     def organize_updates(self, session, body):
         # {Release: {UpdateRequest: [Update,]}}
         releases = defaultdict(lambda: defaultdict(list))
-        for title in body['updates'].split():
+        for title in body['updates']:
             update = session.query(Update).filter_by(title=title).first()
             if update:
                 repo = releases[update.release.name][update.request.value]
