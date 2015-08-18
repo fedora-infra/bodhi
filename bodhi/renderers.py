@@ -1,3 +1,4 @@
+import io
 import operator
 
 from pyramid.exceptions import HTTPNotFound
@@ -79,5 +80,7 @@ def jpeg(info):
             if ct == response.default_content_type:
                 response.content_type = 'image/jpeg'
 
-        return data.tostring('jpeg', 'RGB')
+        b = io.BytesIO()
+        data.save(b, 'jpeg')
+        return b.getvalue()
     return render
