@@ -221,6 +221,7 @@ PYTHONPATH=. %{__python} setup.py test
 %{python_sitelib}/%{name}/
 %{_bindir}/initialize_bodhi_db
 %{_bindir}/bodhi-expire-overrides
+%{_bindir}/bodhi-push
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %config(noreplace) %{_sysconfdir}/fedmsg.d/*
 %dir %{_sysconfdir}/bodhi/
