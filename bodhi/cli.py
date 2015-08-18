@@ -55,7 +55,7 @@ def new(username, password, **kwargs):
 
     for update in updates:
         resp = client.new(**update)
-        print_resp(resp)
+        print_resp(resp, client)
 
 
 @cli.command()
@@ -90,17 +90,20 @@ def new(username, password, **kwargs):
 def query(**kwargs):
     client = BodhiClient(staging=kwargs['staging'])
     resp = client.query(**kwargs)
-    print_resp(resp)
+    print_resp(resp, client)
 
 
-def print_resp(resp):
-    if resp.status_code == 200:
-        try:
-            data = resp.json()
-            click.echo(data)
-        except ValueError:
-            click.echo('Unable to decode JSON:')
-            click.echo(resp.text)
+def print_resp(resp, client):
+    if 'updates' in resp:
+        if len(resp.updates) == 1:
+            click.echo(client.update_str(resp.updates[0]))
+        else:
+            for update in resp.updates:
+                click.echo(client.update_str(update, minimal=True).strip())
+        click.echo('%s updates found (%d shown)' % (resp.total,
+            len(resp.updates)))
+    elif 'title' in resp:
+        click.echo(client.update_str(resp))
     else:
         click.echo(resp.text)
 
