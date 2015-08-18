@@ -16,7 +16,7 @@ import sys
 
 import click
 
-from bodhi.client import BodhiClient
+from fedora.client import BodhiClient
 
 
 @click.group()
