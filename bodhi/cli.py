@@ -59,8 +59,10 @@ def new(username, password, **kwargs):
 
 
 @cli.command()
+@click.option('--updateid', help='Query by update ID (eg: FEDORA-2015-0001)')
 @click.option('--approved-since', help='Approved after a specific timestamp')
 @click.option('--modified-since', help='Modified after a specific timestamp')
+@click.option('--builds', help='Query updates based on builds')
 @click.option('--bugs', help='A list of bug numbers')
 @click.option('--critpath', is_flag=True, default=None,
               help='Query only critical path packages')
@@ -81,7 +83,7 @@ def new(username, password, **kwargs):
                                  'unpushed', 'processing']))
 @click.option('--suggest', help='Filter by post-update user suggestion',
               type=click.Choice(['logout', 'reboot']))
-@click.option('--type', default='bugfix', help='Filter by update type',
+@click.option('--type', default=None, help='Filter by update type',
               type=click.Choice(['newpackage', 'security',
                                  'bugfix', 'enhancement',]))
 @click.option('--user', help='Updates submitted by a specific user')
