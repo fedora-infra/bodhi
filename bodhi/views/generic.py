@@ -175,16 +175,6 @@ def latest_builds(request):
     return builds
 
 
-@view_config(route_name='markdowner', renderer='json')
-def markdowner(request):
-    """ Given some text, return the markdownified html version.
-
-    We use this for "previews" of comments and update notes.
-    """
-    text = request.params.get('text')
-    return dict(html=bodhi.util.markup(request.context, text))
-
-
 @view_config(route_name='new_override', renderer='override.html')
 def new_override(request):
     """ Returns the new buildroot override form """
