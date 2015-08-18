@@ -81,8 +81,8 @@ def query_stacks(request):
     count_query = query.statement\
         .with_only_columns([func.count(distinct(Stack.id))])\
         .order_by(None)
+    total = request.db.execute(count_query).scalar()
 
-    total = db.execute(count_query).scalar()
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')
     pages = int(math.ceil(total / float(rows_per_page)))

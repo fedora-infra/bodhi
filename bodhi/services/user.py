@@ -121,6 +121,7 @@ def query_users(request):
     count_query = query.statement\
         .with_only_columns([func.count(distinct(User.id))])\
         .order_by(None)
+    total = request.db.execute(count_query).scalar()
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')
