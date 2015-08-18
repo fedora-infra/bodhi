@@ -34,10 +34,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def version():
-    return pkg_resources.get_distribution('bodhi').version
-
-
 # TODO -- someday move this externally to "fedora_flavored_markdown"
 import bodhi.ffmarkdown
 bodhi.ffmarkdown.inject()
