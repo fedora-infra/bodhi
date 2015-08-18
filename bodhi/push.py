@@ -36,6 +36,8 @@ import bodhi.notifications
               help="The prefix of a fedmsg cert used to sign the message.")
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
+@click.option('--resume', help='Resume the previously failed push',
+              is_flag=True, default=False)
 def push(username, password, cert_prefix, **kwargs):
     client = BodhiClient(username=username, password=password,
                          staging=kwargs['staging'])
