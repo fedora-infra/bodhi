@@ -77,6 +77,9 @@ class BaseWSGICase(unittest.TestCase):
         'site_requirements': 'rpmlint',
         'resultsdb_api_url': 'whatever',
         'base_address': 'http://localhost:6543',
+        'cors_connect_src': 'http://localhost:6543',
+        'cors_origins_ro': 'http://localhost:6543',
+        'cors_origins_rw': 'http://localhost:6543',
     }
 
     def setUp(self):
