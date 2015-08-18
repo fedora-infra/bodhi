@@ -18,6 +18,7 @@ from cornice import Service
 from pyramid.view import view_config
 from pyramid.exceptions import HTTPForbidden
 from pyramid.security import authenticated_userid
+from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi import log, notifications
@@ -75,7 +76,13 @@ def query_stacks(request):
         query = query.join(Package.stack)
         query = query.filter(or_(*[Package.name==pkg.name for pkg in packages]))
 
-    total = query.count()
+    # We can't use ``query.count()`` here because it is naive with respect to
+    # all the joins that we're doing above.
+    count_query = query.statement\
+        .with_only_columns([func.count(distinct(Stack.id))])\
+        .order_by(None)
+    total = request.db.execute(count_query).scalar()
+
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')
     pages = int(math.ceil(total / float(rows_per_page)))

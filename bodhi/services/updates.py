@@ -16,6 +16,7 @@ import math
 
 from cornice import Service
 from pyramid.security import has_permission
+from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi import log
@@ -230,7 +231,13 @@ def query_updates(request):
         query = query.filter(or_(*[Update.alias==a for a in alias]))
 
     query = query.order_by(Update.date_submitted.desc())
-    total = query.count()
+
+    # We can't use ``query.count()`` here because it is naive with respect to
+    # all the joins that we're doing above.
+    count_query = query.statement\
+        .with_only_columns([func.count(distinct(Update.id))])\
+        .order_by(None)
+    total = db.execute(count_query).scalar()
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')

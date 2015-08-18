@@ -16,6 +16,7 @@ import math
 
 from cornice import Service
 from pyramid.httpexceptions import HTTPBadRequest
+from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi import log
@@ -131,7 +132,12 @@ def query_comments(request):
 
     query = query.order_by(Comment.timestamp.desc())
 
-    total = query.count()
+    # We can't use ``query.count()`` here because it is naive with respect to
+    # all the joins that we're doing above.
+    count_query = query.statement\
+        .with_only_columns([func.count(distinct(Comment.id))])\
+        .order_by(None)
+    total = db.execute(count_query).scalar()
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')
