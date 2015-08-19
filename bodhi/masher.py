@@ -29,7 +29,7 @@ import threading
 import fedmsg.consumers
 
 from collections import defaultdict
-from pyramid.paster import get_appsettings, setup_logging
+from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 
 from bodhi import log, buildsys, notifications, mail, util
@@ -119,11 +119,8 @@ Once mash is done:
                                'Ignoring.')
                 # TODO: send email notifications
                 return
-        with self.db_factory() as session:
-            try:
-                self.work(session, msg)
-            except:
-                log.exception('Problem in Masher.work')
+
+        self.work(msg)
 
     def prioritize_updates(self, releases):
         """Return 2 batches of repos: important, and normal.
@@ -133,15 +130,16 @@ Once mash is done:
         important, normal = [], []
         for release in releases:
             for request, updates in releases[release].items():
+                update_titles = [update.title for update in updates]
                 for update in updates:
                     if update.type is UpdateType.security:
-                        important.append((release, request, updates))
+                        important.append((release, request, update_titles))
                         break
                 else:
-                    normal.append((release, request, updates))
+                    normal.append((release, request, update_titles))
         return important, normal
 
-    def work(self, session, msg):
+    def work(self, msg):
         """Begin the push process.
 
         Here we organize & prioritize the updates, and fire off seperate
@@ -153,16 +151,18 @@ Once mash is done:
         body = msg['body']['msg']
         resume = body.get('resume', False)
         notifications.publish(topic="mashtask.start", msg=dict())
-        releases = self.organize_updates(session, body)
+
+        with self.db_factory() as session:
+            releases = self.organize_updates(session, body)
+            batches = self.prioritize_updates(releases)
 
         # Important repos first, then normal
-        for batch in self.prioritize_updates(releases):
+        for batch in batches:
             # Stable first, then testing
             for req in ('stable', 'testing'):
                 threads = []
                 for release, request, updates in batch:
                     if request == req:
-                        updates = [update.title for update in updates]
                         log.debug('Starting thread for %s %s for %d updates',
                                   release, request, len(updates))
                         thread = MasherThread(release, request, updates,
@@ -181,6 +181,7 @@ Once mash is done:
         for title in body['updates']:
             update = session.query(Update).filter_by(title=title).first()
             if update:
+                update.locked = True
                 repo = releases[update.release.name][update.request.value]
                 repo.append(update)
             else:
@@ -236,9 +237,6 @@ class MasherThread(threading.Thread):
         try:
             self.save_state()
             self.load_updates()
-
-            if not self.resume:
-                self.lock_updates()
 
             self.verify_updates()
 
@@ -317,12 +315,6 @@ class MasherThread(threading.Thread):
             raise Exception('Unable to load updates: %r' %
                             self.state['updates'])
         self.updates = updates
-
-    def lock_updates(self):
-        self.log.debug('Locking updates')
-        for update in self.updates:
-            update.locked = True
-        self.db.flush()
 
     def unlock_updates(self):
         self.log.debug('Unlocking updates')
