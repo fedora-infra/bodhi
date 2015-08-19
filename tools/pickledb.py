@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-__requires__ = 'WebOb>=1.4.1'
+import __main__
+__requires__ = __main__.__requires__ = 'WebOb>=1.4.1'
 import pkg_resources
 
 # This program is free software; you can redistribute it and/or
@@ -24,9 +25,12 @@ in the format of bodhi-pickledb-YYYYMMDD.HHMM
 __requires__ = 'bodhi'
 
 import sys
+
 import cPickle as pickle
 
 from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
+from pyramid.paster import setup_logging
+setup_logging('/etc/bodhi/production.ini')
 
 from bodhi.util import get_db_from_config, get_critpath_pkgs
 
@@ -49,6 +53,8 @@ def load_sqlalchemy_db():
     packages = {}
     users = {}
     critpath = {}
+
+    aliases = []
 
     db = get_db_from_config()
 
@@ -119,8 +125,12 @@ def load_sqlalchemy_db():
         if u.has_key('update_id'):
             u['updateid'] = u['update_id']
             u['alias'] = u['update_id']
-        else:
-            u['updateid'] = u['alias'] = None
+
+            if u['alias']:
+                split = u['alias'].split('-')
+                year, id = split[-2:]
+                aliases.append((int(year), int(id)))
+
         if not u.has_key('date_modified'):
             u['date_modified'] = None
 
@@ -167,7 +177,7 @@ def load_sqlalchemy_db():
                             date_modified=u['date_modified'],
                             release=release,
                             old_updateid=u['updateid'],
-                            alias=u['alias'],
+                            alias=u['updateid'],
                             pushed=u['pushed'],
                             notes=u['notes'],
                             karma=u['karma'],
@@ -277,6 +287,15 @@ def load_sqlalchemy_db():
                 user.groups.append(group)
 
         db.flush()
+
+    # Hack to get the Bodhi2 alias generator working with bodhi1 data.
+    # The new generator assumes that the alias is assigned at submission time, as opposed to push time.
+    year, id = max(aliases)
+    print('Highest alias = %r %r' % (year, id))
+    up = db.query(Update).filter_by(alias=u'FEDORA-%s-%s' % (year, id)).one()
+    print(up.title)
+    up.date_submitted = up.date_pushed
+    db.flush()
 
     transaction.commit()
 
