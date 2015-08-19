@@ -18,7 +18,7 @@ The tool for triggering updates pushes.
 import click
 
 from collections import defaultdict
-from fedora.client import BodhiClient
+from fedora.client.bodhi import Bodhi2Client
 
 import bodhi.notifications
 
@@ -39,19 +39,20 @@ import bodhi.notifications
 @click.option('--resume', help='Resume the previously failed push',
               is_flag=True, default=False)
 def push(username, password, cert_prefix, **kwargs):
-    client = BodhiClient(username=username, password=password,
-                         staging=kwargs['staging'])
-
-    # Gather the list of updates based on the query parameters
-    # Since there's currently no simple way to get a list of all updates with
-    # any request, we'll take a comma/space-delimited list of them and query
-    # one at a time.
+    staging = kwargs.pop('staging')
+    resume = kwargs.pop('resume')
+    client = Bodhi2Client(username=username, password=password,
+                          staging=staging)
 
     # release->request->updates
     releases = defaultdict(lambda: defaultdict(list))
     updates = []
     num_updates = 0
 
+    # Gather the list of updates based on the query parameters
+    # Since there's currently no simple way to get a list of all updates with
+    # any request, we'll take a comma/space-delimited list of them and query
+    # one at a time.
     requests = kwargs['request'].replace(',', ' ').split(' ')
     del(kwargs['request'])
     for request in requests:
@@ -81,6 +82,7 @@ def push(username, password, cert_prefix, **kwargs):
         bodhi.notifications.init(active=True, cert_prefix=cert_prefix)
         bodhi.notifications.publish(topic='masher.start', msg=dict(
             updates=list(updates),
+            resume=resume,
             agent=username,
         ))
     else:
