@@ -61,13 +61,23 @@ pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
 def get_rpm_header(nvr):
     """ Get the rpm header for a given build """
-    rpmID = nvr + '.x86_64'  # FIXME: don't hardcode arch here
+
     headers = [
         'name', 'summary', 'version', 'release', 'url', 'description',
         'changelogtime', 'changelogname', 'changelogtext',
     ]
-    koji_session = buildsys.get_session()
-    return koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
+    # We don't want to query too many times, so just do x86_64 and noarch
+    #arches = config.get('arches', '').split()
+    arches = ['x86_64']
+    suffixes = arches + ['noarch']
+    for suffix in suffixes:
+        rpmID = nvr + '.' + suffix
+        koji_session = buildsys.get_session()
+        result = koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
+        if result:
+            return result
+
+    raise ValueError("No rpm headers found in koji for %r" % nvr)
 
 
 def get_nvr(nvr):
