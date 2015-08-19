@@ -28,7 +28,7 @@ def cli():
 
 @cli.command()
 @click.argument('builds')
-@click.option('--username', envvar='USERNAME')
+@click.option('--user', envvar='USERNAME')
 @click.option('--password', prompt=True, hide_input=True)
 @click.option('--type', default='bugfix', help='Update type', required=True,
               type=click.Choice(['security', 'bugfix',
@@ -46,8 +46,8 @@ def cli():
 @click.option('--file', help='A text file containing all the update details')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def new(username, password, **kwargs):
-    client = Bodhi2Client(username=username, password=password, staging=kwargs['staging'])
+def new(user, password, **kwargs):
+    client = Bodhi2Client(username=user, password=password, staging=kwargs['staging'])
 
     if kwargs['file'] is None:
         updates = [kwargs]
