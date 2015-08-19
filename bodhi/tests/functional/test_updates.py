@@ -369,6 +369,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['status'], u'pending')
         self.assertEquals(up['request'], u'testing')
         self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['submitter'], u'guest')
         self.assertEquals(up['release']['name'], u'F17')
         self.assertEquals(up['type'], u'bugfix')
         self.assertEquals(up['severity'], u'unspecified')

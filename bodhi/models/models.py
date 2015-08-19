@@ -1691,6 +1691,9 @@ class Update(Base):
         result = super(Update, self).__json__(*args, **kwargs)
         # Duplicate alias as updateid for backwards compat with bodhi1
         result['updateid'] = result['alias']
+        # Also, put the update submitter's name in the same place we put
+        # it for bodhi1 to make fedmsg.meta compat much more simple.
+        result['submitter'] = result['user']['name']
         return result
 
 
