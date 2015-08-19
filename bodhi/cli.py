@@ -13,10 +13,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+import traceback
 
 import click
 
-from fedora.client import BodhiClient
+from fedora.client import BodhiClientException
+from fedora.client.bodhi import Bodhi2Client
 
 
 @click.group()
@@ -45,7 +47,7 @@ def cli():
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def new(username, password, **kwargs):
-    client = BodhiClient(username, password, staging=kwargs['staging'])
+    client = Bodhi2Client(username=username, password=password, staging=kwargs['staging'])
 
     if kwargs['file'] is None:
         updates = [kwargs]
@@ -54,8 +56,13 @@ def new(username, password, **kwargs):
         updates = client.parse_file(os.path.abspath(kwargs['file']))
 
     for update in updates:
-        resp = client.new(**update)
-        print_resp(resp, client)
+        try:
+            resp = client.save(**update)
+            print_resp(resp, client)
+        except BodhiClientException as e:
+            click.echo(str(e))
+        except Exception as e:
+            traceback.print_exc()
 
 
 @cli.command()
@@ -90,7 +97,7 @@ def new(username, password, **kwargs):
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def query(**kwargs):
-    client = BodhiClient(staging=kwargs['staging'])
+    client = Bodhi2Client(staging=kwargs['staging'])
     resp = client.query(**kwargs)
     print_resp(resp, client)
 
