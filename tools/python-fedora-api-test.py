@@ -2,7 +2,8 @@ import os
 import getpass
 import logging
 
-from fedora.client import BodhiClient
+from fedora.client import BodhiClient, BodhiClientException
+from fedora.client.bodhi import Bodhi2Client
 
 log = logging.getLogger('fedora.client.bodhi')
 
@@ -20,12 +21,15 @@ bodhi = BodhiClient(staging=True, username=username, password=password)
 
 print('Logged in! Creating new update...')
 
-result = bodhi.save(
-        builds=build,
-        type='bugfix',
-        notes='The quick brown fox jumped over the lazy dog',
-)
-print(result)
+try:
+    result = bodhi.save(
+            builds=build,
+            type='bugfix',
+            notes='The quick brown fox jumped over the lazy dog',
+    )
+    print(result)
+except BodhiClientException as e:
+    print(e)
 
 print('Querying update')
 result = bodhi.query(builds='qt-creator-3.4.1-3.fc23')
@@ -139,4 +143,22 @@ print('Querying for my updates')
 result = bodhi.query(mine=True)
 print(result)
 assert result.updates[0].user.name == username, result.updates[0].user.name
+
+
+print('Testing the Bodhi2Client(staging=True) directly')
+bodhi = BodhiClient(staging=True, username=username, password=password)
+try:
+    result = bodhi.save(
+            builds=build,
+            type='bugfix',
+            notes='The quick brown fox jumped over the lazy dog',
+    )
+    print(result)
+except BodhiClientException as e:
+    print(e)
+
+result = bodhi.query(builds='qt-creator-3.4.1-3.fc23')
+updates = result['updates']
+update = updates[0]
+assert len(updates) == 1, len(updates)
 
