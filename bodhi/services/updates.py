@@ -43,13 +43,19 @@ from bodhi.validators import (
 update = Service(name='update', path='/updates/{id}',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 acl=bodhi.security.package_maintainers_only_acl,
+                 # This acl only checks if the user is an admin or a commiters to the packages,
+                 # where as the validate_acls method which is attached to the @post on this
+                 # services does this as well as checking against the groups. So, this acl
+                 # should be unnecessary at the moment.
+                 #acl=bodhi.security.package_maintainers_only_acl,
+                 acl=bodhi.security.packagers_allowed_acl,
                  cors_origins=bodhi.security.cors_origins_ro)
 
 update_edit = Service(name='update_edit', path='/updates/{id}/edit',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 acl=bodhi.security.package_maintainers_only_acl,
+                 #acl=bodhi.security.package_maintainers_only_acl,
+                 acl=bodhi.security.packagers_allowed_acl,
                  cors_origins=bodhi.security.cors_origins_rw)
 
 updates = Service(name='updates', path='/updates/',
@@ -59,7 +65,8 @@ updates = Service(name='updates', path='/updates/',
 
 update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
-                         acl=bodhi.security.package_maintainers_only_acl,
+                         #acl=bodhi.security.package_maintainers_only_acl,
+                         acl=bodhi.security.packagers_allowed_acl,
                          cors_origins=bodhi.security.cors_origins_rw)
 
 
