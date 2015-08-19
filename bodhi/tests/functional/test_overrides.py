@@ -411,3 +411,23 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['expired_date'], None)
         publish.assert_called_once_with(
             topic='buildroot_override.tag', msg=mock.ANY)
+
+    @mock.patch('bodhi.notifications.publish')
+    def test_create_override_with_missing_pkg(self, publish):
+        nvr = u'not-bodhi-2.0-2.fc17'
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+
+        data = {'nvr': nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date,
+                'csrf_token': self.get_csrf_token()}
+        res = self.app.post('/overrides/', data)
+
+        publish.assert_called_once_with(
+            topic='buildroot_override.tag', msg=mock.ANY)
+        self.assertEquals(len(publish.call_args_list), 1)
+
+        o = res.json_body
+        self.assertEquals(o['notes'], 'blah blah blah')
+        self.assertEquals(o['expiration_date'],
+                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(o['expired_date'], None)

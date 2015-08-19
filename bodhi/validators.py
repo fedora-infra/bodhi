@@ -592,8 +592,9 @@ def validate_comment_id(request):
 def validate_override_build(request):
     """ Ensure that the build is properly tagged """
     nvr = request.validated['nvr']
+    db = request.db
 
-    build = Build.get(nvr, request.db)
+    build = Build.get(nvr, db)
 
     if build is not None:
 
@@ -606,7 +607,7 @@ def validate_override_build(request):
             tags = [tag['name'] for tag in request.koji.listTags(nvr)
                     if tag['name'] in valid_tags]
 
-            release = Release.from_tags(tags, request.db)
+            release = Release.from_tags(tags, db)
 
             if release is None:
                 request.errors.add('body', 'nvr', 'Invalid build.  Couldn\'t '
@@ -634,13 +635,22 @@ def validate_override_build(request):
         tags = [tag['name'] for tag in request.koji.listTags(nvr)
                 if tag['name'] in valid_tags]
 
-        release = Release.from_tags(tags, request.db)
+        release = Release.from_tags(tags, db)
 
         if release is None:
             request.errors.add('body', 'nvr', 'Invalid build')
             return
 
-        build = Build(nvr=nvr, release=release)
+        pkgname, version, rel = get_nvr(nvr)
+        package = Package.get(pkgname, db)
+        if not package:
+            package = Package(name=pkgname)
+            db.add(package)
+            db.flush()
+
+        build = Build(nvr=nvr, release=release, package=package)
+        db.add(build)
+        db.flush()
 
     request.validated['build'] = build
 
