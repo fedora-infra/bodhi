@@ -452,7 +452,7 @@ class MasherThread(threading.Thread):
                           build, from_tag, to_tag))
             self.koji.moveBuild(from_tag, to_tag, build, force=True)
         results = self.koji.multiCall()
-        failed_tasks = buildsys.wait_for_tasks([task[0] for task in results], self.koji)
+        failed_tasks = buildsys.wait_for_tasks([task[0] for task in results], self.koji, sleep=15)
         if failed_tasks:
             raise Exception("Failed to move builds: %s" % failed_tasks)
 
