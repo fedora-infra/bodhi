@@ -210,10 +210,13 @@ class MasherThread(threading.Thread):
         }
 
     def run(self):
-        with self.db_factory() as session:
-            self.db = session
-            self.work()
-            self.db = None
+        try:
+            with self.db_factory() as session:
+                self.db = session
+                self.work()
+                self.db = None
+        except:
+            self.log.exception('MasherThread failed. Transaction rolled back.')
 
     def work(self):
         self.koji = buildsys.get_session()
@@ -299,6 +302,7 @@ class MasherThread(threading.Thread):
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             self.save_state()
+            raise
         finally:
             self.finish(success)
 
