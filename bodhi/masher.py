@@ -90,7 +90,6 @@ Once mash is done:
                  *args, **kw):
         if not db_factory:
             config_uri = '/etc/bodhi/production.ini'
-            setup_logging(config_uri)
             settings = get_appsettings(config_uri)
             engine = engine_from_config(settings, 'sqlalchemy.')
             DBSession.configure(bind=engine)
