@@ -226,7 +226,10 @@ class ExtendedMetadata(object):
                 pkg.name = rpm['name']
                 pkg.version = rpm['version']
                 pkg.release = rpm['release']
-                pkg.epoch = rpm['epoch'] or '0'
+                if rpm['epoch'] is not None:
+                    pkg.epoch = str(rpm['epoch'])
+                else:
+                    pkg.epoch = '0'
                 pkg.arch = rpm['arch']
 
                 # TODO: how do we handle UpdateSuggestion.logout, etc?
