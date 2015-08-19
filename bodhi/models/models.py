@@ -794,8 +794,9 @@ class Update(Base):
         db = request.db
         buildinfo = request.buildinfo
         for build in self.builds:
-            for oldBuild in db.query(Build).join(Update.builds).filter(
+            for oldBuild in db.query(Build).join(Update).filter(
                 and_(Build.nvr != build.nvr,
+                     Build.package == build.package,
                      Update.request == None,
                      Update.release == self.release,
                      or_(Update.status == UpdateStatus.testing,
