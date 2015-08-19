@@ -40,6 +40,34 @@ from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
 from bodhi.metadata import ExtendedMetadata
 
 
+def checkpoint(method):
+    """ A decorator for skipping sections of the mash when resuming.
+
+    We started working on this on deployment day, but don't really have time to
+    think about the rammifications right now... so we're going to leave the
+    decorator here, but not yet employ is in methods of the MasherThread.
+    """
+
+    key = method.__name__
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        if not self.resume or not self.state.get(key):
+            # Call it
+            retval = method(*args, **kwargs)
+            if retval is not None:
+                raise ValueError("checkpointed functions may not return stuff")
+            # if it didn't raise an exception, mark the checkpoint
+            self.state[key] = True
+            self.save_state()
+        else:
+            # cool!  we don't need to do anything, since we ran last time
+            pass
+
+        return None
+    return wrapper
+
+
 class Masher(fedmsg.consumers.FedmsgConsumer):
     """The Bodhi Masher.
 
