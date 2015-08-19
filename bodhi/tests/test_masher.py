@@ -815,7 +815,7 @@ References:
     @mock.patch('bodhi.util.cmd')
     def test_resume_push(self,  *args):
         title = self.msg['body']['msg']['updates'][0]
-        with mock.patch.object(MasherThread, 'verify_updates', mock_exc):
+        with mock.patch.object(MasherThread, 'generate_testing_digest', mock_exc):
             with self.db_factory() as session:
                 up = session.query(Update).filter_by(title=title).one()
                 up.request = UpdateRequest.testing
