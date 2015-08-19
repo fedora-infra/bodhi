@@ -11,12 +11,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+managereleases.py create --name F23 --long-name "Fedora 23" --id-prefix FEDORA --version 23 --branch f23 --dist-tag f23 --stable-tag f23-updates --testing-tag f23-updates-testing --candidate-tag f23-updates-candidate --pending-stable-tag f23-updates-pending --pending-testing-tag f23-updates-testing-pending --override-tag f23-override --state pending
+"""
 
 import sys
+import munch
 
 import click
 
-from fedora.client import BodhiClient
+from fedora.client.bodhi import Bodhi2Client
 
 
 @click.group()
@@ -47,8 +51,7 @@ def main():
                                             'archived']),
               help='The state of the release')
 def create(username, password, **kwargs):
-    client = BodhiClient()
-    client.login(username, password)
+    client = Bodhi2Client(username=username, password=password)
     kwargs['csrf_token'] = client.csrf()
 
     save(client, **kwargs)
@@ -78,8 +81,7 @@ def create(username, password, **kwargs):
                                             'archived']),
               help='The state of the release')
 def edit(username, password, **kwargs):
-    client = BodhiClient()
-    res = client.login(username, password)
+    client = Bodhi2Client(username=username, password=password)
     csrf = client.csrf()
 
     edited = kwargs.pop('name')
@@ -90,7 +92,7 @@ def edit(username, password, **kwargs):
 
     res = client.send_request('releases/%s' % edited, verb='GET', auth=True)
 
-    data = res.json()
+    data = munch.unmunchify(res)
 
     if 'errors' in data:
         print_errors(data)
@@ -113,32 +115,28 @@ def edit(username, password, **kwargs):
 @main.command()
 @click.argument('name')
 def info(name):
-    client = BodhiClient()
+    client = Bodhi2Client()
 
-    res = client.send_request('releases/%s' % name, verb='GET', auth=True)
+    res = client.send_request('releases/%s' % name, verb='GET', auth=False)
 
-    data = res.json()
-
-    if 'errors' in data:
-        print_errors(data)
+    if 'errors' in res:
+        print_errors(res)
 
     else:
         print('Release:')
-        print_release(data)
+        print_release(res)
 
 
 def save(client, **kwargs):
     res = client.send_request('releases/', verb='POST', auth=True,
                               data=kwargs)
 
-    data = res.json()
-
-    if 'errors' in data:
-        print_errors(data)
+    if 'errors' in res:
+        print_errors(res)
 
     else:
         print("Saved release:")
-        print_release(data)
+        print_release(res)
 
 
 def print_release(release):
