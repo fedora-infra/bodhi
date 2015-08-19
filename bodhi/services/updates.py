@@ -91,7 +91,8 @@ def get_update_for_editing(request):
 
 
 @update_request.post(schema=bodhi.schemas.UpdateRequestSchema,
-                     validators=(validate_enums, validate_update_id),
+                     validators=(validate_enums, validate_update_id,
+                                 validate_acls),
                      permission='edit', renderer='json')
 def set_request(request):
     """Sets a specific :class:`bodhi.models.UpdateRequest` on a given update"""
