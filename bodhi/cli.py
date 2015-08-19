@@ -13,6 +13,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+import sys
 import traceback
 
 import click
@@ -113,8 +114,12 @@ def print_resp(resp, client):
             len(resp.updates)))
     elif 'title' in resp:
         click.echo(client.update_str(resp))
+    elif 'errors' in resp:
+        for error in resp['errors']:
+            click.echo("ERROR: %s" % error['description'])
+        sys.exit(1)
     else:
-        click.echo(resp.text)
+        click.echo(resp)
 
 
 if __name__ == '__main__':

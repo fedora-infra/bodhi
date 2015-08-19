@@ -911,6 +911,7 @@ class Update(Base):
                             .all()
         subquery = DBSession.query(Update.date_submitted).filter(
                                 and_(Update.id != self.id,
+                                     Update.alias != None,
                                    or_(*[Update.release == release
                                          for release in releases])))\
                           .order_by(Update.date_submitted.desc())\
