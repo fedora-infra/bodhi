@@ -627,6 +627,7 @@ class Update(Base):
                 db.add(build)
                 db.flush()
 
+            build.package = package
             build.release = buildinfo[build.nvr]['release']
             builds.append(build)
             releases.add(buildinfo[build.nvr]['release'])
