@@ -90,8 +90,11 @@ def get_update_for_editing(request):
 
 
 @update_request.post(schema=bodhi.schemas.UpdateRequestSchema,
-                     validators=(validate_enums, validate_update_id,
-                                 validate_acls),
+                     validators=(
+                         validate_enums,
+                         validate_update_id,
+                         validate_acls,
+                     ),
                      permission='edit', renderer='json')
 def set_request(request):
     """Sets a specific :class:`bodhi.models.UpdateRequest` on a given update"""
@@ -265,9 +268,14 @@ def query_updates(request):
 @updates.post(schema=bodhi.schemas.SaveUpdateSchema,
               permission='create', renderer='json',
               validators=(
-                  validate_nvrs, validate_builds,
-                  validate_uniqueness, validate_build_tags, validate_acls,
-                  validate_enums, validate_requirements))
+                  validate_nvrs,
+                  validate_builds,
+                  validate_uniqueness,
+                  validate_build_tags,
+                  validate_acls,
+                  validate_enums,
+                  validate_requirements,
+              ))
 def new_update(request):
     """ Save an update.
 
