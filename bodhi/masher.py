@@ -616,14 +616,15 @@ class MasherThread(threading.Thread):
         mash_path = os.path.join(self.path, self.id)
         arch = os.listdir(mash_path)[0]
         release = self.release.id_prefix.lower().replace('-', '_')
-        master_repomd = config.get('%s_master_repomd' % release)
+        request = self.request.name
+        master_repomd = config.get('%s_%s_master_repomd' % (release, request))
         repomd = os.path.join(mash_path, arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
         checksum = hashlib.sha1(file(repomd).read()).hexdigest()
         while True:
-            time.sleep(600)
+            time.sleep(200)
             try:
                 masterrepomd = urllib2.urlopen(master_repomd %
                                                (self.release.get_version(), arch))
