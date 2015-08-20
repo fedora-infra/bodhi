@@ -60,7 +60,9 @@ Form.prototype.error = function(data) {
     $.each(data.responseJSON.errors, function (i, error) {
         msg = self.messenger.post({
             message: error.description,
-            type: "error"
+            type: "error",
+            hideAfter: false,
+            showCloseButton: true,
         });
     });
 }
