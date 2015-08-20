@@ -224,23 +224,6 @@ def validate_acls(request):
                                    "access to {}".format(user.name, package.name))
 
 
-def validate_version(request):
-    """ Ensure no builds are older than any that we know of """
-    db = request.db
-    for build in request.validated.get('builds', []):
-        nvr = request.buildinfo[build]['nvr']
-        pkg = db.query(Package).filter_by(name=nvr[0]).first()
-        if pkg:
-            last = db.query(Build).filter_by(package=pkg) \
-                     .order_by(Build.id.desc()).limit(1).first()
-            if last:
-                if rpm.labelCompare(nvr, get_nvr(last.nvr)) < 0:
-                    request.errors.add('body', 'builds', 'Invalid build: '
-                                       '{} is older than ' '{}'.format(
-                                           '-'.join(nvr), last.nvr))
-                    return
-
-
 def validate_uniqueness(request):
     """ Check for multiple builds from the same package """
     builds = request.validated.get('builds', [])

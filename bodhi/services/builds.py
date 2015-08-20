@@ -25,7 +25,6 @@ import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
     validate_nvrs,
-    validate_version,
     validate_uniqueness,
     validate_acls,
     validate_builds,

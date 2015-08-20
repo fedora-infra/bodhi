@@ -26,7 +26,6 @@ import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
     validate_nvrs,
-    validate_version,
     validate_uniqueness,
     validate_build_tags,
     validate_acls,
@@ -266,7 +265,7 @@ def query_updates(request):
 @updates.post(schema=bodhi.schemas.SaveUpdateSchema,
               permission='create', renderer='json',
               validators=(
-                  validate_nvrs, validate_version, validate_builds,
+                  validate_nvrs, validate_builds,
                   validate_uniqueness, validate_build_tags, validate_acls,
                   validate_enums, validate_requirements))
 def new_update(request):
