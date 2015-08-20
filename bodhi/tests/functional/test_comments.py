@@ -20,6 +20,9 @@ import bodhi.tests.functional.base
 from bodhi.models import (
     DBSession,
     Comment,
+    Update,
+    UpdateRequest,
+    UpdateType,
 )
 
 
@@ -348,10 +351,27 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
-    #def test_list_comments_by_update_no_comments(self):
-    #    res = self.app.get('/comments/', {"updates": "bodhi-2.0-2.fc17"})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['comments']), 0)
+    def test_list_comments_by_update_no_comments(self):
+        session = DBSession()
+        update = Update(
+            title=u'bodhi-2.0-200.fc17',
+            #builds=[build],
+            #user=user,
+            request=UpdateRequest.testing,
+            type=UpdateType.enhancement,
+            notes=u'Useful details!',
+            #release=release,
+            date_submitted=datetime(1984, 11, 02),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+        )
+        session.add(update)
+        session.flush()
+
+        res = self.app.get('/comments/', {"updates": "bodhi-2.0-200.fc17"})
+        body = res.json_body
+        self.assertEquals(len(body['comments']), 0)
 
     def test_list_comments_by_unexisting_update(self):
         res = self.app.get('/comments/', {"updates": "flash-player"},
