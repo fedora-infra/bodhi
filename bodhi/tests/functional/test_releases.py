@@ -36,7 +36,8 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
             candidate_tag=u'f22-updates-candidate',
             pending_testing_tag=u'f22-updates-testing-pending',
             pending_stable_tag=u'f22-updates-pending',
-            override_tag=u'f22-override')
+            override_tag=u'f22-override',
+            branch=u'f22')
 
         session.add(release)
         session.flush()

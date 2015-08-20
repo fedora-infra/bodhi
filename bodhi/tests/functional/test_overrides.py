@@ -133,7 +133,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
                             candidate_tag=u'f42-updates-candidate',
                             pending_testing_tag=u'f42-updates-testing-pending',
                             pending_stable_tag=u'f42-updates-pending',
-                            override_tag=u'f42-override'))
+                            override_tag=u'f42-override',
+                            branch=u'f42'))
         session.flush()
 
         res = self.app.get('/overrides/', {'releases': 'F42'})

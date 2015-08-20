@@ -44,7 +44,8 @@ class TestRelease(ModelTest):
         name=u"F11",
         long_name=u"Fedora 11",
         id_prefix=u"FEDORA",
-        version=11,
+        version=u'11',
+        branch=u'f11',
         dist_tag=u"dist-f11",
         stable_tag=u"dist-f11-updates",
         testing_tag=u"dist-f11-updates-testing",
@@ -236,7 +237,8 @@ class TestUpdate(ModelTest):
                                  candidate_tag=u'dist-fc10-updates-candidate',
                                  pending_testing_tag=u'dist-fc10-updates-testing-pending',
                                  pending_stable_tag=u'dist-fc10-updates-pending',
-                                 override_tag=u'dist-fc10-override')
+                                 override_tag=u'dist-fc10-override',
+                                 branch=u'fc10', version=u'10')
         update.release = otherrel
         update.assign_alias()
         eq_(update.alias, u'%s-%s-0003' % (update.release.id_prefix, year))
@@ -279,7 +281,8 @@ class TestUpdate(ModelTest):
                           candidate_tag=u'dist-5E-epel-testing-candidate',
                           pending_testing_tag=u'dist-5E-epel-testing-pending',
                           pending_stable_tag=u'dist-5E-epel-pending',
-                          override_tag=u'dist-5E-epel-override')
+                          override_tag=u'dist-5E-epel-override',
+                          branch=u'el5', version=u'5')
         update.release = release
         update.assign_alias()
         eq_(update.alias, u'FEDORA-EPEL-%s-0001' % time.localtime()[0])

@@ -393,13 +393,14 @@ References:
             # Create a security update for a different release
             release = Release(
                 name=u'F18', long_name=u'Fedora 18',
-                id_prefix=u'FEDORA', version='18',
+                id_prefix=u'FEDORA', version=u'18',
                 dist_tag=u'f18', stable_tag=u'f18-updates',
                 testing_tag=u'f18-updates-testing',
                 candidate_tag=u'f18-updates-candidate',
                 pending_testing_tag=u'f18-updates-testing-pending',
                 pending_stable_tag=u'f18-updates-pending',
-                override_tag=u'f18-override')
+                override_tag=u'f18-override',
+                branch=u'f18')
             db.add(release)
             build = Build(nvr=u'bodhi-2.0-1.fc18', release=release,
                           package=up.builds[0].package)
@@ -464,13 +465,14 @@ References:
             # Create a security update for a different release
             release = Release(
                 name=u'F18', long_name=u'Fedora 18',
-                id_prefix=u'FEDORA', version='18',
+                id_prefix=u'FEDORA', version=u'18',
                 dist_tag=u'f18', stable_tag=u'f18-updates',
                 testing_tag=u'f18-updates-testing',
                 candidate_tag=u'f18-updates-candidate',
                 pending_testing_tag=u'f18-updates-testing-pending',
                 pending_stable_tag=u'f18-updates-pending',
-                override_tag=u'f18-override')
+                override_tag=u'f18-override',
+                branch=u'f18')
             db.add(release)
             build = Build(nvr=u'bodhi-2.0-1.fc18', release=release,
                           package=up.builds[0].package)
@@ -528,13 +530,14 @@ References:
             # Create a security update for a different release
             release = Release(
                 name=u'F18', long_name=u'Fedora 18',
-                id_prefix=u'FEDORA', version='18',
+                id_prefix=u'FEDORA', version=u'18',
                 dist_tag=u'f18', stable_tag=u'f18-updates',
                 testing_tag=u'f18-updates-testing',
                 candidate_tag=u'f18-updates-candidate',
                 pending_testing_tag=u'f18-updates-testing-pending',
                 pending_stable_tag=u'f18-updates-pending',
-                override_tag=u'f18-override')
+                override_tag=u'f18-override',
+                branch=u'f18')
             db.add(release)
             build = Build(nvr=u'bodhi-2.0-1.fc18', release=release,
                           package=up.builds[0].package)
