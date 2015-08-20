@@ -265,28 +265,32 @@ class MasherThread(threading.Thread):
                 # We still need to generate the testing digest, since it's stored in memory
                 self.generate_testing_digest()
             else:
-                mash_thread = self.mash()
+                if self.release.state is not ReleaseState.pending:
+                    mash_thread = self.mash()
 
                 # Things we can do while we're mashing
                 self.complete_requests()
                 self.generate_testing_digest()
-                uinfo = self.generate_updateinfo()
 
-                self.wait_for_mash(mash_thread)
+                if self.release.state is not ReleaseState.pending:
+                    uinfo = self.generate_updateinfo()
 
-                uinfo.insert_updateinfo()
-                uinfo.insert_pkgtags()
-                uinfo.cache_repodata()
+                    self.wait_for_mash(mash_thread)
+
+                    uinfo.insert_updateinfo()
+                    uinfo.insert_pkgtags()
+                    uinfo.cache_repodata()
 
             # Compose OSTrees from our freshly mashed repos
             if config.get('compose_atomic_trees'):
                 self.compose_atomic_trees()
 
-            self.sanity_check_repo()
-            self.stage_repo()
+            if self.release.state is not ReleaseState.pending:
+                self.sanity_check_repo()
+                self.stage_repo()
 
-            # Wait for the repo to hit the master mirror
-            self.wait_for_sync()
+                # Wait for the repo to hit the master mirror
+                self.wait_for_sync()
 
             # Send fedmsg notifications
             self.send_notifications()
