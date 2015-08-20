@@ -16,6 +16,10 @@ The tool for triggering updates pushes.
 """
 
 import click
+import os
+import sys
+import json
+import glob
 
 from collections import defaultdict
 from fedora.client.bodhi import Bodhi2Client
@@ -25,8 +29,8 @@ import bodhi.notifications
 
 @click.command()
 @click.option('--releases', help='Push updates for specific releases')
-@click.option('--type', default=None, help='Push a specific type of update',
-        type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
+#@click.option('--type', default=None, help='Push a specific type of update',
+#        type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
 @click.option('--request', default='testing,stable',
         help='Push updates with a specific request (default: testing,stable)')
 @click.option('--builds', help='Push updates for specific builds')
@@ -36,7 +40,7 @@ import bodhi.notifications
               help="The prefix of a fedmsg cert used to sign the message.")
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-@click.option('--resume', help='Resume the previously failed push',
+@click.option('--resume', help='Resume one or more previously failed pushes',
               is_flag=True, default=False)
 def push(username, password, cert_prefix, **kwargs):
     staging = kwargs.pop('staging')
@@ -44,35 +48,50 @@ def push(username, password, cert_prefix, **kwargs):
     client = Bodhi2Client(username=username, password=password,
                           staging=staging)
 
-    # release->request->updates
-    releases = defaultdict(lambda: defaultdict(list))
-    updates = []
-    num_updates = 0
+    # If we're resuming a push
+    if resume:
+        for lockfile in glob.glob('/mnt/koji/mash/updates/MASHING-*'):
+            doit = raw_input('Resume %s? (y/n)').strip().lower()
+            if doit == 'n':
+                continue
 
-    # Gather the list of updates based on the query parameters
-    # Since there's currently no simple way to get a list of all updates with
-    # any request, we'll take a comma/space-delimited list of them and query
-    # one at a time.
-    requests = kwargs['request'].replace(',', ' ').split(' ')
-    del(kwargs['request'])
-    for request in requests:
-        resp = client.query(request=request, **kwargs)
-        for update in resp.updates:
-            num_updates += 1
-            updates.append(update.title)
-            for build in update.builds:
-                releases[update.release.name][request].append(build.nvr)
+            with file(lockfile) as lock:
+                state = json.load(lock)
 
-        # Write out a file that releng uses to pass to sigul for signing
-        # TODO: in the future we should integrate signing into the workflow
-        for release in releases:
-            output_filename = request.title() + '-' + release
-            click.echo(output_filename + '\n==========')
-            with file(output_filename, 'w') as out:
-                for build in releases[release][request]:
-                    out.write(build + '\n')
-                    click.echo(build)
-            click.echo('')
+            updates = state['updates']
+            click.echo(lockfile)
+            for update in updates:
+                click.echo(update)
+    else:
+        # release->request->updates
+        releases = defaultdict(lambda: defaultdict(list))
+        updates = []
+        num_updates = 0
+
+        # Gather the list of updates based on the query parameters
+        # Since there's currently no simple way to get a list of all updates with
+        # any request, we'll take a comma/space-delimited list of them and query
+        # one at a time.
+        requests = kwargs['request'].replace(',', ' ').split(' ')
+        del(kwargs['request'])
+        for request in requests:
+            resp = client.query(request=request, **kwargs)
+            for update in resp.updates:
+                num_updates += 1
+                updates.append(update.title)
+                for build in update.builds:
+                    releases[update.release.name][request].append(build.nvr)
+
+            # Write out a file that releng uses to pass to sigul for signing
+            # TODO: in the future we should integrate signing into the workflow
+            for release in releases:
+                output_filename = request.title() + '-' + release
+                click.echo(output_filename + '\n==========')
+                with file(output_filename, 'w') as out:
+                    for build in releases[release][request]:
+                        out.write(build + '\n')
+                        click.echo(build)
+                click.echo('')
 
     doit = raw_input('Push these %d updates? (y/n)' % num_updates).lower().strip()
     if doit == 'y':
