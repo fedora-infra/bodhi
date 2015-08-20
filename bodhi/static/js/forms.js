@@ -28,6 +28,20 @@ Form.prototype.finish = function() {
 
 Form.prototype.success = function(data) {
     var self = this;
+    // cornice typically returns errors hung on error responses, but here we
+    // are adding our own "caveats" list *optionally* to successful responses
+    // that can explain more about what happened.
+    // For instance, you might submit an update with positive karma on your own
+    // update.  We'll accept the comment (success!) but add a note to the
+    // response informing you that your positive karma was stripped from the
+    // payload.  Here we display those caveats to users.
+    caveats = data.caveats || [];  // May be undefined...
+    $.each(caveats, function(i, caveat) {
+        msg = self.messenger.post({
+            message: caveat.description,
+            type: "info"
+        });
+    });
     msg = self.messenger.post({
         message: "Success",
         type: "success"
@@ -42,6 +56,7 @@ Form.prototype.success = function(data) {
 Form.prototype.error = function(data) {
     var self = this;
     self.finish();
+    // Here is where we handle those error messages on the response by cornice.
     $.each(data.responseJSON.errors, function (i, error) {
         msg = self.messenger.post({
             message: error.description,

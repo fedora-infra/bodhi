@@ -1332,9 +1332,17 @@ class Update(Base):
         if not author:
             raise ValueError('You must provide a comment author')
 
+        caveats = []
+
         # Listify these
         bug_feedback = bug_feedback or []
         testcase_feedback = testcase_feedback or []
+
+        if self.user.name == author:
+            if karma != 0:
+                karma = 0
+                notice = 'You may not give karma to your own updates.'
+                caveats.append({'name': 'karma', 'description': notice})
 
         if not anonymous and karma != 0 and \
            not filter(lambda c: c.user.name == author and c.karma == karma,
@@ -1343,8 +1351,16 @@ class Update(Base):
                 c.karma for c in self.comments if c.user.name == author]
             if karma == 1 and -1 in mycomments:
                 self.karma += 2
+                caveats.append({
+                    'name': 'karma',
+                    'description': 'Your karma standing was reversed.',
+                })
             elif karma == -1 and 1 in mycomments:
                 self.karma -= 2
+                caveats.append({
+                    'name': 'karma',
+                    'description': 'Your karma standing was reversed.',
+                })
             else:
                 self.karma += karma
 
@@ -1360,6 +1376,9 @@ class Update(Base):
                     # threshold, but it is a critpath update that is not
                     # critpath_approved. ... among other cases.
                     log.exception('Problem checking the karma threshold.')
+                    caveats.append({
+                        'name': 'karma', 'description': str(e),
+                    })
 
         session = DBSession()
         comment = Comment(
@@ -1409,7 +1428,7 @@ class Update(Base):
                 continue
             people.add(comment.user.name)
         mail.send(people, 'comment', self, author, author)
-        return comment
+        return comment, caveats
 
     def unpush(self):
         """ Move this update back to its dist-fX-updates-candidate tag """

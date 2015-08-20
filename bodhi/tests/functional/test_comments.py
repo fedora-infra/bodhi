@@ -20,14 +20,40 @@ import bodhi.tests.functional.base
 from bodhi.models import (
     DBSession,
     Comment,
+    Release,
     User,
     Update,
     UpdateRequest,
     UpdateType,
 )
 
+someone_elses_update = up2 = u'bodhi-2.0-200.fc17'
 
 class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
+    def setUp(self, *args, **kwargs):
+        super(TestCommentsService, self).setUp(*args, **kwargs)
+
+        # Add a second update owned by somebody else so we can test karma
+        # policy stuff
+        user2 = User(name=u'lmacken')
+        self.db.flush()
+        self.db.add(user2)
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        update = Update(
+            title=someone_elses_update,
+            #builds=[build],
+            user=user2,
+            request=UpdateRequest.testing,
+            type=UpdateType.enhancement,
+            notes=u'Useful details!',
+            release=release,
+            date_submitted=datetime(1984, 11, 02),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+        )
+        self.db.add(update)
+        self.db.flush()
 
     def make_comment(self,
                      update='bodhi-2.0-1.fc17',
@@ -135,7 +161,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch('bodhi.notifications.publish')
     def test_commenting_twice_with_double_positive_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -145,7 +171,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEquals(res.json_body['comment']['update']['karma'], 1)
 
-        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -155,10 +181,13 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Mainly, ensure that the karma didn't increase *again*
         self.assertEquals(res.json_body['comment']['update']['karma'], 1)
+        # A caveat message might be nice?  not necessary at this point...
+        #self.assertEquals(res.json_body['caveats'][0]['description'],
+        #                  'lol, you cant double up son')
 
     @mock.patch('bodhi.notifications.publish')
     def test_commenting_twice_with_positive_then_negative_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -167,7 +196,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEquals(res.json_body['comment']['update']['karma'], 1)
 
-        res = self.app.post_json('/comments/', self.make_comment(karma=-1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -177,10 +206,12 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Mainly, ensure that original karma is overwritten..
         self.assertEquals(res.json_body['comment']['update']['karma'], -1)
+        self.assertEquals(res.json_body['caveats'][0]['description'],
+                          'Your karma standing was reversed.')
 
     @mock.patch('bodhi.notifications.publish')
     def test_commenting_with_negative_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(karma=-1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -460,3 +491,23 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(comment['update']['title'], u'bodhi-2.0-1.fc17')
         self.assertEquals(comment['update_title'], u'bodhi-2.0-1.fc17')
         self.assertEquals(comment['karma'], 0)
+
+    def test_no_self_karma(self):
+        " Make sure you can't give +1 karma to your own updates.. "
+        comment = self.make_comment('bodhi-2.0-1.fc17', karma=1)
+        # The author of this comment is "guest"
+
+        session = DBSession()
+        up = session.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
+        self.assertEquals(up.user.name, 'guest')
+
+        r = self.app.post_json('/comments/', comment)
+        comment = r.json_body['comment']
+        self.assertEquals(comment['user']['name'], u'guest')
+        self.assertEquals(comment['update']['title'], u'bodhi-2.0-1.fc17')
+        caveats = r.json_body['caveats']
+        self.assertEquals(len(caveats), 1)
+        self.assertEquals(caveats[0]['name'], 'karma')
+        self.assertEquals(caveats[0]['description'],
+                          "You may not give karma to your own updates.")
+        self.assertEquals(comment['karma'], 0)  # This is the real check
