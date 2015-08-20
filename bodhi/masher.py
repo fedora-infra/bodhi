@@ -226,7 +226,8 @@ class MasherThread(threading.Thread):
         self.id = getattr(self.release, '%s_tag' % self.request.value)
         self.log.info('Running MasherThread(%s)' % self.id)
         self.init_state()
-        self.init_path()
+        if not self.resume:
+            self.init_path()
 
         notifications.publish(topic="mashtask.mashing", msg=dict(
             repo=self.id,
@@ -235,9 +236,12 @@ class MasherThread(threading.Thread):
 
         success = False
         try:
-            self.save_state()
-            self.load_updates()
+            if self.resume:
+                self.load_state()
+            else:
+                self.save_state()
 
+            self.load_updates()
             self.verify_updates()
 
             if self.request is UpdateRequest.stable:
@@ -255,18 +259,24 @@ class MasherThread(threading.Thread):
             self.remove_pending_tags()
             self.update_comps()
 
-            mash_thread = self.mash()
+            if self.resume and self.path in self.state['completed_repos']:
+                self.log.info('Skipping completed repo: %s', self.path)
+                self.complete_requests()
+                # We still need to generate the testing digest, since it's stored in memory
+                self.generate_testing_digest()
+            else:
+                mash_thread = self.mash()
 
-            # Things we can do while we're mashing
-            self.complete_requests()
-            self.generate_testing_digest()
-            uinfo = self.generate_updateinfo()
+                # Things we can do while we're mashing
+                self.complete_requests()
+                self.generate_testing_digest()
+                uinfo = self.generate_updateinfo()
 
-            self.wait_for_mash(mash_thread)
+                self.wait_for_mash(mash_thread)
 
-            uinfo.insert_updateinfo()
-            uinfo.insert_pkgtags()
-            uinfo.cache_repodata()
+                uinfo.insert_updateinfo()
+                uinfo.insert_pkgtags()
+                uinfo.cache_repodata()
 
             # Compose OSTrees from our freshly mashed repos
             if config.get('compose_atomic_trees'):
@@ -377,6 +387,7 @@ class MasherThread(threading.Thread):
                                  time.strftime("%y%m%d.%H%M"))
         if not os.path.isdir(self.path):
             os.makedirs(self.path)
+            self.log.info('Creating new mash: %s' % self.path)
 
     def init_state(self):
         if not os.path.exists(self.mash_dir):
@@ -395,6 +406,22 @@ class MasherThread(threading.Thread):
         with file(self.mash_lock, 'w') as lock:
             json.dump(self.state, lock)
         self.log.info('Masher lock saved: %s', self.mash_lock)
+
+    def load_state(self):
+        """
+        Load the state of this push so it can be resumed later if necessary
+        """
+        with file(self.mash_lock) as lock:
+            self.state = json.load(lock)
+        self.log.info('Masher state loaded from %s', self.mash_lock)
+        self.log.info(self.state)
+        for path in self.state['completed_repos']:
+            if self.id in path:
+                self.path = path
+                self.log.info('Resuming push with completed repo: %s' % self.path)
+                return
+        self.log.info('Resuming push without any completed repos')
+        self.init_path()
 
     def remove_state(self):
         self.log.info('Removing state: %s', self.mash_lock)
