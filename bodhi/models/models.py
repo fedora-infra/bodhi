@@ -473,7 +473,7 @@ class Build(Base):
         # generate ChangeLogs against those.
         latest = None
         evr = build_evr(koji_session.getBuild(self.nvr))
-        for tag in [self.release.stable_tag, self.release.dist_tag]:
+        for tag in [self.update.release.stable_tag, self.update.release.dist_tag]:
             builds = koji_session.getLatestBuilds(
                     tag, package=self.package.name)
 
