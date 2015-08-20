@@ -418,6 +418,8 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     if not from_addr:
         log.warn('Unable to send mail: bodhi_email not defined in the config')
         return
+    if to_addr in config.get('exclude_mail'):
+        return
 
     from_addr = to_bytes(from_addr)
     to_addr = to_bytes(to_addr)
