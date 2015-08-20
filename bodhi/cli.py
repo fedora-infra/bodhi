@@ -103,6 +103,38 @@ def query(**kwargs):
     print_resp(resp, client)
 
 
+@cli.group()
+def overrides():
+    pass
+
+
+@overrides.command('query')
+@click.option('--user', default=None,
+              help='Updates submitted by a specific user')
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
+def query_buildroot_overrides(user=None, **kwargs):
+    client = Bodhi2Client(staging=kwargs['staging'])
+    resp = client.list_overrides(user=user)
+    print_resp(resp, client)
+
+
+@overrides.command('save')
+@click.argument('nvr')
+@click.option('--duration', default=7, type=click.INT,
+              help='Number of days the override should exist.')
+@click.option('--notes', default="No explanation given...",
+              help='Notes on why this override is in place.')
+@click.option('--user', envvar='USERNAME')
+@click.option('--password', prompt=True, hide_input=True)
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
+def save_buildroot_overrides(nvr, duration, notes, user, password, staging):
+    client = Bodhi2Client(username=user, password=password, staging=staging)
+    resp = client.save_override(nvr=nvr, duration=duration, notes=notes)
+    print_resp(resp, client)
+
+
 def print_resp(resp, client):
     if 'updates' in resp:
         if len(resp.updates) == 1:
@@ -114,6 +146,16 @@ def print_resp(resp, client):
             len(resp.updates)))
     elif 'title' in resp:
         click.echo(client.update_str(resp))
+    elif 'overrides' in resp:
+        if len(resp.overrides) == 1:
+            click.echo(client.override_str(resp.overrides[0]))
+        else:
+            for override in resp.overrides:
+                click.echo(client.override_str(override, minimal=True).strip())
+        click.echo('%s overrides found (%d shown)' % (resp.total,
+            len(resp.overrides)))
+    elif 'build' in resp:
+        click.echo(client.override_str(resp))
     elif 'errors' in resp:
         for error in resp['errors']:
             click.echo("ERROR: %s" % error['description'])
