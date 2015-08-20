@@ -718,23 +718,27 @@ class MasherThread(threading.Thread):
                 update=update, agent=agent,
             ))
 
+    @checkpoint
     def modify_bugs(self):
         self.log.info('Updating bugs')
         for update in self.updates:
             self.log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
+    @checkpoint
     def status_comments(self):
         self.log.info('Commenting on updates')
         for update in self.updates:
             update.status_comment()
 
+    @checkpoint
     def send_stable_announcements(self):
         self.log.info('Sending stable update announcements')
         for update in self.updates:
             if update.status is UpdateStatus.stable:
                 update.send_update_notice()
 
+    @checkpoint
     def send_testing_digest(self):
         """Send digest mail to mailing lists"""
         self.log.info('Sending updates-testing digest')
