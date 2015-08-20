@@ -60,6 +60,12 @@ def validate_builds(request):
     settings = request.registry.settings
     user = request.user
 
+    if not request.validated.get('builds', []):
+        request.errors.add('body', 'builds',
+                            "You may not specify an empty list of builds.")
+        return
+
+
     if edited:
         up = request.db.query(Update).filter_by(title=edited).first()
         if not up:
