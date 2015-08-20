@@ -51,7 +51,7 @@ def push(username, password, cert_prefix, **kwargs):
     # If we're resuming a push
     if resume:
         for lockfile in glob.glob('/mnt/koji/mash/updates/MASHING-*'):
-            doit = raw_input('Resume %s? (y/n)').strip().lower()
+            doit = raw_input('Resume %s? (y/n)' % lockfile).strip().lower()
             if doit == 'n':
                 continue
 
@@ -62,6 +62,7 @@ def push(username, password, cert_prefix, **kwargs):
             click.echo(lockfile)
             for update in updates:
                 click.echo(update)
+        num_updates = len(updates)
     else:
         # release->request->updates
         releases = defaultdict(lambda: defaultdict(list))
