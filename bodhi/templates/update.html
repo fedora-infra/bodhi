@@ -251,7 +251,9 @@ $(document).ready(function() {
                 $.each(response.responseJSON.errors, function(i, error) {
                     msg = messenger.post({
                       message: error.description,
-                      type: "error"
+                      type: "error",
+                      hideAfter: false,
+                      showCloseButton: true,
                     });
                 });
               },
@@ -280,7 +282,9 @@ $(document).ready(function(){
         // TODO -- handle this
         msg = this.messenger.post({
           message: "Unhandled error",
-          type: "error"
+          type: "error",
+          hideAfter: false,
+          showCloseButton: true,
         });
       }
     });
