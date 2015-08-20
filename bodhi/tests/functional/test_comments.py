@@ -12,36 +12,48 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import unittest
-
 import mock
-from nose.tools import eq_, raises
 from datetime import datetime, timedelta
-from webtest import TestApp
 
 import bodhi.tests.functional.base
 
-from bodhi import main
-from bodhi.config import config
 from bodhi.models import (
-    Base,
-    Bug,
-    Build,
-    CVE,
     DBSession,
-    Group,
-    Package,
-    Release,
     Comment,
-    Update,
-    UpdateType,
+    Release,
     User,
-    UpdateStatus,
+    Update,
     UpdateRequest,
+    UpdateType,
 )
 
+someone_elses_update = up2 = u'bodhi-2.0-200.fc17'
 
 class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
+    def setUp(self, *args, **kwargs):
+        super(TestCommentsService, self).setUp(*args, **kwargs)
+
+        # Add a second update owned by somebody else so we can test karma
+        # policy stuff
+        user2 = User(name=u'lmacken')
+        self.db.flush()
+        self.db.add(user2)
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        update = Update(
+            title=someone_elses_update,
+            #builds=[build],
+            user=user2,
+            request=UpdateRequest.testing,
+            type=UpdateType.enhancement,
+            notes=u'Useful details!',
+            release=release,
+            date_submitted=datetime(1984, 11, 02),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+        )
+        self.db.add(update)
+        self.db.flush()
 
     def make_comment(self,
                      update='bodhi-2.0-1.fc17',
@@ -58,7 +70,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         return comment
 
     def test_invalid_update(self):
-        session = DBSession()
         res = self.app.post_json('/comments/', self.make_comment(
             update='bodhi-1.0-2.fc17',
         ), status=404)
@@ -150,7 +161,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch('bodhi.notifications.publish')
     def test_commenting_twice_with_double_positive_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -160,7 +171,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEquals(res.json_body['comment']['update']['karma'], 1)
 
-        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -170,10 +181,13 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Mainly, ensure that the karma didn't increase *again*
         self.assertEquals(res.json_body['comment']['update']['karma'], 1)
+        # A caveat message might be nice?  not necessary at this point...
+        #self.assertEquals(res.json_body['caveats'][0]['description'],
+        #                  'lol, you cant double up son')
 
     @mock.patch('bodhi.notifications.publish')
     def test_commenting_twice_with_positive_then_negative_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(karma=1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -182,7 +196,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEquals(res.json_body['comment']['update']['karma'], 1)
 
-        res = self.app.post_json('/comments/', self.make_comment(karma=-1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -192,10 +206,12 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Mainly, ensure that original karma is overwritten..
         self.assertEquals(res.json_body['comment']['update']['karma'], -1)
+        self.assertEquals(res.json_body['caveats'][0]['description'],
+                          'Your karma standing was reversed.')
 
     @mock.patch('bodhi.notifications.publish')
     def test_commenting_with_negative_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(karma=-1))
+        res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEquals(res.json_body['comment']['anonymous'], False)
@@ -203,13 +219,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['comment']['user_id'], 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEquals(res.json_body['comment']['update']['karma'], -1)
-
-    #def test_anonymous_commenting_without_email(self):
-    #    settings = self.app_settings.copy()
-    #    app = TestApp(main({}, testing=None, **settings))
-    #    res = app.post_json('/comments/', self.make_comment(), status=400)
-    #    self.assertNotIn('errors', res.json_body)
-    #    raise NotImplementError("check more here")
 
     @mock.patch('bodhi.notifications.publish')
     def test_anonymous_commenting_with_email(self, publish):
@@ -374,15 +383,31 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
-    #def test_list_comments_by_update_no_comments(self):
-    #    res = self.app.get('/comments/', {"updates": "bodhi-2.0-2.fc17"})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['comments']), 0)
+    def test_list_comments_by_update_no_comments(self):
+        session = DBSession()
+        update = Update(
+            title=u'bodhi-2.0-200.fc17',
+            #builds=[build],
+            #user=user,
+            request=UpdateRequest.testing,
+            type=UpdateType.enhancement,
+            notes=u'Useful details!',
+            #release=release,
+            date_submitted=datetime(1984, 11, 02),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+        )
+        session.add(update)
+        session.flush()
+
+        res = self.app.get('/comments/', {"updates": "bodhi-2.0-200.fc17"})
+        body = res.json_body
+        self.assertEquals(len(body['comments']), 0)
 
     def test_list_comments_by_unexisting_update(self):
         res = self.app.get('/comments/', {"updates": "flash-player"},
                            status=400)
-        body = res.json_body
         self.assertEquals(res.json_body['errors'][0]['name'], 'updates')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid updates specified: flash-player")
@@ -398,7 +423,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_comments_by_unexisting_package(self):
         res = self.app.get('/comments/', {"packages": "flash-player"},
                            status=400)
-        body = res.json_body
         self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid packages specified: flash-player")
@@ -427,13 +451,15 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
-    #def test_list_comments_by_update_owner_with_none(self):
-    #    res = self.app.get('/comments/', {"update_owner": "bodhi"})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['comments']), 0)
-
-    #    comment = body['comments'][0]
-    #    self.assertNotIn('errors', body)
+    def test_list_comments_by_update_owner_with_none(self):
+        session = DBSession()
+        user = User(name='ralph')
+        session.add(user)
+        session.flush()
+        res = self.app.get('/comments/', {"update_owner": "ralph"})
+        body = res.json_body
+        self.assertEquals(len(body['comments']), 0)
+        self.assertNotIn('errors', body)
 
     def test_list_comments_by_unexisting_update_owner(self):
         res = self.app.get('/comments/', {"update_owner": "santa"}, status=400)
@@ -443,168 +469,45 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid user specified: santa")
 
-    #def test_put_json_comment(self):
-    #    self.app.put_json('/comments/', self.get_comment(), status=405)
+    def test_put_json_comment(self):
+        """ We only want to POST comments, not PUT. """
+        self.app.put_json('/comments/', self.make_comment(), status=405)
 
-    #def test_post_json_comment(self):
-    #    self.app.post_json('/comments/', self.get_comment('bodhi-2.0.0-1.fc17'))
+    def test_post_json_comment(self):
+        self.app.post_json('/comments/', self.make_comment(text='awesome'))
+        session = DBSession()
+        up = session.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
+        session.close()
+        self.assertEquals(len(up.comments), 3)
+        self.assertEquals(up.comments[-1]['text'], 'awesome')
 
-    #def test_new_comment(self):
-    #    r = self.app.post_json('/comments/', self.get_comment('bodhi-2.0.0-2.fc17'))
-    #    comment = r.json_body
-    #    self.assertEquals(comment['title'], u'bodhi-2.0.0-2.fc17')
-    #    self.assertEquals(comment['status'], u'pending')
-    #    self.assertEquals(comment['request'], u'testing')
-    #    self.assertEquals(comment['user']['name'], u'guest')
-    #    self.assertEquals(comment['release']['name'], u'F17')
-    #    self.assertEquals(comment['type'], u'bugfix')
-    #    self.assertEquals(comment['severity'], u'unspecified')
-    #    self.assertEquals(comment['suggest'], u'unspecified')
-    #    self.assertEquals(comment['close_bugs'], True)
-    #    self.assertEquals(comment['notes'], u'this is a test comment')
-    #    self.assertIsNotNone(comment['date_submitted'])
-    #    self.assertEquals(comment['date_modified'], None)
-    #    self.assertEquals(comment['date_approved'], None)
-    #    self.assertEquals(comment['date_pushed'], None)
-    #    self.assertEquals(comment['locked'], False)
-    #    self.assertEquals(comment['alias'], None)
-    #    self.assertEquals(comment['karma'], 0)
+    def test_new_comment(self):
+        comment = self.make_comment('bodhi-2.0-1.fc17', text='superb')
+        r = self.app.post_json('/comments/', comment)
+        comment = r.json_body['comment']
+        self.assertEquals(comment['text'], u'superb')
+        self.assertEquals(comment['user']['name'], u'guest')
+        self.assertEquals(comment['author'], u'guest')
+        self.assertEquals(comment['update']['title'], u'bodhi-2.0-1.fc17')
+        self.assertEquals(comment['update_title'], u'bodhi-2.0-1.fc17')
+        self.assertEquals(comment['karma'], 0)
 
-    #def test_edit_comment(self):
-    #    args = self.get_comment('bodhi-2.0.0-2.fc17')
-    #    r = self.app.post_json('/comments/', args)
-    #    args['edited'] = args['builds']
-    #    args['builds'] = 'bodhi-2.0.0-3.fc17'
-    #    r = self.app.post_json('/comments/', args)
-    #    comment = r.json_body
-    #    self.assertEquals(comment['title'], u'bodhi-2.0.0-3.fc17')
-    #    self.assertEquals(comment['status'], u'pending')
-    #    self.assertEquals(comment['request'], u'testing')
-    #    self.assertEquals(comment['user']['name'], u'guest')
-    #    self.assertEquals(comment['release']['name'], u'F17')
-    #    self.assertEquals(comment['type'], u'bugfix')
-    #    self.assertEquals(comment['severity'], u'unspecified')
-    #    self.assertEquals(comment['suggest'], u'unspecified')
-    #    self.assertEquals(comment['close_bugs'], True)
-    #    self.assertEquals(comment['notes'], u'this is a test comment')
-    #    self.assertIsNotNone(comment['date_submitted'])
-    #    self.assertIsNotNone(comment['date_modified'], None)
-    #    self.assertEquals(comment['date_approved'], None)
-    #    self.assertEquals(comment['date_pushed'], None)
-    #    self.assertEquals(comment['locked'], False)
-    #    self.assertEquals(comment['alias'], None)
-    #    self.assertEquals(comment['karma'], 0)
-    #    self.assertEquals(comment['comments'][-1]['text'],
-    #                      u'guest edited this comment. New build(s): ' +
-    #                      u'bodhi-2.0.0-3.fc17. Removed build(s): bodhi-2.0.0-2.fc17.')
-    #    self.assertEquals(len(comment['builds']), 1)
-    #    self.assertEquals(comment['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-    #    self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+    def test_no_self_karma(self):
+        " Make sure you can't give +1 karma to your own updates.. "
+        comment = self.make_comment('bodhi-2.0-1.fc17', karma=1)
+        # The author of this comment is "guest"
 
-    #def test_edit_stable_comment(self):
-    #    """Make sure we can't edit stable comments"""
-    #    nvr = 'bodhi-2.0.0-2.fc17'
-    #    args = self.get_comment(nvr)
-    #    r = self.app.post_json('/comments/', args, status=200)
-    #    comment = DBSession.query(Comment).filter_by(title=nvr).one()
-    #    comment.status = CommentStatus.stable
-    #    args['edited'] = args['builds']
-    #    args['builds'] = 'bodhi-2.0.0-3.fc17'
-    #    r = self.app.post_json('/comments/', args, status=400)
-    #    comment = r.json_body
-    #    self.assertEquals(comment['status'], 'error')
-    #    self.assertEquals(comment['errors'][0]['description'], "Cannot edit stable comments")
+        session = DBSession()
+        up = session.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
+        self.assertEquals(up.user.name, 'guest')
 
-    #def test_push_untested_critpath_to_release(self):
-    #    """
-    #    Ensure that we cannot push an untested critpath comment directly to
-    #    stable.
-    #    """
-    #    args = self.get_comment('kernel-3.11.5-300.fc17')
-    #    args['request'] = 'stable'
-    #    comment = self.app.post_json('/comments/', args).json_body
-    #    self.assertTrue(comment['critpath'])
-    #    self.assertEquals(comment['request'], 'testing')
-
-    #def test_obsoletion(self):
-    #    nvr = 'bodhi-2.0.0-2.fc17'
-    #    args = self.get_comment(nvr)
-    #    self.app.post_json('/comments/', args)
-    #    comment = DBSession.query(Comment).filter_by(title=nvr).one()
-    #    comment.status = CommentStatus.testing
-    #    comment.request = None
-
-    #    args = self.get_comment('bodhi-2.0.0-3.fc17')
-    #    r = self.app.post_json('/comments/', args).json_body
-    #    self.assertEquals(r['request'], 'testing')
-    #    self.assertEquals(r['comments'][-2]['text'],
-    #                      u'This comment has obsoleted bodhi-2.0.0-2.fc17, '
-    #                      'and has inherited its bugs and notes.')
-
-    #    comment = DBSession.query(Comment).filter_by(title=nvr).one()
-    #    self.assertEquals(comment.status, CommentStatus.obsolete)
-    #    self.assertEquals(comment.comments[-1].text,
-    #                      u'This comment has been obsoleted by bodhi-2.0.0-3.fc17')
-
-    #def test_obsoletion_with_open_request(self):
-    #    nvr = 'bodhi-2.0.0-2.fc17'
-    #    args = self.get_comment(nvr)
-    #    self.app.post_json('/comments/', args)
-
-    #    args = self.get_comment('bodhi-2.0.0-3.fc17')
-    #    r = self.app.post_json('/comments/', args).json_body
-    #    self.assertEquals(r['request'], 'testing')
-
-    #    comment = DBSession.query(Comment).filter_by(title=nvr).one()
-    #    self.assertEquals(comment.status, CommentStatus.pending)
-    #    self.assertEquals(comment.request, CommentRequest.testing)
-
-    #def test_invalid_request(self):
-    #    """Test submitting an invalid request"""
-    #    args = self.get_comment()
-    #    resp = self.app.post_json('/comments/%s/request' % args['builds'],
-    #                              {'request': 'foo'}, status=400)
-    #    resp = resp.json_body
-    #    eq_(resp['status'], 'error')
-    #    eq_(resp['errors'][0]['description'], u'"foo" is not one of unpush, testing, obsolete, stable')
-
-    #    # Now try with None
-    #    resp = self.app.post_json('/comments/%s/request' % args['builds'],
-    #                              {'request': None}, status=400)
-    #    resp = resp.json_body
-    #    eq_(resp['status'], 'error')
-    #    eq_(resp['errors'][0]['name'], 'request')
-    #    eq_(resp['errors'][0]['description'], 'Required')
-
-    #def test_testing_request(self):
-    #    """Test submitting a valid testing request"""
-    #    args = self.get_comment()
-    #    args['request'] = None
-    #    resp = self.app.post_json('/comments/%s/request' % args['builds'],
-    #                              {'request': 'testing'})
-    #    eq_(resp.json['comment']['request'], 'testing')
-
-    #def test_invalid_stable_request(self):
-    #    """Test submitting a stable request for an comment that has yet to meet the stable requirements"""
-    #    args = self.get_comment()
-    #    resp = self.app.post_json('/comments/%s/request' % args['builds'],
-    #                              {'request': 'stable'}, status=400)
-    #    eq_(resp.json['status'], 'error')
-    #    eq_(resp.json['errors'][0]['description'],
-    #        config.get('not_yet_tested_msg'))
-
-    #def test_stable_request_after_testing(self):
-    #    """Test submitting a stable request to an comment that has met the minimum amount of time in testing"""
-    #    args = self.get_comment('bodhi-2.0.0-3.fc17')
-    #    resp = self.app.post_json('/comments/', args)
-    #    comment = DBSession.query(Comment).filter_by(title=resp.json['title']).one()
-    #    comment.status = CommentStatus.testing
-    #    comment.request = None
-    #    comment.comment('This comment has been pushed to testing', author='bodhi')
-    #    comment.comments[-1].timestamp -= timedelta(days=7)
-    #    DBSession.flush()
-    #    eq_(comment.days_in_testing, 7)
-    #    eq_(comment.meets_testing_requirements, True)
-    #    resp = self.app.post_json('/comments/%s/request' % args['builds'],
-    #                              {'request': 'stable'})
-    #    eq_(resp.json['comment']['request'], 'stable')
+        r = self.app.post_json('/comments/', comment)
+        comment = r.json_body['comment']
+        self.assertEquals(comment['user']['name'], u'guest')
+        self.assertEquals(comment['update']['title'], u'bodhi-2.0-1.fc17')
+        caveats = r.json_body['caveats']
+        self.assertEquals(len(caveats), 1)
+        self.assertEquals(caveats[0]['name'], 'karma')
+        self.assertEquals(caveats[0]['description'],
+                          "You may not give karma to your own updates.")
+        self.assertEquals(comment['karma'], 0)  # This is the real check

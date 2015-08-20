@@ -183,10 +183,11 @@ def new_comment(request):
         return
 
     try:
-        com = update.comment(author=author, anonymous=anonymous, **data)
+        comment, caveats = update.comment(
+            author=author, anonymous=anonymous, **data)
     except Exception as e:
         log.exception(e)
         request.errors.add('body', 'comment', 'Unable to create comment')
         return
 
-    return dict(comment=com)
+    return dict(comment=comment, caveats=caveats)
