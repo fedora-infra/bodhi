@@ -644,7 +644,7 @@ class MasherThread(threading.Thread):
         arch = os.listdir(mash_path)[0]
 
         release = self.release.id_prefix.lower().replace('-', '_')
-        request = self.request.name
+        request = self.request.value
         key = '%s_%s_master_repomd' % (release, request)
         master_repomd = config.get(key)
         if not master_repomd:
