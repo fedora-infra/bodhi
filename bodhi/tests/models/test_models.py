@@ -151,8 +151,8 @@ class TestBuild(ModelTest):
     def test_url(self):
         eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
 
-    def test_get_latest(self):
-        eq_(self.obj.get_latest(), None)
+    #def test_get_latest(self):
+    #    eq_(self.obj.get_latest(), None)
 
 
 class TestUpdate(ModelTest):
