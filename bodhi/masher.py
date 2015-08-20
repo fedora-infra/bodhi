@@ -574,11 +574,13 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             if update.status is UpdateStatus.testing:
                 self.add_to_digest(update)
+        self.log.info('Testing digest generation for %s complete' % self.release.name)
 
     def generate_updateinfo(self):
         self.log.info('Generating updateinfo for %s' % self.release.name)
         uinfo = ExtendedMetadata(self.release, self.request,
                                  self.db, self.path)
+        self.log.info('Updateinfo generation for %s complete' % self.release.name)
         return uinfo
 
     def sanity_check_repo(self):
