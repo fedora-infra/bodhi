@@ -66,16 +66,11 @@ def get_rpm_header(nvr):
         'name', 'summary', 'version', 'release', 'url', 'description',
         'changelogtime', 'changelogname', 'changelogtext',
     ]
-    # We don't want to query too many times, so just do x86_64 and noarch
-    #arches = config.get('arches', '').split()
-    arches = ['x86_64']
-    suffixes = arches + ['noarch']
-    for suffix in suffixes:
-        rpmID = nvr + '.' + suffix
-        koji_session = buildsys.get_session()
-        result = koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
-        if result:
-            return result
+    rpmID = nvr + '.src'
+    koji_session = buildsys.get_session()
+    result = koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
+    if result:
+        return result
 
     raise ValueError("No rpm headers found in koji for %r" % nvr)
 
