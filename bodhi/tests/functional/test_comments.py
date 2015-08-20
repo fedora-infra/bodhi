@@ -12,32 +12,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import unittest
-
 import mock
-from nose.tools import eq_, raises
 from datetime import datetime, timedelta
-from webtest import TestApp
 
 import bodhi.tests.functional.base
 
-from bodhi import main
-from bodhi.config import config
 from bodhi.models import (
-    Base,
-    Bug,
-    Build,
-    CVE,
     DBSession,
-    Group,
-    Package,
-    Release,
     Comment,
-    Update,
-    UpdateType,
-    User,
-    UpdateStatus,
-    UpdateRequest,
 )
 
 
@@ -58,7 +40,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         return comment
 
     def test_invalid_update(self):
-        session = DBSession()
         res = self.app.post_json('/comments/', self.make_comment(
             update='bodhi-1.0-2.fc17',
         ), status=404)
@@ -375,7 +356,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_comments_by_unexisting_update(self):
         res = self.app.get('/comments/', {"updates": "flash-player"},
                            status=400)
-        body = res.json_body
         self.assertEquals(res.json_body['errors'][0]['name'], 'updates')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid updates specified: flash-player")
@@ -391,7 +371,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_comments_by_unexisting_package(self):
         res = self.app.get('/comments/', {"packages": "flash-player"},
                            status=400)
-        body = res.json_body
         self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid packages specified: flash-player")
