@@ -642,19 +642,24 @@ class MasherThread(threading.Thread):
             repo=self.id))
         mash_path = os.path.join(self.path, self.id)
         arch = os.listdir(mash_path)[0]
+
         release = self.release.id_prefix.lower().replace('-', '_')
         request = self.request.name
-        master_repomd = config.get('%s_%s_master_repomd' % (release, request))
+        key = '%s_%s_master_repomd' % (release, request)
+        master_repomd = config.get(key)
+        if not master_repomd:
+            raise ValueError("Could not find %s in the config file" % key)
+
         repomd = os.path.join(mash_path, arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
+
         checksum = hashlib.sha1(file(repomd).read()).hexdigest()
         while True:
-            time.sleep(200)
             try:
-                masterrepomd = urllib2.urlopen(master_repomd %
-                                               (self.release.version, arch))
+                url = master_repomd % (self.release.version, arch)
+                masterrepomd = urllib2.urlopen(url)
             except (urllib2.URLError, urllib2.HTTPError):
                 self.log.exception('Error fetching repomd.xml')
                 continue
@@ -667,6 +672,7 @@ class MasherThread(threading.Thread):
 
             self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
                            checksum, newsum, self.id)
+            time.sleep(200)
 
     def send_notifications(self):
         self.log.info('Sending notifications')
