@@ -642,13 +642,19 @@ class MasherThread(threading.Thread):
             repo=self.id))
         mash_path = os.path.join(self.path, self.id)
         arch = os.listdir(mash_path)[0]
+
         release = self.release.id_prefix.lower().replace('-', '_')
         request = self.request.name
-        master_repomd = config.get('%s_%s_master_repomd' % (release, request))
+        key = '%s_%s_master_repomd' % (release, request)
+        master_repomd = config.get(key)
+        if not master_repomd:
+            raise ValueError("Could not find %s in the config file" % key)
+
         repomd = os.path.join(mash_path, arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
+
         checksum = hashlib.sha1(file(repomd).read()).hexdigest()
         while True:
             try:
