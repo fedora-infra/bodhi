@@ -21,6 +21,7 @@ mashed.
 
 import os
 import copy
+import functools
 import json
 import time
 import urllib2
@@ -54,7 +55,7 @@ def checkpoint(method):
     def wrapper(self, *args, **kwargs):
         if not self.resume or not self.state.get(key):
             # Call it
-            retval = method(*args, **kwargs)
+            retval = method(self, *args, **kwargs)
             if retval is not None:
                 raise ValueError("checkpointed functions may not return stuff")
             # if it didn't raise an exception, mark the checkpoint
