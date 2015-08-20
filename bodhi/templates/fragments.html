@@ -56,7 +56,7 @@
 </div>
 </%def>
 
-<%def name="update(update, display_user=True)">
+<%def name="update(update, display_user=True, display_request=False)">
   <td>${util.update2html(update) | n}</td>
   <td class="nobreak">
     <span title="${update['date_submitted']} UTC">
@@ -78,6 +78,9 @@
     </a>
     % endif
   </td>
+  %if display_request:
+  <td class="hidejs">${update['request'] or ''}</td>
+  %endif
   <td class="hidejs">${update['status']}</td>
 </%def>
 
