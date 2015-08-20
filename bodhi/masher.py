@@ -559,7 +559,7 @@ class MasherThread(threading.Thread):
         """
         mash_path = os.path.join(self.path, self.id)
         arches = os.listdir(mash_path)
-        self.log.debug("Running sanity checks on %s" % mash_path)
+        self.log.info("Running sanity checks on %s" % mash_path)
 
         # make sure the new repository has our arches
         for arch in config.get('arches').split():
