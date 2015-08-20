@@ -1355,6 +1355,11 @@ class Update(Base):
                     self.check_karma_thresholds(author)
                 except LockedUpdateException:
                     pass
+                except BodhiException as e:
+                    # This gets thrown if the karma is pushed over the
+                    # threshold, but it is a critpath update that is not
+                    # critpath_approved. ... among other cases.
+                    log.exception('Problem checking the karma threshold.')
 
         session = DBSession()
         comment = Comment(
