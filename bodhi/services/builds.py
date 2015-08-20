@@ -26,7 +26,6 @@ import bodhi.security
 from bodhi.validators import (
     validate_nvrs,
     validate_uniqueness,
-    validate_acls,
     validate_builds,
     validate_enums,
     validate_updates,
