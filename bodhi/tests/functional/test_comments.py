@@ -438,11 +438,17 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid user specified: santa")
 
-    #def test_put_json_comment(self):
-    #    self.app.put_json('/comments/', self.get_comment(), status=405)
+    def test_put_json_comment(self):
+        """ We only want to POST comments, not PUT. """
+        self.app.put_json('/comments/', self.make_comment(), status=405)
 
-    #def test_post_json_comment(self):
-    #    self.app.post_json('/comments/', self.get_comment('bodhi-2.0.0-1.fc17'))
+    def test_post_json_comment(self):
+        self.app.post_json('/comments/', self.make_comment(text='awesome'))
+        session = DBSession()
+        up = session.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
+        session.close()
+        self.assertEquals(len(up.comments), 3)
+        self.assertEquals(up.comments[-1]['text'], 'awesome')
 
     #def test_new_comment(self):
     #    r = self.app.post_json('/comments/', self.get_comment('bodhi-2.0.0-2.fc17'))
