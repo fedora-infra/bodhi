@@ -88,6 +88,17 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['name'], 'builds.0')
         self.assertEquals(res.json_body['errors'][0]['description'], 'Required')
 
+    @mock.patch(**mock_valid_requirements)
+    def test_fail_on_edit_with_empty_build_list(self, *args):
+        update = self.get_update()
+        update['edited'] = update['builds']  # the update title..
+        update['builds'] = []
+        res = self.app.post_json('/updates/', update, status=400)
+        self.assertEquals(len(res.json_body['errors']), 1)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'builds')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'You may not specify an empty list of builds.')
+
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')

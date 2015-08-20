@@ -31,11 +31,6 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      Bug, TestCase, ReleaseState, Stack)
 from .util import get_nvr, tokenize, taskotron_results
 
-try:
-    import rpm
-except ImportError:
-    log.warning("Could not import 'rpm'")
-
 
 # This one is a colander validator which is different from the cornice
 # validators defined elsehwere.
@@ -64,6 +59,12 @@ def validate_builds(request):
     edited = request.validated.get('edited')
     settings = request.registry.settings
     user = request.user
+
+    if not request.validated.get('builds', []):
+        request.errors.add('body', 'builds',
+                            "You may not specify an empty list of builds.")
+        return
+
 
     if edited:
         up = request.db.query(Update).filter_by(title=edited).first()
