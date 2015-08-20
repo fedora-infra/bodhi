@@ -38,7 +38,7 @@ def validate_csrf_token(node, value):
     request = pyramid.threadlocal.get_current_request()
     expected = request.session.get_csrf_token()
     if value != expected:
-        raise colander.Invalid(node, 'Tokens do not match')
+        raise colander.Invalid(node, 'CSRF tokens do not match')
 
 
 def validate_nvrs(request):
