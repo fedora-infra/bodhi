@@ -451,7 +451,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up.comments[-1]['text'], 'awesome')
 
     def test_new_comment(self):
-        comment = self.make_comment('bodhi-2.0-1.fc17', text='superb', karma=1)
+        comment = self.make_comment('bodhi-2.0-1.fc17', text='superb')
         r = self.app.post_json('/comments/', comment)
         comment = r.json_body['comment']
         self.assertEquals(comment['text'], u'superb')
@@ -459,4 +459,4 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(comment['author'], u'guest')
         self.assertEquals(comment['update']['title'], u'bodhi-2.0-1.fc17')
         self.assertEquals(comment['update_title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(comment['karma'], 1)
+        self.assertEquals(comment['karma'], 0)
