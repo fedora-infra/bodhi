@@ -20,6 +20,7 @@ import bodhi.tests.functional.base
 from bodhi.models import (
     DBSession,
     Comment,
+    User,
     Update,
     UpdateRequest,
     UpdateType,
@@ -419,13 +420,15 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
-    #def test_list_comments_by_update_owner_with_none(self):
-    #    res = self.app.get('/comments/', {"update_owner": "bodhi"})
-    #    body = res.json_body
-    #    self.assertEquals(len(body['comments']), 0)
-
-    #    comment = body['comments'][0]
-    #    self.assertNotIn('errors', body)
+    def test_list_comments_by_update_owner_with_none(self):
+        session = DBSession()
+        user = User(name='ralph')
+        session.add(user)
+        session.flush()
+        res = self.app.get('/comments/', {"update_owner": "ralph"})
+        body = res.json_body
+        self.assertEquals(len(body['comments']), 0)
+        self.assertNotIn('errors', body)
 
     def test_list_comments_by_unexisting_update_owner(self):
         res = self.app.get('/comments/', {"update_owner": "santa"}, status=400)
