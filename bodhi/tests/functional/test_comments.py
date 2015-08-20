@@ -204,13 +204,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEquals(res.json_body['comment']['update']['karma'], -1)
 
-    #def test_anonymous_commenting_without_email(self):
-    #    settings = self.app_settings.copy()
-    #    app = TestApp(main({}, testing=None, **settings))
-    #    res = app.post_json('/comments/', self.make_comment(), status=400)
-    #    self.assertNotIn('errors', res.json_body)
-    #    raise NotImplementError("check more here")
-
     @mock.patch('bodhi.notifications.publish')
     def test_anonymous_commenting_with_email(self, publish):
         res = self.app.post_json('/comments/',
