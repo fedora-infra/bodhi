@@ -93,6 +93,7 @@ def get_update_for_editing(request):
                      validators=(
                          validate_enums,
                          validate_update_id,
+                         validate_build_tags,
                          validate_acls,
                      ),
                      permission='edit', renderer='json')
