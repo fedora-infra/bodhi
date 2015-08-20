@@ -115,12 +115,6 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     #    assert 'Invalid tag' in res, res
 
     @mock.patch(**mock_valid_requirements)
-    def test_old_build(self, *args):
-        res = self.app.post_json('/updates/', self.get_update(u'bodhi-1.9-1.fc17'),
-                                 status=400)
-        assert 'Invalid build: bodhi-1.9-1.fc17 is older than bodhi-2.0-1.fc17' in res, res
-
-    @mock.patch(**mock_valid_requirements)
     def test_duplicate_build(self, *args):
         res = self.app.post_json('/updates/',
             self.get_update([u'bodhi-2.0-2.fc17', u'bodhi-2.0-2.fc17']),
