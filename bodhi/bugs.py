@@ -84,10 +84,10 @@ class Bugzilla(BugTracker):
         if fixedin:
             args['fixedin'] = fixedin
         try:
-            bug = self.bz.getbug(self.bug_id)
+            bug = self.bz.getbug(bug_id)
             bug.close('NEXTRELEASE', **args)
         except xmlrpclib.Fault:
-            log.exception("Unable to close bug #%d" % self.bug_id)
+            log.exception("Unable to close bug #%d" % bug_id)
 
     def update_details(self, bug, bug_entity):
         if not bug:
@@ -119,7 +119,7 @@ class Bugzilla(BugTracker):
                 log.info('Setting bug #%d status to MODIFIED' % bug_id)
                 bug.setstatus('MODIFIED')
         except:
-            log.exception("Unable to alter bug #%d" % self.bug_id)
+            log.exception("Unable to alter bug #%d" % bug_id)
 
 
 if config.get('bugtracker') == 'bugzilla':
