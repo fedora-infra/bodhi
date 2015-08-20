@@ -464,23 +464,23 @@ $(document).ready(function(){
       % else:
         <div id='updatebuttons' class="btn-group pull-right" role="group" aria-label="...">
         % if not update.pushed:
-          <a href="#" id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
+          <a id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
           % if update.request is None:
             % if update.status.description != 'testing':
-            <a href="#" id='testing' class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Testing</a>
+            <a id='testing' class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Testing</a>
             % endif
             % if update.status.description != 'stable':
-              <a href="#" id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
+              <a id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
             % endif
           % else:
-            <a href="#" id='revoke' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Revoke</a>
+            <a id='revoke' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Revoke</a>
           % endif
         % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in [group.name for group in request.user.groups])):
-          <a href="#" id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
+          <a id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
           % if update.meets_testing_requirements:
-            <a href="#" id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
+            <a id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
           % endif
-          <a href="#" id='unpush' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Unpush</a>
+          <a id='unpush' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Unpush</a>
         % endif
         </div>
         <div class="clearfix"></div>
