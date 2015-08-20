@@ -262,7 +262,8 @@ def query_updates(request):
         rows_per_page=rows_per_page,
         total=total,
         chrome=data.get('chrome'),
-        display_user=data.get('display_user'),
+        display_user=data.get('display_user', False),
+        display_request=data.get('display_request', True),
     )
 
 
