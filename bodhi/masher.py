@@ -652,8 +652,8 @@ class MasherThread(threading.Thread):
         checksum = hashlib.sha1(file(repomd).read()).hexdigest()
         while True:
             try:
-                masterrepomd = urllib2.urlopen(master_repomd %
-                                               (self.release.version, arch))
+                url = master_repomd % (self.release.version, arch)
+                masterrepomd = urllib2.urlopen(url)
             except (urllib2.URLError, urllib2.HTTPError):
                 self.log.exception('Error fetching repomd.xml')
                 continue
