@@ -31,11 +31,6 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      Bug, TestCase, ReleaseState, Stack)
 from .util import get_nvr, tokenize, taskotron_results
 
-try:
-    import rpm
-except ImportError:
-    log.warning("Could not import 'rpm'")
-
 
 # This one is a colander validator which is different from the cornice
 # validators defined elsehwere.
