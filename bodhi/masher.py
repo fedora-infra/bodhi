@@ -651,7 +651,6 @@ class MasherThread(threading.Thread):
             return
         checksum = hashlib.sha1(file(repomd).read()).hexdigest()
         while True:
-            time.sleep(200)
             try:
                 masterrepomd = urllib2.urlopen(master_repomd %
                                                (self.release.version, arch))
@@ -667,6 +666,7 @@ class MasherThread(threading.Thread):
 
             self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
                            checksum, newsum, self.id)
+            time.sleep(200)
 
     def send_notifications(self):
         self.log.info('Sending notifications')
