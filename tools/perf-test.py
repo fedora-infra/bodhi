@@ -9,17 +9,17 @@ import requests
 import time
 
 items = collections.OrderedDict([
-    ('frontpage', 'http://localhost:6543/'),
-    ('update_list', 'http://localhost:6543/updates'),
-    ('update_view', ('http://localhost:6543/updates/'
+    ('frontpage', 'http://0.0.0.0:6543/'),
+    ('update_list', 'http://0.0.0.0:6543/updates'),
+    ('update_view', ('http://0.0.0.0:6543/updates/'
                      'abrt-2.1.6-2.fc19%2Cgnome-abrt'
                      '-0.3.0-3.fc19%2Clibreport-2.1.6-2.fc19')),
-    ('release_list', 'http://localhost:6543/releases'),
-    ('release_view', 'http://localhost:6543/releases/f19'),
-    ('comment_list', 'http://localhost:6543/comments'),
-    ('comment_view', 'http://localhost:6543/comments/2'),
-    ('user_list', 'http://localhost:6543/users/'),
-    ('user_view', 'http://localhost:6543/users/adamwill'),
+    ('release_list', 'http://0.0.0.0:6543/releases'),
+    ('release_view', 'http://0.0.0.0:6543/releases/f19'),
+    ('comment_list', 'http://0.0.0.0:6543/comments'),
+    ('comment_view', 'http://0.0.0.0:6543/comments/2'),
+    ('user_list', 'http://0.0.0.0:6543/users/'),
+    ('user_view', 'http://0.0.0.0:6543/users/adamwill'),
 ])
 
 results = collections.OrderedDict()

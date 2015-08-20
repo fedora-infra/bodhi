@@ -76,10 +76,10 @@ class BaseWSGICase(unittest.TestCase):
         'openid_template': '{username}.id.fedoraproject.org',
         'site_requirements': 'rpmlint',
         'resultsdb_api_url': 'whatever',
-        'base_address': 'http://localhost:6543',
-        'cors_connect_src': 'http://localhost:6543',
-        'cors_origins_ro': 'http://localhost:6543',
-        'cors_origins_rw': 'http://localhost:6543',
+        'base_address': 'http://0.0.0.0:6543',
+        'cors_connect_src': 'http://0.0.0.0:6543',
+        'cors_origins_ro': 'http://0.0.0.0:6543',
+        'cors_origins_rw': 'http://0.0.0.0:6543',
     }
 
     def setUp(self):
