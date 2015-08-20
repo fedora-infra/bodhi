@@ -12,6 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import koji
+
 from datetime import datetime, timedelta
 
 from sqlalchemy.sql import or_
@@ -102,9 +104,14 @@ def validate_build_tags(request):
         valid_tags = tag_types['candidate']
     for build in request.validated.get('builds', []):
         valid = False
-        tags = request.buildinfo[build]['tags'] = [
-            tag['name'] for tag in request.koji.listTags(build)
-        ]
+        try:
+            tags = request.buildinfo[build]['tags'] = [
+                tag['name'] for tag in request.koji.listTags(build)
+            ]
+        except koji.GenericError:
+            request.errors.add('body', 'builds',
+                               'Invalid koji build: %s' % build)
+            return
 
         # Disallow adding builds for a different release
         if edited:
