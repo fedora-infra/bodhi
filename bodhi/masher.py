@@ -662,6 +662,7 @@ class MasherThread(threading.Thread):
                 masterrepomd = urllib2.urlopen(url)
             except (urllib2.URLError, urllib2.HTTPError):
                 self.log.exception('Error fetching repomd.xml')
+                time.sleep(200)
                 continue
             newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             if newsum == checksum:
@@ -672,7 +673,6 @@ class MasherThread(threading.Thread):
 
             self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
                            checksum, newsum, self.id)
-            time.sleep(200)
 
     def send_notifications(self):
         self.log.info('Sending notifications')
