@@ -19,7 +19,6 @@ import logging
 import shutil
 import tempfile
 
-from datetime import datetime
 from urlgrabber.grabber import urlgrab
 from kitchen.text.converters import to_bytes
 
@@ -137,7 +136,7 @@ class ExtendedMetadata(object):
                     self.add_update(update)
                     continue
                 if notice.updated_date:
-                    if datetime.strptime(notice.updated_date, '%Y-%m-%d %H:%M:%S') < update.date_modified:
+                    if notice.updated_date < update.date_modified:
                         log.debug('Update modified, generating new notice: %s' % update.title)
                         self.add_update(update)
                     else:
