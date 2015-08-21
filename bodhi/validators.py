@@ -41,13 +41,20 @@ def validate_csrf_token(node, value):
         raise colander.Invalid(node, 'CSRF tokens do not match')
 
 
+def cache_nvrs(request, build):
+    if build in request.buildinfo and 'nvr' in request.buildinfo[build]:
+        return
+    if not build in request.buildinfo:
+        request.buildinfo[build] = {}
+    name, version, release = get_nvr(build)
+    request.buildinfo[build]['nvr'] = name, version, release
+    if '' in (name, version, release):
+        raise ValueError
+
 def validate_nvrs(request):
     for build in request.validated.get('builds', []):
         try:
-            name, version, release = get_nvr(build)
-            request.buildinfo[build]['nvr'] = name, version, release
-            if '' in (name, version, release):
-                raise ValueError
+            cache_nvrs(request, build)
         except:
             request.validated['builds'] = []
             request.errors.add('body', 'builds', 'Build not in '
