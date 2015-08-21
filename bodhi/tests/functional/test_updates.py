@@ -94,10 +94,15 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         update['edited'] = update['builds']  # the update title..
         update['builds'] = []
         res = self.app.post_json('/updates/', update, status=400)
-        self.assertEquals(len(res.json_body['errors']), 1)
+        self.assertEquals(len(res.json_body['errors']), 2)
         self.assertEquals(res.json_body['errors'][0]['name'], 'builds')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'You may not specify an empty list of builds.')
+        self.assertEquals(
+            res.json_body['errors'][0]['description'],
+            'You may not specify an empty list of builds.')
+        self.assertEquals(res.json_body['errors'][1]['name'], 'builds')
+        self.assertEquals(
+            res.json_body['errors'][1]['description'],
+            'ACL validation mechanism was unable to determine ACLs.')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -324,7 +329,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         update = self.get_update(u'bodhi-2.0-2.fc17')
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', update, status=400)
-        assert "Unable to access the Package Database. Please try again later." in res, res
+        assert "Unable to access the Package Database" in res, res
 
     @mock.patch(**mock_valid_requirements)
     def test_invalid_acl_system(self, *args):

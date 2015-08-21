@@ -110,6 +110,7 @@ def validate_build_tags(request):
                          .release
     else:
         valid_tags = tag_types['candidate']
+
     for build in request.validated.get('builds', []):
         valid = False
         try:
@@ -123,7 +124,14 @@ def validate_build_tags(request):
 
         # Disallow adding builds for a different release
         if edited:
-            build_rel = Release.from_tags(tags, request.db)
+            try:
+                build_rel = Release.from_tags(tags, request.db)
+            except KeyError:
+                msg = 'Cannot find release associated with build: {}, tags: {}'.format(build, tags)
+                log.warn(msg)
+                request.errors.add('body', 'builds', msg)
+                return
+
             if build_rel is not release:
                 request.errors.add('body', 'builds',
                         'Cannot add a %s build to an %s update' %
@@ -167,43 +175,116 @@ def validate_acls(request):
     groups = []
     notify_groups = []
 
-    for build in request.validated.get('builds', []):
-        buildinfo = request.buildinfo[build]
+    # There are two different code-paths that could pass through this validator
+    # One of them is for submitting something new with a list of builds (a new
+    # update, or editing an update by changing the list of builds).  The other
+    # is for changing the request on an existing update -- where an update
+    # title has been passed to us, but not a list of builds.
+    # We need to validate that the user has commit rights on all the build
+    # (either the explicitly listed ones or on the ones associated with the
+    # pre-existing update).. and so we'll do some conditional branching below
+    # to handle those two scenarios.
 
-        # Get the Package object
-        package_name = buildinfo['nvr'][0]
-        package = db.query(Package).filter_by(name=package_name).first()
-        if not package:
-            package = Package(name=package_name)
-            db.add(package)
-            db.flush()
+    # This can get confusing.
+    # TODO -- we should break these two roles out into two different clearly
+    # defined validator functions like `validate_acls_for_builds` and
+    # `validate_acls_for_update`.
 
-        # Determine the release associated with this build
-        tags = buildinfo['tags']
-        try:
-            release = Release.from_tags(tags, db)
-        except KeyError:
-            log.exception('Unable to determine release from tags')
-            request.errors.add('body', 'builds', 'Unable to determine release ' +
-                               'from build: %s' % build)
-            return
-        buildinfo['release'] = release
-        if not release:
-            msg = 'Cannot find release associated with tags: {}'.format(tags)
-            log.warn(msg)
-            request.errors.add('body', 'builds', msg)
-            return
+    builds = None
+    if 'builds' in request.validated:
+        builds = request.validated['builds']
+
+    if 'update' in request.validated:
+        builds = request.validated['update'].builds
+
+    if not builds:
+        log.error("validate_acls was passed data with nothing to validate.")
+        request.errors.add('body', 'builds', 'ACL validation mechanism was '
+                           'unable to determine ACLs.')
+        return
+
+    for build in builds:
+        # The whole point of the blocks inside this conditional is to determine
+        # the "release" and "package" associated with the given build.  For raw
+        # (new) builds, we have to do that by hand.  For builds that have been
+        # previously associated with an update, we can just look it up no prob.
+        if 'builds' in request.validated:
+            # Split out NVR data unless its already done.
+            try:
+                cache_nvrs(request, build)
+            except ValueError:
+                error = 'Problem caching NVRs when validating ACLs.'
+                log.exception(error)
+                request.errors.add('body', 'builds', error)
+                return
+
+            buildinfo = request.buildinfo[build]
+
+            # Get the Package object
+            package_name = buildinfo['nvr'][0]
+            package = db.query(Package).filter_by(name=package_name).first()
+            if not package:
+                package = Package(name=package_name)
+                db.add(package)
+                db.flush()
+
+            # Determine the release associated with this build
+            tags = buildinfo.get('tags', [])
+            try:
+                release = Release.from_tags(tags, db)
+            except KeyError:
+                log.exception('Unable to determine release from tags')
+                request.errors.add('body', 'builds',
+                                   'Unable to determine release ' +
+                                   'from build: %s' % build)
+                return
+            buildinfo['release'] = release
+            if not release:
+                msg = 'Cannot find release associated with ' + \
+                    'build: {}, tags: {}'.format(build, tags)
+                log.warn(msg)
+                request.errors.add('body', 'builds', msg)
+                return
+        elif 'update' in request.validated:
+            buildinfo = request.buildinfo[build.nvr]
+
+            # Easy to find the release and package since they're associated
+            # with a pre-stored Build obj.
+            package = build.package
+            release = build.update.release
+
+            # Some sanity checking..
+            if not package:
+                msg = build.nvr + ' has no package associated with it in ' + \
+                    'our DB, so we cannot verify that you\'re in the ACL.'
+                log.error(msg)
+                request.errors.add('body', 'builds', msg)
+                return
+            if not release:
+                msg = build.nvr + ' has no release associated with it in ' + \
+                    'our DB, so we cannot verify that you\'re in the ACL.'
+                log.error(msg)
+                request.errors.add('body', 'builds', msg)
+                return
+        else:
+            raise NotImplementedError()  # Should never get here.
+
+        # Now that we know the release and the package associated with this
+        # build, we can ask our ACL system about it..
 
         acl_system = settings.get('acl_system')
         if acl_system == 'pkgdb':
             try:
-                people, groups = package.get_pkg_pushers(release.branch, settings)
+                people, groups = package.get_pkg_pushers(
+                    release.branch, settings)
                 committers, watchers = people
                 groups, notify_groups = groups
             except Exception, e:
                 log.exception(e)
-                request.errors.add('body', 'builds', "Unable to access the Package "
-                                   "Database. Please try again later.")
+                request.errors.add('body', 'builds',
+                                   "Unable to access the Package "
+                                   "Database to check ACLs. Please "
+                                   "try again later.")
                 return
         elif acl_system == 'dummy':
             people = (['ralph', 'guest'], ['guest'])
