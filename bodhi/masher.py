@@ -192,8 +192,8 @@ Once mash is done:
                 threads = []
                 for release, request, updates in batch:
                     if request == req:
-                        log.debug('Starting thread for %s %s for %d updates',
-                                  release, request, len(updates))
+                        self.log.info('Starting thread for %s %s for %d updates',
+                                      release, request, len(updates))
                         thread = MasherThread(release, request, updates,
                                               self.log, self.db_factory,
                                               self.mash_dir, resume)
