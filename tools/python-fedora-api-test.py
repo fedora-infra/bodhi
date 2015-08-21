@@ -26,8 +26,10 @@ try:
             builds=build,
             type='bugfix',
             notes='The quick brown fox jumped over the lazy dog',
+            bugs='1234106,1234107',
     )
     print(result)
+    assert len(result.bugs) == 2, result.bugs
 except BodhiClientException as e:
     print(e)
 
