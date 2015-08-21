@@ -74,7 +74,7 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
 @update.get(accept="text/html", renderer="update.html")
 def get_update(request):
     """Return a single update from an id, title, or alias"""
-    can_edit = has_permission('edit', request.context, request)
+    can_edit = bool(has_permission('edit', request.context, request))
     return dict(update=request.validated['update'], can_edit=can_edit)
 
 
