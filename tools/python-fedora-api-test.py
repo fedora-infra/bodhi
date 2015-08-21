@@ -12,7 +12,7 @@ username = os.getenv('USER')
 #username = raw_input('FAS Username: ')
 #password = getpass.getpass()
 import subprocess
-p = subprocess.Popen(['/usr/bin/pass', 'sys/fas'], stdout=subprocess.PIPE)
+p = subprocess.Popen(['/usr/bin/pass', 'fedora'], stdout=subprocess.PIPE)
 out, err = p.communicate()
 password = out.strip()
 
