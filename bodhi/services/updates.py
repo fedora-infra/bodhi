@@ -12,6 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import copy
 import math
 
 from cornice import Service
@@ -292,24 +293,100 @@ def new_update(request):
     # it since the models don't care about a csrf argument.
     data.pop('csrf_token')
 
+    caveats = []
     try:
+
+        releases = set()
+        builds = []
+
+        # Create the Package and Build entities
+        for nvr in data['builds']:
+            name, version, release = request.buildinfo[nvr]['nvr']
+            package = request.db.query(Package).filter_by(name=name).first()
+            if not package:
+                package = Package(name=name)
+                request.db.add(package)
+                request.db.flush()
+
+            # Fetch test cases from the wiki
+            package.fetch_test_cases(request.db)
+
+            build = Build.get(nvr, request.db)
+
+            if build is None:
+                print "Adding nvr", nvr
+                build = Build(nvr=nvr, package=package)
+                request.db.add(build)
+                request.db.flush()
+
+            build.package = package
+            build.release = request.buildinfo[build.nvr]['release']
+            builds.append(build)
+            releases.add(request.buildinfo[build.nvr]['release'])
+
+
         if data.get('edited'):
+
             log.info('Editing update: %s' % data['edited'])
-            up = Update.edit(request, data)
+
+            assert len(releases) == 1, "Updates may not span multiple releases"
+            data['release'] = list(releases)[0]
+            data['builds'] = [b.nvr for b in builds]
+            result, _caveats = Update.edit(request, data)
+            caveats.extend(_caveats)
         else:
-            log.info('Creating new update: %s' % ' '.join(data['builds']))
-            up = Update.new(request, data)
-            log.debug('update = %r' % up)
+            if len(releases) > 1:
+                caveats.append({
+                    'name': 'releases',
+                    'description': 'Your update is being split '
+                    'into %i, one for each release.' % len(releases)
 
+                })
+            updates = []
+            for release in releases:
+                _data = copy.copy(data)  # Copy it because .new(..) mutates it
+                _data['builds'] = [b for b in builds if b.release == release]
+                _data['release'] = release
+
+                log.info('Creating new update: %r' % _data['builds'])
+                result, _caveats = Update.new(request, _data)
+                log.debug('update = %r' % result)
+
+                updates.append(result)
+                caveats.extend(_caveats)
+
+            if len(releases) > 1:
+                result = dict(updates=updates)
     except LockedUpdateException as e:
-        request.errors.add('body', 'builds', "%s" % e)
+        log.warn(str(e))
+        request.errors.add('body', 'builds', "%s" % str(e))
         return
-
     except Exception as e:
-        log.exception(e)
-        request.errors.add('body', 'builds', 'Unable to create update')
+        log.exception('Failed to create update')
+        request.errors.add(
+            'body', 'builds', 'Unable to create update.  %s' % str(e))
         return
 
-    up.obsolete_older_updates(request)
+    # Obsolete older updates for three different cases...
+    # editing an update, submitting a new single update, submitting multiple.
 
-    return up
+    if isinstance(result, dict):
+        updates = result['updates']
+    else:
+        updates = [result]
+
+    for update in updates:
+        try:
+            update.obsolete_older_updates(request)
+        except Exception as e:
+            caveats.append({
+                'name': 'update',
+                'description': 'Problem obsoleting older updates: %s' % str(e),
+            })
+
+    if not isinstance(result, dict):
+        result = result.__json__()
+
+    result['caveats'] = caveats
+
+    return result

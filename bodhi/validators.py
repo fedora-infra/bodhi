@@ -321,26 +321,30 @@ def validate_acls(request):
 
 
 def validate_uniqueness(request):
-    """ Check for multiple builds from the same package """
+    """ Check for multiple builds from the same package and same release """
     builds = request.validated.get('builds', [])
     if not builds:  # validate_nvr failed
         return
-    for build in builds:
-        nvr = request.buildinfo[build]['nvr']
+    for build1 in builds:
+        nvr1 = request.buildinfo[build1]['nvr']
         seen_build = 0
-        for other_build in builds:
-            other_build_nvr = request.buildinfo[other_build]['nvr']
-            if build == other_build:
+        for build2 in builds:
+            nvr2 = request.buildinfo[build2]['nvr']
+            if build1 == build2:
                 seen_build += 1
                 if seen_build > 1:
                     request.errors.add('body', 'builds', 'Duplicate builds: '
-                                       '{}'.format(build))
+                                       '{}'.format(build1))
                     return
                 continue
-            if nvr[0] == other_build_nvr[0]:
+
+            release1 = nvr1[-1].split('.')[-1]
+            release2 = nvr2[-1].split('.')[-1]
+
+            if nvr1[0] == nvr2[0] and release1 == release2:
                 request.errors.add('body', 'builds', "Multiple {} builds "
-                                   "specified: {} & {}".format(nvr[0], build,
-                                   other_build))
+                                   "specified: {} & {}".format(nvr1[0], build1,
+                                   build2))
                 return
 
 
