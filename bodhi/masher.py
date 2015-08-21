@@ -21,6 +21,7 @@ mashed.
 
 import os
 import copy
+import functools
 import json
 import time
 import urllib2
@@ -38,6 +39,34 @@ from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
                           UpdateStatus, ReleaseState, DBSession, Base)
 from bodhi.metadata import ExtendedMetadata
+
+
+def checkpoint(method):
+    """ A decorator for skipping sections of the mash when resuming.
+
+    We started working on this on deployment day, but don't really have time to
+    think about the rammifications right now... so we're going to leave the
+    decorator here, but not yet employ is in methods of the MasherThread.
+    """
+
+    key = method.__name__
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        if not self.resume or not self.state.get(key):
+            # Call it
+            retval = method(self, *args, **kwargs)
+            if retval is not None:
+                raise ValueError("checkpointed functions may not return stuff")
+            # if it didn't raise an exception, mark the checkpoint
+            self.state[key] = True
+            self.save_state()
+        else:
+            # cool!  we don't need to do anything, since we ran last time
+            pass
+
+        return None
+    return wrapper
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
@@ -701,23 +730,27 @@ class MasherThread(threading.Thread):
                 update=update, agent=agent,
             ))
 
+    @checkpoint
     def modify_bugs(self):
         self.log.info('Updating bugs')
         for update in self.updates:
             self.log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
+    @checkpoint
     def status_comments(self):
         self.log.info('Commenting on updates')
         for update in self.updates:
             update.status_comment()
 
+    @checkpoint
     def send_stable_announcements(self):
         self.log.info('Sending stable update announcements')
         for update in self.updates:
             if update.status is UpdateStatus.stable:
                 update.send_update_notice()
 
+    @checkpoint
     def send_testing_digest(self):
         """Send digest mail to mailing lists"""
         self.log.info('Sending updates-testing digest')
