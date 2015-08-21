@@ -163,6 +163,8 @@ Once mash is done:
                 for update in updates:
                     if update.type is UpdateType.security:
                         important.append((release, request, update_titles))
+                        self.log.info('%s %s contains a security update' % (
+                            release, request))
                         break
                 else:
                     normal.append((release, request, update_titles))
