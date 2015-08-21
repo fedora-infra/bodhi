@@ -224,6 +224,16 @@ class MasherThread(threading.Thread):
         self.release = self.db.query(Release)\
                               .filter_by(name=self.release).one()
         self.id = getattr(self.release, '%s_tag' % self.request.value)
+
+        # For 'pending' branched releases, we only want to perform repo-related
+        # tasks for testing updates. For stable updates, we should just add the
+        # dist_tag and do everything else other than mashing/updateinfo, since
+        # the nightly build-branched cron job mashes for us.
+        self.skip_mash = False
+        if (self.release.state is ReleaseState.pending and
+                self.request is UpdateRequest.stable):
+            self.skip_mash = True
+
         self.log.info('Running MasherThread(%s)' % self.id)
         self.init_state()
         if not self.resume:
@@ -265,14 +275,14 @@ class MasherThread(threading.Thread):
                 # We still need to generate the testing digest, since it's stored in memory
                 self.generate_testing_digest()
             else:
-                if self.release.state is not ReleaseState.pending:
+                if not self.skip_mash:
                     mash_thread = self.mash()
 
                 # Things we can do while we're mashing
                 self.complete_requests()
                 self.generate_testing_digest()
 
-                if self.release.state is not ReleaseState.pending:
+                if not self.skip_mash:
                     uinfo = self.generate_updateinfo()
 
                     self.wait_for_mash(mash_thread)
@@ -285,7 +295,7 @@ class MasherThread(threading.Thread):
             if config.get('compose_atomic_trees'):
                 self.compose_atomic_trees()
 
-            if self.release.state is not ReleaseState.pending:
+            if not self.skip_mash:
                 self.sanity_check_repo()
                 self.stage_repo()
 
@@ -464,8 +474,7 @@ class MasherThread(threading.Thread):
                                    build.nvr, tags))
                     raise Exception
 
-                if (self.release.state is ReleaseState.pending and
-                        update.request is UpdateRequest.stable):
+                if self.skip_mash:
                     self.add_tags.append((update.requested_tag, build.nvr))
                 else:
                     self.move_tags.append((from_tag, update.requested_tag,
