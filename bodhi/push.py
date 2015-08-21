@@ -62,12 +62,10 @@ def push(username, password, cert_prefix, **kwargs):
             click.echo(lockfile)
             for update in updates:
                 click.echo(update)
-        num_updates = len(updates)
     else:
         # release->request->updates
         releases = defaultdict(lambda: defaultdict(list))
         updates = []
-        num_updates = 0
 
         # Gather the list of updates based on the query parameters
         # Since there's currently no simple way to get a list of all updates with
@@ -78,10 +76,15 @@ def push(username, password, cert_prefix, **kwargs):
         for request in requests:
             resp = client.query(request=request, **kwargs)
             for update in resp.updates:
-                num_updates += 1
                 updates.append(update.title)
                 for build in update.builds:
                     releases[update.release.name][request].append(build.nvr)
+            while resp.page < resp.pages:
+                resp = client.query(request=request, page=resp.page + 1, **kwargs)
+                for update in resp.updates:
+                    updates.append(update.title)
+                    for build in update.builds:
+                        releases[update.release.name][request].append(build.nvr)
 
             # Write out a file that releng uses to pass to sigul for signing
             # TODO: in the future we should integrate signing into the workflow
@@ -94,7 +97,7 @@ def push(username, password, cert_prefix, **kwargs):
                         click.echo(build)
                 click.echo('')
 
-    doit = raw_input('Push these %d updates? (y/n)' % num_updates).lower().strip()
+    doit = raw_input('Push these %d updates? (y/n)' % len(updates)).lower().strip()
     if doit == 'y':
         click.echo('\nSending masher.start fedmsg')
         # Because we're a script, we want to send to the fedmsg-relay,
