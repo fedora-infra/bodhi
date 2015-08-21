@@ -180,7 +180,7 @@ class ExtendedMetadata(object):
         log.debug("%d builds found" % len(kojiBuilds))
         for build in kojiBuilds:
             self.builds[build['nvr']] = build
-            build_obj = self.db.query(Build).filter_by(nvr=build['nvr']).first()
+            build_obj = self.db.query(Build).filter_by(nvr=unicode(build['nvr'])).first()
             if build_obj:
                 self.updates.add(build_obj.update)
             else:
