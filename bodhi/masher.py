@@ -210,6 +210,9 @@ Once mash is done:
         for title in body['updates']:
             update = session.query(Update).filter_by(title=title).first()
             if update:
+                if not update.request:
+                    self.log.info('%s request revoked' % update.title)
+                    continue
                 update.locked = True
                 repo = releases[update.release.name][update.request.value]
                 repo.append(update)
