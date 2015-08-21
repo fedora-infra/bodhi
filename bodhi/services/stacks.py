@@ -78,7 +78,7 @@ def query_stacks(request):
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.statement\
+    count_query = query.with_labels().statement\
         .with_only_columns([func.count(distinct(Stack.id))])\
         .order_by(None)
     total = request.db.execute(count_query).scalar()
