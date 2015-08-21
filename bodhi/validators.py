@@ -493,6 +493,16 @@ def validate_releases(request):
         request.validated["releases"] = validated_releases
 
 
+def validate_bugs(request):
+    bugs = request.validated.get('bugs')
+    if bugs:
+        try:
+            request.validated['bugs'] = map(int, bugs)
+        except ValueError:
+            request.errors.add("querystring", "bugs",
+                               "Invalid bug ID specified: {}".format(bugs))
+
+
 def validate_username(request):
     """Make sure this user exists"""
     username = request.validated.get("user")

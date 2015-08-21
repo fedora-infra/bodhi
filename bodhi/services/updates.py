@@ -37,6 +37,7 @@ from bodhi.validators import (
     validate_username,
     validate_update_id,
     validate_requirements,
+    validate_bugs,
 )
 
 
@@ -127,19 +128,19 @@ def set_request(request):
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/json', 'text/json'), renderer='json',
              validators=(validate_release, validate_releases,
-                         validate_enums, validate_username))
+                         validate_enums, validate_username, validate_bugs))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/javascript'), renderer='jsonp',
              validators=(validate_release, validate_releases,
-                         validate_enums, validate_username))
+                         validate_enums, validate_username, validate_bugs))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/atom+xml'), renderer='rss',
              validators=(validate_release, validate_releases,
-                         validate_enums, validate_username))
+                         validate_enums, validate_username, validate_bugs))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('text/html'), renderer='updates.html',
              validators=(validate_release, validate_releases,
-                         validate_enums, validate_username))
+                         validate_enums, validate_username, validate_bugs))
 def query_updates(request):
     db = request.db
     data = request.validated
@@ -278,6 +279,7 @@ def query_updates(request):
                   validate_acls,
                   validate_enums,
                   validate_requirements,
+                  validate_bugs,
               ))
 def new_update(request):
     """ Save an update.

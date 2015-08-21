@@ -53,7 +53,7 @@ class CSRFProtectedSchema(colander.MappingSchema):
 
 
 class Bugs(colander.SequenceSchema):
-    bug = colander.SchemaNode(colander.Integer(), missing=None)
+    bug = colander.SchemaNode(colander.String(), missing=None)
 
 
 class Builds(colander.SequenceSchema):

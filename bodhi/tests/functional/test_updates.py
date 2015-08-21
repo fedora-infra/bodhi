@@ -529,9 +529,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.get('/updates/', {"bugs": "cockroaches"}, status=400)
         body = res.json_body
         self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'bugs.0')
+        self.assertEquals(res.json_body['errors'][0]['name'], 'bugs')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"cockroaches" is not a number')
+                "Invalid bug ID specified: [u'cockroaches']")
 
     def test_list_updates_by_unexisting_bug(self):
         res = self.app.get('/updates/', {"bugs": "19850110"})
@@ -1167,6 +1167,39 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_new_update_with_multiple_bugs(self, publish, *args):
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update['bugs'] = ['1234', '5678']
+        r = self.app.post_json('/updates/', update)
+        up = r.json_body
+        self.assertEquals(len(up['bugs']), 2)
+        self.assertEquals(up['bugs'][0]['bug_id'], 1234)
+        self.assertEquals(up['bugs'][1]['bug_id'], 5678)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_new_update_with_multiple_bugs_as_str(self, publish, *args):
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update['bugs'] = '1234, 5678'
+        r = self.app.post_json('/updates/', update)
+        up = r.json_body
+        self.assertEquals(len(up['bugs']), 2)
+        self.assertEquals(up['bugs'][0]['bug_id'], 1234)
+        self.assertEquals(up['bugs'][1]['bug_id'], 5678)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_new_update_with_invalid_bugs_as_str(self, publish, *args):
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update['bugs'] = '1234, blargh'
+        r = self.app.post_json('/updates/', update, status=400)
+        up = r.json_body
+        self.assertEquals(up['status'], 'error')
+        self.assertEquals(up['errors'][0]['description'],
+                          "Invalid bug ID specified: [u'1234', u'blargh']")
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
