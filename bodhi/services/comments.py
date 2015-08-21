@@ -134,7 +134,7 @@ def query_comments(request):
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.statement\
+    count_query = query.with_labels().statement\
         .with_only_columns([func.count(distinct(Comment.id))])\
         .order_by(None)
     total = db.execute(count_query).scalar()
