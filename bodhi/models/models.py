@@ -644,7 +644,7 @@ class Update(Base):
         # packages of the associated builds.
         # See https://github.com/fedora-infra/bodhi/issues/101
         if not data['requirements']:
-            data['requirements']= " ".join(list(set(sum([
+            data['requirements'] = " ".join(list(set(sum([
                 list(tokenize(pkg.requirements)) for pkg in [
                     build.package for build in data['builds']
                 ] if pkg.requirements], []))))
