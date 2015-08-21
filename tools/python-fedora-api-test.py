@@ -79,8 +79,8 @@ assert result['total'] == 1, result
 assert updates[0]['alias'] == alias
 print('%d updates returned' % len(updates))
 
-print('Querying by release and package and status')
-result = bodhi.query(package='qt-creator', release='F23', status='pending')
+print('Querying by release and package')
+result = bodhi.query(package='qt-creator', release='F23')
 updates = result.updates
 assert len(updates) == 1, len(updates)
 assert result['total'] == 1, result
@@ -149,7 +149,7 @@ assert result.updates[0].user.name == username, result.updates[0].user.name
 
 
 print('Testing the Bodhi2Client(staging=True) directly')
-bodhi = BodhiClient(staging=True, username=username, password=password)
+bodhi = Bodhi2Client(staging=True, username=username, password=password)
 try:
     result = bodhi.save(
             builds=build,
