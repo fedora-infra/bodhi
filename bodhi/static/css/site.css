@@ -67,14 +67,56 @@ hr {
     display: inline;
 }
 
+/* Crunch nav elements together to make room for search */
+.nav > li > a {
+    padding: 15px 6px 15px 6px !important;
+}
+
+/* Make the navbar collapse take effect at larger sizes than it normally would
+ * so we don't crowd out the search widget...
+ */
+@media (max-width: 991px) {
+    .navbar-header {
+        float: none;
+    }
+    .navbar-toggle {
+        display: block;
+    }
+    .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .navbar-collapse.collapse {
+        display: none!important;
+    }
+    .navbar-nav {
+        float: none!important;
+        margin: 7.5px -15px;
+    }
+    .navbar-nav>li {
+        float: none;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .navbar-text {
+        float: none;
+        margin: 15px 0;
+    }
+    .navbar-collapse.collapse.in {
+        display: block!important;
+    }
+    .collapsing {
+        overflow: hidden!important;
+    }
+}
+
 /* Search-y stuff */
 form#search, form#search input, .twitter-typeahead {
-    width: 100%;
+    width: 250px;
 }
-.twitter-typeahead {
-    margin-top: 20px;
-    font-size: 115%;
-}
+
 .tt-hint {
   color: #999
 }
@@ -83,6 +125,8 @@ form#search, form#search input, .twitter-typeahead {
   width: 100%;
   margin-top: 0px;
   padding: 8px;
+
+  font-size: 90%;
 
   /* Make it scrollable */
   max-height: 350px;
@@ -100,9 +144,9 @@ form#search, form#search input, .twitter-typeahead {
 }
 
 .tt-suggestion {
-  padding: 3px 20px;
-  font-size: 18px;
-  line-height: 24px;
+  padding: 3px 10px;
+  font-size: 14px;
+  line-height: 18px;
 }
 
 .tt-suggestion.tt-cursor {

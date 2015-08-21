@@ -51,6 +51,12 @@
           </div>
 
           <div class="navbar-collapse collapse">
+            <form id="search" role="search" class="nav navbar-form navbar-left">
+              <div id="bloodhound" class="form-group">
+                <input class="typeahead form-control" name="term" type="text" placeholder="Search updates and users...">
+              </div>
+            </form>
+
             <ul class="nav navbar-nav navbar-right">
               % if request.user:
               % if request.matched_route.name == 'user' and request.user and request.user.name == user['name']:
