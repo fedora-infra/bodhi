@@ -552,7 +552,7 @@ $(document).ready(function(){
     <ul id="comments" class="linkable">
       % for comment in update.comments:
       <li id="comment-${comment.id}">
-        ${self.fragments.comment(comment)}
+        ${self.fragments.comment(comment, display_update=False)}
       </li>
       % endfor
     </ul>

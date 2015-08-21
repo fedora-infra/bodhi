@@ -25,6 +25,13 @@ from textwrap import wrap
 from datetime import datetime
 from collections import defaultdict
 
+try:
+    # python3
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
+
+
 from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
@@ -1178,13 +1185,19 @@ class Update(Base):
 
     def get_url(self):
         """ Return the relative URL to this update """
-        path = []
+        path = ['updates']
         if self.alias:
-            path.append(self.release.name)
             path.append(self.alias)
         else:
-            path.append(self.get_title())
+            path.append(quote(self.title))
         return os.path.join(*path)
+
+    def abs_url(self):
+        """ Return the absolute URL to this update """
+        base = config['base_address']
+        return os.path.join(base, self.get_url())
+
+    url = abs_url
 
     def __str__(self):
         """
