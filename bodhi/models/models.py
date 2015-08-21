@@ -663,6 +663,7 @@ class Update(Base):
                     bug = Bug(bug_id=bug_num)
                     bug.update_details()
                     db.add(bug)
+                    db.flush()
                     if bug.security:
                         data['type'] = UpdateType.security
                 bugs.append(bug)
@@ -1276,16 +1277,17 @@ class Update(Base):
                     session.delete(bug)
             session.flush()
         for bug_id in bugs:
-            bug = session.query(Bug).filter_by(bug_id=bug_id).first()
+            bug = session.query(Bug).filter_by(bug_id=int(bug_id)).first()
             if not bug:
                 if fetchdetails:
                     newbug = bugtracker.getbug(bug_id)
-                    bug = Bug(bug_id=newbug.bug_id)
+                    bug = Bug(bug_id=int(newbug.bug_id))
                     bug.update_details(newbug)
                     bug.modified()
                 else:
                     bug = Bug(bug_id=int(bug_id))
                 session.add(bug)
+                session.flush()
             if bug not in self.bugs:
                 self.bugs.append(bug)
                 new.append(bug)
