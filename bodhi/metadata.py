@@ -87,7 +87,7 @@ class ExtendedMetadata(object):
 
         if self.missing_ids:
             log.error("%d updates with missing ID!" % len(self.missing_ids))
-            log.debug(self.missing_ids)
+            log.error(self.missing_ids)
 
     def _load_cached_updateinfo(self):
         """
