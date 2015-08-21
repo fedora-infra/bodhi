@@ -1721,6 +1721,13 @@ class Update(Base):
         # Also, put the update submitter's name in the same place we put
         # it for bodhi1 to make fedmsg.meta compat much more simple.
         result['submitter'] = result['user']['name']
+
+        # For https://github.com/fedora-infra/bodhi/issues/270, throw the JSON
+        # of the test cases in our output as well.
+        result['test_cases'] = [
+            test.__json__(*args, **kwargs) for test in self.full_test_cases
+        ]
+
         return result
 
 
