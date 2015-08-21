@@ -4,10 +4,24 @@ $(document).ready(function() {
     UpdatesForm = function() {};
     UpdatesForm.prototype = new Form("#new-update-form", document.baseURI + "updates/");
     UpdatesForm.prototype.success = function(data) {
+        // display caveat popups first
         Form.prototype.success.call(this, data);
-
-        // Now redirect to the update display
-        document.location.href = document.baseURI + "updates/" + data.title;
+        // And then issue a redirect 1 second later.
+        setTimeout(function() {
+            // There are two kinds of success to distinguish:
+            // 1) we submitted a single update
+            // 2) we submitted a multi-release update that created multiple new
+            var base = document.baseURI;
+            if (data.updates != undefined) {
+                // Single-release update
+                // Now redirect to the update display
+                document.location.href = base + "updates/" + data.title;
+            } else {
+                // Multi-release update
+                // Redirect to updates created by *me*
+                document.location.href = base + "users/" + data.user.name;
+            }
+        }, 1000);
     }
 
     var messenger = Messenger({theme: 'flat'});

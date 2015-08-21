@@ -1597,3 +1597,41 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.get('/updates/', {"updateid": 'BLARG'})
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_submitting_multi_release_updates(self, publish, *args):
+        """ https://github.com/fedora-infra/bodhi/issues/219 """
+        # Add another release and package
+        Release._tag_cache = None
+        release = Release(
+            name=u'F18', long_name=u'Fedora 18',
+            id_prefix=u'FEDORA', version=u'18',
+            dist_tag=u'f18', stable_tag=u'f18-updates',
+            testing_tag=u'f18-updates-testing',
+            candidate_tag=u'f18-updates-candidate',
+            pending_testing_tag=u'f18-updates-testing-pending',
+            pending_stable_tag=u'f18-updates-pending',
+            override_tag=u'f18-override',
+            branch=u'f18')
+        DBSession.add(release)
+        pkg = Package(name=u'nethack')
+        DBSession.add(pkg)
+
+        # A multi-release submission!!!  This should create *two* updates
+        args = self.get_update('bodhi-2.0.0-2.fc17,bodhi-2.0.0-2.fc18')
+        r = self.app.post_json('/updates/', args)
+        data = r.json_body
+
+        self.assertIn('caveats', data)
+        import pprint; pprint.pprint(data['caveats'])
+        self.assertEquals(len(data['caveats']), 1)
+        self.assertEquals(data['caveats'][0]['description'], "Your update is being split into 2, one for each release.")
+
+        self.assertIn('updates', data)
+        self.assertEquals(len(data['updates']), 2)
+
+
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+        # Make sure two fedmsg messages were published
+        self.assertEquals(len(publish.call_args_list), 2)

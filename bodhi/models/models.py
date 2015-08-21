@@ -607,42 +607,11 @@ class Update(Base):
     def new(cls, request, data):
         """ Create a new update """
         db = request.db
-        buildinfo = request.buildinfo
         user = request.user
         data['user'] = user
-        data['title'] = ' '.join(data['builds'])
+        data['title'] = ' '.join([b.nvr for b in data['builds']])
 
-        releases = set()
-        builds = []
-
-        # Create the Package and Build entities
-        for nvr in data['builds']:
-            name, version, release = buildinfo[nvr]['nvr']
-            package = db.query(Package).filter_by(name=name).first()
-            if not package:
-                package = Package(name=name)
-                db.add(package)
-                db.flush()
-
-            # Fetch test cases from the wiki
-            package.fetch_test_cases(db)
-
-            build = Build.get(nvr, db)
-
-            if build is None:
-                build = Build(nvr=nvr, package=package)
-                db.add(build)
-                db.flush()
-
-            build.package = package
-            build.release = buildinfo[build.nvr]['release']
-            builds.append(build)
-            releases.add(buildinfo[build.nvr]['release'])
-
-        data['builds'] = builds
-
-        assert len(releases) == 1, "TODO: multi-release updates"
-        data['release'] = list(releases)[0]
+        caveats = []
 
         critical = False
         critpath_pkgs = get_critpath_pkgs(data['release'].name.lower())
@@ -682,6 +651,11 @@ class Update(Base):
         if not data['autokarma']:
             del(data['stable_karma'])
             del(data['unstable_karma'])
+            caveats.append({
+                'name': 'autokarma',
+                'description': 'Auto-karma stable requests disabled.',
+            })
+
         del(data['autokarma'])
 
         del(data['edited'])
@@ -697,7 +671,7 @@ class Update(Base):
         db.add(up)
         db.flush()
 
-        return up
+        return up, caveats
 
     @classmethod
     def edit(cls, request, data):
@@ -708,6 +682,7 @@ class Update(Base):
         up = db.query(Update).filter_by(title=data['edited']).first()
         del(data['edited'])
 
+        caveats = []
         edited_builds = [build.nvr for build in up.builds]
 
         # Determine which builds have been added
@@ -724,8 +699,11 @@ class Update(Base):
                 if not package:
                     package = Package(name=name)
                     db.add(package)
-                b = Build(nvr=build, package=package)
-                b.release = up.release
+                b = db.query(Build).filter_by(nvr=build).first()
+                if not b:
+                    b = Build(nvr=build, package=package)
+                    b.release = up.release
+                    db.add(b)
                 koji.tagBuild(up.release.pending_testing_tag, build)
                 up.builds.append(b)
 
@@ -765,6 +743,7 @@ class Update(Base):
         if removed_builds:
             comment += 'Removed build(s): %s.' % ', '.join(removed_builds)
         up.comment(comment, karma=0, author=u'bodhi')
+        caveats.append({'name': 'builds', 'description': comment})
 
         data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))
 
@@ -790,7 +769,7 @@ class Update(Base):
         notifications.publish(topic='update.edit', msg=dict(
             update=up, agent=request.user.name))
 
-        return up
+        return up, caveats
 
     def obsolete_older_updates(self, request):
         """Obsolete any older pending/testing updates.
