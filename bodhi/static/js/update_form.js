@@ -174,15 +174,24 @@ $(document).ready(function() {
     $("#bugs-adder").keypress(function (e) {
         if (e.which == 13) {
             var value = $(this).val().trim();
-            if (value[0] == '#') { value = value.substring(1); }
-            add_bug_checkbox(value, '', true);
+            $.each(value.split(","), function(i, intermediary) {
+                $.each(intermediary.trim().split(" "), function(j, item) {
+                    item = item.trim()
+                    if (item[0] == '#') { item = item.substring(1); }
+                    add_bug_checkbox(item, '', true);
+                });
+            });
             return false;
         }
     });
     $("#builds-adder").keypress(function (e) {
         if (e.which == 13) {
             var value = $(this).val().trim();
-            add_build_checkbox(value, false, true);
+            $.each(value.split(","), function(i, intermediary) {
+                $.each(intermediary.trim().split(" "), function(j, item) {
+                    add_build_checkbox(item.trim(), false, true);
+                });
+            });
             return false;
         }
     });
