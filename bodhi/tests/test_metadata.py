@@ -143,7 +143,7 @@ class TestExtendedMetadata(unittest.TestCase):
         pkg = col.packages[0]
         self.assertEquals(pkg.epoch, '0')
         self.assertEquals(pkg.name, 'TurboGears')
-        self.assertEquals(pkg.src, 'http://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/TurboGears-1.0.2.2-2.fc7.src.rpm')
+        self.assertEquals(pkg.src, 'https://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/T/TurboGears-1.0.2.2-2.fc7.src.rpm')
         self.assertEquals(pkg.version, '1.0.2.2')
         self.assertFalse(pkg.reboot_suggested)
         self.assertEquals(pkg.arch, 'src')

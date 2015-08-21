@@ -247,7 +247,7 @@ class ExtendedMetadata(object):
 
                 pkg.src = os.path.join(config.get('file_url'), update.status is
                         UpdateStatus.testing and 'testing' or '',
-                        str(update.release.version), arch, filename)
+                        str(update.release.version), arch, filename[0], filename)
 
                 col.append(pkg)
 
