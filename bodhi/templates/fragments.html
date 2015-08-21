@@ -1,6 +1,6 @@
 <%namespace name="util" module="bodhi.util"/>
 
-<%def name="comment(comment)">
+<%def name="comment(comment, display_update=True)">
 <div class="row">
   <div class="col-md-12">
     <div class="panel panel-${util.karma2class(comment.karma)}">
@@ -12,11 +12,22 @@
             ${comment.user.name}
           </a>
           % endif
+          % if display_update:
+          <small>on
+            <a href="${comment.update.get_url()}">
+              ${comment.update.get_title(', ', 1, ", &hellip;") | n}
+            </a>
+          </small>
+          % endif
         </span>
 
         <span class="pull-right">
           <a href="${comment.url()}">
+            %if not display_update:
             ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
+            % else:
+            ${util.age(comment.timestamp)}
+            % endif
           </a>
         </span>
       </div>
