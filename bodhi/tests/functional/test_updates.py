@@ -481,6 +481,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
+        # https://github.com/fedora-infra/bodhi/issues/270
+        self.assertEquals(len(up['test_cases']), 1)
+        self.assertEquals(up['test_cases'][0]['name'], u'Wat')
+
     def test_list_updates_by_invalid_approved_since(self):
         res = self.app.get('/updates/', {"approved_since": "forever"},
                            status=400)
