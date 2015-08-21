@@ -57,7 +57,9 @@
 
       var age = '';
       if (time != undefined) {
-        var age = moment(time).fromNow();
+        // The ' Z' tells moment.js to interpret the time as UTC
+        // https://github.com/fedora-infra/bodhi/issues/217
+        var age = moment(time + ' Z').fromNow();
       }
 
       return '<tr class="' + classes[outcome] + '" ' +
