@@ -636,8 +636,6 @@ class Update(Base):
                     if bug.security:
                         data['type'] = UpdateType.security
                 bugs.append(bug)
-                bugtracker.comment(bug_num, config['initial_bug_msg'] % (
-                           data['title'], data['release'].long_name, bug.url))
         data['bugs'] = bugs
 
         # If no requirements are provided, then gather some defaults from the
@@ -671,6 +669,13 @@ class Update(Base):
 
         db.add(up)
         db.flush()
+
+        # Now that the update has been created, we have an alias and a url,
+        # so we can comment on some bugs.
+        # TODO - https://github.com/fedora-infra/bodhi/issues/314
+        for bug in bugs:
+            bugtracker.comment(bug.bug_id, config['initial_bug_msg'] % (
+                        data['title'], data['release'].long_name, up.url()))
 
         return up, caveats
 
