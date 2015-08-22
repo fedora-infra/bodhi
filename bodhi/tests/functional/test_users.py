@@ -12,29 +12,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from datetime import datetime, timedelta
-from webtest import TestApp
-
 from pyramid.settings import asbool
 
 import bodhi.tests.functional.base
 
 from bodhi.config import config
-from bodhi import main
 from bodhi.models import (
-    Base,
-    Bug,
-    Build,
-    CVE,
     DBSession,
-    Group,
-    Package,
-    Release,
     Update,
-    UpdateType,
     User,
-    UpdateStatus,
-    UpdateRequest,
 )
 
 
