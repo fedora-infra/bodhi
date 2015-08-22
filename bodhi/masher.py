@@ -712,6 +712,7 @@ class MasherThread(threading.Thread):
         while True:
             try:
                 url = master_repomd % (self.release.version, arch)
+                self.log.info('Polling %s' % url)
                 masterrepomd = urllib2.urlopen(url)
             except (urllib2.URLError, urllib2.HTTPError):
                 self.log.exception('Error fetching repomd.xml')
@@ -726,6 +727,7 @@ class MasherThread(threading.Thread):
 
             self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
                            checksum, newsum, self.id)
+            time.sleep(200)
 
     def send_notifications(self):
         self.log.info('Sending notifications')
