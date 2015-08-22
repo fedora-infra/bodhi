@@ -195,6 +195,7 @@ $(document).ready(function() {
                     add_bug_checkbox(item, '', true);
                 });
             });
+            $(this).val('');  // Clear the field
             return false;
         }
     });
@@ -206,6 +207,7 @@ $(document).ready(function() {
                     add_build_checkbox(item.trim(), false, true);
                 });
             });
+            $(this).val('');  // Clear the field
             return false;
         }
     });
