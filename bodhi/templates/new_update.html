@@ -72,8 +72,15 @@
             Candidate Builds</span>
           </div>
           <div class="panel-body">
-            <input id="builds-adder" class="form-control noui" type="text"
-                placeholder="Add a build, like package-0.2.1-5.fc20">
+            <div id="builds-adder" class="input-group">
+              <input class="form-control noui" type="text"
+                  placeholder="Add a build, like package-0.2.1-5.fc20">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button">
+                  <span class="glyphicon glyphicon-plus"></span>
+                </button>
+              </span>
+            </div>
             <input name="builds" type="hidden"/>
             <div id="candidate-checkboxes">
 
@@ -98,8 +105,15 @@
             Related Bugs</span>
           </div>
           <div class="panel-body">
-            <input id="bugs-adder" class="form-control noui" type="text"
-                   placeholder="Add #RHBZ">
+            <div id="bugs-adder" class="input-group">
+              <input class="form-control noui" type="text"
+                     placeholder="Add #RHBZ">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button">
+                  <span class="glyphicon glyphicon-plus"></span>
+                </button>
+              </span>
+            </div>
             <input name="bugs" type="hidden"/>
             <div id="bugs-checkboxes">
 

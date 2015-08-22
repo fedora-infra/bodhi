@@ -185,31 +185,39 @@ $(document).ready(function() {
     // Rig it up so that if the user types in a custom value to the 'builds'
     // field or the 'bugs' field, those things get added to the list of
     // possibilities.
-    $("#bugs-adder").keypress(function (e) {
-        if (e.which == 13) {
-            var value = $(this).val().trim();
-            $.each(value.split(","), function(i, intermediary) {
-                $.each(intermediary.trim().split(" "), function(j, item) {
-                    item = item.trim()
-                    if (item[0] == '#') { item = item.substring(1); }
-                    add_bug_checkbox(item, '', true);
-                });
+    var add_bugs = function() {
+        var value = $("#bugs-adder input").val().trim();
+        $.each(value.split(","), function(i, intermediary) {
+            $.each(intermediary.trim().split(" "), function(j, item) {
+                item = item.trim()
+                if (item[0] == '#') { item = item.substring(1); }
+                add_bug_checkbox(item, '', true);
             });
-            $(this).val('');  // Clear the field
-            return false;
-        }
+        });
+        $("#bugs-adder input").val('');  // Clear the field
+        return false;
+    }
+    var add_builds = function() {
+        var value = $("#builds-adder input").val().trim();
+        $.each(value.split(","), function(i, intermediary) {
+            $.each(intermediary.trim().split(" "), function(j, item) {
+                add_build_checkbox(item.trim(), false, true);
+            });
+        });
+        $("#builds-adder input").val('');  // Clear the field
+        return false;
+    }
+    $("#bugs-adder input").keypress(function (e) {
+        if (e.which == 13) { return add_bugs(); }
     });
-    $("#builds-adder").keypress(function (e) {
-        if (e.which == 13) {
-            var value = $(this).val().trim();
-            $.each(value.split(","), function(i, intermediary) {
-                $.each(intermediary.trim().split(" "), function(j, item) {
-                    add_build_checkbox(item.trim(), false, true);
-                });
-            });
-            $(this).val('');  // Clear the field
-            return false;
-        }
+    $("#builds-adder input").keypress(function (e) {
+        if (e.which == 13) { return add_builds(); }
+    });
+    $("#bugs-adder button").click(function(e) {
+        return add_bugs();
+    });
+    $("#builds-adder button").click(function(e) {
+        return add_builds();
     });
 
     // Wire up the submit button
