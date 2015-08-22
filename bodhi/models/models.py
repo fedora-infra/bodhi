@@ -1544,7 +1544,7 @@ class Update(Base):
         """Check if we have reached either karma threshold, and call set_request if necessary"""
         if not self.locked:
             if self.status is UpdateStatus.testing:
-                if self.stable_karma != 0 and self.karma >= self.stable_karma:
+                if self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
                     log.info("Automatically marking %s as stable" % self.title)
                     self.set_request(UpdateRequest.stable, username)
                     self.request = UpdateRequest.stable
@@ -1552,7 +1552,7 @@ class Update(Base):
                     notifications.publish(
                         topic='update.karma.threshold.reach',
                         msg=dict(update=self, status='stable'))
-                elif self.unstable_karma != 0 and self.karma <= self.unstable_karma:
+                elif self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
                     log.info("Automatically unpushing %s" % self.title)
                     self.obsolete()
                     notifications.publish(
