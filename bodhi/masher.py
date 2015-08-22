@@ -867,10 +867,10 @@ class MasherThread(threading.Thread):
             # Compose the tree, and raise an exception upon failure
             result = composer.compose(release)
             if result['result'] != 'success':
-                log.error(result)
+                self.log.error(result)
                 raise Exception('%s atomic compose failed' % tag)
             else:
-                log.info('%s atomic tree compose successful', tag)
+                self.log.info('%s atomic tree compose successful', tag)
 
 
 class MashThread(threading.Thread):
