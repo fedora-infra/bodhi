@@ -674,8 +674,11 @@ class Update(Base):
         # so we can comment on some bugs.
         # TODO - https://github.com/fedora-infra/bodhi/issues/314
         for bug in bugs:
-            bugtracker.comment(bug.bug_id, config['initial_bug_msg'] % (
-                        data['title'], data['release'].long_name, up.url()))
+            bug.add_comment(up, config['initial_bug_msg'] % (
+                data['title'], data['release'].long_name, up.url()))
+            # And mark it as modified
+            # https://github.com/fedora-infra/bodhi/issues/225
+            bug.modified()
 
         return up, caveats
 
@@ -762,6 +765,9 @@ class Update(Base):
         for bug in new_bugs:
             bug.add_comment(up, config['initial_bug_msg'] % (
                 data['title'], data['release'].long_name, up.url()))
+            # And mark it as modified
+            # https://github.com/fedora-infra/bodhi/issues/225
+            bug.modified()
 
         req = data.pop("request", None)
         if req is not None:
