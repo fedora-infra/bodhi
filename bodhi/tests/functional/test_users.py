@@ -41,37 +41,43 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.get('/users/bodhi')
         self.assertEquals(res.json_body['user']['name'], 'bodhi')
 
-    def test_get_single_avatar(self):
+    def test_get_hardcoded_avatar(self):
         res = self.app.get('/users/bodhi')
         self.assertEquals(res.json_body['user']['name'], 'bodhi')
+        url = 'https://apps.fedoraproject.org/img/icons/bodhi-24.png'
+        self.assertEquals(res.json_body['user']['avatar'], url)
+
+    def test_get_single_avatar(self):
+        res = self.app.get('/users/guest')
+        self.assertEquals(res.json_body['user']['name'], 'guest')
 
         if not asbool(config.get('libravatar_enabled', True)):
             return
 
         base = 'https://seccdn.libravatar.org/avatar/'
-        h = '6f26f2d69404c1b45b3cacc63054bdd0d8270c262335cdda5930c29a8ebc35f1'
+        h = 'eb48e08cc23bcd5961de9541ba5156c385cd39799e1dbf511477aa4d4d3a37e7'
         tail = '?d=retro&s=24'
         url = base + h
 
         self.assertEquals(res.json_body['user']['avatar'][:-len(tail)], url)
 
     def test_get_single_user_page(self):
-        res = self.app.get('/users/bodhi', headers=dict(accept='text/html'))
+        res = self.app.get('/users/guest', headers=dict(accept='text/html'))
         self.assertIn('text/html', res.headers['Content-Type'])
         self.assertIn('libravatar.org', res)
         self.assertIn('&copy;', res)
 
     def test_get_single_user_jsonp(self):
-        res = self.app.get('/users/bodhi',
+        res = self.app.get('/users/guest',
                            {'callback': 'callback'},
                            headers=dict(accept='application/javascript'))
         self.assertIn('application/javascript', res.headers['Content-Type'])
         self.assertIn('libravatar.org', res)
 
     def test_get_single_user_rss(self):
-        res = self.app.get('/users/bodhi',
-                           headers=dict(accept='application/atom+xml'),
-                           status=406)
+        self.app.get('/users/bodhi',
+                     headers=dict(accept='application/atom+xml'),
+                     status=406)
 
     def test_list_users(self):
         res = self.app.get('/users/')
