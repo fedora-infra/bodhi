@@ -39,6 +39,7 @@ from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
                           UpdateStatus, ReleaseState, DBSession, Base)
 from bodhi.metadata import ExtendedMetadata
+from bodhi.exceptions import BodhiException
 
 
 def checkpoint(method):
@@ -389,7 +390,10 @@ class MasherThread(threading.Thread):
             log.info('Determing if any testing updates reached the karma '
                      'thresholds during the push')
             for update in self.updates:
-                update.check_karma_thresholds(username=u'bodhi')
+                try:
+                    update.check_karma_thresholds(username=u'bodhi')
+                except BodhiException:
+                    self.log.exception('Problem checking karma thresholds')
 
     def verify_updates(self):
         for update in list(self.updates):
