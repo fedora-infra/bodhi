@@ -86,6 +86,14 @@ $(document).ready(function() {
         });
     }
 
+    // Callback to remove a checkbox when it is unchecked.
+    // https://github.com/fedora-infra/bodhi/issues/260
+    var remove_unchecked = function() {
+        if (!$(this).is(":checked")) {
+            $(this).parent().parent().remove();
+        }
+    };
+
     // A utility for adding another candidate build to the checkbox list of
     // candidate builds this update could include.
     // The code here is a little long because we need to additionally wire up
@@ -103,6 +111,7 @@ $(document).ready(function() {
                 '</label>',
                 '</div>',
         ].join('\n'));
+        $("#candidate-checkboxes input:first-of-type").click(remove_unchecked);
 
         $("#candidate-checkboxes .checkbox:first-child input").click(function() {
             var self = $(this);
@@ -142,6 +151,7 @@ $(document).ready(function() {
                 '</label>',
                 '</div>',
         ].join('\n'));
+        $("#bugs-checkboxes input:first-of-type").click(remove_unchecked);
     }
 
     // This wires up the action that happens when the user selects something
