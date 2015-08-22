@@ -756,7 +756,7 @@ class Update(Base):
         del(data['bugs'])
         for bug in new_bugs:
             bug.add_comment(up, config['initial_bug_msg'] % (
-                data['title'], data['release'].long_name, up.url))
+                data['title'], data['release'].long_name, up.url()))
 
         req = data.pop("request", None)
         if req is not None:
