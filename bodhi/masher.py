@@ -834,6 +834,7 @@ class MasherThread(threading.Thread):
         updates.sort(key=lambda update: update.days_in_testing, reverse=True)
         return updates
 
+    @checkpoint
     def compose_atomic_trees(self):
         """Compose Atomic OSTrees for each tag that we mashed"""
         from fedmsg_atomic_composer.composer import AtomicComposer
