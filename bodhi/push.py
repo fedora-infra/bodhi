@@ -50,6 +50,7 @@ def push(username, password, cert_prefix, **kwargs):
 
     # If we're resuming a push
     if resume:
+        updates = []
         for lockfile in glob.glob('/mnt/koji/mash/updates/MASHING-*'):
             doit = raw_input('Resume %s? (y/n)' % lockfile).strip().lower()
             if doit == 'n':
@@ -58,9 +59,9 @@ def push(username, password, cert_prefix, **kwargs):
             with file(lockfile) as lock:
                 state = json.load(lock)
 
-            updates = state['updates']
             click.echo(lockfile)
-            for update in updates:
+            for update in state['updates']:
+                updates.append(update)
                 click.echo(update)
     else:
         # release->request->updates
