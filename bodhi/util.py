@@ -252,8 +252,23 @@ def age(context, date, nuke_ago=False):
     else:
         return humanized
 
+hardcoded_avatars = {
+    'bodhi': 'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
+    # Taskotron may have a logo at some point.  Check this out:
+    # https://mashaleonova.wordpress.com/2015/08/18/a-logo-for-taskotron/
+    # Ask tflink before actually putting this in place though.  we need
+    # a nice small square version.  It'll look great!
+    #'taskotron': 'something-fancy.png',
+}
+
 
 def avatar(context, username, size):
+
+    # Handle some system users
+    # https://github.com/fedora-infra/bodhi/issues/308
+    if username in hardcoded_avatars:
+        return hardcoded_avatars[username].format(size=size)
+
     # context is a mako context object
     request = context['request']
     https = request.registry.settings.get('prefer_ssl'),
