@@ -1663,7 +1663,7 @@ class Update(Base):
             if comment.text == 'This update has been pushed to testing' and \
                     comment.user.name == 'bodhi':
                 timestamp = comment.timestamp
-                if self.status == UpdateStatus.testing:
+                if self.status is UpdateStatus.testing:
                     return (datetime.utcnow() - timestamp).days
                 else:
                     break
