@@ -403,6 +403,8 @@ class Package(Base):
         if not asbool(config.get('query_wiki_test_cases')):
             return
 
+        log.info('Querying the wiki for test cases')
+
         from simplemediawiki import MediaWiki
         wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
         cat_page = 'Category:Package %s test cases' % self.name
@@ -435,6 +437,8 @@ class Package(Base):
                 case = TestCase(name=test, package=self)
                 db.add(case)
                 db.flush()
+
+        log.info('Done querying for test cases')
 
     def __str__(self):
         x = header(self.name)
