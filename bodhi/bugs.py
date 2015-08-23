@@ -40,7 +40,14 @@ class FakeBugTracker(BugTracker):
 
     comment = update_details = modified = close = on_qa = __noop__
 
-
+class CommentException(Exception):
+    def __init__(self, msg, comment, comment_t):
+        self.args = {self.message: msg, comment: comment, comment_len: comment_t}
+        
+    def __repr__(self):
+        return '%s %d' % (self.args['comment'],
+                          self.args['comment_len'])
+    
 class Bugzilla(BugTracker):
 
     def __init__(self):
@@ -64,9 +71,12 @@ class Bugzilla(BugTracker):
         try:
             bug = self.bz.getbug(bug_id)
             bug.addcomment(comment)
+            raise CommentException('Comments cannot be longer than 65535 characters.', comment, len(comment))
         except:
             log.exception("Unable to add comment to bug #%d" % bug_id)
-
+        except CommentException as ce:
+            log.exception(ce.message)
+            
     def on_qa(self, bug_id, comment):
         """
         Change the status of this bug to ON_QA, and comment on the bug with
