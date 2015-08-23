@@ -35,6 +35,7 @@ def cli():
               type=click.Choice(['security', 'bugfix',
                                  'enhancement', 'newpackage']))
 @click.option('--notes', help='Update description')
+@click.option('--notes-file', help='Update description from a file')
 @click.option('--bugs', help='Comma-seperated list of bug numbers', default='')
 @click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs')
 @click.option('--request', help='Requested repository',
@@ -55,6 +56,15 @@ def new(user, password, **kwargs):
 
     else:
         updates = client.parse_file(os.path.abspath(kwargs['file']))
+
+    if kwargs['notes_file'] is not None:
+        if kwargs['notes'] is None:
+            with open(kwargs['notes_file'], 'r') as fin:
+                kwargs['notes'] = fin.read()
+
+        else:
+            click.echo("ERROR: Cannot specify --notes and --notes-file")
+            sys.exit(1)
 
     for update in updates:
         try:
