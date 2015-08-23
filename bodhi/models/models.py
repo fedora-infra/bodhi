@@ -1668,7 +1668,7 @@ class Update(Base):
                 else:
                     break
         if not timestamp:
-            return
+            return 0
         for comment in self.comments:
             if comment.text == 'This update has been pushed to stable' and \
                     comment.user.name == 'bodhi':
