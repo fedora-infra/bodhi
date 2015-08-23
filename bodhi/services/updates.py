@@ -319,7 +319,7 @@ def new_update(request):
             build = Build.get(nvr, request.db)
 
             if build is None:
-                print "Adding nvr", nvr
+                log.debug("Adding nvr %s", nvr)
                 build = Build(nvr=nvr, package=package)
                 request.db.add(build)
                 request.db.flush()
