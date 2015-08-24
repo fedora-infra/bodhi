@@ -1598,11 +1598,11 @@ class Update(Base):
             min_karma = config.get('%s.%s.critpath.min_karma' % (
                     release_name, status), None)
             if num_admin_approvals is not None and min_karma:
-                return self.num_admin_approvals >= num_admin_approvals and \
-                        self.karma >= min_karma
-        return self.num_admin_approvals >= config.get(
-                'critpath.num_admin_approvals', 2) and \
-               self.karma >= config.get('critpath.min_karma', 2)
+                return self.num_admin_approvals >= int(num_admin_approvals) and \
+                        self.karma >= int(min_karma)
+        return self.num_admin_approvals >= int(config.get(
+                'critpath.num_admin_approvals', 2)) and \
+               self.karma >= int(config.get('critpath.min_karma', 2))
 
     @property
     def meets_testing_requirements(self):
@@ -1624,7 +1624,7 @@ class Update(Base):
             for karma in feedback.values():
                 if karma < 0:
                     return False
-            num_days = config.get('critpath.stable_after_days_without_negative_karma')
+            num_days = int(config.get('critpath.stable_after_days_without_negative_karma'))
             return self.days_in_testing >= num_days
         num_days = self.release.mandatory_days_in_testing
         if not num_days:
