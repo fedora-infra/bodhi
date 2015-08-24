@@ -1544,6 +1544,63 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('errors', resp)
         self.assertIn('No result found for', resp)
 
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_stable_request_when_stable(self, publish, *args):
+        """Test submitting a stable request to an update that already been
+        pushed to stable"""
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.stable
+        up.request = None
+        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comments[-1].timestamp -= timedelta(days=14)
+        up.comment('This update has been pushed to stable', author='bodhi')
+        self.db.flush()
+        eq_(up.days_in_testing, 14)
+        eq_(up.meets_testing_requirements, True)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'stable', 'csrf_token': self.get_csrf_token()})
+        eq_(resp.json['update']['status'], 'stable')
+        eq_(resp.json['update']['request'], None)
+        try:
+            publish.assert_called_with(
+                topic='update.request.stable', msg=mock.ANY)
+            assert False, "request.stable fedmsg shouldn't have fired"
+        except AssertionError:
+            pass
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_testing_request_when_testing(self, publish, *args):
+        """Test submitting a testing request to an update that already been
+        pushed to testing"""
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comments[-1].timestamp -= timedelta(days=14)
+        self.db.flush()
+        eq_(up.days_in_testing, 14)
+        eq_(up.meets_testing_requirements, True)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'testing', 'csrf_token': self.get_csrf_token()})
+        eq_(resp.json['update']['status'], 'testing')
+        eq_(resp.json['update']['request'], None)
+        try:
+            publish.assert_called_with(
+                topic='update.request.testing', msg=mock.ANY)
+            assert False, "request.testing fedmsg shouldn't have fired"
+        except AssertionError:
+            pass
+
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_build(self, *args):
         """Test submitting a new update with a build already in the database"""
