@@ -633,32 +633,15 @@ class MasherThread(threading.Thread):
     def sanity_check_repo(self):
         """Sanity check our repo.
 
-            - make sure each repo contains all supported arches
             - make sure we didn't compose a repo full of symlinks
             - sanity check our repodata
         """
         mash_path = os.path.join(self.path, self.id)
-        arches = os.listdir(mash_path)
         self.log.info("Running sanity checks on %s" % mash_path)
 
-        # make sure the new repository has our arches
-        for arch in config.get('arches').split():
-            if '/' in arch:  # 'ppc/ppc64'
-                one, other = arch.split('/')
-                if one not in arches and other not in arches:
-                    self.log.error("Cannot find arch %s OR %s in %s" %
-                                   (one, other, mash_path))
-                    raise Exception
-                else:
-                    if one in arches:
-                        arch = one
-                    else:
-                        arch = other
-            elif arch not in arches:
-                self.log.error("Cannot find arch %s in %s" % (arch, mash_path))
-                raise Exception
-
-            # sanity check our repodata
+        # sanity check our repodata
+        arches = os.listdir(mash_path)
+        for arch in arches:
             try:
                 repodata = os.path.join(mash_path, arch, 'repodata')
                 sanity_check_repodata(repodata)
