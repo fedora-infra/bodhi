@@ -949,7 +949,7 @@ class Update(Base):
         notes = []
         if isinstance(action, basestring):
             action = UpdateRequest.from_string(action)
-        if action is self.status:
+        if self.status and action.description == self.status.description:
             log.info("%s already %s" % (self.title, action.description))
             return
         if action is self.request:
