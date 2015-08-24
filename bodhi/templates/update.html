@@ -483,7 +483,11 @@ $(document).ready(function(){
           % endif
         % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in [group.name for group in request.user.groups])):
           <a id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
-          % if update.meets_testing_requirements:
+          % if update.critpath:
+            % if update.critpath_approved:
+              <a id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
+            % endif
+          % elif update.meets_testing_requirements:
             <a id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
           % endif
           <a id='unpush' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Unpush</a>
