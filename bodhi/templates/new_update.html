@@ -183,7 +183,7 @@ ${update.notes}
                     % for value in types:
                     <label class="radio-inline">
                       <input type="radio" name="type" value="${value}"
-                      % if update and update.type.description == value:
+                      % if update and update.type.value == value:
                       checked="checked"
                       % endif
                       > ${value}
