@@ -364,6 +364,13 @@ class TestUpdate(ModelTest):
         eq_(model.DBSession.query(model.Bug)
                 .filter_by(bug_id=1234).first(), None)
 
+    def test_unicode_bug_title(self):
+        bug = self.obj.bugs[0]
+        bug.title = u'foo\xe9bar'
+        from bodhi.util import bug_link
+        link = bug_link(None, bug)
+        eq_(link, "<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a> foo\xc3\xa9bar")
+
     def test_set_request_untested_stable(self):
         """
         Ensure that we can't submit an update for stable if it hasn't met the

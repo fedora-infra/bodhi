@@ -41,6 +41,7 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
+from kitchen.text.converters import to_bytes
 
 from . import log, buildsys
 from .exceptions import RepodataException
@@ -472,7 +473,7 @@ def bug_link(context, bug, short=False):
     display = "#%i" % bug.bug_id
     link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
     if not short:
-        link = link + " " + str(bug.title)
+        link = link + " " + to_bytes(bug.title)
     return link
 
 
