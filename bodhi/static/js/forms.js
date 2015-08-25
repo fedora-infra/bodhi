@@ -17,13 +17,13 @@ Form.prototype.url = null;
 Form.prototype.start = function() {
     // TODO -- clear all error divs before attempt this,
     // both knock their content, and hide them
-    cabbage.spin();
     $(this.idx + " button").attr("disabled", "disable");
+    cabbage.spin();
 }
 
 Form.prototype.finish = function() {
-    cabbage.finish();
     $(this.idx + " button").attr("disabled", null);
+    cabbage.finish();
 }
 
 Form.prototype.success = function(data) {
