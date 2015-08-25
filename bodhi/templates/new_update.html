@@ -197,7 +197,7 @@ ${update.notes}
                     % for value in severities:
                     <label class="radio-inline">
                       <input type="radio" name="severity" value="${value}"
-                      % if update and update.severity.description == value:
+                      % if update and update.severity.value == value:
                       checked="checked"
                       % endif
                       > ${value}
@@ -211,7 +211,7 @@ ${update.notes}
                     % for value in suggestions:
                     <label class="radio-inline">
                       <input type="radio" name="suggest" value="${value}"
-                      % if update and update.suggest.description == value:
+                      % if update and update.suggest.value == value:
                       checked="checked"
                       % endif
                       > ${value}
