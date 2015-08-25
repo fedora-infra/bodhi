@@ -19,7 +19,7 @@ $(document).ready(function() {
             } else {
                 // Multi-release update
                 // Redirect to updates created by *me*
-                document.location.href = base + "users/" + data.user.name;
+                document.location.href = base + "users/" + data.updates[0].user.name;
             }
         }, 1000);
     }
