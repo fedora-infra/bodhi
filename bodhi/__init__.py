@@ -75,6 +75,10 @@ def get_buildinfo(request):
     return defaultdict(dict)
 
 
+def get_releases(request):
+    import bodhi.services.releases
+    return bodhi.services.releases.query_releases_html(request)['releases']
+
 #
 # Cornice filters
 #
@@ -130,6 +134,7 @@ def main(global_config, testing=None, **settings):
     config.add_request_method(get_dbsession, 'db', reify=True)
     config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
+    config.add_request_method(get_releases, 'releases', reify=True)
 
     # Templating
     config.add_mako_renderer('.html', settings_prefix='mako.')
