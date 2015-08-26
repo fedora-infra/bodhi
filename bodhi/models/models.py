@@ -1884,8 +1884,10 @@ class Bug(Base):
         Change the status of this bug to ON_QA, and comment on the bug with
         some details on how to test and provide feedback for this update.
         """
-        comment = self.default_message(update)
-        bugtracker.on_qa(self.bug_id, comment)
+        # Skip modifying Security Response bugs for testing updates
+        if not self.parent:
+            comment = self.default_message(update)
+            bugtracker.on_qa(self.bug_id, comment)
 
     def close_bug(self, update):
         ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
