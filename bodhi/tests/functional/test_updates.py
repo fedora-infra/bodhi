@@ -1725,3 +1725,69 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
         # Make sure two fedmsg messages were published
         self.assertEquals(len(publish.call_args_list), 2)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_update_and_disable_features(self, publish, *args):
+        build = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update('bodhi-2.0.0-2.fc17')
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = r.json_body
+        self.assertEquals(up['require_testcases'], True)
+        self.assertEquals(up['require_bugs'], False)
+        self.assertEquals(up['stable_karma'], 3)
+        self.assertEquals(up['unstable_karma'], -3)
+
+        # Pretend it was pushed to testing
+        update = self.db.query(Update).filter_by(title=build).one()
+        update.request = None
+        update.status = UpdateStatus.testing
+        update.pushed = True
+        self.db.flush()
+
+        # Mark it as testing
+        args['edited'] = args['builds']
+
+        # Toggle a bunch of the booleans
+        args['autokarma'] = False
+        args['require_testcases'] = False
+        args['require_bugs'] = True
+
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['status'], u'testing')
+        self.assertEquals(up['request'], None)
+
+        self.assertEquals(up['require_bugs'], True)
+        self.assertEquals(up['require_testcases'], False)
+        self.assertEquals(up['stable_karma'], None)
+        self.assertEquals(up['unstable_karma'], None)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_update_change_type(self, publish, *args):
+        build = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update('bodhi-2.0.0-2.fc17')
+        args['type'] = 'newpackage'
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+        up = r.json_body
+        self.assertEquals(up['type'], u'newpackage')
+
+        # Pretend it was pushed to testing
+        update = self.db.query(Update).filter_by(title=build).one()
+        update.request = None
+        update.status = UpdateStatus.testing
+        update.pushed = True
+        self.db.flush()
+
+        # Mark it as testing
+        args['edited'] = args['builds']
+        args['type'] = 'bugfix'
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['status'], u'testing')
+        self.assertEquals(up['request'], None)
+        self.assertEquals(up['type'], u'bugfix')

@@ -202,7 +202,7 @@ class UpdateStatus(DeclEnum):
 class UpdateType(DeclEnum):
     bugfix = 'bugfix', 'bugfix'
     security = 'security', 'security'
-    newpackage = 'newpackage', 'new package'
+    newpackage = 'newpackage', 'newpackage'
     enhancement = 'enhancement', 'enhancement'
 
 
@@ -776,6 +776,14 @@ class Update(Base):
         req = data.pop("request", None)
         if req is not None:
             up.set_request(req, request.user.name)
+
+        if not data['autokarma']:
+            data['stable_karma'] = None
+            data['unstable_karma'] = None
+            caveats.append({
+                'name': 'autokarma',
+                'description': 'Auto-karma requests disabled.',
+            })
 
         for key, value in data.items():
             setattr(up, key, value)
@@ -1377,7 +1385,7 @@ class Update(Base):
 
             if check_karma and author not in config.get('system_users').split():
                 try:
-                    self.check_karma_thresholds(author)
+                    self.check_karma_thresholds('bodhi')
                 except LockedUpdateException:
                     pass
                 except BodhiException as e:
@@ -1555,13 +1563,13 @@ class Update(Base):
 
         return True, "All checks pass."
 
-    def check_karma_thresholds(self, username):
+    def check_karma_thresholds(self, agent):
         """Check if we have reached either karma threshold, and call set_request if necessary"""
         if not self.locked:
             if self.status is UpdateStatus.testing:
                 if self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
                     log.info("Automatically marking %s as stable" % self.title)
-                    self.set_request(UpdateRequest.stable, username)
+                    self.set_request(UpdateRequest.stable, agent)
                     self.request = UpdateRequest.stable
                     self.date_pushed = None
                     notifications.publish(
