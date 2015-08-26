@@ -682,7 +682,7 @@ class Update(Base):
                 data['title'], data['release'].long_name, up.url()))
             # And mark it as modified
             # https://github.com/fedora-infra/bodhi/issues/225
-            bug.modified()
+            bug.modified(up)
 
         return up, caveats
 
@@ -771,7 +771,7 @@ class Update(Base):
                 data['title'], data['release'].long_name, up.url()))
             # And mark it as modified
             # https://github.com/fedora-infra/bodhi/issues/225
-            bug.modified()
+            bug.modified(up)
 
         req = data.pop("request", None)
         if req is not None:
@@ -1260,7 +1260,7 @@ class Update(Base):
                     newbug = bugtracker.getbug(bug_id)
                     bug = Bug(bug_id=int(newbug.bug_id))
                     bug.update_details(newbug)
-                    bug.modified()
+                    bug.modified(self)
                 else:
                     bug = Bug(bug_id=int(bug_id))
                 session.add(bug)
@@ -1849,10 +1849,14 @@ class Bug(Base):
         return message
 
     def add_comment(self, update, comment=None):
-        if not comment:
-            comment = self.default_message(update)
-        log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
-        bugtracker.comment(self.bug_id, comment)
+        if (update.type is UpdateType.security and self.parent and
+                update.status is not UpdateStatus.stable):
+            log.debug('Not commenting on parent security bug %s', self.bug_id)
+        else:
+            if not comment:
+                comment = self.default_message(update)
+            log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
+            bugtracker.comment(self.bug_id, comment)
 
     def testing(self, update):
         """
@@ -1861,7 +1865,7 @@ class Bug(Base):
         """
         # Skip modifying Security Response bugs for testing updates
         if update.type is UpdateType.security and self.parent:
-            pass
+            log.debug('Not modifying on parent security bug %s', self.bug_id)
         else:
             comment = self.default_message(update)
             bugtracker.on_qa(self.bug_id, comment)
@@ -1870,9 +1874,12 @@ class Bug(Base):
         ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
         bugtracker.close(self.bug_id, fixedin=ver)
 
-    def modified(self):
+    def modified(self, update):
         """ Change the status of this bug to MODIFIED """
-        bugtracker.modified(self.bug_id)
+        if update.type is UpdateType.security and self.parent:
+            log.debug('Not modifying on parent security bug %s', self.bug_id)
+        else:
+            bugtracker.modified(self.bug_id)
 
 
 user_group_table = Table('user_group_table', Base.metadata,
