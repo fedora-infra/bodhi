@@ -391,7 +391,7 @@ class MasherThread(threading.Thread):
                      'thresholds during the push')
             for update in self.updates:
                 try:
-                    update.check_karma_thresholds(username=u'bodhi')
+                    update.check_karma_thresholds(agent=u'bodhi')
                 except BodhiException:
                     self.log.exception('Problem checking karma thresholds')
 
