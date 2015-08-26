@@ -89,10 +89,19 @@
     </a>
     % endif
   </td>
+  <td class="hidejs">
+    ${util.karma2html(update['karma']) | n}
+  </td>
   %if display_request:
-  <td class="hidejs">${update['request'] or ''}</td>
+  <td class="hidejs">
+    % if update['request']:
+      ${util.request2html(update['request']) | n}
+    % endif
+  </td>
   %endif
-  <td class="hidejs">${update['status']}</td>
+  <td class="hidejs">
+    ${util.status2html(update['status']) | n}
+  </td>
 </%def>
 
 <%def name="override(override, display_user=True)">
