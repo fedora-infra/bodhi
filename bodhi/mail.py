@@ -466,10 +466,12 @@ def send(to, msg_type, update, sender=None, agent=None):
             headers["References"] = initial_message_id
             headers["In-Reply-To"] = initial_message_id
 
+    subject_template = '[Fedora Update] %s[%s] %s'
     for person in iterate(to):
-        send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (critpath,
-                  msg_type, update.title), MESSAGES[msg_type]['body'] %
-                  MESSAGES[msg_type]['fields'](agent, update), headers)
+        subject = subject_template  % (critpath, msg_type, update.title)
+        fields = MESSAGES[msg_type]['fields'](agent, update)
+        body = MESSAGES[msg_type]['body'] % fields
+        send_mail(sender, person, subject, body)
 
 
 def send_releng(subject, body):
