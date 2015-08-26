@@ -1538,7 +1538,14 @@ class Update(Base):
         requirements = list(requirements)
 
         try:
-            results = bodhi.util.taskotron_results(settings, title=self.title)
+            # https://github.com/fedora-infra/bodhi/issues/362
+            since = self.last_modified.isoformat().rsplit('.', 1)[0]
+        except Exception as e:
+            return False, "Failed to determine last_modified: %r" % e.message
+
+        try:
+            query = dict(title=self.title, since=since)
+            results = bodhi.util.taskotron_results(settings, **query)
         except IOError as e:
             return False, "Failed to talk to taskotron: %r" % e.message
 
@@ -1591,6 +1598,25 @@ class Update(Base):
     @property
     def requirements_json(self):
         return json.dumps(list(tokenize(self.requirements or '')))
+
+    @property
+    def last_modified(self):
+        """ Return the last time this update was edited or created.
+
+        This gets used specifically by taskotron/resultsdb queries so we only
+        query for depcheck runs that occur *after* the last time this update
+        (in its current form) was in play.
+        """
+
+        # Prune out None values that have not been set
+        possibilities = [self.date_submitted, self.date_modified]
+        possibilities = [p for p in possibilities if p]
+
+        if not possibilities:  # Should be un-possible.
+            raise ValueError("Update has no timestamps set: %r" % self)
+
+        possibilities.sort()  # Sort smallest to largest (oldest to newest)
+        return possibilities[-1]  # Return the last one
 
     @property
     def critpath_approved(self):
