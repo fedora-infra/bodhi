@@ -431,7 +431,7 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
         for key, value in headers.items():
             msg.append('%s: %s' % (key, to_bytes(value)))
     msg += ['Subject: %s' % subject, '', body_text]
-    body = to_bytes('\r\n').join(msg)
+    body = to_bytes('\r\n'.join(msg))
 
     log.info('Sending mail to %s: %s', to_addr, subject)
     _send_mail(from_addr, to_addr, body)
