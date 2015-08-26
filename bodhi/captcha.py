@@ -22,6 +22,7 @@ import six
 
 from PIL import Image, ImageDraw, ImageFont
 
+from pyramid.httpexceptions import HTTPGone, HTTPNotFound
 from pyramid.view import view_config
 
 
@@ -104,12 +105,23 @@ def encrypt(plaintext, settings):
 
 
 def decrypt(ciphertext, settings):
+    ttl = int(settings['captcha.ttl'])
     secret = settings['captcha.secret']
     engine = cryptography.fernet.Fernet(secret)
+
     if isinstance(ciphertext, six.text_type):
         ciphertext = ciphertext.encode('utf-8')
-    ciphertext = base64.urlsafe_b64decode(ciphertext)
-    plaintext = engine.decrypt(ciphertext, ttl=int(settings['captcha.ttl']))
+
+    try:
+        ciphertext = base64.urlsafe_b64decode(ciphertext)
+    except TypeError:
+        raise HTTPNotFound("%s is garbage" % ciphertext)
+
+    try:
+        plaintext = engine.decrypt(ciphertext, ttl=ttl)
+    except cryptography.fernet.InvalidToken:
+        raise HTTPGone('captcha token is no longer valid')
+
     return plaintext.decode('utf-8')
 
 
