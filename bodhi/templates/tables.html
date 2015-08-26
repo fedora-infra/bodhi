@@ -1,7 +1,7 @@
 <%namespace name="util" module="bodhi.util"/>
 <%namespace name="fragments" file="fragments.html"/>
 
-<%def name="updates(updates, display_user=True, display_request=True)">
+<%def name="updates(updates, display_user=True, display_request=True, display_release=True, display_karma=True)">
   <table class="table">
     <thead><tr>
         <th>Update</th>
@@ -9,8 +9,12 @@
         %if display_user:
         <th class="nobreak">Submitter</th>
         %endif
+        %if display_release:
         <th class="hidejs">Release</th>
+        %endif
+        %if display_karma:
         <th class="hidejs">Karma</th>
+        %endif
         %if display_request:
         <th class="hidejs">Request</th>
         %endif
@@ -19,7 +23,7 @@
     <tbody>
     % for update in updates:
     <tr>
-      ${fragments.update(update, display_user, display_request)}
+      ${fragments.update(update, display_user, display_request, display_release, display_karma)}
     </tr>
     % endfor
     </tbody>
