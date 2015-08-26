@@ -70,11 +70,12 @@ Form.prototype.error = function(data) {
 Form.prototype.data = function() {
     var data = {};
     $(this.idx + " :input").each(function() {
+        // Initialize if this is our first time through.
         if (data[this.name] === undefined) { data[this.name] = []; }
         if (this.type == 'radio' && ! this.checked) {
             // pass - don't add unchecked radio buttons to the submission
         } else if (this.type == 'checkbox' && ! this.checked) {
-            // pass - don't add unchecked checkboxes to the submission
+            data[this.name].push(false);
         } else {
             var value = $(this).val();
             if (value != "") {
