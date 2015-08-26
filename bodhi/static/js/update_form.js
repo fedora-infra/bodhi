@@ -12,7 +12,7 @@ $(document).ready(function() {
             // 1) we submitted a single update
             // 2) we submitted a multi-release update that created multiple new
             var base = document.baseURI;
-            if (data.updates != undefined) {
+            if (data.updates === undefined) {
                 // Single-release update
                 // Now redirect to the update display
                 document.location.href = base + "updates/" + data.title;
