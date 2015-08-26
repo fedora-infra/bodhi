@@ -1860,7 +1860,9 @@ class Bug(Base):
         some details on how to test and provide feedback for this update.
         """
         # Skip modifying Security Response bugs for testing updates
-        if not self.parent:
+        if update.type is UpdateType.security and self.parent:
+            pass
+        else:
             comment = self.default_message(update)
             bugtracker.on_qa(self.bug_id, comment)
 
