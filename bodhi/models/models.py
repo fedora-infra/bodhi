@@ -682,7 +682,7 @@ class Update(Base):
                 data['title'], data['release'].long_name, up.url()))
             # And mark it as modified
             # https://github.com/fedora-infra/bodhi/issues/225
-            bug.modified()
+            bug.modified(up)
 
         return up, caveats
 
@@ -771,7 +771,7 @@ class Update(Base):
                 data['title'], data['release'].long_name, up.url()))
             # And mark it as modified
             # https://github.com/fedora-infra/bodhi/issues/225
-            bug.modified()
+            bug.modified(up)
 
         req = data.pop("request", None)
         if req is not None:
@@ -1113,37 +1113,12 @@ class Update(Base):
 
             if self.close_bugs:
                 if self.type is UpdateType.security:
-                    # Close all tracking bugs first
+                    # Only close the tracking bugs
+                    # https://github.com/fedora-infra/bodhi/issues/368#issuecomment-135155215
                     for bug in self.bugs:
                         if not bug.parent:
                             log.debug("Closing tracker bug %d" % bug.bug_id)
                             bug.close_bug(self)
-
-                    # Now, close our parents bugs as long as nothing else
-                    # depends on them, and they are not in a NEW state
-                    for bug in self.bugs:
-                        if bug.parent:
-                            parent = bugtracker.getbug(bug.bug_id)
-                            if parent.bug_status == "NEW":
-                                log.debug("Parent bug %d is still NEW; not "
-                                          "closing.." % bug.bug_id)
-                                continue
-                            depsclosed = True
-                            for dep in parent.dependson:
-                                try:
-                                    tracker = bugtracker.getbug(dep)
-                                except xmlrpclib.Fault, f:
-                                    log.error("Can't access bug: %s" % str(f))
-                                    depsclosed = False
-                                    break
-                                if tracker.bug_status != "CLOSED":
-                                    log.debug("Tracker %d not yet closed" %
-                                              bug.bug_id)
-                                    depsclosed = False
-                                    break
-                            if depsclosed:
-                                log.debug("Closing parent bug %d" % bug.bug_id)
-                                bug.close_bug(self)
                 else:
                     for bug in self.bugs:
                         bug.close_bug(self)
@@ -1285,7 +1260,7 @@ class Update(Base):
                     newbug = bugtracker.getbug(bug_id)
                     bug = Bug(bug_id=int(newbug.bug_id))
                     bug.update_details(newbug)
-                    bug.modified()
+                    bug.modified(self)
                 else:
                     bug = Bug(bug_id=int(bug_id))
                 session.add(bug)
@@ -1900,26 +1875,37 @@ class Bug(Base):
         return message
 
     def add_comment(self, update, comment=None):
-        if not comment:
-            comment = self.default_message(update)
-        log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
-        bugtracker.comment(self.bug_id, comment)
+        if (update.type is UpdateType.security and self.parent and
+                update.status is not UpdateStatus.stable):
+            log.debug('Not commenting on parent security bug %s', self.bug_id)
+        else:
+            if not comment:
+                comment = self.default_message(update)
+            log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
+            bugtracker.comment(self.bug_id, comment)
 
     def testing(self, update):
         """
         Change the status of this bug to ON_QA, and comment on the bug with
         some details on how to test and provide feedback for this update.
         """
-        comment = self.default_message(update)
-        bugtracker.on_qa(self.bug_id, comment)
+        # Skip modifying Security Response bugs for testing updates
+        if update.type is UpdateType.security and self.parent:
+            log.debug('Not modifying on parent security bug %s', self.bug_id)
+        else:
+            comment = self.default_message(update)
+            bugtracker.on_qa(self.bug_id, comment)
 
     def close_bug(self, update):
         ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
         bugtracker.close(self.bug_id, fixedin=ver)
 
-    def modified(self):
+    def modified(self, update):
         """ Change the status of this bug to MODIFIED """
-        bugtracker.modified(self.bug_id)
+        if update.type is UpdateType.security and self.parent:
+            log.debug('Not modifying on parent security bug %s', self.bug_id)
+        else:
+            bugtracker.modified(self.bug_id)
 
 
 user_group_table = Table('user_group_table', Base.metadata,
