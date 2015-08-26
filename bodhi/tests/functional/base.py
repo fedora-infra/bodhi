@@ -121,8 +121,11 @@ class BaseWSGICase(unittest.TestCase):
             'bugs': u'',
             'notes': u'this is a test update',
             'type': u'bugfix',
+            'autokarma': True,
             'stable_karma': stable_karma,
             'unstable_karma': unstable_karma,
             'requirements': 'rpmlint',
+            'require_bugs': False,
+            'require_testcases': True,
             'csrf_token': self.get_csrf_token(),
         }
