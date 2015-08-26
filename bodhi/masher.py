@@ -768,20 +768,20 @@ class MasherThread(threading.Thread):
             if security_updates:
                 maildata += sechead % prefix
                 for update in security_updates:
-                    maildata += u' %3i  %s%s\n' % (
+                    maildata += u' %3i  %s   %s\n' % (
                         update.days_in_testing,
-                        config.get('base_address'),
-                        update.get_url())
+                        update.abs_url(),
+                        update.title)
                 maildata += '\n\n'
 
             critpath_updates = self.get_unapproved_critpath_updates(prefix)
             if critpath_updates:
                 maildata += crithead % prefix
                 for update in self.get_unapproved_critpath_updates(prefix):
-                    maildata += u' %3i  %s%s\n' % (
+                    maildata += u' %3i  %s   %s\n' % (
                         update.days_in_testing,
-                        config.get('base_address'),
-                        update.get_url())
+                        update.abs_url(),
+                        update.title)
                 maildata += '\n\n'
 
             maildata += testhead % prefix
