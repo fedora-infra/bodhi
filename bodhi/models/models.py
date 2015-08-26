@@ -1377,7 +1377,7 @@ class Update(Base):
 
             if check_karma and author not in config.get('system_users').split():
                 try:
-                    self.check_karma_thresholds(author)
+                    self.check_karma_thresholds('bodhi')
                 except LockedUpdateException:
                     pass
                 except BodhiException as e:
@@ -1555,13 +1555,13 @@ class Update(Base):
 
         return True, "All checks pass."
 
-    def check_karma_thresholds(self, username):
+    def check_karma_thresholds(self, agent):
         """Check if we have reached either karma threshold, and call set_request if necessary"""
         if not self.locked:
             if self.status is UpdateStatus.testing:
                 if self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
                     log.info("Automatically marking %s as stable" % self.title)
-                    self.set_request(UpdateRequest.stable, username)
+                    self.set_request(UpdateRequest.stable, agent)
                     self.request = UpdateRequest.stable
                     self.date_pushed = None
                     notifications.publish(
