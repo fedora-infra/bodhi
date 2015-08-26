@@ -1728,6 +1728,49 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
+    def test_edit_update_bugs(self, publish, *args):
+        build = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update('bodhi-2.0.0-2.fc17')
+        args['bugs'] = '56789'
+        r = self.app.post_json('/updates/', args)
+        self.assertEquals(len(r.json['bugs']), 1)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        # Pretend it was pushed to testing
+        update = self.db.query(Update).filter_by(title=build).one()
+        update.request = None
+        update.status = UpdateStatus.testing
+        update.pushed = True
+        self.db.flush()
+
+        # Mark it as testing
+        args['edited'] = args['builds']
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+        args['bugs'] = '56789,98765'
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+
+        self.assertEquals(len(up['bugs']), 2)
+        bug_ids = [bug['bug_id'] for bug in up['bugs']]
+        self.assertIn(56789, bug_ids)
+        self.assertIn(98765, bug_ids)
+        self.assertEquals(up['status'], u'testing')
+        self.assertEquals(up['request'], None)
+
+        # now remove a bug
+        args['edited'] = args['builds']
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+        args['bugs'] = '98765'
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(len(up['bugs']), 1)
+        bug_ids = [bug['bug_id'] for bug in up['bugs']]
+        self.assertIn(98765, bug_ids)
+        self.assertEquals(up['status'], u'testing')
+        self.assertEquals(up['request'], None)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
     def test_edit_update_and_disable_features(self, publish, *args):
         build = 'bodhi-2.0.0-2.fc17'
         args = self.get_update('bodhi-2.0.0-2.fc17')
