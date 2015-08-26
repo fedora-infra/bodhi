@@ -1113,37 +1113,12 @@ class Update(Base):
 
             if self.close_bugs:
                 if self.type is UpdateType.security:
-                    # Close all tracking bugs first
+                    # Only close the tracking bugs
+                    # https://github.com/fedora-infra/bodhi/issues/368#issuecomment-135155215
                     for bug in self.bugs:
                         if not bug.parent:
                             log.debug("Closing tracker bug %d" % bug.bug_id)
                             bug.close_bug(self)
-
-                    # Now, close our parents bugs as long as nothing else
-                    # depends on them, and they are not in a NEW state
-                    for bug in self.bugs:
-                        if bug.parent:
-                            parent = bugtracker.getbug(bug.bug_id)
-                            if parent.bug_status == "NEW":
-                                log.debug("Parent bug %d is still NEW; not "
-                                          "closing.." % bug.bug_id)
-                                continue
-                            depsclosed = True
-                            for dep in parent.dependson:
-                                try:
-                                    tracker = bugtracker.getbug(dep)
-                                except xmlrpclib.Fault, f:
-                                    log.error("Can't access bug: %s" % str(f))
-                                    depsclosed = False
-                                    break
-                                if tracker.bug_status != "CLOSED":
-                                    log.debug("Tracker %d not yet closed" %
-                                              bug.bug_id)
-                                    depsclosed = False
-                                    break
-                            if depsclosed:
-                                log.debug("Closing parent bug %d" % bug.bug_id)
-                                bug.close_bug(self)
                 else:
                     for bug in self.bugs:
                         bug.close_bug(self)
