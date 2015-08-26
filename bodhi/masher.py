@@ -355,7 +355,7 @@ class MasherThread(threading.Thread):
             success = True
             self.remove_state()
             self.unlock_updates()
-            self.check_karma_thresholds()
+            self.check_all_karma_thresholds()
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             self.save_state()
@@ -381,7 +381,7 @@ class MasherThread(threading.Thread):
             update.locked = False
         self.db.flush()
 
-    def check_karma_thresholds(self):
+    def check_all_karma_thresholds(self):
         """
         If we just pushed testing updates see if any of them now meet either of
         the karma thresholds
