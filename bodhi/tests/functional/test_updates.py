@@ -1770,11 +1770,11 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_edit_update_change_type(self, publish, *args):
         build = 'bodhi-2.0.0-2.fc17'
         args = self.get_update('bodhi-2.0.0-2.fc17')
-        args['type'] = 'enhancement'
+        args['type'] = 'newpackage'
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
         up = r.json_body
-        self.assertEquals(up['type'], u'enhancement')
+        self.assertEquals(up['type'], u'newpackage')
 
         # Pretend it was pushed to testing
         update = self.db.query(Update).filter_by(title=build).one()

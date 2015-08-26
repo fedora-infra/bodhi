@@ -202,7 +202,7 @@ class UpdateStatus(DeclEnum):
 class UpdateType(DeclEnum):
     bugfix = 'bugfix', 'bugfix'
     security = 'security', 'security'
-    newpackage = 'newpackage', 'new package'
+    newpackage = 'newpackage', 'newpackage'
     enhancement = 'enhancement', 'enhancement'
 
 
