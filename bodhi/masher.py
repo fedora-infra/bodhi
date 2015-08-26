@@ -540,7 +540,10 @@ class MasherThread(threading.Thread):
             if update.request is UpdateRequest.stable:
                 for build in update.builds:
                     if build.override:
-                        build.override.expire()
+                        try:
+                            build.override.expire()
+                        except:
+                            log.exception('Problem expiring override')
 
     def remove_pending_tags(self):
         """ Remove all pending tags from these updates """
