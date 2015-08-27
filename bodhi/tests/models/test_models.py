@@ -27,7 +27,7 @@ from pyramid.testing import DummyRequest
 
 from bodhi import models as model, buildsys, mail
 from bodhi.models import (UpdateStatus, UpdateType, UpdateRequest,
-                          UpdateSeverity, UpdateSuggestion)
+                          UpdateSeverity, UpdateSuggestion, ReleaseState)
 from bodhi.tests.models import ModelTest
 from bodhi.config import config
 from bodhi.exceptions import BodhiException
@@ -62,7 +62,8 @@ class TestRelease(ModelTest):
     def test_all_releases(self):
         releases = model.Release.all_releases()
         assert 'current' in releases, releases
-        assert releases['current'][0]['name'] == 'F11', releases
+        state = ReleaseState.from_string(releases.keys()[0])
+        assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
         assert releases is model.Release.all_releases()
 
