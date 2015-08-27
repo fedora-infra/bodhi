@@ -1226,7 +1226,7 @@ class Update(Base):
                                 subsequent_indent=' ' * 13, width=67)
                     comments.append(u'\n'.join(text))
             val += u'\n'.join(comments).lstrip() + u'\n'
-        val += u"\n  %s\n" % (config.get('base_address') + self.get_url())
+        val += u"\n  %s\n" % self.abs_url()
         return val
 
     def update_bugs(self, bugs):
