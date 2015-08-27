@@ -101,6 +101,10 @@ def remember_me(context, request, info, *args, **kw):
 
     # Keep track of what groups the user is a memeber of
     for group_name in info['groups']:
+        # Drop empty group names https://github.com/fedora-infra/bodhi/issues/306
+        if not group_name.strip():
+            continue
+
         group = db.query(Group).filter_by(name=group_name).first()
         if not group:
             group = Group(name=group_name)
