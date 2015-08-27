@@ -59,6 +59,13 @@ class TestRelease(ModelTest):
     def test_version_int(self):
         eq_(self.obj.version_int, 11)
 
+    def test_all_releases(self):
+        releases = model.Release.all_releases()
+        assert 'current' in releases, releases
+        assert releases['current'][0]['name'] == 'F11', releases
+        # Make sure it's the same cached object
+        assert releases is model.Release.all_releases()
+
 
 class MockWiki(object):
     """ Mocked simplemediawiki.MediaWiki class. """

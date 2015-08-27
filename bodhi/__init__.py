@@ -76,8 +76,8 @@ def get_buildinfo(request):
 
 
 def get_releases(request):
-    import bodhi.services.releases
-    return bodhi.services.releases.query_releases_html(request)['releases']
+    from bodhi.models import Release
+    return Release.all_releases()
 
 #
 # Cornice filters
