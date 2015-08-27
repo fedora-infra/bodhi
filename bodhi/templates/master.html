@@ -60,12 +60,48 @@
             <div class="clearfix hidden-md hidden-lg"></div>
 
             <ul class="nav navbar-nav navbar-right">
+              % if request.user:
+              % if request.matched_route.name in ('new_update', 'new_override', 'new_stack'):
+              <li class="dropdown active">
+              % else:
               <li class="dropdown">
+              % endif
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="glyphicon glyphicon-plus"></span>
+                  Create
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="${request.route_url('new_update')}">
+                      New Update
+                  </a></li>
+                  <li><a href="${request.route_url('new_override')}">
+                      New Override
+                  </a></li>
+                  % if request.registry.settings.get('stacks_enabled') == 'True':
+                  <li><a href="${request.route_url('new_stack')}">
+                      New Stack
+                  </a></li>
+                  % endif
+                </ul>
+              </li>
+              % endif
+
+
+              % if request.matched_route.name in ('metrics', 'releases', 'release'):
+              <li class="dropdown active">
+              % else:
+              <li class="dropdown">
+              % endif
                 <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                   <span class="glyphicon glyphicon-tags"></span>
                   Releases
                 </a>
                 <ul class="dropdown-menu">
+                  <li>
+                    <a href="${request.route_url('metrics')}">
+                      Overall metrics
+                    </a>
+                  </li>
                   % for state in request.releases:
                   <li role="separator" class="divider"></li>
                   % for r in request.releases[state]:
@@ -81,67 +117,31 @@
 
               % if request.user:
               % if request.matched_route.name == 'user' and request.user and request.user.name == user['name']:
-              <li class="active">
+              <li class="dropdown active">
               % else:
-              <li>
+              <li class="dropdown">
               % endif
-                <a href="${request.route_url('user', name=request.user.name)}">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                   <span class="glyphicon glyphicon-user"></span>
                   Profile
                 </a>
-              </li>
-              <li>
-                <a href="${request.registry.settings.get('fmn_url')}${request.user.openid(request)}/">
-                  <span class="glyphicon glyphicon-envelope"></span>
-                  Alerts
-                </a>
-              </li>
-              % endif
-              % if request.user:
-              % if request.matched_route.name == 'new_update':
-              <li class="active">
-              % else:
-              <li>
-              % endif
-                <a href="${request.route_url('new_update')}">
-                  <span class="glyphicon glyphicon-plus"></span>
-                  Update
-                </a>
-              </li>
-              % if request.matched_route.name == 'new_override':
-              <li class="active">
-              % else:
-              <li>
-              % endif
-                <a href="${request.route_url('new_override')}">
-                  <span class="glyphicon glyphicon-plus"></span>
-                  Override
-                </a>
-              </li>
+                <ul class="dropdown-menu">
 
-              % if request.registry.settings.get('stacks_enabled') == 'True':
-              % if request.matched_route.name == 'stacks':
-              <li class="active">
-              % else:
-              <li>
-              % endif
-                <a href="${request.route_url('stacks')}">
-                  <span class="glyphicon glyphicon-tasks"></span>
-                  Stacks
-                </a>
+                  <li>
+                    <a href="${request.route_url('user', name=request.user.name)}">
+                      Your Profile
+                    </a>
+                  </li>
+                  <li>
+                    <a href="${request.registry.settings.get('fmn_url')}${request.user.openid(request)}/">
+                      Manage Alerts
+                    </a>
+                  </li>
+                </ul>
               </li>
-              % endif
               % endif
 
-              % if request.matched_route.name == 'metrics':
-              <li class="active">
-              % else:
-              <li>
-              % endif
-                <a href="${request.route_url('metrics')}">
-                  <span class="glyphicon glyphicon-stats"></span>
-                  Metrics</a>
-              </li>
+
               <li>
                 % if request.user:
                 <a href="${request.route_url('logout')}">
