@@ -223,7 +223,7 @@ ${update.notes}
 
                   <dt data-toggle="tooltip" title="If checked, then associated bugs in RHBZ will be closed once this update is pushed to the stable repository.">
                   Close bugs on stable?</dt>
-                  <dd> <input type="checkbox" name="close_bugs"
+                  <dd> <input type="checkbox" name="close_bugs" data-singleton="true"
                       % if update and update.close_bugs:
                       checked
                       % elif not update:
@@ -237,7 +237,7 @@ ${update.notes}
                 <dl id='radios' class="dl-horizontal">
                   <dt data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough positive karma has been given.">
                   Auto-request stable?</dt>
-                  <dd> <input type="checkbox" name="autokarma"
+                  <dd> <input type="checkbox" name="autokarma" data-singleton="true"
                       % if update and update.stable_karma != None and update.unstable_karma != None:
                       checked
                       % elif not update:
@@ -269,7 +269,7 @@ ${update.notes}
                   <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated bugs before the update can pass to stable.  If your update has no associated bugs, this option has no effect.">
                   Require bugs
                   </dt>
-                  <dd> <input type="checkbox" name="require_bugs"
+                  <dd> <input type="checkbox" name="require_bugs" data-singleton="true"
                       % if update and update.require_bugs:
                       checked
                       % elif not update:
@@ -279,7 +279,7 @@ ${update.notes}
 
                   <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated wiki test cases before the update can pass to stable.  If your update has no associated wiki test cases, this option has no effect.">
                   Require testcases</dt>
-                  <dd> <input type="checkbox" name="require_testcases"
+                  <dd> <input type="checkbox" name="require_testcases" data-singleton="true"
                       % if update and update.require_testcases:
                       checked
                       % elif not update:
