@@ -355,9 +355,15 @@ $(document).ready(function(){
           <ul>
             % for build in update.builds:
             <li>
-              <a href="http://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob">
-                ${build.nvr}
-              </a>
+              ${build.nvr}
+              <span class="pull-right">
+                <a href='${request.route_url("updates") + "?packages=" + build.package.name}'>
+                  <span class="glyphicon glyphicon-list" data-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
+                </a>
+                <a href="http://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob" target="_blank">
+                  <span class="glyphicon glyphicon-new-window" data-toggle="tooltip" data-placement="top" title="Show the ${build.nvr} build in Koji"></span>
+                </a>
+              </span>
             </li>
             % endfor
           </ul>
