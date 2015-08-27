@@ -843,8 +843,9 @@ class Update(Base):
                     bugs = [bug.bug_id for bug in self.bugs]
                     self.update_bugs(bugs + oldbugs)
 
-                    # Also inherit the older updates notes as well
-                    self.notes += '\n' + oldBuild.update.notes
+                    # Also inherit the older updates notes as well and
+                    # add a markdown separator between the new and old ones.
+                    self.notes += '\n\n----\n\n' + oldBuild.update.notes
                     oldBuild.update.obsolete(newer=build.nvr)
                     self.comment('This update has obsoleted %s, and has '
                                  'inherited its bugs and notes.' % oldBuild.nvr,
