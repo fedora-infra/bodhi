@@ -75,7 +75,12 @@ Form.prototype.data = function() {
         if (this.type == 'radio' && ! this.checked) {
             // pass - don't add unchecked radio buttons to the submission
         } else if (this.type == 'checkbox' && ! this.checked) {
-            data[this.name].push(false);
+            // Handle series and singletons differently.
+            // The checkbox lists of bugs and builds are series.
+            // The single checkboxes for require_bugs, etc.. are singletons.
+            if (this['data-singleton'] == true) {
+                data[this.name].push(false);
+            }
         } else {
             var value = $(this).val();
             if (value != "") {
