@@ -67,7 +67,7 @@
 </div>
 </%def>
 
-<%def name="update(update, display_user=True, display_request=False)">
+<%def name="update(update, display_user=True, display_request=False, display_release=True, display_karma=True)">
   <td>${util.update2html(update) | n}</td>
   <td class="nobreak">
     <span title="${update['date_submitted']} UTC">
@@ -82,6 +82,7 @@
     </a>
   </td>
   %endif
+  %if display_release:
   <td class="hidejs">
     % if update['release']:
     <a href="${request.route_url('release', name=update['release']['name'])}">
@@ -89,9 +90,12 @@
     </a>
     % endif
   </td>
+  %endif
+  %if display_karma:
   <td class="hidejs">
     ${util.karma2html(update['karma']) | n}
   </td>
+  %endif
   %if display_request:
   <td class="hidejs">
     % if update['request']:

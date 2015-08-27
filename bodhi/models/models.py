@@ -314,6 +314,17 @@ class Release(Base):
         return ' '.join(self.long_name.split()[:-1])
 
     @classmethod
+    def all_releases(cls):
+        if cls._all_releases:
+            return cls._all_releases
+        releases = defaultdict(list)
+        for release in DBSession.query(cls).order_by(cls.name).all():
+            releases[release.state.value].append(release.__json__())
+        cls._all_releases = releases
+        return cls._all_releases
+    _all_releases = None
+
+    @classmethod
     def get_tags(cls):
         if cls._tag_cache:
             return cls._tag_cache

@@ -12,14 +12,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import pkg_resources
-
 from collections import defaultdict
 from dogpile.cache import make_region
 from sqlalchemy import engine_from_config
 
 from pyramid.settings import asbool
-from pyramid.decorator import reify
 from pyramid.security import unauthenticated_userid
 from pyramid.config import Configurator
 from pyramid.authentication import AuthTktAuthenticationPolicy
@@ -78,6 +75,10 @@ def get_buildinfo(request):
     return defaultdict(dict)
 
 
+def get_releases(request):
+    from bodhi.models import Release
+    return Release.all_releases()
+
 #
 # Cornice filters
 #
@@ -133,6 +134,7 @@ def main(global_config, testing=None, **settings):
     config.add_request_method(get_dbsession, 'db', reify=True)
     config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
+    config.add_request_method(get_releases, 'releases', reify=True)
 
     # Templating
     config.add_mako_renderer('.html', settings_prefix='mako.')
