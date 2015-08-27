@@ -1424,7 +1424,7 @@ class Update(Base):
         session.flush()
 
         # Publish to fedmsg
-        if author not in ('bodhi', 'autoqa'):
+        if author not in config.get('system_users').split():
             notifications.publish(topic='update.comment', msg=dict(
                 comment=comment.__json__(anonymize=True),
                 agent=author,
