@@ -61,7 +61,6 @@ class TestRelease(ModelTest):
 
     def test_all_releases(self):
         releases = model.Release.all_releases()
-        assert 'current' in releases, releases
         state = ReleaseState.from_string(releases.keys()[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
