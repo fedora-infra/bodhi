@@ -233,7 +233,8 @@ def validate_acls(request):
             try:
                 release = Release.from_tags(tags, db)
             except KeyError:
-                log.exception('Unable to determine release from tags')
+                log.warn('Unable to determine release from '
+                         'tags: %r build: %r' % (tags, build))
                 request.errors.add('body', 'builds',
                                    'Unable to determine release ' +
                                    'from build: %s' % build)
