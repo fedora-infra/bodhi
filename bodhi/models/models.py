@@ -318,7 +318,7 @@ class Release(Base):
         if cls._all_releases:
             return cls._all_releases
         releases = defaultdict(list)
-        for release in DBSession.query(cls).order_by(cls.name).all():
+        for release in DBSession.query(cls).order_by(cls.name.desc()).all():
             releases[release.state.value].append(release.__json__())
         cls._all_releases = releases
         return cls._all_releases
