@@ -38,7 +38,11 @@ class TestUtils(object):
         """Ensure we escape HTML"""
         text = '<b>bold</b>'
         html = markup(None, text)
-        assert html == '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>', html
+        assert html == (
+            "<div class='markdown'>"
+            '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>'
+            "</div>"
+        ), html
 
     def test_rpm_header(self):
         h = get_rpm_header('')
