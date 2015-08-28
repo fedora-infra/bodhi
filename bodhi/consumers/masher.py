@@ -416,6 +416,7 @@ class MasherThread(threading.Thread):
     def eject_from_mash(self, update, reason):
         update.locked = False
         text = '%s ejected from the push because %r' % (update.title, reason)
+        log.warn(text)
         update.comment(text, author=u'bodhi')
         update.request = None
         if update in self.state['updates']:
@@ -509,9 +510,10 @@ class MasherThread(threading.Thread):
                         from_tag = tag
                         break
                 else:
-                    self.log.error('Cannot find relevant tag for %s: %s' % (
-                                   build.nvr, tags))
-                    raise Exception
+                    reason = 'Cannot find relevant tag for %s: %s' % (
+                        build.nvr, tags)
+                    self.eject_from_mash(update, reason)
+                    break
 
                 if self.skip_mash:
                     self.add_tags.append((update.requested_tag, build.nvr))
