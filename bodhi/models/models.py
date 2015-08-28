@@ -638,18 +638,16 @@ class Update(Base):
 
         data['critpath'] = critical
 
-        # Create the Bug entities
+        # Create the Bug entities, but don't talk to rhbz yet.  We do that
+        # offline in the UpdatesHandler fedmsg consumer now.
         bugs = []
         if data['bugs']:
             for bug_num in data['bugs']:
                 bug = db.query(Bug).filter_by(bug_id=bug_num).first()
                 if not bug:
                     bug = Bug(bug_id=bug_num)
-                    bug.update_details()
                     db.add(bug)
                     db.flush()
-                    if bug.security:
-                        data['type'] = UpdateType.security
                 bugs.append(bug)
         data['bugs'] = bugs
 
@@ -1259,12 +1257,8 @@ class Update(Base):
 
         :returns: a list of new Bug instances.
         """
-        fetchdetails = True
         new = []
         session = DBSession()
-        if not config.get('bodhi_email'):
-            log.warning("No bodhi_email defined; not fetching bug details")
-            fetchdetails = False
         to_remove = []
         for bug in self.bugs:
             if bug.bug_id not in bugs:
@@ -1279,13 +1273,7 @@ class Update(Base):
         for bug_id in bugs:
             bug = session.query(Bug).filter_by(bug_id=int(bug_id)).first()
             if not bug:
-                if fetchdetails:
-                    newbug = bugtracker.getbug(bug_id)
-                    bug = Bug(bug_id=int(newbug.bug_id))
-                    bug.update_details(newbug)
-                    bug.modified(self)
-                else:
-                    bug = Bug(bug_id=int(bug_id))
+                bug = Bug(bug_id=int(bug_id))
                 session.add(bug)
                 session.flush()
             if bug not in self.bugs:
@@ -1885,6 +1873,10 @@ class Bug(Base):
         return config['buglink'] % self.bug_id
 
     def update_details(self, bug=None):
+        """ Grab details from rhbz to populate our bug fields.
+
+        This is typically called "offline" in the UpdatesHandler consumer.
+        """
         bugtracker.update_details(bug, self)
 
     def default_message(self, update):

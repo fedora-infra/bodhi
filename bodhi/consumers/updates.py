@@ -30,23 +30,26 @@ message gets received here and triggers us to do all that network-laden heavy
 lifting.
 """
 
+import pprint
+
 import fedmsg.consumers
 
 from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 
+from bodhi.exceptions import BodhiException
 from bodhi.util import transactional_session_maker
 from bodhi.models import (
     Update,
-    UpdateRequest,
     UpdateType,
-    Release,
-    UpdateStatus,
-    ReleaseState,
     DBSession,
     Base,
 )
 
+from bodhi.bugs import bugtracker
+
+import logging
+log = logging.getLogger('bodhi')
 
 
 class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
@@ -71,23 +74,52 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
         self.topic = prefix + '.' + env + '.bodhi.update.request.testing'
+
+        self.handle_bugs = bool(self.settings.get('bodhi_email'))
+        if not self.handle_bugs:
+            log.warn("No bodhi_email defined; not fetching bug details")
+
         super(UpdatesHandler, self).__init__(hub, *args, **kwargs)
-        self.log.info('Bodhi updates handler listening on: %s' % self.topic)
+        log.info('Bodhi updates handler listening on: %s' % self.topic)
 
     def consume(self, msg):
         msg = msg['body']['msg']
         update = msg['update']
         alias = update.get('alias')
 
-        self.log.info("Updates Handler handling %s" % alias)
+        log.info("Updates Handler handling  %s" % alias)
         if not alias:
-            self.log.error("Update Handler received update with no alias.")
+            log.error("Update Handler got update with no "
+                           "alias %s." % pprint.pformat(msg))
             return
 
         with self.db_factory() as session:
             self.work(session, alias)
 
-        self.log.info("Updates Handler done with %s" % alias)
+        log.info("Updates Handler done with %s" % alias)
 
     def work(self, session, alias):
-        raise NotImplementedError
+        update = Update.get(alias, session)
+        if not update:
+            raise BodhiException("Couldn't find alias %r in DB" % alias)
+
+        if not self.handle_bugs:
+            log.warn("Not configured to handle bugs")
+
+        if self.handle_bugs:
+            log.info("Found %i bugs on %r" % (len(update.bugs), alias))
+            for bug in update.bugs:
+                log.info("Getting RHBZ bug %r" % bug.bug_id)
+                rhbz_bug = bugtracker.getbug(bug.bug_id)
+                log.info("Updating our details for %r" % bug.bug_id)
+                bug.update_details(rhbz_bug)
+                log.info("  Got title %r for %r" % (bug.title, bug.bug_id))
+                log.info("Modifying %r" % bug.bug_id)
+                bug.modified(update)
+
+                # Cool feature.  If you set the type of your update to
+                # 'enhancement' but you attach a security bug, we automatically
+                # change the type of your update to 'security'.
+                if bug.security:
+                    log.info("Setting our UpdateType to security.")
+                    update.type = UpdateType.security
