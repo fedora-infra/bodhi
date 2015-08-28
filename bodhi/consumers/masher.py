@@ -292,9 +292,9 @@ class MasherThread(threading.Thread):
             if self.request is UpdateRequest.stable:
                 self.perform_gating()
 
-            self.update_security_bugs()
-
             self.determine_and_perform_tag_actions()
+
+            self.update_security_bugs()
 
             self.expire_buildroot_overrides()
             self.remove_pending_tags()
