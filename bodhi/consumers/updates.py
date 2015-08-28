@@ -132,6 +132,14 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             bug.update_details(rhbz_bug)
             log.info("  Got title %r for %r" % (bug.title, bug.bug_id))
 
+            # If you set the type of your update to 'enhancement' but you
+            # attach a security bug, we automatically change the type of your
+            # update to 'security'. We need to do this first, so we don't
+            # accidentally comment on stuff that we shouldn't.
+            if bug.security:
+                log.info("Setting our UpdateType to security.")
+                update.type = UpdateType.security
+
             log.info("Commenting on %r" % bug.bug_id)
             comment = self.settings['initial_bug_msg'] % (
                 update.title, update.release.long_name, update.abs_url())
@@ -140,9 +148,3 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             log.info("Modifying %r" % bug.bug_id)
             bug.modified(update)
 
-            # Cool feature.  If you set the type of your update to
-            # 'enhancement' but you attach a security bug, we automatically
-            # change the type of your update to 'security'.
-            if bug.security:
-                log.info("Setting our UpdateType to security.")
-                update.type = UpdateType.security
