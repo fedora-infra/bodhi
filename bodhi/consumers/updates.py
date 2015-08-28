@@ -111,9 +111,16 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             for bug in update.bugs:
                 log.info("Getting RHBZ bug %r" % bug.bug_id)
                 rhbz_bug = bugtracker.getbug(bug.bug_id)
+
                 log.info("Updating our details for %r" % bug.bug_id)
                 bug.update_details(rhbz_bug)
                 log.info("  Got title %r for %r" % (bug.title, bug.bug_id))
+
+                log.info("Commenting on %r" % bug.bug_id)
+                comment = self.settings['initial_bug_msg'] % (
+                    update.title, update.release.long_name, update.abs_url())
+                bug.add_comment(update, comment)
+
                 log.info("Modifying %r" % bug.bug_id)
                 bug.modified(update)
 

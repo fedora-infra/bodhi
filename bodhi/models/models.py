@@ -692,17 +692,6 @@ class Update(Base):
         log.debug("Triggering db flush for new update.")
         db.flush()
 
-        # Now that the update has been created, we have an alias and a url,
-        # so we can comment on some bugs.
-        # TODO - https://github.com/fedora-infra/bodhi/issues/314
-        log.debug("Adding comments to %i bugs for new update." % len(bugs))
-        for bug in bugs:
-            bug.add_comment(up, config['initial_bug_msg'] % (
-                data['title'], data['release'].long_name, up.url()))
-            # And mark it as modified
-            # https://github.com/fedora-infra/bodhi/issues/225
-            bug.modified(up)
-
         log.debug("Done with Update.new(...)")
         return up, caveats
 
