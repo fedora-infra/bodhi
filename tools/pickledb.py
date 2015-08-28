@@ -272,7 +272,6 @@ def load_sqlalchemy_db():
                     user = User(name=name)
                     db.add(user)
                     db.flush()
-                    user.updates.append(update)
                 users[name] = user
 
             comment.user = user
