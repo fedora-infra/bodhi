@@ -192,3 +192,7 @@ ul.updateslist li {
 #preview {
     padding: 10px;
 }
+
+.markdown ul {
+    list-style-type: circle;
+}
