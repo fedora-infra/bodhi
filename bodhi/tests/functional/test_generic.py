@@ -103,11 +103,21 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_markdown(self):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)
-        self.assertEquals(res.json_body['html'], '<p>wat</p>')
+        self.assertEquals(
+            res.json_body['html'],
+            "<div class='markdown'>"
+            "<p>wat</p>"
+            "</div>"
+        )
 
     def test_markdown_with_html(self):
         res = self.app.get('/markdown', {'text': '<b>bold</b>'}, status=200)
-        self.assertEquals(res.json_body['html'], '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>')
+        self.assertEquals(
+            res.json_body['html'],
+            "<div class='markdown'>"
+            '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>'
+            "</div>"
+        )
 
     def test_markdown_with_mention(self):
         res = self.app.get('/markdown', {
@@ -115,8 +125,11 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
+            "<div class='markdown'>"
             '<p>my <a href="http://localhost/users/colleague">@colleague</a>'
-            ' is distinguished</p>')
+            ' is distinguished</p>'
+            "</div>"
+        )
 
     def test_markdown_with_mention_at_start(self):
         res = self.app.get('/markdown', {
@@ -124,8 +137,10 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
+            "<div class='markdown'>"
             '<p><a href="http://localhost/users/pingou">@pingou</a>'
-            ' is on it</p>',
+            ' is on it</p>'
+            "</div>"
         )
 
     def test_markdown_with_mention_at_start_with_comma(self):
@@ -134,8 +149,10 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
+            "<div class='markdown'>"
             '<p><a href="http://localhost/users/kevin">@kevin</a>'
-            ', thanks for that</p>',
+            ', thanks for that</p>'
+            "</div>"
         )
 
     def test_markdown_with_mention_with_numbers(self):
@@ -144,8 +161,10 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
+            "<div class='markdown'>"
             '<p>I vote for '
-            '<a href="http://localhost/users/number80">@number80</a></p>',
+            '<a href="http://localhost/users/number80">@number80</a></p>'
+            "</div>"
         )
 
     def test_markdown_with_bugzilla(self):
@@ -154,9 +173,11 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
+            "<div class='markdown'>"
             '<p>Crazy.  '
             '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=12345">'
-            '#12345</a> is still busted.</p>',
+            '#12345</a> is still busted.</p>'
+            "</div>"
         )
 
     def test_metrics(self):
