@@ -19,6 +19,7 @@ Author: Ralph Bean <rbean@redhat.com>
 """
 
 import markdown.inlinepatterns
+import markdown.postprocessors
 import markdown.util
 import pyramid.threadlocal
 
@@ -63,13 +64,26 @@ def inject():
     MENTION_RE = r'(@\w+)'
     BUGZILLA_RE = r'(#[0-9]{5,})'
 
-    # Lastly, monkey-patch the build_inlinepatterns func to insert our patterns
-    original_builder = markdown.build_inlinepatterns
+    class SurroundProcessor(markdown.postprocessors.Postprocessor):
+        def run(self, text):
+            return "<div class='markdown'>" + text + "</div>"
 
-    def extended_builder(md_instance, **kwargs):
-        patterns = original_builder(md_instance, **kwargs)
+    # Lastly, monkey-patch the build_inlinepatterns func to insert our patterns
+    original_pattern_builder = markdown.build_inlinepatterns
+
+    def extended_pattern_builder(md_instance, **kwargs):
+        patterns = original_pattern_builder(md_instance, **kwargs)
         patterns['mention'] = MentionPattern(MENTION_RE, md_instance)
         patterns['bugzillas'] = BugzillaPattern(BUGZILLA_RE, md_instance)
         return patterns
 
-    markdown.build_inlinepatterns = extended_builder
+    markdown.build_inlinepatterns = extended_pattern_builder
+
+    original_postprocessor_builder = markdown.build_postprocessors
+
+    def extended_postprocessor_builder(md_instance, **kwargs):
+        processors = original_postprocessor_builder(md_instance, **kwargs)
+        processors['surround'] = SurroundProcessor(md_instance)
+        return processors
+
+    markdown.build_postprocessors = extended_postprocessor_builder
