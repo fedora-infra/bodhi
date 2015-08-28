@@ -111,7 +111,8 @@ setup(name='bodhi',
       bodhi-push = bodhi.push:push
       bodhi-expire-overrides = bodhi.scripts.expire_overrides:main
       [moksha.consumer]
-      masher = bodhi.masher:Masher
+      masher = bodhi.consumers.masher:Masher
+      updates = bodhi.consumers.updates:UpdatesHandler
       """,
       paster_plugins=['pyramid'],
       )
