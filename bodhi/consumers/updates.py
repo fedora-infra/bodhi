@@ -40,6 +40,7 @@ from sqlalchemy import engine_from_config
 from bodhi.exceptions import BodhiException
 from bodhi.util import transactional_session_maker
 from bodhi.models import (
+    Bug,
     Update,
     UpdateType,
     DBSession,
@@ -73,60 +74,75 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
 
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
-        self.topic = prefix + '.' + env + '.bodhi.update.request.testing'
+        self.topic = [
+            prefix + '.' + env + '.bodhi.update.request.testing',
+            prefix + '.' + env + '.bodhi.update.edit',
+        ]
 
         self.handle_bugs = bool(self.settings.get('bodhi_email'))
         if not self.handle_bugs:
             log.warn("No bodhi_email defined; not fetching bug details")
 
         super(UpdatesHandler, self).__init__(hub, *args, **kwargs)
-        log.info('Bodhi updates handler listening on: %s' % self.topic)
+        log.info('Bodhi updates handler listening on:\n'
+                 '%s' % pprint.pformat(self.topic))
 
-    def consume(self, msg):
-        msg = msg['body']['msg']
-        update = msg['update']
-        alias = update.get('alias')
+    def consume(self, message):
+        msg = message['body']['msg']
+        topic = message['topic']
+        alias = msg['update'].get('alias')
 
-        log.info("Updates Handler handling  %s" % alias)
+        log.info("Updates Handler handling  %s, %s" % (alias, topic))
         if not alias:
             log.error("Update Handler got update with no "
                            "alias %s." % pprint.pformat(msg))
             return
 
         with self.db_factory() as session:
-            self.work(session, alias)
+            update = Update.get(alias, session)
+            if not update:
+                raise BodhiException("Couldn't find alias %r in DB" % alias)
 
-        log.info("Updates Handler done with %s" % alias)
+            if topic.endswith('update.edit'):
+                bugs = [Bug.get(idx, session) for idx in msg['new_bugs']]
+                # Sanity check
+                for bug in bugs:
+                    assert bug in update.bugs
+            elif topic.endswith('update.request.testing'):
+                bugs = update.bugs
+            else:
+                raise NotImplementedError("Should never get here.")
 
-    def work(self, session, alias):
-        update = Update.get(alias, session)
-        if not update:
-            raise BodhiException("Couldn't find alias %r in DB" % alias)
+            self.work_on_bugs(session, update, bugs)
+
+        log.info("Updates Handler done with %s, %s" % (alias, topic))
+
+    def work_on_bugs(self, session, update, bugs):
 
         if not self.handle_bugs:
             log.warn("Not configured to handle bugs")
+            return
 
-        if self.handle_bugs:
-            log.info("Found %i bugs on %r" % (len(update.bugs), alias))
-            for bug in update.bugs:
-                log.info("Getting RHBZ bug %r" % bug.bug_id)
-                rhbz_bug = bugtracker.getbug(bug.bug_id)
+        log.info("Got %i bugs to sync for %r" % (len(bugs), update.alias))
+        for bug in bugs:
+            log.info("Getting RHBZ bug %r" % bug.bug_id)
+            rhbz_bug = bugtracker.getbug(bug.bug_id)
 
-                log.info("Updating our details for %r" % bug.bug_id)
-                bug.update_details(rhbz_bug)
-                log.info("  Got title %r for %r" % (bug.title, bug.bug_id))
+            log.info("Updating our details for %r" % bug.bug_id)
+            bug.update_details(rhbz_bug)
+            log.info("  Got title %r for %r" % (bug.title, bug.bug_id))
 
-                log.info("Commenting on %r" % bug.bug_id)
-                comment = self.settings['initial_bug_msg'] % (
-                    update.title, update.release.long_name, update.abs_url())
-                bug.add_comment(update, comment)
+            log.info("Commenting on %r" % bug.bug_id)
+            comment = self.settings['initial_bug_msg'] % (
+                update.title, update.release.long_name, update.abs_url())
+            bug.add_comment(update, comment)
 
-                log.info("Modifying %r" % bug.bug_id)
-                bug.modified(update)
+            log.info("Modifying %r" % bug.bug_id)
+            bug.modified(update)
 
-                # Cool feature.  If you set the type of your update to
-                # 'enhancement' but you attach a security bug, we automatically
-                # change the type of your update to 'security'.
-                if bug.security:
-                    log.info("Setting our UpdateType to security.")
-                    update.type = UpdateType.security
+            # Cool feature.  If you set the type of your update to
+            # 'enhancement' but you attach a security bug, we automatically
+            # change the type of your update to 'security'.
+            if bug.security:
+                log.info("Setting our UpdateType to security.")
+                update.type = UpdateType.security

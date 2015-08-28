@@ -772,14 +772,8 @@ class Update(Base):
         if new_builds or removed_builds:
             data['request'] = UpdateRequest.testing
 
-        new_bugs = up.update_bugs(data['bugs'])
+        new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
-        for bug in new_bugs:
-            bug.add_comment(up, config['initial_bug_msg'] % (
-                data['title'], data['release'].long_name, up.url()))
-            # And mark it as modified
-            # https://github.com/fedora-infra/bodhi/issues/225
-            bug.modified(up)
 
         req = data.pop("request", None)
         if req is not None:
@@ -799,7 +793,7 @@ class Update(Base):
         up.date_modified = datetime.utcnow()
 
         notifications.publish(topic='update.edit', msg=dict(
-            update=up, agent=request.user.name))
+            update=up, agent=request.user.name, new_bugs=new_bugs))
 
         return up, caveats
 
@@ -849,7 +843,7 @@ class Update(Base):
                     # Have the newer update inherit the older updates bugs
                     oldbugs = [bug.bug_id for bug in oldBuild.update.bugs]
                     bugs = [bug.bug_id for bug in self.bugs]
-                    self.update_bugs(bugs + oldbugs)
+                    self.update_bugs(bugs + oldbugs, db)
 
                     # Also inherit the older updates notes as well and
                     # add a markdown separator between the new and old ones.
@@ -1239,37 +1233,35 @@ class Update(Base):
         val += u"\n  %s\n" % self.abs_url()
         return val
 
-    def update_bugs(self, bugs):
+    def update_bugs(self, bug_ids, session):
         """
         Create any new bugs, and remove any missing ones. Destroy removed bugs
         that are no longer referenced anymore.
 
         :returns: a list of new Bug instances.
         """
+        to_remove = [bug for bug in self.bugs if bug.bug_id not in bug_ids]
+
+        for bug in to_remove:
+            self.bugs.remove(bug)
+            if len(bug.updates) == 0:
+                log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
+                session.delete(bug)
+        session.flush()
+
         new = []
-        session = DBSession()
-        to_remove = []
-        for bug in self.bugs:
-            if bug.bug_id not in bugs:
-                to_remove.append(bug)
-        if to_remove:
-            for bug in to_remove:
-                self.bugs.remove(bug)
-                if len(bug.updates) == 0:
-                    log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
-                    session.delete(bug)
-            session.flush()
-        for bug_id in bugs:
-            bug = session.query(Bug).filter_by(bug_id=int(bug_id)).first()
+        for bug_id in bug_ids:
+            bug = Bug.get(int(bug_id), session)
             if not bug:
                 bug = Bug(bug_id=int(bug_id))
                 session.add(bug)
                 session.flush()
             if bug not in self.bugs:
                 self.bugs.append(bug)
-                new.append(bug)
+                new.append(bug.bug_id)
             if bug.security and self.type != UpdateType.security:
                 self.type = UpdateType.security
+
         session.flush()
         return new
 
