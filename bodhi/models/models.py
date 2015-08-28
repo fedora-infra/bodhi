@@ -1109,8 +1109,9 @@ class Update(Base):
         self.date_pushed = datetime.utcnow()
 
     def modify_bugs(self):
-        """
-        Comment on and close this updates bugs as necessary
+        """ Comment on and close this updates bugs as necessary
+
+        This typically gets called by the Masher at the end.
         """
         if self.status is UpdateStatus.testing:
             for bug in self.bugs:
