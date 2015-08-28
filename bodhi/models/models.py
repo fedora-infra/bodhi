@@ -19,7 +19,6 @@ import re
 import copy
 import json
 import time
-import xmlrpclib
 
 from textwrap import wrap
 from datetime import datetime
