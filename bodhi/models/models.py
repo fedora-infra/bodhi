@@ -680,10 +680,14 @@ class Update(Base):
         log.debug("Creating new Update(**data) object.")
         up = Update(**data)
 
-        log.debug("Setting request for new update.")
-        up.set_request(req, request.user.name)
+        # Assign the alias before setting the request.
+        # Setting the request publishes a fedmsg message, and it is nice to
+        # already have the alias there for URL construction and backend update
+        # handling.
         log.debug("Assigning alias for new update..")
         up.assign_alias()
+        log.debug("Setting request for new update.")
+        up.set_request(req, request.user.name)
 
         log.debug("Adding new update to the db.")
         db.add(up)
