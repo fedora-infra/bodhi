@@ -19,7 +19,6 @@ import re
 import copy
 import json
 import time
-import xmlrpclib
 
 from textwrap import wrap
 from datetime import datetime
@@ -638,18 +637,16 @@ class Update(Base):
 
         data['critpath'] = critical
 
-        # Create the Bug entities
+        # Create the Bug entities, but don't talk to rhbz yet.  We do that
+        # offline in the UpdatesHandler fedmsg consumer now.
         bugs = []
         if data['bugs']:
             for bug_num in data['bugs']:
                 bug = db.query(Bug).filter_by(bug_id=bug_num).first()
                 if not bug:
                     bug = Bug(bug_id=bug_num)
-                    bug.update_details()
                     db.add(bug)
                     db.flush()
-                    if bug.security:
-                        data['type'] = UpdateType.security
                 bugs.append(bug)
         data['bugs'] = bugs
 
@@ -680,26 +677,19 @@ class Update(Base):
         log.debug("Creating new Update(**data) object.")
         up = Update(**data)
 
-        log.debug("Setting request for new update.")
-        up.set_request(req, request.user.name)
+        # Assign the alias before setting the request.
+        # Setting the request publishes a fedmsg message, and it is nice to
+        # already have the alias there for URL construction and backend update
+        # handling.
         log.debug("Assigning alias for new update..")
         up.assign_alias()
+        log.debug("Setting request for new update.")
+        up.set_request(req, request.user.name)
 
         log.debug("Adding new update to the db.")
         db.add(up)
         log.debug("Triggering db flush for new update.")
         db.flush()
-
-        # Now that the update has been created, we have an alias and a url,
-        # so we can comment on some bugs.
-        # TODO - https://github.com/fedora-infra/bodhi/issues/314
-        log.debug("Adding comments to %i bugs for new update." % len(bugs))
-        for bug in bugs:
-            bug.add_comment(up, config['initial_bug_msg'] % (
-                data['title'], data['release'].long_name, up.url()))
-            # And mark it as modified
-            # https://github.com/fedora-infra/bodhi/issues/225
-            bug.modified(up)
 
         log.debug("Done with Update.new(...)")
         return up, caveats
@@ -782,14 +772,8 @@ class Update(Base):
         if new_builds or removed_builds:
             data['request'] = UpdateRequest.testing
 
-        new_bugs = up.update_bugs(data['bugs'])
+        new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
-        for bug in new_bugs:
-            bug.add_comment(up, config['initial_bug_msg'] % (
-                data['title'], data['release'].long_name, up.url()))
-            # And mark it as modified
-            # https://github.com/fedora-infra/bodhi/issues/225
-            bug.modified(up)
 
         req = data.pop("request", None)
         if req is not None:
@@ -809,7 +793,7 @@ class Update(Base):
         up.date_modified = datetime.utcnow()
 
         notifications.publish(topic='update.edit', msg=dict(
-            update=up, agent=request.user.name))
+            update=up, agent=request.user.name, new_bugs=new_bugs))
 
         return up, caveats
 
@@ -859,7 +843,7 @@ class Update(Base):
                     # Have the newer update inherit the older updates bugs
                     oldbugs = [bug.bug_id for bug in oldBuild.update.bugs]
                     bugs = [bug.bug_id for bug in self.bugs]
-                    self.update_bugs(bugs + oldbugs)
+                    self.update_bugs(bugs + oldbugs, db)
 
                     # Also inherit the older updates notes as well and
                     # add a markdown separator between the new and old ones.
@@ -1118,8 +1102,9 @@ class Update(Base):
         self.date_pushed = datetime.utcnow()
 
     def modify_bugs(self):
-        """
-        Comment on and close this updates bugs as necessary
+        """ Comment on and close this updates bugs as necessary
+
+        This typically gets called by the Masher at the end.
         """
         if self.status is UpdateStatus.testing:
             for bug in self.bugs:
@@ -1248,47 +1233,35 @@ class Update(Base):
         val += u"\n  %s\n" % self.abs_url()
         return val
 
-    def update_bugs(self, bugs):
+    def update_bugs(self, bug_ids, session):
         """
         Create any new bugs, and remove any missing ones. Destroy removed bugs
         that are no longer referenced anymore.
 
         :returns: a list of new Bug instances.
         """
-        fetchdetails = True
+        to_remove = [bug for bug in self.bugs if bug.bug_id not in bug_ids]
+
+        for bug in to_remove:
+            self.bugs.remove(bug)
+            if len(bug.updates) == 0:
+                log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
+                session.delete(bug)
+        session.flush()
+
         new = []
-        session = DBSession()
-        if not config.get('bodhi_email'):
-            log.warning("No bodhi_email defined; not fetching bug details")
-            fetchdetails = False
-        to_remove = []
-        for bug in self.bugs:
-            if bug.bug_id not in bugs:
-                to_remove.append(bug)
-        if to_remove:
-            for bug in to_remove:
-                self.bugs.remove(bug)
-                if len(bug.updates) == 0:
-                    log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
-                    session.delete(bug)
-            session.flush()
-        for bug_id in bugs:
-            bug = session.query(Bug).filter_by(bug_id=int(bug_id)).first()
+        for bug_id in bug_ids:
+            bug = Bug.get(int(bug_id), session)
             if not bug:
-                if fetchdetails:
-                    newbug = bugtracker.getbug(bug_id)
-                    bug = Bug(bug_id=int(newbug.bug_id))
-                    bug.update_details(newbug)
-                    bug.modified(self)
-                else:
-                    bug = Bug(bug_id=int(bug_id))
+                bug = Bug(bug_id=int(bug_id))
                 session.add(bug)
                 session.flush()
             if bug not in self.bugs:
                 self.bugs.append(bug)
-                new.append(bug)
+                new.append(bug.bug_id)
             if bug.security and self.type != UpdateType.security:
                 self.type = UpdateType.security
+
         session.flush()
         return new
 
@@ -1881,6 +1854,10 @@ class Bug(Base):
         return config['buglink'] % self.bug_id
 
     def update_details(self, bug=None):
+        """ Grab details from rhbz to populate our bug fields.
+
+        This is typically called "offline" in the UpdatesHandler consumer.
+        """
         bugtracker.update_details(bug, self)
 
     def default_message(self, update):
