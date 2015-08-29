@@ -820,15 +820,6 @@ class Update(Base):
                     log.debug("%s is newer than %s" % (nvr, oldBuild.nvr))
                     obsoletable = True
 
-                # Ensure the same number of builds are present
-                if len(oldBuild.update.builds) != len(self.builds):
-                    obsoletable = False
-                    if oldBuild.update.user.name != self.user.name:
-                        request.session.flash('Please be aware that %s is'
-                                'part of a multi-build update that is currently '
-                                'in testing' % oldBuild.nvr)
-                    break
-
                 # Ensure that all of the packages in the old update are
                 # present in the new one.
                 pkgs = [b.package.name for b in self.builds]
@@ -852,6 +843,10 @@ class Update(Base):
                     self.comment('This update has obsoleted %s, and has '
                                  'inherited its bugs and notes.' % oldBuild.nvr,
                                  author='bodhi')
+                else:
+                    request.session.flash('Please be aware that %s is'
+                            'part of a multi-build update that is currently '
+                            'in testing' % oldBuild.nvr)
 
     def get_tags(self):
         """ Return all koji tags for all builds on this update. """
