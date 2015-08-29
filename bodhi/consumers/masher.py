@@ -534,7 +534,6 @@ class MasherThread(threading.Thread):
         if failed_tasks:
             raise Exception("Failed to move builds: %s" % failed_tasks)
 
-    @checkpoint
     def expire_buildroot_overrides(self):
         """ Obsolete any buildroot overrides that are in this push """
         for update in self.updates:
@@ -735,7 +734,6 @@ class MasherThread(threading.Thread):
             self.log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
-    @checkpoint
     def status_comments(self):
         self.log.info('Commenting on updates')
         for update in self.updates:
