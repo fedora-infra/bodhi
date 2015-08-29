@@ -344,28 +344,29 @@ class TestUpdate(ModelTest):
     def test_update_bugs(self):
         update = self.obj
         eq_(len(update.bugs), 2)
+        session = model.DBSession()
 
         # try just adding bugs
         bugs = ['1234']
-        update.update_bugs(bugs)
+        update.update_bugs(bugs, session)
         eq_(len(update.bugs), 1)
         eq_(update.bugs[0].bug_id, 1234)
 
         # try just removing
         bugs = []
-        update.update_bugs(bugs)
+        update.update_bugs(bugs, session)
         eq_(len(update.bugs), 0)
         eq_(model.DBSession.query(model.Bug)
                 .filter_by(bug_id=1234).first(), None)
 
         # Test new duplicate bugs
         bugs = ['1234', '1234']
-        update.update_bugs(bugs)
+        update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
 
         # Try adding a new bug, and removing the rest
         bugs = ['4321']
-        update.update_bugs(bugs)
+        update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 4321
         eq_(model.DBSession.query(model.Bug)
