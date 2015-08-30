@@ -534,30 +534,30 @@ $(document).ready(function(){
       </tr>
       % endfor
     </table>
-  </div>
-  % endif
+    % endif
 
-  % if update.test_cases:
-  <h3>Test Cases <span class="badge">${len(update.test_cases)}</span></h3>
-  <table class="table">
-    <colgroup class='strip' span="1"></colgroup>
-    <colgroup class='strip' span="1"></colgroup>
-    <colgroup span="1"></colgroup>
-    <thead>
+    % if update.test_cases:
+    <h3>Test Cases <span class="badge">${len(update.test_cases)}</span></h3>
+    <table class="table">
+      <colgroup class='strip' span="1"></colgroup>
+      <colgroup class='strip' span="1"></colgroup>
+      <colgroup span="1"></colgroup>
+      <thead>
+        <tr>
+          <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
+          <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="glyphicon glyphicon-remove-circle"></span></th>
+          <th></th>
+        </tr>
+      </thead>
+      % for test in update.full_test_cases:
       <tr>
-        <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="glyphicon glyphicon-ok-circle"></span></th>
-        <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="glyphicon glyphicon-remove-circle"></span></th>
-        <th></th>
+        <td>${self.util.karma2html(update.get_testcase_karma(test)) | n}</td>
+        <td>${self.util.testcase_link(test) | n}</td>
       </tr>
-    </thead>
-    % for test in update.full_test_cases:
-    <tr>
-      <td>${self.util.karma2html(update.get_testcase_karma(test)) | n}</td>
-      <td>${self.util.testcase_link(test) | n}</td>
-    </tr>
-    % endfor
-  </table>
-  % endif
+      % endfor
+    </table>
+    % endif
+  </div>
 
 </div>
 
