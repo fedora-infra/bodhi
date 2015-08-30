@@ -33,10 +33,10 @@
       </div>
 
       <div class="panel-body">
-        <div class="col-md-9">
+        <div class="col-md-8">
           ${util.markup(comment.text) | n}
         </div>
-        <div class="col-md-3 text-right">
+        <div class="col-md-4 text-right">
           % if comment.karma:
           <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
           <hr />
@@ -53,7 +53,11 @@
           <hr />
           % endif
           % endfor
+        </div>
 
+        % if comment.testcase_feedback:
+        <div class="clearfix"></div>
+        <div class="col-md-12 text-right">
           % for feedback in comment.testcase_feedback:
           % if feedback.karma:
           <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
@@ -61,6 +65,8 @@
           % endif
           % endfor
         </div>
+        % endif
+
       </div>
     </div>
   </div>
