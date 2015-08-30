@@ -20,7 +20,14 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi import log
-from bodhi.models import Update, Build, Package, Release
+from bodhi.models import (
+    Update,
+    UpdateStatus,
+    UpdateType,
+    Build,
+    Package,
+    Release,
+)
 import bodhi.schemas
 import bodhi.security
 from bodhi.validators import (
@@ -70,11 +77,46 @@ def get_release_html(request):
         else:
             date_commits[update.type.description][yearmonth] = 0
 
+    base_count_query = request.db.query(Update)\
+        .filter(Update.release==release)
+
+    num_updates_pending = base_count_query\
+        .filter(Update.status==UpdateStatus.pending).count()
+    num_updates_testing = base_count_query\
+        .filter(Update.status==UpdateStatus.testing).count()
+    num_updates_stable = base_count_query\
+        .filter(Update.status==UpdateStatus.stable).count()
+    num_updates_unpushed = base_count_query\
+        .filter(Update.status==UpdateStatus.unpushed).count()
+    num_updates_obsolete = base_count_query\
+        .filter(Update.status==UpdateStatus.obsolete).count()
+
+    num_updates_security = base_count_query\
+        .filter(Update.type==UpdateType.security).count()
+    num_updates_bugfix = base_count_query\
+        .filter(Update.type==UpdateType.bugfix).count()
+    num_updates_enhancement = base_count_query\
+        .filter(Update.type==UpdateType.enhancement).count()
+    num_updates_newpackage = base_count_query\
+        .filter(Update.type==UpdateType.newpackage).count()
+
     return dict(release=release,
                 latest_updates=updates.limit(25).all(),
                 count=updates.count(),
                 date_commits=date_commits,
-                dates = sorted(dates))
+                dates=sorted(dates),
+
+                num_updates_pending=num_updates_pending,
+                num_updates_testing=num_updates_testing,
+                num_updates_stable=num_updates_stable,
+                num_updates_unpushed=num_updates_unpushed,
+                num_updates_obsolete=num_updates_obsolete,
+
+                num_updates_security=num_updates_security,
+                num_updates_bugfix=num_updates_bugfix,
+                num_updates_enhancement=num_updates_enhancement,
+                num_updates_newpackage=num_updates_newpackage,
+                )
 
 @release.get(accept=('application/json', 'text/json'), renderer='json')
 @release.get(accept=('application/javascript'), renderer='jsonp')

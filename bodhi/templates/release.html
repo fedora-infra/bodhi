@@ -37,10 +37,6 @@
         </td>
       </tr>
       <tr>
-        <td>Total updates</td>
-        <td>${count}</td>
-      </tr>
-      <tr>
         <td>Candidate tag</td>
         <td>
           ${release['candidate_tag']}
@@ -80,6 +76,103 @@
         <td>Dist tag</td>
         <td>
           ${release['dist_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Total updates</td>
+        <td>${count}</td>
+      </tr>
+
+
+      <tr>
+        <td><small>by status</small></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="text-right">Pending Updates</td>
+        <td>
+          ${num_updates_pending}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=pending">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Testing Updates</td>
+        <td>
+          ${num_updates_testing}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=testing">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Stable Updates</td>
+        <td>
+          ${num_updates_stable}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=stable">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Unpushed Updates</td>
+        <td>
+          ${num_updates_unpushed}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=unpushed">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Obsolete Updates</td>
+        <td>
+          ${num_updates_obsolete}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=obsolete">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+
+
+      <tr>
+        <td><small>by type</small></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="text-right">New Package Updates</td>
+        <td>
+          ${num_updates_newpackage}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&type=newpackage">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Bugfix Updates</td>
+        <td>
+          ${num_updates_bugfix}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&type=bugfix">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Enhancement Updates</td>
+        <td>
+          ${num_updates_enhancement}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&type=enhancement">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Security Updates</td>
+        <td>
+          ${num_updates_security}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&type=security">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
         </td>
       </tr>
     </table>
