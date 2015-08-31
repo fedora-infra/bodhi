@@ -17,11 +17,9 @@ Random functions that don't fit elsewhere
 """
 
 import os
-import sys
 import arrow
 import socket
 import urllib
-import shutil
 import tempfile
 import markdown
 import requests
@@ -33,7 +31,7 @@ import pkg_resources
 import functools
 import transaction
 
-from os.path import isdir, join, dirname, basename, isfile
+from os.path import join, dirname, basename, isfile
 from datetime import datetime
 from collections import defaultdict
 from contextlib import contextmanager
@@ -223,10 +221,8 @@ def sanity_check_repodata(myurl):
     h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
     h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
 
-    errorstrings = []
     if myurl[-1] != '/':
         myurl += '/'
-    baseurl = myurl
     if myurl.endswith('repodata/'):
         myurl = myurl.replace('repodata/', '')
 
