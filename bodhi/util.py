@@ -58,16 +58,28 @@ header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
 
-def get_rpm_header(nvr):
+def get_rpm_header(nvr, tries=0):
     """ Get the rpm header for a given build """
 
+    tries += 1
     headers = [
         'name', 'summary', 'version', 'release', 'url', 'description',
         'changelogtime', 'changelogname', 'changelogtext',
     ]
     rpmID = nvr + '.src'
     koji_session = buildsys.get_session()
-    result = koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
+    try:
+        result = koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
+    except Exception as e:
+        msg = "Failed %i times to get rpm header data from koji for %s:  %s"
+        log.warning(msg % (tries, nvr, str(e)))
+        if tries < 3:
+            # Try again...
+            return get_rpm_header(nvr, tries=tries)
+        else:
+            # Give up for good and re-raise the failure...
+            raise
+
     if result:
         return result
 
