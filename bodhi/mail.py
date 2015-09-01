@@ -405,6 +405,8 @@ def _send_mail(from_addr, to_addr, body):
         log.debug('Connecting to %s', smtp_server)
         smtp = smtplib.SMTP(smtp_server)
         smtp.sendmail(from_addr, [to_addr], body)
+    except smtplib.SMTPRecipientsRefused as e:
+        log.warn('"recipient refused" for %r, %r' % (to_addr, e))
     except:
         log.exception('Unable to send mail')
     finally:
