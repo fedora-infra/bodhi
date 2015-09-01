@@ -78,7 +78,7 @@ Form.prototype.data = function() {
             // Handle series and singletons differently.
             // The checkbox lists of bugs and builds are series.
             // The single checkboxes for require_bugs, etc.. are singletons.
-            if (this['data-singleton'] == true) {
+            if (this.dataset.singleton == 'true') {
                 data[this.name].push(false);
             }
         } else {
