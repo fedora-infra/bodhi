@@ -31,6 +31,8 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      Bug, TestCase, ReleaseState, Stack)
 from .util import get_nvr, tokenize, taskotron_results
 
+import bodhi.schemas
+
 
 # This one is a colander validator which is different from the cornice
 # validators defined elsehwere.
@@ -683,15 +685,37 @@ def validate_comment_id(request):
         request.errors.status = HTTPNotFound.code
 
 
-def validate_override_build(request):
+def validate_override_builds(request):
     """ Ensure that the build is properly tagged """
-    nvr = request.validated['nvr']
+    nvrs = bodhi.schemas.splitter(request.validated['nvr'])
     db = request.db
 
+    if not nvrs:
+        request.errors.add('body', 'nvr',
+                           'A comma-separated list of NVRs is required.')
+        return
+
+    if len(nvrs) != 1 and request.validated['edited']:
+        request.errors.add('body', 'nvr', 'Cannot combine multiple NVRs '
+                           'with editing a buildroot override.')
+        return
+
+    builds = []
+    for nvr in nvrs:
+        result = _validate_override_build(request, nvr, db)
+        if not result:
+            # Then there was some error.
+            return
+        builds.append(result)
+
+    request.validated['builds'] = builds
+
+
+def _validate_override_build(request, nvr, db):
+    """ Workhorse function for validate_override_builds """
     build = Build.get(nvr, db)
-
+    print "in _validate with build", build
     if build is not None:
-
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
             # that out and apply it.
@@ -726,8 +750,13 @@ def validate_override_build(request):
         tag_types, tag_rels = Release.get_tags()
         valid_tags = tag_types['candidate'] + tag_types['testing']
 
-        tags = [tag['name'] for tag in request.koji.listTags(nvr)
-                if tag['name'] in valid_tags]
+        try:
+            tags = [tag['name'] for tag in request.koji.listTags(nvr)
+                    if tag['name'] in valid_tags]
+        except Exception as e:
+            request.errors.add('body', 'nvr', "Couldn't determine koji tags "
+                               "for %s, %r" % (nvr, str(e)))
+            return
 
         release = Release.from_tags(tags, db)
 
@@ -746,7 +775,7 @@ def validate_override_build(request):
         db.add(build)
         db.flush()
 
-    request.validated['build'] = build
+    return build
 
 
 def validate_expiration_date(request):

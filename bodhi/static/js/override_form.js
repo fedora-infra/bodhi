@@ -6,8 +6,21 @@ $(document).ready(function() {
     OverridesForm.prototype.success = function(data) {
         Form.prototype.success.call(this, data);
 
-        // Now redirect to the override display page
-        document.location.href = "/overrides/" + data.build.nvr;
+        setTimeout(function() {
+            // There are two kinds of success to distinguish:
+            // 1) we submitted a single buildroot override
+            // 2) we submitted multiple NVRs that created multiple new overrides
+            var base = document.baseURI;
+            if (data.overrides === undefined) {
+                // Single override
+                // Now redirect to the override display
+                document.location.href = base + "overrides/" + data.build.nvr;
+            } else {
+                // Multi-NVR override.
+                // Redirect to overrides created by *me*
+                document.location.href = base + "users/" + data.overrides[0].submitter.name;
+            }
+        }, 1000);
     };
 
     OverridesForm.prototype.expire = function() {
