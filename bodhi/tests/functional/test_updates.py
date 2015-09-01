@@ -1405,6 +1405,13 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         args = self.get_update('bodhi-2.0.0-3.fc17')
         r = self.app.post_json('/updates/', args).json_body
         self.assertEquals(r['request'], 'testing')
+
+        # Since we're obsoleting something owned by someone else.
+        self.assertEquals(r['caveats'][0]['description'],
+                          'This update has obsoleted bodhi-2.0.0-2.fc17, '
+                          'and has inherited its bugs and notes.')
+
+        # Check for the comment multiple ways
         self.assertEquals(r['comments'][-1]['text'],
                           u'This update has obsoleted bodhi-2.0.0-2.fc17, '
                           'and has inherited its bugs and notes.')
@@ -1639,9 +1646,14 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         args = self.get_update(newtitle)
         resp = self.app.post_json('/updates/', args)
 
-        # The TestResponse doesn't track the session, so we can't peek at the
-        # flash messages. So, let's just make sure the session cookie was set.
-        assert resp.headers.get('Set-Cookie', '').startswith('session='), '%s\n%s' % (resp.headers, resp)
+        # Note that this does **not** obsolete the other update
+        print resp.json_body['caveats']
+        self.assertEquals(len(resp.json_body['caveats']), 1)
+        self.assertEquals(resp.json_body['caveats'][0]['description'],
+                          "Please be aware that there is another update in "
+                          "flight owned by bob, containing "
+                          "bodhi-2.0-2.fc17.  Are you coordinating with "
+                          "them?")
 
         # Ensure the second update was created successfully
         session.query(Update).filter_by(title=newtitle).one()

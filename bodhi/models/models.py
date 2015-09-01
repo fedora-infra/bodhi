@@ -805,6 +805,7 @@ class Update(Base):
         """
         db = request.db
         buildinfo = request.buildinfo
+        caveats = []
         for build in self.builds:
             for oldBuild in db.query(Build).join(Update).filter(
                 and_(Build.nvr != build.nvr,
@@ -828,6 +829,21 @@ class Update(Base):
                         obsoletable = False
                         break
 
+                # Warn if you're stomping on another user but don't necessarily
+                # obsolete them
+                if len(oldBuild.update.builds) != len(self.builds):
+                    if oldBuild.update.user.name != self.user.name:
+                        caveats.append({
+                            'name': 'update',
+                            'description': 'Please be aware that there '
+                            'is another update in flight owned by %s, '
+                            'containing %s.  Are you coordinating with '
+                            'them?' % (
+                                oldBuild.update.user.name,
+                                oldBuild.nvr,
+                            )
+                        })
+
                 if obsoletable:
                     log.info('%s is obsoletable' % oldBuild.nvr)
 
@@ -840,13 +856,12 @@ class Update(Base):
                     # add a markdown separator between the new and old ones.
                     self.notes += '\n\n----\n\n' + oldBuild.update.notes
                     oldBuild.update.obsolete(newer=build.nvr)
-                    self.comment('This update has obsoleted %s, and has '
-                                 'inherited its bugs and notes.' % oldBuild.nvr,
-                                 author='bodhi')
-                else:
-                    request.session.flash('Please be aware that %s is'
-                            'part of a multi-build update that is currently '
-                            'in testing' % oldBuild.nvr)
+                    text = ('This update has obsoleted %s, and has '
+                            'inherited its bugs and notes.') % oldBuild.nvr
+                    self.comment(text, author='bodhi')
+                    caveats.append({'name': 'update', 'description': text})
+
+        return caveats
 
     def get_tags(self):
         """ Return all koji tags for all builds on this update. """
