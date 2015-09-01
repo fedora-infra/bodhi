@@ -108,6 +108,13 @@ def query_overrides(request):
         query = query.join(BuildrootOverride.build).join(Build.release)
         query = query.filter(or_(*[Release.name==r.name for r in releases]))
 
+    like = data.get('like')
+    if like is not None:
+        query = query.join(BuildrootOverride.build)
+        query = query.filter(or_(*[
+            Build.nvr.like('%%%s%%' % like)
+        ]))
+
     submitter = data.get('user')
     if submitter is not None:
         query = query.filter(BuildrootOverride.submitter==submitter)
