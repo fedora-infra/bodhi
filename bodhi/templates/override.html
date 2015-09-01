@@ -130,11 +130,15 @@ $(document).ready(function() {
     var today = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
                          0, 0, 0, 0);
     var tomorrow = new Date(today.getTime() + 24*60*60*1000);
+    var limit = ${ int(request.registry.settings.get('buildroot_limit', 31)) };
+    var horizon = new Date(today.getTime() + (24*60*60*1000) * limit);
 
     var expiration = $('#expiration_date').datepicker({
         format: 'yyyy-mm-dd',
         onRender: function(date) {
             if (date.valueOf() < tomorrow.valueOf()) {
+                return 'disabled';
+            } else if (date.valueOf() > horizon.valueOf()) {
                 return 'disabled';
             } else {
                 return '';
