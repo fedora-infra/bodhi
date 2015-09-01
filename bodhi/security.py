@@ -78,7 +78,7 @@ def logout(request):
 def remember_me(context, request, info, *args, **kw):
     """ Called upon successful login """
     log.debug('remember_me(%s)' % locals())
-    log.debug('request.params = %r' % request.params)
+    log.debug('remember_me: request.params = %r' % request.params)
     endpoint = request.params['openid.op_endpoint']
     if endpoint != request.registry.settings['openid.provider']:
         log.warn('Invalid OpenID provider: %s' % endpoint)
@@ -87,8 +87,8 @@ def remember_me(context, request, info, *args, **kw):
         return HTTPFound(location=request.route_url('home'))
 
     username = unicode(info['identity_url'].split('http://')[1].split('.')[0])
+    log.debug('remember_me: groups = %s' % info['groups'])
     log.info('%s successfully logged in' % username)
-    log.debug('groups = %s' % info['groups'])
 
     # Find the user in our database. Create it if it doesn't exist.
     db = request.db
