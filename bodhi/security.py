@@ -35,7 +35,6 @@ def admin_only_acl(request):
 
 def packagers_allowed_acl(request):
     """Generate an ACL for update submission"""
-    log.debug('packagers_allowed_acl!!')
     return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
             request.registry.settings['mandatory_packager_groups'].split()] + \
            [DENY_ALL]
