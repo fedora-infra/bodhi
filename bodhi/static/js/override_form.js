@@ -41,11 +41,11 @@ $(document).ready(function() {
     };
 
     // These next couple blocks of code wire up the auto-complete search for
-    // candidates in the override form.  Two technologies are at play here.  The
+    // builds in the override form.  Two technologies are at play here.  The
     // first is 'bloodhound' which is a suggestion engine.  Its suggestions are
     // then fed to 'typeahead.js' which is responsible for presenting and
     // acting on the suggestions.
-    var url = 'latest_candidates?package=';
+    var url = 'latest_candidates?testing=true&package=';
 
     var candidates = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
