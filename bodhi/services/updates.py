@@ -380,7 +380,7 @@ def new_update(request):
 
     for update in updates:
         try:
-            update.obsolete_older_updates(request)
+            caveats.extend(update.obsolete_older_updates(request))
         except Exception as e:
             caveats.append({
                 'name': 'update',
