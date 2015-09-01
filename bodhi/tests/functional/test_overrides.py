@@ -215,6 +215,53 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(o['expired_date'], None)
 
     @mock.patch('bodhi.notifications.publish')
+    def test_create_override_multiple_nvr(self, publish):
+        session = DBSession()
+
+        release = Release.get(u'F17', session)
+        package = Package(name=u'not-bodhi')
+        session.add(package)
+        build1 = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
+                      release=release)
+        session.add(build1)
+        session.flush()
+
+        package = Package(name=u'another-not-bodhi')
+        session.add(package)
+        build2 = Build(nvr=u'another-not-bodhi-2.0-2.fc17', package=package,
+                      release=release)
+        session.add(build2)
+        session.flush()
+
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+
+        data = {
+            'nvr': ','.join([build1.nvr, build2.nvr]),
+            'notes': u'blah blah blah',
+            'expiration_date': expiration_date,
+            'csrf_token': self.get_csrf_token(),
+        }
+        res = self.app.post('/overrides/', data)
+
+        self.assertEquals(len(publish.call_args_list), 2)
+
+        result = res.json_body
+        self.assertEquals(result['caveats'][0]['description'],
+                          'Your override submission was split into 2.')
+
+        o1, o2 = result['overrides']
+        self.assertEquals(o1['build_id'], build1.id)
+        self.assertEquals(o1['notes'], 'blah blah blah')
+        self.assertEquals(o1['expiration_date'],
+                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(o1['expired_date'], None)
+        self.assertEquals(o2['build_id'], build2.id)
+        self.assertEquals(o2['notes'], 'blah blah blah')
+        self.assertEquals(o2['expiration_date'],
+                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(o2['expired_date'], None)
+
+    @mock.patch('bodhi.notifications.publish')
     def test_create_override_too_long(self, publish):
         session = DBSession()
 
@@ -358,6 +405,20 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['expiration_date'],
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(override['expired_date'], None)
+
+    def test_edit_fail_on_multiple(self):
+        old_nvr = u'bodhi-2.0-1.fc17'
+
+        res = self.app.get('/overrides/%s' % old_nvr)
+        o = res.json_body['override']
+        o.update({'nvr': old_nvr + ',wat', 'notes': 'blah blah blah blah',
+                  'edited': old_nvr, 'csrf_token': self.get_csrf_token()})
+        res = self.app.post('/overrides/', o, status=400)
+        result = res.json_body
+        self.assertEquals(
+            result['errors'][0]['description'],
+            'Cannot combine multiple NVRs with editing a buildroot override.',
+        )
 
     @mock.patch('bodhi.notifications.publish')
     def test_expire_override(self, publish):

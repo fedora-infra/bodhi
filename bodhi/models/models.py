@@ -1984,7 +1984,8 @@ class BuildrootOverride(Base):
         build = data['build']
 
         if build.override is not None:
-            request.errors.add('body', 'nvr', 'This build already is in a buildroot override')
+            request.errors.add('body', 'nvr',
+                               '%s is already in a override' % build.nvr)
             return
 
         old_build = db.query(Build).filter(and_(

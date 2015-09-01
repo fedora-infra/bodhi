@@ -23,9 +23,13 @@ from sqlalchemy.sql import or_
 from bodhi import log
 from bodhi.models import Build, BuildrootOverride, Package, Release
 import bodhi.schemas
-from bodhi.validators import (validate_override_build, validate_expiration_date,
-                              validate_packages, validate_releases,
-                              validate_username)
+from bodhi.validators import (
+    validate_override_builds,
+    validate_expiration_date,
+    validate_packages,
+    validate_releases,
+    validate_username,
+)
 
 
 override = Service(name='override', path='/overrides/{nvr}',
@@ -136,13 +140,17 @@ def query_overrides(request):
 @overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
                 acl=bodhi.security.packagers_allowed_acl,
                 accept=("application/json", "text/json"), renderer='json',
-                validators=(validate_override_build, validate_expiration_date),
-                )
+                validators=(
+                    validate_override_builds,
+                    validate_expiration_date,
+                ))
 @overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
                 acl=bodhi.security.packagers_allowed_acl,
                 accept=("application/javascript"), renderer="jsonp",
-                validators=(validate_override_build, validate_expiration_date),
-                )
+                validators=(
+                    validate_override_builds,
+                    validate_expiration_date,
+                ))
 def save_override(request):
     """Save a buildroot override
 
@@ -153,18 +161,32 @@ def save_override(request):
     data = request.validated
 
     edited = data.pop("edited")
-    build = data['build']
 
+    caveats = []
     try:
         if edited is None:
-            log.info("Creating a new buildroot override: %s" % data['nvr'])
+            builds = data['builds']
+            overrides = []
+            if len(builds) > 1:
+                caveats.append({
+                    'name': 'nvrs',
+                    'description': 'Your override submission was '
+                    'split into %i.' % len(builds)
+                })
+            for build in builds:
+                log.info("Creating a new buildroot override: %s" % build.nvr)
+                overrides.append(BuildrootOverride.new(
+                    request,
+                    build=build,
+                    submitter=request.user,
+                    notes=data['notes'],
+                    expiration_date=data['expiration_date'],
+                ))
 
-            override = BuildrootOverride.new(request, build=build,
-                                             submitter=request.user,
-                                             notes=data['notes'],
-                                             expiration_date=data['expiration_date'],
-                                             )
-
+            if len(builds) > 1:
+                result = dict(overrides=overrides)
+            else:
+                result = overrides[0]
         else:
             log.info("Editing buildroot override: %s" % edited)
 
@@ -174,11 +196,15 @@ def save_override(request):
                 request.errors.add('body', 'edited', 'No such build')
                 return
 
-            override = BuildrootOverride.edit(
+            result = BuildrootOverride.edit(
                     request, edited=edited, submitter=request.user,
                     notes=data["notes"], expired=data["expired"],
                     expiration_date=data["expiration_date"]
                     )
+
+            if not result:
+                # Some error inside .edit(...)
+                return
 
     except Exception as e:
         log.exception(e)
@@ -186,4 +212,9 @@ def save_override(request):
                            'Unable to save buildroot override: %s' % e)
         return
 
-    return override
+    if not isinstance(result, dict):
+        result = result.__json__()
+
+    result['caveats'] = caveats
+
+    return result
