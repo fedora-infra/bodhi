@@ -481,7 +481,13 @@ def bug_link(context, bug, short=False):
     display = "#%i" % bug.bug_id
     link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
     if not short:
-        link = link + " " + to_bytes(bug.title)
+        if bug.title:
+            # We're good...
+            link = link + " " + to_bytes(bug.title)
+        else:
+            # Otherwise, the backend is async grabbing the title from rhbz, so
+            link = link + " <img class='spinner' src='static/img/spinner.gif'>"
+
     return link
 
 
