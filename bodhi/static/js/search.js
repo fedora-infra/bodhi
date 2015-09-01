@@ -16,9 +16,18 @@ $(document).ready(function() {
             filter: function(response) { return response.users; },
         }
     });
+    var overrides = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        remote: {
+            url: 'overrides/?like=%QUERY',
+            filter: function(response) { return response.overrides; },
+        }
+    });
 
     updates.initialize();
     users.initialize();
+    overrides.initialize();
 
     $('#bloodhound .typeahead').typeahead({
         hint: true,
@@ -53,6 +62,19 @@ $(document).ready(function() {
                 return '<p><img class="img-circle" src="' + datum.avatar + '">' + datum.name + '</p>';
             },
         },
+    },
+    {
+        name: 'overrides',
+        displayKey: 'nvr',
+        source: overrides.ttAdapter(),
+        templates: {
+            header: '<h3 class="search">Buildroot Overrides</h3>',
+            empty: [
+                '<div class="empty-message">',
+                'unable to find any overrides that match the current query',
+                '</div>'
+            ].join('\n'),
+        },
     });
 
     $('#bloodhound input.typeahead').on('typeahead:selected', function (e, datum) {
@@ -62,6 +84,8 @@ $(document).ready(function() {
             window.location.href = '/updates/' + datum.title;
         } else if (datum.name != undefined) {
             window.location.href = '/users/' + datum.name;
+        } else if (datum.nvr != undefined) {
+            window.location.href = '/overrides/' + datum.nvr;
         } else {
             console.log("unhandled search result");
             console.log(datum);

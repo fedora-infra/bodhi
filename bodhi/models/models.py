@@ -2060,6 +2060,11 @@ class BuildrootOverride(Base):
             msg=dict(override=self),
         )
 
+    def __json__(self, *args, **kwargs):
+        result = super(BuildrootOverride, self).__json__(*args, **kwargs)
+        result['nvr'] = self.nvr  # For convenience
+        return result
+
 
 class Stack(Base):
     """
