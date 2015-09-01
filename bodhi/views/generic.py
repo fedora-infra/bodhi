@@ -16,6 +16,7 @@ import datetime
 import sqlalchemy as sa
 
 from pyramid.security import authenticated_userid
+from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPNotFound, HTTPForbidden
 
@@ -118,7 +119,7 @@ def latest_candidates(request):
     db = request.db
 
     @request.cache.cache_on_arguments()
-    def work(pkg):
+    def work(pkg, testing):
         result = []
         koji.multicall = True
 
@@ -128,8 +129,12 @@ def latest_candidates(request):
                              (bodhi.models.ReleaseState.pending,
                               bodhi.models.ReleaseState.current)))
 
+        kwargs = dict(package=pkg, latest=True)
         for release in releases:
-            koji.listTagged(release.candidate_tag, package=pkg, latest=True)
+            koji.listTagged(release.candidate_tag, **kwargs)
+            if testing:
+                koji.listTagged(release.testing_tag, **kwargs)
+                koji.listTagged(release.pending_testing_tag, **kwargs)
 
         builds = koji.multiCall() or []  # Protect against None
 
@@ -145,12 +150,13 @@ def latest_candidates(request):
 
 
     pkg = request.params.get('package')
-    log.debug('latest_candidate(%r)' % pkg)
+    testing = asbool(request.params.get('testing'))
+    log.debug('latest_candidate(%r, %r)' % (pkg, testing))
 
     if not pkg:
         return []
 
-    result = work(pkg)
+    result = work(pkg, testing)
 
     log.debug(result)
     return result
