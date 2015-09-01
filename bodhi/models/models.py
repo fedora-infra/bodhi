@@ -725,7 +725,15 @@ class Update(Base):
                     b = Build(nvr=build, package=package)
                     b.release = up.release
                     db.add(b)
-                koji.tagBuild(up.release.pending_testing_tag, build)
+
+                if up.release.pending_testing_tag:
+                    koji.tagBuild(up.release.pending_testing_tag, build)
+                else:
+                    # EL6 doesn't have these, and that's okay...
+                    # We still warn in case the config gets messed up.
+                    log.warn('%s has no pending_testing_tag for %s' % (
+                        up.release.name, build.nvr))
+
                 up.builds.append(b)
 
         # Determine which builds have been removed
@@ -1074,6 +1082,10 @@ class Update(Base):
     def add_tag(self, tag):
         """ Add a koji tag to all builds in this update """
         log.debug('Adding tag %s to %s' % (tag, self.title))
+        if not tag:
+            log.warn("Not adding builds of %s to empty tag" % self.title)
+            return []  # An empty iterator in place of koji multicall
+
         koji = buildsys.get_session()
         koji.multicall = True
         for build in self.builds:
@@ -1083,6 +1095,10 @@ class Update(Base):
     def remove_tag(self, tag, koji=None):
         """ Remove a koji tag from all builds in this update """
         log.debug('Removing tag %s from %s' % (tag, self.title))
+        if not tag:
+            log.warn("Not removing builds of %s from empty tag" % self.title)
+            return []  # An empty iterator in place of koji multicall
+
         return_multicall = not koji
         if not koji:
             koji = buildsys.get_session()
