@@ -100,6 +100,7 @@ $(document).ready(function() {
     // code to fire when one of those checkboxes is clicked.  (It adds
     // changelog entries to the update notes).
     var add_build_checkbox = function(nvr, idx, checked) {
+        if (nvr == '' || nvr == null || nvr === undefined) return;
         $("#candidate-checkboxes").prepend(
             [
                 '<div class="checkbox">',
@@ -141,6 +142,7 @@ $(document).ready(function() {
     // A utility for adding another bug to the checkbox list of potential bugs
     // this update could fix.
     var add_bug_checkbox = function(idx, description, checked) {
+        if (idx == '' || idx == null || idx === undefined) return;
         $("#bugs-checkboxes").prepend(
             [
                 '<div class="checkbox">',
@@ -217,18 +219,20 @@ $(document).ready(function() {
         $("#builds-adder input").val('');  // Clear the field
         return false;
     }
+
+    // If you press "enter", make it count
     $("#bugs-adder input").keypress(function (e) {
         if (e.which == 13) { return add_bugs(); }
     });
     $("#builds-adder input").keypress(function (e) {
         if (e.which == 13) { return add_builds(); }
     });
-    $("#bugs-adder button").click(function(e) {
-        return add_bugs();
-    });
-    $("#builds-adder button").click(function(e) {
-        return add_builds();
-    });
+    // If you "tab" away from the input, make it count.
+    $("#bugs-adder input").focusout(function(e) { return add_bugs(); });
+    $("#builds-adder input").focusout(function(e) { return add_builds(); });
+    // Or, if you click the "+" button, make it count
+    $("#bugs-adder button").click(function(e) { return add_bugs(); });
+    $("#builds-adder button").click(function(e) { return add_builds(); });
 
     // Wire up the submit button
     $("#submit").click(function (e) {
