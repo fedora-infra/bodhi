@@ -1950,6 +1950,7 @@ class User(Base):
     __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
+    email = Column(UnicodeText, unique=True)
 
     # One-to-many relationships
     comments = relationship(Comment, backref=backref('user', lazy='joined'))
