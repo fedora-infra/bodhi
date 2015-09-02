@@ -219,18 +219,20 @@ $(document).ready(function() {
         $("#builds-adder input").val('');  // Clear the field
         return false;
     }
+
+    // If you press "enter", make it count
     $("#bugs-adder input").keypress(function (e) {
         if (e.which == 13) { return add_bugs(); }
     });
     $("#builds-adder input").keypress(function (e) {
         if (e.which == 13) { return add_builds(); }
     });
-    $("#bugs-adder button").click(function(e) {
-        return add_bugs();
-    });
-    $("#builds-adder button").click(function(e) {
-        return add_builds();
-    });
+    // If you "tab" away from the input, make it count.
+    $("#bugs-adder input").focusout(function(e) { return add_bugs(); });
+    $("#builds-adder input").focusout(function(e) { return add_builds(); });
+    // Or, if you click the "+" button, make it count
+    $("#bugs-adder button").click(function(e) { return add_bugs(); });
+    $("#builds-adder button").click(function(e) { return add_builds(); });
 
     // Wire up the submit button
     $("#submit").click(function (e) {
