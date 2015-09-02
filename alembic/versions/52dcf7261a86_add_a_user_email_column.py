@@ -15,9 +15,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('users', 'email',
-                  existing_type=sa.VARCHAR(),
-                  nullable=True)
+    op.add_column('users', sa.Column('email', sa.VARCHAR(),
+                                     nullable=True))
 
 
 def downgrade():
