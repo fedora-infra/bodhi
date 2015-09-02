@@ -87,6 +87,7 @@ def remember_me(context, request, info, *args, **kw):
         return HTTPFound(location=request.route_url('home'))
 
     username = unicode(info['identity_url'].split('http://')[1].split('.')[0])
+    email = info['sreg']['email']
     log.debug('remember_me: groups = %s' % info['groups'])
     log.info('%s successfully logged in' % username)
 
@@ -94,7 +95,7 @@ def remember_me(context, request, info, *args, **kw):
     db = request.db
     user = db.query(User).filter_by(name=username).first()
     if not user:
-        user = User(name=username)
+        user = User(name=username, email=email)
         db.add(user)
         db.flush()
 
