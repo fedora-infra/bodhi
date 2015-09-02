@@ -144,14 +144,17 @@
           </div>
           <div class="panel-body">
             <textarea class="form-control" id="notes" name="notes" rows="6"
-              placeholder="Update notes go here.  They're really *really* useful, so feel free to write as you please.  You can use **markdown** to make them look nice." required="true">
+              placeholder="Update notes go here.  They're really *really* useful, so feel free to write as you please." required="true">
 % if update:
 ${update.notes}
 % endif
 </textarea>
+            <p class="pull-right">Update notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
           </div>
         </div>
       </div>
+
+      ${self.fragments.markdown_help_modal()}
 
       <div class="col-md-6">
         <div class="panel formpanel panel-default">

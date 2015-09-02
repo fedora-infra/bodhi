@@ -141,3 +141,93 @@
     % endif
   </td>
 </%def>
+
+<%def name="markdown_help_modal()">
+  <div class="modal fade" id="markdown-help" tabindex="-1" role="dialog" aria-labelledby="markdown-help-label">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="markdown-help-label">Fedora-Flavored Markdown</h4>
+        </div>
+        <div class="modal-body">
+          <p> Text fields in Bodhi2 support an
+          <a href="https://github.com/fedora-infra/bodhi/blob/develop/bodhi/ffmarkdown.py">enhanced</a>
+          version of <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown</a>.
+          This is a cheat sheet for your reference.
+          </p>
+          <hr/>
+          <div class="row">
+            <div class="col-md-4">
+              <p>You can do <strong>headers</strong> by underlining or by prefixing with the <code>&#35;</code> character:</p>
+              <pre><code>This is an H1
+=============
+
+This is an H2
+-------------
+
+&#35; This is another H1
+
+&#35;&#35; This is another H2
+</code></pre>
+              <hr/>
+              <p>You can do <strong>blockquotes</strong> using email-style prefixes with the <code>&gt;</code> character:</p>
+              <pre><code>&gt; This is a quotation
+&gt; over many lines
+&gt; &gt; and it can be nested(!)
+</code></pre>
+              <hr/>
+              <p><strong>Lists</strong> work like you'd expect, by prefixing with any of the <code>*</code>, <code>+</code>, or <code>-</code> characters:</p>
+              <pre><code>Check out this list:
+
+* This
+* is
+* a list..
+</code></pre>
+              <p>You need a blank line between a paragraph and the start of a list for the renderer to pick up on it.</p>
+              </div>
+              <div class="col-md-4">
+              <p><strong>Emphasis</strong> can be added like this:</p>
+              <pre><code>*italics*
+_italics_
+**bold**
+__bold__
+</code></pre>
+              <hr/>
+              <p>You can save your <strong>code</strong> references from being misinterpreted as emphasis by surrounding them with backtick characters (<code>`</code>):</p>
+              <pre><code>Use `the_best_function()` and _not_ that crummy one.</code></pre>
+              <hr/>
+              <p><strong>Links</strong> look like this:</p>
+              <pre><code>[text](http://getfedora.org)</code></pre>
+              <p>..but we also support bare links if you just provide a URL.</p>
+              <hr/>
+              <p> You can create <strong>code blocks</strong> by indenting
+              every line of the block by at least 4 spaces or 1 tab. </p>
+              <pre><code>Here is a code block:
+
+    for i in range(4):
+        print i
+    print "done."
+</code></pre>
+            </div>
+            <div class="col-md-4">
+              <p>You can reference <strong>bugzilla tickets</strong> by simply prefixing a ticket id with the <code>&#35;</code> character.</p>
+              <pre><code>We really need #1185409</code></pre>
+              <p>... we will automatically generate a link to the ticket in place.</p>
+              <hr/>
+              <p>And you can refer to <strong>other users</strong> by prefixing their username with the <code>@</code> symbol.</p>
+              <pre><code>Thanks @mattdm!</code></pre>
+              <p>This will generate a link to their profile, but it won't necessarily send them a notification unless they have a special <a href="https://apps.fedoraproject.org/notifications" target="_blank">FMN</a> rule set up to catch it.</p>
+              <hr/>
+              <p>Lastly, you can embed inline <strong>images</strong> with syntax like this:</p>
+              <pre><code>![Alt text](/path/to/img.jpg)</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          You can read much more about markdown syntax at <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">daringfireball.net</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+</%def>
