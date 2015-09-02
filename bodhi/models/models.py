@@ -775,6 +775,11 @@ class Update(Base):
             # Remove all koji tags and change the status back to pending
             if not up.status is UpdateStatus.pending:
                 up.unpush()
+                caveats.append({
+                    'name': 'status',
+                    'description': 'Builds changed.  Your update is being '
+                    'sent back to testing.',
+                })
 
             # Add the pending tag to all new builds
             for build in new_builds:
