@@ -511,6 +511,15 @@ $(document).ready(function(){
       % endif
       <hr />
     % endif
+
+    % if update.critpath:
+    <div class="alert alert-danger" role="alert">
+      <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
+      <span class="sr-only">Critpath:</span>
+      This update contains builds from the <u><a class="text-danger" href="https://fedoraproject.org/wiki/Critical_path_package" target="_blank">critical path</a></u>.
+    </div>
+    % endif
+
     % if update.notes:
     <h3 class="nomargin">Notes about this update:</h3>
     ${self.util.markup(update.notes) | n}
