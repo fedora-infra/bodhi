@@ -16,6 +16,7 @@ from cornice import Service
 
 import bodhi.util
 import bodhi.security
+import bodhi.services.errors
 
 
 markdown = Service(name='markdowner', path='/markdown',
@@ -23,8 +24,10 @@ markdown = Service(name='markdowner', path='/markdown',
                    cors_origins=bodhi.security.cors_origins_ro)
 
 
-@markdown.get(accept=('application/json', 'text/json'), renderer='json')
-@markdown.get(accept=('application/javascript'), renderer='jsonp')
+@markdown.get(accept=('application/json', 'text/json'), renderer='json',
+              error_handler=bodhi.services.errors.json_handler)
+@markdown.get(accept=('application/javascript'), renderer='jsonp',
+              error_handler=bodhi.services.errors.jsonp_handler)
 def markdowner(request):
     """ Given some text, return the markdownified html version.
 

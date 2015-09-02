@@ -24,6 +24,7 @@ from bodhi.models import Comment, Build, Bug, CVE, Package, Update
 import bodhi.captcha
 import bodhi.schemas
 import bodhi.security
+import bodhi.services.errors
 from bodhi.validators import (
     validate_packages,
     validate_update,
@@ -49,10 +50,14 @@ comments = Service(name='comments', path='/comments/',
                    cors_origins=bodhi.security.cors_origins_rw)
 
 
-@comment.get(accept=('application/json', 'text/json'), renderer='json')
-@comment.get(accept=('application/javascript'), renderer='jsonp')
-@comment.get(accept=('application/atom+xml'), renderer='rss')
-@comment.get(accept="text/html", renderer="comment.html")
+@comment.get(accept=('application/json', 'text/json'), renderer='json',
+             error_handler=bodhi.services.errors.json_handler)
+@comment.get(accept=('application/javascript'), renderer='jsonp',
+             error_handler=bodhi.services.errors.jsonp_handler)
+@comment.get(accept=('application/atom+xml'), renderer='rss',
+             error_handler=bodhi.services.errors.html_handler)
+@comment.get(accept="text/html", renderer="comment.html",
+             error_handler=bodhi.services.errors.html_handler)
 def get_comment(request):
     """ Return a single comment from an id """
     return dict(comment=request.validated['comment'])
@@ -60,6 +65,7 @@ def get_comment(request):
 
 @comments.get(schema=bodhi.schemas.ListCommentSchema,
              accept=('application/json', 'text/json'), renderer='json',
+             error_handler=bodhi.services.errors.json_handler,
              validators=(
                  validate_username,
                  validate_update_owner,
@@ -68,6 +74,7 @@ def get_comment(request):
              ))
 @comments.get(schema=bodhi.schemas.ListCommentSchema,
              accept=('application/javascript'), renderer='jsonp',
+             error_handler=bodhi.services.errors.jsonp_handler,
              validators=(
                  validate_username,
                  validate_update_owner,
@@ -76,6 +83,7 @@ def get_comment(request):
              ))
 @comments.get(schema=bodhi.schemas.ListCommentSchema,
              accept=('application/atom+xml'), renderer='rss',
+             error_handler=bodhi.services.errors.html_handler,
              validators=(
                  validate_username,
                  validate_update_owner,
@@ -84,6 +92,7 @@ def get_comment(request):
              ))
 @comments.get(schema=bodhi.schemas.ListCommentSchema,
              accept=('text/html'), renderer='comments.html',
+             error_handler=bodhi.services.errors.html_handler,
              validators=(
                  validate_username,
                  validate_update_owner,
@@ -157,6 +166,7 @@ def query_comments(request):
 @comments.post(schema=bodhi.schemas.SaveCommentSchema,
                #permission='create',  # We need an ACL for this to work...
                renderer='json',
+               error_handler=bodhi.services.errors.json_handler,
                validators=(
                    validate_update,
                    validate_bug_feedback,
