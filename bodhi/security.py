@@ -46,7 +46,7 @@ def package_maintainers_only_acl(request):
     update = Update.get(request.matchdict['id'], request.db)
     if update:
         for committer in update.get_maintainers():
-            acl.insert(0, (Allow, committer, ALL_PERMISSIONS))
+            acl.insert(0, (Allow, committer.name, ALL_PERMISSIONS))
     return acl
 
 
