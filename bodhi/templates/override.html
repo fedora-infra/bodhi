@@ -86,10 +86,13 @@
           </div>
           <div class="panel-body">
             <textarea class="form-control" id="notes" name="notes" rows="6"
-              placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please.  You can use **markdown** to make them look nice." required="true">${override.notes if override is not UNDEFINED else ''}</textarea>
+              placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please." required="true">${override.notes if override is not UNDEFINED else ''}</textarea>
+            <p class="pull-right">Override notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
           </div>
         </div>
       </div>
+
+      ${self.fragments.markdown_help_modal()}
 
       <div class="col-md-6">
         <div class="panel panel-default">

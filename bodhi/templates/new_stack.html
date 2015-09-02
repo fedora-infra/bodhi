@@ -84,10 +84,13 @@
             <textarea class="form-control" id="description" name="description" rows="6"
               placeholder="Stack description goes here. You can use **markdown** to make it look nice."
               required="true">${stack.description if stack is not UNDEFINED else ''}</textarea>
+            <p class="pull-right">Stack descriptions support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
           </div>
         </div>
       </div>
     </div> <!-- end row -->
+
+    ${self.fragments.markdown_help_modal()}
 
     <div class="row">
       <div class="col-md-5">

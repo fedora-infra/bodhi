@@ -196,3 +196,11 @@ ul.updateslist li {
 .markdown ul {
     list-style-type: circle;
 }
+
+#markdown-help strong {
+    text-transform: uppercase;
+}
+#markdown-help hr {
+    margin-top: 12px;
+    padding-bottom: 5px;
+}
