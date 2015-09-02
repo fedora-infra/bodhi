@@ -1274,6 +1274,39 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_testing_update_with_new_builds_with_stable_request(self, publish, *args):
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        # Mark it as testing
+        upd = Update.get(nvr, self.db)
+        upd.status = UpdateStatus.testing
+        upd.request = UpdateRequest.stable
+        self.db.flush()
+
+        args['edited'] = args['builds']
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['comments'][-1]['text'],
+                          u'This update has been submitted for testing by guest. ')
+        self.assertEquals(up['comments'][-2]['text'],
+                          u'guest edited this update. New build(s): ' +
+                          u'bodhi-2.0.0-3.fc17. Removed build(s): bodhi-2.0.0-2.fc17.')
+        self.assertEquals(up['comments'][-3]['text'],
+                          u'This update has been submitted for testing by guest. ')
+        self.assertEquals(len(up['builds']), 1)
+        self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
+        self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        self.assertEquals(len(publish.call_args_list), 3)
+        publish.assert_called_with(topic='update.edit', msg=ANY)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
