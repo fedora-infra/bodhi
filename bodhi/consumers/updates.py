@@ -92,7 +92,13 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         topic = message['topic']
         alias = msg['update'].get('alias')
 
+
         log.info("Updates Handler handling  %s, %s" % (alias, topic))
+
+        # Go to sleep for a second to try and avoid a race condition
+        # https://github.com/fedora-infra/bodhi/issues/458
+        time.sleep(1)
+
         if not alias:
             log.error("Update Handler got update with no "
                            "alias %s." % pprint.pformat(msg))
