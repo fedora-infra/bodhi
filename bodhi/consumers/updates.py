@@ -30,6 +30,7 @@ message gets received here and triggers us to do all that network-laden heavy
 lifting.
 """
 
+import time
 import pprint
 
 import fedmsg.consumers
