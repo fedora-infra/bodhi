@@ -292,13 +292,9 @@ class MasherThread(threading.Thread):
             if self.request is UpdateRequest.stable:
                 self.perform_gating()
 
-            self.update_security_bugs()
+            self.determine_and_perform_tag_actions()
 
-            if not self.state.get('tagged', False):
-                self.determine_tag_actions()
-                self.perform_tag_actions()
-                self.state['tagged'] = True
-                self.save_state()
+            self.update_security_bugs()
 
             self.expire_buildroot_overrides()
             self.remove_pending_tags()
@@ -420,6 +416,7 @@ class MasherThread(threading.Thread):
     def eject_from_mash(self, update, reason):
         update.locked = False
         text = '%s ejected from the push because %r' % (update.title, reason)
+        log.warn(text)
         update.comment(text, author=u'bodhi')
         update.request = None
         if update in self.state['updates']:
@@ -492,7 +489,12 @@ class MasherThread(threading.Thread):
                 for bug in update.bugs:
                     bug.update_details()
 
-    def determine_tag_actions(self):
+    @checkpoint
+    def determine_and_perform_tag_actions(self):
+        self._determine_tag_actions()
+        self._perform_tag_actions()
+
+    def _determine_tag_actions(self):
         tag_types, tag_rels = Release.get_tags()
         for update in sorted_updates(self.updates):
             if update.status is UpdateStatus.testing:
@@ -508,9 +510,10 @@ class MasherThread(threading.Thread):
                         from_tag = tag
                         break
                 else:
-                    self.log.error('Cannot find relevant tag for %s: %s' % (
-                                   build.nvr, tags))
-                    raise Exception
+                    reason = 'Cannot find relevant tag for %s: %s' % (
+                        build.nvr, tags)
+                    self.eject_from_mash(update, reason)
+                    break
 
                 if self.skip_mash:
                     self.add_tags.append((update.requested_tag, build.nvr))
@@ -518,7 +521,7 @@ class MasherThread(threading.Thread):
                     self.move_tags.append((from_tag, update.requested_tag,
                                            build.nvr))
 
-    def perform_tag_actions(self):
+    def _perform_tag_actions(self):
         self.koji.multicall = True
         for action in self.add_tags:
             tag, build = action
