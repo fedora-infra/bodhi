@@ -129,7 +129,7 @@ form#search, form#search input, .twitter-typeahead {
   font-size: 90%;
 
   /* Make it scrollable */
-  max-height: 350px;
+  max-height: 550px;
   overflow-y: auto;
 
   background-color: #fff;

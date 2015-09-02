@@ -528,6 +528,14 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     )
 
 
+class ListPackageSchema(PaginatedSchema, SearchableSchema):
+    name = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
+
 class ListBuildSchema(PaginatedSchema):
     nvr = colander.SchemaNode(
         colander.String(),
