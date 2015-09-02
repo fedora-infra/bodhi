@@ -100,6 +100,7 @@ $(document).ready(function() {
     // code to fire when one of those checkboxes is clicked.  (It adds
     // changelog entries to the update notes).
     var add_build_checkbox = function(nvr, idx, checked) {
+        if (nvr == '' || nvr == null || nvr === undefined) return;
         $("#candidate-checkboxes").prepend(
             [
                 '<div class="checkbox">',
@@ -141,6 +142,7 @@ $(document).ready(function() {
     // A utility for adding another bug to the checkbox list of potential bugs
     // this update could fix.
     var add_bug_checkbox = function(idx, description, checked) {
+        if (idx == '' || idx == null || idx === undefined) return;
         $("#bugs-checkboxes").prepend(
             [
                 '<div class="checkbox">',
