@@ -1,5 +1,13 @@
 
 $(document).ready(function() {
+    var packages = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        remote: {
+            url: 'packages/?like=%QUERY',
+            filter: function(response) { return response.packages; },
+        }
+    });
     var updates = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -25,6 +33,7 @@ $(document).ready(function() {
         }
     });
 
+    packages.initialize();
     updates.initialize();
     users.initialize();
     overrides.initialize();
@@ -35,14 +44,27 @@ $(document).ready(function() {
         minLength: 2,
     },
     {
+        name: 'packages',
+        displayKey: 'name',
+        source: packages.ttAdapter(),
+        templates: {
+            header: '<h3 class="search"><small>Packages</small></h3>',
+            empty: [
+                '<div class="empty-message text-muted">',
+                'no matching packages',
+                '</div>'
+            ].join('\n'),
+        },
+    },
+    {
         name: 'updates',
         displayKey: 'title',
         source: updates.ttAdapter(),
         templates: {
-            header: '<h3 class="search">Updates</h3>',
+            header: '<h3 class="search"><small>Updates</small></h3>',
             empty: [
-                '<div class="empty-message">',
-                'unable to find any updates that match the current query',
+                '<div class="empty-message text-muted">',
+                'no matching updates',
                 '</div>'
             ].join('\n'),
         },
@@ -52,10 +74,10 @@ $(document).ready(function() {
         displayKey: 'name',
         source: users.ttAdapter(),
         templates: {
-            header: '<h3 class="search">Users</h3>',
+            header: '<h3 class="search"><small>Users</small></h3>',
             empty: [
-                '<div class="empty-message">',
-                'unable to find any users that match the current query',
+                '<div class="empty-message text-muted">',
+                'no matching users',
                 '</div>'
             ].join('\n'),
             suggestion: function(datum) {
@@ -68,10 +90,10 @@ $(document).ready(function() {
         displayKey: 'nvr',
         source: overrides.ttAdapter(),
         templates: {
-            header: '<h3 class="search">Buildroot Overrides</h3>',
+            header: '<h3 class="search"><small>Buildroot Overrides</small></h3>',
             empty: [
-                '<div class="empty-message">',
-                'unable to find any overrides that match the current query',
+                '<div class="empty-message text-muted">',
+                'no matching overrides',
                 '</div>'
             ].join('\n'),
         },
@@ -82,6 +104,8 @@ $(document).ready(function() {
             window.location.href = '/updates/' + datum.alias;
         } else if (datum.title != undefined ) {
             window.location.href = '/updates/' + datum.title;
+        } else if (datum.builds != undefined) {
+            window.location.href = '/updates/?packages=' + datum.name;
         } else if (datum.name != undefined) {
             window.location.href = '/users/' + datum.name;
         } else if (datum.nvr != undefined) {
