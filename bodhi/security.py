@@ -98,6 +98,12 @@ def remember_me(context, request, info, *args, **kw):
         user = User(name=username, email=email)
         db.add(user)
         db.flush()
+    else:
+        # We used to not track email addresses, so fill in the fields as people
+        # log back in
+        if not user.email:
+            user.email = email
+            db.flush()
 
     # Keep track of what groups the user is a memeber of
     for group_name in info['groups']:
