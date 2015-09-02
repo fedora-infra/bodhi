@@ -142,10 +142,14 @@ def latest_candidates(request):
             if isinstance(build, dict):
                 continue
             if build and build[0] and build[0][0]:
-                result.append({
+                item = {
                     'nvr': build[0][0]['nvr'],
                     'id': build[0][0]['id'],
-                })
+                }
+                # Prune duplicates
+                # https://github.com/fedora-infra/bodhi/issues/450
+                if item not in result:
+                    result.append(item)
         return result
 
 
