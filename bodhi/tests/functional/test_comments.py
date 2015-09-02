@@ -453,7 +453,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_list_comments_by_update_owner_with_none(self):
         session = DBSession()
-        user = User(name='ralph')
+        user = User(name=u'ralph')
         session.add(user)
         session.flush()
         res = self.app.get('/comments/', {"update_owner": "ralph"})
