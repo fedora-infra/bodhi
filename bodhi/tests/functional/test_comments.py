@@ -115,7 +115,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(feedback), 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
-
     @mock.patch('bodhi.notifications.publish')
     def test_commenting_with_testcase_feedback(self, publish):
         comment = self.make_comment()

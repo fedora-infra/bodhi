@@ -726,14 +726,6 @@ class Update(Base):
                     b.release = up.release
                     db.add(b)
 
-                if up.release.pending_testing_tag:
-                    koji.tagBuild(up.release.pending_testing_tag, build)
-                else:
-                    # EL6 doesn't have these, and that's okay...
-                    # We still warn in case the config gets messed up.
-                    log.warn('%s has no pending_testing_tag for %s' % (
-                        up.release.name, build.nvr))
-
                 up.builds.append(b)
 
         # Determine which builds have been removed
@@ -779,6 +771,24 @@ class Update(Base):
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
             data['request'] = UpdateRequest.testing
+
+            # Remove all koji tags and change the status back to pending
+            if not up.status is UpdateStatus.pending:
+                up.unpush()
+                caveats.append({
+                    'name': 'status',
+                    'description': 'Builds changed.  Your update is being '
+                    'sent back to testing.',
+                })
+
+            # Add the pending tag to all new builds
+            for build in new_builds:
+                if up.release.pending_testing_tag:
+                    koji.tagBuild(up.release.pending_testing_tag, build)
+                else:
+                    # EL6 doesn't have these, and that's okay...
+                    # We still warn in case the config gets messed up.
+                    log.warn('%s has no pending_testing_tag' % up.release.name)
 
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
