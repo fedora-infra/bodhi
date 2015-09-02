@@ -43,6 +43,7 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         info = {
             'identity_url': 'http://lmacken.id.fedoraproject.org',
             'groups': [u'releng'],
+            'sreg': {'email': u'lmacken@fp.o'},
         }
         req.registry.settings = self.app_settings
 
@@ -55,6 +56,7 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         # The user should now exist, and be a member of the releng group
         user = User.get(u'lmacken', db)
         self.assertEquals(user.name, u'lmacken')
+        self.assertEquals(user.email, u'lmacken@fp.o')
         self.assertEquals(len(user.groups), 1)
         self.assertEquals(user.groups[0].name, u'releng')
 

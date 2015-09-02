@@ -1442,7 +1442,10 @@ class Update(Base):
         # Send a notification to everyone that has commented on this update
         people = set()
         for person in self.get_maintainers():
-            people.add(person)
+            if person.email:
+                people.add(person.email)
+            else:
+                people.add(person.name)
         for comment in self.comments:
             if comment.anonymous or comment.user.name == u'bodhi':
                 continue
@@ -1520,14 +1523,14 @@ class Update(Base):
 
     def get_maintainers(self):
         """
-        Return a list of people that have commit access to all of the packages
-        that are contained within this update.
+        Return a list of User objects that have commit access to all of the
+        packages that are contained within this update.
         """
         people = set()
         for build in self.builds:
             if build.package.committers:
                 for committer in build.package.committers:
-                    people.add(committer.name)
+                    people.add(committer)
         return list(people)
 
     def check_requirements(self, session, settings):
@@ -1960,6 +1963,7 @@ class User(Base):
     __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
+    email = Column(UnicodeText, unique=True)
 
     # One-to-many relationships
     comments = relationship(Comment, backref=backref('user', lazy='joined'))

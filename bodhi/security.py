@@ -46,7 +46,7 @@ def package_maintainers_only_acl(request):
     update = Update.get(request.matchdict['id'], request.db)
     if update:
         for committer in update.get_maintainers():
-            acl.insert(0, (Allow, committer, ALL_PERMISSIONS))
+            acl.insert(0, (Allow, committer.name, ALL_PERMISSIONS))
     return acl
 
 
@@ -87,6 +87,7 @@ def remember_me(context, request, info, *args, **kw):
         return HTTPFound(location=request.route_url('home'))
 
     username = unicode(info['identity_url'].split('http://')[1].split('.')[0])
+    email = info['sreg']['email']
     log.debug('remember_me: groups = %s' % info['groups'])
     log.info('%s successfully logged in' % username)
 
@@ -94,9 +95,15 @@ def remember_me(context, request, info, *args, **kw):
     db = request.db
     user = db.query(User).filter_by(name=username).first()
     if not user:
-        user = User(name=username)
+        user = User(name=username, email=email)
         db.add(user)
         db.flush()
+    else:
+        # We used to not track email addresses, so fill in the fields as people
+        # log back in
+        if not user.email:
+            user.email = email
+            db.flush()
 
     # Keep track of what groups the user is a memeber of
     for group_name in info['groups']:
