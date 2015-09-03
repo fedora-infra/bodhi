@@ -18,6 +18,7 @@ import transaction
 
 import fedmsg
 import fedmsg.config
+import fedmsg.encoding
 
 import bodhi
 import bodhi.config
@@ -116,7 +117,8 @@ class FedmsgDataManager(object):
 
     def abort(self, transaction):
         self.uncommitted = copy.copy(self.committed)
-        _managers_map.remove(self)
+        if self in _managers_map:
+            _managers_map.remove(self)
 
     def tpc_begin(self, transaction):
         pass
@@ -125,13 +127,22 @@ class FedmsgDataManager(object):
         pass
 
     def tpc_vote(self, transaction):
-        #raise NotImplementedError("Check that fedmsg is initialized and that messages are serializable")
-        # We're not allowed to fail after this function returns.  But we can
-        # raise an exception to cancel the transaction for the other managers.
-        pass
+        # This ensures two things:
+        # 1) that all the objects we're about to publish are JSONifiable.
+        # 2) that we convert them from sqlalchemy objects to dicts *before* the
+        #    transaction enters its final phase, at which point our objects
+        #    will be detached from their session.
+        self.uncommitted = [
+            (topic, fedmsg.encoding.loads(fedmsg.encoding.dumps(msg)))
+            for topic, msg in self.uncommitted
+        ]
+
+        # TODO We could also check that fedmsg is ready and bound to an
+        # endpoint.. but that's not implemented.
 
     def tpc_abort(self, transaction):
-        return self.abort(transaction)
+        self.abort(transaction)
+        self._finish('aborted')
 
     def tpc_finish(self, transaction):
         for topic, msg in self.uncommitted:
@@ -139,6 +150,10 @@ class FedmsgDataManager(object):
             fedmsg.publish(topic=topic, msg=msg)
         self.committed = copy.copy(self.uncommitted)
         _managers_map.remove(self)
+        self._finish('committed')
+
+    def _finish(self, state):
+        self.state = state
 
     def sortKey(self):
         """ Use a 'z' to make fedmsg come last, after the db is done. """
