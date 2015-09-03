@@ -75,9 +75,9 @@ class Bugzilla(BugTracker):
                 raise InvalidComment("Comment is too long: %s" % comment)
             bug = self.bz.getbug(bug_id)
             bug.addcomment(comment)
-        except InvalidComment as err:
-            log.exception("Invalid comment for bug #%d" % bug_id)
-            log.exception(err)
+        except InvalidComment:
+            log.exception(
+                "Comment too long for bug #%d:  %s" % (bug_id, comment))
         except:
             log.exception("Unable to add comment to bug #%d" % bug_id)
 
