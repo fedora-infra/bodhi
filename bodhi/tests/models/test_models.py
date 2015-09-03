@@ -409,7 +409,7 @@ class TestUpdate(ModelTest):
 
         # Pretend it's been in testing for a week
         self.obj.comment(u'This update has been pushed to testing', author=u'bodhi')
-        self.obj.comments[-1].timestamp -= timedelta(days=7)
+        self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         eq_(self.obj.days_in_testing, 7)
         eq_(self.obj.meets_testing_requirements, True)
 
