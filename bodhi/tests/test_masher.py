@@ -900,3 +900,47 @@ References:
             # Ensure the masher set the autokarma once the push is done
             self.assertEquals(up.locked, False)
             self.assertEquals(up.request, UpdateRequest.stable)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.consumers.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.consumers.masher.MashThread.run')
+    @mock.patch('bodhi.consumers.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    def test_push_timestamps(self, publish, *args):
+        title = self.msg['body']['msg']['updates'][0]
+        with self.db_factory() as session:
+            release = session.query(Update).one().release
+            pending_testing_tag = release.pending_testing_tag
+            self.koji.__tagged__[title] = [release.override_tag,
+                                           pending_testing_tag]
+
+        # Start the push
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            # Set the update request to stable and the release to pending
+            up = session.query(Update).one()
+            self.assertIsNotNone(up.date_testing)
+            self.assertIsNone(up.date_stable)
+            up.request = UpdateRequest.stable
+
+        # Ensure that fedmsg was called 3 times
+        self.assertEquals(len(publish.call_args_list), 4)
+        # Also, ensure we reported success
+        publish.assert_called_with(
+            topic="mashtask.complete",
+            msg=dict(success=True, repo='f17-updates-testing'))
+
+        self.koji.clear()
+
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            # Check that the request_complete method got run
+            up = session.query(Update).one()
+            self.assertIsNone(up.request)
+            self.assertIsNotNone(up.date_stable)

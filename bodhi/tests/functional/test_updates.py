@@ -1565,7 +1565,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up.status = UpdateStatus.testing
         up.request = None
         up.comment('This update has been pushed to testing', author='bodhi')
-        up.comments[-1].timestamp -= timedelta(days=7)
+        up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         DBSession.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
@@ -1587,7 +1587,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up.status = UpdateStatus.testing
         up.request = None
         up.comment('This update has been pushed to testing', author='bodhi')
-        up.comments[-1].timestamp -= timedelta(days=7)
+        up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         DBSession.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
@@ -1609,7 +1609,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up.status = UpdateStatus.testing
         up.request = None
         up.comment('This update has been pushed to testing', author='bodhi')
-        up.comments[-1].timestamp -= timedelta(days=7)
+        up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         DBSession.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
@@ -1632,7 +1632,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up.status = UpdateStatus.stable
         up.request = None
         up.comment('This update has been pushed to testing', author='bodhi')
-        up.comments[-1].timestamp -= timedelta(days=14)
+        up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         up.comment('This update has been pushed to stable', author='bodhi')
         self.db.flush()
         eq_(up.days_in_testing, 14)
@@ -1661,7 +1661,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up.status = UpdateStatus.testing
         up.request = None
         up.comment('This update has been pushed to testing', author='bodhi')
-        up.comments[-1].timestamp -= timedelta(days=14)
+        up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         self.db.flush()
         eq_(up.days_in_testing, 14)
         eq_(up.meets_testing_requirements, True)

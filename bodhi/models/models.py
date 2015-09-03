@@ -588,6 +588,8 @@ class Update(Base):
     date_modified = Column(DateTime)
     date_approved = Column(DateTime)
     date_pushed = Column(DateTime)
+    date_testing = Column(DateTime)
+    date_stable = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(32), unique=True, nullable=True)
@@ -1130,12 +1132,15 @@ class Update(Base):
 
     def request_complete(self):
         """Perform post-request actions"""
+        now = datetime.utcnow()
         if self.request is UpdateRequest.testing:
             self.status = UpdateStatus.testing
+            self.date_testing = now
         elif self.request is UpdateRequest.stable:
             self.status = UpdateStatus.stable
+            self.date_stable = now
         self.request = None
-        self.date_pushed = datetime.utcnow()
+        self.date_pushed = now
 
     def modify_bugs(self):
         """ Comment on and close this updates bugs as necessary
@@ -1698,22 +1703,10 @@ class Update(Base):
     @property
     def days_in_testing(self):
         """ Return the number of days that this update has been in testing """
-        timestamp = None
-        for comment in self.comments[::-1]:
-            if comment.text == 'This update has been pushed to testing' and \
-                    comment.user.name == 'bodhi':
-                timestamp = comment.timestamp
-                if self.status is UpdateStatus.testing:
-                    return (datetime.utcnow() - timestamp).days
-                else:
-                    break
-        if not timestamp:
+        if self.date_testing:
+            return (datetime.utcnow() - self.date_testing).days
+        else:
             return 0
-        for comment in self.comments:
-            if comment.text == 'This update has been pushed to stable' and \
-                    comment.user.name == 'bodhi':
-                return (comment.timestamp - timestamp).days
-        return (datetime.utcnow() - timestamp).days
 
     @property
     def num_admin_approvals(self):
