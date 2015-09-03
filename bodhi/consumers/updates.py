@@ -121,8 +121,14 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
                 raise NotImplementedError("Should never get here.")
 
             self.work_on_bugs(session, update, bugs)
+            self.fetch_test_cases(session, update)
 
         log.info("Updates Handler done with %s, %s" % (alias, topic))
+
+    def fetch_test_cases(self, session, update):
+        """ Query the wiki for test cases for each package """
+        for build in update.builds:
+            build.package.fetch_test_cases(session)
 
     def work_on_bugs(self, session, update, bugs):
 
