@@ -21,19 +21,77 @@ Run the test suite
 ------------------
 ``python setup.py test``
 
-Initialize the database
------------------------
-``initialize_bodhi_db``
-
-Migrating Bodhi from v1.0 to v2.0
----------------------------------
+Import the bodhi2 database
+--------------------------
 ::
 
-    curl -O https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
-    tar -jxvf bodhi-pickledb.tar.bz2
-    rm bodhi-pickledb.tar.bz2
-    PYTHONPATH=$(pwd) python tools/pickledb.py migrate bodhi-pickledb*
+    curl -O https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
+    xzcat bodhi2.dump.xz | psql -U postgres -W
+
+.. note:: If you do not have a PostgreSQL server running, please see the
+          instructions at the bottom of the file.
+
+Adjust the development.ini file
+-------------------------------
+
+Adjust the configuration key ``sqlalchemy.url`` to point to the postgresql
+database. Something like:
+::
+
+    sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2
 
 Run the web app
 ---------------
-``pserve development.ini``
+``pserve development.ini --reload``
+
+
+
+Setup the postgresql server
+---------------------------
+
+1. Install postgresql
+~~~~~~~~~~~~~~~~~~~~~
+::
+
+    dnf install postgresql-server
+
+
+2. Setup the Database
+~~~~~~~~~~~~~~~~~~~~~
+
+As a privileged user on a Fedora system run the following:
+::
+
+    sudo postgresql-setup initdb
+
+
+3. Adjust Postgresql Connection Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As a privileged user on a Fedora system modify the pg_hba.conf file:
+::
+
+    vi /var/lib/pgsql/data/pg_hba.conf
+
+Then adjust the content at the bottom of the file to match the following.
+
+::
+
+  # TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+  # "local" is for Unix domain socket connections only
+  local   all             all                                     peer
+  # IPv4 local connections are *trusted*, any password will work.
+  host    all             all             127.0.0.1/32            trust
+  # IPv6 local connections are *trusted*, any password will work.
+  host    all             all             ::1/128                 trust
+
+If you need to make other modifications to postgresql please make them now.
+
+4. Start Postgresql
+~~~~~~~~~~~~~~~~~~~
+
+As a privileged user on a Fedora system run the following:
+::
+
+    sudo systemctl start postgresql.service
