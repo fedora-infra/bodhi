@@ -192,6 +192,7 @@ def main(global_config, testing=None, **settings):
     config.scan('bodhi.views')
     config.scan('bodhi.services')
     config.scan('bodhi.captcha')
+    config.scan('bodhi.events')
 
     # Setup fedmsg for this thread
     import bodhi.notifications

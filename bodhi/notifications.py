@@ -85,6 +85,12 @@ class ManagerMapping(object):
         del self._left[transaction_manager]
         del self._right[data_manager]
 
+    def __repr__(self):
+        return "<ManagerMapping: left(%i) right(%i)>" % (
+            len(self._left),
+            len(self._right),
+        )
+
 
 # This is a global object we'll maintain to keep track of the relationship
 # between transaction managers and our data managers.  It ensures that we don't
@@ -135,7 +141,8 @@ class FedmsgDataManager(object):
         _managers_map.remove(self)
 
     def sortKey(self):
-        return 'fedmsgdm' + str(id(self))
+        """ Use a 'z' to make fedmsg come last, after the db is done. """
+        return 'z_fedmsgdm' + str(id(self))
 
     def savepoint(self):
         return FedmsgSavepoint(self)
