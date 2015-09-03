@@ -38,7 +38,7 @@ Adjust the configuration key ``sqlalchemy.url`` to point to the postgresql
 database. Something like:
 ::
 
-    sqlalchemy.url = postgresql://user:password@localhost/bodhi2
+    sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2
 
 Run the web app
 ---------------
@@ -77,18 +77,14 @@ Then adjust the content at the bottom of the file to match the following.
 
 ::
 
-  # TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
+  # TYPE  DATABASE        USER            ADDRESS                 METHOD
 
   # "local" is for Unix domain socket connections only
-  local   all         all                               ident sameuser
-  # IPv4 local connections:
-  #host    all         all         127.0.0.1/32          ident sameuser
-  # IPv6 local connections:
-  #host    all         all         ::1/128               ident sameuser
-
-  host all all 0.0.0.0 0.0.0.0 md5
-  host all all ::1/128         md5
-
+  local   all             all                                     peer
+  # IPv4 local connections are *trusted*, any password will work.
+  host    all             all             127.0.0.1/32            trust
+  # IPv6 local connections are *trusted*, any password will work.
+  host    all             all             ::1/128                 trust
 
 If you need to make other modifications to postgresql please make them now.
 
