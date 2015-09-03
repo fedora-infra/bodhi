@@ -60,8 +60,9 @@ Setup the postgresql server
 ~~~~~~~~~~~~~~~~~~~~~
 
 As a privileged user on a Fedora system run the following:
+::
 
-  sudo postgresql-setup initdb
+    sudo postgresql-setup initdb
 
 
 3. Adjust Postgresql Connection Settings
@@ -70,7 +71,7 @@ As a privileged user on a Fedora system run the following:
 As a privileged user on a Fedora system modify the pg_hba.conf file:
 ::
 
-  vi /var/lib/pgsql/data/pg_hba.conf
+    vi /var/lib/pgsql/data/pg_hba.conf
 
 Then adjust the content at the bottom of the file to match the following.
 
@@ -95,5 +96,6 @@ If you need to make other modifications to postgresql please make them now.
 ~~~~~~~~~~~~~~~~~~~
 
 As a privileged user on a Fedora system run the following:
+::
 
-  sudo systemctl start postgresql.service
+    sudo systemctl start postgresql.service
