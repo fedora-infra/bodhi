@@ -7,7 +7,7 @@ function popup(data) {
     message: "<a href='" + data.meta.link + "'>" + data.meta.subtitle + "</a>",
   });
   // Furthermore, throw it on the newsfeed if its on the page
-  if (prepend_newsfeed_card != undefined) { prepend_newsfeed_card(data.meta); }
+  if (window.prepend_newsfeed_card != undefined) { prepend_newsfeed_card(data.meta); }
 }
 
 function error(jqXHR, status, error) {
