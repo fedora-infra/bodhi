@@ -21,8 +21,8 @@ Run the test suite
 ------------------
 ``python setup.py test``
 
-Migrating Bodhi from v1.0 to v2.0
----------------------------------
+Import the bodhi2 database
+--------------------------
 ::
 
     curl -O https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
