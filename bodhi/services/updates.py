@@ -323,9 +323,6 @@ def new_update(request):
                 request.db.add(package)
                 request.db.flush()
 
-            # Fetch test cases from the wiki
-            package.fetch_test_cases(request.db)
-
             build = Build.get(nvr, request.db)
 
             if build is None:
