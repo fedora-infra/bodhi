@@ -57,8 +57,8 @@ class ManagerMapping(object):
     data managers (for different wsgi threads in the same process). """
 
     def __init__(self):
-        self.left = {}
-        self.right = {}
+        self._left = {}
+        self._right = {}
 
     def get_current_data_manager(self):
         current_transaction_manager = transaction.get()
@@ -71,19 +71,19 @@ class ManagerMapping(object):
         return current_data_manager
 
     def add(self, transaction_manager, data_manager):
-        self.left[transaction_manager] = data_manager
-        self.right[data_manager] = transaction_manager
+        self._left[transaction_manager] = data_manager
+        self._right[data_manager] = transaction_manager
 
     def __contains__(self, item):
-        return item in self.left or item in self.right
+        return item in self._left or item in self._right
 
     def get(self, transaction_manager):
-        return self.left[transaction_manager]
+        return self._left[transaction_manager]
 
     def remove(self, data_manager):
-        transaction_manager = self.right[data_manager]
-        del self.left[transaction_manager]
-        del self.right[data_manager]
+        transaction_manager = self._right[data_manager]
+        del self._left[transaction_manager]
+        del self._right[data_manager]
 
 
 # This is a global object we'll maintain to keep track of the relationship
