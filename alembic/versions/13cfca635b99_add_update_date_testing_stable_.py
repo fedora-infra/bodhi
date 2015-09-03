@@ -13,27 +13,10 @@ down_revision = '52dcf7261a86'
 from alembic import op
 import sqlalchemy as sa
 
-from bodhi.models import Update
-
 
 def upgrade():
     op.add_column('updates', sa.Column('date_stable', sa.DateTime(), nullable=True))
     op.add_column('updates', sa.Column('date_testing', sa.DateTime(), nullable=True))
-
-    engine = op.get_bind().engine
-    session = sa.orm.scoped_session(sa.orm.sessionmaker(bind=engine))
-
-    for update in session.query(Update).all():
-        for comment in update.comments:
-            if comment.user.name == u'bodhi':
-                if comment.text == u'This update has been pushed to testing':
-                    update.date_testing = comment.timestamp
-                    print('Setting date_testing for %s' % update.title)
-                elif comment.text == u'This update has been pushed to stable':
-                    update.date_stable = comment.timestamp
-                    print('Setting date_stable for %s' % update.title)
-
-    session.commit()
 
 
 def downgrade():
