@@ -15,23 +15,16 @@
 import datetime
 import sqlalchemy as sa
 
+import cornice.errors
+
 from pyramid.security import authenticated_userid
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
-from pyramid.exceptions import HTTPNotFound, HTTPForbidden
+from pyramid.exceptions import HTTPForbidden
 
 from bodhi import log
 import bodhi.models
 import bodhi.util
-
-
-@notfound_view_config(append_slash=True)
-def notfound_view(context, request):
-    """ Automatically redirects to slash-appended routes.
-
-    http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#redirecting-to-slash-appended-rou
-    """
-    return HTTPNotFound()
 
 
 def get_top_testers(request):
@@ -198,3 +191,35 @@ def new_override(request):
 def api_version(request):
     """ Returns the Bodhi API version """
     return dict(version=bodhi.util.version())
+
+
+@notfound_view_config(append_slash=True)
+def notfound_view(context, request):
+    """ Automatically redirects to slash-appended routes.
+
+    http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#redirecting-to-slash-appended-rou
+    """
+    return exception_view(context, request)
+
+
+@view_config(context=HTTPForbidden)
+@view_config(context=Exception)
+def exception_view(exc, request):
+    """ A generic error page handler (404s, 403s, 500s, etc..)
+
+    This is here to catch everything that isn't caught by our cornice error
+    handlers.  When we do catch something, we transform it intpu a cornice
+    Errors object and pass it to our nice cornice error handler.  That way, all
+    the exception presentation and rendering we can keep in one place.
+    """
+
+    errors = getattr(request, 'errors', [])
+
+    if not len(errors):
+        status = getattr(exc, 'status_code', 500)
+        description = getattr(exc, 'explanation', None) or str(exc)
+
+        errors = cornice.errors.Errors(request, status=status)
+        errors.add('unknown', description=description)
+
+    return bodhi.services.errors.html_handler(errors)

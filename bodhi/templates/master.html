@@ -61,7 +61,7 @@
 
             <ul class="nav navbar-nav navbar-right">
               % if request.user:
-              % if request.matched_route.name in ('new_update', 'new_override', 'new_stack'):
+              % if request.matched_route and request.matched_route.name in ('new_update', 'new_override', 'new_stack'):
               <li class="dropdown active">
               % else:
               <li class="dropdown">
@@ -87,7 +87,7 @@
               % endif
 
 
-              % if request.matched_route.name in ('metrics', 'releases', 'release'):
+              % if request.matched_route and request.matched_route.name in ('metrics', 'releases', 'release'):
               <li class="dropdown active">
               % else:
               <li class="dropdown">
@@ -116,7 +116,7 @@
               </li>
 
               % if request.user:
-              % if request.matched_route.name == 'user' and request.user and request.user.name == user['name']:
+              % if request.matched_route and request.matched_route.name == 'user' and request.user and request.user.name == user['name']:
               <li class="dropdown active">
               % else:
               <li class="dropdown">
@@ -147,8 +147,12 @@
                 <a href="${request.route_url('logout')}">
                   <span class="glyphicon glyphicon-log-out"></span>
                   Logout</a>
-                % else:
+                % elif request.matched_route:
                 <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
+                  <span class="glyphicon glyphicon-log-in"></span>
+                  Login</a>
+                % else:
+                <a href="${request.route_url('login')}">
                   <span class="glyphicon glyphicon-log-in"></span>
                   Login</a>
                 % endif

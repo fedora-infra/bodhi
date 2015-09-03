@@ -204,3 +204,9 @@ ul.updateslist li {
     margin-top: 12px;
     padding-bottom: 5px;
 }
+
+.error-page-panel {
+    margin-top: 100px;
+    padding: 20px 40px 40px 40px;
+    border: 1px solid;
+}
