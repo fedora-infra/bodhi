@@ -23,6 +23,7 @@ from bodhi import log
 from bodhi.models import Update, Build, Bug, CVE, Package, User, Release, Group
 import bodhi.schemas
 import bodhi.security
+import bodhi.services.errors
 from bodhi.validators import (
     validate_nvrs,
     validate_uniqueness,
@@ -45,7 +46,8 @@ builds = Service(name='builds', path='/builds/',
                  cors_origins=bodhi.security.cors_origins_ro)
 
 
-@build.get(renderer='json')
+@build.get(renderer='json',
+           error_handler=bodhi.services.errors.json_handler)
 def get_build(request):
     nvr = request.matchdict.get('nvr')
     build = Build.get(nvr, request.db)
@@ -57,6 +59,7 @@ def get_build(request):
 
 
 @builds.get(schema=bodhi.schemas.ListBuildSchema, renderer='json',
+            error_handler=bodhi.services.errors.json_handler,
             validators=(validate_releases, validate_updates,
                         validate_packages))
 def query_builds(request):

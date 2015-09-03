@@ -15,6 +15,7 @@
 from cornice import Service
 
 import bodhi.security
+import bodhi.services.errors
 
 
 csrf = Service(name='csrf', path='/csrf', description='CSRF Token',
@@ -25,11 +26,13 @@ csrf = Service(name='csrf', path='/csrf', description='CSRF Token',
                cors_origins=bodhi.security.cors_origins_rw)
 
 
-@csrf.get(accept="text/html", renderer="string")
+@csrf.get(accept="text/html", renderer="string",
+          error_handler=bodhi.services.errors.html_handler)
 def get_csrf_token_html(request):
     return request.session.get_csrf_token()
 
 
-@csrf.get(accept=("application/json", "text/json"), renderer="json")
+@csrf.get(accept=("application/json", "text/json"), renderer="json",
+          error_handler=bodhi.services.errors.json_handler)
 def get_csrf_token_json(request):
     return dict(csrf_token=request.session.get_csrf_token())

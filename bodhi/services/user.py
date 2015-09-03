@@ -15,21 +15,20 @@
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
-from sqlalchemy.sql import or_, and_
+from sqlalchemy.sql import or_
 
 import math
 
 from bodhi.models import (
-    BuildrootOverride,
-    Comment,
     Group,
     Package,
     Update,
     User,
 )
-import bodhi.services.updates
 import bodhi.schemas
 import bodhi.security
+import bodhi.services.errors
+import bodhi.services.updates
 from bodhi.validators import (
     validate_updates,
     validate_packages,
@@ -38,20 +37,22 @@ from bodhi.validators import (
 
 
 user = Service(name='user', path='/users/{name}',
-                 description='Bodhi users',
-                 # These we leave wide-open since these are only GETs
-                 cors_origins=bodhi.security.cors_origins_ro)
+               description='Bodhi users',
+               # These we leave wide-open since these are only GETs
+               cors_origins=bodhi.security.cors_origins_ro)
 users = Service(name='users', path='/users/',
-                 description='Bodhi users',
-                 # These we leave wide-open since these are only GETs
-                 cors_origins=bodhi.security.cors_origins_ro)
+                description='Bodhi users',
+                # These we leave wide-open since these are only GETs
+                cors_origins=bodhi.security.cors_origins_ro)
 
 
-@user.get(accept=("application/json", "text/json"), renderer="json")
-@user.get(accept=("application/javascript"), renderer="jsonp")
-@user.get(accept="text/html", renderer="user.html")
+@user.get(accept=("application/json", "text/json"), renderer="json",
+          error_handler=bodhi.services.errors.json_handler)
+@user.get(accept=("application/javascript"), renderer="jsonp",
+          error_handler=bodhi.services.errors.json_handler)
+@user.get(accept="text/html", renderer="user.html",
+          error_handler=bodhi.services.errors.html_handler)
 def get_user(request):
-    db = request.db
     id = request.matchdict.get('name')
     user = User.get(id, request.db)
 
@@ -76,12 +77,15 @@ def get_user(request):
 
 @users.get(schema=bodhi.schemas.ListUserSchema,
            accept=("application/json", "text/json"), renderer="json",
+           error_handler=bodhi.services.errors.json_handler,
            validators=(validate_groups, validate_updates, validate_packages))
 @users.get(schema=bodhi.schemas.ListUserSchema,
            accept=("application/javascript"), renderer="jsonp",
+           error_handler=bodhi.services.errors.jsonp_handler,
            validators=(validate_groups, validate_updates, validate_packages))
 @users.get(schema=bodhi.schemas.ListUserSchema,
            accept=("application/atom+xml"), renderer="rss",
+           error_handler=bodhi.services.errors.html_handler,
            validators=(validate_groups, validate_updates, validate_packages))
 def query_users(request):
     db = request.db

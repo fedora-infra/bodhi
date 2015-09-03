@@ -20,6 +20,7 @@ import math
 from bodhi.models import Package
 import bodhi.schemas
 import bodhi.security
+import bodhi.services.errors
 #from bodhi.validators import (
 #    # None yet...
 #)
@@ -31,6 +32,7 @@ packages = Service(name='packages', path='/packages/',
 
 
 @packages.get(schema=bodhi.schemas.ListPackageSchema, renderer='json',
+              error_handler=bodhi.services.errors.json_handler,
               validators=(
                   # None yet...
               ))

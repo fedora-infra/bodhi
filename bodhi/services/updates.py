@@ -25,6 +25,7 @@ from bodhi.exceptions import BodhiException, LockedUpdateException
 from bodhi.models import Update, Build, Bug, CVE, Package, UpdateRequest
 import bodhi.schemas
 import bodhi.security
+import bodhi.services.errors
 from bodhi.validators import (
     validate_nvrs,
     validate_uniqueness,
@@ -71,16 +72,20 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
                          cors_origins=bodhi.security.cors_origins_rw)
 
 
-@update.get(accept=('application/json', 'text/json'), renderer='json')
-@update.get(accept=('application/javascript'), renderer='jsonp')
-@update.get(accept="text/html", renderer="update.html")
+@update.get(accept=('application/json', 'text/json'), renderer='json',
+            error_handler=bodhi.services.errors.json_handler)
+@update.get(accept=('application/javascript'), renderer='jsonp',
+            error_handler=bodhi.services.errors.jsonp_handler)
+@update.get(accept="text/html", renderer="update.html",
+            error_handler=bodhi.services.errors.html_handler)
 def get_update(request):
     """Return a single update from an id, title, or alias"""
     can_edit = bool(has_permission('edit', request.context, request))
     return dict(update=request.validated['update'], can_edit=can_edit)
 
 
-@update_edit.get(accept="text/html", renderer="new_update.html")
+@update_edit.get(accept="text/html", renderer="new_update.html",
+                 error_handler=bodhi.services.errors.html_handler)
 def get_update_for_editing(request):
     """Return a single update from an id, title, or alias for the edit form"""
     return dict(
@@ -98,7 +103,8 @@ def get_update_for_editing(request):
                          validate_build_tags,
                          validate_acls,
                      ),
-                     permission='edit', renderer='json')
+                     permission='edit', renderer='json',
+                     error_handler=bodhi.services.errors.json_handler)
 def set_request(request):
     """Sets a specific :class:`bodhi.models.UpdateRequest` on a given update"""
     update = request.validated['update']
@@ -131,18 +137,22 @@ def set_request(request):
 
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/json', 'text/json'), renderer='json',
+             error_handler=bodhi.services.errors.json_handler,
              validators=(validate_release, validate_releases,
                          validate_enums, validate_username, validate_bugs))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/javascript'), renderer='jsonp',
+             error_handler=bodhi.services.errors.jsonp_handler,
              validators=(validate_release, validate_releases,
                          validate_enums, validate_username, validate_bugs))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/atom+xml'), renderer='rss',
+             error_handler=bodhi.services.errors.html_handler,
              validators=(validate_release, validate_releases,
                          validate_enums, validate_username, validate_bugs))
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('text/html'), renderer='updates.html',
+             error_handler=bodhi.services.errors.html_handler,
              validators=(validate_release, validate_releases,
                          validate_enums, validate_username, validate_bugs))
 def query_updates(request):
@@ -273,6 +283,7 @@ def query_updates(request):
 
 @updates.post(schema=bodhi.schemas.SaveUpdateSchema,
               permission='create', renderer='json',
+              error_handler=bodhi.services.errors.json_handler,
               validators=(
                   validate_nvrs,
                   validate_builds,

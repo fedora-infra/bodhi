@@ -25,6 +25,7 @@ from bodhi import log, notifications
 from bodhi.models import Package, Stack, Group, User
 import bodhi.schemas
 import bodhi.security
+import bodhi.services.errors
 from bodhi.util import tokenize
 from bodhi.validators import (
     validate_packages,
@@ -44,18 +45,23 @@ stacks = Service(name='stacks', path='/stacks/',
                  cors_origins=bodhi.security.cors_origins_rw)
 
 
-@stack.get(accept="text/html", renderer="new_stack.html")
-@stack.get(accept=('application/json', 'text/json'), renderer='json')
-@stack.get(accept=('application/javascript'), renderer='jsonp')
+@stack.get(accept="text/html", renderer="new_stack.html",
+           error_handler=bodhi.services.errors.html_handler)
+@stack.get(accept=('application/json', 'text/json'), renderer='json',
+           error_handler=bodhi.services.errors.json_handler)
+@stack.get(accept=('application/javascript'), renderer='jsonp',
+           error_handler=bodhi.services.errors.jsonp_handler)
 def get_stack(request):
     """Return a single Stack from its name"""
     return dict(stack=request.validated['stack'])
 
 
 @stacks.get(accept="text/html", renderer='stacks.html',
+            error_handler=bodhi.services.errors.html_handler,
             schema=bodhi.schemas.ListStackSchema,
             validators=(validate_packages,))
 @stacks.get(accept=('application/json', 'text/json'),
+            error_handler=bodhi.services.errors.json_handler,
             schema=bodhi.schemas.ListStackSchema,
             validators=(validate_packages,), renderer='json')
 def query_stacks(request):
@@ -99,8 +105,8 @@ def query_stacks(request):
 
 @stacks.post(schema=bodhi.schemas.SaveStackSchema,
              acl=bodhi.security.packagers_allowed_acl,
-             validators=(validate_requirements,),
-             renderer='json')
+             validators=(validate_requirements,), renderer='json',
+             error_handler=bodhi.services.errors.json_handler)
 def save_stack(request):
     """Save a stack"""
     data = request.validated
@@ -169,7 +175,8 @@ def save_stack(request):
     return dict(stack=stack)
 
 
-@stack.delete(acl=bodhi.security.packagers_allowed_acl, renderer='json')
+@stack.delete(acl=bodhi.security.packagers_allowed_acl, renderer='json',
+              error_handler=bodhi.services.errors.json_handler)
 def delete_stack(request):
     """Delete a stack"""
     stack = request.validated['stack']

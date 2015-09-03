@@ -23,6 +23,7 @@ from sqlalchemy.sql import or_
 from bodhi import log
 from bodhi.models import Build, BuildrootOverride, Package, Release
 import bodhi.schemas
+import bodhi.services.errors
 from bodhi.validators import (
     validate_override_builds,
     validate_expiration_date,
@@ -43,9 +44,12 @@ overrides = Service(name='overrides', path='/overrides/',
                     cors_origins=bodhi.security.cors_origins_rw)
 
 
-@override.get(accept=("application/json", "text/json"), renderer="json")
-@override.get(accept=("application/javascript"), renderer="jsonp")
-@override.get(accept=("text/html"), renderer="override.html")
+@override.get(accept=("application/json", "text/json"), renderer="json",
+              error_handler=bodhi.services.errors.json_handler)
+@override.get(accept=("application/javascript"), renderer="jsonp",
+              error_handler=bodhi.services.errors.jsonp_handler)
+@override.get(accept=("text/html"), renderer="override.html",
+              error_handler=bodhi.services.errors.html_handler)
 def get_override(request):
     db = request.db
     nvr = request.matchdict.get('nvr')
@@ -68,21 +72,25 @@ def get_override(request):
 
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
                accept=("application/json", "text/json"), renderer="json",
+               error_handler=bodhi.services.errors.json_handler,
                validators=(validate_packages, validate_releases,
                            validate_username)
                )
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
                accept=("application/javascript"), renderer="jsonp",
+               error_handler=bodhi.services.errors.jsonp_handler,
                validators=(validate_packages, validate_releases,
                            validate_username)
                )
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
                accept=('application/atom+xml'), renderer='rss',
+               error_handler=bodhi.services.errors.html_handler,
                validators=(validate_packages, validate_releases,
                            validate_username)
                )
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
                accept=('text/html'), renderer='overrides.html',
+               error_handler=bodhi.services.errors.html_handler,
                validators=(validate_packages, validate_releases,
                            validate_username)
                )
@@ -147,6 +155,7 @@ def query_overrides(request):
 @overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
                 acl=bodhi.security.packagers_allowed_acl,
                 accept=("application/json", "text/json"), renderer='json',
+                error_handler=bodhi.services.errors.json_handler,
                 validators=(
                     validate_override_builds,
                     validate_expiration_date,
@@ -154,6 +163,7 @@ def query_overrides(request):
 @overrides.post(schema=bodhi.schemas.SaveOverrideSchema,
                 acl=bodhi.security.packagers_allowed_acl,
                 accept=("application/javascript"), renderer="jsonp",
+                error_handler=bodhi.services.errors.jsonp_handler,
                 validators=(
                     validate_override_builds,
                     validate_expiration_date,

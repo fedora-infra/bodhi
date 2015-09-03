@@ -30,6 +30,7 @@ from bodhi.models import (
 )
 import bodhi.schemas
 import bodhi.security
+import bodhi.services.errors
 from bodhi.validators import (
     validate_tags,
     validate_enums,
@@ -48,7 +49,8 @@ releases = Service(name='releases', path='/releases/',
                    # a ``post`` section at the bottom.
                    cors_origins=bodhi.security.cors_origins_rw)
 
-@release.get(accept="text/html", renderer="release.html")
+@release.get(accept="text/html", renderer="release.html",
+             error_handler=bodhi.services.errors.html_handler)
 def get_release_html(request):
     id = request.matchdict.get('name')
     release = Release.get(id, request.db)
@@ -118,8 +120,10 @@ def get_release_html(request):
                 num_updates_newpackage=num_updates_newpackage,
                 )
 
-@release.get(accept=('application/json', 'text/json'), renderer='json')
-@release.get(accept=('application/javascript'), renderer='jsonp')
+@release.get(accept=('application/json', 'text/json'), renderer='json',
+             error_handler=bodhi.services.errors.json_handler)
+@release.get(accept=('application/javascript'), renderer='jsonp',
+             error_handler=bodhi.services.errors.jsonp_handler)
 def get_release_json(request):
     id = request.matchdict.get('name')
     release = Release.get(id, request.db)
@@ -130,6 +134,7 @@ def get_release_json(request):
 
 @releases.get(accept="text/html", schema=bodhi.schemas.ListReleaseSchema,
               renderer='releases.html',
+              error_handler=bodhi.services.errors.html_handler,
               validators=(validate_release, validate_updates,
                           validate_packages))
 def query_releases_html(request):
@@ -148,6 +153,7 @@ def query_releases_html(request):
 
 @releases.get(accept=('application/json', 'text/json'),
               schema=bodhi.schemas.ListReleaseSchema, renderer='json',
+              error_handler=bodhi.services.errors.json_handler,
               validators=(validate_release, validate_updates,
                           validate_packages))
 def query_releases_json(request):
@@ -194,6 +200,7 @@ def query_releases_json(request):
 
 @releases.post(schema=bodhi.schemas.SaveReleaseSchema,
                acl=bodhi.security.admin_only_acl, renderer='json',
+               error_handler=bodhi.services.errors.json_handler,
                validators=(validate_tags, validate_enums)
                )
 def save_release(request):
