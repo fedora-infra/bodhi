@@ -21,19 +21,23 @@ Run the test suite
 ------------------
 ``python setup.py test``
 
-Initialize the database
------------------------
-``initialize_bodhi_db``
-
 Migrating Bodhi from v1.0 to v2.0
 ---------------------------------
 ::
 
-    curl -O https://fedorahosted.org/releases/b/o/bodhi/bodhi-pickledb.tar.bz2
-    tar -jxvf bodhi-pickledb.tar.bz2
-    rm bodhi-pickledb.tar.bz2
-    PYTHONPATH=$(pwd) python tools/pickledb.py migrate bodhi-pickledb*
+    curl -O https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
+    xzcat bodhi2.dump.xz | psql -U postgres -W
+
+Adjust the development.init file
+--------------------------------
+
+Adjust the configuration key ``sqlalchemy.url`` to point to the postgresql
+database.
+Something like:
+::
+
+    sqlalchemy.url = postgresql://user:password@localhost/bodhi2
 
 Run the web app
 ---------------
-``pserve development.ini``
+``pserve development.ini --reload``
