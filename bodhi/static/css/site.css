@@ -196,6 +196,13 @@ ul.updateslist li {
 .markdown ul {
     list-style-type: circle;
 }
+.markdown code {
+    white-space: normal !important;
+}
+.markdown p {
+    word-wrap:      break-word; /* old-school */
+    overflow-wrap:  break-word; /* new-school */
+}
 
 #markdown-help strong {
     text-transform: uppercase;
