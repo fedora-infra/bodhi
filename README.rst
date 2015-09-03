@@ -28,8 +28,8 @@ Migrating Bodhi from v1.0 to v2.0
     curl -O https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
     xzcat bodhi2.dump.xz | psql -U postgres -W
 
-Adjust the development.init file
---------------------------------
+Adjust the development.ini file
+-------------------------------
 
 Adjust the configuration key ``sqlalchemy.url`` to point to the postgresql
 database.
