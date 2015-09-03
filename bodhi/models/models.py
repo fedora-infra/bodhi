@@ -1132,14 +1132,15 @@ class Update(Base):
 
     def request_complete(self):
         """Perform post-request actions"""
+        now = datetime.utcnow()
         if self.request is UpdateRequest.testing:
             self.status = UpdateStatus.testing
-            self.date_testing = datetime.utcnow()
+            self.date_testing = now
         elif self.request is UpdateRequest.stable:
             self.status = UpdateStatus.stable
-            self.date_stable = datetime.utcnow()
+            self.date_stable = now
         self.request = None
-        self.date_pushed = datetime.utcnow()  # TODO: deprecate
+        self.date_pushed = now
 
     def modify_bugs(self):
         """ Comment on and close this updates bugs as necessary
