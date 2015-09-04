@@ -1005,20 +1005,20 @@ class Update(Base):
         topic = u'update.request.%s' % action
         if action is UpdateRequest.unpush:
             self.unpush()
-            self.comment(u'This update has been unpushed', author=username)
+            self.comment(u'This update has been unpushed.', author=username)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
-            flash_log("%s has been unpushed" % self.title)
+            flash_log("%s has been unpushed." % self.title)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete()
-            flash_log("%s has been obsoleted" % self.title)
+            flash_log("%s has been obsoleted." % self.title)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
         elif action is UpdateRequest.revoke:
             self.revoke()
-            flash_log("%s has been revoked" % self.title)
+            flash_log("%s has been revoked." % self.title)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
@@ -1093,7 +1093,7 @@ class Update(Base):
         flash_notes = flash_notes and '. %s' % flash_notes
         flash_log("%s has been submitted for %s. %s%s" % (self.title,
             action.description, notes, flash_notes))
-        self.comment(u'This update has been submitted for %s by %s. %s' % (
+        self.comment(u'This update has been submitted for %s by %s. %s.' % (
             action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))
@@ -1173,13 +1173,13 @@ class Update(Base):
         Add a comment to this update about a change in status
         """
         if self.status is UpdateStatus.stable:
-            self.comment(u'This update has been pushed to stable',
+            self.comment(u'This update has been pushed to stable.',
                          author=u'bodhi')
         elif self.status is UpdateStatus.testing:
-            self.comment(u'This update has been pushed to testing',
+            self.comment(u'This update has been pushed to testing.',
                          author=u'bodhi')
         elif self.status is UpdateStatus.obsolete:
-            self.comment(u'This update has been obsoleted', author=u'bodhi')
+            self.comment(u'This update has been obsoleted.', author=u'bodhi')
 
     def send_update_notice(self):
         log.debug("Sending update notice for %s" % self.title)
@@ -1521,10 +1521,10 @@ class Update(Base):
         self.status = UpdateStatus.obsolete
         self.request = None
         if newer:
-            self.comment(u"This update has been obsoleted by %s" % newer,
+            self.comment(u"This update has been obsoleted by %s." % newer,
                          author=u'bodhi')
         else:
-            self.comment(u"This update has been obsoleted", author=u'bodhi')
+            self.comment(u"This update has been obsoleted.", author=u'bodhi')
 
     def get_maintainers(self):
         """
@@ -1696,7 +1696,7 @@ class Update(Base):
             if comment.user.name == 'bodhi' and \
                comment.text.startswith('This update has reached') and \
                comment.text.endswith('days in testing and can be pushed to'
-                                     ' stable now if the maintainer wishes'):
+                                     ' stable now if the maintainer wishes.'):
                 return True
         return False
 
@@ -1753,7 +1753,8 @@ class Update(Base):
         elif self.request is UpdateRequest.obsolete:
             tag = self.release.candidate_tag
         if not tag:
-            log.error('Unable to determine requested tag for %s' % self.title)
+            log.error(
+                'Unable to determine requested tag for %s.' % self.title)
         return tag
 
     def __json__(self, *args, **kwargs):
