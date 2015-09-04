@@ -116,7 +116,10 @@ class TestcaseFeedbacks(colander.SequenceSchema):
 
 class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
     update = colander.SchemaNode(colander.String())
-    text = colander.SchemaNode(colander.String())
+    text = colander.SchemaNode(
+        colander.String(),
+        missing='',
+    )
     karma = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=-1, max=1),
@@ -170,7 +173,7 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
     notes = colander.SchemaNode(
         colander.String(),
-        validator=colander.Length(min=10),
+        validator=colander.Length(min=2),
     )
     autokarma = colander.SchemaNode(
         colander.Boolean(),
@@ -647,7 +650,7 @@ class SaveOverrideSchema(CSRFProtectedSchema, colander.MappingSchema):
 
     notes = colander.SchemaNode(
         colander.String(),
-        validator=colander.Length(min=10),
+        validator=colander.Length(min=2),
     )
 
     expiration_date = colander.SchemaNode(
