@@ -438,7 +438,7 @@ def update2html(context, update):
     title = update.title
     alias = update.alias
 
-    url = request.route_url('update', id=alias)
+    url = request.route_url('update', id=alias or title)
     settings = request.registry.settings
     max_length = int(settings.get('max_update_length_for_ui', 30))
     if len(title) > max_length:
