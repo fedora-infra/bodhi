@@ -19,19 +19,9 @@ from pyramid.view import view_config
 import bodhi.models as m
 
 
-@view_config(route_name='metrics', renderer='metrics.html')
-def metrics(request):
-    db = request.db
-    data, ticks, eldata, elticks = [], [], [], []
-
-    update_types = {
-        'bugfix': 'Bug fixes',
-        'enhancement': 'Enhancements',
-        'security': 'Security updates',
-        'newpackage': 'New packages'
-    }
-
-    releases = db.query(m.Release).filter(m.Release.name.like(u'F%')).all()
+def compute_ticks_and_data(releases, update_types):
+    """ Return the data and ticks to make the stats graph. """
+    data, ticks = [], []
 
     for i, release in enumerate(sorted(releases, cmp=lambda x, y:
             cmp(int(x.version_int), int(y.version_int)))):
@@ -49,23 +39,26 @@ def metrics(request):
             d.append([i, num])
         data.append(dict(data=d, label=label))
 
+    return (data, ticks)
+
+
+
+@view_config(route_name='metrics', renderer='metrics.html')
+def metrics(request):
+    db = request.db
+
+    update_types = {
+        'bugfix': 'Bug fixes',
+        'enhancement': 'Enhancements',
+        'security': 'Security updates',
+        'newpackage': 'New packages'
+    }
+
+    releases = db.query(m.Release).filter(m.Release.name.like(u'F%')).all()
+    data, ticks = compute_ticks_and_data(releases, update_types)
+
     releases = db.query(m.Release).filter(m.Release.name.like(u'E%')).all()
-
-    for i, release in enumerate(sorted(releases, cmp=lambda x, y:
-            cmp(int(x.version_int), int(y.version_int)))):
-        elticks.append([i, release.name])
-
-    for update_type, label in update_types.items():
-        d = []
-        type = m.UpdateType.from_string(update_type)
-        for i, release in enumerate(releases):
-            num = db.query(m.Update).filter_by(
-                release=release,
-                type=type,
-                status=m.UpdateStatus.stable
-            ).count()
-            d.append([i, num])
-        eldata.append(dict(data=d, label=label))
+    eldata, elticks = compute_ticks_and_data(releases, update_types)
 
     return {
         'data': json.dumps(data), 'ticks': json.dumps(ticks),
