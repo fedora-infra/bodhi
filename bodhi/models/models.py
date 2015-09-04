@@ -1956,8 +1956,8 @@ stack_user_table = Table('stack_user_table', Base.metadata,
 
 class User(Base):
     __tablename__ = 'users'
-    __exclude_columns__ = ('id', 'comments', 'updates', 'groups', 'packages')
-    __include_extras__ = ('avatar',)
+    __exclude_columns__ = ('comments', 'updates', 'groups', 'packages', 'stacks')
+    __include_extras__ = ('avatar', 'openid')
     __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
@@ -1977,6 +1977,8 @@ class User(Base):
         return get_avatar(context=context, username=self.name, size=24)
 
     def openid(self, request):
+        if not request:
+            return None
         template = request.registry.settings.get('openid_template')
         return template.format(username=self.name)
 
