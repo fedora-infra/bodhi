@@ -1695,8 +1695,8 @@ class Update(Base):
         for comment in self.comments:
             if comment.user.name == 'bodhi' and \
                comment.text.startswith('This update has reached') and \
-               comment.text.endswith('days in testing and can be pushed to'
-                                     ' stable now if the maintainer wishes.'):
+               'days in testing and can be pushed to stable now if the ' \
+               'maintainer wishes' in comment.text:
                 return True
         return False
 
