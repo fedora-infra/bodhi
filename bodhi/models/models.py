@@ -63,7 +63,7 @@ except ImportError:
 class BodhiBase(object):
     """ Our custom model base class """
     __exclude_columns__ = ('id',)  # List of columns to exclude from JSON
-    __include_extras__ = tuple()  # List of methods to include in JSON
+    __include_extras__ = tuple()  # List of methods or attrs to include in JSON
     __get_by__ = ()  # Columns that get() will query
 
     id = Column(Integer, primary_key=True)
@@ -98,7 +98,10 @@ class BodhiBase(object):
 
         extras = getattr(obj, '__include_extras__', [])
         for name in extras:
-            d[name] = getattr(obj, name)(request)
+            attribute = getattr(obj, name)
+            if callable(attribute):
+                attribute = attribute(request)
+            d[name] = attribute
 
         for attr in rels:
             if attr in exclude:
@@ -1987,6 +1990,7 @@ class Group(Base):
 
 class BuildrootOverride(Base):
     __tablename__ = 'buildroot_overrides'
+    __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
 
     build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
@@ -2093,11 +2097,6 @@ class BuildrootOverride(Base):
             topic='buildroot_override.untag',
             msg=dict(override=self),
         )
-
-    def __json__(self, *args, **kwargs):
-        result = super(BuildrootOverride, self).__json__(*args, **kwargs)
-        result['nvr'] = self.nvr  # For convenience
-        return result
 
 
 class Stack(Base):
