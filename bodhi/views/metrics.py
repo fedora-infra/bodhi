@@ -19,7 +19,7 @@ from pyramid.view import view_config
 import bodhi.models as m
 
 
-def compute_ticks_and_data(releases, update_types):
+def compute_ticks_and_data(db, releases, update_types):
     """ Return the data and ticks to make the stats graph. """
     data, ticks = [], []
 
@@ -55,10 +55,10 @@ def metrics(request):
     }
 
     releases = db.query(m.Release).filter(m.Release.name.like(u'F%')).all()
-    data, ticks = compute_ticks_and_data(releases, update_types)
+    data, ticks = compute_ticks_and_data(db, releases, update_types)
 
     releases = db.query(m.Release).filter(m.Release.name.like(u'E%')).all()
-    eldata, elticks = compute_ticks_and_data(releases, update_types)
+    eldata, elticks = compute_ticks_and_data(db, releases, update_types)
 
     return {
         'data': json.dumps(data), 'ticks': json.dumps(ticks),
