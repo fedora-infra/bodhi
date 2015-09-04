@@ -21,7 +21,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi import log
-from bodhi.models import Build, BuildrootOverride, Package, Release
+from bodhi.models import Build, BuildrootOverride, Package, Release, User
 import bodhi.schemas
 import bodhi.services.errors
 from bodhi.validators import (
@@ -181,6 +181,7 @@ def save_override(request):
 
     caveats = []
     try:
+        submitter = User.get(request.user.name, request.db)
         if edited is None:
             builds = data['builds']
             overrides = []
@@ -195,7 +196,7 @@ def save_override(request):
                 overrides.append(BuildrootOverride.new(
                     request,
                     build=build,
-                    submitter=request.user,
+                    submitter=submitter,
                     notes=data['notes'],
                     expiration_date=data['expiration_date'],
                 ))
@@ -214,7 +215,7 @@ def save_override(request):
                 return
 
             result = BuildrootOverride.edit(
-                    request, edited=edited, submitter=request.user,
+                    request, edited=edited, submitter=submitter,
                     notes=data["notes"], expired=data["expired"],
                     expiration_date=data["expiration_date"]
                     )

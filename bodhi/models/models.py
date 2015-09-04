@@ -63,7 +63,7 @@ except ImportError:
 class BodhiBase(object):
     """ Our custom model base class """
     __exclude_columns__ = ('id',)  # List of columns to exclude from JSON
-    __include_extras__ = tuple()  # List of methods to include in JSON
+    __include_extras__ = tuple()  # List of methods or attrs to include in JSON
     __get_by__ = ()  # Columns that get() will query
 
     id = Column(Integer, primary_key=True)
@@ -83,7 +83,8 @@ class BodhiBase(object):
     def __json__(self, request=None, anonymize=False):
         return self._to_json(self, request=request, anonymize=anonymize)
 
-    def _to_json(self, obj, seen=None, request=None, anonymize=False):
+    @classmethod
+    def _to_json(cls, obj, seen=None, request=None, anonymize=False):
         if not seen:
             seen = []
         if not obj:
@@ -98,12 +99,15 @@ class BodhiBase(object):
 
         extras = getattr(obj, '__include_extras__', [])
         for name in extras:
-            d[name] = getattr(obj, name)(request)
+            attribute = getattr(obj, name)
+            if callable(attribute):
+                attribute = attribute(request)
+            d[name] = attribute
 
         for attr in rels:
             if attr in exclude:
                 continue
-            d[attr] = self._expand(obj, getattr(obj, attr), seen, request)
+            d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
         for key, value in d.iteritems():
             if isinstance(value, datetime):
@@ -123,14 +127,15 @@ class BodhiBase(object):
 
         return d
 
-    def _expand(self, obj, relation, seen, req):
+    @classmethod
+    def _expand(cls, obj, relation, seen, req):
         """ Return the to_json or id of a sqlalchemy relationship. """
         if hasattr(relation, 'all'):
             relation = relation.all()
         if hasattr(relation, '__iter__'):
-            return [self._expand(obj, item, seen, req) for item in relation]
+            return [cls._expand(obj, item, seen, req) for item in relation]
         if type(relation) not in seen:
-            return self._to_json(relation, seen + [type(obj)], req)
+            return cls._to_json(relation, seen + [type(obj)], req)
         else:
             return relation.id
 
@@ -623,7 +628,7 @@ class Update(Base):
     def new(cls, request, data):
         """ Create a new update """
         db = request.db
-        user = request.user
+        user = User.get(request.user.name, request.db)
         data['user'] = user
         data['title'] = ' '.join([b.nvr for b in data['builds']])
 
@@ -700,7 +705,6 @@ class Update(Base):
     def edit(cls, request, data):
         db = request.db
         buildinfo = request.buildinfo
-        user = request.user
         koji = request.koji
         up = db.query(Update).filter_by(title=data['edited']).first()
         del(data['edited'])
@@ -760,7 +764,7 @@ class Update(Base):
         del(data['builds'])
 
         # Comment on the update with details of added/removed builds
-        comment = '%s edited this update. ' % user.name
+        comment = '%s edited this update. ' % request.user.name
         if new_builds:
             comment += 'New build(s): %s. ' % ', '.join(new_builds)
         if removed_builds:
@@ -1951,8 +1955,8 @@ stack_user_table = Table('stack_user_table', Base.metadata,
 
 class User(Base):
     __tablename__ = 'users'
-    __exclude_columns__ = ('id', 'comments', 'updates', 'groups', 'packages')
-    __include_extras__ = ('avatar',)
+    __exclude_columns__ = ('comments', 'updates', 'groups', 'packages', 'stacks')
+    __include_extras__ = ('avatar', 'openid')
     __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
@@ -1972,6 +1976,8 @@ class User(Base):
         return get_avatar(context=context, username=self.name, size=24)
 
     def openid(self, request):
+        if not request:
+            return None
         template = request.registry.settings.get('openid_template')
         return template.format(username=self.name)
 
@@ -1987,6 +1993,7 @@ class Group(Base):
 
 class BuildrootOverride(Base):
     __tablename__ = 'buildroot_overrides'
+    __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
 
     build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
@@ -2093,11 +2100,6 @@ class BuildrootOverride(Base):
             topic='buildroot_override.untag',
             msg=dict(override=self),
         )
-
-    def __json__(self, *args, **kwargs):
-        result = super(BuildrootOverride, self).__json__(*args, **kwargs)
-        result['nvr'] = self.nvr  # For convenience
-        return result
 
 
 class Stack(Base):

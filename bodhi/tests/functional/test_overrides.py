@@ -489,6 +489,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(publish.call_args_list), 1)
 
         o = res.json_body
+        self.assertEquals(o['nvr'], nvr)
         self.assertEquals(o['notes'], 'blah blah blah')
         self.assertEquals(o['expiration_date'],
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))

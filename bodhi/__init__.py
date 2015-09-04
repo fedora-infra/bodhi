@@ -14,6 +14,7 @@
 
 from collections import defaultdict
 from dogpile.cache import make_region
+from munch import munchify
 from sqlalchemy import engine_from_config
 
 from pyramid.settings import asbool
@@ -54,7 +55,9 @@ def get_user(request):
     from bodhi.models import User
     userid = unauthenticated_userid(request)
     if userid is not None:
-        return request.db.query(User).filter_by(name=unicode(userid)).first()
+        user = request.db.query(User).filter_by(name=unicode(userid)).first()
+        # Why munch?  https://github.com/fedora-infra/bodhi/issues/473
+        return munchify(user.__json__(request=request))
 
 
 def groupfinder(userid, request):
