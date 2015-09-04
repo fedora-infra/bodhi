@@ -111,7 +111,7 @@ def save_stack(request):
     """Save a stack"""
     data = request.validated
     db = request.db
-    user = request.user
+    user = User.get(request.user.name, db)
 
     # Fetch or create the stack
     stack = Stack.get(data['name'], db)

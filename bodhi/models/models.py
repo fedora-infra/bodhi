@@ -628,7 +628,7 @@ class Update(Base):
     def new(cls, request, data):
         """ Create a new update """
         db = request.db
-        user = request.user
+        user = User.get(request.user.name, request.db)
         data['user'] = user
         data['title'] = ' '.join([b.nvr for b in data['builds']])
 
@@ -705,7 +705,6 @@ class Update(Base):
     def edit(cls, request, data):
         db = request.db
         buildinfo = request.buildinfo
-        user = request.user
         koji = request.koji
         up = db.query(Update).filter_by(title=data['edited']).first()
         del(data['edited'])
@@ -765,7 +764,7 @@ class Update(Base):
         del(data['builds'])
 
         # Comment on the update with details of added/removed builds
-        comment = '%s edited this update. ' % user.name
+        comment = '%s edited this update. ' % request.user.name
         if new_builds:
             comment += 'New build(s): %s. ' % ', '.join(new_builds)
         if removed_builds:

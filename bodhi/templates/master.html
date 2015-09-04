@@ -116,7 +116,7 @@
               </li>
 
               % if request.user:
-              % if request.matched_route and request.matched_route.name == 'user' and request.user and request.user.name == user['name']:
+              % if request.matched_route and request.matched_route.name == 'user' and request.user and user and request.user.name == user['name']:
               <li class="dropdown active">
               % else:
               <li class="dropdown">
@@ -133,7 +133,7 @@
                     </a>
                   </li>
                   <li>
-                    <a href="${request.registry.settings.get('fmn_url')}${request.user.openid(request)}/">
+                    <a href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
                       Manage Alerts
                     </a>
                   </li>

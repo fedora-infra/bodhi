@@ -67,7 +67,7 @@ def validate_nvrs(request):
 def validate_builds(request):
     edited = request.validated.get('edited')
     settings = request.registry.settings
-    user = request.user
+    user = User.get(request.user.name, request.db)
 
     if not request.validated.get('builds', []):
         request.errors.add('body', 'builds',
@@ -170,7 +170,7 @@ def validate_tags(request):
 def validate_acls(request):
     """Ensure this user has commit privs to these builds or is an admin"""
     db = request.db
-    user = request.user
+    user = User.get(request.user.name, request.db)
     settings = request.registry.settings
     committers = []
     watchers = []
