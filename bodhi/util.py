@@ -435,18 +435,10 @@ def request2html(context, request):
 def update2html(context, update):
     request = context.get('request')
 
-    if hasattr(update, 'title'):
-        title = update.title
-    else:
-        title = update['title']
+    title = update.title
+    alias = update.alias
 
-    alias = None
-    if hasattr(update, 'alias'):
-        alias = update.alias
-    else:
-        alias = update.get('alias')
-
-    url = request.route_url('update', id=alias or title)
+    url = request.route_url('update', id=alias)
     settings = request.registry.settings
     max_length = int(settings.get('max_update_length_for_ui', 30))
     if len(title) > max_length:
