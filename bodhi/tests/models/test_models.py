@@ -408,7 +408,8 @@ class TestUpdate(ModelTest):
         self.obj.request = None
 
         # Pretend it's been in testing for a week
-        self.obj.comment(u'This update has been pushed to testing', author=u'bodhi')
+        self.obj.comment(
+            u'This update has been pushed to testing.', author=u'bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         eq_(self.obj.days_in_testing, 7)
         eq_(self.obj.meets_testing_requirements, True)
@@ -445,14 +446,15 @@ class TestUpdate(ModelTest):
         eq_(len(self.obj.comments), 1)
         eq_(self.obj.comments[0].user.name, u'bodhi')
         eq_(self.obj.comments[0].text,
-                u'This update has been pushed to testing')
+                u'This update has been pushed to testing.')
         self.obj.status = UpdateStatus.stable
         self.obj.status_comment()
         eq_(len(self.obj.comments), 2)
         eq_(self.obj.comments[1].user.name, u'bodhi')
         eq_(self.obj.comments[1].text,
-                u'This update has been pushed to stable')
-        assert str(self.obj.comments[1]).endswith('This update has been pushed to stable')
+                u'This update has been pushed to stable.')
+        assert str(self.obj.comments[1]).endswith(
+            'This update has been pushed to stable.')
 
     @mock.patch('bodhi.notifications.publish')
     def test_anonymous_comment(self, publish):
