@@ -19,8 +19,8 @@ from bodhi.models import Update, DBSession, Base
 import logging
 log = logging.getLogger('alembic.migration')
 
-testing = u'This update has been pushed to testing'
-stable = u'This update has been pushed to stable'
+testing = u'This update has been pushed to testing.'
+stable = u'This update has been pushed to stable.'
 
 def upgrade():
     log.warn("Skipping.  Do this by hand by uncommenting and running in tmux.")
