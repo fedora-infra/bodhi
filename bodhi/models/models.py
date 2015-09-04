@@ -83,7 +83,8 @@ class BodhiBase(object):
     def __json__(self, request=None, anonymize=False):
         return self._to_json(self, request=request, anonymize=anonymize)
 
-    def _to_json(self, obj, seen=None, request=None, anonymize=False):
+    @classmethod
+    def _to_json(cls, obj, seen=None, request=None, anonymize=False):
         if not seen:
             seen = []
         if not obj:
@@ -106,7 +107,7 @@ class BodhiBase(object):
         for attr in rels:
             if attr in exclude:
                 continue
-            d[attr] = self._expand(obj, getattr(obj, attr), seen, request)
+            d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
         for key, value in d.iteritems():
             if isinstance(value, datetime):
@@ -126,14 +127,15 @@ class BodhiBase(object):
 
         return d
 
-    def _expand(self, obj, relation, seen, req):
+    @classmethod
+    def _expand(cls, obj, relation, seen, req):
         """ Return the to_json or id of a sqlalchemy relationship. """
         if hasattr(relation, 'all'):
             relation = relation.all()
         if hasattr(relation, '__iter__'):
-            return [self._expand(obj, item, seen, req) for item in relation]
+            return [cls._expand(obj, item, seen, req) for item in relation]
         if type(relation) not in seen:
-            return self._to_json(relation, seen + [type(obj)], req)
+            return cls._to_json(relation, seen + [type(obj)], req)
         else:
             return relation.id
 
