@@ -1093,11 +1093,11 @@ class Update(Base):
         self.request = action
         self.pushed = False
 
-        notes = notes and '. '.join(notes) or ''
+        notes = notes and '. '.join(notes) + '.' or ''
         flash_notes = flash_notes and '. %s' % flash_notes
         flash_log("%s has been submitted for %s. %s%s" % (self.title,
             action.description, notes, flash_notes))
-        self.comment(u'This update has been submitted for %s by %s. %s.' % (
+        self.comment(u'This update has been submitted for %s by %s. %s' % (
             action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))

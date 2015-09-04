@@ -732,7 +732,7 @@ References:
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
             self.assertEquals(len(up.comments), 3)
-            self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to testing')
+            self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to testing.')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.consumers.masher.MasherThread.update_comps')
@@ -756,7 +756,7 @@ References:
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
             self.assertEquals(len(up.comments), 3)
-            self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to stable')
+            self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to stable.')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.consumers.masher.MasherThread.update_comps')

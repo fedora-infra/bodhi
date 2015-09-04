@@ -1490,7 +1490,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up = DBSession.query(Update).filter_by(title=nvr).one()
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.comments[-1].text,
-                          u'This update has been obsoleted by bodhi-2.0.0-3.fc17')
+                          u'This update has been obsoleted by bodhi-2.0.0-3.fc17.')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
