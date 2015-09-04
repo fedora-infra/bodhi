@@ -215,6 +215,8 @@ def exception_view(exc, request):
 
     errors = getattr(request, 'errors', [])
 
+    log.exception("Error caught.  Handling HTML response.")
+
     if not len(errors):
         status = getattr(exc, 'status_code', 500)
         description = getattr(exc, 'explanation', None) or str(exc)
