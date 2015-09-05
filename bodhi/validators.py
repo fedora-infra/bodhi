@@ -306,7 +306,7 @@ def validate_acls(request):
             # Check if this user is in a group that has access to this package
             for group in user_groups:
                 if group in groups:
-                    log.debug('{} is in {} group for {}'.format(user.name, group, package))
+                    log.debug('{} is in {} group for {}'.format(user.name, group, package.name))
                     has_access = True
                     break
 
