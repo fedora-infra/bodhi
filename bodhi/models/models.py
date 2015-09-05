@@ -560,7 +560,7 @@ class Update(Base):
     __exclude_columns__ = ('id', 'user_id', 'release_id')
     __get_by__ = ('title', 'alias')
 
-    title = Column(UnicodeText, default=None)
+    title = Column(UnicodeText, default=None, index=True)
 
     karma = Column(Integer, default=0)
     stable_karma = Column(Integer, nullable=True)
