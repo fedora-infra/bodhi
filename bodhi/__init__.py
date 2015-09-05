@@ -61,8 +61,8 @@ def get_user(request):
 
 
 def groupfinder(userid, request):
-    user = request.user
-    if user:
+    if request.user:
+        user = User.get(request.user.name, request.db)
         return ['group:' + group.name for group in user.groups]
 
 
