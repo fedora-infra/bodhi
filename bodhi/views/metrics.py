@@ -19,19 +19,9 @@ from pyramid.view import view_config
 import bodhi.models as m
 
 
-@view_config(route_name='metrics', renderer='metrics.html')
-def metrics(request):
-    db = request.db
+def compute_ticks_and_data(db, releases, update_types):
+    """ Return the data and ticks to make the stats graph. """
     data, ticks = [], []
-
-    update_types = {
-        'bugfix': 'Bug fixes',
-        'enhancement': 'Enhancements',
-        'security': 'Security updates',
-        'newpackage': 'New packages'
-    }
-
-    releases = db.query(m.Release).filter(m.Release.name.like(u'F%')).all()
 
     for i, release in enumerate(sorted(releases, cmp=lambda x, y:
             cmp(int(x.version_int), int(y.version_int)))):
@@ -49,4 +39,28 @@ def metrics(request):
             d.append([i, num])
         data.append(dict(data=d, label=label))
 
-    return {'data': json.dumps(data), 'ticks': json.dumps(ticks)}
+    return (data, ticks)
+
+
+
+@view_config(route_name='metrics', renderer='metrics.html')
+def metrics(request):
+    db = request.db
+
+    update_types = {
+        'bugfix': 'Bug fixes',
+        'enhancement': 'Enhancements',
+        'security': 'Security updates',
+        'newpackage': 'New packages'
+    }
+
+    releases = db.query(m.Release).filter(m.Release.name.like(u'F%')).all()
+    data, ticks = compute_ticks_and_data(db, releases, update_types)
+
+    releases = db.query(m.Release).filter(m.Release.name.like(u'E%')).all()
+    eldata, elticks = compute_ticks_and_data(db, releases, update_types)
+
+    return {
+        'data': json.dumps(data), 'ticks': json.dumps(ticks),
+        'eldata': json.dumps(eldata), 'elticks': json.dumps(elticks),
+    }
