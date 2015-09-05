@@ -59,7 +59,7 @@ def main(argv=sys.argv):
             log.info("No active buildroot override to expire")
             return
 
-        log.info("Expiring %d buildroot overrides...", overrides.count())
+        log.info("Expiring %d buildroot overrides...", count)
 
         for override in overrides:
             override.expire()
