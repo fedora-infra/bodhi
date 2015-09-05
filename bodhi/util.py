@@ -435,8 +435,15 @@ def request2html(context, request):
 def update2html(context, update):
     request = context.get('request')
 
-    title = update.title
-    alias = update.alias
+    if hasattr(update, 'title'):
+        title = update.title
+    else:
+        title = update['title']
+
+    if hasattr(update, 'alias'):
+        alias = update.alias
+    else:
+        alias = update['alias']
 
     url = request.route_url('update', id=alias or title)
     settings = request.registry.settings
