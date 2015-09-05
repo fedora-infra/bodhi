@@ -61,6 +61,7 @@ def get_user(request):
 
 
 def groupfinder(userid, request):
+    from bodhi.models import User
     if request.user:
         user = User.get(request.user.name, request.db)
         return ['group:' + group.name for group in user.groups]
