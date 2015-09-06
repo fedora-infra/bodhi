@@ -579,7 +579,7 @@ class Update(Base):
     __exclude_columns__ = ('id', 'user_id', 'release_id')
     __get_by__ = ('title', 'alias')
 
-    title = Column(UnicodeText, default=None)
+    title = Column(UnicodeText, default=None, index=True)
 
     karma = Column(Integer, default=0)
     stable_karma = Column(Integer, nullable=True)
@@ -608,7 +608,7 @@ class Update(Base):
     close_bugs = Column(Boolean, default=True)
 
     # Timestamps
-    date_submitted = Column(DateTime, default=datetime.utcnow)
+    date_submitted = Column(DateTime, default=datetime.utcnow, index=True)
     date_modified = Column(DateTime)
     date_approved = Column(DateTime)
     date_pushed = Column(DateTime)
