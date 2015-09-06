@@ -214,11 +214,14 @@ def exception_view(exc, request):
     """
 
     errors = getattr(request, 'errors', [])
+    status = getattr(exc, 'status_code', 500)
 
-    log.exception("Error caught.  Handling HTML response.")
+    if status not in (404, 403):
+        log.exception("Error caught.  Handling HTML response.")
+    else:
+        log.warn(str(exc))
 
     if not len(errors):
-        status = getattr(exc, 'status_code', 500)
         description = getattr(exc, 'explanation', None) or str(exc)
 
         errors = cornice.errors.Errors(request, status=status)
