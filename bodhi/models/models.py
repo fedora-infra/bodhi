@@ -763,7 +763,8 @@ class Update(Base):
                 for b in up.builds:
                     if b.nvr == build:
                         break
-                b.untag(koji=request.koji)
+
+                b.unpush(koji=request.koji)
                 up.builds.remove(b)
                 db.delete(b)
 
