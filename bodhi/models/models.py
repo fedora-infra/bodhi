@@ -543,6 +543,7 @@ class Build(Base):
         return str
 
     def get_tags(self, koji=None):
+        """ Return a list of koji tags for this build """
         if not koji:
             koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
@@ -556,7 +557,9 @@ class Build(Base):
                 koji.untagBuild(tag, self.nvr)
 
     def unpush(self, koji):
-        """Move this build back to the candidate tag"""
+        """
+        Move this build back to the candidate tag and remove any pending tags.
+        """
         log.info('Unpushing %s' % self.nvr)
         release = self.update.release
         for tag in self.get_tags(koji):
