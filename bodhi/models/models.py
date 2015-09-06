@@ -542,8 +542,10 @@ class Build(Base):
             i += 1
         return str
 
-    def get_tags(self):
-        koji = buildsys.get_session()
+    def get_tags(self, koji=None):
+        """ Return a list of koji tags for this build """
+        if not koji:
+            koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
 
     def untag(self, koji):
@@ -554,6 +556,23 @@ class Build(Base):
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
 
+    def unpush(self, koji):
+        """
+        Move this build back to the candidate tag and remove any pending tags.
+        """
+        log.info('Unpushing %s' % self.nvr)
+        release = self.update.release
+        for tag in self.get_tags(koji):
+            if tag == release.pending_testing_tag:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+            if tag == release.pending_stable_tag:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+            elif tag == release.testing_tag:
+                log.info('Moving %s from %s to %s' % (self.nvr, tag,
+                    release.candidate_tag))
+                koji.moveBuild(tag, release.candidate_tag, self.nvr)
 
 class Update(Base):
     __tablename__ = 'updates'
@@ -747,7 +766,8 @@ class Update(Base):
                 for b in up.builds:
                     if b.nvr == build:
                         break
-                b.untag(koji=request.koji)
+
+                b.unpush(koji=request.koji)
                 up.builds.remove(b)
                 db.delete(b)
 

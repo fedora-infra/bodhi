@@ -210,6 +210,18 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].release.name, u'F11')
         eq_(self.obj.builds[0].package.name, u'TurboGears')
 
+    def test_unpush_build(self):
+        eq_(len(self.obj.builds), 1)
+        b = self.obj.builds[0]
+        release = self.obj.release
+        koji = buildsys.get_session()
+        koji.clear()
+        koji.__tagged__[b.nvr] = [release.testing_tag,
+                                  release.pending_testing_tag]
+        self.obj.builds[0].unpush(koji)
+        eq_(koji.__moved__, [(u'dist-f11-updates-testing', u'dist-f11-updates-candidate', u'TurboGears-1.0.8-3.fc11')])
+        eq_(koji.__untag__, [(u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11')])
+
     def test_title(self):
         eq_(self.obj.title, u'TurboGears-1.0.8-3.fc11')
 
