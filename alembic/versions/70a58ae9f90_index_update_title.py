@@ -1,4 +1,4 @@
-"""Index the Update.title column.
+"""Index the Update.title and Update.date_submitted columns.
 
 Revision ID: 70a58ae9f90
 Revises: 3dbed75df3fe
