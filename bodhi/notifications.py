@@ -42,15 +42,28 @@ def init(active=None, cert_prefix=None):
     bodhi.log.info("fedmsg initialized")
 
 
-def publish(topic, msg):
+def publish(topic, msg, force=False):
+    """ Publish a message to fedmsg.
+
+    By default, messages are not sent immediately, but are queued in a
+    transaction "data manager".  They will only get published after the
+    sqlalchemy transaction completes successfully and will not be published at
+    all if it fails, aborts, or rolls back.
+
+    Specifying force=True to this function by-passes that -- messages are sent
+    immediately.
+    """
     if not bodhi.config.config.get('fedmsg_enabled'):
         bodhi.log.warn("fedmsg disabled.  not sending %r" % topic)
         return
 
-    bodhi.log.debug("fedmsg enqueueing %r" % topic)
-
-    manager = _managers_map.get_current_data_manager()
-    manager.enqueue(topic, msg)
+    if force:
+        bodhi.log.debug("fedmsg skipping transaction and sending %r" % topic)
+        fedmsg.publish(topic=topic, msg=msg)
+    else:
+        bodhi.log.debug("fedmsg enqueueing %r" % topic)
+        manager = _managers_map.get_current_data_manager()
+        manager.enqueue(topic, msg)
 
 
 class ManagerMapping(object):

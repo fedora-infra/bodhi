@@ -19,8 +19,6 @@ import click
 import json
 import glob
 
-import transaction
-
 from collections import defaultdict
 from fedora.client.bodhi import Bodhi2Client
 
@@ -103,13 +101,16 @@ def push(username, password, cert_prefix, **kwargs):
         click.echo('\nSending masher.start fedmsg')
         # Because we're a script, we want to send to the fedmsg-relay,
         # that's why we say active=True
-        with transaction.manager:
-            bodhi.notifications.init(active=True, cert_prefix=cert_prefix)
-            bodhi.notifications.publish(topic='masher.start', msg=dict(
+        bodhi.notifications.init(active=True, cert_prefix=cert_prefix)
+        bodhi.notifications.publish(
+            topic='masher.start',
+            msg=dict(
                 updates=list(updates),
                 resume=resume,
                 agent=username,
-            ))
+            ),
+            force=True,
+        )
     else:
         click.echo('\nAborting push')
 

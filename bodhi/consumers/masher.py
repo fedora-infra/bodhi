@@ -182,7 +182,7 @@ Once mash is done:
         """
         body = msg['body']['msg']
         resume = body.get('resume', False)
-        notifications.publish(topic="mashtask.start", msg=dict())
+        notifications.publish(topic="mashtask.start", msg=dict(), force=True)
 
         with self.db_factory() as session:
             releases = self.organize_updates(session, body)
@@ -274,10 +274,11 @@ class MasherThread(threading.Thread):
         if not self.resume:
             self.init_path()
 
-        notifications.publish(topic="mashtask.mashing", msg=dict(
-            repo=self.id,
-            updates=self.state['updates'],
-        ))
+        notifications.publish(
+            topic="mashtask.mashing",
+            msg=dict(repo=self.id, updates=self.state['updates']),
+            force=True,
+        )
 
         success = False
         try:
@@ -423,13 +424,17 @@ class MasherThread(threading.Thread):
             self.state['updates'].remove(update)
         if update in self.updates:
             self.updates.remove(update)
-        notifications.publish(topic="update.eject", msg=dict(
-            repo=self.id,
-            update=update,
-            reason=reason,
-            request=self.request,
-            release=self.release,
-        ))
+        notifications.publish(
+            topic="update.eject",
+            msg=dict(
+                repo=self.id,
+                update=update,
+                reason=reason,
+                request=self.request,
+                release=self.release,
+            ),
+            force=True,
+        )
 
     def init_path(self):
         self.path = os.path.join(self.mash_dir, self.id + '-' +
@@ -478,8 +483,11 @@ class MasherThread(threading.Thread):
 
     def finish(self, success):
         self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
-        notifications.publish(topic="mashtask.complete", msg=dict(
-            success=success, repo=self.id))
+        notifications.publish(
+            topic="mashtask.complete",
+            msg=dict(success=success, repo=self.id),
+            force=True,
+        )
 
     def update_security_bugs(self):
         """Update the bug titles for security updates"""
@@ -680,8 +688,11 @@ class MasherThread(threading.Thread):
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
         self.log.info('Waiting for updates to hit the master mirror')
-        notifications.publish(topic="mashtask.sync.wait", msg=dict(
-            repo=self.id))
+        notifications.publish(
+            topic="mashtask.sync.wait",
+            msg=dict(repo=self.id),
+            force=True,
+        )
         mash_path = os.path.join(self.path, self.id)
         arch = os.listdir(mash_path)[0]
 
@@ -710,8 +721,11 @@ class MasherThread(threading.Thread):
             newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             if newsum == checksum:
                 self.log.info("master repomd.xml matches!")
-                notifications.publish(topic="mashtask.sync.done", msg=dict(
-                    repo=self.id))
+                notifications.publish(
+                    topic="mashtask.sync.done",
+                    msg=dict(repo=self.id),
+                    force=True,
+                )
                 return
 
             self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
@@ -726,9 +740,11 @@ class MasherThread(threading.Thread):
             agent = u'masher'
         for update in self.updates:
             topic = u'update.complete.%s' % update.status
-            notifications.publish(topic=topic, msg=dict(
-                update=update, agent=agent,
-            ))
+            notifications.publish(
+                topic=topic,
+                msg=dict(update=update, agent=agent),
+                force=True,
+            )
 
     @checkpoint
     def modify_bugs(self):
