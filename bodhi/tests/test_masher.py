@@ -21,7 +21,6 @@ import unittest
 import tempfile
 
 from sqlalchemy import create_engine
-from pyramid.paster import bootstrap
 
 from bodhi import buildsys, log
 from bodhi.config import config
@@ -203,8 +202,6 @@ class TestMasher(unittest.TestCase):
             # Ensure we can't set a request
             from bodhi.exceptions import LockedUpdateException
             try:
-                env = bootstrap('development.ini')
-                request = env['request']
                 up.set_request(UpdateRequest.stable, u'bodhi')
                 assert False, 'Set the request on a locked update'
             except LockedUpdateException:
