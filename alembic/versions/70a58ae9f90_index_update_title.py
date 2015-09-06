@@ -16,7 +16,9 @@ import sqlalchemy as sa
 
 def upgrade():
     op.create_index(op.f('ix_updates_title'), 'updates', ['title'], unique=False)
+    op.create_index(op.f('ix_updates_date_submitted'), 'updates', ['date_submitted'], unique=False)
 
 
 def downgrade():
     op.drop_index(op.f('ix_updates_title'), table_name='updates')
+    op.drop_index(op.f('ix_updates_date_submitted'), table_name='updates')

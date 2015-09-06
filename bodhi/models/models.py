@@ -589,7 +589,7 @@ class Update(Base):
     close_bugs = Column(Boolean, default=True)
 
     # Timestamps
-    date_submitted = Column(DateTime, default=datetime.utcnow)
+    date_submitted = Column(DateTime, default=datetime.utcnow, index=True)
     date_modified = Column(DateTime)
     date_approved = Column(DateTime)
     date_pushed = Column(DateTime)
