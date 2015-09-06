@@ -418,7 +418,8 @@ class Package(Base):
         if not asbool(config.get('query_wiki_test_cases')):
             return
 
-        log.info('Querying the wiki for test cases')
+        start = datetime.utcnow()
+        log.debug('Querying the wiki for test cases')
 
         from simplemediawiki import MediaWiki
         wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
@@ -444,6 +445,7 @@ class Package(Base):
                 else:
                     idx += 1
 
+            log.debug('Found the following unit tests: %s', members)
             return members
 
         for test in list_categorymembers(wiki, cat_page):
@@ -453,7 +455,7 @@ class Package(Base):
                 db.add(case)
                 db.flush()
 
-        log.info('Done querying for test cases')
+        log.debug('Finished querying for test cases in %s', datetime.utcnow() - start)
 
     def __str__(self):
         x = header(self.name)
