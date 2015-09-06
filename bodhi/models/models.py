@@ -542,8 +542,9 @@ class Build(Base):
             i += 1
         return str
 
-    def get_tags(self):
-        koji = buildsys.get_session()
+    def get_tags(self, koji=None):
+        if not koji:
+            koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
 
     def untag(self, koji):
