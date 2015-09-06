@@ -192,7 +192,8 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=False, repo='f17-updates-testing'))
+            msg=dict(success=False, repo='f17-updates-testing'),
+            force=True)
 
         with self.db_factory() as session:
             # Ensure that the update was locked
@@ -236,7 +237,8 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=True, repo='f17-updates-testing'))
+            msg=dict(success=True, repo='f17-updates-testing'),
+            force=True)
 
         # Ensure our single update was moved
         self.assertEquals(len(self.koji.__moved__), 1)
@@ -430,16 +432,20 @@ References:
         # complete.testing
         # mashtask.complete
         self.assertEquals(calls[1], mock.call(
+            force=True,
             msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18']},
             topic='mashtask.mashing'))
         self.assertEquals(calls[4], mock.call(
+            force=True,
             msg={'success': True, 'repo': 'f18-updates'},
             topic='mashtask.complete'))
         self.assertEquals(calls[5], mock.call(
+            force=True,
             msg={'repo': u'f17-updates-testing',
                  'updates': [u'bodhi-2.0-1.fc17']},
             topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(
+            force=True,
             msg={'success': True, 'repo': 'f17-updates-testing'},
             topic='mashtask.complete'))
 
@@ -495,16 +501,20 @@ References:
         self.assertEquals(calls[1], mock.call(
             msg={'repo': u'f17-updates-testing',
                  'updates': [u'bodhi-2.0-1.fc17']},
+            force=True,
             topic='mashtask.mashing'))
         self.assertEquals(calls[3], mock.call(
             msg={'success': True, 'repo': 'f17-updates-testing'},
+            force=True,
             topic='mashtask.complete'))
         self.assertEquals(calls[4], mock.call(
             msg={'repo': u'f18-updates',
                  'updates': [u'bodhi-2.0-1.fc18']},
+            force=True,
             topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(
             msg={'success': True, 'repo': 'f18-updates'},
+            force=True,
             topic='mashtask.complete'))
 
     @mock.patch(**mock_taskotron_results)
@@ -557,14 +567,26 @@ References:
 
         # Ensure that F18 and F17 run in parallel
         calls = publish.mock_calls
-        if calls[1] == mock.call(msg={'repo': u'f18-updates',
-            'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'):
-            self.assertEquals(calls[2], mock.call(msg={'repo': u'f17-updates',
-                'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing'))
-        elif calls[1] == self.assertEquals(calls[1], mock.call(msg={'repo': u'f17-updates',
-            'updates': [u'bodhi-2.0-1.fc17']}, topic='mashtask.mashing')):
-            self.assertEquals(calls[2], mock.call(msg={'repo': u'f18-updates',
-                'updates': [u'bodhi-2.0-1.fc18']}, topic='mashtask.mashing'))
+        if calls[1] == mock.call(
+            msg={'repo': u'f18-updates',
+                 'updates': [u'bodhi-2.0-1.fc18']},
+            force=True,
+            topic='mashtask.mashing'):
+            self.assertEquals(calls[2], mock.call(
+                msg={'repo': u'f17-updates',
+                     'updates': [u'bodhi-2.0-1.fc17']},
+                force=True,
+                topic='mashtask.mashing'))
+        elif calls[1] == self.assertEquals(calls[1], mock.call(
+            msg={'repo': u'f17-updates',
+                 'updates': [u'bodhi-2.0-1.fc17']},
+            force=True,
+            topic='mashtask.mashing')):
+            self.assertEquals(calls[2], mock.call(
+                msg={'repo': u'f18-updates',
+                     'updates': [u'bodhi-2.0-1.fc18']},
+                force=True,
+                topic='mashtask.mashing'))
 
 
     @mock.patch(**mock_taskotron_results)
@@ -604,8 +626,10 @@ References:
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
+                                   force=True,
                                    msg=dict(success=True, repo='f17-updates'))
         publish.assert_any_call(topic='update.complete.stable',
+                                force=True,
                                 msg=mock.ANY)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
@@ -635,8 +659,9 @@ References:
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
+                                   force=True,
                                    msg=dict(success=True, repo='f17-updates'))
-        publish.assert_any_call(topic='update.eject', msg=mock.ANY)
+        publish.assert_any_call(topic='update.eject', msg=mock.ANY, force=True)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
         self.assertEquals(len(t.state['completed_repos']), 1)
@@ -664,8 +689,9 @@ References:
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
+                                   force=True,
                                    msg=dict(success=True, repo='f17-updates'))
-        publish.assert_any_call(topic='update.eject', msg=mock.ANY)
+        publish.assert_any_call(topic='update.eject', msg=mock.ANY, force=True)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
         self.assertEquals(len(t.state['completed_repos']), 1)
@@ -930,6 +956,7 @@ References:
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
+            force=True,
             msg=dict(success=True, repo='f17-updates-testing'))
 
         self.koji.clear()
