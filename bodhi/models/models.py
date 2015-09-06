@@ -555,6 +555,21 @@ class Build(Base):
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
 
+    def unpush(self, koji):
+        """Move this build back to the candidate tag"""
+        log.info('Unpushing %s' % self.nvr)
+        release = self.update.release
+        for tag in self.get_tags(koji):
+            if tag == release.pending_testing_tag:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+            if tag == release.pending_stable_tag:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+            elif tag == release.testing_tag:
+                log.info('Moving %s from %s to %s' % (self.nvr, tag,
+                    release.candidate_tag))
+                koji.moveBuild(tag, release.candidate_tag, self.nvr)
 
 class Update(Base):
     __tablename__ = 'updates'
