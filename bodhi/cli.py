@@ -27,7 +27,12 @@ def cli():
     pass
 
 
-@cli.command()
+@cli.group()
+def updates():
+    pass
+
+
+@updates.command()
 @click.argument('builds')
 @click.option('--user', envvar='USERNAME')
 @click.option('--password', prompt=True, hide_input=True)
@@ -76,7 +81,7 @@ def new(user, password, **kwargs):
             traceback.print_exc()
 
 
-@cli.command()
+@updates.command()
 @click.option('--updateid', help='Query by update ID (eg: FEDORA-2015-0001)')
 @click.option('--approved-since', help='Approved after a specific timestamp')
 @click.option('--modified-since', help='Modified after a specific timestamp')
@@ -111,6 +116,50 @@ def query(**kwargs):
     client = Bodhi2Client(staging=kwargs['staging'])
     resp = client.query(**kwargs)
     print_resp(resp, client)
+
+
+@updates.command()
+@click.argument('update')
+@click.argument('state')
+@click.option('--user', envvar='USERNAME')
+@click.option('--password', prompt=True, hide_input=True)
+@click.option('--request', help='Requested repository',
+              type=click.Choice(['testing', 'stable', 'unpush']))
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
+def request(update, state, user, password, **kwargs):
+    client = Bodhi2Client(username=user, password=password, staging=kwargs['staging'])
+    resp = client.request(update, state)
+    print_resp(resp, client)
+
+
+@updates.command()
+@click.argument('update')
+@click.argument('text')
+@click.option('--karma', default=0, type=click.INT, help='The karma for this comment (+1/0/-1)')
+@click.option('--user', envvar='USERNAME')
+@click.option('--password', prompt=True, hide_input=True)
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
+def comment(update, text, karma, user, password, **kwargs):
+    client = Bodhi2Client(username=user, password=password, staging=kwargs['staging'])
+    print('%r %r %r' % (update, text, karma))
+    resp = client.comment(update, text, karma)
+    print_resp(resp, client)
+
+
+@updates.command()
+@click.argument('update')
+@click.option('--user', envvar='USERNAME')
+@click.option('--password', prompt=True, hide_input=True)
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
+def download(update, **kwargs):
+    client = Bodhi2Client(username=user, password=password, staging=kwargs['staging'])
+    print('%r %r %r' % (update, text, karma))
+    resp = client.comment(update, text, karma)
+    print_resp(resp, client)
+
 
 
 @cli.group()
@@ -154,6 +203,9 @@ def print_resp(resp, client):
                 click.echo(client.update_str(update, minimal=True).strip())
         click.echo('%s updates found (%d shown)' % (resp.total,
             len(resp.updates)))
+    elif resp.get('update'):
+        click.echo(resp)
+        click.echo(client.update_str(resp['update']))
     elif 'title' in resp:
         click.echo(client.update_str(resp))
     elif 'overrides' in resp:
@@ -166,12 +218,20 @@ def print_resp(resp, client):
             len(resp.overrides)))
     elif 'build' in resp:
         click.echo(client.override_str(resp))
+    elif 'comment' in resp:
+        click.echo('The following comment was added to %s' % resp.comment['update'].title)
+        click.echo(resp.comment.text)
     elif 'errors' in resp:
         for error in resp['errors']:
             click.echo("ERROR: %s" % error['description'])
         sys.exit(1)
     else:
         click.echo(resp)
+
+    if 'caveats' in resp:
+        click.echo('Caveats:')
+        for caveat in resp.caveats:
+            click.echo(caveat.description)
 
 
 if __name__ == '__main__':
