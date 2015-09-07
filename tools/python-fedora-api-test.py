@@ -33,6 +33,24 @@ try:
 except BodhiClientException as e:
     print(e)
 
+print('Editing update')
+try:
+    result = bodhi.save(
+            builds=build,
+            edited=build,
+            type='enhancement',
+            notes='The quick brown fox jumped over the lazy dog',
+            bugs='1234106',
+            require_bugs=True,
+    )
+    assert len(result.bugs) == 1, result.bugs
+    assert result.require_bugs, result
+    for caveat in result.caveats:
+        print(caveat.description)
+except BodhiClientException as e:
+    print(e)
+
+
 print('Querying update')
 result = bodhi.query(builds='qt-creator-3.4.1-3.fc23')
 updates = result['updates']
