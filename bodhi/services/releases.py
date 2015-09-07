@@ -25,6 +25,7 @@ from bodhi.models import (
     UpdateStatus,
     UpdateType,
     Build,
+    BuildrootOverride,
     Package,
     Release,
 )
@@ -102,6 +103,30 @@ def get_release_html(request):
     num_updates_newpackage = base_count_query\
         .filter(Update.type==UpdateType.newpackage).count()
 
+    num_active_overrides = request.db.query(
+        BuildrootOverride
+    ).filter(
+        BuildrootOverride.expired_date==None
+    ).join(
+        BuildrootOverride.build
+    ).join(
+        Build.release
+    ).filter(
+        Build.release==release
+    ).count()
+
+    num_expired_overrides = request.db.query(
+        BuildrootOverride
+    ).filter(
+        BuildrootOverride.expired_date!=None
+    ).join(
+        BuildrootOverride.build
+    ).join(
+        Build.release
+    ).filter(
+        Build.release==release
+    ).count()
+
     return dict(release=release,
                 latest_updates=updates.limit(25).all(),
                 count=updates.count(),
@@ -118,6 +143,9 @@ def get_release_html(request):
                 num_updates_bugfix=num_updates_bugfix,
                 num_updates_enhancement=num_updates_enhancement,
                 num_updates_newpackage=num_updates_newpackage,
+
+                num_active_overrides=num_active_overrides,
+                num_expired_overrides=num_expired_overrides,
                 )
 
 @release.get(accept=('application/json', 'text/json'), renderer='json',
