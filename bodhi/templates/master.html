@@ -102,6 +102,12 @@
                       Overall metrics
                     </a>
                   </li>
+                  <li role="separator" class="divider"></li>
+                  <li>
+                    <a href="${request.route_url('overrides')}">
+                      Buildroot overrides
+                    </a>
+                  </li>
                   % for state in request.releases:
                   <li role="separator" class="divider"></li>
                   % for r in request.releases[state]:
