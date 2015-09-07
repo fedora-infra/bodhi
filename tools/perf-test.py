@@ -12,10 +12,9 @@ items = collections.OrderedDict([
     ('frontpage', 'http://0.0.0.0:6543/'),
     ('update_list', 'http://0.0.0.0:6543/updates'),
     ('update_view', ('http://0.0.0.0:6543/updates/'
-                     'abrt-2.1.6-2.fc19%2Cgnome-abrt'
-                     '-0.3.0-3.fc19%2Clibreport-2.1.6-2.fc19')),
+                     'FEDORA-2015-13946')),
     ('release_list', 'http://0.0.0.0:6543/releases'),
-    ('release_view', 'http://0.0.0.0:6543/releases/f19'),
+    ('release_view', 'http://0.0.0.0:6543/releases/f22'),
     ('comment_list', 'http://0.0.0.0:6543/comments'),
     ('comment_view', 'http://0.0.0.0:6543/comments/2'),
     ('user_list', 'http://0.0.0.0:6543/users/'),
