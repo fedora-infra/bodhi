@@ -175,6 +175,30 @@
           </a>
         </td>
       </tr>
+
+      <tr>
+        <td><small>by overrides</small></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="text-right">Active overrides</td>
+        <td>
+          ${num_active_overrides}
+          <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=0">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Expired overrides</td>
+        <td>
+          ${num_expired_overrides}
+          <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=1">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+
     </table>
   </div>
   <div class="col-md-7">
