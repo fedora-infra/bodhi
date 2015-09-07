@@ -55,6 +55,13 @@ update_edit = Service(name='update_edit', path='/updates/{id}/edit',
                  acl=bodhi.security.packagers_allowed_acl,
                  cors_origins=bodhi.security.cors_origins_rw)
 
+update_old = Service(name='update_old', path='/updates/{id}/{title}',
+                     validators=(validate_update_id,),
+                     description='Update submission service',
+                     #acl=bodhi.security.package_maintainers_only_acl,
+                     acl=bodhi.security.packagers_allowed_acl,
+                     cors_origins=bodhi.security.cors_origins_rw)
+
 updates = Service(name='updates', path='/updates/',
                   acl=bodhi.security.packagers_allowed_acl,
                   description='Update submission service',
@@ -85,6 +92,16 @@ def get_update(request):
     can_edit = len(proxy_request.errors) == 0
 
     return dict(update=request.validated['update'], can_edit=can_edit)
+
+
+@update_old.get(accept=('application/json', 'text/json'), renderer='json',
+                error_handler=bodhi.services.errors.json_handler)
+@update_old.get(accept=('application/javascript'), renderer='jsonp',
+                error_handler=bodhi.services.errors.jsonp_handler)
+@update_old.get(accept="text/html", renderer="update.html",
+                error_handler=bodhi.services.errors.html_handler)
+def get_update_old(request):
+    return HTTPFound("/updates/{0}".format(request.matchdict['id']))
 
 
 @update_edit.get(accept="text/html", renderer="new_update.html",
