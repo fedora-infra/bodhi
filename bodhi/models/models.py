@@ -958,7 +958,7 @@ class Update(Base):
                         good += 1
                     elif feedback.karma < 0:
                         bad += 1
-        return good, bad * -1
+        return bad * -1, good
 
     def get_testcase_karma(self, testcase):
         good, bad, seen = 0, 0, set()
@@ -972,7 +972,7 @@ class Update(Base):
                         good += 1
                     elif feedback.karma < 0:
                         bad += 1
-        return good, bad * -1
+        return bad * -1, good
 
     def assign_alias(self):
         """Return the next available update ID.
