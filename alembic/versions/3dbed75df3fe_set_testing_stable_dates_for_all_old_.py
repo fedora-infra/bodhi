@@ -19,8 +19,8 @@ from bodhi.models import Update, DBSession, Base
 import logging
 log = logging.getLogger('alembic.migration')
 
-testing = u'This update has been pushed to testing.'
-stable = u'This update has been pushed to stable.'
+testing = u'This update has been pushed to testing'
+stable = u'This update has been pushed to stable'
 
 def upgrade():
     log.warn("Skipping.  Do this by hand by uncommenting and running in tmux.")
@@ -40,9 +40,9 @@ def upgrade():
     #                i, total, update.title))
     #        for comment in update.comments:
     #            if comment.user.name == u'bodhi':
-    #                if comment.text == testing:
+    #                if comment.text.startswith(testing):
     #                    update.date_testing = comment.timestamp
-    #                elif comment.text == stable:
+    #                elif comment.text.startswith(stable):
     #                    update.date_stable = comment.timestamp
     #    log.info("Done.  Committing..")
 
