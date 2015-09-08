@@ -1978,7 +1978,7 @@ stack_user_table = Table('stack_user_table', Base.metadata,
 
 class User(Base):
     __tablename__ = 'users'
-    __exclude_columns__ = ('comments', 'updates', 'groups', 'packages', 'stacks')
+    __exclude_columns__ = ('comments', 'updates', 'packages', 'stacks')
     __include_extras__ = ('avatar', 'openid')
     __get_by__ = ('name',)
 
