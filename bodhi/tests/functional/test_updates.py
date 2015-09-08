@@ -1919,3 +1919,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['status'], u'testing')
         self.assertEquals(up['request'], None)
         self.assertEquals(up['type'], u'bugfix')
+
+    def test_update_meeting_requirements_present(self):
+        """ Check that the requirements boolean is present in our JSON """
+        res = self.app.get('/updates/bodhi-2.0-1.fc17')
+        actual = res.json_body['update']['meets_testing_requirements']
+        expected = False
+        self.assertEquals(actual, expected)
