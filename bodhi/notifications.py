@@ -150,8 +150,11 @@ class FedmsgDataManager(object):
             for topic, msg in self.uncommitted
         ]
 
-        # TODO We could also check that fedmsg is ready and bound to an
-        # endpoint.. but that's not implemented.
+        # Ensure that fedmsg has already been initialized.  This should happen
+        # in ``bodhi.__init__.py``
+        assert hasattr(fedmsg.__local, '__context')
+        # Ensure that fedmsg has an endpoint to publish to.
+        assert hasattr(fedmsg.__local.__context, 'publisher')
 
     def tpc_abort(self, transaction):
         self.abort(transaction)
