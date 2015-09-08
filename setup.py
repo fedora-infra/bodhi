@@ -57,7 +57,9 @@ requires = [
     # External resources
     'python-bugzilla',
     'simplemediawiki',
-    'fedmsg',
+
+    # "python setup.py test" needs one of fedmsg's setup.py extra_requires
+    'fedmsg[consumers]',
 
     'Sphinx',
 
