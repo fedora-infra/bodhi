@@ -731,8 +731,7 @@ References:
             t.db = session
             t.work()
             t.db = None
-        close.assert_called_with(12345, versions=dict(
-            bodhi=u'bodhi-2.0-1.fc17'))
+        close.assert_called_with(12345, versions=dict(bodhi=u'bodhi-2.0-1'))
         comment.assert_called_with(12345, u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If problems still persist, please make note of it in this bug report.')
 
     @mock.patch(**mock_taskotron_results)

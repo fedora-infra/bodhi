@@ -97,8 +97,18 @@ class Bugzilla(BugTracker):
         args = {}
         try:
             bug = self.bz.getbug(bug_id)
+            # If this bug is for one of these builds...
             if bug.component in versions:
-                args['fixedin'] = versions[bug.component]
+                version = versions[bug.component]
+                # Get the existing list
+                fixedin = [v.strip() for v in bug.fixed_in.split(',')]
+                # Strip out any empty strings
+                fixedin = [v for v in fixedin if v.strip()]
+                # And add our build if its not already there
+                if version not in fixedin:
+                    fixedin.append(version)
+                args['fixedin'] = ", ".join(fixedin)
+
             bug.close('NEXTRELEASE', **args)
         except xmlrpclib.Fault:
             log.exception("Unable to close bug #%d" % bug_id)

@@ -1960,9 +1960,12 @@ class Bug(Base):
     def close_bug(self, update):
         # Build a mapping of package names to build versions
         # so that .close() can figure out which build version fixes which bug.
-        versions = dict([
-            (get_nvr(b.nvr)[0], b.nvr) for b in update.builds
-        ])
+        versions = dict([(
+            get_nvr(b.nvr)[0],
+            # Strip off the .fc23 at the end of the nvr to try and match the
+            # way the anaconda team uses the fixedin field.
+            b.nvr.rsplit('.', 1)[0]
+        ) for b in update.builds])
         bugtracker.close(self.bug_id, versions=versions)
 
     def modified(self, update):
