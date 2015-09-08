@@ -53,6 +53,7 @@ def cache_nvrs(request, build):
     if '' in (name, version, release):
         raise ValueError
 
+
 def validate_nvrs(request):
     for build in request.validated.get('builds', []):
         try:
@@ -167,6 +168,7 @@ def validate_tags(request):
             request.errors.add('body', "%s_tag" % tag_type,
                                'Invalid tag: %s' % tag_name)
 
+
 def validate_acls(request):
     """Ensure this user has commit privs to these builds or is an admin"""
     db = request.db
@@ -276,6 +278,20 @@ def validate_acls(request):
         # build, we can ask our ACL system about it..
 
         acl_system = settings.get('acl_system')
+        user_groups = [group.name for group in user.groups]
+        has_access = False
+
+        # Allow certain groups to push updates for any package
+        admin_groups = settings['admin_packager_groups'].split()
+        for group in admin_groups:
+            if group in user_groups:
+                log.debug(
+                    '{} is in {} admin group'.format(user.name, group))
+                has_access = True
+                break
+        if has_access:
+            continue
+
         if acl_system == 'pkgdb':
             try:
                 people, groups = package.get_pkg_pushers(
@@ -300,21 +316,11 @@ def validate_acls(request):
         buildinfo['people'] = people
 
         if user.name not in committers:
-            has_access = False
-            user_groups = [group.name for group in user.groups]
-
             # Check if this user is in a group that has access to this package
             for group in user_groups:
                 if group in groups:
-                    log.debug('{} is in {} group for {}'.format(user.name, group, package.name))
-                    has_access = True
-                    break
-
-            # Allow certain groups to push updates for any package
-            admin_groups = settings['admin_packager_groups'].split()
-            for group in admin_groups:
-                if group in user_groups:
-                    log.debug('{} is in {} admin group'.format(user.name, group))
+                    log.debug('{} is in {} group for {}'.format(
+                        user.name, group, package.name))
                     has_access = True
                     break
 
@@ -464,6 +470,7 @@ def validate_release(request):
     else:
         request.errors.add("querystring", "release",
                            "Invalid release specified: {}".format(releasename))
+
 
 def validate_releases(request):
     """Make sure those releases exist"""
