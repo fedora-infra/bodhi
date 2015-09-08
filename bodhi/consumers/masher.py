@@ -546,7 +546,7 @@ class MasherThread(threading.Thread):
             raise Exception("Failed to move builds: %s" % failed_tasks)
 
     def expire_buildroot_overrides(self):
-        """ Obsolete any buildroot overrides that are in this push """
+        """ Expire any buildroot overrides that are in this push """
         for update in self.updates:
             if update.request is UpdateRequest.stable:
                 for build in update.builds:
