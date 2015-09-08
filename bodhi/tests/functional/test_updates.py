@@ -1926,3 +1926,27 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         actual = res.json_body['update']['meets_testing_requirements']
         expected = False
         self.assertEquals(actual, expected)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_testing_update_reset_karma(self, publish, *args):
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        # Mark it as testing and give it 2 karma
+        upd = Update.get(nvr, self.db)
+        upd.status = UpdateStatus.testing
+        upd.request = None
+        upd.karma = 2
+        self.db.flush()
+
+        # Then.. edit it and change the builds!
+        args['edited'] = args['builds']
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
+        # This is what we really want to test here.
+        self.assertEquals(up['karma'], 0)

@@ -819,6 +819,12 @@ class Update(Base):
                     # We still warn in case the config gets messed up.
                     log.warn('%s has no pending_testing_tag' % up.release.name)
 
+        # And, updates with new or removed builds always get their karma reset.
+        # https://github.com/fedora-infra/bodhi/issues/511
+        if new_builds or removed_builds:
+            data['karma'] = 0
+            data['karma_critpath'] = 0
+
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
 
