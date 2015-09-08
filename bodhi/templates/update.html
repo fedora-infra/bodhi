@@ -355,7 +355,7 @@ $(document).ready(function(){
           <ul>
             % for build in update.builds:
             <li>
-              ${build.nvr}
+              <span class="pull-left">${build.nvr}</span>
               <span class="pull-right">
                 <a href='${request.route_url("updates") + "?packages=" + build.package.name}'>
                   <span class="glyphicon glyphicon-list" data-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
