@@ -901,11 +901,16 @@ class Update(Base):
                     # Also inherit the older updates notes as well and
                     # add a markdown separator between the new and old ones.
                     self.notes += '\n\n----\n\n' + oldBuild.update.notes
-                    oldBuild.update.obsolete(newer=build.nvr)
-                    text = ('This update has obsoleted %s, and has '
-                            'inherited its bugs and notes.') % oldBuild.nvr
-                    self.comment(text, author='bodhi')
-                    caveats.append({'name': 'update', 'description': text})
+                    oldBuild.update.obsolete(newer=build)
+                    template = ('This update has obsoleted %s, and has '
+                                'inherited its bugs and notes.')
+                    link = "[%s](%s)" % (oldBuild.nvr,
+                                         oldBuild.update.abs_url())
+                    self.comment(template % link, author='bodhi')
+                    caveats.append({
+                        'name': 'update',
+                        'description': template % oldBuild.nvr,
+                    })
 
         return caveats
 
@@ -1547,8 +1552,8 @@ class Update(Base):
         self.status = UpdateStatus.obsolete
         self.request = None
         if newer:
-            self.comment(u"This update has been obsoleted by %s." % newer,
-                         author=u'bodhi')
+            self.comment(u"This update has been obsoleted by [%s](%s)." % (
+                newer.nvr, newer.update.abs_url()), author=u'bodhi')
         else:
             self.comment(u"This update has been obsoleted.", author=u'bodhi')
 
