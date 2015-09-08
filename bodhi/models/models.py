@@ -1957,8 +1957,12 @@ class Bug(Base):
             bugtracker.on_qa(self.bug_id, comment)
 
     def close_bug(self, update):
-        ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
-        bugtracker.close(self.bug_id, fixedin=ver)
+        # Build a mapping of package names to build versions
+        # so that .close() can figure out which build version fixes which bug.
+        versions = dict([
+            (get_nvr(b.nvr)[0], b.nvr) for b in update.builds
+        ])
+        bugtracker.close(self.bug_id, versions=versions)
 
     def modified(self, update):
         """ Change the status of this bug to MODIFIED """
