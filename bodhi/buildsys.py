@@ -1,47 +1,77 @@
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Library General Public License for more details.
+# GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import time
-import koji
 import logging
 
 from os.path import join, expanduser
-from turbogears import config
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('bodhi')
 
-## Our buildsystem session.  This could be a koji ClientSession or an instance
-## of our Buildsystem class.
-session = None
+_buildsystem = None
+
+try:
+    import koji
+except ImportError:
+    log.warn("Could not import 'koji'")
+
+# URL of the koji hub
+_koji_hub = None
 
 
-class Buildsystem(object):
+class Buildsystem:
     """
     The parent for our buildsystem.  Not only does this help us keep track of
-    the functionality that we expect from our buildsystem, but it also allows
-    us to create a development subclass of this object to use during development
-    so we don't alter any production data.
+    the functionality that we expect from our buildsystem, but it also alows
+    us to create a development subclass of this object to use during
+    development so we don't alter any production data.
     """
-    def getBuild(self): raise NotImplementedError
-    def getLatestBuilds(self): raise NotImplementedError
-    def moveBuild(self): raise NotImplementedError
-    def ssl_login(self): raise NotImplementedError
-    def listBuildRPMs(self): raise NotImplementedError
-    def listTags(self): raise NotImplementedError
-    def listTagged(self): raise NotImplementedError
-    def taskFinished(self): raise NotImplementedError
-    def untagBuild(self): raise NotImplementedError
-    def tagBuild(self): raise NotImplementedError
+    def getBuild(self, *args, **kw):
+        raise NotImplementedError
+
+    def getLatestBuilds(self, *args, **kw):
+        raise NotImplementedError
+
+    def moveBuild(self, *args, **kw):
+        raise NotImplementedError
+
+    def ssl_login(self, *args, **kw):
+        raise NotImplementedError
+
+    def listBuildRPMs(self, *args, **kw):
+        raise NotImplementedError
+
+    def listTags(self, *args, **kw):
+        raise NotImplementedError
+
+    def listTagged(self, *args, **kw):
+        raise NotImplementedError
+
+    def taskFinished(self, *args, **kw):
+        raise NotImplementedError
+
+    def tagBuild(self, *args, **kw):
+        raise NotImplementedError
+
+    def untagBuild(self, *args, **kw):
+        raise NotImplementedError
+
+    def multiCall(self, *args, **kw):
+        raise NotImplementedError
+
+    def getTag(self, *args, **kw):
+        raise NotImplementedError
 
 
 class DevBuildsys(Buildsystem):
@@ -49,18 +79,32 @@ class DevBuildsys(Buildsystem):
     A dummy buildsystem instance used during development and testing
     """
     __untag__ = []
+    __moved__ = []
+    __added__ = []
+    __tagged__ = {}
+    __rpms__ = []
+
+    def clear(self):
+        DevBuildsys.__untag__ = []
+        DevBuildsys.__moved__ = []
+        DevBuildsys.__added__ = []
+        DevBuildsys.__tagged__ = {}
+        DevBuildsys.__rpms__ = []
 
     def multiCall(self):
-        pass
+        return []
 
-    def moveBuild(self, *args, **kw):
-        log.debug("moveBuild(%s, %s)" % (args, kw))
+    def moveBuild(self, from_tag, to_tag, build, *args, **kw):
+        log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
+        DevBuildsys.__moved__.append((from_tag, to_tag, build))
 
-    def tagBuild(self, *args, **kw):
-        log.debug("tagBuild(%s, %s)" % (args, kw))
+    def tagBuild(self, tag, build, *args, **kw):
+        log.debug("tagBuild(%s, %s)" % (tag, build))
+        DevBuildsys.__added__.append((tag, build))
 
-    def untagBuild(self, *args, **kw):
-        log.debug("untagBuild(%s, %s)" % (args, kw))
+    def untagBuild(self, tag, build, *args, **kw):
+        log.debug("untagBuild(%s, %s)" % (tag, build))
+        DevBuildsys.__untag__.append((tag, build))
 
     def ssl_login(self, *args, **kw):
         log.debug("ssl_login(%s, %s)" % (args, kw))
@@ -69,7 +113,12 @@ class DevBuildsys(Buildsystem):
         return True
 
     def getTaskInfo(self, task):
-        return {'state' : koji.TASK_STATES['CLOSED']}
+        return {'state': koji.TASK_STATES['CLOSED']}
+
+    def listPackages(self):
+        return [
+            {'package_id': 2625, 'package_name': 'nethack'},
+        ]
 
     def getBuild(self, build='TurboGears-1.0.2.2-2.fc7', other=False):
         data = {'build_id': 16058,
@@ -90,12 +139,10 @@ class DevBuildsys(Buildsystem):
 
         for token in release_tokens:
             if token.startswith("fc"):
-                dist = token
-                tag = "dist-f%s-updates-testing" % token.replace("fc", "")
+                tag = "f%s-updates-testing" % token.replace("fc", "")
                 break
 
             if token.startswith("el"):
-                dist = token
                 tag = "dist-%sE-epel-testing-candidate" % token.replace("el", "")
                 break
 
@@ -145,18 +192,12 @@ class DevBuildsys(Buildsystem):
         if id == 16059:  # for updateinfo.xml tests
             rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
             rpms[0]['release'] = rpms[1]['release'] = '3.fc7'
+        rpms += DevBuildsys.__rpms__
         return rpms
 
     def listTags(self, build, *args, **kw):
-        if 'fc7' in build:
-            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
-                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-fc7-updates-testing', 'perm': None, 'perm_id': None},
-                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
-        elif 'el5' in build:
-            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+        if 'el5' in build:
+            result = [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
@@ -164,84 +205,142 @@ class DevBuildsys(Buildsystem):
                      'name': 'dist-5E-epel', 'perm': None, 'perm_id': None}]
         else:
             release = build.split('.')[-1].replace('fc', 'f')
-            return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
+            result = [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                     'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-%s' % release, 'perm': None, 'perm_id': None},
+                     'name': '%s' % release, 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
+                     'name': '%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
+        if build in DevBuildsys.__tagged__:
+            for tag in DevBuildsys.__tagged__[build]:
+                result += [{'name': tag}]
+        return result
 
     def listTagged(self, tag, *args, **kw):
         builds = []
         for build in [self.getBuild(), self.getBuild(other=True)]:
             if build['nvr'] in self.__untag__:
-                print('Pruning koji build %s' % build['nvr'])
+                log.debug('Pruning koji build %s' % build['nvr'])
                 continue
             else:
                 builds.append(build)
+        for build in DevBuildsys.__tagged__:
+            for tag_ in DevBuildsys.__tagged__[build]:
+                if tag_ == tag:
+                    builds.append(self.getBuild(build))
         return builds
 
     def getLatestBuilds(self, *args, **kw):
         return [self.getBuild()]
 
+    def getTag(self, taginfo, **kw):
+        if isinstance(taginfo, int):
+            taginfo = "f%d" % taginfo
 
-def koji_login(client=None, clientca=None, serverca=None):
-    """
-    Login to Koji and return the session
-    """
-    if not client:
-        client = config.get('client_cert')
-        if not client:
-            client = join(expanduser('~'), '.fedora.cert')
-    if not clientca:
-        clientca = config.get('clientca_cert')
-        if not clientca:
-            clientca = join(expanduser('~'), '.fedora-upload-ca.cert')
-    if not serverca:
-        serverca = config.get('serverca_cert')
-        if not serverca:
-            serverca = join(expanduser('~'), '.fedora-server-ca.cert')
+        if taginfo.startswith("epel"):
+            if kw.get("strict", False):
+                raise koji.GenericError("Invalid tagInfo: '%s'" % taginfo)
 
-    koji_session = koji.ClientSession(config.get('koji_hub'), {})
-    koji_session.ssl_login(client, clientca, serverca)
-    return koji_session
+            else:
+                return None
+
+        return {'maven_support': False, 'locked': False, 'name': taginfo,
+                'perm': None, 'id': 246, 'arches': None,
+                'maven_include_all': False, 'perm_id': None}
+
+    def getRPMHeaders(self, rpmID, headers):
+        return {
+            'description':
+                "The libseccomp library provides an easy to use interface to the "
+                "Linux Kernel's\nsyscall filtering mechanism, seccomp. The "
+                "libseccomp API allows an application\nto specify which "
+                "syscalls, and optionally which syscall arguments, the\n"
+                "application is allowed to execute, all of which are "
+                "enforced by the Linux\nKernel.",
+            'url': 'http://libseccomp.sourceforge.net',
+            'changelogname': [
+                'Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
+                'Paul Moore <pmoore@redhat.com> - 2.1.0-0',
+                'Paul Moore <pmoore@redhat.com> - 2.0.0-0',
+                'Paul Moore <pmoore@redhat.com> - 1.0.1-0',
+                'Paul Moore <pmoore@redhat.com> - 1.0.0-0',
+                'Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.1.0-2',
+                'Paul Moore <pmoore@redhat.com> - 0.1.0-1',
+                'Paul Moore <pmoore@redhat.com> - 0.1.0-0'],
+            'summary': 'Enhanced seccomp library',
+            'version': '2.1.0',
+            'changelogtime': [
+                1375531200, 1370952000, 1359374400, 1352808000, 1343736000,
+                1342699200, 1341921600, 1339502400],
+            'changelogtext': [
+                '- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild',
+                '- New upstream version\n- Added support for the ARM architecture\n'
+                '- Added the scmp_sys_resolver tool',
+                '- New upstream version',
+                '- New upstream version with several important fixes',
+                '- New upstream version\n- Remove verbose build patch as it is no '
+                'longer needed\n- Enable _smp_mflags during build stage',
+                '- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild',
+                '- Limit package to x86/x86_64 platforms (RHBZ #837888)',
+                '- Initial version'],
+            'release': '1.fc20',
+            'name': 'libseccomp'
+        }
+
+
+def koji_login(config):
+    """ Login to Koji and return the session """
+    koji_client = koji.ClientSession(_koji_hub, {})
+    if not koji_client.ssl_login(*get_certs(config)):
+        log.error('Koji ssl_login failed')
+    return koji_client
+
+
+def get_certs(config):
+    """ Return paths to the local certs needed log into koji """
+    client = config.get('client_cert', join(expanduser('~'), '.fedora.cert'))
+    clientca = config.get('clientca_cert', join(expanduser('~'),
+                          '.fedora-upload-ca.cert'))
+    serverca = config.get('serverca_cert', join(expanduser('~'),
+                          '.fedora-server-ca.cert'))
+    return client, clientca, serverca
+
 
 def get_session():
     """ Get a new buildsystem instance """
-    session = None
-    buildsys = config.get('buildsystem')
+    global _buildsystem
+    if not _buildsystem:
+        log.warning('No buildsystem configured; assuming testing')
+        return DevBuildsys()
+    return _buildsystem()
+
+
+def setup_buildsystem(settings):
+    global _buildsystem, _koji_hub
+    if _buildsystem:
+        return
+
+    _koji_hub = settings.get('koji_hub')
+    buildsys = settings.get('buildsystem')
+
     if buildsys == 'koji':
-        session = koji_login()
-    elif buildsys == 'dev':
-        session = DevBuildsys()
-    return session
+        log.debug('Using Koji Buildsystem')
+        _buildsystem = lambda: koji_login(config=settings)
 
-def _get_session():
-    """
-    Get our buildsystem instance.
-
-    :deprecated: This returns a "singleton" instance, but seems to
-    cause some issues in production.
-    """
-    global session
-    if not session:
-        buildsys = config.get('buildsystem')
-        log.info("Creating new %s buildsystem instance" % buildsys)
-        if buildsys == 'koji':
-            session = koji_login()
-        elif buildsys == 'dev':
-            session = DevBuildsys()
-    return session
+    elif buildsys in ('dev', 'dummy', None):
+        log.debug('Using DevBuildsys')
+        _buildsystem = DevBuildsys
 
 
-def wait_for_tasks(tasks, sleep=300):
+def wait_for_tasks(tasks, session=None, sleep=300):
     """
     Wait for a list of koji tasks to complete.  Return the first task number
     to fail, otherwise zero.
     """
     log.debug("Waiting for %d tasks to complete: %s" % (len(tasks), tasks))
     failed_tasks = []
-    session = get_session()
+    if not session:
+        session = get_session()
     for task in tasks:
         if not task:
             log.debug("Skipping task: %s" % task)

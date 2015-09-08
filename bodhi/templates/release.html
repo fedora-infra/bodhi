@@ -1,0 +1,196 @@
+<%inherit file="master.html"/>
+
+<div class="row">
+  <div class="col-md-5">
+    <h2 class="pull-left">${release['long_name']}</h2>
+    <div style="clear: both;">
+      <canvas id="releasechart" style="clear: both;" width="451"></canvas>
+    </div>
+    <script>
+      var data = {
+        labels : [${', '.join(map(lambda x: '"' + x + '"', dates)) | n}],
+        datasets : [
+          % for ud_type in date_commits:
+          {
+            // ${ud_type}
+            fillColor : "${self.util.type2color(ud_type)}",
+            strokeColor : "rgba(220,220,220,1)",
+            pointColor : "rgba(220,220,220,1)",
+            pointStrokeColor : "#fff",
+            data : [
+              % for yearmonth in date_commits[ud_type]:
+              ${date_commits[ud_type][yearmonth]},
+              % endfor
+            ]
+          },
+          % endfor
+        ]
+      }
+      var ctx = document.getElementById("releasechart").getContext("2d");
+      var myNewChart = new Chart(ctx).Line(data);
+    </script>
+    <table class="table">
+      <tr>
+        <td>State</td>
+        <td>
+          ${self.util.state2html(release['state'].description) | n}
+        </td>
+      </tr>
+      <tr>
+        <td>Candidate tag</td>
+        <td>
+          ${release['candidate_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Override tag</td>
+        <td>
+          ${release['override_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Stable tag</td>
+        <td>
+          ${release['stable_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Testing tag</td>
+        <td>
+          ${release['testing_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Pending stable tag</td>
+        <td>
+          ${release['pending_stable_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Pending testing tag</td>
+        <td>
+          ${release['pending_testing_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Dist tag</td>
+        <td>
+          ${release['dist_tag']}
+        </td>
+      </tr>
+      <tr>
+        <td>Total updates</td>
+        <td>${count}</td>
+      </tr>
+
+
+      <tr>
+        <td><small>by status</small></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="text-right">Pending Updates</td>
+        <td>
+          ${num_updates_pending}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=pending">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Testing Updates</td>
+        <td>
+          ${num_updates_testing}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=testing">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Stable Updates</td>
+        <td>
+          ${num_updates_stable}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=stable">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Unpushed Updates</td>
+        <td>
+          ${num_updates_unpushed}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=unpushed">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Obsolete Updates</td>
+        <td>
+          ${num_updates_obsolete}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&status=obsolete">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+
+
+      <tr>
+        <td><small>by type</small></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="text-right">New Package Updates</td>
+        <td>
+          ${num_updates_newpackage}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&type=newpackage">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Bugfix Updates</td>
+        <td>
+          ${num_updates_bugfix}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&type=bugfix">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Enhancement Updates</td>
+        <td>
+          ${num_updates_enhancement}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&type=enhancement">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Security Updates</td>
+        <td>
+          ${num_updates_security}
+          <a href="${request.route_url('updates')}?releases=${release['name']}&type=security">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <div class="col-md-7">
+    <div class="sidepanel panel panel-default">
+      <div class="panel-heading clearfix">
+        <span class="pull-left">Latest ${release['long_name']} updates</span>
+        <span class="pull-right">
+          <a href="${request.route_url('updates')}?releases=${release['name']}">
+            View all
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </span>
+      </div>
+      <div class="panel-body">
+        ${self.tables.updates(latest_updates, display_release=False)}
+      </div>
+    </div>
+  </div>
+</div>

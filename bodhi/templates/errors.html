@@ -1,0 +1,12 @@
+<%inherit file="master.html"/>
+
+<div class="row">
+  <div class="col-md-offset-3 col-md-6">
+    <div class="panel error-page-panel">
+      <h1>${status} <small>${summary}</small></h1>
+      % for error in errors:
+      <p class="lead">${error['description']}</p>
+      % endfor
+    </div>
+  </div>
+</div>

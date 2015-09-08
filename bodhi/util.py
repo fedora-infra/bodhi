@@ -1,59 +1,519 @@
-# $Id: util.py,v 1.2 2006/12/31 09:10:14 lmacken Exp $
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Library General Public License for more details.
+# GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 """
 Random functions that don't fit elsewhere
 """
 
 import os
-import rpm
-import sys
-import logging
-import urllib2
+import arrow
+import socket
+import urllib
 import tempfile
+import markdown
+import requests
 import subprocess
-import urlgrabber
-import turbogears
+import libravatar
+import hashlib
+import collections
+import pkg_resources
+import functools
+import transaction
 
-from kid import Element
-from yum import repoMDObject
-from yum.misc import checksum, decompress
-from os.path import isdir, join, dirname, basename, isfile
-from datetime import datetime, timedelta
-from decorator import decorator
+from os.path import join, dirname, basename, isfile
+from datetime import datetime
 from collections import defaultdict
-from turbogears import config, flash, redirect
+from contextlib import contextmanager
 
-from fedora.client import PackageDB
-from kitchen.text.converters import to_unicode, to_bytes
+from sqlalchemy import create_engine
+from pyramid.i18n import TranslationStringFactory
+from pyramid.settings import asbool
+from kitchen.text.converters import to_bytes
+
+from . import log, buildsys
+from .exceptions import RepodataException
+from .config import config
 
 try:
-    from fedora.tg.utils import url as csrf_url, tg_url, request_format
+    import rpm
 except ImportError:
-    from fedora.tg.tg1utils import url as csrf_url, tg_url, request_format
+    log.warning("Could not import 'rpm'")
 
-from bodhi.exceptions import (RPMNotFound, RepodataException,
-                              InvalidUpdateException)
-
-log = logging.getLogger(__name__)
+_ = TranslationStringFactory('bodhi')
 
 ## Display a given message as a heading
-header = lambda x: "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
+header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 pluralize = lambda val, name: val == 1 and name or "%ss" % name
 
-def sort_updates(updates):
+
+def get_rpm_header(nvr, tries=0):
+    """ Get the rpm header for a given build """
+
+    tries += 1
+    headers = [
+        'name', 'summary', 'version', 'release', 'url', 'description',
+        'changelogtime', 'changelogname', 'changelogtext',
+    ]
+    rpmID = nvr + '.src'
+    koji_session = buildsys.get_session()
+    try:
+        result = koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
+    except Exception as e:
+        msg = "Failed %i times to get rpm header data from koji for %s:  %s"
+        log.warning(msg % (tries, nvr, str(e)))
+        if tries < 3:
+            # Try again...
+            return get_rpm_header(nvr, tries=tries)
+        else:
+            # Give up for good and re-raise the failure...
+            raise
+
+    if result:
+        return result
+
+    raise ValueError("No rpm headers found in koji for %r" % nvr)
+
+
+def get_nvr(nvr):
+    """ Return the [ name, version, release ] a given name-ver-rel. """
+    x = nvr.split('-')
+    return ['-'.join(x[:-2]), x[-2], x[-1]]
+
+
+def mkmetadatadir(path):
+    """
+    Generate package metadata for a given directory; if it doesn't exist, then
+    create it.
+    """
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    subprocess.check_call(['createrepo_c',  '--xz', '--database', '--quiet', path])
+
+
+def get_age(date):
+    age = datetime.utcnow() - date
+    if age.days == 0:
+        if age.seconds < 60:
+            return "%d %s" % (age.seconds, pluralize(age.seconds, "second"))
+        minutes = int(age.seconds / 60)
+        if minutes >= 60:
+            hours = int(minutes / 60)
+            return "%d %s" % (hours, pluralize(hours, "hour"))
+        return "%d %s" % (minutes, pluralize(minutes, "minute"))
+    return "%d %s" % (age.days, pluralize(age.days, "day"))
+
+
+def get_age_in_days(date):
+    if date:
+        age = datetime.utcnow() - date
+        return age.days
+    else:
+        return 0
+
+
+def flash_log(msg):
+    """ Flash and log a given message """
+    # FIXME: request.session.flash()
+    #flash(msg)
+    log.debug(msg)
+
+
+def get_repo_tag(repo):
+    """ Pull the koji tag from the given mash repo """
+    mashconfig = join(dirname(config.get('mash_conf')),
+                      basename(repo) + '.mash')
+    if isfile(mashconfig):
+        mashconfig = file(mashconfig, 'r')
+        lines = mashconfig.readlines()
+        mashconfig.close()
+        return filter(lambda x: x.startswith('tag ='), lines)[0].split()[-1]
+    else:
+        log.error("Cannot find mash configuration for %s: %s" % (repo,
+                                                                 mashconfig))
+
+
+def build_evr(build):
+    if not build['epoch']:
+        build['epoch'] = 0
+    return (str(build['epoch']), build['version'], build['release'])
+
+
+def link(href, text):
+    return '<a href="%s">%s</a>' % (href, text)
+
+
+class memoized(object):
+    '''Decorator. Caches a function's return value each time it is called.  If
+    called later with the same arguments, the cached value is returned (not
+    reevaluated).
+
+    http://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+    '''
+    def __init__(self, func):
+        self.func = func
+        self.cache = {}
+
+    def __call__(self, *args):
+        if not isinstance(args, collections.Hashable):
+            # uncacheable. a list, for instance.
+            # better to not cache than blow up.
+            return self.func(*args)
+        if args in self.cache:
+            return self.cache[args]
+        else:
+            value = self.func(*args)
+            self.cache[args] = value
+            return value
+
+    def __repr__(self):
+        '''Return the function's docstring.'''
+        return self.func.__doc__
+
+    def __get__(self, obj, objtype):
+        '''Support instance methods.'''
+        return functools.partial(self.__call__, obj)
+
+
+def get_db_from_config(dev=False):
+    from .models import DBSession, Base
+    if dev:
+        db_url = 'sqlite:///:memory:'
+    else:
+        db_url = config['sqlalchemy.url']
+    engine = create_engine(db_url)
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
+    Base.metadata.create_all(engine)
+    return DBSession()
+
+
+@memoized
+def get_critpath_pkgs(collection='master'):
+    """Return a list of critical path packages for a given collection"""
+    critpath_pkgs = []
+    critpath_type = config.get('critpath.type')
+    if critpath_type == 'pkgdb':
+        from pkgdb2client import PkgDB
+        pkgdb = PkgDB(config.get('pkgdb_url'))
+        results = pkgdb.get_critpath_packages(branches=collection)
+        if collection in results['pkgs']:
+            critpath_pkgs = results['pkgs'][collection]
+    else:
+        critpath_pkgs = config.get('critpath_pkgs', '').split()
+    return critpath_pkgs
+
+
+class Singleton(object):
+
+    def __new__(cls, *args, **kw):
+        if not '_instance' in cls.__dict__:
+            cls._instance = object.__new__(cls)
+        return cls._instance
+
+
+def sanity_check_repodata(myurl):
+    """
+    Sanity check the repodata for a given repository.
+    """
+
+    import librepo
+    h = librepo.Handle()
+    h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+    h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
+
+    if myurl[-1] != '/':
+        myurl += '/'
+    if myurl.endswith('repodata/'):
+        myurl = myurl.replace('repodata/', '')
+
+    h.setopt(librepo.LRO_URLS, [myurl])
+    h.setopt(librepo.LRO_LOCAL, True)
+    h.setopt(librepo.LRO_CHECKSUM, True)
+    try:
+        h.perform()
+    except librepo.LibrepoException as e:
+        rc, msg, general_msg = e
+        raise RepodataException(msg)
+
+    updateinfo = os.path.join(myurl, 'updateinfo.xml.gz')
+    if os.path.exists(updateinfo):
+        ret = subprocess.call(['zgrep', '<id/>', updateinfo])
+        if not ret:
+            raise RepodataException('updateinfo.xml.gz contains empty ID tags')
+
+
+def age(context, date, nuke_ago=False):
+    humanized = arrow.get(date).humanize()
+    if nuke_ago:
+        return humanized.replace(' ago', '')
+    else:
+        return humanized
+
+hardcoded_avatars = {
+    'bodhi': 'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
+    # Taskotron may have a logo at some point.  Check this out:
+    # https://mashaleonova.wordpress.com/2015/08/18/a-logo-for-taskotron/
+    # Ask tflink before actually putting this in place though.  we need
+    # a nice small square version.  It'll look great!
+    #'taskotron': 'something-fancy.png',
+}
+
+
+def avatar(context, username, size):
+
+    # Handle some system users
+    # https://github.com/fedora-infra/bodhi/issues/308
+    if username in hardcoded_avatars:
+        return hardcoded_avatars[username].format(size=size)
+
+    # context is a mako context object
+    request = context['request']
+    https = request.registry.settings.get('prefer_ssl'),
+
+    @request.cache.cache_on_arguments()
+    def work(username, size):
+        openid = "http://%s.id.fedoraproject.org/" % username
+        if asbool(config.get('libravatar_enabled', True)):
+            if asbool(config.get('libravatar_dns', False)):
+                return libravatar.libravatar_url(
+                    openid=openid,
+                    https=https,
+                    size=size,
+                    default='retro',
+                )
+            else:
+                query = urllib.urlencode({'s': size, 'd': 'retro'})
+                hash = hashlib.sha256(openid).hexdigest()
+                template = "https://seccdn.libravatar.org/avatar/%s?%s"
+                return template % (hash, query)
+
+        return 'libravatar.org'
+
+    return work(username, size)
+
+
+def version(context=None):
+    return pkg_resources.get_distribution('bodhi').version
+
+
+def hostname(context=None):
+    return socket.gethostname()
+
+
+def markup(context, text):
+    return markdown.markdown(text, safe_mode="replace",
+                             html_replacement_text="--RAW HTML NOT ALLOWED--")
+
+
+def status2html(context, status):
+    status = unicode(status)
+    cls = {
+        'pending': 'primary',
+        'testing': 'warning',
+        'stable': 'success',
+        'unpushed': 'danger',
+        'obsolete': 'default',
+        'processing': 'info',
+    }[status]
+    return "<span class='label label-%s'>%s</span>" % (cls, status)
+
+def state2class(context, state):
+    state = unicode(state)
+    cls = {
+        'disabled': 'default active',
+        'pending': 'warning',
+        'current': 'success',
+        'archived': 'danger'
+    }
+    return cls[state] if state in cls.keys() else 'default'
+
+def type2color(context, t):
+    t = unicode(t)
+    cls = {
+        'bugfix': 'rgba(150,180,205,0.5)',
+        'security': 'rgba(205,150,180,0.5)',
+        'newpackage': 'rgba(150,205,180,0.5)',
+        'default': 'rgba(200,200,200,0.5)'
+    }
+    return cls[t] if t in cls.keys() else cls['default']
+
+def state2html(context, state):
+    state_class = state2class(context, state)
+    return "<span class='label label-%s'>%s</span>" % (state_class, state)
+
+def karma2class(context, karma, default='default'):
+    if karma and karma >= -2 and karma <= 2:
+        return {
+            -2: 'danger',
+            -1: 'danger',
+            0: 'info',
+            1: 'success',
+            2: 'success',
+        }.get(karma)
+    return default
+
+def karma2html(context, karma):
+
+    # Recurse if we are handle multiple karma values
+    if isinstance(karma, tuple):
+        return '</td><td>'.join([karma2html(context, item) for item in karma])
+
+    cls = karma2class(context, karma, None)
+
+    if not cls:
+        if karma < -2:
+            cls = 'danger'
+        else:
+            cls = 'success'
+
+    if karma > 0:
+        karma = "+%i" % karma
+    else:
+        karma = "%i" % karma
+
+    return "<span class='label label-%s'>%s</span>" % (cls, karma)
+
+
+def type2html(context, kind):
+    kind = unicode(kind)
+    cls = {
+        'security': 'danger',
+        'bugfix': 'warning',
+        'newpackage': 'primary',
+        'enhancement': 'success',
+    }.get(kind)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, kind)
+
+
+def severity2html(context, severity):
+    severity = unicode(severity)
+    cls = {
+        'urgent': 'danger',
+        'high': 'warning',
+        'medium': 'primary',
+        'low': 'success',
+    }.get(severity)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, severity)
+
+
+def suggestion2html(context, suggestion):
+    suggestion = unicode(suggestion)
+    cls = {
+        'reboot': 'danger',
+        'logout': 'warning',
+    }.get(suggestion)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, suggestion)
+
+
+def request2html(context, request):
+    request = unicode(request)
+    cls = {
+        'unpush': 'danger',
+        'obsolete': 'warning',
+        'testing': 'primary',
+        'stable': 'success',
+    }.get(request)
+
+    return "<span class='label label-%s'>%s</span>" % (cls, request)
+
+
+def update2html(context, update):
+    request = context.get('request')
+
+    if hasattr(update, 'title'):
+        title = update.title
+    else:
+        title = update['title']
+
+    if hasattr(update, 'alias'):
+        alias = update.alias
+    else:
+        alias = update['alias']
+
+    url = request.route_url('update', id=alias or title)
+    settings = request.registry.settings
+    max_length = int(settings.get('max_update_length_for_ui', 30))
+    if len(title) > max_length:
+        title = title[:max_length] + "..."
+    return link(url, title)
+
+
+def pages_list(context, page, pages):
+    margin = 4
+    num_pages = (2 * margin) + 1
+
+    if page <= margin + 1:
+        # Current `page` is close to the beginning of `pages`
+        min_page = 1
+        max_page = min(pages, num_pages)
+
+    elif (pages - page) >= margin:
+        min_page = max(page - margin, 1)
+        max_page = min(page + margin, pages)
+
+    else:
+        # Current `page` is close to the end of `pages`
+        max_page = min(pages, page + margin)
+        min_page = max(max_page - (num_pages - 1), 1)
+
+    return range(min_page, max_page + 1)
+
+
+def page_url(context, page):
+    request = context.get('request')
+    params = dict(request.params)
+    params['page'] = page
+    return request.path_url + "?" + urllib.urlencode(params)
+
+
+def bug_link(context, bug, short=False):
+    url = "https://bugzilla.redhat.com/show_bug.cgi?id=" + str(bug.bug_id)
+    display = "#%i" % bug.bug_id
+    link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
+    if not short:
+        if bug.title:
+            # We're good...
+            link = link + " " + to_bytes(bug.title)
+        else:
+            # Otherwise, the backend is async grabbing the title from rhbz, so
+            link = link + " <img class='spinner' src='static/img/spinner.gif'>"
+
+    return link
+
+
+def testcase_link(context, test, short=False):
+    settings = context['request'].registry
+    default = 'https://fedoraproject.org/wiki/'
+    url = settings.get('test_case_base_url', default) + test.name
+    display = test.name.replace('QA:Testcase ', '')
+    link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
+    if not short:
+        link = "Test Case " + link
+    return link
+
+
+def sorted_builds(builds):
+    return sorted(builds,
+                  cmp=lambda x, y: rpm.labelCompare(get_nvr(x), get_nvr(y)),
+                  reverse=True)
+
+
+def sorted_updates(updates):
     """
     Order our updates so that the highest version gets tagged last so that
     it appears as the 'latest' in koji.
@@ -82,499 +542,71 @@ def sort_updates(updates):
     return ordered_updates[::-1]
 
 
-def rpm_fileheader(pkgpath):
-    log.debug("Grabbing the rpm header of %s" % pkgpath)
-    is_oldrpm = hasattr(rpm, 'opendb')
+def cmd(cmd, cwd=None):
+    log.info('Running %r', cmd)
+    if isinstance(cmd, basestring):
+        cmd = cmd.split()
+    p = subprocess.Popen(cmd, cwd=cwd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    if out:
+        log.debug(out)
+    if err:
+        log.error(err)
+    if p.returncode != 0:
+        log.error('return code %s', p.returncode)
+    return out, err, p.returncode
+
+
+def tokenize(string):
+    """ Given something like "a b, c d" return ['a', 'b', 'c', 'd']. """
+
+    for substring in string.split(','):
+        substring = substring.strip()
+        if substring:
+            for token in substring.split():
+                token = token.strip()
+                if token:
+                    yield token
+
+
+def taskotron_results(settings, entity='results', **kwargs):
+    """ Given an update object, yield resultsdb results. """
+    url = settings['resultsdb_api_url'] + "/api/v1.0/" + entity
+    if kwargs:
+        url = url + "?" + urllib.urlencode(kwargs)
+    data = True
+
     try:
-        fd = os.open(pkgpath, 0)
-        if is_oldrpm:
-            h = rpm.headerFromPackage(fd)[0]
-        else:
-            ts = rpm.TransactionSet()
-            h = ts.hdrFromFdno(fd)
-            del ts
-    except (OSError, TypeError):
-        raise RPMNotFound
-    os.close(fd)
-    return h
+        while data:
+            log.debug("Grabbing %r" % url)
+            response = requests.get(url)
+            if response.status_code != 200:
+                raise IOError("status code was %r" % response.status_code)
+            json = response.json()
+            url, data = json['next'], json['data']
+            for datum in data:
+                # Skip ABORTED results
+                # https://github.com/fedora-infra/bodhi/issues/167
+                if entity == 'results' and datum.get('outcome') == 'ABORTED':
+                    continue
+                yield datum
+    except Exception:
+        log.exception("Problem talking to %r" % url)
 
-def excluded_arch(rpmheader, arch):
-    """
-    Determine if an RPM should be excluded from a given architecture, either
-    if it is explicitly marked as ExcludeArch, or if it is Exclusive to another
-    """
-    excluded = rpmheader[rpm.RPMTAG_EXCLUDEARCH]
-    exclusive = rpmheader[rpm.RPMTAG_EXCLUSIVEARCH]
-    return (excluded and arch in excluded) or \
-           (exclusive and arch not in exclusive)
 
-def sha1sum(file):
-    import sha
-    fd = open(file)
-    hash = sha.new(fd.read())
-    fd.close()
-    return hash.hexdigest()
-
-def get_nvr(nvr):
-    """ Return the [ name, version, release ] a given name-ver-rel. """
-    x = nvr.split('-')
-    return ['-'.join(x[:-2]), x[-2], x[-1]]
-
-def mkmetadatadir(dir):
-    """
-    Generate package metadata for a given directory; if it doesn't exist, then
-    create it.
-    """
-    log.debug("mkmetadatadir(%s)" % dir)
-    if not isdir(dir):
-        os.makedirs(dir)
-    cache = config.get('createrepo_cache_dir')
+@contextmanager
+def transactional_session_maker():
+    """Provide a transactional scope around a series of operations."""
+    from .models import DBSession
+    session = DBSession()
+    transaction.begin()
     try:
-        import createrepo
-        conf = createrepo.MetaDataConfig()
-        conf.cachedir = cache
-        conf.outputdir = dir
-        conf.directory = dir
-        conf.quiet = True
-        mdgen = createrepo.MetaDataGenerator(conf)
-        mdgen.doPkgMetadata()
-        mdgen.doRepoMetadata()
-        mdgen.doFinalMove()
-    except ImportError:
-        sys.path.append('/usr/share/createrepo')
-        import genpkgmetadata
-        genpkgmetadata.main(['--cachedir', str(cache), '-q', str(dir)])
-
-def synchronized(lock):
-    """ Synchronization decorator """
-    def wrap(f):
-        def new(*args, **kw):
-            lock.acquire()
-            try:
-                return f(*args, **kw)
-            finally:
-                lock.release()
-        return new
-    return wrap
-
-def authorized_user(update, identity):
-    return 'releng' in identity.current.groups or \
-           'cvsadmin' in identity.current.groups or \
-           'security_respons' in identity.current.groups or \
-           identity.current.user_name == update.submitter or \
-           identity.current.user_name in update.get_maintainers()
-
-def make_update_link(obj):
-    """ Return a link Element for a given PackageUpdate or PackageBuild """
-    update = None
-    if hasattr(obj, 'updates'):    # Package or PackageBuild
-        update = obj.updates[0]
-    elif hasattr(obj, 'get_url'):  # PackageUpdate
-        update = obj
-    elif hasattr(obj, 'update'):   # Comment
-        update = obj.update
-    else:
-        log.error("Unknown parameter make_update_link(%s)" % obj)
-        return None
-    link = Element('a', href=url(update.get_url()))
-    link.text = update.get_title(', ')
-    return link
-
-def make_type_icon(update):
-    return Element('img', src=url('/static/images/%s.png' % update.type),
-                   title=update.type)
-
-def make_request_icon(update):
-    return Element('img', src=url('/static/images/%s-large.png' %
-                   update.request), title=str(update.request))
-
-def make_karma_icon(update):
-    if update.karma < 0:
-        karma = -1
-    elif update.karma > 0:
-        karma = 1
-    else:
-        karma = 0
-    return Element('img', src=url('/static/images/karma%d.png' % karma))
-
-def make_link(text, href):
-    link = Element('a', href=url(href))
-    link.text = text
-    return link
-
-def make_release_link(update):
-    return make_link(update.release.long_name, '/' + update.release.name)
-
-def make_submitter_link(update):
-    return make_link(update.submitter, '/user/' + update.submitter)
-
-
-def get_age(date):
-    age = datetime.utcnow() - date
-    if age.days == 0:
-        if age.seconds < 60:
-            return "%d %s" % (age.seconds, pluralize(age.seconds, "second"))
-        minutes = int(age.seconds / 60)
-        if minutes >= 60:
-            hours = int(minutes/60)
-            return "%d %s" % (hours, pluralize(hours, "hour"))
-        return "%d %s" % (minutes, pluralize(minutes, "minute"))
-    return "%d %s" % (age.days, pluralize(age.days, "day"))
-
-def get_age_in_days(date):
-    if date:
-        age = datetime.utcnow() - date
-        return age.days
-    else:
-        return 0
-
-def flash_log(msg):
-    """ Flash and log a given message """
-    flash(msg)
-    log.info(msg)
-
-def get_release_names():
-    from bodhi.tools.init import releases
-    return [release['long_name'] for release in releases]
-
-def get_release_tuples():
-    from bodhi.tools.init import releases
-    names = []
-    for release in releases:
-        names.append(release['name'])
-        names.append(release['long_name'])
-    return names
-
-def get_repo_tag(repo):
-    """ Pull the koji tag from the given mash repo """
-    mashconfig = join(dirname(config.get('mash_conf')), basename(repo)+'.mash')
-    if isfile(mashconfig):
-        mashconfig = file(mashconfig, 'r')
-        lines = mashconfig.readlines()
-        mashconfig.close()
-        return filter(lambda x: x.startswith('tag ='), lines)[0].split()[-1]
-    else:
-        log.error("Cannot find mash configuration for %s: %s" % (repo,
-                                                                 mashconfig))
-
-
-def get_pkg_pushers(pkg, branch):
-    watchers = []
-    committers = []
-    watchergroups = []
-    committergroups = []
-
-    if config.get('acl_system') == 'dummy':
-        return ((['guest', 'admin'], ['guest', 'admin']),
-                (['guest', 'admin'], ['guest', 'admin']))
-
-    from pkgdb2client import PkgDB
-    pkgdb = PkgDB(config.get('pkgdb_url'))
-    acls = pkgdb.get_package(pkg, branches=branch)
-
-    for package in acls['packages']:
-        for acl in package.get('acls', []):
-            if acl['status'] == 'Approved':
-                if acl['acl'] == 'watchcommits':
-                    name = acl['fas_name']
-                    if name.startswith('group::'):
-                        watchergroups.append(name.split('::')[1])
-                    else:
-                        watchers.append(name)
-                elif acl['acl'] == 'commit':
-                    name = acl['fas_name']
-                    if name.startswith('group::'):
-                        committergroups.append(name.split('::')[1])
-                    else:
-                        committers.append(name)
-
-    return (committers, watchers), (committergroups, watchergroups)
-
-
-def cache_with_expire(expire=86400):
-    # expire is the number of seconds to cache for.
-    # Default is 86400s == 24 hours
-    _cache = {}
-
-    def cached(func, *args, **kwargs):
-        # Setup the args
-        if kwargs:
-            key = args, frozenset(kwargs.iteritems())
-        else:
-            key = args
-
-        # Retrieve from cache
-        entry = None
-        if key in _cache:
-            entry = _cache[key]
-            if (datetime.utcnow() - entry[0]) < timedelta(0, expire, 0):
-                # Unexpired cache
-                result = entry[1]
-            else:
-                # Expired cache
-                del _cache[key]
-                entry = None
-
-        # Retrieve fresh entry
-        if entry is None:
-            result = func(*args, **kwargs)
-            _cache[key] = (datetime.utcnow(), result)
-        return result
-    return decorator(cached)
-
-@cache_with_expire()
-def get_critpath_pkgs(collection='master'):
-    critpath_pkgs = []
-    critpath_type = config.get('critpath.type', None)
-    if critpath_type == 'pkgdb':
-        from pkgdb2client import PkgDB
-        pkgdb = PkgDB(config.get('pkgdb_url'))
-        results = pkgdb.get_critpath_packages(branches=collection)
-        if collection in results['pkgs']:
-            critpath_pkgs = results['pkgs'][collection]
-    else:
-        # HACK: Avoid the current critpath policy for EPEL
-        if not collection.startswith('EL'):
-            # Note: ''.split() == []
-            critpath_pkgs = config.get('critpath', '').split()
-    return critpath_pkgs
-
-def build_evr(build):
-    if not build['epoch']:
-        build['epoch'] = 0
-    return (str(build['epoch']), build['version'], build['release'])
-
-def link(text, href):
-    return '<a href="%s">%s</a>' % (url(href), text)
-
-def load_config(configfile=None):
-    """ Load bodhi's configuration """
-    setupdir = os.path.dirname(os.path.dirname(__file__))
-    curdir = os.getcwd()
-    if configfile and os.path.exists(configfile):
-        pass
-    elif os.path.exists(os.path.join(setupdir, 'setup.py')) \
-            and os.path.exists(os.path.join(setupdir, 'dev.cfg')):
-        configfile = os.path.join(setupdir, 'dev.cfg')
-    elif os.path.exists(os.path.join(curdir, 'bodhi.cfg')):
-        configfile = os.path.join(curdir, 'bodhi.cfg')
-    elif os.path.exists('/etc/bodhi.cfg'):
-        configfile = '/etc/bodhi.cfg'
-    elif os.path.exists('/etc/bodhi/bodhi.cfg'):
-        configfile = '/etc/bodhi/bodhi.cfg'
-    else:
-        log.error("Unable to find configuration to load!")
-        return
-    log.debug("Loading configuration: %s" % configfile)
-    turbogears.update_config(configfile=configfile, modulename="bodhi.config")
-
-class Singleton(object):
-
-    def __new__(cls, *args, **kw):
-        if not '_instance' in cls.__dict__:
-            cls._instance = object.__new__(cls)
-        return cls._instance
-
-
-class ProgressBar(object):
-    """ Creates a text-based progress bar """
-
-    def __init__(self, minValue=0, maxValue=100, totalWidth=80):
-        self.progBar = "[]"   # This holds the progress bar string
-        self.min = minValue
-        self.max = maxValue
-        self.span = maxValue - minValue
-        self.width = totalWidth
-        self.amount = 0       # When amount == max, we are 100% done
-        self.updateAmount(0)  # Build progress bar string
-
-    def updateAmount(self, newAmount=0):
-        if newAmount < self.min: newAmount = self.min
-        if newAmount > self.max: newAmount = self.max
-        self.amount = newAmount
-
-        # Figure out the new percent done, round to an integer
-        diffFromMin = float(self.amount - self.min)
-        percentDone = (diffFromMin / float(self.span)) * 100.0
-        percentDone = int(round(percentDone))
-
-        # Figure out how many hash bars the percentage should be
-        allFull = self.width - 2
-        numHashes = (percentDone / 100.0) * allFull
-        numHashes = int(round(numHashes))
-
-        # Build a progress bar with an arrow of equal signs; special cases for
-        # empty and full
-        if numHashes == 0:
-            self.progBar = "[>%s]" % (' '*(allFull-1))
-        elif numHashes == allFull:
-            self.progBar = "[%s]" % ('='*allFull)
-        else:
-            self.progBar = "[%s>%s]" % ('='*(numHashes-1),
-                                        ' '*(allFull-numHashes))
-
-        # figure out where to put the percentage, roughly centered
-        percentPlace = (len(self.progBar) / 2) - len(str(percentDone))
-        percentString = str(percentDone) + "%"
-
-        # slice the percentage into the bar
-        self.progBar = ''.join([self.progBar[0:percentPlace], percentString,
-                                self.progBar[percentPlace+len(percentString):]])
-
-    def __str__(self):
-        return str(self.progBar)
-
-    def __call__(self, value=None):
-        print '\r',
-        if not value:
-            value = self.amount + 1
-        self.updateAmount(value)
-        sys.stdout.write(str(self))
-        sys.stdout.flush()
-
-
-def sanity_check_repodata(myurl):
-    """
-    Sanity check the repodata for a given repository.
-    Initial implementation by Seth Vidal.
-    """
-    myurl = str(myurl)
-    tempdir = tempfile.mkdtemp()
-    errorstrings = []
-    if myurl[-1] != '/':
-        myurl += '/'
-    baseurl = myurl
-    if not myurl.endswith('repodata/'):
-        myurl += 'repodata/'
-    else:
-        baseurl = baseurl.replace('repodata/', '/')
-
-    rf = myurl + 'repomd.xml'
-    try:
-        rm = urlgrabber.urlopen(rf)
-        repomd = repoMDObject.RepoMD('foo', rm)
-        for t in repomd.fileTypes():
-            data = repomd.getData(t)
-            base, href = data.location
-            if base:
-                loc = base + '/' + href
-            else:
-                loc = baseurl + href
-
-            destfn = tempdir + '/' + os.path.basename(href)
-            dest = urlgrabber.urlgrab(loc, destfn)
-            ctype, known_csum = data.checksum
-            csum = checksum(ctype, dest)
-            if csum != known_csum:
-                errorstrings.append("checksum: %s" % t)
-
-            if href.find('xml') != -1:
-                decompressed = decompress(dest)
-                retcode = subprocess.call(['/usr/bin/xmllint', '--noout', decompressed])
-                if retcode != 0:
-                    errorstrings.append("failed xml read: %s" % t)
-
-    except urlgrabber.grabber.URLGrabError, e:
-        errorstrings.append('Error accessing repository %s' % e)
-
-    if errorstrings:
-        raise RepodataException(','.join(errorstrings))
-
-    updateinfo = os.path.join(myurl, 'updateinfo.xml.gz')
-    if os.path.exists(updateinfo):
-        ret = subprocess.call(['zgrep', '<id/>', updateinfo])
-        if not ret:
-            raise RepodataException('updateinfo.xml.gz contains empty ID tags')
-
-
-@decorator
-def json_redirect(f, *args, **kw):
-    try:
-        return f(*args, **kw)
-    except InvalidUpdateException, e:
-        if request_format() == 'json':
-            return dict()
-        else:
-            raise redirect('/new', **e.args[0])
-
-
-# TODO: move to kitchen
-def sorted_builds(builds):
-    return sorted(builds,
-            cmp=lambda x, y: rpm.labelCompare(get_nvr(x), get_nvr(y)),
-            reverse=True)
-
-
-"""
-Misc iPython hacks that I've had to write at one point or another
-"""
-
-def reset_date_pushed(status='testing'):
-    """
-    Reset the date_pushed on all testing updates with the most recent bodhi
-    comment that relates to it's current status.
-
-    This needed to happen when a few batches of updates were pushed without
-    a date_pushed field, so we had to recreate it based on bodhi's comments.
-    """
-    from bodhi.model import PackageUpdate
-    from sqlobject import AND
-    for update in PackageUpdate.select(AND(PackageUpdate.q.date_pushed==None,
-                                           PackageUpdate.q.status==status)):
-        date = None
-        for comment in update.comments:
-            if comment.author == 'bodhi':
-                if comment.text == 'This update has been pushed to %s' % update.status:
-                    if date and comment.timestamp < date:
-                        print "Skipping older push %s for %s" % (comment.timestamp, update.title)
-                    else:
-                        date = comment.timestamp
-                        print "Setting %s to %s" % (update.title, comment.timestamp)
-                        update.date_pushed = date
-
-
-def testing_statistics():
-    """ Calculate and display various testing statistics """
-    from datetime import timedelta
-    from bodhi.model import PackageUpdate
-
-    deltas = []
-    occurrences = {}
-    accumulative = timedelta()
-
-    for update in PackageUpdate.select():
-        for comment in update.comments:
-            if comment.text == 'This update has been pushed to testing':
-                for othercomment in update.comments:
-                    if othercomment.text == 'This update has been pushed to stable':
-                        delta = othercomment.timestamp - comment.timestamp
-                        deltas.append(delta)
-                        occurrences[delta.days] = occurrences.setdefault(delta.days, 0) + 1
-                        accumulative += deltas[-1]
-                        break
-                break
-
-    deltas.sort()
-    all = PackageUpdate.select().count()
-    percentage = int(float(len(deltas)) / float(all) * 100)
-    mode = sorted(occurrences.items(), cmp=lambda x, y: cmp(x[1], y[1]))[-1][0]
-
-    print "%d out of %d updates went through testing (%d%%)" % (len(deltas), all, percentage)
-    print "mean = %d days" % (accumulative.days / len(deltas))
-    print "median = %d days" % deltas[len(deltas) / 2].days
-    print "mode = %d days" % mode
-
-
-def url(*args, **kw):
-    if config.get('identity.provider') in ('sqlobjectcsrf', 'jsonfas2'):
-        return csrf_url(*args, **kw)
-    else:
-        return tg_url(*args, **kw)
-
-
-def isint(num):
-    try:
-        int(num)
-        return True
-    except ValueError:
-        return False
+        yield session
+        transaction.commit()
+    except:
+        transaction.abort()
+        raise
+    finally:
+        session.close()

@@ -1,0 +1,219 @@
+p, .lead {
+    margin-bottom: 0px;
+}
+
+a {
+    outline: 0 !important;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.centered {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.messenger-message-inner a {
+    color: white;
+    text-decoration: none;
+}
+
+.row {
+    margin-right: 0px;
+}
+
+#ghost-cabbage {
+    position: fixed;
+    top: 40px;
+    right: 55px;
+
+    zoom: 1;
+    filter: alpha(opacity=07);
+    opacity: 0.07;
+    z-index: -1;
+}
+
+#ghost-cabbage > img {
+    width: 256px;
+    height: 256px;
+}
+
+ul {
+    list-style: none;
+}
+
+.table colgroup.strip {
+    width: 10px !important;
+}
+
+hr {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.nowrap {
+    white-space: nowrap;
+}
+.anchor {
+    color: black;
+}
+.linkable li .anchor {
+    display: none;
+}
+.linkable li:hover .anchor {
+    display: inline;
+}
+
+/* Crunch nav elements together to make room for search */
+.nav > li > a {
+    padding: 15px 6px 15px 6px !important;
+}
+
+/* Make the navbar collapse take effect at larger sizes than it normally would
+ * so we don't crowd out the search widget...
+ */
+@media (max-width: 991px) {
+    .navbar-header {
+        float: none;
+    }
+    .navbar-toggle {
+        display: block;
+    }
+    .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .navbar-collapse.collapse {
+        display: none!important;
+    }
+    .navbar-nav {
+        float: none!important;
+        margin: 7.5px -15px;
+    }
+    .navbar-nav>li {
+        float: none;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .navbar-text {
+        float: none;
+        margin: 15px 0;
+    }
+    .navbar-collapse.collapse.in {
+        display: block!important;
+    }
+    .collapsing {
+        overflow: hidden!important;
+    }
+}
+
+/* Search-y stuff */
+form#search, form#search input, .twitter-typeahead {
+    width: 250px;
+}
+
+.tt-hint {
+  color: #999
+}
+
+.tt-dropdown-menu {
+  width: 100%;
+  margin-top: 0px;
+  padding: 8px;
+
+  font-size: 90%;
+
+  /* Make it scrollable */
+  max-height: 550px;
+  overflow-y: auto;
+
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  -webkit-border-radius: 8px;
+     -moz-border-radius: 8px;
+          border-radius: 8px;
+  -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+     -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+          box-shadow: 0 5px 10px rgba(0,0,0,.2);
+}
+
+.tt-suggestion {
+  padding: 3px 10px;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.tt-suggestion.tt-cursor {
+  color: #fff;
+  background-color: #0097cf;
+
+}
+
+.tt-suggestion p {
+  margin: 0;
+}
+
+ul.updateslist {
+    list-style: none;
+}
+
+ul.updateslist li {
+    width: 100%;
+    border-top: 1px solid #ccc;
+    padding: 6px 30px;
+    position: relative
+}
+
+.onlyjs {
+    display: none;
+    visibility: hidden;
+}
+
+.nopadding {
+    padding: 0;
+}
+
+.nomargin {
+    margin: 0;
+}
+
+.karma-fest {
+    clear: both;
+    font-size: 0.9em;
+    margin-left: 27px; /* avatar + 2px pad */
+}
+
+#preview {
+    padding: 10px;
+}
+
+.markdown ul {
+    list-style-type: circle;
+}
+.markdown code {
+    white-space: normal !important;
+}
+.markdown p {
+    word-wrap:      break-word; /* old-school */
+    overflow-wrap:  break-word; /* new-school */
+}
+
+#markdown-help strong {
+    text-transform: uppercase;
+}
+#markdown-help hr {
+    margin-top: 12px;
+    padding-bottom: 5px;
+}
+
+.error-page-panel {
+    margin-top: 100px;
+    padding: 20px 40px 40px 40px;
+    border: 1px solid;
+}

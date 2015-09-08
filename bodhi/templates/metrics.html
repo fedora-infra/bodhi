@@ -1,0 +1,74 @@
+<%inherit file="master.html"/>
+
+<div class="row">
+  <div class="col-md-8 col-md-offset-2">
+    <h2 class="centered">Bodhi Metrics</h2>
+    <h3>Fedora</h3>
+    <div id="placeholder" class="centered" style="height: 350px; width: 650px;"></div>
+
+    <h3>EPEL</h3>
+    <div id="placeholder_epel" class="centered" style="height: 350px; width: 650px;"></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  $(document).ready(function(){
+      var stack = 0,
+          bars = true,
+          lines = false,
+          steps = false;
+
+      $.plot("#placeholder", ${data | n}, {
+          xaxis: {
+              ticks: ${ticks | n},
+              mode: "categories",
+              tickLength: 0
+          },
+          series: {
+              stack: stack,
+              lines: {
+                  show: lines,
+                  fill: true,
+                  steps: steps
+              },
+              bars: {
+                  show: bars,
+                  barWidth: 0.6,
+                  align: "center"
+              }
+          },
+          legend: {
+              position: 'nw'
+          }
+      });
+
+      var stack = 0,
+          bars = true,
+          lines = false,
+          steps = false;
+
+      $.plot("#placeholder_epel", ${eldata | n}, {
+          xaxis: {
+              ticks: ${elticks | n},
+              mode: "categories",
+              tickLength: 0
+          },
+          series: {
+              stack: stack,
+              lines: {
+                  show: lines,
+                  fill: true,
+                  steps: steps
+              },
+              bars: {
+                  show: bars,
+                  barWidth: 0.6,
+                  align: "center"
+              }
+          },
+          legend: {
+              position: 'nw'
+          }
+      });
+  });
+</script>

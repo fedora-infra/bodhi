@@ -1,0 +1,33 @@
+#datagrepper-widget {
+    margin-top: 20px;
+}
+
+#datagrepper-widget img {
+    height: 24px;
+    width: 24px;
+}
+
+#datagrepper-widget .message-card:before {
+    border-top: 1px solid #CCCCCC;
+    color: #fff;
+    content: ".";
+    display: block;
+    margin-top: 10px;
+    clear: both;
+}
+
+#datagrepper-widget .datetime {
+    font-style: italic;
+    font-size: 75%;
+    float: right;
+    color: #777;
+}
+
+#datagrepper-widget p {
+    display: inline;
+    margin-left: 10px;
+}
+
+#newsfeed {
+    margin-bottom: 15px;
+}

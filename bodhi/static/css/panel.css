@@ -1,0 +1,36 @@
+.panel-heading {
+    color: #666;
+    font-weight: bold;
+}
+
+.sidepanel, .formpanel {
+    margin-top: 10px;
+}
+
+.sidepanel table {
+    margin-bottom: 0;
+}
+
+.sidepanel .panel-body, .formpanel .panel-body {
+    padding: 0;
+}
+
+.formpanel .panel-body .form-group {
+    margin-bottom: 0;
+}
+
+.formpanel .panel-body input, .formpanel .panel-body textarea {
+    border: none;
+    border-radius: 0;
+}
+.formpanel .panel-body .input-group input {
+    /* Override the right-side of inputs when coupled with buttons. */
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-color: rgb(85, 85, 85);
+}
+
+.formpanel .panel-body .twitter-typeahead {
+    padding: 0;
+    margin: 0;
+}

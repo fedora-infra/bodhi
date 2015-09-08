@@ -1,0 +1,22 @@
+<%!
+def inherit(context):
+  if context.get('chrome'):
+    return 'master.html'
+  return None
+%>
+<%inherit file="${inherit(context)}"/>
+
+<%namespace name="tables" file="tables.html"/>
+
+% if chrome:
+<div class="row">
+  <div class="col-md-12">
+    <h3>Updates <small>page #${page} of ${pages} pages</small></h3>
+    ${self.pager.render(page, pages)}
+% endif
+    ${tables.updates(updates, display_user, display_request)}
+% if chrome:
+    ${self.pager.render(page, pages)}
+  </div>
+</div>
+% endif

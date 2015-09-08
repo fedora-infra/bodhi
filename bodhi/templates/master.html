@@ -1,161 +1,231 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:py="http://genshi.edgewall.org/"
-              xmlns:xi="http://www.w3.org/2001/XInclude">
+<%namespace name="util" module="bodhi.util" inheritable="True"/>
+<%namespace name="pager" file="pager.html" inheritable="True" />
+<%namespace name="tables" file="tables.html" inheritable="True" />
+<%namespace name="fragments" file="fragments.html" inheritable="True" />
 
-<head py:match="head" py:attrs="select('@*')">
-    <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
-    <meta name="robots" content="noindex,nofollow" />
-    <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="${tg.url('/static/images/favicon.ico')}" /> 
-    <link rel="shortcut icon" type="image/x-icon" href="${tg.url('/static/images/favicon.ico')}" /> 
-    <title py:replace="''">Your title goes here</title>
-    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.js')}"></script>
-    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.corner.js')}"></script>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="management of Fedora Project updates" />
+    <meta name="author" content="Luke Macken" />
+    <meta name="author" content="Ralph Bean" />
 
-    <meta py:replace="select('*|text()')"/>
+    <!-- Only allow websockets connections to fedoraproject.org. -->
+    <meta http-equiv="Content-Security-Policy" content="connect-src ${request.registry.settings['cors_connect_src']}">
 
-    <style type="text/css" media="screen">
-        @import "${tg.url('/static/css/layout.css')}";
-    </style>
-</head>
+    <link rel="shortcut icon" href="${request.static_url('bodhi:static/ico/favicon.ico')}">
 
-<body py:match="body" py:attrs="select('@*')">
+    <base href="${request.registry.settings['base_address']}"/>
 
-<?python
-from bodhi import version, hostname
-from bodhi.model import Release, PackageUpdate, Releases
-from bodhi.search import search_form
-from sqlobject.sqlbuilder import AND
-from turbogears import config
-?>
+    <title>Fedora Updates System</title>
 
-<!-- Make any form submission change the bodhi logo into a spinner -->
-<script type="text/javascript">
-$(document).ready(function() {
-    $("form").submit( function() {
-        $("div[@id=bodhi-logo]").hide();
-        $("div[@id=wait]").show();
-    } );
-} );
-</script>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('div.flash').corner();
-        $('div.flash').show("slow");
-    });
-</script>
+    <link href="${request.static_url('bodhi:static/bootstrap/css/bootstrap.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/text.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/navbar.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/footer.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/site.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/datagrepper-feed.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/css/panel.css') }" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:static/js/jquery-1.10.2.min.js')}"></script>
+    <script src="${request.static_url('bodhi:static/js/Chart-0.2.0.min.js')}"></script>
+  </head>
 
-    <!-- header BEGIN -->
-    <div id="fedora-header">
-        <div id="fedora-header-logo">
-            <a href="${tg.url('/')}"><img src="${tg.url('/static/images/header-fedora_logo.png')}" /></a>
-            <span py:if="config.get('deployment_type', 'dev')=='dev'">
-                <b>DEVELOPMENT INSTANCE</b>
-            </span>
-            <span py:if="config.get('deployment_type', 'dev')=='stg'">
-                <b>STAGING INSTANCE</b>
-            </span>
-        </div>
+  <body>
+    <div id="wrap">
+      <!-- Static navbar -->
+      <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="${request.route_url('home')}">
+              Fedora Update System
+            </a>
+          </div>
 
-        <div id="fedora-header-items">
-            <table><tr><td> ${ET(search_form.display())} </td><td>
-                <div id="bodhi-logo">
-                    <a href="${tg.url('/')}"><img src="${tg.url('/static/images/bodhi-icon-48.png')}" /></a>
-                </div>
-                <div id="wait" style="display: none">
-                    <img src="${tg.url('/static/images/wait.gif')}" height="48" width="48"/>
-                </div>
-            </td></tr></table>
-        </div>
-    </div>
+          <div class="navbar-collapse collapse">
+            <form id="search" role="search" class="nav navbar-form navbar-left">
+              <div id="bloodhound" class="form-group">
+                <input class="typeahead form-control" name="term" type="text" placeholder="Search...">
+              </div>
+            </form>
 
-    <div id="fedora-nav"></div>
-    <!-- header END -->
+            <div class="clearfix hidden-md hidden-lg"></div>
 
-   <!-- leftside BEGIN -->
-    <div id="fedora-side-left">
-        <div id="fedora-side-nav-label">Site Navigation:</div>
-            <div py:if="not tg.identity.anonymous and 'releng' in tg.identity.groups">
-                <ul id="fedora-side-nav">
-                    <li><a id="administration" href="#">Administration</a></li>
-                    <div id="adminlist">
-                        <ul>
-                            <li><a href="${tg.url('/admin/push')}">Requests</a></li>
-                            <li><a href="${tg.url('/admin/masher')}">Masher</a></li>
-                        </ul>
-                    </div>
+            <ul class="nav navbar-nav navbar-right">
+              % if request.user:
+              % if request.matched_route and request.matched_route.name in ('new_update', 'new_override', 'new_stack'):
+              <li class="dropdown active">
+              % else:
+              <li class="dropdown">
+              % endif
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="glyphicon glyphicon-plus"></span>
+                  Create
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="${request.route_url('new_update')}">
+                      New Update
+                  </a></li>
+                  <li><a href="${request.route_url('new_override')}">
+                      New Override
+                  </a></li>
+                  % if request.registry.settings.get('stacks_enabled') == 'True':
+                  <li><a href="${request.route_url('new_stack')}">
+                      New Stack
+                  </a></li>
+                  % endif
                 </ul>
-            </div>
-            <div py:if="not tg.identity.anonymous and 'security_respons' in tg.identity.groups">
-                <ul id="fedora-side-nav">
-                    <li><a href="${tg.url('/security')}">Security Queue</a></li>
+              </li>
+              % endif
+
+
+              % if request.matched_route and request.matched_route.name in ('metrics', 'releases', 'release'):
+              <li class="dropdown active">
+              % else:
+              <li class="dropdown">
+              % endif
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="glyphicon glyphicon-tags"></span>
+                  Releases
+                </a>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="${request.route_url('metrics')}">
+                      Overall metrics
+                    </a>
+                  </li>
+                  % for state in request.releases:
+                  <li role="separator" class="divider"></li>
+                  % for r in request.releases[state]:
+                  <li>
+                    <a href="${request.route_url('releases')}${r['name']}">
+                      ${r['long_name']}
+                    </a>
+                  </li>
+                  % endfor
+                  % endfor
                 </ul>
-            </div>
-            <ul id="fedora-side-nav">
-                <li><a href="${tg.url('/')}">${tg.identity.anonymous and ' ' or "%s's " % tg.identity.user_name}Home</a></li>
-                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/mine')}">My Updates (${PackageUpdate.select(PackageUpdate.q.submitter == tg.identity.user_name).count()})</a></li>
-                <li py:if="not tg.identity.anonymous"><a href="${tg.url('/new/')}">New Update</a></li>
-                <li py:for="release in Releases().data">
-                  <a id="${release['name']}" href="${tg.url('/%s' % release['name'])}">${release['long_name']}</a>
-                  <div id="${release['name']}_releases">
-                    <ul>
-                      <li class="release">
-                        <a href="${tg.url('/metrics?release=%s' % release['name'])}" class="link">Metrics</a><a href="${tg.url('/metrics?release=%s' % release['name'])}" class="rsslink"><img src="${tg.url('/static/images/metrics-small.png')}"/></a>
-                      </li>
-                      <li py:for="status in ('pending', 'testing', 'stable')" class="release">
-                        <a href="${tg.url('/%s/%s' % (release['name'], status != 'stable' and status or ''))}" class="link">${status.title()} (${release['num_' + status]})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;status=%s' % (release['name'], status))}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
-                      </li>
-                      <li class="release">
-                        <a href="${tg.url('/%s/security' % release['name'])}" class="link">Security (${release['num_security']})</a> <a href="${tg.url('/rss/rss2.0?release=%s&amp;type=security' % release['name'])}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
-                      </li>
-                    </ul>
-                  </div>
-                </li>
-                <li class="release"><a href="${tg.url('/comments')}" class="link">Comments</a><a href="${tg.url('/rss/rss2.0?comments=True')}" class="rsslink"><img src="${tg.url('/static/images/rss.png')}" /></a>
-                </li>
-                <li py:if="tg.identity.anonymous and not tg.identity.only_token">
-                  <a href="${tg.url('/login')}">Login</a>
-                </li>
-                <li py:if="tg.identity.anonymous and tg.identity.only_token">
-                <a href="${tg.url(tg.request.path_info)}">CSRF protected<br />
-                  Verify Login</a>
-                </li>
-                <li py:if="not tg.identity.anonymous or tg.identity.only_token">
-                  <a href="${tg.url('/logout')}">Logout</a>
-                </li>
+              </li>
+
+              % if request.user:
+              % if request.matched_route and request.matched_route.name == 'user' and request.user and user and request.user.name == user['name']:
+              <li class="dropdown active">
+              % else:
+              <li class="dropdown">
+              % endif
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="glyphicon glyphicon-user"></span>
+                  Profile
+                </a>
+                <ul class="dropdown-menu">
+
+                  <li>
+                    <a href="${request.route_url('user', name=request.user.name)}">
+                      Your Profile
+                    </a>
+                  </li>
+                  <li>
+                    <a href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
+                      Manage Alerts
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              % endif
+
+
+              <li>
+                % if request.user:
+                <a href="${request.route_url('logout')}">
+                  <span class="glyphicon glyphicon-log-out"></span>
+                  Logout</a>
+                % elif request.matched_route:
+                <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
+                  <span class="glyphicon glyphicon-log-in"></span>
+                  Login</a>
+                % else:
+                <a href="${request.route_url('login')}">
+                  <span class="glyphicon glyphicon-log-in"></span>
+                  Login</a>
+                % endif
+              </li>
             </ul>
-        </div>
-        <!-- leftside END -->
+          </div>
+        </div><!--/.nav-collapse -->
+      </div>
 
-        <!-- content BEGIN -->
-        <div id="fedora-middle-two">
-            <div class="fedora-corner-tr"></div> 
-            <div class="fedora-corner-tl"></div> 
+      <div class="container">
+        ${self.body()}
+      </div>
 
-            <div id="fedora-content">
+      <div id="ghost-cabbage">
+        <img src="${request.static_url('bodhi:static/img/logo-large.png')}"/>
+      </div>
+    </div> <!-- /#wrap -->
 
-            <div id="page-main">
-
-                <center>
-                    <div style="display: none;" id="flash" py:if="tg_flash" class="flash" py:content="tg_flash"></div>
-                </center>
-		<div py:replace="select('*|text()')" />
-            </div>
-        </div>
-        <div class="fedora-corner-br"></div>
-        <div class="fedora-corner-bl"></div>
+    <div id="footer">
+      <div class="container">
+        <p class="text-muted text-center"> Running
+          <code>bodhi-${util.version()}</code> on
+          <code>${util.hostname()}</code>.
+        <a href="https://github.com/fedora-infra/bodhi">
+        bodhi<span class="glyphicon glyphicon-link"></span></a> is Free Software.
+        Please <a href="https://github.com/fedora-infra/bodhi/issues">
+        file issues<span class="glyphicon glyphicon-link"></span></a>
+        if you have any problems.  Copyright &copy; 2007-2015 Red Hat, Inc. and
+        <a href="https://github.com/fedora-infra/bodhi/graphs/contributors">
+        others<span class="glyphicon glyphicon-link"></span></a>.
+        </p>
+      </div>
     </div>
-    <!-- content END -->
 
-    <!-- footer BEGIN -->
-    <div id="fedora-footer">
-        Bodhi Version: ${version} -- Server: ${hostname}<br/>
-        Copyright &copy; 2007-2008 Red Hat, Inc. and others.  All Rights Reserved.<br/>
-        Licensed under the GNU Public License v2 or later.<br />
-        The Fedora Project is maintained and driven by the community and sponsored by Red Hat.<br/>This is a community maintained site.  Red Hat is not responsible for content.<br/>
-    [ <a href="http://fedoraproject.org/wiki/Legal">Legal</a>, <a href="http://fedoraproject.org/wiki/Legal/TrademarkGuidelines">Trademark Guidelines</a> ]
-    </div>
-    <!-- footer END -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="${request.static_url('bodhi:static/jquery.flot.js')}"></script>
+    <script src="${request.static_url('bodhi:static/jquery.flot.stack.js')}"></script>
+    <script src="${request.static_url('bodhi:static/bootstrap/js/bootstrap.min.js')}"></script>
+    <script src="${request.static_url('bodhi:static/moment/moment.min.js')}"></script>
+    <script src="${request.static_url('bodhi:static/js/cabbage.js')}"></script>
+    <script src="${request.static_url('bodhi:static/js/forms.js')}"></script>
+    <script src="${request.static_url('bodhi:static/js/site.js')}"></script>
+    <script src="${request.static_url('bodhi:static/js/live.js')}"></script>
+    <script src="${request.static_url('bodhi:static/messenger/js/messenger.min.js')}"></script>
+    <script src="${request.static_url('bodhi:static/messenger/js/messenger-theme-flat.js')}"></script>
+    <link href="${request.static_url('bodhi:static/messenger/css/messenger.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:static/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:static/js/typeahead.bundle.js')}"></script>
+    <script src="${request.static_url('bodhi:static/js/search.js')}"></script>
+    <script src="${request.static_url('bodhi:static/js/konami.js')}"></script>
 
-</body>
+    % if 'fedmenu.url' in request.registry.settings:
+    <script src="${request.registry.settings.get('fedmenu.url')}/js/fedora-libravatar.js"></script>
+    <script src="${request.registry.settings.get('fedmenu.url')}/js/fedmenu.js"></script>
+    <script>
+      fedmenu({
+          'url': '${request.registry.settings.get("fedmenu.data_url")}',
+          'mimeType': 'application/javascript',
+          'position': 'bottom-right',
+          % if update:
+            'user': '${update.user.name}',
+            % if len(update.builds) == 1:
+              'package': '${update.builds[0].package.name}',
+            % endif
+          % elif override:
+            'user': '${override.submitter.name}',
+            'package': '${override.build.package.name}',
+          % elif user:
+            'user': '${user["name"]}',
+          % endif
+      });
+    </script>
+    % endif
+
+  </body>
 </html>

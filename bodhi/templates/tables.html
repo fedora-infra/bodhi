@@ -1,0 +1,73 @@
+<%namespace name="util" module="bodhi.util"/>
+<%namespace name="fragments" file="fragments.html"/>
+
+<%def name="updates(updates, display_user=True, display_request=True, display_release=True, display_karma=True)">
+  <table class="table">
+    <thead><tr>
+        <th>Update</th>
+        <th class="nobreak">Age</th>
+        %if display_user:
+        <th class="nobreak">Submitter</th>
+        %endif
+        %if display_release:
+        <th class="hidejs">Release</th>
+        %endif
+        %if display_karma:
+        <th class="hidejs">Karma</th>
+        %endif
+        %if display_request:
+        <th class="hidejs">Request</th>
+        %endif
+        <th class="hidejs">Status</th>
+    </tr></thead>
+    <tbody>
+    % for update in updates:
+    <tr>
+      ${fragments.update(update, display_user, display_request, display_release, display_karma)}
+    </tr>
+    % endfor
+    </tbody>
+  </table>
+</%def>
+
+<%def name="overrides(overrides, display_user=True)">
+  <table class="table">
+    <thead><tr>
+        <th>Override</th>
+        <th class="nobreak">Age</th>
+        %if display_user:
+        <th class="nobreak">Submitter</th>
+        %endif
+        <th class="hidejs">Status</th>
+    </tr></thead>
+    <tbody>
+    % for override in overrides:
+    <tr>
+      ${fragments.override(override, display_user)}
+    </tr>
+    % endfor
+    </tbody>
+  </table>
+</%def>
+<%def name="stacks(stacks)">
+  <table class="table">
+    <thead><tr>
+        <th>Stack</th>
+        <th>Number of packages</th>
+    </tr></thead>
+    <tbody>
+    % for stack in sorted(stacks, cmp=lambda x, y: cmp(len(x.packages), len(y.packages)), reverse=True):
+    <tr>
+      <td>
+        <a href="${request.route_url('stack', name=stack['name'])}">
+          ${stack['name']}
+        </a>
+      </td>
+      <td>
+          <span title="${len(stack['packages'])} packages in this stack">${len(stack['packages'])}</span>
+      </td>
+    </tr>
+    % endfor
+    </tbody>
+  </table>
+</%def>

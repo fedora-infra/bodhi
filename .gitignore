@@ -8,7 +8,9 @@ MANIFEST
 virtenv
 build
 bodhi-pickledb*
-bodhi.db
-bodhi.egg-info
-*.egg
-MASHING-FEDORA
+*.egg*
+bodhi.db*
+.coverage
+dogpile-cache.dbm*
+html-docs
+masher/

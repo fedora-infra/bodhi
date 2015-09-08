@@ -1,0 +1,153 @@
+<%inherit file="master.html"/>
+
+<script>
+  $(function() {
+      $('.onlyjs').css('visibility', 'visible');
+      $('.onlyjs').css('display', 'block');
+
+      $('.hidejs').css('visibility', 'hidden');
+      $('.hidejs').css('display', 'none');
+      $(".spinner").html('<img src="static/img/spinner.gif" alt="loading..." />');
+      $.ajax(
+          'https://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi&order=desc&rows_per_page=1',
+          {
+              dataType: 'jsonp',
+              success: function(e) {
+                  var date = e.raw_messages[0].meta.date;
+                  $('#lastactive').text('Last bodhi-related activity: ' + date);
+              },
+
+          });
+      $.ajax(
+          "${urls['recent_updates']}" + "&chrome=False&rows_per_page=12&display_user=False",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#recent_updates').parent().append(html);
+                  $('#recent_updates').remove();
+              },
+
+          });
+      $.ajax(
+          "${urls['recent_overrides']}" + "&chrome=False&rows_per_page=6&display_user=False",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#recent_overrides').parent().append(html);
+                  $('#recent_overrides').remove();
+              },
+
+          });
+      $.ajax(
+          "${urls['comments_on']}" + "&chrome=False&rows_per_page=10",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#comments_on').parent().append(html);
+                  $('#comments_on').next('ul').addClass('linkable');
+                  $('#comments_on').remove();
+              },
+          });
+      $.ajax(
+          "${urls['comments_by']}" + "&chrome=False&rows_per_page=10",
+          {
+              dataType: 'html',
+              success: function(html) {
+                  $('#comments_by').parent().append(html);
+                  $('#comments_by').next('ul').addClass('linkable');
+                  $('#comments_by').remove();
+              },
+          });
+  });
+</script>
+
+<div class="row" style="margin-top: 10px;">
+  <div class="col-md-12">
+    <div class="pull-left">
+      % if request.user and user['name'] == request.user.name:
+        <form method="POST" action="https://www.libravatar.org/openid/login/">
+          <input type="hidden" name="openid_identifier" value="${request.user.openid}"/>
+          <input type="image" class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" style="outline: none;"/>
+        </form>
+      % else:
+        <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}"/>
+      % endif
+    </div>
+    <div class="pull-left" style="margin-left: 15px">
+      <h1 class="nomargin nopadding">${user['name']}</h1>
+      <h3 id="lastactive" class="spinner nomargin nopadding" style="color: #666;"></h3>
+    </div>
+  </div>
+</div>
+
+<hr style="margin: 15px 0;" />
+
+<div class="row">
+  <div class="col-md-12 onlyjs">
+    <div>
+      <h3 class="pull-left nomargin nopadding">${user['name']}'s latest updates</h3>
+      <div class="pull-right">
+        <a href="${urls['recent_updates']}">
+          View all <span class="count"></span>
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </div>
+    </div>
+    <div class="clearfix"></div>
+    <div id="recent_updates" class="spinner"></div>
+  </div>
+</div>
+
+<hr style="margin-bottom: 15px;" />
+
+<div class="row">
+  <div class="col-md-12">
+    <div>
+      <h3 class="pull-left nomargin nopadding">${user['name']}'s latest buildroot overrides</h3>
+      <div class="pull-right">
+        <a href="${urls['recent_overrides']}">
+          View all <span class="count"></span>
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </div>
+    </div>
+    <div class="clearfix"></div>
+    <div id="recent_overrides" class="spinner"></div>
+  </div>
+</div>
+
+<hr style="margin-bottom: 15px;" />
+
+<div class="row">
+  <div class="col-md-6">
+    <div style="margin-bottom: 40px;">
+      <h3 class="nomargin nopadding pull-left">
+        Feedback received on updates <span class="count"></span>
+      </h3>
+      <span class="pull-right">
+        <a href="${urls['comments_on']}">
+          View all
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </span>
+    </div>
+    <div class="clearfix"></div>
+    <div id="comments_on" class="spinner"></div>
+  </div>
+
+  <div class="col-md-6">
+    <div style="margin-bottom: 40px;">
+      <h3 class="nomargin nopadding pull-left">
+        Feedback sent on updates <span class="count"></span>
+      </h3>
+      <span class="pull-right">
+        <a href="${urls['comments_by']}">
+          View all
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </a>
+      </span>
+    </div>
+    <div class="clearfix"></div>
+    <div id="comments_by" class="spinner"></div>
+  </div>
+</div>

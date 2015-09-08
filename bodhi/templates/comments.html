@@ -1,0 +1,29 @@
+<%!
+def inherit(context):
+  if context.get('chrome'):
+    return 'master.html'
+  return None
+%>
+<%inherit file="${inherit(context)}"/>
+
+<%namespace name="util" module="bodhi.util"/>
+<%namespace name="fragments" file="fragments.html"/>
+
+% if chrome:
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <h3>Comments <small>page #${page} of ${pages} pages</small></h3>
+    ${self.pager.render(page, pages)}
+% endif
+    <ul>
+    % for comment in comments:
+    <li>
+      ${fragments.comment(comment)}
+    </li>
+    % endfor
+    </ul>
+% if chrome:
+    ${self.pager.render(page, pages)}
+  </div>
+</div>
+% endif
