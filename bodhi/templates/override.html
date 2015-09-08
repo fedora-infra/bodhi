@@ -1,3 +1,4 @@
+<%namespace name="util" module="bodhi.util"/>
 <%inherit file="master.html"/>
 
 <div class="row">
@@ -60,7 +61,7 @@
         </div>
       </div>
 
-      <div class="col-md-6">
+      <div class="col-md-3">
         <div class="panel formpanel panel-default">
           <div class="panel-heading clearfix">
             <span class="pull-left">Expiration date</span>
@@ -72,6 +73,27 @@
                 value="${override.expiration_date.strftime('%Y-%m-%d')}"
                 %endif
                 >
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Submitter</span>
+          </div>
+          <div class="form-group noui text-left">
+            %if override is not UNDEFINED:
+            <a href="${request.route_url('user', name=override.submitter.name)}">
+              <img class="img-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
+              ${override.submitter.name}
+            </a>
+            %else:
+            <a href="${request.route_url('user', name=request.user.name)}">
+              <img class="img-circle" src="${util.avatar(request.user.name, size=24)}"/>
+              ${request.user.name}
+            </a>
+            %endif
           </div>
         </div>
       </div>
