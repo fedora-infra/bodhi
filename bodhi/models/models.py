@@ -579,6 +579,7 @@ class Build(Base):
 class Update(Base):
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
+    __include_extras__ = ('meets_testing_requirements',)
     __get_by__ = ('title', 'alias')
 
     title = Column(UnicodeText, default=None, index=True)
