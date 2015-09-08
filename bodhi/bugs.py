@@ -93,12 +93,12 @@ class Bugzilla(BugTracker):
         except:
             log.exception("Unable to alter bug #%d" % bug_id)
 
-    def close(self, bug_id, fixedin=None):
+    def close(self, bug_id, versions):
         args = {}
-        if fixedin:
-            args['fixedin'] = fixedin
         try:
             bug = self.bz.getbug(bug_id)
+            if bug.component in versions:
+                args['fixedin'] = versions[bug.component]
             bug.close('NEXTRELEASE', **args)
         except xmlrpclib.Fault:
             log.exception("Unable to close bug #%d" % bug_id)
