@@ -101,13 +101,18 @@ class Bugzilla(BugTracker):
             if bug.component in versions:
                 version = versions[bug.component]
                 # Get the existing list
-                fixedin = [v.strip() for v in bug.fixed_in.split(',')]
-                # Strip out any empty strings
-                fixedin = [v for v in fixedin if v.strip()]
+                fixedin = [v.strip() for v in bug.fixed_in.split()]
+                # Strip out any empty strings (already stripped)
+                fixedin = [v for v in fixedin if v]
                 # And add our build if its not already there
                 if version not in fixedin:
                     fixedin.append(version)
-                args['fixedin'] = ", ".join(fixedin)
+
+                # There are Red Hat preferences to how this field should be
+                # structured.  We should use:
+                # - the full NVR as it appears in koji
+                # - space-separated if there's more than one.
+                args['fixedin'] = " ".join(fixedin)
 
             bug.close('NEXTRELEASE', **args)
         except xmlrpclib.Fault:
