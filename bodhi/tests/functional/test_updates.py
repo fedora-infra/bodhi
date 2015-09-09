@@ -403,7 +403,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn('bodhi-2.0-1.fc17', res)
 
     def test_list_updates_rss(self):
-        res = self.app.get('/updates/',
+        res = self.app.get('/rss/updates/',
                            headers={'Accept': 'application/atom+xml'})
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('bodhi-2.0-1.fc17', res)

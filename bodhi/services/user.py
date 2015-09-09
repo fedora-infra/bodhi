@@ -75,6 +75,10 @@ def get_user(request):
         'comments_on': rurl('comments') + '?update_owner=%s' % id,
         'recent_updates': rurl('updates') + '?user=%s' % id,
         'recent_overrides': rurl('overrides') + '?user=%s' % id,
+        'comments_by_rss': rurl('comments_rss') + '?user=%s' % id,
+        'comments_on_rss': rurl('comments_rss') + '?update_owner=%s' % id,
+        'recent_updates_rss': rurl('updates_rss') + '?user=%s' % id,
+        'recent_overrides_rss': rurl('overrides_rss') + '?user=%s' % id,
     }
 
     return dict(user=user, urls=urls)

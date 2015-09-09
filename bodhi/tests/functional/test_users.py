@@ -103,7 +103,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         #self.assertEquals(len(self.sql_statements), 4)
 
     def test_list_users_rss(self):
-        res = self.app.get('/users/',
+        res = self.app.get('/rss/users/',
                            headers=dict(accept='application/atom+xml'))
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('bodhi', res)

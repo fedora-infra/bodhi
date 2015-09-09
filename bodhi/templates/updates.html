@@ -8,10 +8,19 @@ def inherit(context):
 
 <%namespace name="tables" file="tables.html"/>
 
+<link rel="alternate" type="application/atom+xml" title="New Updates" href="${request.route_url('updates_rss') + '?' + request.query_string}"/>
+
 % if chrome:
 <div class="row">
   <div class="col-md-12">
-    <h3>Updates <small>page #${page} of ${pages} pages</small></h3>
+    <h3>Updates <small>page #${page} of ${pages} pages
+      % if page == 1:
+      <a href="${request.route_url('updates_rss') + '?' + request.query_string}">
+        <span class="fa fa-rss"></span>
+      </a>
+      % endif
+      </small>
+    </h3>
     ${self.pager.render(page, pages)}
 % endif
     ${tables.updates(updates, display_user, display_request)}

@@ -49,7 +49,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['notes'], 'blah blah blah')
 
     def test_list_overrides_rss(self):
-        res = self.app.get('/overrides/',
+        res = self.app.get('/rss/overrides/',
                            headers=dict(accept='application/atom+xml'))
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('blah blah blah', res)
