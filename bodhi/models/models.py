@@ -787,11 +787,16 @@ class Update(Base):
         del(data['builds'])
 
         # Comment on the update with details of added/removed builds
-        comment = '%s edited this update. ' % request.user.name
+        # .. enumerate the builds in markdown format so they're pretty.
+        comment = '%s edited this update.' % request.user.name
         if new_builds:
-            comment += 'New build(s): %s. ' % ', '.join(new_builds)
+            comment += '\n\nNew build(s):\n'
+            for new_build in new_builds:
+                comment += "\n- %s" % new_build
         if removed_builds:
-            comment += 'Removed build(s): %s.' % ', '.join(removed_builds)
+            comment += '\n\nRemoved build(s):\n'
+            for removed_build in removed_builds:
+                comment += "\n- %s" % removed_build
         up.comment(comment, karma=0, author=u'bodhi')
         caveats.append({'name': 'builds', 'description': comment})
 

@@ -14,6 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import textwrap
 import time
 import mock
 
@@ -1230,9 +1231,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['alias'], u'FEDORA-%s-0002' % YEAR)
         self.assertEquals(up['karma'], 0)
         self.assertEquals(up['requirements'], 'upgradepath')
-        self.assertEquals(up['comments'][-1]['text'],
-                          u'guest edited this update. New build(s): ' +
-                          u'bodhi-2.0.0-3.fc17. Removed build(s): bodhi-2.0.0-2.fc17.')
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-3.fc17
+
+        Removed build(s):
+
+        - bodhi-2.0.0-2.fc17
+        """).strip()
+        self.assertMultiLineEqual(up['comments'][-1]['text'], comment)
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
         self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
@@ -1263,9 +1273,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         #assert False, '\n'.join([c['text'] for c in up['comments']])
         self.assertEquals(up['comments'][-1]['text'],
                           u'This update has been submitted for testing by guest. ')
-        self.assertEquals(up['comments'][-2]['text'],
-                          u'guest edited this update. New build(s): ' +
-                          u'bodhi-2.0.0-3.fc17. Removed build(s): bodhi-2.0.0-2.fc17.')
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-3.fc17
+
+        Removed build(s):
+
+        - bodhi-2.0.0-2.fc17
+        """).strip()
+        self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
         self.assertEquals(up['comments'][-3]['text'],
                           u'This update has been submitted for testing by guest. ')
         self.assertEquals(len(up['builds']), 1)
@@ -1297,9 +1316,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['request'], u'testing')
         self.assertEquals(up['comments'][-1]['text'],
                           u'This update has been submitted for testing by guest. ')
-        self.assertEquals(up['comments'][-2]['text'],
-                          u'guest edited this update. New build(s): ' +
-                          u'bodhi-2.0.0-3.fc17. Removed build(s): bodhi-2.0.0-2.fc17.')
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-3.fc17
+
+        Removed build(s):
+
+        - bodhi-2.0.0-2.fc17
+        """).strip()
+        self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
         self.assertEquals(up['comments'][-3]['text'],
                           u'This update has been submitted for testing by guest. ')
         self.assertEquals(len(up['builds']), 1)
