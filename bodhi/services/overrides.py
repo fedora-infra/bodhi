@@ -43,6 +43,10 @@ overrides = Service(name='overrides', path='/overrides/',
                     # a ``post`` section at the bottom.
                     cors_origins=bodhi.security.cors_origins_rw)
 
+overrides_rss = Service(name='overrides_rss', path='/rss/overrides/',
+                        description='Buildroot Overrides RSS Feed',
+                        cors_origins=bodhi.security.cors_origins_ro)
+
 
 @override.get(accept=("application/json", "text/json"), renderer="json",
               error_handler=bodhi.services.errors.json_handler)
@@ -70,30 +74,26 @@ def get_override(request):
     return dict(override=build.override)
 
 
+validators = (
+    validate_packages,
+    validate_releases,
+    validate_username,
+)
+@overrides_rss.get(schema=bodhi.schemas.ListOverrideSchema, renderer='rss',
+                   error_handler=bodhi.services.errors.html_handler,
+                   validators=validators)
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
                accept=("application/json", "text/json"), renderer="json",
                error_handler=bodhi.services.errors.json_handler,
-               validators=(validate_packages, validate_releases,
-                           validate_username)
-               )
+               validators=validators)
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
                accept=("application/javascript"), renderer="jsonp",
                error_handler=bodhi.services.errors.jsonp_handler,
-               validators=(validate_packages, validate_releases,
-                           validate_username)
-               )
-@overrides.get(schema=bodhi.schemas.ListOverrideSchema,
-               accept=('application/atom+xml'), renderer='rss',
-               error_handler=bodhi.services.errors.html_handler,
-               validators=(validate_packages, validate_releases,
-                           validate_username)
-               )
+               validators=validators)
 @overrides.get(schema=bodhi.schemas.ListOverrideSchema,
                accept=('text/html'), renderer='overrides.html',
                error_handler=bodhi.services.errors.html_handler,
-               validators=(validate_packages, validate_releases,
-                           validate_username)
-               )
+               validators=validators)
 def query_overrides(request):
     db = request.db
     data = request.validated

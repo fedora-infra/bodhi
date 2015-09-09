@@ -20,7 +20,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi import log
-from bodhi.models import Comment, Build, Bug, CVE, Package, Update
+from bodhi.models import Comment, Build, Update
 import bodhi.captcha
 import bodhi.schemas
 import bodhi.security
@@ -48,6 +48,9 @@ comments = Service(name='comments', path='/comments/',
                    # Note, this 'rw' is not a typo.  the @comments service has
                    # a ``post`` section at the bottom.
                    cors_origins=bodhi.security.cors_origins_rw)
+comments_rss = Service(name='comments_rss', path='/rss/comments/',
+                       description='Comments RSS feed',
+                       cors_origins=bodhi.security.cors_origins_ro)
 
 
 @comment.get(accept=('application/json', 'text/json'), renderer='json',
@@ -63,42 +66,27 @@ def get_comment(request):
     return dict(comment=request.validated['comment'])
 
 
+validators=(
+    validate_username,
+    validate_update_owner,
+    validate_updates,
+    validate_packages,
+)
+@comments_rss.get(schema=bodhi.schemas.ListCommentSchema, renderer='rss',
+                  error_handler=bodhi.services.errors.html_handler,
+                  validators=validators)
 @comments.get(schema=bodhi.schemas.ListCommentSchema,
              accept=('application/json', 'text/json'), renderer='json',
              error_handler=bodhi.services.errors.json_handler,
-             validators=(
-                 validate_username,
-                 validate_update_owner,
-                 validate_updates,
-                 validate_packages,
-             ))
+             validators=validators)
 @comments.get(schema=bodhi.schemas.ListCommentSchema,
              accept=('application/javascript'), renderer='jsonp',
              error_handler=bodhi.services.errors.jsonp_handler,
-             validators=(
-                 validate_username,
-                 validate_update_owner,
-                 validate_updates,
-                 validate_packages,
-             ))
-@comments.get(schema=bodhi.schemas.ListCommentSchema,
-             accept=('application/atom+xml'), renderer='rss',
-             error_handler=bodhi.services.errors.html_handler,
-             validators=(
-                 validate_username,
-                 validate_update_owner,
-                 validate_updates,
-                 validate_packages,
-             ))
+             validators=validators)
 @comments.get(schema=bodhi.schemas.ListCommentSchema,
              accept=('text/html'), renderer='comments.html',
              error_handler=bodhi.services.errors.html_handler,
-             validators=(
-                 validate_username,
-                 validate_update_owner,
-                 validate_updates,
-                 validate_packages,
-             ))
+             validators=validators)
 def query_comments(request):
     db = request.db
     data = request.validated
@@ -175,7 +163,6 @@ def query_comments(request):
                ))
 def new_comment(request):
     """ Add a new comment to an update. """
-    settings = request.registry.settings
     data = request.validated
 
     # This has already been validated at this point, but we need to ditch
