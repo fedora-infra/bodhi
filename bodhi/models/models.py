@@ -1941,7 +1941,15 @@ class Bug(Base):
             update.get_title(delim=', '), "%s %s" % (
                 update.release.long_name, update.status.description))
         if update.status is UpdateStatus.testing:
-            message += config['testing_bug_msg'] % (
+            template = config['testing_bug_msg']
+
+            if update.release.id_prefix == "FEDORA-EPEL":
+                if 'testing_bug_epel_msg' in config:
+                    template = config['testing_bug_epel_msg']
+                else:
+                    log.warn("No 'testing_bug_epel_msg' found in the config.")
+
+            message += template % (
                 ' '.join([build.package.name for build in update.builds]),
                 config.get('base_address') + update.get_url())
         return message
