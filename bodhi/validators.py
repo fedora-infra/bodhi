@@ -285,10 +285,10 @@ def validate_acls(request):
         admin_groups = settings['admin_packager_groups'].split()
         for group in admin_groups:
             if group in user_groups:
-                log.debug(
-                    '{} is in {} admin group'.format(user.name, group))
+                log.debug('{} is in {} admin group'.format(user.name, group))
                 has_access = True
                 break
+
         if has_access:
             continue
 
@@ -721,7 +721,6 @@ def validate_override_builds(request):
 def _validate_override_build(request, nvr, db):
     """ Workhorse function for validate_override_builds """
     build = Build.get(nvr, db)
-    print "in _validate with build", build
     if build is not None:
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure

@@ -16,7 +16,6 @@ import copy
 import math
 
 from cornice import Service
-from pyramid.security import has_permission
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
@@ -47,18 +46,12 @@ from bodhi.validators import (
 update = Service(name='update', path='/updates/{id}',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 # This acl only checks if the user is an admin or a commiters to the packages,
-                 # where as the validate_acls method which is attached to the @post on this
-                 # services does this as well as checking against the groups. So, this acl
-                 # should be unnecessary at the moment.
-                 #acl=bodhi.security.package_maintainers_only_acl,
                  acl=bodhi.security.packagers_allowed_acl,
                  cors_origins=bodhi.security.cors_origins_ro)
 
 update_edit = Service(name='update_edit', path='/updates/{id}/edit',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 #acl=bodhi.security.package_maintainers_only_acl,
                  acl=bodhi.security.packagers_allowed_acl,
                  cors_origins=bodhi.security.cors_origins_rw)
 
@@ -74,10 +67,8 @@ updates_rss = Service(name='updates_rss', path='/rss/updates/',
 
 update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
-                         #acl=bodhi.security.package_maintainers_only_acl,
                          acl=bodhi.security.packagers_allowed_acl,
                          cors_origins=bodhi.security.cors_origins_rw)
-
 
 @update.get(accept=('application/json', 'text/json'), renderer='json',
             error_handler=bodhi.services.errors.json_handler)
@@ -87,7 +78,12 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
             error_handler=bodhi.services.errors.html_handler)
 def get_update(request):
     """Return a single update from an id, title, or alias"""
-    can_edit = bool(has_permission('edit', request.context, request))
+
+    proxy_request = bodhi.security.ProtectedRequest(request)
+    validate_acls(proxy_request)
+    # If validate_acls produced 0 errors, then we can edit this update.
+    can_edit = len(proxy_request.errors) == 0
+
     return dict(update=request.validated['update'], can_edit=can_edit)
 
 
