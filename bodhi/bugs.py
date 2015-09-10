@@ -114,7 +114,7 @@ class Bugzilla(BugTracker):
                 # - space-separated if there's more than one.
                 args['fixedin'] = " ".join(fixedin)
 
-            bug.close('NEXTRELEASE', **args)
+            bug.close('ERRATA', **args)
         except xmlrpclib.Fault:
             log.exception("Unable to close bug #%d" % bug_id)
 
