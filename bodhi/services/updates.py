@@ -20,6 +20,8 @@ from pyramid.security import has_permission
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
+from pyramid.httpexceptions import HTTPFound
+
 from bodhi import log
 from bodhi.exceptions import BodhiException, LockedUpdateException
 from bodhi.models import Update, Build, Bug, CVE, Package, UpdateRequest
@@ -409,3 +411,11 @@ def new_update(request):
     result['caveats'] = caveats
 
     return result
+
+
+@updates.get(accept=('application/rss+xml', 'application/atom+xml'))
+def rss_redirect(request):
+    url = request.route_url('updates_rss')
+    if request.query_string:
+        url = url + '?' + request.query_string
+    raise HTTPFound(url)
