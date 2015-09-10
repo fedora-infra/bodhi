@@ -531,9 +531,9 @@ class MasherThread(threading.Thread):
                 else:
                     move_tags.append((from_tag, update.requested_tag,
                                       build.nvr))
-
-            self.add_tags.extend(add_tags)
-            self.move_tags.extend(move_tags)
+            else:
+                self.add_tags.extend(add_tags)
+                self.move_tags.extend(move_tags)
 
     def _perform_tag_actions(self):
         self.koji.multicall = True
