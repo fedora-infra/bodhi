@@ -259,6 +259,10 @@ class MasherThread(threading.Thread):
                               .filter_by(name=self.release).one()
         self.id = getattr(self.release, '%s_tag' % self.request.value)
 
+        # Set our thread's "name" so it shows up nicely in the logs.
+        # https://docs.python.org/2/library/threading.html#thread-objects
+        self.name = self.id
+
         # For 'pending' branched releases, we only want to perform repo-related
         # tasks for testing updates. For stable updates, we should just add the
         # dist_tag and do everything else other than mashing/updateinfo, since
@@ -901,6 +905,9 @@ class MashThread(threading.Thread):
             mash_cmd += ' -p {}'.format(previous)
         self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
                                         compsfile=comps, tag=self.tag).split()
+        # Set our thread's "name" so it shows up nicely in the logs.
+        # https://docs.python.org/2/library/threading.html#thread-objects
+        self.name = tag
 
     def run(self):
         start = time.time()
