@@ -2,6 +2,8 @@
 <%namespace name="captcha" module="bodhi.captcha"/>
 <%namespace name="json" module="json"/>
 
+<link rel="alternate" type="application/atom+xml" title="New Comments on ${update.alias}" href="${request.route_url('comments_rss')}?updates=${update.alias}"/>
+
 <script type="text/javascript">
   $(document).ready(function() {
     var base_url = '${request.registry.settings["resultsdb_api_url"]}' + '/api/v1.0/';
@@ -357,6 +359,9 @@ $(document).ready(function(){
             <li>
               <span class="pull-left">${build.nvr}</span>
               <span class="pull-right">
+                <a href='${request.route_url("updates_rss") + "?packages=" + build.package.name}'>
+                  <span class="fa fa-rss" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
+                </a>
                 <a href='${request.route_url("updates") + "?packages=" + build.package.name}'>
                   <span class="glyphicon glyphicon-list" data-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
                 </a>
@@ -586,7 +591,11 @@ $(document).ready(function(){
 
 <div class="row">
   <div class="col-md-12">
-    <h3>Comments <span class="badge">${len(update.comments)}</span></h3>
+    <h3>Comments <span class="badge">${len(update.comments)}</span>
+      <small><a href="${request.route_url('comments_rss')}?updates=${update.alias}">
+          RSS <span class="fa fa-rss"></span>
+      </a></small>
+    </h3>
     <ul id="comments" class="linkable">
       % for comment in update.comments:
       <li id="comment-${comment.id}">

@@ -40,9 +40,14 @@ user = Service(name='user', path='/users/{name}',
                description='Bodhi users',
                # These we leave wide-open since these are only GETs
                cors_origins=bodhi.security.cors_origins_ro)
+
 users = Service(name='users', path='/users/',
                 description='Bodhi users',
                 # These we leave wide-open since these are only GETs
+                cors_origins=bodhi.security.cors_origins_ro)
+
+users_rss = Service(name='users_rss', path='/rss/users/',
+                description='Bodhi users RSS feed',
                 cors_origins=bodhi.security.cors_origins_ro)
 
 
@@ -70,23 +75,31 @@ def get_user(request):
         'comments_on': rurl('comments') + '?update_owner=%s' % id,
         'recent_updates': rurl('updates') + '?user=%s' % id,
         'recent_overrides': rurl('overrides') + '?user=%s' % id,
+        'comments_by_rss': rurl('comments_rss') + '?user=%s' % id,
+        'comments_on_rss': rurl('comments_rss') + '?update_owner=%s' % id,
+        'recent_updates_rss': rurl('updates_rss') + '?user=%s' % id,
+        'recent_overrides_rss': rurl('overrides_rss') + '?user=%s' % id,
     }
 
     return dict(user=user, urls=urls)
 
 
+validators = (
+    validate_groups,
+    validate_updates,
+    validate_packages,
+)
 @users.get(schema=bodhi.schemas.ListUserSchema,
            accept=("application/json", "text/json"), renderer="json",
            error_handler=bodhi.services.errors.json_handler,
-           validators=(validate_groups, validate_updates, validate_packages))
+           validators=validators)
 @users.get(schema=bodhi.schemas.ListUserSchema,
            accept=("application/javascript"), renderer="jsonp",
            error_handler=bodhi.services.errors.jsonp_handler,
-           validators=(validate_groups, validate_updates, validate_packages))
-@users.get(schema=bodhi.schemas.ListUserSchema,
-           accept=("application/atom+xml"), renderer="rss",
-           error_handler=bodhi.services.errors.html_handler,
-           validators=(validate_groups, validate_updates, validate_packages))
+           validators=validators)
+@users_rss.get(schema=bodhi.schemas.ListUserSchema, renderer="rss",
+               error_handler=bodhi.services.errors.html_handler,
+               validators=validators)
 def query_users(request):
     db = request.db
     data = request.validated

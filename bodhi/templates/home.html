@@ -52,6 +52,10 @@
             <div class="panel-heading clearfix">
               <span class="pull-left">Latest Critical Path Updates in Need of Testing</span>
               <span class="pull-right">
+                <a href="${request.route_url('updates_rss')}?status=testing">
+                  RSS
+                  <span class="fa fa-rss"></span>
+                </a>
                 <a href="${request.route_url('updates')}?status=testing">
                   View all
                   <span class="glyphicon glyphicon-chevron-right"></span>
@@ -73,6 +77,10 @@
             <div class="panel-heading clearfix">
               <span class="pull-left">Latest Security Updates in Need of Testing</span>
               <span class="pull-right">
+                <a href="${request.route_url('updates_rss')}?type=security&status=testing">
+                  RSS
+                  <span class="fa fa-rss"></span>
+                </a>
                 <a href="${request.route_url('updates')}?type=security&status=testing">
                   View all
                   <span class="glyphicon glyphicon-chevron-right"></span>

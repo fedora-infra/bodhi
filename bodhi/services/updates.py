@@ -65,6 +65,11 @@ updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   cors_origins=bodhi.security.cors_origins_ro)
 
+updates_rss = Service(name='updates_rss', path='/rss/updates/',
+                      acl=bodhi.security.packagers_allowed_acl,
+                      description='Update submission service RSS feed',
+                      cors_origins=bodhi.security.cors_origins_ro)
+
 update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
                          #acl=bodhi.security.package_maintainers_only_acl,
@@ -135,26 +140,28 @@ def set_request(request):
     return dict(update=update)
 
 
+validators = (
+    validate_release,
+    validate_releases,
+    validate_enums,
+    validate_username,
+    validate_bugs,
+)
+@updates_rss.get(schema=bodhi.schemas.ListUpdateSchema, renderer='rss',
+                 error_handler=bodhi.services.errors.html_handler,
+                 validators=validators)
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/json', 'text/json'), renderer='json',
              error_handler=bodhi.services.errors.json_handler,
-             validators=(validate_release, validate_releases,
-                         validate_enums, validate_username, validate_bugs))
+             validators=validators)
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/javascript'), renderer='jsonp',
              error_handler=bodhi.services.errors.jsonp_handler,
-             validators=(validate_release, validate_releases,
-                         validate_enums, validate_username, validate_bugs))
-@updates.get(schema=bodhi.schemas.ListUpdateSchema,
-             accept=('application/atom+xml'), renderer='rss',
-             error_handler=bodhi.services.errors.html_handler,
-             validators=(validate_release, validate_releases,
-                         validate_enums, validate_username, validate_bugs))
+             validators=validators)
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('text/html'), renderer='updates.html',
              error_handler=bodhi.services.errors.html_handler,
-             validators=(validate_release, validate_releases,
-                         validate_enums, validate_username, validate_bugs))
+             validators=validators)
 def query_updates(request):
     db = request.db
     data = request.validated
