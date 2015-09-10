@@ -24,6 +24,7 @@ from bodhi.models import (
     User,
     Update,
     UpdateRequest,
+    UpdateStatus,
     UpdateType,
 )
 
@@ -510,3 +511,44 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(caveats[0]['description'],
                           "You may not give karma to your own updates.")
         self.assertEquals(comment['karma'], 0)  # This is the real check
+
+    def test_comment_on_locked_update(self):
+        """ Make sure you can comment on locked updates. """
+        # Lock it
+        up = DBSession.query(Update).filter_by(title=up2).one()
+        up.locked = True
+        up.status = UpdateStatus.testing
+        up.request = None
+        self.assertEquals(len(up.comments), 0)  # Before
+        self.assertEquals(up.karma, 0)          # Before
+        DBSession.flush()
+
+        comment = self.make_comment(up2, karma=1)
+        self.app.post_json('/comments/', comment)
+
+        up = DBSession.query(Update).filter_by(title=up2).one()
+        self.assertEquals(len(up.comments), 1)  # After
+        self.assertEquals(up.karma, 1)          # After
+
+    def test_comment_on_locked_update_no_threshhold_action(self):
+        " Make sure you can't trigger threshold action on locked updates "
+        # Lock it
+        up = DBSession.query(Update).filter_by(title=up2).one()
+        up.locked = True
+        up.status = UpdateStatus.testing
+        up.request = UpdateStatus.stable
+        up.stable_karma = 1
+        up.unstable_karma = -1
+        self.assertEquals(len(up.comments), 0)  # Before
+        self.assertEquals(up.karma, 0)          # Before
+        DBSession.flush()
+
+        comment = self.make_comment(up2, karma=-1)
+        self.app.post_json('/comments/', comment)
+
+        up = DBSession.query(Update).filter_by(title=up2).one()
+        self.assertEquals(len(up.comments), 1)  # After
+        self.assertEquals(up.karma, -1)         # After
+        # Ensure that the request did not change .. don't trigger something.
+        self.assertEquals(up.status.value, UpdateStatus.testing.value)
+        self.assertEquals(up.request.value, UpdateRequest.stable.value)
