@@ -285,10 +285,10 @@ def validate_acls(request):
         admin_groups = settings['admin_packager_groups'].split()
         for group in admin_groups:
             if group in user_groups:
-                log.debug(
-                    '{} is in {} admin group'.format(user.name, group))
+                log.debug('{} is in {} admin group'.format(user.name, group))
                 has_access = True
                 break
+
         if has_access:
             continue
 
