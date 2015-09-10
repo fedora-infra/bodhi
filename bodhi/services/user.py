@@ -14,6 +14,7 @@
 
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
@@ -152,3 +153,11 @@ def query_users(request):
         rows_per_page=rows_per_page,
         total=total,
     )
+
+
+@users.get(accept=('application/atom+xml',))
+def rss_redirect(request):
+    url = request.route_url('users_rss')
+    if request.query_string:
+        url = url + '?' + request.query_string
+    raise HTTPFound(url)
