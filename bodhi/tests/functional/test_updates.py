@@ -1425,7 +1425,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         up = DBSession.query(Update).filter_by(title=nvr).one()
         up.locked = True
-        up.status = UpdateRequest.testing
+        up.status = UpdateStatus.testing
         up.request = None
         up_id = up.id
 
