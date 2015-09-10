@@ -505,6 +505,9 @@ class MasherThread(threading.Thread):
     def _determine_tag_actions(self):
         tag_types, tag_rels = Release.get_tags()
         for update in sorted_updates(self.updates):
+            add_tags = []
+            move_tags = []
+
             if update.status is UpdateStatus.testing:
                 status = 'testing'
             else:
@@ -524,10 +527,13 @@ class MasherThread(threading.Thread):
                     break
 
                 if self.skip_mash:
-                    self.add_tags.append((update.requested_tag, build.nvr))
+                    add_tags.append((update.requested_tag, build.nvr))
                 else:
-                    self.move_tags.append((from_tag, update.requested_tag,
-                                           build.nvr))
+                    move_tags.append((from_tag, update.requested_tag,
+                                      build.nvr))
+
+            self.add_tags.extend(add_tags)
+            self.move_tags.extend(move_tags)
 
     def _perform_tag_actions(self):
         self.koji.multicall = True
