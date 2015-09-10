@@ -1497,7 +1497,10 @@ class Update(Base):
         for comment in self.comments:
             if comment.anonymous or comment.user.name == u'bodhi':
                 continue
-            people.add(comment.user.name)
+            if comment.user.email:
+                people.add(comment.user.email)
+            else:
+                people.add(comment.user.name)
         mail.send(people, 'comment', self, author, author)
         return comment, caveats
 
