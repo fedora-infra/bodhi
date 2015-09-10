@@ -721,7 +721,6 @@ def validate_override_builds(request):
 def _validate_override_build(request, nvr, db):
     """ Workhorse function for validate_override_builds """
     build = Build.get(nvr, db)
-    print "in _validate with build", build
     if build is not None:
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
