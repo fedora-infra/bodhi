@@ -1806,8 +1806,9 @@ class Update(Base):
                 'Unable to determine requested tag for %s.' % self.title)
         return tag
 
-    def __json__(self, *args, **kwargs):
-        result = super(Update, self).__json__(*args, **kwargs)
+    def __json__(self, request=None, anonymize=False):
+        result = super(Update, self).__json__(
+            request=request, anonymize=anonymize)
         # Duplicate alias as updateid for backwards compat with bodhi1
         result['updateid'] = result['alias']
         # Also, put the update submitter's name in the same place we put
@@ -1815,9 +1816,17 @@ class Update(Base):
         result['submitter'] = result['user']['name']
 
         # For https://github.com/fedora-infra/bodhi/issues/270, throw the JSON
-        # of the test cases in our output as well.
+        # of the test cases in our output as well but take extra care to
+        # short-circuit some of the insane recursion for
+        # https://github.com/fedora-infra/bodhi/issues/343
+        seen = [Package, TestCaseKarma]
         result['test_cases'] = [
-            test.__json__(*args, **kwargs) for test in self.full_test_cases
+            test._to_json(
+                obj=test,
+                seen=seen,
+                request=request,
+                anonymize=anonymize)
+            for test in self.full_test_cases
         ]
 
         return result
