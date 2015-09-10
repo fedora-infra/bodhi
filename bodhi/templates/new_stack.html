@@ -159,11 +159,17 @@
     <div class="row col-md-5">
       % if stack is not UNDEFINED:
       <div class="pull-left">
-            <button id="delete" class="btn btn-danger">Delete</button>
+            <button id="delete" class="btn btn-danger">
+              <span class="indicator fa fa-trash-o" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+              Delete
+            </button>
       </div>
       % endif
       <div class="pull-right">
-            <button id="submit" class="btn btn-success">Save</button>
+            <button id="submit" class="btn btn-success">
+              <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+              Save
+            </button>
       </div>
     </div> <!-- end row -->
 

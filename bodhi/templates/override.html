@@ -134,9 +134,15 @@
       <div class="col-md-12">
         <div class="panel panel-default">
             <span class="pull-right">
-              <button id="submit" class="btn btn-success">Submit</button>
+              <button id="submit" class="btn btn-success">
+                <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+                Submit
+              </button>
               %if override is not UNDEFINED and override.expired_date is None:
-              <button id="expire" class="btn btn-warning">Expire</button>
+              <button id="expire" class="btn btn-warning">
+                <span class="indicator fa fa-clock-o" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+                Expire
+              </button>
               %endif
             </span>
           </div>
