@@ -479,17 +479,18 @@ $(document).ready(function(){
   </div>
 
   <div class="col-md-7">
+    % if update.locked:
+      <div class="alert alert-info" role="alert">
+        <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+        <span class="sr-only">Locked:</span>
+        This update is currently locked and cannot be modified.
+        <a href="https://fedoraproject.org/wiki/Bodhi2#FAQ" target="_blank">
+          <span data-toggle="tooltip" data-placement="top" title="What does this mean?" class="glyphicon glyphicon-question-sign"></span>
+        </a>
+      </div>
+    % endif
     % if can_edit:
-      % if update.locked:
-        <div class="alert alert-info" role="alert">
-          <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
-          <span class="sr-only">Locked:</span>
-          This update is currently locked and cannot be modified.
-          <a href="https://fedoraproject.org/wiki/Bodhi2#FAQ" target="_blank">
-            <span data-toggle="tooltip" data-placement="top" title="What does this mean?" class="glyphicon glyphicon-question-sign"></span>
-          </a>
-        </div>
-      % else:
+      % if not update.locked:
         <div id='updatebuttons' class="btn-group pull-right" role="group" aria-label="...">
         % if not update.pushed:
           <a id='edit' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
