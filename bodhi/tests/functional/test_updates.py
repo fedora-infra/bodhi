@@ -248,6 +248,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         user = User(name=u'bob')
         session.add(user)
         session.add(User(name=u'ralph'))  # Add a non proventester
+        session.add(User(name=u'someuser'))  # An unrelated user with no privs
         session.flush()
         group = session.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
@@ -319,6 +320,22 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(res.json_body['update']['request'], None)
         eq_(update.request, None)
         eq_(update.status, UpdateStatus.obsolete)
+
+        # Test that bob has can_edit True, provenpackager
+        app = TestApp(main({}, testing=u'bob', **self.app_settings))
+        res = app.get('/updates/%s' % nvr, status=200)
+        eq_(res.json_body['can_edit'], True)
+
+        # Test that ralph has can_edit True, they submitted it.
+        app = TestApp(main({}, testing=u'ralph', **self.app_settings))
+        res = app.get('/updates/%s' % nvr, status=200)
+        eq_(res.json_body['can_edit'], True)
+
+        # Test that someuser has can_edit False, they are unrelated
+        # This check *failed* with the old acls code.
+        app = TestApp(main({}, testing=u'someuser', **self.app_settings))
+        res = app.get('/updates/%s' % nvr, status=200)
+        eq_(res.json_body['can_edit'], False)
 
     @mock.patch(**mock_valid_requirements)
     def test_pkgdb_outage(self, *args):
