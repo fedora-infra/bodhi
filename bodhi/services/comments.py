@@ -190,7 +190,7 @@ def new_comment(request):
     return dict(comment=comment, caveats=caveats)
 
 
-@comments.get(accept=('application/rss+xml', 'application/atom+xml'))
+@comments.get(accept=('application/atom+xml',))
 def rss_redirect(request):
     url = request.route_url('comments_rss')
     if request.query_string:

@@ -413,7 +413,7 @@ def new_update(request):
     return result
 
 
-@updates.get(accept=('application/rss+xml', 'application/atom+xml'))
+@updates.get(accept=('application/atom+xml',))
 def rss_redirect(request):
     url = request.route_url('updates_rss')
     if request.query_string:

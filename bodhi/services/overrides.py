@@ -239,7 +239,7 @@ def save_override(request):
     return result
 
 
-@overrides.get(accept=('application/rss+xml', 'application/atom+xml'))
+@overrides.get(accept=('application/atom+xml',))
 def rss_redirect(request):
     url = request.route_url('overrides_rss')
     if request.query_string:

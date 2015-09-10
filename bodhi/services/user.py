@@ -155,7 +155,7 @@ def query_users(request):
     )
 
 
-@users.get(accept=('application/rss+xml', 'application/atom+xml'))
+@users.get(accept=('application/atom+xml',))
 def rss_redirect(request):
     url = request.route_url('users_rss')
     if request.query_string:
