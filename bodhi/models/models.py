@@ -107,6 +107,9 @@ class BodhiBase(object):
         for attr in rels:
             if attr in exclude:
                 continue
+            target = getattr(type(obj), attr).property.mapper.class_
+            if target in seen:
+                continue
             d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
         for key, value in d.iteritems():
