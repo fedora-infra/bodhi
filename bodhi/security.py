@@ -12,6 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from cornice.errors import Errors
+
 from pyramid.security import (Allow, Deny, Everyone, Authenticated,
                               ALL_PERMISSIONS, DENY_ALL)
 from pyramid.security import remember, forget
@@ -189,3 +191,19 @@ class CorsOrigins(object):
 
 cors_origins_ro = CorsOrigins('cors_origins_ro')
 cors_origins_rw = CorsOrigins('cors_origins_rw')
+
+
+class ProtectedRequest(object):
+    """ A proxy to the request object.
+
+    The point here is that you can set 'errors' on this request, but they
+    will be sent to /dev/null and hidden from cornice.  Otherwise, this
+    object behaves just like a normal request object.
+    """
+    def __init__(self, real_request):
+        # Hide errors added to this from the real request
+        self.errors = Errors()
+        # But proxy other attributes to the real request
+        self.real_request = real_request
+        for attr in ['db', 'registry', 'validated', 'buildinfo', 'user']:
+            setattr(self, attr, getattr(self.real_request, attr))

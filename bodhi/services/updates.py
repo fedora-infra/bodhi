@@ -80,7 +80,12 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
             error_handler=bodhi.services.errors.html_handler)
 def get_update(request):
     """Return a single update from an id, title, or alias"""
-    can_edit = bool(has_permission('edit', request.context, request))
+
+    proxy_request = bodhi.security.ProtectedRequest(request)
+    validate_acls(proxy_request)
+    # If validate_acls produced 0 errors, then we can edit this update.
+    can_edit = len(proxy_request.errors) == 0
+
     return dict(update=request.validated['update'], can_edit=can_edit)
 
 
