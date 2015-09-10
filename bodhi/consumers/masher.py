@@ -240,7 +240,6 @@ class MasherThread(threading.Thread):
         self.move_tags = []
         self.testing_digest = {}
         self.state = {
-            'tagged': False,
             'updates': updates,
             'completed_repos': []
         }
