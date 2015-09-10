@@ -14,14 +14,13 @@
 
 from cornice.errors import Errors
 
-from pyramid.security import (Allow, Deny, Everyone, Authenticated,
-                              ALL_PERMISSIONS, DENY_ALL)
+from pyramid.security import (Allow, ALL_PERMISSIONS, DENY_ALL)
 from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound
 from pyramid.threadlocal import get_current_registry
 
 from . import log
-from .models import User, Group, Update
+from .models import User, Group
 
 
 #
@@ -37,19 +36,10 @@ def admin_only_acl(request):
 
 def packagers_allowed_acl(request):
     """Generate an ACL for update submission"""
-    return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
-            request.registry.settings['mandatory_packager_groups'].split()] + \
-           [DENY_ALL]
-
-
-def package_maintainers_only_acl(request):
-    """An ACL that only allows package maintainers for a given package"""
-    acl = admin_only_acl(request)
-    update = Update.get(request.matchdict['id'], request.db)
-    if update:
-        for committer in update.get_maintainers():
-            acl.insert(0, (Allow, committer.name, ALL_PERMISSIONS))
-    return acl
+    groups = request.registry.settings['mandatory_packager_groups'].split()
+    return [
+        (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
+    ] + [DENY_ALL]
 
 
 #
