@@ -1187,6 +1187,7 @@ class Update(Base):
             self.date_stable = now
         self.request = None
         self.date_pushed = now
+        self.pushed = True
 
     def modify_bugs(self):
         """ Comment on and close this updates bugs as necessary
