@@ -33,6 +33,12 @@ def bug_url(tracker, idx):
     try:
         return {
             'fedora': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            'gnome': "https://bugzilla.gnome.org/show_bug.cgi?id=%s",
+            'kde': "https://bugs.kde.org/show_bug.cgi?id=%s",
+            'mozilla': "https://bugzilla.mozilla.org/show_bug.cgi?id=%s",
+            'pear': "http://pear.php.net/bugs/bug.php?id=%s",
+            'php': "https://bugs.php.net/bug.php?id=%s",
+            'python': "https://bugs.python.org/issue%s",
             'rh': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
             'rhbz': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
             }[tracker.lower()] % idx
