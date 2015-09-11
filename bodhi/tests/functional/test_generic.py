@@ -169,9 +169,20 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
             "</div>"
         )
 
-    def test_markdown_with_bugzilla(self):
+    def test_markdown_with_unprefixed_bugzilla(self):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  #12345 is still busted.',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            "<div class='markdown'>"
+            '<p>Crazy.  #12345 is still busted.</p>'
+            "</div>"
+        )
+
+    def test_markdown_with_prefixed_bugzilla(self):
+        res = self.app.get('/markdown', {
+            'text': 'Crazy.  RHBZ#12345 is still busted.',
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
@@ -179,6 +190,17 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
             '<p>Crazy.  '
             '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=12345">'
             '#12345</a> is still busted.</p>'
+            "</div>"
+        )
+
+    def test_markdown_with_unknown_prefixed_bugzilla(self):
+        res = self.app.get('/markdown', {
+            'text': 'Crazy.  upstream#12345 is still busted.',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            "<div class='markdown'>"
+            '<p>Crazy.  upstream#12345 is still busted.</p>'
             "</div>"
         )
 

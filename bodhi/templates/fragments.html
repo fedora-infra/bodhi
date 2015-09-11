@@ -211,9 +211,18 @@ __bold__
 </code></pre>
             </div>
             <div class="col-md-4">
-              <p>You can reference <strong>bugzilla tickets</strong> by simply prefixing a ticket id with the <code>&#35;</code> character.</p>
-              <pre><code>We really need #1185409</code></pre>
-              <p>... we will automatically generate a link to the ticket in place.</p>
+              <p>You can reference <strong>bug reports</strong> by simply writing something of the form <code>tracker&#35;ticketid</code>.</p>
+              <pre><code>This fixes PHP#1234 and Python#2345</code></pre>
+              <p>... we will automatically generate links to the tickets in the appropriate trackers in place.</p>
+              <p>The supported bug tracker prefixes are: (these are all case-insensitive)</p>
+              <ul>
+                <li><code>Fedora</code>, <code>RHBZ</code> and <code>RH</code> (all point to the Red Hat Bugzilla)</li>
+                <li><code>GNOME</code></li>
+                <li><code>KDE</code></li>
+                <li><code>PEAR</code></li>
+                <li><code>PHP</code></li>
+                <li><code>Python</code></li>
+              </ul>
               <hr/>
               <p>And you can refer to <strong>other users</strong> by prefixing their username with the <code>@</code> symbol.</p>
               <pre><code>Thanks @mattdm!</code></pre>
