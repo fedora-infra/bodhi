@@ -29,8 +29,16 @@ def user_url(name):
     return request.route_url('user', name=name)
 
 
-def bugzilla_url(idx):
-    return "https://bugzilla.redhat.com/show_bug.cgi?id=%s" % idx
+def bug_url(tracker, idx):
+    try:
+        return {
+            'fedora': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            'rh': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            'rhbz': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            }[tracker.lower()] % idx
+
+    except KeyError:
+        return None
 
 
 def inject():
@@ -55,14 +63,20 @@ def inject():
 
     class BugzillaPattern(markdown.inlinepatterns.Pattern):
         def handleMatch(self, m):
+            tracker = markdown.util.AtomicString(m.group(2))
+            idx = markdown.util.AtomicString(m.group(3))
+            url = bug_url(tracker, idx[1:])
+
+            if url is None:
+                return tracker + idx
+
             el = markdown.util.etree.Element("a")
-            idx = markdown.util.AtomicString(m.group(2))
-            el.set('href', bugzilla_url(idx[1:]))
+            el.set('href', url)
             el.text = idx
             return el
 
     MENTION_RE = r'(@\w+)'
-    BUGZILLA_RE = r'(#[0-9]{5,})'
+    BUGZILLA_RE = r'([\S]+)(#[0-9]{5,})'
 
     class SurroundProcessor(markdown.postprocessors.Postprocessor):
         def run(self, text):
