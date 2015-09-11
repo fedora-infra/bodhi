@@ -285,7 +285,7 @@ class TestMasher(unittest.TestCase):
         with file(t.mash_lock) as f:
             state = json.load(f)
         try:
-            self.assertEquals(state, {u'tagged': False, u'updates':
+            self.assertEquals(state, {u'updates':
                 [u'bodhi-2.0-1.fc17'], u'completed_repos': []})
         finally:
             t.remove_state()
