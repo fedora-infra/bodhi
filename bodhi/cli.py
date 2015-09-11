@@ -228,7 +228,7 @@ def print_resp(resp, client):
     else:
         click.echo(resp)
 
-    if 'caveats' in resp:
+    if resp.get('caveats', None):
         click.echo('Caveats:')
         for caveat in resp.caveats:
             click.echo(caveat.description)
