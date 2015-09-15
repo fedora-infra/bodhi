@@ -16,7 +16,6 @@ import math
 
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
-from pyramid.httpexceptions import HTTPFound
 
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
@@ -237,11 +236,3 @@ def save_override(request):
     result['caveats'] = caveats
 
     return result
-
-
-@overrides.get(accept=('application/atom+xml',))
-def rss_redirect(request):
-    url = request.route_url('overrides_rss')
-    if request.query_string:
-        url = url + '?' + request.query_string
-    raise HTTPFound(url)

@@ -19,9 +19,6 @@ from cornice import Service
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from pyramid.httpexceptions import exception_response
-from pyramid.httpexceptions import HTTPFound
-
 from bodhi import log
 from bodhi.exceptions import BodhiException, LockedUpdateException
 from bodhi.models import Update, Build, Bug, CVE, Package, UpdateRequest
@@ -71,13 +68,6 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
                          acl=bodhi.security.packagers_allowed_acl,
                          cors_origins=bodhi.security.cors_origins_rw)
 
-zz_update_old = Service(name='update_old', path='/updates/{id}/{title}',
-                     validators=(validate_update_id,),
-                     description='Update submission service',
-                     #acl=bodhi.security.package_maintainers_only_acl,
-                     acl=bodhi.security.packagers_allowed_acl,
-                     cors_origins=bodhi.security.cors_origins_rw)
-
 @update.get(accept=('application/json', 'text/json'), renderer='json',
             error_handler=bodhi.services.errors.json_handler)
 @update.get(accept=('application/javascript'), renderer='jsonp',
@@ -95,16 +85,6 @@ def get_update(request):
     return dict(update=request.validated['update'], can_edit=can_edit)
 
 
-@zz_update_old.get(accept=('application/json', 'text/json'), renderer='json',
-                error_handler=bodhi.services.errors.json_handler)
-@zz_update_old.get(accept=('application/javascript'), renderer='jsonp',
-                error_handler=bodhi.services.errors.jsonp_handler)
-@zz_update_old.get(accept="text/html", renderer="update.html",
-                error_handler=bodhi.services.errors.html_handler)
-def get_update_old(request):
-    return HTTPFound("/updates/{0}".format(request.matchdict['id']))
-
-
 @update_edit.get(accept="text/html", renderer="new_update.html",
                  error_handler=bodhi.services.errors.html_handler)
 def get_update_for_editing(request):
@@ -115,16 +95,6 @@ def get_update_for_editing(request):
         severities=reversed(bodhi.models.UpdateSeverity.values()),
         suggestions=reversed(bodhi.models.UpdateSuggestion.values()),
     )
-
-
-@update_request.get(accept=('application/json', 'text/json'), renderer='json',
-                error_handler=bodhi.services.errors.json_handler)
-@update_request.get(accept=('application/javascript'), renderer='jsonp',
-                error_handler=bodhi.services.errors.jsonp_handler)
-@update_request.get(accept="text/html", renderer="update.html",
-                error_handler=bodhi.services.errors.html_handler)
-def update_request_get(request):
-    raise exception_response(405)
 
 
 @update_request.post(schema=bodhi.schemas.UpdateRequestSchema,
@@ -435,11 +405,3 @@ def new_update(request):
     result['caveats'] = caveats
 
     return result
-
-
-@updates.get(accept=('application/atom+xml',))
-def rss_redirect(request):
-    url = request.route_url('updates_rss')
-    if request.query_string:
-        url = url + '?' + request.query_string
-    raise HTTPFound(url)
