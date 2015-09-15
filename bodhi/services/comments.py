@@ -15,7 +15,7 @@
 import math
 
 from cornice import Service
-from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
+from pyramid.httpexceptions import HTTPBadRequest
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
@@ -188,11 +188,3 @@ def new_comment(request):
         return
 
     return dict(comment=comment, caveats=caveats)
-
-
-@comments.get(accept=('application/atom+xml',))
-def rss_redirect(request):
-    url = request.route_url('comments_rss')
-    if request.query_string:
-        url = url + '?' + request.query_string
-    raise HTTPFound(url)
