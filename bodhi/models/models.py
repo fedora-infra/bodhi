@@ -1537,10 +1537,11 @@ class Update(Base):
             raise BodhiException(
                 "Can only revoke an update with an existing request")
 
-        if self.status not in [UpdateStatus.pending, UpdateStatus.testing]:
+        if self.status not in [UpdateStatus.pending, UpdateStatus.testing,
+                               UpdateStatus.obsolete, UpdateStatus.unpushed]:
             raise BodhiException(
-                "Can only revoke a pending or testing update, not "
-                "one that is %s" % self.status.description)
+                "Can only revoke a pending, testing, unpushed, or obsolete "
+                "update, not one that is %s" % self.status.description)
 
         # Remove the 'pending' koji tags from this update so taskotron stops
         # evalulating them.
