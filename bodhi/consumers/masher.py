@@ -422,6 +422,13 @@ class MasherThread(threading.Thread):
         text = '%s ejected from the push because %r' % (update.title, reason)
         log.warn(text)
         update.comment(text, author=u'bodhi')
+        # Remove the pending tag as well
+        if update.request is UpdateRequest.stable:
+            update.remove_tag(update.release.pending_stable_tag,
+                              koji=self.koji)
+        elif update.request is UpdateRequest.testing:
+            update.remove_tag(update.release.pending_testing_tag,
+                              koji=self.koji)
         update.request = None
         if update in self.state['updates']:
             self.state['updates'].remove(update)
