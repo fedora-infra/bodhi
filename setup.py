@@ -112,6 +112,7 @@ setup(name='bodhi',
       bodhi = bodhi.cli:cli
       bodhi-push = bodhi.push:push
       bodhi-expire-overrides = bodhi.scripts.expire_overrides:main
+      bodhi-untag-branched = bodhi.scripts.untag_branched:main
       [moksha.consumer]
       masher = bodhi.consumers.masher:Masher
       updates = bodhi.consumers.updates:UpdatesHandler
