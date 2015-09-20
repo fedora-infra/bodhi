@@ -140,7 +140,6 @@ validators = (
     validate_release,
     validate_releases,
     validate_enums,
-    validate_username,
     validate_bugs,
 )
 @updates_rss.get(schema=bodhi.schemas.ListUpdateSchema, renderer='rss',
