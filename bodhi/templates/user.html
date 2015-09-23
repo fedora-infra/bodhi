@@ -1,7 +1,23 @@
 <%inherit file="master.html"/>
 
 <script>
+  function view_updates() {
+    var option = $('#view_options').val();
+    var url = "${urls['recent_updates']}";
+    if (option) {
+        url += '&status=' + option;
+    }
+    window.location.href = url;
+  };
+
   $(function() {
+      $('#view_txt').click(function(){
+          view_updates()
+      });
+      $('#view_btn').click(function(){
+          view_updates()
+      });
+
       $('.onlyjs').css('visibility', 'visible');
       $('.onlyjs').css('display', 'block');
 
@@ -90,9 +106,14 @@
         <a href="${urls['recent_updates_rss']}">
           RSS <span class="fa fa-rss"></span>
         </a>
-        <a href="${urls['recent_updates']}">
-          View all <span class="count"></span>
-          <span class="glyphicon glyphicon-chevron-right"></span>
+        <a>
+        <span id="view_txt">View</span>
+        <select id="view_options">
+          <option value="">all</option>
+          <option value="stable">Stable</option>
+          <option value="testing">Testing</option>
+        </select>
+        <span class="glyphicon glyphicon-chevron-right" id="view_btn"></span>
         </a>
       </div>
     </div>
