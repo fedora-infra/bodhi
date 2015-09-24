@@ -111,6 +111,17 @@ def validate_build_tags(request):
                          .filter_by(title=edited)\
                          .first()\
                          .release
+        if not release:
+            # If the edited update has no release, something went wrong a while
+            # ago.  We're already in a corrupt state.  We can't perform the
+            # check further down as to whether or not the user is submitting
+            # builds that do or do not match the release of this update...
+            # because we don't know the release of this update.
+            request.errors.add('body', 'edited',
+                               'Pre-existing update %s has no associated '
+                               '"release" object.  Please submit a ticket to '
+                               'resolve this.' % edited)
+            return
     else:
         valid_tags = tag_types['candidate']
 
@@ -129,6 +140,8 @@ def validate_build_tags(request):
         if edited:
             try:
                 build_rel = Release.from_tags(tags, request.db)
+                if not build_rel:
+                    raise KeyError("Couldn't find release from build tags")
             except KeyError:
                 msg = 'Cannot find release associated with build: {}, tags: {}'.format(build, tags)
                 log.warn(msg)
