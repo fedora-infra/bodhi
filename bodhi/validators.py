@@ -140,6 +140,8 @@ def validate_build_tags(request):
         if edited:
             try:
                 build_rel = Release.from_tags(tags, request.db)
+                if not build_rel:
+                    raise KeyError("Couldn't find release from build tags")
             except KeyError:
                 msg = 'Cannot find release associated with build: {}, tags: {}'.format(build, tags)
                 log.warn(msg)
