@@ -171,6 +171,10 @@ def validate_tags(request):
 
 def validate_acls(request):
     """Ensure this user has commit privs to these builds or is an admin"""
+    if not request.user:
+        # If you're not logged in, obviously you don't have ACLs.
+        request.errors.add('session', 'user', 'No ACLs for anonymous user')
+        return
     db = request.db
     user = User.get(request.user.name, request.db)
     settings = request.registry.settings
