@@ -198,8 +198,4 @@ def main(global_config, testing=None, **settings):
     config.scan('bodhi.captcha')
     config.scan('bodhi.events')
 
-    # Setup fedmsg for this thread
-    import bodhi.notifications
-    bodhi.notifications.init()
-
     return config.make_wsgi_app()
