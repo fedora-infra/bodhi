@@ -222,6 +222,7 @@ PYTHONPATH=. %{__python} setup.py test
 %{_bindir}/initialize_bodhi_db
 %{_bindir}/bodhi-expire-overrides
 %{_bindir}/bodhi-push
+%{_bindir}/bodhi-untag-branched
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %config(noreplace) %{_sysconfdir}/fedmsg.d/*
 %dir %{_sysconfdir}/bodhi/
