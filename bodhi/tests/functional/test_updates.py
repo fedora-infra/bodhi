@@ -14,6 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import copy
 import textwrap
 import time
 import mock
@@ -334,6 +335,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         # Test that someuser has can_edit False, they are unrelated
         # This check *failed* with the old acls code.
         app = TestApp(main({}, testing=u'someuser', **self.app_settings))
+        res = app.get('/updates/%s' % nvr, status=200)
+        eq_(res.json_body['can_edit'], False)
+
+        # Test that an anonymous user has can_edit False, obv.
+        # This check *crashed* with the code on 2015-09-24.
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+
+        app = TestApp(main({}, **anonymous_settings))
         res = app.get('/updates/%s' % nvr, status=200)
         eq_(res.json_body['can_edit'], False)
 
