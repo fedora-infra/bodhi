@@ -309,7 +309,7 @@ class TestMasher(unittest.TestCase):
             t.db = None
         self.assertEquals(t.testing_digest[u'Fedora 17'][u'bodhi-2.0-1.fc17'], """\
 ================================================================================
- libseccomp-2.1.0-1.fc20 (FEDORA-%s-0001)
+ libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)
  Enhanced seccomp library
 --------------------------------------------------------------------------------
 Update Information:
@@ -329,7 +329,7 @@ References:
         mail.assert_called_with(config.get('bodhi_email'), config.get('fedora_test_announce_list'), mock.ANY)
         assert len(mail.mock_calls) == 2, len(mail.mock_calls)
         body = mail.mock_calls[1][1][2]
-        assert body.startswith('From: updates@fedoraproject.org\r\nTo: %s\r\nSubject: Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n================================================================================\n libseccomp-2.1.0-1.fc20 (FEDORA-%s-0001)\n Enhanced seccomp library\n--------------------------------------------------------------------------------\nUpdate Information:\n\nUseful details!\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------------------------------------------------------------------\n\n' % (config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
+        assert body.startswith('From: updates@fedoraproject.org\r\nTo: %s\r\nSubject: Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n================================================================================\n libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)\n Enhanced seccomp library\n--------------------------------------------------------------------------------\nUpdate Information:\n\nUseful details!\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------------------------------------------------------------------\n\n' % (config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
     def test_sanity_check(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
@@ -709,7 +709,7 @@ References:
     @mock.patch('bodhi.bugs.bugtracker.on_qa')
     def test_modify_testing_bugs(self, on_qa, modified, *args):
         self.masher.consume(self.msg)
-        on_qa.assert_called_once_with(12345, u"bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\nIf you want to test the update, you can install it with\n$ su -c 'dnf --enablerepo=updates-testing update bodhi'\nYou can provide feedback for this update here: http://0.0.0.0:6543/updates/FEDORA-%s-0001" % time.localtime().tm_year)
+        on_qa.assert_called_once_with(12345, u"bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\nIf you want to test the update, you can install it with\n$ su -c 'dnf --enablerepo=updates-testing update bodhi'\nYou can provide feedback for this update here: http://0.0.0.0:6543/updates/FEDORA-%s-a3bbe1a8f2" % time.localtime().tm_year)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.consumers.masher.MasherThread.update_comps')

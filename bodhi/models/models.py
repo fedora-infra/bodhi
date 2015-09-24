@@ -17,8 +17,10 @@
 import os
 import re
 import copy
+import hashlib
 import json
 import time
+import uuid
 
 from textwrap import wrap
 from datetime import datetime
@@ -989,44 +991,15 @@ class Update(Base):
         return bad * -1, good
 
     def assign_alias(self):
-        """Return the next available update ID.
+        """Return a randomly-suffixed update ID.
 
-        This function finds the next number in the sequence of pushed updates
-        for this release, increments it and prefixes it with the id_prefix of
-        the release and the year (ie FEDORA-2007-0001).
+        This function used to construct update IDs in a monotonic sequence, but
+        we ran into race conditions so we do it randomly now.
         """
-        release = self.release
-        releases = DBSession.query(Release)\
-                            .filter_by(id_prefix=release.id_prefix)\
-                            .all()
-        subquery = DBSession.query(Update.date_submitted).filter(
-                                and_(Update.id != self.id,
-                                     Update.alias != None,
-                                   or_(*[Update.release == r
-                                         for r in releases])))\
-                          .order_by(Update.date_submitted.desc())\
-                          .group_by(Update.date_submitted)\
-                          .limit(1)
-
-        update = DBSession.query(Update).filter(
-             Update.date_submitted.in_(subquery.subquery())
-        ).all()
-
-        if not update:
-            id = 1
-        else:
-            aliases = []
-            for upd in update:
-                split = upd.alias.split('-')
-                year, id = split[-2:]
-                aliases.append((int(year), int(id)))
-
-            year, id = max(aliases)
-            if int(year) != time.localtime()[0]:  # new year
-                id = 0
-            id = int(id) + 1
-
-        alias = u'%s-%s-%0.4d' % (release.id_prefix, time.localtime()[0], id)
+        prefix = self.release.id_prefix
+        year = time.localtime()[0]
+        id = hashlib.sha1(str(uuid.uuid4())).hexdigest()[:10]
+        alias = u'%s-%s-%s' % (prefix, year, id)
         log.debug('Setting alias for %s to %s' % (self.title, alias))
         self.alias = alias
 

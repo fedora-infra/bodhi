@@ -46,6 +46,15 @@ mock_valid_requirements = {
     'return_value': ['rpmlint', 'upgradepath'],
 }
 
+mock_uuid4_version1 = {
+    'target': 'uuid.uuid4',
+    'return_value': 'this is a consistent string',
+}
+mock_uuid4_version2 = {
+    'target': 'uuid.uuid4',
+    'return_value': 'this is another consistent string',
+}
+
 mock_taskotron_results = {
     'target': 'bodhi.util.taskotron_results',
     'return_value': [{
@@ -428,7 +437,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_jsonp(self):
@@ -519,7 +528,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
@@ -558,7 +567,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
@@ -597,7 +606,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_invalid_critpath(self):
@@ -630,7 +639,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(up['cves'][0]['cve_id'], "CVE-1985-0110")
 
@@ -689,7 +698,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_locked(self):
@@ -713,7 +722,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_invalid_locked(self):
@@ -761,7 +770,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
@@ -796,7 +805,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_builds(self):
@@ -824,7 +833,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_package(self):
@@ -853,7 +862,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(up['pushed'], False)
 
@@ -901,7 +910,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
@@ -936,7 +945,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_release_version(self):
@@ -960,7 +969,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_release(self):
@@ -992,7 +1001,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_request(self):
@@ -1026,7 +1035,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_severity(self):
@@ -1059,7 +1068,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_status(self):
@@ -1092,7 +1101,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_suggest(self):
@@ -1125,7 +1134,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_type(self):
@@ -1158,7 +1167,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0001' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_unexisting_username(self):
@@ -1180,6 +1189,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
+    @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
     def test_new_update(self, publish, *args):
@@ -1200,7 +1210,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0002' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
         self.assertEquals(up['karma'], 0)
         self.assertEquals(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
@@ -1239,6 +1249,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['errors'][0]['description'],
                           "Invalid bug ID specified: [u'1234', u'blargh']")
 
+    @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
     def test_edit_update(self, publish, *args):
@@ -1265,7 +1276,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-0002' % YEAR)
+        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
         self.assertEquals(up['karma'], 0)
         self.assertEquals(up['requirements'], 'upgradepath')
         comment = textwrap.dedent("""
@@ -1527,7 +1538,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_obsoletion(self, publish, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        self.app.post_json('/updates/', args)
+        with mock.patch(**mock_uuid4_version1):
+            self.app.post_json('/updates/', args)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
         publish.call_args_list = []
@@ -1537,7 +1549,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up.request = None
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        r = self.app.post_json('/updates/', args).json_body
+        with mock.patch(**mock_uuid4_version2):
+            r = self.app.post_json('/updates/', args).json_body
         self.assertEquals(r['request'], 'testing')
 
         # Since we're obsoleting something owned by someone else.
@@ -1549,7 +1562,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         # Note that caveats above don't support markdown, but comments do.
         self.assertEquals(r['comments'][-1]['text'],
                           u'This update has obsoleted [bodhi-2.0.0-2.fc17]'
-                          '(http://0.0.0.0:6543/updates/FEDORA-2015-0002), '
+                          '(http://0.0.0.0:6543/updates/FEDORA-2015-033713b73b), '
                           'and has inherited its bugs and notes.')
         publish.assert_called_with(
             topic='update.request.testing', msg=mock.ANY)
@@ -1559,7 +1572,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up.comments[-1].text,
                           u'This update has been obsoleted by '
                           '[bodhi-2.0.0-3.fc17](http://0.0.0.0:6543/'
-                          'updates/FEDORA-2015-0003).')
+                          'updates/FEDORA-2015-53345602d5).')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
