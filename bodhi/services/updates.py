@@ -365,7 +365,7 @@ def new_update(request):
 
                 log.info('Creating new update: %r' % _data['builds'])
                 result, _caveats = Update.new(request, _data)
-                log.debug('update = %r' % result)
+                log.debug('update = %r', result)
 
                 updates.append(result)
                 caveats.extend(_caveats)
