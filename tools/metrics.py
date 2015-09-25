@@ -29,9 +29,13 @@ from datetime import timedelta
 from collections import defaultdict
 
 from sqlalchemy.sql import and_
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
-from bodhi.util import get_db_from_config, header, get_critpath_pkgs
+from bodhi.util import header, get_critpath_pkgs
 from bodhi.models import Update, Release, UpdateStatus, UpdateType
+
+import bodhi
 
 statuses = ('stable', 'testing', 'pending', 'obsolete')
 types = ('bugfix', 'enhancement', 'security', 'newpackage')
@@ -46,7 +50,10 @@ def short_url(update):
 
 
 def main(releases=None):
-    db = get_db_from_config()
+    engine = bodhi.config['sqlalchemy.url']
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
 
     stats = {}  # {release: {'stat': ...}}
     feedback = 0  # total number of updates that received feedback

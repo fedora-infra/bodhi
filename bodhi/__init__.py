@@ -16,6 +16,8 @@ from collections import defaultdict
 from dogpile.cache import make_region
 from munch import munchify
 from sqlalchemy import engine_from_config
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
 from pyramid.settings import asbool
 from pyramid.security import unauthenticated_userid
@@ -41,8 +43,10 @@ bodhi.ffmarkdown.inject()
 #
 
 def get_dbsession(request):
-    from bodhi.models import DBSession
-    return DBSession()
+    engine = engine_from_config(request.registry.settings, 'sqlalchemy.')
+    Sess = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Sess.configure(bind=engine)
+    return Sess()
 
 
 def get_cacheregion(request):
@@ -81,7 +85,7 @@ def get_buildinfo(request):
 
 def get_releases(request):
     from bodhi.models import Release
-    return Release.all_releases()
+    return Release.all_releases(request.db)
 
 #
 # Cornice filters
@@ -101,13 +105,8 @@ DEFAULT_FILTERS.insert(0, exception_filter)
 # Bodhi initialization
 #
 
-def main(global_config, testing=None, **settings):
+def main(global_config, testing=None, session=None, **settings):
     """ This function returns a WSGI application """
-    from bodhi.models import DBSession, Base
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
-    Base.metadata.bind = engine
-
     # Setup our buildsystem
     buildsys.setup_buildsystem(settings)
 
@@ -125,17 +124,20 @@ def main(global_config, testing=None, **settings):
     # pyramid_fas_openid looks for this setting
     settings['openid.groups'] = settings.get('openid.groups', default).split()
 
-    config = Configurator(settings=settings,
-                          session_factory=session_factory)
+    config = Configurator(settings=settings, session_factory=session_factory)
 
     # Plugins
     config.include('pyramid_mako')
     config.include('cornice')
 
     # Lazy-loaded memoized request properties
+    if session:
+        config.add_request_method(lambda _: session, 'db', reify=True)
+    else:
+        config.add_request_method(get_dbsession, 'db', reify=True)
+
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
-    config.add_request_method(get_dbsession, 'db', reify=True)
     config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
     config.add_request_method(get_releases, 'releases', reify=True)

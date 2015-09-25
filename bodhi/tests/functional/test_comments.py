@@ -18,7 +18,6 @@ from datetime import datetime, timedelta
 import bodhi.tests.functional.base
 
 from bodhi.models import (
-    DBSession,
     Comment,
     Release,
     User,
@@ -327,9 +326,8 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['comments']), 0)
 
         # Now change the time on one to tomorrow
-        session = DBSession()
-        session.query(Comment).first().timestamp = tomorrow
-        session.flush()
+        self.db.query(Comment).first().timestamp = tomorrow
+        self.db.flush()
 
         # And try again
         res = self.app.get('/comments/', {"since": tomorrow.strftime(fmt)})
@@ -384,7 +382,6 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
     def test_list_comments_by_update_no_comments(self):
-        session = DBSession()
         update = Update(
             title=u'bodhi-2.0-200.fc17',
             #builds=[build],
@@ -398,8 +395,8 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
             stable_karma=3,
             unstable_karma=-3,
         )
-        session.add(update)
-        session.flush()
+        self.db.add(update)
+        self.db.flush()
 
         res = self.app.get('/comments/', {"updates": "bodhi-2.0-200.fc17"})
         body = res.json_body
@@ -452,10 +449,9 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
     def test_list_comments_by_update_owner_with_none(self):
-        session = DBSession()
         user = User(name=u'ralph')
-        session.add(user)
-        session.flush()
+        self.db.add(user)
+        self.db.flush()
         res = self.app.get('/comments/', {"update_owner": "ralph"})
         body = res.json_body
         self.assertEquals(len(body['comments']), 0)
@@ -475,9 +471,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_post_json_comment(self):
         self.app.post_json('/comments/', self.make_comment(text='awesome'))
-        session = DBSession()
-        up = session.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
-        session.close()
+        up = self.db.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
         self.assertEquals(len(up.comments), 3)
         self.assertEquals(up.comments[-1]['text'], 'awesome')
 
@@ -497,8 +491,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         comment = self.make_comment('bodhi-2.0-1.fc17', karma=1)
         # The author of this comment is "guest"
 
-        session = DBSession()
-        up = session.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
+        up = self.db.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
         self.assertEquals(up.user.name, 'guest')
 
         r = self.app.post_json('/comments/', comment)
@@ -515,25 +508,25 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
     def test_comment_on_locked_update(self):
         """ Make sure you can comment on locked updates. """
         # Lock it
-        up = DBSession.query(Update).filter_by(title=up2).one()
+        up = self.db.query(Update).filter_by(title=up2).one()
         up.locked = True
         up.status = UpdateStatus.testing
         up.request = None
         self.assertEquals(len(up.comments), 0)  # Before
         self.assertEquals(up.karma, 0)          # Before
-        DBSession.flush()
+        self.db.flush()
 
         comment = self.make_comment(up2, karma=1)
         self.app.post_json('/comments/', comment)
 
-        up = DBSession.query(Update).filter_by(title=up2).one()
+        up = self.db.query(Update).filter_by(title=up2).one()
         self.assertEquals(len(up.comments), 1)  # After
         self.assertEquals(up.karma, 1)          # After
 
     def test_comment_on_locked_update_no_threshhold_action(self):
         " Make sure you can't trigger threshold action on locked updates "
         # Lock it
-        up = DBSession.query(Update).filter_by(title=up2).one()
+        up = self.db.query(Update).filter_by(title=up2).one()
         up.locked = True
         up.status = UpdateStatus.testing
         up.request = UpdateStatus.stable
@@ -541,12 +534,12 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         up.unstable_karma = -1
         self.assertEquals(len(up.comments), 0)  # Before
         self.assertEquals(up.karma, 0)          # Before
-        DBSession.flush()
+        self.db.flush()
 
         comment = self.make_comment(up2, karma=-1)
         self.app.post_json('/comments/', comment)
 
-        up = DBSession.query(Update).filter_by(title=up2).one()
+        up = self.db.query(Update).filter_by(title=up2).one()
         self.assertEquals(len(up.comments), 1)  # After
         self.assertEquals(up.karma, -1)         # After
         # Ensure that the request did not change .. don't trigger something.

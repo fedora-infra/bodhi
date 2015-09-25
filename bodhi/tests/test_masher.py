@@ -25,7 +25,7 @@ from sqlalchemy import create_engine
 from bodhi import buildsys, log
 from bodhi.config import config
 from bodhi.consumers.masher import Masher, MasherThread
-from bodhi.models import (DBSession, Base, Update, User, Release,
+from bodhi.models import (Base, Update, User, Release,
                           Build, UpdateRequest, UpdateType,
                           ReleaseState, BuildrootOverride,
                           UpdateStatus)
@@ -111,13 +111,13 @@ class TestMasher(unittest.TestCase):
             except:
                 pass
         engine = create_engine(db_path)
-        DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
-        self.db_factory = transactional_session_maker
+        self.db_factory = transactional_session_maker(engine)
 
         with self.db_factory() as session:
             populate(session)
             assert session.query(Update).count() == 1
+
 
         self.koji = buildsys.get_session()
         self.koji.clear()  # clear out our dev introspection
@@ -129,12 +129,9 @@ class TestMasher(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tempdir)
         try:
-            DBSession.remove()
-        finally:
-            try:
-                os.remove(self.db_filename)
-            except:
-                pass
+            os.remove(self.db_filename)
+        except:
+            pass
 
     def set_stable_request(self, title):
         with self.db_factory() as session:
@@ -203,7 +200,7 @@ class TestMasher(unittest.TestCase):
             # Ensure we can't set a request
             from bodhi.exceptions import LockedUpdateException
             try:
-                up.set_request(UpdateRequest.stable, u'bodhi')
+                up.set_request(session, UpdateRequest.stable, u'bodhi')
                 assert False, 'Set the request on a locked update'
             except LockedUpdateException:
                 pass
@@ -902,13 +899,13 @@ References:
 
             # Have the update reach the stable karma threshold
             self.assertEquals(up.karma, 1)
-            up.comment(u"foo", 1, u'foo')
+            up.comment(session, u"foo", 1, u'foo')
             self.assertEquals(up.karma, 2)
             self.assertEquals(up.request, UpdateRequest.testing)
-            up.comment(u"foo", 1, u'bar')
+            up.comment(session, u"foo", 1, u'bar')
             self.assertEquals(up.karma, 3)
             self.assertEquals(up.request, UpdateRequest.testing)
-            up.comment(u"foo", 1, u'biz')
+            up.comment(session, u"foo", 1, u'biz')
             self.assertEquals(up.request, UpdateRequest.testing)
             self.assertEquals(up.karma, 4)
 
@@ -918,7 +915,7 @@ References:
 
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
-            up.comment(u"foo", 1, u'baz')
+            up.comment(session, u"foo", 1, u'baz')
             self.assertEquals(up.karma, 5)
 
             # Ensure the masher set the autokarma once the push is done

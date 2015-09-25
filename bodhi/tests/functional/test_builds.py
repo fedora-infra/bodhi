@@ -23,7 +23,6 @@ from bodhi.models import (
     Bug,
     Build,
     CVE,
-    DBSession,
     Group,
     Package,
     Release,
@@ -52,7 +51,7 @@ class TestBuildsService(bodhi.tests.functional.base.BaseWSGICase):
     def test_list_builds_pagination(self):
 
         # First, stuff a second build in there
-        session = DBSession()
+        session = self.db
         build = Build(nvr=u'bodhi-3.0-1.fc21')
         session.add(build)
         session.flush()

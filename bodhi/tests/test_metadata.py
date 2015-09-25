@@ -22,14 +22,16 @@ from datetime import datetime
 from hashlib import sha256
 from os.path import join, exists, basename
 from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
 import createrepo_c
 
 from bodhi import log
 from bodhi.config import config
-from bodhi.util import mkmetadatadir, get_nvr
-from bodhi.models import (Release, Package, Update, Bug, Build, Base,
-        DBSession, UpdateRequest, UpdateStatus, UpdateType)
+from bodhi.util import mkmetadatadir
+from bodhi.models import (Package, Update, Build, Base,
+        UpdateRequest, UpdateStatus, UpdateType)
 from bodhi.buildsys import get_session, DevBuildsys
 from bodhi.metadata import ExtendedMetadata
 from bodhi.tests.functional.base import DB_PATH
@@ -47,9 +49,12 @@ class TestExtendedMetadata(unittest.TestCase):
 
     def setUp(self):
         engine = create_engine(DB_PATH)
-        DBSession.configure(bind=engine)
+        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+        Session.configure(bind=engine)
+        log.debug('Creating all models for %s' % engine)
+        Base.metadata.bind = engine
         Base.metadata.create_all(engine)
-        self.db = DBSession()
+        self.db = Session()
         populate(self.db)
 
         # Initialize our temporary repo
@@ -74,7 +79,7 @@ class TestExtendedMetadata(unittest.TestCase):
         }]
 
     def tearDown(self):
-        DBSession.remove()
+        self.db.close()
         get_session().clear()
         shutil.rmtree(self.tempdir)
 

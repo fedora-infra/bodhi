@@ -30,7 +30,6 @@ from bodhi import main
 from bodhi.config import config
 from bodhi.models import (
     Build,
-    DBSession,
     Group,
     Package,
     Update,
@@ -132,10 +131,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     # FIXME: make it easy to tweak the tag of an update in our buildsys during unit tests
     #def test_invalid_tag(self):
-    #    session = DBSession()
-    #    map(session.delete, session.query(Update).all())
-    #    map(session.delete, session.query(Build).all())
-    #    num = session.query(Update).count()
+    #    map(self.db.delete, self.db.query(Update).all())
+    #    map(self.db.delete, self.db.query(Build).all())
+    #    num = self.db.query(Update).count()
     #    assert num == 0, num
     #    res = self.app.post_json('/updates/', self.get_update(u'bodhi-1.0-1.fc17'),
     #                             status=400)
@@ -180,11 +178,10 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
     def test_no_privs(self, publish, *args):
-        session = DBSession()
         user = User(name=u'bodhi')
-        session.add(user)
-        session.flush()
-        app = TestApp(main({}, testing=u'bodhi', **self.app_settings))
+        self.db.add(user)
+        self.db.flush()
+        app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         res = app.post_json('/updates/', self.get_update(u'bodhi-2.1-1.fc17'),
                             status=400)
         assert 'bodhi does not have commit access to bodhi' in res, res
@@ -195,19 +192,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch('bodhi.notifications.publish')
     def test_provenpackager_privs(self, publish, *args):
         "Ensure provenpackagers can push updates for any package"
-        session = DBSession()
         user = User(name=u'bodhi')
-        session.add(user)
-        session.flush()
-        group = session.query(Group).filter_by(name=u'provenpackager').one()
+        self.db.add(user)
+        self.db.flush()
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
 
-        app = TestApp(main({}, testing=u'bodhi', **self.app_settings))
+        app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         update = self.get_update(u'bodhi-2.1-1.fc17')
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', update)
         assert 'bodhi does not have commit access to bodhi' not in res, res
-        build = session.query(Build).filter_by(nvr=u'bodhi-2.1-1.fc17').one()
+        build = self.db.query(Build).filter_by(nvr=u'bodhi-2.1-1.fc17').one()
         assert build.update is not None
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
@@ -219,15 +215,14 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         "Ensure provenpackagers can edit updates for any package"
         nvr = u'bodhi-2.1-1.fc17'
 
-        session = DBSession()
         user = User(name=u'lloyd')
-        session.add(user)
-        session.add(User(name=u'ralph'))  # Add a non proventester
-        session.flush()
-        group = session.query(Group).filter_by(name=u'provenpackager').one()
+        self.db.add(user)
+        self.db.add(User(name=u'ralph'))  # Add a non proventester
+        self.db.flush()
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
 
-        app = TestApp(main({}, testing=u'ralph', **self.app_settings))
+        app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
@@ -235,14 +230,14 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-        app = TestApp(main({}, testing=u'lloyd', **self.app_settings))
+        app = TestApp(main({}, testing=u'lloyd', session=self.db, **self.app_settings))
         update = self.get_update(nvr)
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         update['notes'] = u'testing!!!'
         update['edited'] = nvr
         res = app.post_json('/updates/', update)
         assert 'bodhi does not have commit access to bodhi' not in res, res
-        build = session.query(Build).filter_by(nvr=nvr).one()
+        build = self.db.query(Build).filter_by(nvr=nvr).one()
         assert build.update is not None
         self.assertEquals(build.update.notes, u'testing!!!')
         #publish.assert_called_once_with(
@@ -254,16 +249,15 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_provenpackager_request_privs(self, publish, *args):
         "Ensure provenpackagers can change the request for any update"
         nvr = u'bodhi-2.1-1.fc17'
-        session = DBSession()
         user = User(name=u'bob')
-        session.add(user)
-        session.add(User(name=u'ralph'))  # Add a non proventester
-        session.add(User(name=u'someuser'))  # An unrelated user with no privs
-        session.flush()
-        group = session.query(Group).filter_by(name=u'provenpackager').one()
+        self.db.add(user)
+        self.db.add(User(name=u'ralph'))  # Add a non proventester
+        self.db.add(User(name=u'someuser'))  # An unrelated user with no privs
+        self.db.flush()
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
 
-        app = TestApp(main({}, testing=u'ralph', **self.app_settings))
+        app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
@@ -271,11 +265,11 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-        build = session.query(Build).filter_by(nvr=nvr).one()
+        build = self.db.query(Build).filter_by(nvr=nvr).one()
         eq_(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a non-provenpackager
-        app = TestApp(main({}, testing=u'ralph', **self.app_settings))
+        app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         post_data = dict(update=nvr, request='stable',
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % nvr, post_data, status=400)
@@ -284,7 +278,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(res.json_body['status'], 'error')
         eq_(res.json_body['errors'][0]['description'], config.get('not_yet_tested_msg'))
 
-        update = session.query(Update).filter_by(title=nvr).one()
+        update = self.db.query(Update).filter_by(title=nvr).one()
         eq_(update.stable_karma, 3)
         eq_(update.locked, False)
         eq_(update.request, UpdateRequest.testing)
@@ -293,19 +287,19 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
-        session.flush()
+        self.db.flush()
 
         eq_(update.karma, 0)
-        update.comment(u"foo", 1, u'foo')
-        update = session.query(Update).filter_by(title=nvr).one()
+        update.comment(self.db, u"foo", 1, u'foo')
+        update = self.db.query(Update).filter_by(title=nvr).one()
         eq_(update.karma, 1)
         eq_(update.request, None)
-        update.comment(u"foo", 1, u'bar')
-        update = session.query(Update).filter_by(title=nvr).one()
+        update.comment(self.db, u"foo", 1, u'bar')
+        update = self.db.query(Update).filter_by(title=nvr).one()
         eq_(update.karma, 2)
         eq_(update.request, None)
-        update.comment(u"foo", 1, u'biz')
-        update = session.query(Update).filter_by(title=nvr).one()
+        update.comment(self.db, u"foo", 1, u'biz')
+        update = self.db.query(Update).filter_by(title=nvr).one()
         eq_(update.karma, 3)
         eq_(update.request, UpdateRequest.stable)
 
@@ -313,7 +307,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         update.request = UpdateRequest.testing
 
         # Try and submit the update to stable as a proventester
-        app = TestApp(main({}, testing=u'bob', **self.app_settings))
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         res = app.post_json('/updates/%s/request' % nvr,
                             dict(update=nvr, request='stable',
                                 csrf_token=app.get('/csrf').json_body['csrf_token']),
@@ -321,7 +315,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         eq_(res.json_body['update']['request'], 'stable')
 
-        app = TestApp(main({}, testing=u'bob', **self.app_settings))
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         res = app.post_json('/updates/%s/request' % nvr,
                             dict(update=nvr, request='obsolete',
                                  csrf_token=app.get('/csrf').json_body['csrf_token']),
@@ -332,18 +326,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(update.status, UpdateStatus.obsolete)
 
         # Test that bob has can_edit True, provenpackager
-        app = TestApp(main({}, testing=u'bob', **self.app_settings))
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         res = app.get('/updates/%s' % nvr, status=200)
         eq_(res.json_body['can_edit'], True)
 
         # Test that ralph has can_edit True, they submitted it.
-        app = TestApp(main({}, testing=u'ralph', **self.app_settings))
+        app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         res = app.get('/updates/%s' % nvr, status=200)
         eq_(res.json_body['can_edit'], True)
 
         # Test that someuser has can_edit False, they are unrelated
         # This check *failed* with the old acls code.
-        app = TestApp(main({}, testing=u'someuser', **self.app_settings))
+        app = TestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
         res = app.get('/updates/%s' % nvr, status=200)
         eq_(res.json_body['can_edit'], False)
 
@@ -355,7 +349,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
             'authtkt.secure': True,
         })
 
-        app = TestApp(main({}, **anonymous_settings))
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/updates/%s' % nvr, status=200)
         eq_(res.json_body['can_edit'], False)
 
@@ -385,7 +379,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         settings = self.app_settings.copy()
         settings['acl_system'] = 'pkgdb'
         settings['pkgdb_url'] = 'invalidurl'
-        app = TestApp(main({}, testing=u'guest', **settings))
+        app = TestApp(main({}, testing=u'guest', session=self.db, **settings))
         update = self.get_update(u'bodhi-2.0-2.fc17')
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', update, status=400)
@@ -395,7 +389,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     def test_invalid_acl_system(self, *args):
         settings = self.app_settings.copy()
         settings['acl_system'] = 'null'
-        app = TestApp(main({}, testing=u'guest', **settings))
+        app = TestApp(main({}, testing=u'guest', session=self.db, **settings))
         res = app.post_json('/updates/', self.get_update(u'bodhi-2.0-2.fc17'),
                             status=400)
         assert "guest does not have commit access to bodhi" in res, res
@@ -516,9 +510,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['updates']), 0)
 
         # Now approve one
-        session = DBSession()
-        session.query(Update).first().date_approved = now
-        session.flush()
+        self.db.query(Update).first().date_approved = now
+        self.db.flush()
 
         # And try again
         res = self.app.get('/updates/',
@@ -757,9 +750,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['updates']), 0)
 
         # Now approve one
-        session = DBSession()
-        session.query(Update).first().date_modified = now
-        session.flush()
+        self.db.query(Update).first().date_modified = now
+        self.db.flush()
 
         # And try again
         res = self.app.get('/updates/',
@@ -898,9 +890,8 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(body['updates']), 0)
 
         # Now approve one
-        session = DBSession()
-        session.query(Update).first().date_pushed = now
-        session.flush()
+        self.db.query(Update).first().date_pushed = now
+        self.db.flush()
 
         # And try again
         res = self.app.get('/updates/',
@@ -1306,7 +1297,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertMultiLineEqual(up['comments'][-1]['text'], comment)
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        self.assertEquals(self.db.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
         self.assertEquals(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
@@ -1350,7 +1341,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                           u'This update has been submitted for testing by guest. ')
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        self.assertEquals(self.db.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
         self.assertEquals(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
@@ -1393,7 +1384,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                           u'This update has been submitted for testing by guest. ')
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(DBSession.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        self.assertEquals(self.db.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
         self.assertEquals(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
@@ -1418,9 +1409,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
             pending_stable_tag=u'f18-updates-pending',
             override_tag=u'f18-override',
             branch=u'f18')
-        DBSession.add(release)
+        self.db.add(release)
         pkg = Package(name=u'nethack')
-        DBSession.add(pkg)
+        self.db.add(pkg)
 
         args = self.get_update('bodhi-2.0.0-2.fc17,nethack-4.0.0-1.fc18')
         args['edited'] = nvr
@@ -1435,9 +1426,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch('bodhi.notifications.publish')
     def test_cascade_package_requirements_to_update(self, publish, *args):
 
-        package = DBSession.query(Package).filter_by(name=u'bodhi').one()
+        package = self.db.query(Package).filter_by(name=u'bodhi').one()
         package.requirements = u'upgradepath rpmlint'
-        DBSession.flush()
+        self.db.flush()
 
         args = self.get_update(u'bodhi-2.0.0-3.fc17')
         # Don't specify any requirements so that they cascade from the package
@@ -1463,7 +1454,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
             topic='update.request.testing', msg=mock.ANY)
 
         # Then, switch it to stable behind the scenes
-        up = DBSession.query(Update).filter_by(title=nvr).one()
+        up = self.db.query(Update).filter_by(title=nvr).one()
         up.status = UpdateStatus.stable
 
         # Then, try to edit it through the api again
@@ -1484,13 +1475,13 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         r = self.app.post_json('/updates/', args, status=200)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
-        up = DBSession.query(Update).filter_by(title=nvr).one()
+        up = self.db.query(Update).filter_by(title=nvr).one()
         up.locked = True
         up.status = UpdateStatus.testing
         up.request = None
         up_id = up.id
 
-        build = DBSession.query(Build).filter_by(nvr=nvr).one()
+        build = self.db.query(Build).filter_by(nvr=nvr).one()
 
         # Changing the notes should work
         args['edited'] = args['builds']
@@ -1507,7 +1498,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertIn({u'description': u"Can't add builds to a locked update",
                        u'location': u'body', u'name': u'builds'},
                       r['errors'])
-        up = DBSession.query(Update).get(up_id)
+        up = self.db.query(Update).get(up_id)
         self.assertEquals(up.notes, 'Some new notes')
         self.assertEquals(up.builds, [build])
 
@@ -1522,7 +1513,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                                         "locked update",
                        u'location': u'body', u'name': u'builds'},
                       r['errors'])
-        up = DBSession.query(Update).get(up_id)
+        up = self.db.query(Update).get(up_id)
         self.assertEquals(up.notes, 'Some new notes')
         self.assertEquals(up.builds, [build])
         self.assertEquals(up.request, None)
@@ -1557,7 +1548,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
             topic='update.request.testing', msg=mock.ANY)
         publish.call_args_list = []
 
-        up = DBSession.query(Update).filter_by(title=nvr).one()
+        up = self.db.query(Update).filter_by(title=nvr).one()
         up.status = UpdateStatus.testing
         up.request = None
 
@@ -1580,7 +1571,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         publish.assert_called_with(
             topic='update.request.testing', msg=mock.ANY)
 
-        up = DBSession.query(Update).filter_by(title=nvr).one()
+        up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.comments[-1].text,
                           u'This update has been obsoleted by '
@@ -1598,7 +1589,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         r = self.app.post_json('/updates/', args).json_body
         self.assertEquals(r['request'], 'testing')
 
-        up = DBSession.query(Update).filter_by(title=nvr).one()
+        up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEquals(up.status, UpdateStatus.pending)
         self.assertEquals(up.request, UpdateRequest.testing)
 
@@ -1656,12 +1647,12 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         """Test submitting a stable request to an update that has met the minimum amount of time in testing"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
-        up = DBSession.query(Update).filter_by(title=resp.json['title']).one()
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
-        DBSession.flush()
+        self.db.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
         resp = self.app.post_json(
@@ -1678,12 +1669,12 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         """Test submitting a stable request, but with bad taskotron results"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
-        up = DBSession.query(Update).filter_by(title=resp.json['title']).one()
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
-        DBSession.flush()
+        self.db.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
         resp = self.app.post_json(
@@ -1700,12 +1691,12 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         """Test submitting a stable request, but with absent task results"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
-        up = DBSession.query(Update).filter_by(title=resp.json['title']).one()
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
-        DBSession.flush()
+        self.db.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
         resp = self.app.post_json(
@@ -1726,9 +1717,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.stable
         up.request = None
-        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
-        up.comment('This update has been pushed to stable', author='bodhi')
+        up.comment(self.db, 'This update has been pushed to stable', author='bodhi')
         self.db.flush()
         eq_(up.days_in_testing, 14)
         eq_(up.meets_testing_requirements, True)
@@ -1755,7 +1746,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.comment('This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         self.db.flush()
         eq_(up.days_in_testing, 14)
@@ -1775,10 +1766,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_build(self, *args):
         """Test submitting a new update with a build already in the database"""
-        session = DBSession()
-        package = Package.get('bodhi', session)
-        session.add(Build(nvr=u'bodhi-2.0.0-3.fc17', package=package))
-        session.flush()
+        package = Package.get('bodhi', self.db)
+        self.db.add(Build(nvr=u'bodhi-2.0.0-3.fc17', package=package))
+        self.db.flush()
 
         args = self.get_update(u'bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
@@ -1794,17 +1784,16 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         https://github.com/fedora-infra/bodhi/issues/78
         """
-        session = DBSession()
         title = u'bodhi-2.0-2.fc17 python-3.0-1.fc17'
         args = self.get_update(title)
         resp = self.app.post_json('/updates/', args)
         newuser = User(name=u'bob')
-        session.add(newuser)
-        up = session.query(Update).filter_by(title=title).one()
+        self.db.add(newuser)
+        up = self.db.query(Update).filter_by(title=title).one()
         up.status = UpdateStatus.testing
         up.request = None
         up.user = newuser
-        session.flush()
+        self.db.flush()
 
         newtitle = u'bodhi-2.0-3.fc17'
         args = self.get_update(newtitle)
@@ -1820,7 +1809,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                           "them?")
 
         # Ensure the second update was created successfully
-        session.query(Update).filter_by(title=newtitle).one()
+        self.db.query(Update).filter_by(title=newtitle).one()
 
     @mock.patch(**mock_valid_requirements)
     def test_updateid_alias(self, *args):
@@ -1880,9 +1869,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
             pending_stable_tag=u'f18-updates-pending',
             override_tag=u'f18-override',
             branch=u'f18')
-        DBSession.add(release)
+        self.db.add(release)
         pkg = Package(name=u'nethack')
-        DBSession.add(pkg)
+        self.db.add(pkg)
 
         # A multi-release submission!!!  This should create *two* updates
         args = self.get_update('bodhi-2.0.0-2.fc17,bodhi-2.0.0-2.fc18')

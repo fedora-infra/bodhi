@@ -37,6 +37,8 @@ from collections import defaultdict
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
 from kitchen.text.converters import to_bytes
@@ -186,19 +188,6 @@ class memoized(object):
         return functools.partial(self.__call__, obj)
 
 
-def get_db_from_config(dev=False):
-    from .models import DBSession, Base
-    if dev:
-        db_url = 'sqlite:///:memory:'
-    else:
-        db_url = config['sqlalchemy.url']
-    engine = create_engine(db_url)
-    DBSession.configure(bind=engine)
-    Base.metadata.bind = engine
-    Base.metadata.create_all(engine)
-    return DBSession()
-
-
 @memoized
 def get_critpath_pkgs(collection='master'):
     """Return a list of critical path packages for a given collection"""
@@ -216,7 +205,6 @@ def get_critpath_pkgs(collection='master'):
 
 
 class Singleton(object):
-
     def __new__(cls, *args, **kw):
         if not '_instance' in cls.__dict__:
             cls._instance = object.__new__(cls)
@@ -596,17 +584,24 @@ def taskotron_results(settings, entity='results', **kwargs):
         log.exception("Problem talking to %r" % url)
 
 
-@contextmanager
-def transactional_session_maker():
+class TransactionalSessionMaker(object):
     """Provide a transactional scope around a series of operations."""
-    from .models import DBSession
-    session = DBSession()
-    transaction.begin()
-    try:
-        yield session
-        transaction.commit()
-    except:
-        transaction.abort()
-        raise
-    finally:
-        session.close()
+    def __init__(self, engine):
+        self.engine = engine
+
+    @contextmanager
+    def __call__(self):
+        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+        Session.configure(bind=self.engine)
+        session = Session()
+        transaction.begin()
+        try:
+            yield session
+            transaction.commit()
+        except:
+            transaction.abort()
+            raise
+        finally:
+            session.close()
+
+transactional_session_maker = TransactionalSessionMaker
