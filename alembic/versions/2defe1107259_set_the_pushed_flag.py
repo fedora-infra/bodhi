@@ -12,24 +12,28 @@ down_revision = '70a58ae9f90'
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
 import transaction
 
 import logging
 log = logging.getLogger('alembic.migration')
 
-from bodhi.models import DBSession, Base, Update
+from bodhi.models import Base, Update
 
 def upgrade():
     log.warn("Skipping.  Do this by hand by uncommenting and running in tmux.")
     #log.info("Getting session for data upgrade.")
     #engine = op.get_bind().engine
-    #DBSession.configure(bind=engine)
+    #Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    #Session.configure(bind=engine)
+    #db = Session()
     #Base.metadata.bind = engine
 
     #with transaction.manager:
     #    log.info("Querying for all updates with pushed!=True.")
-    #    query = DBSession.query(Update).filter(Update.pushed!=True)
+    #    query = db.query(Update).filter(Update.pushed!=True)
     #    total = query.count()
     #    log.info(" %i" % total)
     #    log.info("OK")

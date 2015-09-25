@@ -12,19 +12,23 @@ down_revision = '387fda7a1ff0'
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
 import transaction
 
-from bodhi.models import Base, DBSession, Update, UpdateSuggestion
+from bodhi.models import Base, Update, UpdateSuggestion
 
 
 def upgrade():
     engine = op.get_bind()
-    DBSession.configure(bind=engine)
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
     Base.metadata.bind = engine
 
     with transaction.manager:
-        updates = DBSession.query(Update)
+        updates = db.query(Update)
 
         for u in updates:
             if u.suggest is None:

@@ -15,6 +15,9 @@ import sqlalchemy as sa
 import bodhi.models as m
 import transaction
 
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
+
 import logging
 log = logging.getLogger('alembic.migration')
 
@@ -27,7 +30,9 @@ def upgrade():
 
     # And then, for each one, apply the defaults.
     engine = op.get_bind()
-    m.DBSession.configure(bind=engine)
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
     m.Base.metadata.bind = engine
 
     # We can set these requirements to whatever seems best.  I have them as the
@@ -40,11 +45,11 @@ def upgrade():
 
     with transaction.manager:
         log.info("Applying default reqs %r to all stacks." % default_reqs)
-        for stack in m.DBSession.query(m.Stack).all():
+        for stack in db.query(m.Stack).all():
             stack.requirements = default_reqs
 
         log.info("Applying default reqs %r to all packages." % default_reqs)
-        for package in m.DBSession.query(m.Package).all():
+        for package in db.query(m.Package).all():
             package.requirements = default_reqs
 
         # We don't set requirements retroactively for updates though.  That
