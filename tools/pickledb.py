@@ -45,7 +45,7 @@ def load_sqlalchemy_db():
     data = pickle.load(db)
 
     import transaction
-    from bodhi.models import DBSession, Base
+    from bodhi.models import Base
     from bodhi.models import Release, Update, Build, Comment, User, Bug, CVE
     from bodhi.models import Package, Group
     from bodhi.models import UpdateType, UpdateStatus, UpdateRequest

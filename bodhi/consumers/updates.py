@@ -44,7 +44,6 @@ from bodhi.models import (
     Bug,
     Update,
     UpdateType,
-    DBSession,
     Base,
 )
 

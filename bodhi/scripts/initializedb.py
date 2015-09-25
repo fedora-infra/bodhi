@@ -17,6 +17,8 @@ import sys
 import transaction
 
 from sqlalchemy import engine_from_config
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
 from pyramid.paster import (
     get_appsettings,
@@ -24,7 +26,6 @@ from pyramid.paster import (
     )
 
 from ..models import (
-    DBSession,
     Base,
     )
 
@@ -43,5 +44,6 @@ def main(argv=sys.argv):
     setup_logging(config_uri)
     settings = get_appsettings(config_uri)
     engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
     Base.metadata.create_all(engine)

@@ -28,8 +28,10 @@ from datetime import datetime, timedelta
 
 from pyramid.paster import get_appsettings, setup_logging
 from sqlalchemy import engine_from_config
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
-from ..models import DBSession, Release, ReleaseState, Update, UpdateStatus
+from ..models import Release, ReleaseState, Update, UpdateStatus
 
 from bodhi import buildsys
 
@@ -52,13 +54,14 @@ def main(argv=sys.argv):
 
     settings = get_appsettings(config_uri)
     engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
     koji = buildsys.get_session()
     one_day = timedelta(days=1)
     now = datetime.utcnow()
 
     with transaction.manager:
-        db = DBSession()
         for release in db.query(Release).filter_by(
                 state=ReleaseState.pending).all():
             log.info(release.name)
