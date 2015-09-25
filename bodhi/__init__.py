@@ -46,7 +46,22 @@ def get_dbsession(request):
     engine = engine_from_config(request.registry.settings, 'sqlalchemy.')
     Sess = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
     Sess.configure(bind=engine)
-    return Sess()
+    session = Sess()
+
+    def cleanup(request):
+        ## No need to do rollback/commit ourselves.  the zope transaction
+        ## manager takes care of that for us...
+        #if request.exception is not None:
+        #    session.rollback()
+        #else:
+        #    session.commit()
+        ## However, we may still want to explicitly close the session we opened
+        log.debug("Closing session at the end of a request.")
+        session.close()
+
+    request.add_finished_callback(cleanup)
+
+    return session
 
 
 def get_cacheregion(request):
