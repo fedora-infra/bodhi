@@ -125,7 +125,7 @@ def set_request(request):
             return
 
     try:
-        update.set_request(action, request.user.name)
+        update.set_request(request.db, action, request.user.name)
     except BodhiException as e:
         log.exception("Failed to set the request")
         request.errors.add('body', 'request', str(e))

@@ -37,7 +37,7 @@ from bodhi import log, buildsys, notifications, mail, util
 from bodhi.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
-                          UpdateStatus, ReleaseState, DBSession, Base)
+                          UpdateStatus, ReleaseState, Base)
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import BodhiException
 
@@ -122,9 +122,8 @@ Once mash is done:
             config_uri = '/etc/bodhi/production.ini'
             settings = get_appsettings(config_uri)
             engine = engine_from_config(settings, 'sqlalchemy.')
-            DBSession.configure(bind=engine)
             Base.metadata.create_all(engine)
-            self.db_factory = transactional_session_maker
+            self.db_factory = transactional_session_maker(engine)
         else:
             self.db_factory = db_factory
 
@@ -391,7 +390,7 @@ class MasherThread(threading.Thread):
                      'thresholds during the push')
             for update in self.updates:
                 try:
-                    update.check_karma_thresholds(agent=u'bodhi')
+                    update.check_karma_thresholds(self.db, agent=u'bodhi')
                 except BodhiException:
                     self.log.exception('Problem checking karma thresholds')
 
@@ -421,7 +420,7 @@ class MasherThread(threading.Thread):
         update.locked = False
         text = '%s ejected from the push because %r' % (update.title, reason)
         log.warn(text)
-        update.comment(text, author=u'bodhi')
+        update.comment(self.db, text, author=u'bodhi')
         # Remove the pending tag as well
         if update.request is UpdateRequest.stable:
             update.remove_tag(update.release.pending_stable_tag,
@@ -513,7 +512,7 @@ class MasherThread(threading.Thread):
         self._perform_tag_actions()
 
     def _determine_tag_actions(self):
-        tag_types, tag_rels = Release.get_tags()
+        tag_types, tag_rels = Release.get_tags(self.db)
         for update in sorted_updates(self.updates):
             add_tags = []
             move_tags = []
@@ -772,7 +771,7 @@ class MasherThread(threading.Thread):
     def status_comments(self):
         self.log.info('Commenting on updates')
         for update in self.updates:
-            update.status_comment()
+            update.status_comment(self.db)
 
     @checkpoint
     def send_stable_announcements(self):

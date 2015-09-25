@@ -181,7 +181,7 @@ def new_comment(request):
 
     try:
         comment, caveats = update.comment(
-            author=author, anonymous=anonymous, **data)
+            session=request.db, author=author, anonymous=anonymous, **data)
     except Exception as e:
         log.exception(e)
         request.errors.add('body', 'comment', 'Unable to create comment')

@@ -102,7 +102,7 @@ def validate_builds(request):
 
 def validate_build_tags(request):
     """ Ensure that all of the builds are tagged as candidates """
-    tag_types, tag_rels = Release.get_tags()
+    tag_types, tag_rels = Release.get_tags(request.db)
     edited = request.validated.get('edited')
     release = None
     if edited:
@@ -165,7 +165,7 @@ def validate_build_tags(request):
 
 def validate_tags(request):
     """Ensure that all the tags are valid Koji tags"""
-    tag_types, tag_rels = Release.get_tags()
+    tag_types, tag_rels = Release.get_tags(request.db)
 
     for tag_type in tag_types:
         tag_name = request.validated.get("%s_tag" % tag_type)
@@ -742,7 +742,7 @@ def _validate_override_build(request, nvr, db):
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
             # that out and apply it.
-            tag_types, tag_rels = Release.get_tags()
+            tag_types, tag_rels = Release.get_tags(request.db)
             valid_tags = tag_types['candidate'] + tag_types['testing']
 
             tags = [tag['name'] for tag in request.koji.listTags(nvr)
@@ -770,7 +770,7 @@ def _validate_override_build(request, nvr, db):
             return
 
     else:
-        tag_types, tag_rels = Release.get_tags()
+        tag_types, tag_rels = Release.get_tags(request.db)
         valid_tags = tag_types['candidate'] + tag_types['testing']
 
         try:

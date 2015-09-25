@@ -67,9 +67,8 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             config_uri = '/etc/bodhi/production.ini'
             self.settings = get_appsettings(config_uri)
             engine = engine_from_config(self.settings, 'sqlalchemy.')
-            DBSession.configure(bind=engine)
             Base.metadata.create_all(engine)
-            self.db_factory = transactional_session_maker
+            self.db_factory = transactional_session_maker(engine)
         else:
             self.db_factory = db_factory
 

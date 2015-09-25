@@ -8,7 +8,6 @@ from bodhi.models import (
     BuildrootOverride,
     Comment,
     CVE,
-    DBSession,
     Group,
     Package,
     Release,

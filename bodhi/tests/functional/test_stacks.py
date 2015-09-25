@@ -17,7 +17,6 @@ import mock
 import bodhi.tests.functional.base
 
 from bodhi.models import (
-    DBSession,
     Group,
     Package,
     User,
@@ -35,13 +34,12 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
 
     def setUp(self):
         super(TestStacksService, self).setUp()
-        self.session = session = DBSession()
         package = Package(name=u'gnome-shell')
-        session.add(package)
-        session.flush()
+        self.db.add(package)
+        self.db.flush()
         self.stack = stack = Stack(name=u'GNOME', packages=[package])
-        session.add(stack)
-        session.flush()
+        self.db.add(stack)
+        self.db.flush()
 
     def test_404(self):
         self.app.get('/stacks/watwatwat', status=404)
@@ -62,11 +60,11 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         # Create a second stack
         pkg1 = Package(name=u'firefox')
         pkg2 = Package(name=u'xulrunner')
-        self.session.add(pkg1)
-        self.session.add(pkg2)
-        self.session.flush()
+        self.db.add(pkg1)
+        self.db.add(pkg2)
+        self.db.flush()
         Stack(name=u'Firefox', packages=[pkg1, pkg2])
-        self.session.flush()
+        self.db.flush()
 
         res = self.app.get('/stacks/')
         body = res.json_body
@@ -119,7 +117,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'KDE')
-        r = self.session.query(Stack).filter(Stack.name==attrs["name"]).one()
+        r = self.db.query(Stack).filter(Stack.name==attrs["name"]).one()
         self.assertEquals(r.name, 'KDE')
         self.assertEquals(len(r.packages), 2)
         self.assertEquals(r.packages[0].name, 'kde-filesystem')
@@ -138,7 +136,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
                  "csrf_token": self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=400)
         self.assertEquals(res.json_body['status'], 'error')
-        c = self.session.query(Stack).filter(Stack.name==attrs["name"]).count()
+        c = self.db.query(Stack).filter(Stack.name==attrs["name"]).count()
         self.assertEquals(c, 0)
 
     @mock.patch(**mock_valid_requirements)
@@ -149,7 +147,7 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         res = self.app.post("/stacks/", attrs)#, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'Hackey')
-        r = self.session.query(Stack).filter(Stack.name==attrs["name"]).one()
+        r = self.db.query(Stack).filter(Stack.name==attrs["name"]).one()
         self.assertEquals(r.name, 'Hackey')
         self.assertEquals(len(r.packages), 1)
         self.assertEquals(r.requirements, attrs['requirements'])
@@ -168,19 +166,19 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['requirements'], 'upgradepath')
 
         # Adding gnome-music to the stack should change its requirements, too.
-        package = self.session.query(Package)\
+        package = self.db.query(Package)\
             .filter(Package.name==u'gnome-music').one()
         self.assertEquals(package.requirements, attrs['requirements'])
 
         # But not gnome-shell, since it was already in the stack.
-        package = self.session.query(Package)\
+        package = self.db.query(Package)\
             .filter(Package.name==u'gnome-shell').one()
         self.assertEquals(package.requirements, None)
 
     def test_delete_stack(self):
         res = self.app.delete("/stacks/GNOME")
         self.assertEquals(res.json_body['status'], 'success')
-        self.assertEquals(self.session.query(Stack).count(), 0)
+        self.assertEquals(self.db.query(Stack).count(), 0)
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_remove_package(self, *args):
@@ -196,10 +194,10 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
     def test_edit_stack_with_no_group_privs(self, *args):
         self.stack.users = []
         group = Group(name=u'gnome-team')
-        self.session.add(group)
-        self.session.flush()
+        self.db.add(group)
+        self.db.flush()
         self.stack.groups.append(group)
-        self.session.flush()
+        self.db.flush()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=403)
@@ -211,10 +209,10 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_no_user_privs(self, *args):
         user = User(name=u'bob')
-        self.session.add(user)
-        self.session.flush()
+        self.db.add(user)
+        self.db.flush()
         self.stack.users.append(user)
-        self.session.flush()
+        self.db.flush()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=403)
@@ -225,9 +223,9 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_user_privs(self, *args):
-        user = self.session.query(User).filter_by(name=u'guest').one()
+        user = self.db.query(User).filter_by(name=u'guest').one()
         self.stack.users.append(user)
-        self.session.flush()
+        self.db.flush()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
@@ -239,13 +237,13 @@ class TestStacksService(bodhi.tests.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_group_privs(self, *args):
         self.stack.users = []
-        user = self.session.query(User).filter_by(name=u'guest').one()
+        user = self.db.query(User).filter_by(name=u'guest').one()
         group = Group(name=u'gnome-team')
-        self.session.add(group)
-        self.session.flush()
+        self.db.add(group)
+        self.db.flush()
         self.stack.groups.append(group)
         user.groups.append(group)
-        self.session.flush()
+        self.db.flush()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)

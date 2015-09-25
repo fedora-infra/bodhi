@@ -20,8 +20,10 @@ import json
 
 from nose.tools import assert_equals, eq_
 from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
-from bodhi.models import DBSession, Base
+from bodhi.models import Base
 
 
 class ModelTest(object):
@@ -32,22 +34,24 @@ class ModelTest(object):
 
     def setup(self):
         engine = create_engine('sqlite://')
-        DBSession.configure(bind=engine)
+        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+        Session.configure(bind=engine)
+        self.db = Session()
         Base.metadata.create_all(engine)
         try:
             new_attrs = {}
             new_attrs.update(self.attrs)
             new_attrs.update(self.do_get_dependencies())
             self.obj = self.klass(**new_attrs)
-            DBSession.add(self.obj)
-            DBSession.flush()
+            self.db.add(self.obj)
+            self.db.flush()
             return self.obj
         except:
-            DBSession.rollback()
+            self.db.rollback()
             raise
 
     def tearDown(self):
-        DBSession.remove()
+        self.db.close()
 
     def do_get_dependencies(self):
         """ Use this method to pull in other objects that need to be
@@ -69,4 +73,4 @@ class ModelTest(object):
 
     def test_get(self):
         for col in self.obj.__get_by__:
-            eq_(self.klass.get(getattr(self.obj, col), DBSession), self.obj)
+            eq_(self.klass.get(getattr(self.obj, col), self.db), self.obj)

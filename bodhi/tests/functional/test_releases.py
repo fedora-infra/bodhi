@@ -15,7 +15,6 @@
 import bodhi.tests.functional.base
 
 from bodhi.models import (
-    DBSession,
     Release,
     ReleaseState,
     Update,
@@ -27,7 +26,6 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
     def setUp(self):
         super(TestReleasesService, self).setUp()
 
-        session = DBSession()
         release = Release(
             name=u'F22', long_name=u'Fedora 22',
             id_prefix=u'FEDORA', version=u'22',
@@ -39,8 +37,8 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
             override_tag=u'f22-override',
             branch=u'f22')
 
-        session.add(release)
-        session.flush()
+        self.db.add(release)
+        self.db.flush()
 
     def test_404(self):
         self.app.get('/releases/watwatwat', status=404)
@@ -103,10 +101,9 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
     def test_list_releases_by_update_alias(self):
-        session = DBSession()
-        update = session.query(Update).first()
+        update = self.db.query(Update).first()
         update.alias = u'some_alias'
-        session.flush()
+        self.db.flush()
 
         res = self.app.get('/releases/', {"updates": 'some_alias'})
         body = res.json_body
@@ -146,7 +143,7 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
 
         attrs.pop('csrf_token')
 
-        r = DBSession().query(Release).filter(Release.name==attrs["name"]).one()
+        r = self.db.query(Release).filter(Release.name==attrs["name"]).one()
 
         for k, v in attrs.items():
             self.assertEquals(getattr(r, k), v)
@@ -180,7 +177,7 @@ class TestReleasesService(bodhi.tests.functional.base.BaseWSGICase):
 
         res = self.app.post("/releases/", r, status=200)
 
-        r = DBSession().query(Release).filter(Release.name==name).one()
+        r = self.db.query(Release).filter(Release.name==name).one()
         self.assertEquals(r.state, ReleaseState.current)
 
     def test_get_single_release_html(self):
