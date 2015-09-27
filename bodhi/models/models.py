@@ -481,7 +481,8 @@ class Package(Base):
 class Build(Base):
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
-                           'release_id', 'update_id', 'update', 'inherited')
+                           'release_id', 'update_id', 'update', 'inherited',
+                           'override')
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
@@ -581,7 +582,7 @@ class Build(Base):
 
 class Update(Base):
     __tablename__ = 'updates'
-    __exclude_columns__ = ('id', 'user_id', 'release_id')
+    __exclude_columns__ = ('id', 'user_id', 'release_id', 'cves')
     __include_extras__ = ('meets_testing_requirements',)
     __get_by__ = ('title', 'alias')
 
@@ -632,15 +633,13 @@ class Update(Base):
     release = relationship('Release', lazy='joined')
 
     # One-to-many relationships
-    comments = relationship('Comment', backref='update', lazy='joined',
+    comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
                             order_by='Comment.timestamp')
-    builds = relationship('Build', backref='update', lazy='joined')
+    builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined')
 
     # Many-to-many relationships
-    bugs = relationship('Bug', secondary=update_bug_table,
-                        backref='updates', lazy='joined')
-    cves = relationship('CVE', secondary=update_cve_table,
-                        backref='updates', lazy='joined')
+    bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
+    cves = relationship('CVE', secondary=update_cve_table, backref='updates')
 
     # We may or may not need this, since we can determine the releases from the
     # builds
@@ -1993,7 +1992,8 @@ stack_user_table = Table('stack_user_table', Base.metadata,
 
 class User(Base):
     __tablename__ = 'users'
-    __exclude_columns__ = ('comments', 'updates', 'packages', 'stacks')
+    __exclude_columns__ = ('comments', 'updates', 'packages', 'stacks',
+                           'buildroot_overrides')
     __include_extras__ = ('avatar', 'openid')
     __get_by__ = ('name',)
 
@@ -2001,8 +2001,8 @@ class User(Base):
     email = Column(UnicodeText, unique=True)
 
     # One-to-many relationships
-    comments = relationship(Comment, backref=backref('user', lazy='joined'))
-    updates = relationship(Update, backref=backref('user', lazy='joined'))
+    comments = relationship(Comment, backref=backref('user', lazy=True))
+    updates = relationship(Update, backref=backref('user', lazy=True))
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
@@ -2149,7 +2149,7 @@ class Stack(Base):
     __get_by__ = ('name',)
 
     name = Column(UnicodeText, unique=True, nullable=False)
-    packages = relationship('Package', backref=backref('stack', lazy='joined'))
+    packages = relationship('Package', backref=backref('stack', lazy=True))
     description = Column(UnicodeText)
     requirements = Column(UnicodeText)
 
