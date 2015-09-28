@@ -15,7 +15,7 @@
 import bodhi.tests.functional.base
 
 from bodhi.security import remember_me
-from bodhi.models import DBSession, User, Group
+from bodhi.models import User, Group
 
 from pyramid.testing import DummyRequest
 
@@ -34,11 +34,10 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
 
     def test_remember_me(self):
         """Test the post-login hook"""
-        db = DBSession()
         req = DummyRequest(params={
             'openid.op_endpoint': self.app_settings['openid.provider'],
         })
-        req.db = db
+        req.db = self.db
         req.session = {'came_from': '/'}
         info = {
             'identity_url': 'http://lmacken.id.fedoraproject.org',
@@ -48,13 +47,13 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
         req.registry.settings = self.app_settings
 
         # Ensure the user doesn't exist yet
-        self.assertIsNone(User.get(u'lmacken', db))
-        self.assertIsNone(Group.get(u'releng', db))
+        self.assertIsNone(User.get(u'lmacken', self.db))
+        self.assertIsNone(Group.get(u'releng', self.db))
 
         resp = remember_me(None, req, info)
 
         # The user should now exist, and be a member of the releng group
-        user = User.get(u'lmacken', db)
+        user = User.get(u'lmacken', self.db)
         self.assertEquals(user.name, u'lmacken')
         self.assertEquals(user.email, u'lmacken@fp.o')
         self.assertEquals(len(user.groups), 1)
@@ -66,18 +65,17 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
 
         resp = remember_me(None, req, info)
 
-        user = User.get(u'lmacken', db)
+        user = User.get(u'lmacken', self.db)
         self.assertEquals(len(user.groups), 0)
-        self.assertEquals(len(Group.get(u'releng', db).users), 0)
+        self.assertEquals(len(Group.get(u'releng', self.db).users), 0)
 
 
     def test_remember_me_with_bad_endpoint(self):
         """Test the post-login hook with a bad openid endpoint"""
-        db = DBSession()
         req = DummyRequest(params={
             'openid.op_endpoint': 'bad_endpoint',
         })
-        req.db = db
+        req.db = self.db
         def flash(msg):
             pass
         req.session.flash = flash
@@ -96,7 +94,7 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
             pass
 
         # The user should not exist
-        self.assertIsNone(User.get(u'lmacken', db))
+        self.assertIsNone(User.get(u'lmacken', self.db))
 
     def test_home(self):
         res = self.app.get('/', status=200)
@@ -169,9 +167,20 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
             "</div>"
         )
 
-    def test_markdown_with_bugzilla(self):
+    def test_markdown_with_unprefixed_bugzilla(self):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  #12345 is still busted.',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            "<div class='markdown'>"
+            '<p>Crazy.  #12345 is still busted.</p>'
+            "</div>"
+        )
+
+    def test_markdown_with_prefixed_bugzilla(self):
+        res = self.app.get('/markdown', {
+            'text': 'Crazy.  RHBZ#12345 is still busted.',
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
@@ -179,6 +188,17 @@ class TestGenericViews(bodhi.tests.functional.base.BaseWSGICase):
             '<p>Crazy.  '
             '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=12345">'
             '#12345</a> is still busted.</p>'
+            "</div>"
+        )
+
+    def test_markdown_with_unknown_prefixed_bugzilla(self):
+        res = self.app.get('/markdown', {
+            'text': 'Crazy.  upstream#12345 is still busted.',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            "<div class='markdown'>"
+            '<p>Crazy.  upstream#12345 is still busted.</p>'
             "</div>"
         )
 

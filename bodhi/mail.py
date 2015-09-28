@@ -473,7 +473,7 @@ def send(to, msg_type, update, sender=None, agent=None):
         subject = subject_template  % (critpath, msg_type, update.title)
         fields = MESSAGES[msg_type]['fields'](agent, update)
         body = MESSAGES[msg_type]['body'] % fields
-        send_mail(sender, person, subject, body)
+        send_mail(sender, person, subject, body, headers=headers)
 
 
 def send_releng(subject, body):

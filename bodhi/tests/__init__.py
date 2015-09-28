@@ -1,3 +1,5 @@
+import mock
+
 from datetime import datetime, timedelta
 from bodhi.models import (
     Base,
@@ -6,7 +8,6 @@ from bodhi.models import (
     BuildrootOverride,
     Comment,
     CVE,
-    DBSession,
     Group,
     Package,
     Release,
@@ -77,7 +78,8 @@ def populate(db):
     db.add(comment)
     update.comments.append(comment)
 
-    update.assign_alias()
+    with mock.patch(target='uuid.uuid4', return_value='wat'):
+        update.assign_alias()
     db.add(update)
 
     expiration_date = datetime.utcnow()

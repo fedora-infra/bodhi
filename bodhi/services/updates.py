@@ -16,7 +16,6 @@ import copy
 import math
 
 from cornice import Service
-from pyramid.security import has_permission
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
@@ -45,18 +44,12 @@ from bodhi.validators import (
 update = Service(name='update', path='/updates/{id}',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 # This acl only checks if the user is an admin or a commiters to the packages,
-                 # where as the validate_acls method which is attached to the @post on this
-                 # services does this as well as checking against the groups. So, this acl
-                 # should be unnecessary at the moment.
-                 #acl=bodhi.security.package_maintainers_only_acl,
                  acl=bodhi.security.packagers_allowed_acl,
                  cors_origins=bodhi.security.cors_origins_ro)
 
 update_edit = Service(name='update_edit', path='/updates/{id}/edit',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 #acl=bodhi.security.package_maintainers_only_acl,
                  acl=bodhi.security.packagers_allowed_acl,
                  cors_origins=bodhi.security.cors_origins_rw)
 
@@ -65,12 +58,15 @@ updates = Service(name='updates', path='/updates/',
                   description='Update submission service',
                   cors_origins=bodhi.security.cors_origins_ro)
 
+updates_rss = Service(name='updates_rss', path='/rss/updates/',
+                      acl=bodhi.security.packagers_allowed_acl,
+                      description='Update submission service RSS feed',
+                      cors_origins=bodhi.security.cors_origins_ro)
+
 update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
-                         #acl=bodhi.security.package_maintainers_only_acl,
                          acl=bodhi.security.packagers_allowed_acl,
                          cors_origins=bodhi.security.cors_origins_rw)
-
 
 @update.get(accept=('application/json', 'text/json'), renderer='json',
             error_handler=bodhi.services.errors.json_handler)
@@ -80,7 +76,12 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
             error_handler=bodhi.services.errors.html_handler)
 def get_update(request):
     """Return a single update from an id, title, or alias"""
-    can_edit = bool(has_permission('edit', request.context, request))
+
+    proxy_request = bodhi.security.ProtectedRequest(request)
+    validate_acls(proxy_request)
+    # If validate_acls produced 0 errors, then we can edit this update.
+    can_edit = len(proxy_request.errors) == 0
+
     return dict(update=request.validated['update'], can_edit=can_edit)
 
 
@@ -124,7 +125,7 @@ def set_request(request):
             return
 
     try:
-        update.set_request(action, request.user.name)
+        update.set_request(request.db, action, request.user.name)
     except BodhiException as e:
         log.exception("Failed to set the request")
         request.errors.add('body', 'request', str(e))
@@ -135,26 +136,28 @@ def set_request(request):
     return dict(update=update)
 
 
+validators = (
+    validate_release,
+    validate_releases,
+    validate_enums,
+    validate_username,
+    validate_bugs,
+)
+@updates_rss.get(schema=bodhi.schemas.ListUpdateSchema, renderer='rss',
+                 error_handler=bodhi.services.errors.html_handler,
+                 validators=validators)
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/json', 'text/json'), renderer='json',
              error_handler=bodhi.services.errors.json_handler,
-             validators=(validate_release, validate_releases,
-                         validate_enums, validate_username, validate_bugs))
+             validators=validators)
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('application/javascript'), renderer='jsonp',
              error_handler=bodhi.services.errors.jsonp_handler,
-             validators=(validate_release, validate_releases,
-                         validate_enums, validate_username, validate_bugs))
-@updates.get(schema=bodhi.schemas.ListUpdateSchema,
-             accept=('application/atom+xml'), renderer='rss',
-             error_handler=bodhi.services.errors.html_handler,
-             validators=(validate_release, validate_releases,
-                         validate_enums, validate_username, validate_bugs))
+             validators=validators)
 @updates.get(schema=bodhi.schemas.ListUpdateSchema,
              accept=('text/html'), renderer='updates.html',
              error_handler=bodhi.services.errors.html_handler,
-             validators=(validate_release, validate_releases,
-                         validate_enums, validate_username, validate_bugs))
+             validators=validators)
 def query_updates(request):
     db = request.db
     data = request.validated
@@ -362,7 +365,7 @@ def new_update(request):
 
                 log.info('Creating new update: %r' % _data['builds'])
                 result, _caveats = Update.new(request, _data)
-                log.debug('update = %r' % result)
+                log.debug('%s update created', result.title)
 
                 updates.append(result)
                 caveats.extend(_caveats)

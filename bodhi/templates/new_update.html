@@ -311,8 +311,10 @@ ${update.notes}
 
             <button id="submit" class="btn btn-success">
               % if update:
+              <span class="indicator fa fa-edit" data-spinclass="indicator fa fa-spinner fa-spin"></span>
               Edit
               % else:
+              <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
               Submit
               % endif
             </button>

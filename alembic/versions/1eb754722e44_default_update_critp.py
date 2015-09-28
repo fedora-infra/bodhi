@@ -12,25 +12,29 @@ down_revision = '4d7508f9cabc'
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
 import transaction
 
-from bodhi.models import Base, DBSession, Release, Update
+from bodhi.models import Base, Release, Update
 from bodhi.util import get_critpath_pkgs
 
 
 def upgrade():
     engine = op.get_bind()
-    DBSession.configure(bind=engine)
     Base.metadata.bind = engine
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
 
     critpath_pkgs = {}
-    for release in DBSession.query(Release):
+    for release in db.query(Release):
         relname = release.name
         critpath_pkgs[relname] = sorted(get_critpath_pkgs(relname.lower()))
 
     with transaction.manager:
-        updates = DBSession.query(Update)
+        updates = db.query(Update)
 
         for up in updates:
             for build in up.builds:
@@ -44,11 +48,13 @@ def upgrade():
 
 def downgrade():
     engine = op.get_bind()
-    DBSession.configure(bind=engine)
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
     Base.metadata.bind = engine
 
     with transaction.manager:
-        updates = DBSession.query(Update)
+        updates = db.query(Update)
 
         for u in updates:
             u.critpath = None

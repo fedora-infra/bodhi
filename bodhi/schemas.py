@@ -236,7 +236,7 @@ class PaginatedSchema(colander.MappingSchema):
 
     rows_per_page = colander.SchemaNode(
         colander.Integer(),
-        validator=colander.Range(min=1, max=100),
+        validator=colander.Range(min=1, max=1000),
         location="querystring",
         missing=20,
     )

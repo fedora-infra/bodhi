@@ -9,6 +9,14 @@ function Form(idx, url){
 Form.prototype.idx = null;
 Form.prototype.url = null;
 
+Form.prototype.toggle_spinning_icons = function() {
+    $.each($('.indicator'), function(i, element) {
+        var spinclass = this.dataset['spinclass'];
+        this.dataset['spinclass'] = $(this).attr('class');
+        $(this).attr('class', spinclass);
+    });
+}
+
 // TODO, we call start before we start and finish before we finish, each time.
 // Ideally, it should not be possible to call start twice without the first
 // start having gotten to a finish already.  This might be a good place to look
@@ -18,12 +26,14 @@ Form.prototype.start = function() {
     // TODO -- clear all error divs before attempt this,
     // both knock their content, and hide them
     $(this.idx + " button").attr("disabled", "disable");
+    this.toggle_spinning_icons();
     cabbage.spin();
 }
 
 Form.prototype.finish = function() {
     $(this.idx + " button").attr("disabled", null);
     cabbage.finish();
+    this.toggle_spinning_icons();
 }
 
 Form.prototype.success = function(data) {

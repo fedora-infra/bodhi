@@ -53,6 +53,7 @@ def cache_nvrs(request, build):
     if '' in (name, version, release):
         raise ValueError
 
+
 def validate_nvrs(request):
     for build in request.validated.get('builds', []):
         try:
@@ -101,7 +102,7 @@ def validate_builds(request):
 
 def validate_build_tags(request):
     """ Ensure that all of the builds are tagged as candidates """
-    tag_types, tag_rels = Release.get_tags()
+    tag_types, tag_rels = Release.get_tags(request.db)
     edited = request.validated.get('edited')
     release = None
     if edited:
@@ -110,6 +111,17 @@ def validate_build_tags(request):
                          .filter_by(title=edited)\
                          .first()\
                          .release
+        if not release:
+            # If the edited update has no release, something went wrong a while
+            # ago.  We're already in a corrupt state.  We can't perform the
+            # check further down as to whether or not the user is submitting
+            # builds that do or do not match the release of this update...
+            # because we don't know the release of this update.
+            request.errors.add('body', 'edited',
+                               'Pre-existing update %s has no associated '
+                               '"release" object.  Please submit a ticket to '
+                               'resolve this.' % edited)
+            return
     else:
         valid_tags = tag_types['candidate']
 
@@ -128,6 +140,8 @@ def validate_build_tags(request):
         if edited:
             try:
                 build_rel = Release.from_tags(tags, request.db)
+                if not build_rel:
+                    raise KeyError("Couldn't find release from build tags")
             except KeyError:
                 msg = 'Cannot find release associated with build: {}, tags: {}'.format(build, tags)
                 log.warn(msg)
@@ -151,7 +165,7 @@ def validate_build_tags(request):
 
 def validate_tags(request):
     """Ensure that all the tags are valid Koji tags"""
-    tag_types, tag_rels = Release.get_tags()
+    tag_types, tag_rels = Release.get_tags(request.db)
 
     for tag_type in tag_types:
         tag_name = request.validated.get("%s_tag" % tag_type)
@@ -167,8 +181,13 @@ def validate_tags(request):
             request.errors.add('body', "%s_tag" % tag_type,
                                'Invalid tag: %s' % tag_name)
 
+
 def validate_acls(request):
     """Ensure this user has commit privs to these builds or is an admin"""
+    if not request.user:
+        # If you're not logged in, obviously you don't have ACLs.
+        request.errors.add('session', 'user', 'No ACLs for anonymous user')
+        return
     db = request.db
     user = User.get(request.user.name, request.db)
     settings = request.registry.settings
@@ -276,6 +295,20 @@ def validate_acls(request):
         # build, we can ask our ACL system about it..
 
         acl_system = settings.get('acl_system')
+        user_groups = [group.name for group in user.groups]
+        has_access = False
+
+        # Allow certain groups to push updates for any package
+        admin_groups = settings['admin_packager_groups'].split()
+        for group in admin_groups:
+            if group in user_groups:
+                log.debug('{} is in {} admin group'.format(user.name, group))
+                has_access = True
+                break
+
+        if has_access:
+            continue
+
         if acl_system == 'pkgdb':
             try:
                 people, groups = package.get_pkg_pushers(
@@ -300,21 +333,11 @@ def validate_acls(request):
         buildinfo['people'] = people
 
         if user.name not in committers:
-            has_access = False
-            user_groups = [group.name for group in user.groups]
-
             # Check if this user is in a group that has access to this package
             for group in user_groups:
                 if group in groups:
-                    log.debug('{} is in {} group for {}'.format(user.name, group, package.name))
-                    has_access = True
-                    break
-
-            # Allow certain groups to push updates for any package
-            admin_groups = settings['admin_packager_groups'].split()
-            for group in admin_groups:
-                if group in user_groups:
-                    log.debug('{} is in {} admin group'.format(user.name, group))
+                    log.debug('{} is in {} group for {}'.format(
+                        user.name, group, package.name))
                     has_access = True
                     break
 
@@ -464,6 +487,7 @@ def validate_release(request):
     else:
         request.errors.add("querystring", "release",
                            "Invalid release specified: {}".format(releasename))
+
 
 def validate_releases(request):
     """Make sure those releases exist"""
@@ -714,12 +738,11 @@ def validate_override_builds(request):
 def _validate_override_build(request, nvr, db):
     """ Workhorse function for validate_override_builds """
     build = Build.get(nvr, db)
-    print "in _validate with build", build
     if build is not None:
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
             # that out and apply it.
-            tag_types, tag_rels = Release.get_tags()
+            tag_types, tag_rels = Release.get_tags(request.db)
             valid_tags = tag_types['candidate'] + tag_types['testing']
 
             tags = [tag['name'] for tag in request.koji.listTags(nvr)
@@ -747,7 +770,7 @@ def _validate_override_build(request, nvr, db):
             return
 
     else:
-        tag_types, tag_rels = Release.get_tags()
+        tag_types, tag_rels = Release.get_tags(request.db)
         valid_tags = tag_types['candidate'] + tag_types['testing']
 
         try:

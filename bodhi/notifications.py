@@ -57,6 +57,11 @@ def publish(topic, msg, force=False):
         bodhi.log.warn("fedmsg disabled.  not sending %r" % topic)
         return
 
+    # Initialize right before we try to publish, but only if we haven't
+    # initialized for this thread already.
+    if not fedmsg_is_initialized():
+        init()
+
     if force:
         bodhi.log.debug("fedmsg skipping transaction and sending %r" % topic)
         fedmsg.publish(topic=topic, msg=msg)
@@ -64,6 +69,16 @@ def publish(topic, msg, force=False):
         bodhi.log.debug("fedmsg enqueueing %r" % topic)
         manager = _managers_map.get_current_data_manager()
         manager.enqueue(topic, msg)
+
+
+def fedmsg_is_initialized():
+    """ Return True or False if fedmsg is initialized or not. """
+    local = getattr(fedmsg, '__local')
+    if not hasattr(local, '__context'):
+        return False
+    # Ensure that fedmsg has an endpoint to publish to.
+    context = getattr(local, '__context')
+    return hasattr(context, 'publisher')
 
 
 class ManagerMapping(object):
@@ -150,8 +165,8 @@ class FedmsgDataManager(object):
             for topic, msg in self.uncommitted
         ]
 
-        # TODO We could also check that fedmsg is ready and bound to an
-        # endpoint.. but that's not implemented.
+        # Ensure that fedmsg has already been initialized.
+        assert fedmsg_is_initialized(), "fedmsg is not initialized"
 
     def tpc_abort(self, transaction):
         self.abort(transaction)

@@ -25,7 +25,7 @@ from sqlalchemy import create_engine
 from bodhi import buildsys, log
 from bodhi.config import config
 from bodhi.consumers.masher import Masher, MasherThread
-from bodhi.models import (DBSession, Base, Update, User, Release,
+from bodhi.models import (Base, Update, User, Release,
                           Build, UpdateRequest, UpdateType,
                           ReleaseState, BuildrootOverride,
                           UpdateStatus)
@@ -111,13 +111,13 @@ class TestMasher(unittest.TestCase):
             except:
                 pass
         engine = create_engine(db_path)
-        DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
-        self.db_factory = transactional_session_maker
+        self.db_factory = transactional_session_maker(engine)
 
         with self.db_factory() as session:
             populate(session)
             assert session.query(Update).count() == 1
+
 
         self.koji = buildsys.get_session()
         self.koji.clear()  # clear out our dev introspection
@@ -129,12 +129,9 @@ class TestMasher(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tempdir)
         try:
-            DBSession.remove()
-        finally:
-            try:
-                os.remove(self.db_filename)
-            except:
-                pass
+            os.remove(self.db_filename)
+        except:
+            pass
 
     def set_stable_request(self, title):
         with self.db_factory() as session:
@@ -203,7 +200,7 @@ class TestMasher(unittest.TestCase):
             # Ensure we can't set a request
             from bodhi.exceptions import LockedUpdateException
             try:
-                up.set_request(UpdateRequest.stable, u'bodhi')
+                up.set_request(session, UpdateRequest.stable, u'bodhi')
                 assert False, 'Set the request on a locked update'
             except LockedUpdateException:
                 pass
@@ -285,7 +282,7 @@ class TestMasher(unittest.TestCase):
         with file(t.mash_lock) as f:
             state = json.load(f)
         try:
-            self.assertEquals(state, {u'tagged': False, u'updates':
+            self.assertEquals(state, {u'updates':
                 [u'bodhi-2.0-1.fc17'], u'completed_repos': []})
         finally:
             t.remove_state()
@@ -309,7 +306,7 @@ class TestMasher(unittest.TestCase):
             t.db = None
         self.assertEquals(t.testing_digest[u'Fedora 17'][u'bodhi-2.0-1.fc17'], """\
 ================================================================================
- libseccomp-2.1.0-1.fc20 (FEDORA-%s-0001)
+ libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)
  Enhanced seccomp library
 --------------------------------------------------------------------------------
 Update Information:
@@ -329,7 +326,7 @@ References:
         mail.assert_called_with(config.get('bodhi_email'), config.get('fedora_test_announce_list'), mock.ANY)
         assert len(mail.mock_calls) == 2, len(mail.mock_calls)
         body = mail.mock_calls[1][1][2]
-        assert body.startswith('From: updates@fedoraproject.org\r\nTo: %s\r\nSubject: Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n================================================================================\n libseccomp-2.1.0-1.fc20 (FEDORA-%s-0001)\n Enhanced seccomp library\n--------------------------------------------------------------------------------\nUpdate Information:\n\nUseful details!\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------------------------------------------------------------------\n\n' % (config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
+        assert body.startswith('From: updates@fedoraproject.org\r\nTo: %s\r\nSubject: Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n================================================================================\n libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)\n Enhanced seccomp library\n--------------------------------------------------------------------------------\nUpdate Information:\n\nUseful details!\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------------------------------------------------------------------\n\n' % (config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
     def test_sanity_check(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
@@ -709,7 +706,7 @@ References:
     @mock.patch('bodhi.bugs.bugtracker.on_qa')
     def test_modify_testing_bugs(self, on_qa, modified, *args):
         self.masher.consume(self.msg)
-        on_qa.assert_called_once_with(12345, u"bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\\nIf you want to test the update, you can install it with \\n su -c 'yum --enablerepo=updates-testing update bodhi'. You can provide feedback for this update here: http://0.0.0.0:6543/updates/FEDORA-%s-0001" % time.localtime().tm_year)
+        on_qa.assert_called_once_with(12345, u"bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\nIf you want to test the update, you can install it with\n$ su -c 'dnf --enablerepo=updates-testing update bodhi'\nYou can provide feedback for this update here: http://0.0.0.0:6543/updates/FEDORA-%s-a3bbe1a8f2" % time.localtime().tm_year)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.consumers.masher.MasherThread.update_comps')
@@ -731,7 +728,8 @@ References:
             t.db = session
             t.work()
             t.db = None
-        close.assert_called_with(12345, fixedin=u'2.0-1.fc17')
+        close.assert_called_with(
+            12345, versions=dict(bodhi=u'bodhi-2.0-1.fc17'))
         comment.assert_called_with(12345, u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If problems still persist, please make note of it in this bug report.')
 
     @mock.patch(**mock_taskotron_results)
@@ -901,13 +899,13 @@ References:
 
             # Have the update reach the stable karma threshold
             self.assertEquals(up.karma, 1)
-            up.comment(u"foo", 1, u'foo')
+            up.comment(session, u"foo", 1, u'foo')
             self.assertEquals(up.karma, 2)
             self.assertEquals(up.request, UpdateRequest.testing)
-            up.comment(u"foo", 1, u'bar')
+            up.comment(session, u"foo", 1, u'bar')
             self.assertEquals(up.karma, 3)
             self.assertEquals(up.request, UpdateRequest.testing)
-            up.comment(u"foo", 1, u'biz')
+            up.comment(session, u"foo", 1, u'biz')
             self.assertEquals(up.request, UpdateRequest.testing)
             self.assertEquals(up.karma, 4)
 
@@ -917,7 +915,7 @@ References:
 
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
-            up.comment(u"foo", 1, u'baz')
+            up.comment(session, u"foo", 1, u'baz')
             self.assertEquals(up.karma, 5)
 
             # Ensure the masher set the autokarma once the push is done

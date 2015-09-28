@@ -17,8 +17,7 @@ from datetime import datetime, timedelta
 import mock
 
 import bodhi.tests.functional.base
-from bodhi.models import (DBSession, Build, Package,
-                          Release, User)
+from bodhi.models import (Build, Package, Release, User)
 
 
 class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
@@ -49,7 +48,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['notes'], 'blah blah blah')
 
     def test_list_overrides_rss(self):
-        res = self.app.get('/overrides/',
+        res = self.app.get('/rss/overrides/',
                            headers=dict(accept='application/atom+xml'))
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('blah blah blah', res)
@@ -93,9 +92,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['notes'], 'blah blah blah')
 
     def test_list_overrides_by_packages_without_override(self):
-        session = DBSession()
-        session.add(Package(name=u'python'))
-        session.flush()
+        self.db.add(Package(name=u'python'))
+        self.db.flush()
 
         res = self.app.get('/overrides/', {'packages': 'python'})
 
@@ -125,8 +123,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['notes'], 'blah blah blah')
 
     def test_list_overrides_by_releases_without_override(self):
-        session = DBSession()
-        session.add(Release(name=u'F42', long_name=u'Fedora 42',
+        self.db.add(Release(name=u'F42', long_name=u'Fedora 42',
                             id_prefix=u'FEDORA', version=u'42',
                             dist_tag=u'f42', stable_tag=u'f42-updates',
                             testing_tag=u'f42-updates-testing',
@@ -135,7 +132,7 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
                             pending_stable_tag=u'f42-updates-pending',
                             override_tag=u'f42-override',
                             branch=u'f42'))
-        session.flush()
+        self.db.flush()
 
         res = self.app.get('/overrides/', {'releases': 'F42'})
 
@@ -164,9 +161,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(override['notes'], 'blah blah blah')
 
     def test_list_overrides_by_username_without_override(self):
-        session = DBSession()
-        session.add(User(name=u'bochecha'))
-        session.flush()
+        self.db.add(User(name=u'bochecha'))
+        self.db.flush()
 
         res = self.app.get('/overrides/', {'user': 'bochecha'})
 
@@ -185,16 +181,14 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch('bodhi.notifications.publish')
     def test_create_override(self, publish):
-        session = DBSession()
-
-        release = Release.get(u'F17', session)
+        release = Release.get(u'F17', self.db)
 
         package = Package(name=u'not-bodhi')
-        session.add(package)
+        self.db.add(package)
         build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
                       release=release)
-        session.add(build)
-        session.flush()
+        self.db.add(build)
+        self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
@@ -216,22 +210,20 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch('bodhi.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
-        session = DBSession()
-
-        release = Release.get(u'F17', session)
+        release = Release.get(u'F17', self.db)
         package = Package(name=u'not-bodhi')
-        session.add(package)
+        self.db.add(package)
         build1 = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
                       release=release)
-        session.add(build1)
-        session.flush()
+        self.db.add(build1)
+        self.db.flush()
 
         package = Package(name=u'another-not-bodhi')
-        session.add(package)
+        self.db.add(package)
         build2 = Build(nvr=u'another-not-bodhi-2.0-2.fc17', package=package,
                       release=release)
-        session.add(build2)
-        session.flush()
+        self.db.add(build2)
+        self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
@@ -263,16 +255,14 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch('bodhi.notifications.publish')
     def test_create_override_too_long(self, publish):
-        session = DBSession()
-
-        release = Release.get(u'F17', session)
+        release = Release.get(u'F17', self.db)
 
         package = Package(name=u'not-bodhi')
-        session.add(package)
+        self.db.add(package)
         build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
                       release=release)
-        session.add(build)
-        session.flush()
+        self.db.add(build)
+        self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=60)
 
@@ -283,13 +273,12 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch('bodhi.notifications.publish')
     def test_create_override_for_newer_build(self, publish):
-        session = DBSession()
-        old_build = Build.get(u'bodhi-2.0-1.fc17', session)
+        old_build = Build.get(u'bodhi-2.0-1.fc17', self.db)
 
         build = Build(nvr=u'bodhi-2.0-2.fc17', package=old_build.package,
                       release=old_build.release)
-        session.add(build)
-        session.flush()
+        self.db.add(build)
+        self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
@@ -309,15 +298,13 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(o['expired_date'], None)
 
-        old_build = Build.get(u'bodhi-2.0-1.fc17', session)
+        old_build = Build.get(u'bodhi-2.0-1.fc17', self.db)
 
         self.assertNotEquals(old_build.override['expired_date'], None)
 
     @mock.patch('bodhi.notifications.publish')
     def test_cannot_edit_override_build(self, publish):
-        session = DBSession()
-
-        release = Release.get(u'F17', session)
+        release = Release.get(u'F17', self.db)
 
         old_nvr = u'bodhi-2.0-1.fc17'
 
@@ -327,8 +314,8 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         old_build_id = o['build_id']
 
         build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
-        session.add(build)
-        session.flush()
+        self.db.add(build)
+        self.db.flush()
 
         o.update({
             'nvr': build.nvr,
@@ -345,12 +332,11 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(len(publish.call_args_list), 0)
 
     def test_edit_unexisting_override(self):
-        session = DBSession()
-        release = Release.get(u'F17', session)
+        release = Release.get(u'F17', self.db)
 
         build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
-        session.add(build)
-        session.flush()
+        self.db.add(build)
+        self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
@@ -441,14 +427,12 @@ class TestOverridesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch('bodhi.notifications.publish')
     def test_unexpire_override(self, publish):
-        session = DBSession()
-
         # First expire a buildroot override
         old_nvr = u'bodhi-2.0-1.fc17'
-        override = Build.get(old_nvr, session).override
+        override = Build.get(old_nvr, self.db).override
         override.expire()
-        session.add(override)
-        session.flush()
+        self.db.add(override)
+        self.db.flush()
 
         publish.assert_called_once_with(
             topic='buildroot_override.untag', msg=mock.ANY)

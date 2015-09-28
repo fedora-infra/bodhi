@@ -93,13 +93,28 @@ class Bugzilla(BugTracker):
         except:
             log.exception("Unable to alter bug #%d" % bug_id)
 
-    def close(self, bug_id, fixedin=None):
+    def close(self, bug_id, versions):
         args = {}
-        if fixedin:
-            args['fixedin'] = fixedin
         try:
             bug = self.bz.getbug(bug_id)
-            bug.close('NEXTRELEASE', **args)
+            # If this bug is for one of these builds...
+            if bug.component in versions:
+                version = versions[bug.component]
+                # Get the existing list
+                fixedin = [v.strip() for v in bug.fixed_in.split()]
+                # Strip out any empty strings (already stripped)
+                fixedin = [v for v in fixedin if v]
+                # And add our build if its not already there
+                if version not in fixedin:
+                    fixedin.append(version)
+
+                # There are Red Hat preferences to how this field should be
+                # structured.  We should use:
+                # - the full NVR as it appears in koji
+                # - space-separated if there's more than one.
+                args['fixedin'] = " ".join(fixedin)
+
+            bug.close('ERRATA', **args)
         except xmlrpclib.Fault:
             log.exception("Unable to close bug #%d" % bug_id)
 

@@ -12,14 +12,18 @@ down_revision = '105840e66024'
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
 import transaction
 
-from bodhi.models import Base, DBSession, Release
+from bodhi.models import Base, Release
 
 def upgrade():
     engine = op.get_bind()
-    DBSession.configure(bind=engine)
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
     Base.metadata.bind = engine
 
     # Add the new columns
@@ -32,7 +36,7 @@ def upgrade():
 
     # Add values for all releases in those new columns
     with transaction.manager:
-        for r in DBSession.query(Release):
+        for r in db.query(Release):
             r.stable_tag = "%s-updates" % r.dist_tag
             r.testing_tag = "%s-testing" % r.stable_tag
             r.candidate_tag = "%s-candidate" % r.stable_tag
@@ -55,7 +59,9 @@ def upgrade():
 
 def downgrade():
     engine = op.get_bind()
-    DBSession.configure(bind=engine)
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
     Base.metadata.bind = engine
 
     # Add the old columns
@@ -64,7 +70,7 @@ def downgrade():
     op.add_column('releases', sa.Column('_candidate_tag', sa.UnicodeText()))
 
     with transaction.manager:
-        for r in DBSession.query(Release):
+        for r in db.query(Release):
             r._stable_tag = r.stable_tag
             r._testing_tag = r.testing_tag
             r._candidate_tag = r.candidate_tag

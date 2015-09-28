@@ -32,7 +32,11 @@ from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
 from pyramid.paster import setup_logging
 setup_logging('/etc/bodhi/production.ini')
 
-from bodhi.util import get_db_from_config, get_critpath_pkgs
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
+
+from bodhi.util import get_critpath_pkgs
+import bodhi
 
 
 def load_sqlalchemy_db():
@@ -41,7 +45,7 @@ def load_sqlalchemy_db():
     data = pickle.load(db)
 
     import transaction
-    from bodhi.models import DBSession, Base
+    from bodhi.models import Base
     from bodhi.models import Release, Update, Build, Comment, User, Bug, CVE
     from bodhi.models import Package, Group
     from bodhi.models import UpdateType, UpdateStatus, UpdateRequest
@@ -56,7 +60,10 @@ def load_sqlalchemy_db():
 
     aliases = []
 
-    db = get_db_from_config()
+    engine = bodhi.config['sqlalchemy.url']
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
 
     # Allow filtering of releases to load
     whitelist = []

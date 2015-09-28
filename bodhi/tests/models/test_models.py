@@ -60,11 +60,11 @@ class TestRelease(ModelTest):
         eq_(self.obj.version_int, 11)
 
     def test_all_releases(self):
-        releases = model.Release.all_releases()
+        releases = model.Release.all_releases(self.db)
         state = ReleaseState.from_string(releases.keys()[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        assert releases is model.Release.all_releases(self.db)
 
 
 class MockWiki(object):
@@ -110,7 +110,7 @@ class TestPackage(ModelTest):
         try:
             config['query_wiki_test_cases'] = True
             pkg = model.Package(name=u'gnome-shell')
-            pkg.fetch_test_cases(model.DBSession())
+            pkg.fetch_test_cases(self.db)
             assert pkg.test_cases
         finally:
             # Restore things
@@ -194,9 +194,9 @@ class TestUpdate(ModelTest):
 
     def get_update(self, name=u'TurboGears-1.0.8-3.fc11'):
         attrs = self.attrs.copy()
-        pkg = model.DBSession.query(model.Package) \
+        pkg = self.db.query(model.Package) \
                 .filter_by(name=u'TurboGears').one()
-        rel = model.DBSession.query(model.Release) \
+        rel = self.db.query(model.Release) \
                 .filter_by(name=u'F11').one()
         attrs.update(dict(
             builds=[model.Build(nvr=name, package=pkg, release=rel)],
@@ -237,13 +237,17 @@ class TestUpdate(ModelTest):
 
     def test_assign_alias(self):
         update = self.obj
-        update.assign_alias()
+        with mock.patch(target='uuid.uuid4', return_value='wat'):
+            update.assign_alias()
         year = time.localtime()[0]
-        eq_(update.alias, u'%s-%s-0001' % (update.release.id_prefix, year))
+        idx = 'a3bbe1a8f2'
+        eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
         update = self.get_update(name=u'TurboGears-0.4.4-8.fc11')
-        update.assign_alias()
-        eq_(update.alias, u'%s-%s-0002' % (update.release.id_prefix, year))
+        with mock.patch(target='uuid.uuid4', return_value='wat2'):
+            update.assign_alias()
+        idx = '016462d41f'
+        eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
         ## Create another update for another release that has the same
         ## Release.id_prefix.  This used to trigger a bug that would cause
@@ -259,29 +263,16 @@ class TestUpdate(ModelTest):
                                  override_tag=u'dist-fc10-override',
                                  branch=u'fc10', version=u'10')
         update.release = otherrel
-        update.assign_alias()
-        eq_(update.alias, u'%s-%s-0003' % (update.release.id_prefix, year))
-
-        ## 10k bug
-        update.alias = u'FEDORA-%s-9999' % year
-        newupdate = self.get_update(name=u'nethack-2.5.6-1.fc10')
-        newupdate.release = otherrel
-        newupdate.assign_alias()
-        eq_(newupdate.alias, u'FEDORA-%s-10000' % year)
-
-        newerupdate = self.get_update(name=u'nethack-2.5.7-1.fc10')
-        newerupdate.assign_alias()
-        eq_(newerupdate.alias, u'FEDORA-%s-10001' % year)
-
-        ## test updates that were pushed at the same time.  assign_alias should
-        ## be able to figure out which one has the highest id.
-        now = datetime.utcnow()
-        newupdate.date_pushed = now
-        newerupdate.date_pushed = now
+        with mock.patch(target='uuid.uuid4', return_value='wat3'):
+            update.assign_alias()
+        idx = '0efffa96f7'
+        eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
         newest = self.get_update(name=u'nethack-2.5.8-1.fc10')
-        newest.assign_alias()
-        eq_(newest.alias, u'FEDORA-%s-10002' % year)
+        with mock.patch(target='uuid.uuid4', return_value='wat4'):
+            newest.assign_alias()
+        idx = '0efffa96f7'
+        eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
     def test_epel_id(self):
         """ Make sure we can handle id_prefixes that contain dashes.
@@ -289,8 +280,10 @@ class TestUpdate(ModelTest):
         """
         # Create a normal Fedora update first
         update = self.obj
-        update.assign_alias()
-        eq_(update.alias, u'FEDORA-%s-0001' % time.localtime()[0])
+        with mock.patch(target='uuid.uuid4', return_value='wat'):
+            update.assign_alias()
+        idx = 'a3bbe1a8f2'
+        eq_(update.alias, u'FEDORA-%s-%s' % (time.localtime()[0], idx))
 
         update = self.get_update(name=u'TurboGears-2.1-1.el5')
         release = model.Release(name=u'EL-5', long_name=u'Fedora EPEL 5',
@@ -303,14 +296,18 @@ class TestUpdate(ModelTest):
                           override_tag=u'dist-5E-epel-override',
                           branch=u'el5', version=u'5')
         update.release = release
-        update.assign_alias()
-        eq_(update.alias, u'FEDORA-EPEL-%s-0001' % time.localtime()[0])
+        idx = 'a3bbe1a8f2'
+        with mock.patch(target='uuid.uuid4', return_value='wat'):
+            update.assign_alias()
+        eq_(update.alias, u'FEDORA-EPEL-%s-%s' % (time.localtime()[0], idx))
 
         update = self.get_update(name=u'TurboGears-2.2-1.el5')
         update.release = release
-        update.assign_alias()
-        eq_(update.alias, u'%s-%s-0002' % (release.id_prefix,
-                                           time.localtime()[0]))
+        idx = '016462d41f'
+        with mock.patch(target='uuid.uuid4', return_value='wat2'):
+            update.assign_alias()
+        eq_(update.alias, u'%s-%s-%s' % (
+            release.id_prefix, time.localtime()[0], idx))
 
     @raises(IntegrityError)
     def test_dupe(self):
@@ -324,13 +321,13 @@ class TestUpdate(ModelTest):
         update.status = UpdateStatus.testing
         eq_(update.karma, 0)
         eq_(update.request, None)
-        update.comment(u"foo", 1, u'foo')
+        update.comment(self.db, u"foo", 1, u'foo')
         eq_(update.karma, 1)
         eq_(update.request, None)
-        update.comment(u"foo", 1, u'bar')
+        update.comment(self.db, u"foo", 1, u'bar')
         eq_(update.karma, 2)
         eq_(update.request, None)
-        update.comment(u"foo", 1, u'biz')
+        update.comment(self.db, u"foo", 1, u'biz')
         eq_(update.karma, 3)
         eq_(update.request, UpdateRequest.stable)
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
@@ -342,13 +339,13 @@ class TestUpdate(ModelTest):
         update.status = UpdateStatus.testing
         eq_(update.karma, 0)
         eq_(update.status, UpdateStatus.testing)
-        update.comment(u"foo", -1, u'foo')
+        update.comment(self.db, u"foo", -1, u'foo')
         eq_(update.status, UpdateStatus.testing)
         eq_(update.karma, -1)
-        update.comment(u"bar", -1, u'bar')
+        update.comment(self.db, u"bar", -1, u'bar')
         eq_(update.status, UpdateStatus.testing)
         eq_(update.karma, -2)
-        update.comment(u"biz", -1, u'biz')
+        update.comment(self.db, u"biz", -1, u'biz')
         eq_(update.karma, -3)
         eq_(update.status, UpdateStatus.obsolete)
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
@@ -356,7 +353,7 @@ class TestUpdate(ModelTest):
     def test_update_bugs(self):
         update = self.obj
         eq_(len(update.bugs), 2)
-        session = model.DBSession()
+        session = self.db
 
         # try just adding bugs
         bugs = ['1234']
@@ -368,7 +365,7 @@ class TestUpdate(ModelTest):
         bugs = []
         update.update_bugs(bugs, session)
         eq_(len(update.bugs), 0)
-        eq_(model.DBSession.query(model.Bug)
+        eq_(self.db.query(model.Bug)
                 .filter_by(bug_id=1234).first(), None)
 
         # Test new duplicate bugs
@@ -381,7 +378,7 @@ class TestUpdate(ModelTest):
         update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 4321
-        eq_(model.DBSession.query(model.Bug)
+        eq_(self.db.query(model.Bug)
                 .filter_by(bug_id=1234).first(), None)
 
     def test_unicode_bug_title(self):
@@ -401,7 +398,7 @@ class TestUpdate(ModelTest):
         req.koji = buildsys.get_session()
         eq_(self.obj.status, UpdateStatus.pending)
         try:
-            self.obj.set_request(UpdateRequest.stable, req.user.name)
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             assert False
         except BodhiException, e:
             pass
@@ -421,12 +418,12 @@ class TestUpdate(ModelTest):
 
         # Pretend it's been in testing for a week
         self.obj.comment(
-            u'This update has been pushed to testing.', author=u'bodhi')
+            self.db, u'This update has been pushed to testing.', author=u'bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         eq_(self.obj.days_in_testing, 7)
         eq_(self.obj.meets_testing_requirements, True)
 
-        self.obj.set_request(UpdateRequest.stable, req)
+        self.obj.set_request(self.db, UpdateRequest.stable, req)
         eq_(self.obj.request, UpdateRequest.stable)
         eq_(len(req.errors), 0)
         publish.assert_called_once_with(
@@ -437,7 +434,7 @@ class TestUpdate(ModelTest):
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         eq_(self.obj.status, UpdateStatus.pending)
-        self.obj.set_request(UpdateRequest.obsolete, req.user.name)
+        self.obj.set_request(self.db, UpdateRequest.obsolete, req.user.name)
         eq_(self.obj.status, UpdateStatus.obsolete)
         eq_(len(req.errors), 0)
         publish.assert_called_once_with(
@@ -454,13 +451,13 @@ class TestUpdate(ModelTest):
 
     def test_status_comment(self):
         self.obj.status = UpdateStatus.testing
-        self.obj.status_comment()
+        self.obj.status_comment(self.db)
         eq_(len(self.obj.comments), 1)
         eq_(self.obj.comments[0].user.name, u'bodhi')
         eq_(self.obj.comments[0].text,
                 u'This update has been pushed to testing.')
         self.obj.status = UpdateStatus.stable
-        self.obj.status_comment()
+        self.obj.status_comment(self.db)
         eq_(len(self.obj.comments), 2)
         eq_(self.obj.comments[1].user.name, u'bodhi')
         eq_(self.obj.comments[1].text,
@@ -470,7 +467,7 @@ class TestUpdate(ModelTest):
 
     @mock.patch('bodhi.notifications.publish')
     def test_anonymous_comment(self, publish):
-        self.obj.comment(u'testing', author='me', anonymous=True, karma=1)
+        self.obj.comment(self.db, u'testing', author='me', anonymous=True, karma=1)
         c = self.obj.comments[-1]
         assert str(c).endswith('testing')
         eq_(c.anonymous, True)
@@ -482,8 +479,10 @@ class TestUpdate(ModelTest):
 
     def test_get_url(self):
         eq_(self.obj.get_url(), u'updates/TurboGears-1.0.8-3.fc11')
-        self.obj.assign_alias()
-        expected = u'updates/FEDORA-%s-0001' % time.localtime()[0]
+        idx = 'a3bbe1a8f2'
+        with mock.patch(target='uuid.uuid4', return_value='wat'):
+            self.obj.assign_alias()
+        expected = u'updates/FEDORA-%s-%s' % (time.localtime()[0], idx)
         eq_(self.obj.get_url(), expected)
 
     def test_bug(self):
@@ -502,7 +501,7 @@ class TestUpdate(ModelTest):
 
     def test_expand_messages(self):
         """Ensure all messages can be expanded properly"""
-        self.obj.comment(u'test', 0, u'guest')
+        self.obj.comment(self.db, u'test', 0, u'guest')
         for value in mail.MESSAGES.values():
             value['body'] % value['fields']('guest', self.obj)
 

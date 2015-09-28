@@ -78,18 +78,21 @@
           ${release['dist_tag']}
         </td>
       </tr>
-      <tr>
+      <tr class="active">
         <td>Total updates</td>
-        <td>${count}</td>
+        <td>${count}
+          <a href="${request.route_url('updates')}?releases=${release['name']}">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
       </tr>
-
 
       <tr>
         <td><small>by status</small></td>
         <td></td>
       </tr>
       <tr>
-        <td class="text-right">Pending Updates</td>
+        <td class="text-right">Pending</td>
         <td>
           ${num_updates_pending}
           <a href="${request.route_url('updates')}?releases=${release['name']}&status=pending">
@@ -98,7 +101,7 @@
         </td>
       </tr>
       <tr>
-        <td class="text-right">Testing Updates</td>
+        <td class="text-right">Testing</td>
         <td>
           ${num_updates_testing}
           <a href="${request.route_url('updates')}?releases=${release['name']}&status=testing">
@@ -107,7 +110,7 @@
         </td>
       </tr>
       <tr>
-        <td class="text-right">Stable Updates</td>
+        <td class="text-right">Stable</td>
         <td>
           ${num_updates_stable}
           <a href="${request.route_url('updates')}?releases=${release['name']}&status=stable">
@@ -116,7 +119,7 @@
         </td>
       </tr>
       <tr>
-        <td class="text-right">Unpushed Updates</td>
+        <td class="text-right">Unpushed</td>
         <td>
           ${num_updates_unpushed}
           <a href="${request.route_url('updates')}?releases=${release['name']}&status=unpushed">
@@ -125,7 +128,7 @@
         </td>
       </tr>
       <tr>
-        <td class="text-right">Obsolete Updates</td>
+        <td class="text-right">Obsolete</td>
         <td>
           ${num_updates_obsolete}
           <a href="${request.route_url('updates')}?releases=${release['name']}&status=obsolete">
@@ -140,7 +143,7 @@
         <td></td>
       </tr>
       <tr>
-        <td class="text-right">New Package Updates</td>
+        <td class="text-right">New Package</td>
         <td>
           ${num_updates_newpackage}
           <a href="${request.route_url('updates')}?releases=${release['name']}&type=newpackage">
@@ -149,7 +152,7 @@
         </td>
       </tr>
       <tr>
-        <td class="text-right">Bugfix Updates</td>
+        <td class="text-right">Bugfix</td>
         <td>
           ${num_updates_bugfix}
           <a href="${request.route_url('updates')}?releases=${release['name']}&type=bugfix">
@@ -158,7 +161,7 @@
         </td>
       </tr>
       <tr>
-        <td class="text-right">Enhancement Updates</td>
+        <td class="text-right">Enhancement</td>
         <td>
           ${num_updates_enhancement}
           <a href="${request.route_url('updates')}?releases=${release['name']}&type=enhancement">
@@ -167,7 +170,7 @@
         </td>
       </tr>
       <tr>
-        <td class="text-right">Security Updates</td>
+        <td class="text-right">Security</td>
         <td>
           ${num_updates_security}
           <a href="${request.route_url('updates')}?releases=${release['name']}&type=security">
@@ -175,6 +178,35 @@
           </a>
         </td>
       </tr>
+
+      <tr class="active">
+        <td>Total buildroot overrides</td>
+        <td>${num_active_overrides + num_expired_overrides}
+          <a href="${request.route_url('overrides')}?releases=${release['name']}">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="text-right">Active</td>
+        <td>
+          ${num_active_overrides}
+          <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=0">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-right">Expired</td>
+        <td>
+          ${num_expired_overrides}
+          <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=1">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </td>
+      </tr>
+
     </table>
   </div>
   <div class="col-md-7">

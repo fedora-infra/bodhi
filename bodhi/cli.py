@@ -12,7 +12,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import platform
 import os
+import subprocess
 import sys
 import traceback
 
@@ -149,16 +151,45 @@ def comment(update, text, karma, user, password, **kwargs):
 
 
 @updates.command()
-@click.argument('update')
-@click.option('--user', envvar='USERNAME')
-@click.option('--password', prompt=True, hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def download(update, **kwargs):
-    client = Bodhi2Client(username=user, password=password, staging=kwargs['staging'])
-    print('%r %r %r' % (update, text, karma))
-    resp = client.comment(update, text, karma)
-    print_resp(resp, client)
+@click.option('--cves', help='Download update(s) by CVE(s) (comma-separated list)')
+@click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
+@click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
+def download(**kwargs):
+    client = Bodhi2Client(staging=kwargs['staging'])
+    del(kwargs['staging'])
+    # At this point we need to have reduced the kwargs dict to only our
+    # query options (cves, updateid, builds)
+    if not any(kwargs.values()):
+        click.echo("ERROR: must specify at least one of --cves, --updateid, --builds")
+        sys.exit(1)
+
+    # As the query method doesn't let us construct OR queries, we're
+    # gonna run one query for each option that was passed. The syntax
+    # for this is a bit ugly, sorry.
+    for (attr, value) in kwargs.items():
+        if value:
+            expecteds = len(value.split(','))
+            resp = client.query(**{attr: value})
+            if len(resp.updates) == 0:
+                click.echo("WARNING: No {0} found!".format(attr))
+            elif len(resp.updates) < expecteds:
+                click.echo("WARNING: Some {0} not found!".format(attr))
+            # Not sure if we need a check for > expecteds, I don't
+            # *think* that should ever be possible for these opts.
+
+            for update in resp.updates:
+                click.echo("Downloading packages from {0}".format(update['title']))
+                for build in update['builds']:
+                    # subprocess is icky, but koji module doesn't
+                    # expose this in any usable way, and we don't want
+                    # to rewrite it here.
+                    args = ('koji', 'download-build', '--arch=noarch',
+                            '--arch={0}'.format(platform.machine()), build['nvr'])
+                    ret = subprocess.call(args)
+                    if ret:
+                        click.echo("WARNING: download of {0} failed!".format(build['nvr']))
 
 
 
@@ -228,7 +259,7 @@ def print_resp(resp, client):
     else:
         click.echo(resp)
 
-    if 'caveats' in resp:
+    if resp.get('caveats', None):
         click.echo('Caveats:')
         for caveat in resp.caveats:
             click.echo(caveat.description)

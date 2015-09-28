@@ -18,7 +18,6 @@ import bodhi.tests.functional.base
 
 from bodhi.config import config
 from bodhi.models import (
-    DBSession,
     Update,
     User,
 )
@@ -29,10 +28,9 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
     def setUp(self):
         super(TestUsersService, self).setUp()
 
-        session = DBSession()
         user = User(name=u'bodhi')
-        session.add(user)
-        session.flush()
+        self.db.add(user)
+        self.db.flush()
 
     def test_404(self):
         self.app.get('/users/watwatwat', status=404)
@@ -103,7 +101,7 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         #self.assertEquals(len(self.sql_statements), 4)
 
     def test_list_users_rss(self):
-        res = self.app.get('/users/',
+        res = self.app.get('/rss/users/',
                            headers=dict(accept='application/atom+xml'))
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('bodhi', res)
@@ -192,10 +190,9 @@ class TestUsersService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(body['users'][0]['name'], 'guest')
 
     def test_list_users_by_update_alias(self):
-        session = DBSession()
-        update = session.query(Update).first()
+        update = self.db.query(Update).first()
         update.alias = u'some_alias'
-        session.flush()
+        self.db.flush()
 
         res = self.app.get('/users/', {"updates": 'some_alias'})
         body = res.json_body

@@ -19,9 +19,11 @@ import sys
 
 from pyramid.paster import get_appsettings, setup_logging
 from sqlalchemy import engine_from_config
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 import transaction
 
-from ..models import DBSession, Base, BuildrootOverride
+from ..models import Base, BuildrootOverride
 
 
 def usage(argv):
@@ -42,11 +44,11 @@ def main(argv=sys.argv):
 
     settings = get_appsettings(config_uri)
     engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
-    
-    with transaction.manager:
-        db = DBSession()
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    db = Session()
 
+    with transaction.manager:
         now = datetime.utcnow()
 
         overrides = db.query(BuildrootOverride)

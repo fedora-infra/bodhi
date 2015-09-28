@@ -18,12 +18,13 @@ import unittest
 from webtest import TestApp
 from sqlalchemy import create_engine
 from sqlalchemy import event
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 
 from bodhi import main, log
 from bodhi.tests import populate
 from bodhi.models import (
     Base,
-    DBSession,
 )
 
 FAITOUT = 'http://209.132.184.152/faitout/'
@@ -84,12 +85,14 @@ class BaseWSGICase(unittest.TestCase):
 
     def setUp(self):
         engine = create_engine(DB_PATH)
-        DBSession.configure(bind=engine)
+        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+        Session.configure(bind=engine)
         log.debug('Creating all models for %s' % engine)
+        Base.metadata.bind = engine
         Base.metadata.create_all(engine)
-        self.db = DBSession()
+        self.db = Session()
         populate(self.db)
-        self.app = TestApp(main({}, testing=u'guest', **self.app_settings))
+        self.app = TestApp(main({}, testing=u'guest', session=self.db, **self.app_settings))
 
         # Track sql statements in every test
         self.sql_statements = []
@@ -100,7 +103,7 @@ class BaseWSGICase(unittest.TestCase):
 
     def tearDown(self):
         log.debug('Removing session')
-        DBSession.remove()
+        self.db.close()
         if DB_NAME:
             try:
                 import requests

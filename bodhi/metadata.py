@@ -66,10 +66,11 @@ class ExtendedMetadata(object):
             # yum on py2.4 doesn't support sha256 (#1080373)
             if 'el5' in self.repo or '5E' in self.repo:
                 self.hash_type = cr.SHA1
-
-            # FIXME: I'm not sure which versions of RHEL support xz metadata
-            # compression, so use the lowest common denominator for now.
-            self.comp_type = cr.BZ2
+                self.comp_type = cr.GZ
+            else:
+                # FIXME: I'm not sure which versions of RHEL support xz metadata
+                # compression, so use the lowest common denominator for now.
+                self.comp_type = cr.BZ2
 
         # Load from the cache if it exists
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
@@ -86,8 +87,8 @@ class ExtendedMetadata(object):
                     self.missing_ids.append(update.title)
 
         if self.missing_ids:
-            log.error("%d updates with missing ID!" % len(self.missing_ids))
-            log.error(self.missing_ids)
+            log.error("%d updates with missing ID: %r" % (
+                len(self.missing_ids), self.missing_ids))
 
     def _load_cached_updateinfo(self):
         """

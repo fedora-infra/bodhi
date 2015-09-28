@@ -37,7 +37,7 @@ from bodhi import log, buildsys, notifications, mail, util
 from bodhi.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 from bodhi.config import config
 from bodhi.models import (Update, UpdateRequest, UpdateType, Release,
-                          UpdateStatus, ReleaseState, DBSession, Base)
+                          UpdateStatus, ReleaseState, Base)
 from bodhi.metadata import ExtendedMetadata
 from bodhi.exceptions import BodhiException
 
@@ -122,9 +122,8 @@ Once mash is done:
             config_uri = '/etc/bodhi/production.ini'
             settings = get_appsettings(config_uri)
             engine = engine_from_config(settings, 'sqlalchemy.')
-            DBSession.configure(bind=engine)
             Base.metadata.create_all(engine)
-            self.db_factory = transactional_session_maker
+            self.db_factory = transactional_session_maker(engine)
         else:
             self.db_factory = db_factory
 
@@ -240,7 +239,6 @@ class MasherThread(threading.Thread):
         self.move_tags = []
         self.testing_digest = {}
         self.state = {
-            'tagged': False,
             'updates': updates,
             'completed_repos': []
         }
@@ -259,6 +257,10 @@ class MasherThread(threading.Thread):
         self.release = self.db.query(Release)\
                               .filter_by(name=self.release).one()
         self.id = getattr(self.release, '%s_tag' % self.request.value)
+
+        # Set our thread's "name" so it shows up nicely in the logs.
+        # https://docs.python.org/2/library/threading.html#thread-objects
+        self.name = self.id
 
         # For 'pending' branched releases, we only want to perform repo-related
         # tasks for testing updates. For stable updates, we should just add the
@@ -388,7 +390,7 @@ class MasherThread(threading.Thread):
                      'thresholds during the push')
             for update in self.updates:
                 try:
-                    update.check_karma_thresholds(agent=u'bodhi')
+                    update.check_karma_thresholds(self.db, agent=u'bodhi')
                 except BodhiException:
                     self.log.exception('Problem checking karma thresholds')
 
@@ -418,7 +420,14 @@ class MasherThread(threading.Thread):
         update.locked = False
         text = '%s ejected from the push because %r' % (update.title, reason)
         log.warn(text)
-        update.comment(text, author=u'bodhi')
+        update.comment(self.db, text, author=u'bodhi')
+        # Remove the pending tag as well
+        if update.request is UpdateRequest.stable:
+            update.remove_tag(update.release.pending_stable_tag,
+                              koji=self.koji)
+        elif update.request is UpdateRequest.testing:
+            update.remove_tag(update.release.pending_testing_tag,
+                              koji=self.koji)
         update.request = None
         if update in self.state['updates']:
             self.state['updates'].remove(update)
@@ -503,8 +512,11 @@ class MasherThread(threading.Thread):
         self._perform_tag_actions()
 
     def _determine_tag_actions(self):
-        tag_types, tag_rels = Release.get_tags()
+        tag_types, tag_rels = Release.get_tags(self.db)
         for update in sorted_updates(self.updates):
+            add_tags = []
+            move_tags = []
+
             if update.status is UpdateStatus.testing:
                 status = 'testing'
             else:
@@ -524,10 +536,13 @@ class MasherThread(threading.Thread):
                     break
 
                 if self.skip_mash:
-                    self.add_tags.append((update.requested_tag, build.nvr))
+                    add_tags.append((update.requested_tag, build.nvr))
                 else:
-                    self.move_tags.append((from_tag, update.requested_tag,
-                                           build.nvr))
+                    move_tags.append((from_tag, update.requested_tag,
+                                      build.nvr))
+            else:
+                self.add_tags.extend(add_tags)
+                self.move_tags.extend(move_tags)
 
     def _perform_tag_actions(self):
         self.koji.multicall = True
@@ -546,7 +561,7 @@ class MasherThread(threading.Thread):
             raise Exception("Failed to move builds: %s" % failed_tasks)
 
     def expire_buildroot_overrides(self):
-        """ Obsolete any buildroot overrides that are in this push """
+        """ Expire any buildroot overrides that are in this push """
         for update in self.updates:
             if update.request is UpdateRequest.stable:
                 for build in update.builds:
@@ -756,7 +771,7 @@ class MasherThread(threading.Thread):
     def status_comments(self):
         self.log.info('Commenting on updates')
         for update in self.updates:
-            update.status_comment()
+            update.status_comment(self.db)
 
     @checkpoint
     def send_stable_announcements(self):
@@ -896,6 +911,9 @@ class MashThread(threading.Thread):
             mash_cmd += ' -p {}'.format(previous)
         self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
                                         compsfile=comps, tag=self.tag).split()
+        # Set our thread's "name" so it shows up nicely in the logs.
+        # https://docs.python.org/2/library/threading.html#thread-objects
+        self.name = tag
 
     def run(self):
         start = time.time()

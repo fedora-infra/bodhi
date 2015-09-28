@@ -17,8 +17,10 @@
 import os
 import re
 import copy
+import hashlib
 import json
 import time
+import uuid
 
 from textwrap import wrap
 from datetime import datetime
@@ -35,12 +37,11 @@ from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
-from sqlalchemy.orm import scoped_session, sessionmaker, relationship, backref
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.exc import NoResultFound
-from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.settings import asbool
 
 from bodhi import buildsys, mail, notifications, log
@@ -106,6 +107,9 @@ class BodhiBase(object):
 
         for attr in rels:
             if attr in exclude:
+                continue
+            target = getattr(type(obj), attr).property.mapper.class_
+            if target in seen:
                 continue
             d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
@@ -187,7 +191,6 @@ class BodhiBase(object):
 
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 
 ##
@@ -318,24 +321,24 @@ class Release(Base):
         return ' '.join(self.long_name.split()[:-1])
 
     @classmethod
-    def all_releases(cls):
+    def all_releases(cls, session):
         if cls._all_releases:
             return cls._all_releases
         releases = defaultdict(list)
-        for release in DBSession.query(cls).order_by(cls.name.desc()).all():
+        for release in session.query(cls).order_by(cls.name.desc()).all():
             releases[release.state.value].append(release.__json__())
         cls._all_releases = releases
         return cls._all_releases
     _all_releases = None
 
     @classmethod
-    def get_tags(cls):
+    def get_tags(cls, session):
         if cls._tag_cache:
             return cls._tag_cache
         data = {'candidate': [], 'testing': [], 'stable': [], 'override': [],
                 'pending_testing': [], 'pending_stable': []}
         tags = {}  # tag -> release lookup
-        for release in DBSession.query(cls).all():
+        for release in session.query(cls).all():
             for key in data:
                 tag = getattr(release, '%s_tag' % key)
                 data[key].append(tag)
@@ -345,10 +348,10 @@ class Release(Base):
     _tag_cache = None
 
     @classmethod
-    def from_tags(cls, tags, db):
-        tag_types, tag_rels = cls.get_tags()
+    def from_tags(cls, tags, session):
+        tag_types, tag_rels = cls.get_tags(session)
         for tag in tags:
-            release = db.query(cls).filter_by(name=tag_rels[tag]).first()
+            release = session.query(cls).filter_by(name=tag_rels[tag]).first()
             if release:
                 return release
 
@@ -478,7 +481,8 @@ class Package(Base):
 class Build(Base):
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
-                           'release_id', 'update_id', 'update', 'inherited')
+                           'release_id', 'update_id', 'update', 'inherited',
+                           'override')
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
@@ -550,9 +554,9 @@ class Build(Base):
             koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
 
-    def untag(self, koji):
+    def untag(self, koji, db):
         """Remove all known tags from this build"""
-        tag_types, tag_rels = Release.get_tags()
+        tag_types, tag_rels = Release.get_tags(db)
         for tag in self.get_tags():
             if tag in tag_rels:
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
@@ -578,7 +582,8 @@ class Build(Base):
 
 class Update(Base):
     __tablename__ = 'updates'
-    __exclude_columns__ = ('id', 'user_id', 'release_id')
+    __exclude_columns__ = ('id', 'user_id', 'release_id', 'cves')
+    __include_extras__ = ('meets_testing_requirements',)
     __get_by__ = ('title', 'alias')
 
     title = Column(UnicodeText, default=None, index=True)
@@ -628,15 +633,13 @@ class Update(Base):
     release = relationship('Release', lazy='joined')
 
     # One-to-many relationships
-    comments = relationship('Comment', backref='update', lazy='joined',
+    comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
                             order_by='Comment.timestamp')
-    builds = relationship('Build', backref='update', lazy='joined')
+    builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined')
 
     # Many-to-many relationships
-    bugs = relationship('Bug', secondary=update_bug_table,
-                        backref='updates', lazy='joined')
-    cves = relationship('CVE', secondary=update_cve_table,
-                        backref='updates', lazy='joined')
+    bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
+    cves = relationship('CVE', secondary=update_cve_table, backref='updates')
 
     # We may or may not need this, since we can determine the releases from the
     # builds
@@ -712,7 +715,7 @@ class Update(Base):
         log.debug("Assigning alias for new update..")
         up.assign_alias()
         log.debug("Setting request for new update.")
-        up.set_request(req, request.user.name)
+        up.set_request(db, req, request.user.name)
 
         log.debug("Adding new update to the db.")
         db.add(up)
@@ -786,12 +789,17 @@ class Update(Base):
         del(data['builds'])
 
         # Comment on the update with details of added/removed builds
-        comment = '%s edited this update. ' % request.user.name
+        # .. enumerate the builds in markdown format so they're pretty.
+        comment = '%s edited this update.' % request.user.name
         if new_builds:
-            comment += 'New build(s): %s. ' % ', '.join(new_builds)
+            comment += '\n\nNew build(s):\n'
+            for new_build in new_builds:
+                comment += "\n- %s" % new_build
         if removed_builds:
-            comment += 'Removed build(s): %s.' % ', '.join(removed_builds)
-        up.comment(comment, karma=0, author=u'bodhi')
+            comment += '\n\nRemoved build(s):\n'
+            for removed_build in removed_builds:
+                comment += "\n- %s" % removed_build
+        up.comment(db, comment, karma=0, author=u'bodhi')
         caveats.append({'name': 'builds', 'description': comment})
 
         data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))
@@ -818,12 +826,18 @@ class Update(Base):
                     # We still warn in case the config gets messed up.
                     log.warn('%s has no pending_testing_tag' % up.release.name)
 
+        # And, updates with new or removed builds always get their karma reset.
+        # https://github.com/fedora-infra/bodhi/issues/511
+        if new_builds or removed_builds:
+            data['karma'] = 0
+            data['karma_critpath'] = 0
+
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
 
         req = data.pop("request", None)
         if req is not None:
-            up.set_request(req, request.user.name)
+            up.set_request(db, req, request.user.name)
 
         if not data['autokarma']:
             data['stable_karma'] = None
@@ -901,11 +915,16 @@ class Update(Base):
                     # Also inherit the older updates notes as well and
                     # add a markdown separator between the new and old ones.
                     self.notes += '\n\n----\n\n' + oldBuild.update.notes
-                    oldBuild.update.obsolete(newer=build.nvr)
-                    text = ('This update has obsoleted %s, and has '
-                            'inherited its bugs and notes.') % oldBuild.nvr
-                    self.comment(text, author='bodhi')
-                    caveats.append({'name': 'update', 'description': text})
+                    oldBuild.update.obsolete(db, newer=build)
+                    template = ('This update has obsoleted %s, and has '
+                                'inherited its bugs and notes.')
+                    link = "[%s](%s)" % (oldBuild.nvr,
+                                         oldBuild.update.abs_url())
+                    self.comment(db, template % link, author='bodhi')
+                    caveats.append({
+                        'name': 'update',
+                        'description': template % oldBuild.nvr,
+                    })
 
         return caveats
 
@@ -952,7 +971,7 @@ class Update(Base):
                         good += 1
                     elif feedback.karma < 0:
                         bad += 1
-        return good, bad * -1
+        return bad * -1, good
 
     def get_testcase_karma(self, testcase):
         good, bad, seen = 0, 0, set()
@@ -966,51 +985,22 @@ class Update(Base):
                         good += 1
                     elif feedback.karma < 0:
                         bad += 1
-        return good, bad * -1
+        return bad * -1, good
 
     def assign_alias(self):
-        """Return the next available update ID.
+        """Return a randomly-suffixed update ID.
 
-        This function finds the next number in the sequence of pushed updates
-        for this release, increments it and prefixes it with the id_prefix of
-        the release and the year (ie FEDORA-2007-0001).
+        This function used to construct update IDs in a monotonic sequence, but
+        we ran into race conditions so we do it randomly now.
         """
-        release = self.release
-        releases = DBSession.query(Release)\
-                            .filter_by(id_prefix=release.id_prefix)\
-                            .all()
-        subquery = DBSession.query(Update.date_submitted).filter(
-                                and_(Update.id != self.id,
-                                     Update.alias != None,
-                                   or_(*[Update.release == r
-                                         for r in releases])))\
-                          .order_by(Update.date_submitted.desc())\
-                          .group_by(Update.date_submitted)\
-                          .limit(1)
-
-        update = DBSession.query(Update).filter(
-             Update.date_submitted.in_(subquery.subquery())
-        ).all()
-
-        if not update:
-            id = 1
-        else:
-            aliases = []
-            for upd in update:
-                split = upd.alias.split('-')
-                year, id = split[-2:]
-                aliases.append((int(year), int(id)))
-
-            year, id = max(aliases)
-            if int(year) != time.localtime()[0]:  # new year
-                id = 0
-            id = int(id) + 1
-
-        alias = u'%s-%s-%0.4d' % (release.id_prefix, time.localtime()[0], id)
+        prefix = self.release.id_prefix
+        year = time.localtime()[0]
+        id = hashlib.sha1(str(uuid.uuid4())).hexdigest()[:10]
+        alias = u'%s-%s-%s' % (prefix, year, id)
         log.debug('Setting alias for %s to %s' % (self.title, alias))
         self.alias = alias
 
-    def set_request(self, action, username):
+    def set_request(self, db, action, username):
         """ Attempt to request an action for this update """
         log.debug('Attempting to set request %s' % action)
         notes = []
@@ -1031,13 +1021,13 @@ class Update(Base):
         topic = u'update.request.%s' % action
         if action is UpdateRequest.unpush:
             self.unpush()
-            self.comment(u'This update has been unpushed.', author=username)
+            self.comment(db, u'This update has been unpushed.', author=username)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             flash_log("%s has been unpushed." % self.title)
             return
         elif action is UpdateRequest.obsolete:
-            self.obsolete()
+            self.obsolete(db)
             flash_log("%s has been obsoleted." % self.title)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
@@ -1119,7 +1109,7 @@ class Update(Base):
         flash_notes = flash_notes and '. %s' % flash_notes
         flash_log("%s has been submitted for %s. %s%s" % (self.title,
             action.description, notes, flash_notes))
-        self.comment(u'This update has been submitted for %s by %s. %s' % (
+        self.comment(db, u'This update has been submitted for %s by %s. %s' % (
             action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))
@@ -1167,6 +1157,7 @@ class Update(Base):
             self.date_stable = now
         self.request = None
         self.date_pushed = now
+        self.pushed = True
 
     def modify_bugs(self):
         """ Comment on and close this updates bugs as necessary
@@ -1194,18 +1185,18 @@ class Update(Base):
                     for bug in self.bugs:
                         bug.close_bug(self)
 
-    def status_comment(self):
+    def status_comment(self, db):
         """
         Add a comment to this update about a change in status
         """
         if self.status is UpdateStatus.stable:
-            self.comment(u'This update has been pushed to stable.',
+            self.comment(db, u'This update has been pushed to stable.',
                          author=u'bodhi')
         elif self.status is UpdateStatus.testing:
-            self.comment(u'This update has been pushed to testing.',
+            self.comment(db, u'This update has been pushed to testing.',
                          author=u'bodhi')
         elif self.status is UpdateStatus.obsolete:
-            self.comment(u'This update has been obsoleted.', author=u'bodhi')
+            self.comment(db, u'This update has been obsoleted.', author=u'bodhi')
 
     def send_update_notice(self):
         log.debug("Sending update notice for %s" % self.title)
@@ -1332,12 +1323,11 @@ class Update(Base):
         session.flush()
         return new
 
-    def update_cves(self, cves):
+    def update_cves(self, cves, session):
         """
         Create any new CVES, and remove any missing ones.  Destroy removed CVES
         that are no longer referenced anymore.
         """
-        session = DBSession()
         for cve in self.cves:
             if cve.cve_id not in cves and len(cve.updates) == 0:
                 log.debug("Destroying stray CVE #%s" % cve.cve_id)
@@ -1370,7 +1360,7 @@ class Update(Base):
             color = '#00ff00'  # green
         return color
 
-    def comment(self, text, karma=0, author=None, anonymous=False,
+    def comment(self, session, text, karma=0, author=None, anonymous=False,
                 karma_critpath=0, bug_feedback=None, testcase_feedback=None,
                 check_karma=True):
         """ Add a comment to this update, adjusting the karma appropriately.
@@ -1419,7 +1409,7 @@ class Update(Base):
 
             if check_karma and author not in config.get('system_users').split():
                 try:
-                    self.check_karma_thresholds('bodhi')
+                    self.check_karma_thresholds(session, 'bodhi')
                 except LockedUpdateException:
                     pass
                 except BodhiException as e:
@@ -1431,7 +1421,6 @@ class Update(Base):
                         'name': 'karma', 'description': str(e),
                     })
 
-        session = DBSession()
         comment = Comment(
             text=text, anonymous=anonymous,
             karma=karma, karma_critpath=karma_critpath)
@@ -1480,7 +1469,10 @@ class Update(Base):
         for comment in self.comments:
             if comment.anonymous or comment.user.name == u'bodhi':
                 continue
-            people.add(comment.user.name)
+            if comment.user.email:
+                people.add(comment.user.email)
+            else:
+                people.add(comment.user.name)
         mail.send(people, 'comment', self, author, author)
         return comment, caveats
 
@@ -1513,10 +1505,11 @@ class Update(Base):
             raise BodhiException(
                 "Can only revoke an update with an existing request")
 
-        if self.status not in [UpdateStatus.pending, UpdateStatus.testing]:
+        if self.status not in [UpdateStatus.pending, UpdateStatus.testing,
+                               UpdateStatus.obsolete, UpdateStatus.unpushed]:
             raise BodhiException(
-                "Can only revoke a pending or testing update, not "
-                "one that is %s" % self.status.description)
+                "Can only revoke a pending, testing, unpushed, or obsolete "
+                "update, not one that is %s" % self.status.description)
 
         # Remove the 'pending' koji tags from this update so taskotron stops
         # evalulating them.
@@ -1536,7 +1529,7 @@ class Update(Base):
                 koji.untagBuild(tag, build.nvr, force=True)
         self.pushed = False
 
-    def obsolete(self, newer=None):
+    def obsolete(self, db, newer=None):
         """
         Obsolete this update. Even though unpushing/obsoletion is an "instant"
         action, changes in the repository will not propagate until the next
@@ -1547,10 +1540,10 @@ class Update(Base):
         self.status = UpdateStatus.obsolete
         self.request = None
         if newer:
-            self.comment(u"This update has been obsoleted by %s." % newer,
-                         author=u'bodhi')
+            self.comment(db, u"This update has been obsoleted by [%s](%s)." % (
+                newer.nvr, newer.update.abs_url()), author=u'bodhi')
         else:
-            self.comment(u"This update has been obsoleted.", author=u'bodhi')
+            self.comment(db, u"This update has been obsoleted.", author=u'bodhi')
 
     def get_maintainers(self):
         """
@@ -1607,13 +1600,13 @@ class Update(Base):
 
         return True, "All checks pass."
 
-    def check_karma_thresholds(self, agent):
+    def check_karma_thresholds(self, db, agent):
         """Check if we have reached either karma threshold, and call set_request if necessary"""
         if not self.locked:
             if self.status is UpdateStatus.testing:
                 if self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
                     log.info("Automatically marking %s as stable" % self.title)
-                    self.set_request(UpdateRequest.stable, agent)
+                    self.set_request(db, UpdateRequest.stable, agent)
                     self.request = UpdateRequest.stable
                     self.date_pushed = None
                     notifications.publish(
@@ -1621,7 +1614,7 @@ class Update(Base):
                         msg=dict(update=self, status='stable'))
                 elif self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
                     log.info("Automatically unpushing %s" % self.title)
-                    self.obsolete()
+                    self.obsolete(db)
                     notifications.publish(
                         topic='update.karma.threshold.reach',
                         msg=dict(update=self, status='unstable'))
@@ -1783,8 +1776,9 @@ class Update(Base):
                 'Unable to determine requested tag for %s.' % self.title)
         return tag
 
-    def __json__(self, *args, **kwargs):
-        result = super(Update, self).__json__(*args, **kwargs)
+    def __json__(self, request=None, anonymize=False):
+        result = super(Update, self).__json__(
+            request=request, anonymize=anonymize)
         # Duplicate alias as updateid for backwards compat with bodhi1
         result['updateid'] = result['alias']
         # Also, put the update submitter's name in the same place we put
@@ -1792,9 +1786,17 @@ class Update(Base):
         result['submitter'] = result['user']['name']
 
         # For https://github.com/fedora-infra/bodhi/issues/270, throw the JSON
-        # of the test cases in our output as well.
+        # of the test cases in our output as well but take extra care to
+        # short-circuit some of the insane recursion for
+        # https://github.com/fedora-infra/bodhi/issues/343
+        seen = [Package, TestCaseKarma]
         result['test_cases'] = [
-            test.__json__(*args, **kwargs) for test in self.full_test_cases
+            test._to_json(
+                obj=test,
+                seen=seen,
+                request=request,
+                anonymize=anonymize)
+            for test in self.full_test_cases
         ]
 
         return result
@@ -1924,7 +1926,15 @@ class Bug(Base):
             update.get_title(delim=', '), "%s %s" % (
                 update.release.long_name, update.status.description))
         if update.status is UpdateStatus.testing:
-            message += config['testing_bug_msg'] % (
+            template = config['testing_bug_msg']
+
+            if update.release.id_prefix == "FEDORA-EPEL":
+                if 'testing_bug_epel_msg' in config:
+                    template = config['testing_bug_epel_msg']
+                else:
+                    log.warn("No 'testing_bug_epel_msg' found in the config.")
+
+            message += template % (
                 ' '.join([build.package.name for build in update.builds]),
                 config.get('base_address') + update.get_url())
         return message
@@ -1952,8 +1962,12 @@ class Bug(Base):
             bugtracker.on_qa(self.bug_id, comment)
 
     def close_bug(self, update):
-        ver = '-'.join(get_nvr(update.builds[0].nvr)[-2:])
-        bugtracker.close(self.bug_id, fixedin=ver)
+        # Build a mapping of package names to build versions
+        # so that .close() can figure out which build version fixes which bug.
+        versions = dict([
+            (get_nvr(b.nvr)[0], b.nvr) for b in update.builds
+        ])
+        bugtracker.close(self.bug_id, versions=versions)
 
     def modified(self, update):
         """ Change the status of this bug to MODIFIED """
@@ -1978,7 +1992,8 @@ stack_user_table = Table('stack_user_table', Base.metadata,
 
 class User(Base):
     __tablename__ = 'users'
-    __exclude_columns__ = ('comments', 'updates', 'groups', 'packages', 'stacks')
+    __exclude_columns__ = ('comments', 'updates', 'packages', 'stacks',
+                           'buildroot_overrides')
     __include_extras__ = ('avatar', 'openid')
     __get_by__ = ('name',)
 
@@ -1986,8 +2001,8 @@ class User(Base):
     email = Column(UnicodeText, unique=True)
 
     # One-to-many relationships
-    comments = relationship(Comment, backref=backref('user', lazy='joined'))
-    updates = relationship(Update, backref=backref('user', lazy='joined'))
+    comments = relationship(Comment, backref=backref('user', lazy=True))
+    updates = relationship(Update, backref=backref('user', lazy=True))
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
@@ -2134,7 +2149,7 @@ class Stack(Base):
     __get_by__ = ('name',)
 
     name = Column(UnicodeText, unique=True, nullable=False)
-    packages = relationship('Package', backref=backref('stack', lazy='joined'))
+    packages = relationship('Package', backref=backref('stack', lazy=True))
     description = Column(UnicodeText)
     requirements = Column(UnicodeText)
 
