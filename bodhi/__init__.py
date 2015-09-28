@@ -56,7 +56,7 @@ def get_dbsession(request):
         #else:
         #    session.commit()
         ## However, we may still want to explicitly close the session we opened
-        log.debug("Closing session at the end of a request.")
+        #log.debug("Closing session at the end of a request.")
         session.close()
 
     request.add_finished_callback(cleanup)
