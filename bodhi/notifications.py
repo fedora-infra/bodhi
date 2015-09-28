@@ -75,7 +75,6 @@ def fedmsg_is_initialized():
     """ Return True or False if fedmsg is initialized or not. """
     local = getattr(fedmsg, '__local')
     if not hasattr(local, '__context'):
-        bodhi.log.debug("fedmsg has no __context attribute")
         return False
     # Ensure that fedmsg has an endpoint to publish to.
     context = getattr(local, '__context')
