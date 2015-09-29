@@ -370,6 +370,7 @@ class TestCase(Base):
 class Package(Base):
     __tablename__ = 'packages'
     __get_by__ = ('name',)
+    __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds',)
 
     name = Column(UnicodeText, unique=True, nullable=False)
     requirements = Column(UnicodeText)
@@ -2023,6 +2024,7 @@ class User(Base):
 class Group(Base):
     __tablename__ = 'groups'
     __get_by__ = ('name',)
+    __exclude_columns__ = ('id', 'stacks',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
