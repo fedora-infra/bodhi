@@ -2002,8 +2002,8 @@ class User(Base):
     email = Column(UnicodeText, unique=True)
 
     # One-to-many relationships
-    comments = relationship(Comment, backref=backref('user', lazy=True))
-    updates = relationship(Update, backref=backref('user', lazy=True))
+    comments = relationship(Comment, backref=backref('user'), lazy='dynamic')
+    updates = relationship(Update, backref=backref('user'), lazy='dynamic')
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
