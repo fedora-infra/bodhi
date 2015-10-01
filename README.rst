@@ -1,6 +1,10 @@
 bodhi v2.0
 ==========
 
+Dependencies
+------------
+``sudo dnf install libffi-devel openssl-devel koji``
+
 Setup virtualenvwrapper
 -----------------------
 ``sudo yum -y install python-virtualenvwrapper python-createrepo_c``
@@ -10,12 +14,22 @@ Add the following to your `~/.bashrc`::
     export WORKON_HOME=$HOME/.virtualenvs
     source /usr/bin/virtualenvwrapper.sh
 
+Then on the terminal ::
+
+    source ~/.bashrc
+
 Bootstrap the virtualenv
 ------------------------
 ::
 
     ./bootstrap.py
     workon bodhi-python2.7
+
+Setting up
+----------
+``python setup.py develop``
+
+``pip install psycopg2``
 
 Run the test suite
 ------------------
@@ -26,7 +40,7 @@ Import the bodhi2 database
 ::
 
     curl -O https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
-    xzcat bodhi2.dump.xz | psql -U postgres -W
+    xzcat bodhi2.dump.xz | psql -U postgres
 
 .. note:: If you do not have a PostgreSQL server running, please see the
           instructions at the bottom of the file.
