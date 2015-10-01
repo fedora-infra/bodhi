@@ -370,6 +370,7 @@ class TestCase(Base):
 class Package(Base):
     __tablename__ = 'packages'
     __get_by__ = ('name',)
+    __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds',)
 
     name = Column(UnicodeText, unique=True, nullable=False)
     requirements = Column(UnicodeText)
@@ -2001,8 +2002,8 @@ class User(Base):
     email = Column(UnicodeText, unique=True)
 
     # One-to-many relationships
-    comments = relationship(Comment, backref=backref('user', lazy=True))
-    updates = relationship(Update, backref=backref('user', lazy=True))
+    comments = relationship(Comment, backref=backref('user'), lazy='dynamic')
+    updates = relationship(Update, backref=backref('user'), lazy='dynamic')
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
@@ -2023,6 +2024,7 @@ class User(Base):
 class Group(Base):
     __tablename__ = 'groups'
     __get_by__ = ('name',)
+    __exclude_columns__ = ('id', 'stacks',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
