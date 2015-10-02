@@ -40,7 +40,7 @@ def clock_url(url, tries=4):
         start = time.time()
         response = requests.get(url)
         if not bool(response):
-            raise IOError("Failed to talk to pserve.")
+            raise IOError("pserve failure: %r" % response.status_code)
         values.append(time.time() - start)
     values.remove(max(values))
     values.remove(min(values))
