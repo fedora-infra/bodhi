@@ -23,7 +23,7 @@ items = collections.OrderedDict([
     ('release_list', 'http://0.0.0.0:6543/releases/'),
     ('release_view', 'http://0.0.0.0:6543/releases/f22'),
     ('comment_list', 'http://0.0.0.0:6543/comments/'),
-    ('comment_view', 'http://0.0.0.0:6543/comments/2'),
+    ('comment_view', 'http://0.0.0.0:6543/comments/328597'),
     ('user_list', 'http://0.0.0.0:6543/users/'),
     ('user_view', 'http://0.0.0.0:6543/users/adamwill'),
     ('f-e-k-query', 'http://0.0.0.0:6543/updates/?status=testing&release=F22&limit=100')
