@@ -55,6 +55,21 @@ def do_scan():
         results[name] = duration
     return results
 
+
+def loop_over_refs(refs):
+    print "Checking %r" % refs
+    response = raw_input("Is that okay? ")
+    if response != 'y':
+        sys.exit(0)
+    for ref in refs:
+        time.sleep(3)
+        ref = ref[:reflength]
+        commands.getstatus('git checkout %s' % ref)
+        print "Running on", ref
+        results[ref] = do_scan()
+    return results
+
+
 def print_table(table):
     width = max(map(len, items.keys()))
     headers = [' ' * width] + [ref.ljust(reflength) for ref in table.keys()]
@@ -69,27 +84,19 @@ def print_table(table):
     for row in rows:
         print "|" + "|".join(row) + "|"
 
+
 if __name__ == '__main__':
-    refs = sys.argv[1:]
 
     results = collections.OrderedDict()
-    head = commands.getoutput('git rev-parse --abbrev-ref HEAD')[:reflength]
-    if not refs:
-        time.sleep(3)
-        print "Running on", head
-        results[head] = do_scan()
-    else:
-        print "Checking %r" % refs
-        response = raw_input("Is that okay? ")
-        if response != 'y':
-            sys.exit(0)
-        for ref in refs:
-            time.sleep(3)
-            ref = ref[:reflength]
-            commands.getstatus('git checkout %s' % ref)
-            print "Running on", ref
-            results[ref] = do_scan()
+    head = commands.getoutput('git rev-parse --abbrev-ref HEAD')
 
+    refs = sys.argv[1:]
+    if not refs:
+        refs = [head]
+
+    try:
+        results = loop_over_refs(refs)
+    finally:
         print "Returning you to %s" % head
         commands.getstatus('git checkout %s' % head)
 
