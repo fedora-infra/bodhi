@@ -31,10 +31,21 @@ items = collections.OrderedDict([
 
 
 
-def clock_url(url):
-    start = time.time()
-    requests.get(url)
-    return time.time() - start
+def clock_url(url, tries=5):
+    """ Return the average time taken to query a URL.
+    Throw out the max and min values to avoid startup skew.
+    """
+    values = []
+    for i in range(tries):
+        start = time.time()
+        response = requests.get(url)
+        if not bool(response):
+            raise IOError("Failed to talk to pserve.")
+        values.append(time.time() - start)
+    values.remove(max(values))
+    values.remove(min(values))
+    return sum(values) / len(values)
+
 
 def do_scan():
     results = collections.OrderedDict()
