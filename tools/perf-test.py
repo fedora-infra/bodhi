@@ -86,9 +86,9 @@ def print_table(table):
 
 
 if __name__ == '__main__':
-
     results = collections.OrderedDict()
     head = commands.getoutput('git rev-parse --abbrev-ref HEAD')
+    reflength = max([reflength, len(head)])
 
     refs = sys.argv[1:]
     if not refs:
