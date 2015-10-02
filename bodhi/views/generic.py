@@ -178,6 +178,11 @@ def latest_builds(request):
     return builds
 
 
+@view_config(route_name='masher_status', renderer='masher.html')
+def masher_status(request):
+    return dict()
+
+
 @view_config(route_name='new_override', renderer='override.html')
 def new_override(request):
     """ Returns the new buildroot override form """
