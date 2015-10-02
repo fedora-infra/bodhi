@@ -31,7 +31,7 @@ items = collections.OrderedDict([
 
 
 
-def clock_url(url, tries=5):
+def clock_url(url, tries=4):
     """ Return the average time taken to query a URL.
     Throw out the max and min values to avoid startup skew.
     """
