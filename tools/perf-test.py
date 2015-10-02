@@ -5,8 +5,12 @@ each one took to respond/load.
 """
 
 import collections
+import commands
 import requests
 import time
+import sys
+
+reflength = 10
 
 items = collections.OrderedDict([
     ('frontpage', 'http://0.0.0.0:6543/'),
@@ -25,21 +29,57 @@ items = collections.OrderedDict([
     ('f-e-k-query', 'http://0.0.0.0:6543/updates/?status=testing&release=F22&limit=100')
 ])
 
-results = collections.OrderedDict()
 
 
-def clock_it(url):
+def clock_url(url):
     start = time.time()
     requests.get(url)
     return time.time() - start
 
-for name, url in items.items():
-    print 'Crunching', name, url
-    duration = clock_it(url)
-    results[name] = duration
+def do_scan():
+    results = collections.OrderedDict()
+    for name, url in items.items():
+        print 'Crunching', name, url
+        duration = clock_url(url)
+        results[name] = duration
+    return results
 
-print "-" * 7
-print "Results"
-print "-" * 7
-for name, duration in results.items():
-    print name.rjust(20), duration, "seconds"
+def print_table(table):
+    width = max(map(len, items.keys()))
+    headers = [' ' * width] + [ref.ljust(reflength) for ref in table.keys()]
+
+    rows = [headers] + [["-" * width] + ["-" * reflength] * len(table)]
+    for item in items:
+        rows.append(
+            [item.ljust(width)] +
+            [("%0.2fs" % table[ref][item]).ljust(reflength) for ref in table]
+        )
+
+    for row in rows:
+        print "|" + "|".join(row) + "|"
+
+if __name__ == '__main__':
+    refs = sys.argv[1:]
+
+    results = collections.OrderedDict()
+    head = commands.getoutput('git rev-parse --abbrev-ref HEAD')[:reflength]
+    if not refs:
+        time.sleep(3)
+        print "Running on", head
+        results[head] = do_scan()
+    else:
+        print "Checking %r" % refs
+        response = raw_input("Is that okay? ")
+        if response != 'y':
+            sys.exit(0)
+        for ref in refs:
+            time.sleep(3)
+            ref = ref[:reflength]
+            commands.getstatus('git checkout %s' % ref)
+            print "Running on", ref
+            results[ref] = do_scan()
+
+        print "Returning you to %s" % head
+        commands.getstatus('git checkout %s' % head)
+
+    print_table(results)
