@@ -191,6 +191,7 @@ def main(global_config, testing=None, session=None, **settings):
 
     # Metrics
     config.add_route('metrics', '/metrics')
+    config.add_route('masher_status', '/masher')
 
     # Auto-completion search
     config.add_route('search_packages', '/search/packages')
