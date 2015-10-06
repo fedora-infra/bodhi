@@ -107,7 +107,7 @@ $(document).ready(function() {
         } else if (datum.builds != undefined) {
             window.location.href = '/updates/?packages=' + datum.name;
         } else if (datum.name != undefined) {
-            window.location.href = '/users/' + datum.name;
+            window.location.href = '/updates/' + datum.name;
         } else if (datum.nvr != undefined) {
             window.location.href = '/overrides/' + datum.nvr;
         } else {
