@@ -1706,9 +1706,8 @@ class Update(Base):
         simply return True.
         """
         min_num_days = self.release.mandatory_days_in_testing
-        num_days = self.days_in_testing
         if min_num_days:
-            if num_days < min_num_days:
+            if not self.meets_testing_requirements:
                 return False
         else:
             return True
