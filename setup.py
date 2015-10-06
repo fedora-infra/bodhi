@@ -113,6 +113,7 @@ setup(name='bodhi',
       bodhi-push = bodhi.push:push
       bodhi-expire-overrides = bodhi.scripts.expire_overrides:main
       bodhi-untag-branched = bodhi.scripts.untag_branched:main
+      bodhi-approve-testing = bodhi.scripts.approve_testing:main
       [moksha.consumer]
       masher = bodhi.consumers.masher:Masher
       updates = bodhi.consumers.updates:UpdatesHandler
