@@ -104,10 +104,10 @@ $(document).ready(function() {
             window.location.href = '/updates/' + datum.alias;
         } else if (datum.title != undefined ) {
             window.location.href = '/updates/' + datum.title;
-        } else if (datum.builds != undefined) {
+        } else if (datum.hasOwnProperty('stack')) {
             window.location.href = '/updates/?packages=' + datum.name;
         } else if (datum.name != undefined) {
-            window.location.href = '/updates/' + datum.name;
+            window.location.href = '/users/' + datum.name;
         } else if (datum.nvr != undefined) {
             window.location.href = '/overrides/' + datum.nvr;
         } else {
