@@ -104,7 +104,7 @@ $(document).ready(function() {
             window.location.href = '/updates/' + datum.alias;
         } else if (datum.title != undefined ) {
             window.location.href = '/updates/' + datum.title;
-        } else if (datum.builds != undefined) {
+        } else if (datum.hasOwnProperty('stack')) {
             window.location.href = '/updates/?packages=' + datum.name;
         } else if (datum.name != undefined) {
             window.location.href = '/users/' + datum.name;
