@@ -25,6 +25,8 @@ import transaction
 
 from ..models import Base, BuildrootOverride
 
+from ..buildsys import setup_buildsystem
+
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -47,6 +49,8 @@ def main(argv=sys.argv):
     Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
     Session.configure(bind=engine)
     db = Session()
+
+    setup_buildsystem(settings)
 
     with transaction.manager:
         now = datetime.utcnow()
