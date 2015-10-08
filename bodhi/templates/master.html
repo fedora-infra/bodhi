@@ -100,7 +100,12 @@
                 <ul class="dropdown-menu">
                   <li>
                     <a href="${request.route_url('metrics')}">
-                      Overall metrics
+                      Overall Metrics
+                    </a>
+                  </li>
+                  <li>
+                    <a href="${request.route_url('masher_status')}">
+                      Masher Status
                     </a>
                   </li>
                   % for state in request.releases:

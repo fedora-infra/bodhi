@@ -1706,9 +1706,8 @@ class Update(Base):
         simply return True.
         """
         min_num_days = self.release.mandatory_days_in_testing
-        num_days = self.days_in_testing
         if min_num_days:
-            if num_days < min_num_days:
+            if not self.meets_testing_requirements:
                 return False
         else:
             return True
@@ -2132,8 +2131,11 @@ class BuildrootOverride(Base):
             return
 
         koji_session = buildsys.get_session()
-        koji_session.untagBuild(self.build.release.override_tag,
-                                self.build.nvr, strict=True)
+        try:
+            koji_session.untagBuild(self.build.release.override_tag,
+                                    self.build.nvr, strict=True)
+        except Exception, e:
+            log.error('Unable to untag override %s: %s' % (self.build.nvr, e))
         self.expired_date = datetime.utcnow()
 
         notifications.publish(

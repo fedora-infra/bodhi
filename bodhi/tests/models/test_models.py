@@ -430,6 +430,30 @@ class TestUpdate(ModelTest):
             topic='update.request.stable', msg=mock.ANY)
 
     @mock.patch('bodhi.notifications.publish')
+    def test_set_meets_then_met_requirements(self, publish):
+        req = DummyRequest()
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        req.user = model.User(name='bob')
+
+        self.obj.status = UpdateStatus.testing
+        self.obj.request = None
+
+        # Pretend it's been in testing for a week
+        self.obj.comment(
+            self.db, u'This update has been pushed to testing.', author=u'bodhi')
+        self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
+        eq_(self.obj.days_in_testing, 7)
+        eq_(self.obj.meets_testing_requirements, True)
+        eq_(self.obj.met_testing_requirements, False)
+
+        text = config.get('testing_approval_msg') % self.obj.days_in_testing
+        self.obj.comment(self.db, text, author=u'bodhi')
+
+        eq_(self.obj.meets_testing_requirements, True)
+        eq_(self.obj.met_testing_requirements, True)
+
+    @mock.patch('bodhi.notifications.publish')
     def test_set_request_obsolete(self, publish):
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()

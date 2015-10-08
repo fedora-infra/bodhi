@@ -11,21 +11,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+This script is responsible for commenting on updates after they reach the
+mandatory amount of time spent in the testing repository.
+"""
 
-from datetime import datetime
-import logging
 import os
 import sys
 
-from pyramid.paster import get_appsettings, setup_logging
+from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
+
 import transaction
 
-from ..models import Base, BuildrootOverride
-
-from ..buildsys import setup_buildsystem
+from ..models import Base, Update, UpdateStatus
+from ..config import config
 
 
 def usage(argv):
@@ -41,33 +43,24 @@ def main(argv=sys.argv):
 
     config_uri = argv[1]
 
-    setup_logging(config_uri)
-    log = logging.getLogger(__name__)
-
     settings = get_appsettings(config_uri)
     engine = engine_from_config(settings, 'sqlalchemy.')
     Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
     Session.configure(bind=engine)
     db = Session()
 
-    setup_buildsystem(settings)
-
     with transaction.manager:
-        now = datetime.utcnow()
-
-        overrides = db.query(BuildrootOverride)
-        overrides = overrides.filter(BuildrootOverride.expired_date == None)
-        overrides = overrides.filter(BuildrootOverride.expiration_date < now)
-
-        count = overrides.count()
-
-        if not count:
-            log.info("No active buildroot override to expire")
-            return
-
-        log.info("Expiring %d buildroot overrides...", count)
-
-        for override in overrides:
-            override.expire()
-            db.add(override)
-            log.info("Expired %s" % override.build.nvr)
+        testing = db.query(Update).filter_by(status=UpdateStatus.testing,
+                                             request=None)
+        for update in testing:
+            # If this release does not have any testing requirements, skip it
+            if not update.release.mandatory_days_in_testing:
+                print('%s doesn\'t have mandatory days in testing' % update.release.name)
+                continue
+            # If this has already met testing requirements, skip it
+            if update.met_testing_requirements:
+                continue
+            if update.meets_testing_requirements:
+                print('%s now meets testing requirements' % update.title)
+                text = config.get('testing_approval_msg') % update.days_in_testing
+                update.comment(db, text, author='bodhi')
