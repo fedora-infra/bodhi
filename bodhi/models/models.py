@@ -584,7 +584,7 @@ class Build(Base):
 class Update(Base):
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id', 'cves')
-    __include_extras__ = ('meets_testing_requirements',)
+    __include_extras__ = ('meets_testing_requirements', 'url',)
     __get_by__ = ('title', 'alias')
 
     title = Column(UnicodeText, default=None, index=True)
@@ -1233,7 +1233,7 @@ class Update(Base):
             path.append(quote(self.title))
         return os.path.join(*path)
 
-    def abs_url(self):
+    def abs_url(self, request=None):
         """ Return the absolute URL to this update """
         base = config['base_address']
         return os.path.join(base, self.get_url())

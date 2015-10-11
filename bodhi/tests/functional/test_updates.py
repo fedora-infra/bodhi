@@ -428,6 +428,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
 
+        alias = u'FEDORA-%s-a3bbe1a8f2' % YEAR
+        baseurl = 'http://0.0.0.0:6543'
+
         up = body['updates'][0]
         self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
         self.assertEquals(up['status'], u'pending')
@@ -444,8 +447,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_pushed'], None)
         self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEquals(up['alias'], alias)
         self.assertEquals(up['karma'], 1)
+        self.assertEquals(up['url'], '%s/updates/%s' % (baseurl, alias))
 
     def test_list_updates_jsonp(self):
         res = self.app.get('/updates/',
