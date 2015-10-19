@@ -16,7 +16,7 @@ Cabbage.prototype.spin = function() {
         $("#ghost-cabbage").css({transform: "rotate(" + self.degrees + "deg)"});
     }, self.frequency);
 
-    $("html,body").css('cursor', 'wait');
+    $("html,body").css('cursor', 'wait !important');
 }
 
 Cabbage.prototype.stop = function() {
