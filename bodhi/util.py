@@ -251,11 +251,12 @@ def age(context, date, nuke_ago=False):
 
 hardcoded_avatars = {
     'bodhi': 'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
-    # Taskotron may have a logo at some point.  Check this out:
+    # Taskotron may have a new logo at some point.  Check this out:
     # https://mashaleonova.wordpress.com/2015/08/18/a-logo-for-taskotron/
     # Ask tflink before actually putting this in place though.  we need
     # a nice small square version.  It'll look great!
-    #'taskotron': 'something-fancy.png',
+    # In the meantime, we can use this temporary logo.
+    'taskotron': 'https://apps.fedoraproject.org/img/icons/taskotron-{size}.png'
 }
 
 
