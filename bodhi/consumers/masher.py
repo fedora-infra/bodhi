@@ -596,10 +596,10 @@ class MasherThread(threading.Thread):
         comps_url = config.get('comps_url')
         if not os.path.exists(comps_dir):
             util.cmd(['git', 'clone', comps_url], os.path.dirname(comps_dir))
-        if comps_url.startswith('git://'):
+        if comps_url.startswith('https://'):
             util.cmd(['git', 'pull'], comps_dir)
         else:
-            self.log.error('comps_url must start with git://')
+            self.log.error('comps_url must start with https://')
             return
         util.cmd(['make'], comps_dir)
 
