@@ -2078,3 +2078,20 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Bob should be able to give karma again since the reset
         self.assertEquals(upd.karma, 1)
+
+        # Then.. edit it and change the builds!
+        newer_nvr = u'bodhi-2.0.0-4.fc17'
+        args['edited'] = args['builds']
+        args['builds'] = newer_nvr
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], newer_nvr)
+        # This is what we really want to test here.
+        self.assertEquals(up['karma'], 0)
+
+        # Have bob +1 it again
+        upd = Update.get(newer_nvr, self.db)
+        upd.comment(self.db, u'Ship it!', author=u'bob', karma=1)
+
+        # Bob should be able to give karma again since the reset
+        self.assertEquals(upd.karma, 1)
