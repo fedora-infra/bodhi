@@ -2058,7 +2058,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.db.flush()
 
         # Have bob +1 it
-        upd.comment(self.db, 'LGTM', author=u'bob', karma=1)
+        upd.comment(self.db, u'LGTM', author=u'bob', karma=1)
         upd = Update.get(nvr, self.db)
         self.assertEquals(upd.karma, 1)
 
@@ -2074,7 +2074,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Have bob +1 it again
         upd = Update.get(new_nvr, self.db)
-        upd.comment(self.db, 'Ship it!', author=u'bob', karma=1)
+        upd.comment(self.db, u'Ship it!', author=u'bob', karma=1)
 
         # Bob should be able to give karma again since the reset
         self.assertEquals(upd.karma, 1)
