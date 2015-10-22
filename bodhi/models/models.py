@@ -1386,41 +1386,48 @@ class Update(Base):
                 notice = 'You may not give karma to your own updates.'
                 caveats.append({'name': 'karma', 'description': notice})
 
-        if not anonymous and karma != 0 and \
-           not filter(lambda c: c.user.name == author and c.karma == karma,
-                      self.comments):
-            mycomments = [
-                c.karma for c in self.comments if c.user.name == author]
-            if karma == 1 and -1 in mycomments:
-                self.karma += 2
-                caveats.append({
-                    'name': 'karma',
-                    'description': 'Your karma standing was reversed.',
-                })
-            elif karma == -1 and 1 in mycomments:
-                self.karma -= 2
-                caveats.append({
-                    'name': 'karma',
-                    'description': 'Your karma standing was reversed.',
-                })
-            else:
-                self.karma += karma
+        if not anonymous and karma != 0:
+            # Take all comments since the previous karma reset
+            reset_index = 0
+            for i, comment in enumerate(self.comments):
+                if (comment.user.name == u'bodhi' and ('New build' in
+                    comment.text or 'Removed build' in comment.text)):
+                    reset_index = i
 
-            log.info("Updated %s karma to %d" % (self.title, self.karma))
-
-            if check_karma and author not in config.get('system_users').split():
-                try:
-                    self.check_karma_thresholds(session, 'bodhi')
-                except LockedUpdateException:
-                    pass
-                except BodhiException as e:
-                    # This gets thrown if the karma is pushed over the
-                    # threshold, but it is a critpath update that is not
-                    # critpath_approved. ... among other cases.
-                    log.exception('Problem checking the karma threshold.')
+            mycomments = [c.karma for c in self.comments if c.user.name == author][reset_index:]
+            if karma not in mycomments:
+                if karma == 1 and -1 in mycomments:
+                    self.karma += 2
                     caveats.append({
-                        'name': 'karma', 'description': str(e),
+                        'name': 'karma',
+                        'description': 'Your karma standing was reversed.',
                     })
+                elif karma == -1 and 1 in mycomments:
+                    self.karma -= 2
+                    caveats.append({
+                        'name': 'karma',
+                        'description': 'Your karma standing was reversed.',
+                    })
+                else:
+                    self.karma += karma
+
+                log.info("Updated %s karma to %d" % (self.title, self.karma))
+
+                if check_karma and author not in config.get('system_users').split():
+                    try:
+                        self.check_karma_thresholds(session, 'bodhi')
+                    except LockedUpdateException:
+                        pass
+                    except BodhiException as e:
+                        # This gets thrown if the karma is pushed over the
+                        # threshold, but it is a critpath update that is not
+                        # critpath_approved. ... among other cases.
+                        log.exception('Problem checking the karma threshold.')
+                        caveats.append({
+                            'name': 'karma', 'description': str(e),
+                        })
+            else:
+                log.debug('Ignoring duplicate %d karma from %s on %s' % (karma, author, self.title))
 
         comment = Comment(
             text=text, anonymous=anonymous,
