@@ -3,7 +3,7 @@ bodhi v2.0
 
 Dependencies
 ------------
-``sudo dnf install libffi-devel openssl-devel koji``
+``sudo dnf install libffi-devel openssl-devel koji pcaro-hermit freetype-devel libjpeg-turbo-devel``
 
 Setup virtualenvwrapper
 -----------------------
