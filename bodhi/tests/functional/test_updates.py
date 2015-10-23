@@ -2034,3 +2034,64 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
         # This is what we really want to test here.
         self.assertEquals(up['karma'], 0)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_testing_update_reset_karma_with_same_tester(self, publish, *args):
+        """
+        Ensure that someone who gave an update karma can do it again after a reset.
+        https://github.com/fedora-infra/bodhi/issues/659
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        # Mark it as testing
+        upd = Update.get(nvr, self.db)
+        upd.status = UpdateStatus.testing
+        upd.request = None
+        self.db.flush()
+
+        # Have bob +1 it
+        upd.comment(self.db, u'LGTM', author=u'bob', karma=1)
+        upd = Update.get(nvr, self.db)
+        self.assertEquals(upd.karma, 1)
+
+        # Then.. edit it and change the builds!
+        new_nvr = u'bodhi-2.0.0-3.fc17'
+        args['edited'] = args['builds']
+        args['builds'] = new_nvr
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], new_nvr)
+        # This is what we really want to test here.
+        self.assertEquals(up['karma'], 0)
+
+        # Have bob +1 it again
+        upd = Update.get(new_nvr, self.db)
+        upd.comment(self.db, u'Ship it!', author=u'bob', karma=1)
+
+        # Bob should be able to give karma again since the reset
+        self.assertEquals(upd.karma, 1)
+
+        # Then.. edit it and change the builds!
+        newer_nvr = u'bodhi-2.0.0-4.fc17'
+        args['edited'] = args['builds']
+        args['builds'] = newer_nvr
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], newer_nvr)
+        # This is what we really want to test here.
+        self.assertEquals(up['karma'], 0)
+
+        # Have bob +1 it again
+        upd = Update.get(newer_nvr, self.db)
+        upd.comment(self.db, u'Ship it!', author=u'bob', karma=1)
+
+        # Bob should be able to give karma again since the reset
+        self.assertEquals(upd.karma, 1)
