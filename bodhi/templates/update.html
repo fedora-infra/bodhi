@@ -357,7 +357,7 @@ $(document).ready(function(){
           <ul>
             % for build in update.builds:
             <li>
-              <span class="pull-left">${build.nvr}</span>
+              <span>${build.nvr}</span>
               <span class="pull-right">
                 <a href='${request.route_url("updates_rss") + "?packages=" + build.package.name}'>
                   <span class="fa fa-rss" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
