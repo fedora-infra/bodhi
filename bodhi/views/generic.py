@@ -186,10 +186,11 @@ def masher_status(request):
 @view_config(route_name='new_override', renderer='override.html')
 def new_override(request):
     """ Returns the new buildroot override form """
+    nvr = request.params.get('nvr')
     user = authenticated_userid(request)
     if not user:
         raise HTTPForbidden("You must be logged in.")
-    return dict()
+    return dict(nvr=nvr)
 
 
 @view_config(route_name='api_version', renderer='json')
