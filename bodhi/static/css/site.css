@@ -196,7 +196,7 @@ ul.updateslist li {
 .markdown ul {
     list-style-type: circle;
 }
-.markdown code {
+.markdown > p > code {
     white-space: normal !important;
 }
 .markdown p {
