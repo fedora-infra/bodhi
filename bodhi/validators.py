@@ -34,13 +34,18 @@ from .util import get_nvr, tokenize, taskotron_results
 import bodhi.schemas
 
 
+csrf_error_message = """CSRF tokens do not match.  This happens if you have
+the page open for a long time. Please reload the page and try to submit your
+data again. Make sure to save your input somewhere before reloading.
+""".replace('\n', ' ')
+
 # This one is a colander validator which is different from the cornice
 # validators defined elsehwere.
 def validate_csrf_token(node, value):
     request = pyramid.threadlocal.get_current_request()
     expected = request.session.get_csrf_token()
     if value != expected:
-        raise colander.Invalid(node, 'CSRF tokens do not match')
+        raise colander.Invalid(node, csrf_error_message)
 
 
 def cache_nvrs(request, build):
