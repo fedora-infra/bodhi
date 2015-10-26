@@ -49,8 +49,14 @@
           </div>
           <div id="candidates-search" class="form-group noui">
             %if override is UNDEFINED:
-            <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
-                placeholder="Add a build, like package-0.2.1-5.fc20">
+              %if nvr is UNDEFINED or nvr is None:
+              <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
+                  placeholder="Add a build, like package-0.2.1-5.fc20">
+              %else:
+              <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
+                  placeholder="Add a build, like package-0.2.1-5.fc20"
+                  value="${nvr}">
+              %endif
             %else:
             <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
                 placeholder="Add a build, like package-0.2.1-5.fc20"
