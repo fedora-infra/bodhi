@@ -211,6 +211,9 @@ def main(global_config, testing=None, session=None, **settings):
 
     config.add_route('api_version', '/api_version')
 
+    # The only user preference we have.
+    config.add_route('popup_toggle', '/popup_toggle')
+
     config.scan('bodhi.views')
     config.scan('bodhi.services')
     config.scan('bodhi.captcha')
