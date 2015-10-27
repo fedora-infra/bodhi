@@ -84,7 +84,6 @@ $(document).ready(function() {
         theform.expire();
     });
 
-    // Lastly, hide our warning and show the main form
-    $("#js-warning").addClass('hidden');
+    // Lastly show the main form
     $("#new-override-form").removeClass('hidden');
 });
