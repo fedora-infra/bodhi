@@ -20,9 +20,9 @@
 
     <base href="${request.registry.settings['base_address']}"/>
     % if not update:
-    	<title>Fedora Updates System</title>
+        <title>Fedora Updates System</title>
     % else:
-    	<title>${update.title} - Fedora Updates System</title>
+        <title>${update.title} - Fedora Updates System</title>
     % endif
     <link href="${request.static_url('bodhi:static/bootstrap/css/bootstrap.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:static/font-awesome-4.4.0/css/font-awesome.min.css') }" rel="stylesheet" />
@@ -216,7 +216,7 @@
     <script src="${request.static_url('bodhi:static/js/cabbage.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/forms.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/site.js')}"></script>
-    % if request.user.show_popups:
+    % if request.user and request.user.show_popups:
     <script src="${request.static_url('bodhi:static/js/live.js')}"></script>
     % endif
     <script src="${request.static_url('bodhi:static/messenger/js/messenger.min.js')}"></script>
