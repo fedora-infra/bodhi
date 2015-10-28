@@ -37,6 +37,7 @@ from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
 from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
+from sqlalchemy.sql import text
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.properties import RelationshipProperty
@@ -2006,6 +2007,9 @@ class User(Base):
 
     name = Column(Unicode(64), unique=True, nullable=False)
     email = Column(UnicodeText, unique=True)
+
+    # A preference
+    show_popups = Column(Boolean, default=True, server_default=text('TRUE'))
 
     # One-to-many relationships
     comments = relationship(Comment, backref=backref('user'), lazy='dynamic')

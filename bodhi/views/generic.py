@@ -20,7 +20,8 @@ import cornice.errors
 from pyramid.security import authenticated_userid
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
-from pyramid.exceptions import HTTPForbidden
+from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
+from pyramid.httpexceptions import HTTPFound
 
 from bodhi import log
 import bodhi.models
@@ -191,6 +192,25 @@ def new_override(request):
     if not user:
         raise HTTPForbidden("You must be logged in.")
     return dict(nvr=nvr)
+
+
+@view_config(route_name='popup_toggle', request_method='POST')
+def popup_toggle(request):
+    # Get the user
+    from bodhi.models import User
+    userid = authenticated_userid(request)
+    if userid is None:
+        raise HTTPForbidden("You must be logged in.")
+    user = request.db.query(User).filter_by(name=unicode(userid)).first()
+    if user is None:
+        raise HTTPBadRequest("For some reason, user does not exist.")
+
+    # Toggle the value.
+    user.show_popups = not user.show_popups
+
+    # And send the user back
+    return_to = request.params.get('next', request.route_url('home'))
+    return HTTPFound(location=return_to)
 
 
 @view_config(route_name='api_version', renderer='json')
