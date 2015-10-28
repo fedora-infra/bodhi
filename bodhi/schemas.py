@@ -602,6 +602,12 @@ class ListCommentSchema(PaginatedSchema, SearchableSchema):
         missing=None,
     )
 
+    ignore_user = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
     anonymous = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",
