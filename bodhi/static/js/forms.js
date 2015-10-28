@@ -6,6 +6,10 @@ function Form(idx, url){
     this.messenger = Messenger({theme: 'flat'});
 }
 
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
 Form.prototype.idx = null;
 Form.prototype.url = null;
 
@@ -69,7 +73,7 @@ Form.prototype.error = function(data) {
     // Here is where we handle those error messages on the response by cornice.
     $.each(data.responseJSON.errors, function (i, error) {
         msg = self.messenger.post({
-            message: error.description,
+            message: error.name.capitalize() + ' : ' + error.description,
             type: "error",
             hideAfter: false,
             showCloseButton: true,
