@@ -30,6 +30,7 @@ from bodhi.validators import (
     validate_update,
     validate_updates,
     validate_update_owner,
+    validate_ignore_user,
     validate_comment_id,
     validate_username,
     validate_bug_feedback,
@@ -69,6 +70,7 @@ def get_comment(request):
 validators=(
     validate_username,
     validate_update_owner,
+    validate_ignore_user,
     validate_updates,
     validate_packages,
 )
@@ -122,6 +124,10 @@ def query_comments(request):
     if update_owner is not None:
         query = query.join(Comment.update)
         query = query.filter(Update.user==update_owner)
+
+    ignore_user = data.get('ignore_user')
+    if ignore_user is not None:
+        query = query.filter(Comment.user!=ignore_user)
 
     user = data.get('user')
     if user is not None:
