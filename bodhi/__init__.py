@@ -109,7 +109,7 @@ def get_releases(request):
 def exception_filter(response, request):
     """Log exceptions that get thrown up to cornice"""
     if isinstance(response, Exception):
-        log.exception('Unhandled exception raised')
+        log.exception('Unhandled exception raised:  %r' % response)
     return response
 
 from cornice.validators import DEFAULT_FILTERS
