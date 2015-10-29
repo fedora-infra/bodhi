@@ -1482,7 +1482,7 @@ class Update(Base):
                 people.add(comment.user.email)
             else:
                 people.add(comment.user.name)
-        mail.send(people, 'comment', self, author, author)
+        mail.send(people, 'comment', self, sender=None, agent=author)
         return comment, caveats
 
     def unpush(self):
