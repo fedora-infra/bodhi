@@ -432,6 +432,7 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     if headers:
         for key, value in headers.items():
             msg.append('%s: %s' % (key, to_bytes(value)))
+    msg.append('X-Bodhi: %s' % config.get('default_email_domain'))
     msg += ['Subject: %s' % subject, '', body_text]
     body = to_bytes('\r\n'.join(msg))
 
