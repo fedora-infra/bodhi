@@ -776,7 +776,14 @@ class Update(Base):
 
                 b.unpush(koji=request.koji)
                 up.builds.remove(b)
-                db.delete(b)
+
+                # Expire any associated buildroot override
+                if b.override:
+                    b.override.expire()
+                else:
+                    # Only delete the Build entity if it isn't associated with
+                    # an override
+                    db.delete(b)
 
         critical = False
         critpath_pkgs = get_critpath_pkgs(up.release.name.lower())
