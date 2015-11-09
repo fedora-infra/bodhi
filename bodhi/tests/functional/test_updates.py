@@ -37,6 +37,7 @@ from bodhi.models import (
     UpdateStatus,
     UpdateRequest,
     Release,
+    BuildrootOverride
 )
 
 YEAR = time.localtime().tm_year
@@ -2095,3 +2096,43 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Bob should be able to give karma again since the reset
         self.assertEquals(upd.karma, 1)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_update_with_expired_override(self, publish, *args):
+        """
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        # Create a new expired override
+        upd = Update.get(nvr, self.db)
+        override = BuildrootOverride(
+                build=upd.builds[0],
+                submitter=user,
+                notes=u'testing',
+                expiration_date=datetime.utcnow(),
+                expired_date=datetime.utcnow())
+        self.db.add(override)
+        self.db.flush()
+
+        # Edit it and change the builds
+        new_nvr = u'bodhi-2.0.0-3.fc17'
+        args['edited'] = args['builds']
+        args['builds'] = new_nvr
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], new_nvr)
+
+        # Change it back to ensure we can still reference the older build
+        args['edited'] = args['builds']
+        args['builds'] = nvr
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], nvr)
