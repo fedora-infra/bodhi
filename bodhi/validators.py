@@ -148,7 +148,7 @@ def validate_build_tags(request):
                 if not build_rel:
                     raise KeyError("Couldn't find release from build tags")
             except KeyError:
-                msg = 'Cannot find release associated with build: {}, tags: {}'.format(build, tags)
+                msg = 'Cannot find any tags associated with that nvr: {}, tags: {}'.format(build, tags)
                 log.warn(msg)
                 request.errors.add('body', 'builds', msg)
                 return
@@ -267,7 +267,7 @@ def validate_acls(request):
                 return
             buildinfo['release'] = release
             if not release:
-                msg = 'Cannot find release associated with ' + \
+                msg = 'Cannot find any tags associated with that nvr' + \
                     'build: {}, tags: {}'.format(build, tags)
                 log.warn(msg)
                 request.errors.add('body', 'builds', msg)
