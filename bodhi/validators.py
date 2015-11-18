@@ -148,7 +148,7 @@ def validate_build_tags(request):
                 if not build_rel:
                     raise KeyError("Couldn't find release from build tags")
             except KeyError:
-                msg = 'Cannot find any tags associated with that nvr: {}, tags: {}'.format(build, tags)
+                msg = 'nvr for {} is not tagged with any of the following: {}'.format(build, tags)
                 log.warn(msg)
                 request.errors.add('body', 'builds', msg)
                 return
