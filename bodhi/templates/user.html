@@ -39,7 +39,7 @@
 
           });
       $.ajax(
-          "${urls['comments_on']}" + "&chrome=False&rows_per_page=10",
+          "${urls['comments_on']}" + "&ignore_user=bodhi&chrome=False&rows_per_page=10",
           {
               dataType: 'html',
               success: function(html) {

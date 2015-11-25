@@ -187,6 +187,7 @@ Once mash is done:
             releases = self.organize_updates(session, body)
             batches = self.prioritize_updates(releases)
 
+        results = []
         # Important repos first, then normal
         for batch in batches:
             # Stable first, then testing
@@ -203,8 +204,11 @@ Once mash is done:
                         thread.start()
                 for thread in threads:
                     thread.join()
+                results.extend([thread.results() for thread in threads])
 
-        self.log.info('Push complete!')
+        self.log.info('Push complete!  Summary follows:')
+        for result in results:
+            self.log.info(result)
 
     def organize_updates(self, session, body):
         # {Release: {UpdateRequest: [Update,]}}
@@ -242,6 +246,7 @@ class MasherThread(threading.Thread):
             'updates': updates,
             'completed_repos': []
         }
+        self.success = False
 
     def run(self):
         try:
@@ -251,6 +256,22 @@ class MasherThread(threading.Thread):
                 self.db = None
         except:
             self.log.exception('MasherThread failed. Transaction rolled back.')
+
+    def results(self):
+        attrs = ['name', 'success']
+        yield "  name:  %(name)-20s  success:  %(success)s" % dict(
+            zip(attrs, [getattr(self, attr, 'Undefined') for attr in attrs])
+        )
+        ## If we wanted to include more info in the summary at the end, we
+        ## could do this.. but I bet it would be so spammy that it would ruin
+        ## the effect of a summary.  It would scroll longer than one page, and
+        ## you wouldn't be able to see the success/failure status of all the
+        ## different threads all in one glance.
+        #for tag, nvr in self.add_tags:
+        #    yield "    added tag %(tag)s to %(nvr)s" % dict(tag=tag, nvr=nvr)
+        #for src, dest, nvr in self.add_tags:
+        #    yield "    moved %(nvr)s from %(src)s to %(nvr)s" % dict(
+        #        src=src, dest=dest, nvr=nvr)
 
     def work(self):
         self.koji = buildsys.get_session()
@@ -282,7 +303,6 @@ class MasherThread(threading.Thread):
             force=True,
         )
 
-        success = False
         try:
             if self.resume:
                 self.load_state()
@@ -351,7 +371,7 @@ class MasherThread(threading.Thread):
             # Email updates-testing digest
             self.send_testing_digest()
 
-            success = True
+            self.success = True
             self.remove_state()
             self.unlock_updates()
             self.check_all_karma_thresholds()
@@ -360,7 +380,7 @@ class MasherThread(threading.Thread):
             self.save_state()
             raise
         finally:
-            self.finish(success)
+            self.finish(self.success)
 
     def load_updates(self):
         self.log.debug('Loading updates')
@@ -530,8 +550,10 @@ class MasherThread(threading.Thread):
                         from_tag = tag
                         break
                 else:
-                    reason = 'Cannot find relevant tag for %s: %s' % (
-                        build.nvr, tags)
+                    reason = (
+                        'Cannot find relevant tag for %s.  '
+                        'None of %s are in %s.') % (
+                            build.nvr, tags, tag_types[status])
                     self.eject_from_mash(update, reason)
                     break
 
@@ -596,10 +618,10 @@ class MasherThread(threading.Thread):
         comps_url = config.get('comps_url')
         if not os.path.exists(comps_dir):
             util.cmd(['git', 'clone', comps_url], os.path.dirname(comps_dir))
-        if comps_url.startswith('git://'):
+        if comps_url.startswith('https://'):
             util.cmd(['git', 'pull'], comps_dir)
         else:
-            self.log.error('comps_url must start with git://')
+            self.log.error('comps_url must start with https://')
             return
         util.cmd(['make'], comps_dir)
 

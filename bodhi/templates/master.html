@@ -19,9 +19,11 @@
     <link rel="shortcut icon" href="${request.static_url('bodhi:static/ico/favicon.ico')}">
 
     <base href="${request.registry.settings['base_address']}"/>
-
-    <title>Fedora Updates System</title>
-
+    % if not update:
+        <title>Fedora Updates System</title>
+    % else:
+        <title>${update.title} - Fedora Updates System</title>
+    % endif
     <link href="${request.static_url('bodhi:static/bootstrap/css/bootstrap.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:static/font-awesome-4.4.0/css/font-awesome.min.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:static/css/text.css') }" rel="stylesheet" />
@@ -87,7 +89,6 @@
               </li>
               % endif
 
-
               % if request.matched_route and request.matched_route.name in ('metrics', 'releases', 'release', 'overrides'):
               <li class="dropdown active">
               % else:
@@ -141,6 +142,20 @@
                   <li>
                     <a href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
                       Manage Alerts
+                    </a>
+                  </li>
+                  <li>
+                    <form id="popup_toggle" action="${request.route_url('popup_toggle')}" method="POST">
+                      % if request.matched_route:
+                      <input type="hidden" name="next" value="${request.current_route_url()}">
+                      % endif
+                    </form>
+                    <a href="javascript:$('#popup_toggle').submit();">
+                      % if request.user.show_popups:
+                      Disable popups
+                      % else:
+                      Enable popups
+                      % endif
                     </a>
                   </li>
                 </ul>
@@ -201,7 +216,9 @@
     <script src="${request.static_url('bodhi:static/js/cabbage.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/forms.js')}"></script>
     <script src="${request.static_url('bodhi:static/js/site.js')}"></script>
+    % if request.user and request.user.show_popups:
     <script src="${request.static_url('bodhi:static/js/live.js')}"></script>
+    % endif
     <script src="${request.static_url('bodhi:static/messenger/js/messenger.min.js')}"></script>
     <script src="${request.static_url('bodhi:static/messenger/js/messenger-theme-flat.js')}"></script>
     <link href="${request.static_url('bodhi:static/messenger/css/messenger.css') }" rel="stylesheet" />

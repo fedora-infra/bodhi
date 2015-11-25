@@ -240,8 +240,7 @@ $(document).ready(function() {
         theform.submit();
     });
 
-    // Lastly, hide our warning and show the main form
-    $("#js-warning").addClass('hidden');
+    // Lastly show the main form
     $("#new-update-form").removeClass('hidden');
     update_markdown_preview($("#notes").val());
 });

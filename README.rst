@@ -3,11 +3,11 @@ bodhi v2.0
 
 Dependencies
 ------------
-``sudo dnf install libffi-devel openssl-devel koji``
+``sudo dnf install libffi-devel openssl-devel koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel``
 
 Setup virtualenvwrapper
 -----------------------
-``sudo yum -y install python-virtualenvwrapper python-createrepo_c``
+``sudo dnf -y install python-virtualenvwrapper python-createrepo_c``
 
 Add the following to your `~/.bashrc`::
 
@@ -17,6 +17,13 @@ Add the following to your `~/.bashrc`::
 Then on the terminal ::
 
     source ~/.bashrc
+
+Clone the source
+----------------
+::
+
+    git clone https://github.com/fedora-infra/bodhi.git
+    cd bodhi
 
 Bootstrap the virtualenv
 ------------------------

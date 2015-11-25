@@ -34,13 +34,18 @@ from .util import get_nvr, tokenize, taskotron_results
 import bodhi.schemas
 
 
+csrf_error_message = """CSRF tokens do not match.  This happens if you have
+the page open for a long time. Please reload the page and try to submit your
+data again. Make sure to save your input somewhere before reloading.
+""".replace('\n', ' ')
+
 # This one is a colander validator which is different from the cornice
 # validators defined elsehwere.
 def validate_csrf_token(node, value):
     request = pyramid.threadlocal.get_current_request()
     expected = request.session.get_csrf_token()
     if value != expected:
-        raise colander.Invalid(node, 'CSRF tokens do not match')
+        raise colander.Invalid(node, csrf_error_message)
 
 
 def cache_nvrs(request, build):
@@ -572,6 +577,22 @@ def validate_update_owner(request):
         request.validated["update_owner"] = user
     else:
         request.errors.add("querystring", "update_owner",
+                           "Invalid user specified: {}".format(username))
+
+
+def validate_ignore_user(request):
+    """Make sure this user exists"""
+    username = request.validated.get("ignore_user")
+    if username is None:
+        return
+
+    db = request.db
+    user = db.query(User).filter_by(name=username).first()
+
+    if user:
+        request.validated["ignore_user"] = user
+    else:
+        request.errors.add("querystring", "ignore_user",
                            "Invalid user specified: {}".format(username))
 
 

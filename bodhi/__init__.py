@@ -109,7 +109,7 @@ def get_releases(request):
 def exception_filter(response, request):
     """Log exceptions that get thrown up to cornice"""
     if isinstance(response, Exception):
-        log.exception('Unhandled exception raised')
+        log.exception('Unhandled exception raised:  %r' % response)
     return response
 
 from cornice.validators import DEFAULT_FILTERS
@@ -210,6 +210,9 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_view('pyramid_fas_openid.verify_openid', route_name='verify_openid')
 
     config.add_route('api_version', '/api_version')
+
+    # The only user preference we have.
+    config.add_route('popup_toggle', '/popup_toggle')
 
     config.scan('bodhi.views')
     config.scan('bodhi.services')

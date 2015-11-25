@@ -119,4 +119,16 @@ $(document).ready(function() {
     // Our ajaxy search is hidden by default.  Only show it if this is running
     // (and therefore if the user has javascript enabled).
     $("form#search").removeClass('hidden');
+
+    // If people want to just skip our search suggestions and press
+    // "enter", then we'll assume (perhaps incorrectly) that they are
+    // looking for a package.. and we'll take them right to the cornice
+    // service for that.   https://github.com/fedora-infra/bodhi/issues/229
+    $("form#search .tt-input").keypress(function(e) {
+        if (e.which == 13) {
+            cabbage.spin();
+            var value = $("form#search .tt-input").val();
+            window.location.href = '/updates/?packages=' + value;
+        }
+    });
 });

@@ -465,6 +465,22 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid user specified: santa")
 
+    def test_list_comments_with_ignore_user(self):
+        res = self.app.get('/comments/', {"ignore_user": "guest"})
+        body = res.json_body
+        self.assertEquals(len(body['comments']), 1)
+        self.assertNotIn('errors', body)
+        comment = body['comments'][0]
+        self.assertEquals(comment['text'], u'srsly.  pretty good.')
+
+    def test_list_comments_with_unexisting_ignore_user(self):
+        res = self.app.get('/comments/', {"ignore_user": "santa"}, status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('comments', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'ignore_user')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          "Invalid user specified: santa")
+
     def test_put_json_comment(self):
         """ We only want to POST comments, not PUT. """
         self.app.put_json('/comments/', self.make_comment(), status=405)

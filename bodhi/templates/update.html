@@ -354,24 +354,35 @@ $(document).ready(function(){
       <tr>
         <td>Builds</td>
         <td>
-          <ul>
+          <table style="width: 100%;">
             % for build in update.builds:
-            <li>
-              <span class="pull-left">${build.nvr}</span>
-              <span class="pull-right">
+            <tr class="media">
+              <td>${build.nvr}</td>
+              <td class="pull-right">
                 <a href='${request.route_url("updates_rss") + "?packages=" + build.package.name}'>
                   <span class="fa fa-rss" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
                 </a>
                 <a href='${request.route_url("updates") + "?packages=" + build.package.name}'>
                   <span class="glyphicon glyphicon-list" data-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
                 </a>
+                % if can_edit:
+                % if build.override:
+                <a href="${request.route_url('override', nvr=build.nvr)}">
+                  <span class="glyphicon glyphicon-edit" data-toggle="tooltip" data-placement="top" title="Edit the buildroot override for ${build.nvr}"/>
+                </a>
+                % else:
+                <a href='${request.route_url("new_override")}?nvr=${build.nvr}'>
+                  <span class="glyphicon glyphicon-plus" data-toggle="tooltip" data-placement="top" title="Create a buildroot override for ${build.nvr}"/>
+                </a>
+                % endif
+                % endif
                 <a href="http://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob" target="_blank">
                   <span class="glyphicon glyphicon-new-window" data-toggle="tooltip" data-placement="top" title="Show the ${build.nvr} build in Koji"></span>
                 </a>
-              </span>
-            </li>
+              </td>
+            </tr>
             % endfor
-          </ul>
+          </table>
         </td>
       </tr>
 
