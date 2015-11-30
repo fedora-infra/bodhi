@@ -167,6 +167,10 @@ def query_updates(request):
     if approved_since is not None:
         query = query.filter(Update.date_approved >= approved_since)
 
+    approved_before = data.get('approved_before')
+    if approved_before is not None:
+        query = query.filter(Update.date_approved < approved_before)
+
     bugs = data.get('bugs')
     if bugs is not None:
         query = query.join(Update.bugs)
@@ -195,6 +199,10 @@ def query_updates(request):
     if modified_since is not None:
         query = query.filter(Update.date_modified >= modified_since)
 
+    modified_before = data.get('modified_before')
+    if modified_before is not None:
+        query = query.filter(Update.date_modified < modified_before)
+
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Update.builds).join(Build.package)
@@ -212,6 +220,10 @@ def query_updates(request):
     pushed_since = data.get('pushed_since')
     if pushed_since is not None:
         query = query.filter(Update.date_pushed >= pushed_since)
+
+    pushed_before = data.get('pushed_before')
+    if pushed_before is not None:
+        query = query.filter(Update.date_pushed < pushed_before)
 
     releases = data.get('releases')
     if releases is not None:
@@ -238,6 +250,10 @@ def query_updates(request):
     submitted_since = data.get('submitted_since')
     if submitted_since is not None:
         query = query.filter(Update.date_submitted >= submitted_since)
+
+    submitted_before = data.get('submitted_before')
+    if submitted_before is not None:
+        query = query.filter(Update.date_submitted < submitted_before)
 
     suggest = data.get('suggest')
     if suggest is not None:
