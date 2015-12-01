@@ -204,7 +204,8 @@ Once mash is done:
                         thread.start()
                 for thread in threads:
                     thread.join()
-                results.extend([thread.results() for thread in threads])
+                    for result in thread.results():
+                        results.append(result)
 
         self.log.info('Push complete!  Summary follows:')
         for result in results:
