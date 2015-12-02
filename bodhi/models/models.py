@@ -1112,7 +1112,6 @@ class Update(Base):
                 self.add_tag(self.release.candidate_tag)
 
         self.request = action
-        self.pushed = False
 
         notes = notes and '. '.join(notes) + '.' or ''
         flash_notes = flash_notes and '. %s' % flash_notes
@@ -1122,9 +1121,6 @@ class Update(Base):
             action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))
-
-        # FIXME: track date pushed to testing & stable in different fields
-        self.date_pushed = None
 
     def add_tag(self, tag):
         """ Add a koji tag to all builds in this update """
