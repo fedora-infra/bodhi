@@ -506,10 +506,14 @@ def sorted_updates(updates):
     """
     Order our updates so that the highest version gets tagged last so that
     it appears as the 'latest' in koji.
+
+    Returns 2 lists, the first being builds that should be tagged synchronously
+    in a specific order, where as the second batch can be done asynchronously
+    in koji with a multicall.
     """
     builds = defaultdict(set)
     build_to_update = {}
-    ordered_updates = []
+    sync, async = [], []
     for update in updates:
         for build in update.builds:
             n, v, r = get_nvr(build.nvr)
@@ -519,16 +523,17 @@ def sorted_updates(updates):
         if len(builds[package]) > 1:
             log.info('Found multiple %s packages' % package)
             log.debug(builds[package])
-            for build in sorted_builds(builds[package]):
+            for build in sorted_builds(builds[package])[::-1]:
                 update = build_to_update[build]
-                if update not in ordered_updates:
-                    ordered_updates.append(update)
+                if update not in sync:
+                    sync.append(update)
         else:
             update = build_to_update[builds[package].pop()]
-            if update not in ordered_updates:
-                ordered_updates.append(update)
-    log.debug('ordered_updates = %s' % ordered_updates)
-    return ordered_updates[::-1]
+            if update not in async:
+                async.append(update)
+    log.debug('sync = %s' % sync)
+    log.debug('async = %s' % async)
+    return sync, async
 
 
 def cmd(cmd, cwd=None):
