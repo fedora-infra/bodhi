@@ -240,8 +240,10 @@ class MasherThread(threading.Thread):
         self.release = release
         self.resume = resume
         self.updates = set()
-        self.add_tags = []
-        self.move_tags = []
+        self.add_tags_async = []
+        self.move_tags_async = []
+        self.add_tags_sync = []
+        self.move_tags_sync = []
         self.testing_digest = {}
         self.state = {
             'updates': updates,
@@ -534,54 +536,67 @@ class MasherThread(threading.Thread):
 
     def _determine_tag_actions(self):
         tag_types, tag_rels = Release.get_tags(self.db)
-        for update in sorted_updates(self.updates):
-            add_tags = []
-            move_tags = []
+        # sync & async tagging batches
+        for i, batch in enumerate(sorted_updates(self.updates)):
+            for update in batch:
+                add_tags = []
+                move_tags = []
 
-            if update.status is UpdateStatus.testing:
-                status = 'testing'
-            else:
-                status = 'candidate'
+                if update.status is UpdateStatus.testing:
+                    status = 'testing'
+                else:
+                    status = 'candidate'
 
-            for build in update.builds:
-                from_tag = None
-                tags = build.get_tags()
-                for tag in tags:
-                    if tag in tag_types[status]:
-                        from_tag = tag
+                for build in update.builds:
+                    from_tag = None
+                    tags = build.get_tags()
+                    for tag in tags:
+                        if tag in tag_types[status]:
+                            from_tag = tag
+                            break
+                    else:
+                        reason = (
+                            'Cannot find relevant tag for %s.  '
+                            'None of %s are in %s.') % (
+                                build.nvr, tags, tag_types[status])
+                        self.eject_from_mash(update, reason)
                         break
-                else:
-                    reason = (
-                        'Cannot find relevant tag for %s.  '
-                        'None of %s are in %s.') % (
-                            build.nvr, tags, tag_types[status])
-                    self.eject_from_mash(update, reason)
-                    break
 
-                if self.skip_mash:
-                    add_tags.append((update.requested_tag, build.nvr))
+                    if self.skip_mash:
+                        add_tags.append((update.requested_tag, build.nvr))
+                    else:
+                        move_tags.append((from_tag, update.requested_tag,
+                                          build.nvr))
                 else:
-                    move_tags.append((from_tag, update.requested_tag,
-                                      build.nvr))
-            else:
-                self.add_tags.extend(add_tags)
-                self.move_tags.extend(move_tags)
+                    if i == 0:
+                        self.add_tags_sync.extend(add_tags)
+                        self.move_tags_sync.extend(move_tags)
+                    else:
+                        self.add_tags_async.extend(add_tags)
+                        self.move_tags_async.extend(move_tags)
 
     def _perform_tag_actions(self):
-        self.koji.multicall = True
-        for action in self.add_tags:
-            tag, build = action
-            self.log.info("Adding tag %s to %s" % (tag, build))
-            self.koji.tagBuild(tag, build, force=True)
-        for action in self.move_tags:
-            from_tag, to_tag, build = action
-            self.log.info('Moving %s from %s to %s' % (
-                          build, from_tag, to_tag))
-            self.koji.moveBuild(from_tag, to_tag, build, force=True)
-        results = self.koji.multiCall()
-        failed_tasks = buildsys.wait_for_tasks([task[0] for task in results], self.koji, sleep=15)
-        if failed_tasks:
-            raise Exception("Failed to move builds: %s" % failed_tasks)
+        for i, batches in enumerate([(self.add_tags_sync, self.move_tags_sync),
+                                     (self.add_tags_async, self.move_tags_async)]):
+            add, move = batches
+            if i != 0:
+                self.koji.multicall = True
+            for action in add:
+                tag, build = action
+                self.log.info("Adding tag %s to %s" % (tag, build))
+                self.koji.tagBuild(tag, build, force=True)
+            for action in move:
+                from_tag, to_tag, build = action
+                self.log.info('Moving %s from %s to %s' % (
+                              build, from_tag, to_tag))
+                self.koji.moveBuild(from_tag, to_tag, build, force=True)
+
+        if i != 0:
+            results = self.koji.multiCall()
+            failed_tasks = buildsys.wait_for_tasks([task[0] for task in results],
+                                                   self.koji, sleep=15)
+            if failed_tasks:
+                raise Exception("Failed to move builds: %s" % failed_tasks)
 
     def expire_buildroot_overrides(self):
         """ Expire any buildroot overrides that are in this push """

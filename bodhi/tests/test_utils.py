@@ -14,7 +14,7 @@
 
 from bodhi.models import Update
 from bodhi.util import (get_critpath_pkgs, markup,
-                        get_rpm_header, cmd)
+                        get_rpm_header, cmd, sorted_builds, sorted_updates)
 from bodhi.config import config
 
 
@@ -49,3 +49,10 @@ class TestUtils(object):
             assert False
         except Exception:
             pass
+
+    def test_sorted_builds(self):
+        new = 'bodhi-2.0-1.fc24'
+        old = 'bodhi-1.5-4.fc24'
+        b1, b2 = sorted_builds([new, old])
+        assert b1 == new, b1
+        assert b2 == old, b2
