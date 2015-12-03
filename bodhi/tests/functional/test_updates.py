@@ -557,6 +557,55 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 
+    def test_list_updates_by_approved_before(self):
+        # Approve an update
+        now = datetime.utcnow()
+        self.db.query(Update).first().date_approved = now
+        self.db.flush()
+
+        # First check we get no result for an old date
+        res = self.app.get('/updates/',
+                           {"approved_before": "1984-11-01"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now check we get the update if we use tomorrow
+        tomorrow = datetime.utcnow() + timedelta(days=1)
+        tomorrow = tomorrow.strftime("%Y-%m-%d")
+
+        res = self.app.get('/updates/', {"approved_before": tomorrow})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEquals(up['karma'], 1)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_approved_before(self):
+        res = self.app.get('/updates/', {"approved_before": "forever"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'approved_before')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
     def test_list_updates_by_bugs(self):
         res = self.app.get('/updates/', {"bugs": '12345'})
         body = res.json_body
@@ -712,6 +761,48 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
+    def test_list_updates_by_date_submitted_before_invalid_date(self):
+        """test filtering by submitted before date with an invalid date"""
+        res = self.app.get('/updates/', {"submitted_before": "11-01-1984"},
+            status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(body['errors'][0]['name'], 'submitted_before')
+        self.assertEquals(body['errors'][0]['description'],
+                          'Invalid date')
+
+    def test_list_updates_by_date_submitted_before_old_date(self):
+        """test filtering by submitted before date with old date"""
+        res = self.app.get('/updates/', {"submitted_before": "1975-01-01"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+    def test_list_updates_by_date_submitted_before_valid(self):
+        """test filtering by submitted before date with valid date"""
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        res = self.app.get('/updates/', {"submitted_before": today})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEquals(up['karma'], 1)
+
     def test_list_updates_by_locked(self):
         res = self.app.get('/updates/', {"locked": "false"})
         body = res.json_body
@@ -791,6 +882,57 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'modified_since')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
+    def test_list_updates_by_modified_before(self):
+        now = datetime.utcnow()
+        tomorrow = now + timedelta(days=1)
+        tomorrow = tomorrow.strftime("%Y-%m-%d")
+
+        # Try with no modified updates first
+        res = self.app.get('/updates/',
+                           {"modified_before": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now approve one
+        self.db.query(Update).first().date_modified = now
+        self.db.flush()
+
+        # And try again
+        res = self.app.get('/updates/',
+                           {"modified_before": tomorrow})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEquals(up['karma'], 1)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_modified_before(self):
+        res = self.app.get('/updates/', {"modified_before": "the dawn of time"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'modified_before')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 
@@ -930,6 +1072,56 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'pushed_since')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid date')
+
+    def test_list_updates_by_pushed_before(self):
+        now = datetime.utcnow()
+        tomorrow = now + timedelta(days=1)
+        tomorrow = tomorrow.strftime("%Y-%m-%d")
+
+        # Try with no pushed updates first
+        res = self.app.get('/updates/',
+                           {"pushed_before": now.strftime("%Y-%m-%d")})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+        # Now approve one
+        self.db.query(Update).first().date_pushed = now
+        self.db.flush()
+
+        # And try again
+        res = self.app.get('/updates/',
+                           {"pushed_before": tomorrow})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEquals(up['karma'], 1)
+        self.assertEquals(len(up['bugs']), 1)
+        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+
+    def test_list_updates_by_invalid_pushed_before(self):
+        res = self.app.get('/updates/', {"pushed_before": "a while ago"},
+                           status=400)
+        body = res.json_body
+        self.assertEquals(len(body.get('updates', [])), 0)
+        self.assertEquals(res.json_body['errors'][0]['name'], 'pushed_before')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 

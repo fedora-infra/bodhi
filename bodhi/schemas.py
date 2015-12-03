@@ -403,6 +403,12 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         missing=None,
     )
 
+    approved_before = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     bugs = Bugs(
         colander.Sequence(accept_scalar=True),
         location="querystring",
@@ -442,6 +448,12 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         missing=None,
     )
 
+    modified_before = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
     packages = Packages(
         colander.Sequence(accept_scalar=True),
         location="querystring",
@@ -456,6 +468,12 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     )
 
     pushed_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
+    pushed_before = colander.SchemaNode(
         colander.DateTime(),
         location="querystring",
         missing=None,
@@ -498,6 +516,12 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     )
 
     submitted_since = colander.SchemaNode(
+        colander.DateTime(),
+        location="querystring",
+        missing=None,
+    )
+
+    submitted_before = colander.SchemaNode(
         colander.DateTime(),
         location="querystring",
         missing=None,

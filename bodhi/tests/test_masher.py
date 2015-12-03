@@ -273,6 +273,54 @@ class TestMasher(unittest.TestCase):
             up = session.query(Update).one()
             self.assertIsNone(up.request)
 
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.consumers.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.consumers.masher.MashThread.run')
+    @mock.patch('bodhi.consumers.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    def test_tag_ordering(self, publish, *args):
+        """
+        Test pushing an batch of updates with multiple builds for the same package.
+        Ensure that the latest version is tagged last.
+        """
+        otherbuild = 'bodhi-2.0-2.fc17'
+        self.msg['body']['msg']['updates'].insert(0, otherbuild)
+
+        with self.db_factory() as session:
+            firstupdate = session.query(Update).filter_by(title=self.msg['body']['msg']['updates'][1]).one()
+            build = Build(nvr=otherbuild, package=firstupdate.builds[0].package)
+            session.add(build)
+            update = Update(title=otherbuild, builds=[build], type=UpdateType.bugfix,
+                    request=UpdateRequest.testing, notes=u'second update',
+                    user=firstupdate.user, release=firstupdate.release)
+            session.add(update)
+            session.flush()
+
+        # Start the push
+        self.masher.consume(self.msg)
+
+        # Ensure that fedmsg was called 5 times
+        self.assertEquals(len(publish.call_args_list), 5)
+        # Also, ensure we reported success
+        publish.assert_called_with(
+            topic="mashtask.complete",
+            msg=dict(success=True, repo='f17-updates-testing'),
+            force=True)
+
+        # Ensure our two updates were moved
+        self.assertEquals(len(self.koji.__moved__), 2)
+        self.assertEquals(len(self.koji.__added__), 0)
+
+        # Ensure the most recent version is tagged last in order to be the 'koji latest-pkg'
+        self.assertEquals(self.koji.__moved__[0], (u'f17-updates-candidate',
+            u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
+        self.assertEquals(self.koji.__moved__[1], (u'f17-updates-candidate',
+            u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
+
     def test_statefile(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log, self.db_factory, self.tempdir)
         t.id = 'f17-updates-testing'
