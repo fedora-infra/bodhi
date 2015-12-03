@@ -1758,7 +1758,7 @@ class Update(Base):
         for build in self.builds:
             for test in build.package.test_cases:
                 tests.add(test.name)
-        return list(tests)
+        return sorted(list(tests))
 
     @property
     def full_test_cases(self):
@@ -1766,7 +1766,7 @@ class Update(Base):
         for build in self.builds:
             for test in build.package.test_cases:
                 tests.add(test)
-        return list(tests)
+        return sorted(list(tests))
 
     @property
     def requested_tag(self):
