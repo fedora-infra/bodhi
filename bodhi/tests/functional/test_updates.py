@@ -37,6 +37,7 @@ from bodhi.models import (
     UpdateStatus,
     UpdateRequest,
     Release,
+    ReleaseState,
     BuildrootOverride
 )
 
@@ -1858,6 +1859,28 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp.json['update']['request'], 'stable')
         publish.assert_called_with(
             topic='update.request.stable', msg=mock.ANY)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_request_to_archived_release(self, publish, *args):
+        """Test submitting a stable request to an update for an archived/EOL release.
+        https://github.com/fedora-infra/bodhi/issues/725
+        """
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.pending
+        up.request = None
+        up.release.state = ReleaseState.archived
+        self.db.flush()
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'testing', 'csrf_token': self.get_csrf_token()},
+            status=400)
+        eq_(resp.json['status'], 'error')
+        eq_(resp.json['errors'][0]['description'],
+            "Can't change request for an archived release")
 
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch(**mock_valid_requirements)
