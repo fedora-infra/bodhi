@@ -193,13 +193,17 @@ def save_override(request):
                 })
             for build in builds:
                 log.info("Creating a new buildroot override: %s" % build.nvr)
-                overrides.append(BuildrootOverride.new(
-                    request,
-                    build=build,
-                    submitter=submitter,
-                    notes=data['notes'],
-                    expiration_date=data['expiration_date'],
-                ))
+                if BuildrootOverride.get(build.id, request.db):
+                    request.errors.add('body', 'builds', 'Buildroot override for %s already exists' % build.nvr)
+                    return
+                else:
+                    overrides.append(BuildrootOverride.new(
+                        request,
+                        build=build,
+                        submitter=submitter,
+                        notes=data['notes'],
+                        expiration_date=data['expiration_date'],
+                    ))
 
             if len(builds) > 1:
                 result = dict(overrides=overrides)
