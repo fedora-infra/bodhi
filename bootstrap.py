@@ -30,6 +30,7 @@ And for a python3 env, run::
 
 import subprocess
 import shutil
+import glob
 import sys
 import os
 
@@ -75,7 +76,22 @@ def _link_system_lib(lib):
                 lib += '.py'
             else:
                 continue
+
         template = 'ln -s /usr/{location}/{lib} {workon}/{venv}/{location}/'
+
+        # Link in the egg-info for Pillow
+        if lib == 'PIL':
+            egginfo = glob.glob(os.path.join('/usr', location, 'Pillow-*.egg-info'))
+            if egginfo:
+                print("Linking in Pillow egg-info")
+                cmd = template.format(
+                    location=location, venv=VENV, lib=os.path.basename(egginfo[0]), workon=workon)
+                try:
+                    subprocess.check_output(cmd.split())
+                except subprocess.CalledProcessError as e:
+                    # File already linked.
+                    return e.returncode == 256
+
         print("Linking in global module: %s" % lib)
         cmd = template.format(
             location=location, venv=VENV, lib=lib, workon=workon)
