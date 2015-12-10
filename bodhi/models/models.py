@@ -430,9 +430,10 @@ class Package(Base):
         wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
         cat_page = 'Category:Package %s test cases' % self.name
 
-        def list_categorymembers(wiki, cat_page, limit=10):
+        def list_categorymembers(wiki, cat_page, limit=500):
             # Build query arguments and call wiki
-            query = dict(action='query', list='categorymembers', cmtitle=cat_page)
+            query = dict(action='query', list='categorymembers',
+                         cmtitle=cat_page, cmlimit=limit)
             response = wiki.call(query)
             members = [entry['title'] for entry in
                        response.get('query',{}).get('categorymembers',{})
