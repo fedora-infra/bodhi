@@ -1308,8 +1308,10 @@ class Update(Base):
         for bug in to_remove:
             self.bugs.remove(bug)
             if len(bug.updates) == 0:
-                log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
-                session.delete(bug)
+                # Don't delete the Bug instance if there is any associated BugKarma
+                if not session.query(BugKarma).filter_by(bug_id=bug.bug_id).count():
+                    log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
+                    session.delete(bug)
         session.flush()
 
         new = []
