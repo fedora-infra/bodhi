@@ -1565,7 +1565,7 @@ class Update(Base):
         Return a list of User objects that have commit access to all of the
         packages that are contained within this update.
         """
-        people = set()
+        people = set([self.user])
         for build in self.builds:
             if build.package.committers:
                 for committer in build.package.committers:
