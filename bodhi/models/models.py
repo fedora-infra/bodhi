@@ -1948,9 +1948,7 @@ class Bug(Base):
                 else:
                     log.warn("No 'testing_bug_epel_msg' found in the config.")
 
-            message += template % (
-                ' '.join([build.package.name for build in update.builds]),
-                config.get('base_address') + update.get_url())
+            message += template % (config.get('base_address') + update.get_url())
         return message
 
     def add_comment(self, update, comment=None):
