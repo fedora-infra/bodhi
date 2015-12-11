@@ -880,7 +880,7 @@ class Update(Base):
             for oldBuild in db.query(Build).join(Update).filter(
                 and_(Build.nvr != build.nvr,
                      Build.package == build.package,
-                     Update.request == None,
+                     Update.locked == False,
                      Update.release == self.release,
                      or_(Update.status == UpdateStatus.testing,
                          Update.status == UpdateStatus.pending))

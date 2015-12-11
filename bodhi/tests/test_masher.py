@@ -145,6 +145,11 @@ class TestMasher(unittest.TestCase):
         """Make sure the masher ignores messages that aren't signed with the
         appropriate releng cert
         """
+        with self.db_factory() as session:
+            # Ensure that the update was locked
+            up = session.query(Update).one()
+            up.locked = False
+
         fakehub = FakeHub()
         fakehub.config['releng_fedmsg_certname'] = 'foo'
         self.masher = Masher(fakehub, db_factory=self.db_factory)
@@ -179,7 +184,7 @@ class TestMasher(unittest.TestCase):
     def test_update_locking(self, publish, *args):
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertFalse(up.locked)
+            up.locked = False
 
         self.masher.consume(self.msg)
 

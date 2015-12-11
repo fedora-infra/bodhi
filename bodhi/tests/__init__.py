@@ -90,4 +90,6 @@ def populate(db):
                                  expiration_date=expiration_date)
     db.add(override)
 
+    update.locked = True
+
     db.flush()
