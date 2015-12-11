@@ -1797,7 +1797,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
-    def test_obsoletion_locked_with_open_request(self, publish, *args):
+    def test_obsoletion_unlocked_with_open_request(self, publish, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args)
