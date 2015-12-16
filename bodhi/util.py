@@ -41,7 +41,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
-from kitchen.text.converters import to_bytes
 
 from . import log, buildsys
 from .exceptions import RepodataException
@@ -477,7 +476,7 @@ def bug_link(context, bug, short=False):
     if not short:
         if bug.title:
             # We're good...
-            link = link + " " + to_bytes(bug.title)
+            link = link + " " + bug.title
         else:
             # Otherwise, the backend is async grabbing the title from rhbz, so
             link = link + " <img class='spinner' src='static/img/spinner.gif'>"
