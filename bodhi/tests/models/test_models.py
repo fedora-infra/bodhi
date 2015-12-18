@@ -398,7 +398,7 @@ class TestUpdate(ModelTest):
         bug.title = u'foo\xe9bar'
         from bodhi.util import bug_link
         link = bug_link(None, bug)
-        eq_(link, "<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a> foo\xc3\xa9bar")
+        eq_(link, u"<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a> foo\xe9bar")
 
     def test_set_request_untested_stable(self):
         """
