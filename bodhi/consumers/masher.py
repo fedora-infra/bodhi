@@ -579,7 +579,9 @@ class MasherThread(threading.Thread):
         for i, batches in enumerate([(self.add_tags_sync, self.move_tags_sync),
                                      (self.add_tags_async, self.move_tags_async)]):
             add, move = batches
-            if i != 0:
+            if i == 0:
+                self.koji.multicall = False
+            else:
                 self.koji.multicall = True
             for action in add:
                 tag, build = action
@@ -591,12 +593,12 @@ class MasherThread(threading.Thread):
                               build, from_tag, to_tag))
                 self.koji.moveBuild(from_tag, to_tag, build, force=True)
 
-        if i != 0:
-            results = self.koji.multiCall()
-            failed_tasks = buildsys.wait_for_tasks([task[0] for task in results],
-                                                   self.koji, sleep=15)
-            if failed_tasks:
-                raise Exception("Failed to move builds: %s" % failed_tasks)
+            if i != 0:
+                results = self.koji.multiCall()
+                failed_tasks = buildsys.wait_for_tasks([task[0] for task in results],
+                                                       self.koji, sleep=15)
+                if failed_tasks:
+                    raise Exception("Failed to move builds: %s" % failed_tasks)
 
     def expire_buildroot_overrides(self):
         """ Expire any buildroot overrides that are in this push """
