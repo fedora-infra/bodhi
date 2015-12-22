@@ -145,6 +145,11 @@ class TestMasher(unittest.TestCase):
         """Make sure the masher ignores messages that aren't signed with the
         appropriate releng cert
         """
+        with self.db_factory() as session:
+            # Ensure that the update was locked
+            up = session.query(Update).one()
+            up.locked = False
+
         fakehub = FakeHub()
         fakehub.config['releng_fedmsg_certname'] = 'foo'
         self.masher = Masher(fakehub, db_factory=self.db_factory)
@@ -179,7 +184,7 @@ class TestMasher(unittest.TestCase):
     def test_update_locking(self, publish, *args):
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertFalse(up.locked)
+            up.locked = False
 
         self.masher.consume(self.msg)
 
@@ -754,7 +759,7 @@ References:
     @mock.patch('bodhi.bugs.bugtracker.on_qa')
     def test_modify_testing_bugs(self, on_qa, modified, *args):
         self.masher.consume(self.msg)
-        on_qa.assert_called_once_with(12345, u"bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\nIf you want to test the update, you can install it with\n$ su -c 'dnf --enablerepo=updates-testing update bodhi'\nYou can provide feedback for this update here: http://0.0.0.0:6543/updates/FEDORA-%s-a3bbe1a8f2" % time.localtime().tm_year)
+        on_qa.assert_called_once_with(12345, u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\nSee https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how to install test updates.\nYou can provide feedback for this update here: http://0.0.0.0:6543/updates/FEDORA-2015-a3bbe1a8f2')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.consumers.masher.MasherThread.update_comps')

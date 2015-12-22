@@ -21,7 +21,7 @@ from sqlalchemy.sql import or_
 
 from bodhi import log
 from bodhi.exceptions import BodhiException, LockedUpdateException
-from bodhi.models import Update, Build, Bug, CVE, Package, UpdateRequest
+from bodhi.models import Update, Build, Bug, CVE, Package, UpdateRequest, ReleaseState
 import bodhi.schemas
 import bodhi.security
 import bodhi.services.errors
@@ -114,6 +114,11 @@ def set_request(request):
     if update.locked:
         request.errors.add('body', 'request',
                            "Can't change request on a locked update")
+        return
+
+    if update.release.state is ReleaseState.archived:
+        request.errors.add('body', 'request',
+                           "Can't change request for an archived release")
         return
 
     if action is UpdateRequest.stable:

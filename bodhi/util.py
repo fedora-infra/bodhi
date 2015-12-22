@@ -41,7 +41,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
-from kitchen.text.converters import to_bytes
 
 from . import log, buildsys
 from .exceptions import RepodataException
@@ -477,7 +476,7 @@ def bug_link(context, bug, short=False):
     if not short:
         if bug.title:
             # We're good...
-            link = link + " " + to_bytes(bug.title)
+            link = link + " " + bug.title
         else:
             # Otherwise, the backend is async grabbing the title from rhbz, so
             link = link + " <img class='spinner' src='static/img/spinner.gif'>"
@@ -527,12 +526,14 @@ def sorted_updates(updates):
                 update = build_to_update[build]
                 if update not in sync:
                     sync.append(update)
+                if update in async:
+                    async.remove(update)
         else:
             update = build_to_update[builds[package].pop()]
-            if update not in async:
+            if update not in async and update not in sync:
                 async.append(update)
-    log.debug('sync = %s' % sync)
-    log.debug('async = %s' % async)
+    log.info('sync = %s' % ([up.title for up in sync],))
+    log.info('async = %s' % ([up.title for up in async],))
     return sync, async
 
 

@@ -27,7 +27,8 @@ from pyramid.testing import DummyRequest
 
 from bodhi import models as model, buildsys, mail
 from bodhi.models import (UpdateStatus, UpdateType, UpdateRequest,
-                          UpdateSeverity, UpdateSuggestion, ReleaseState)
+                          UpdateSeverity, UpdateSuggestion, ReleaseState,
+                          BugKarma)
 from bodhi.tests.models import ModelTest
 from bodhi.config import config
 from bodhi.exceptions import BodhiException
@@ -381,12 +382,23 @@ class TestUpdate(ModelTest):
         eq_(self.db.query(model.Bug)
                 .filter_by(bug_id=1234).first(), None)
 
+        # Try removing a bug when it already has BugKarma
+        karma = BugKarma(bug_id=4321, karma=1)
+        self.db.add(karma)
+        self.db.flush()
+        bugs = ['5678']
+        update.update_bugs(bugs, session)
+        assert len(update.bugs) == 1
+        assert update.bugs[0].bug_id == 5678
+        eq_(self.db.query(model.Bug)
+                .filter_by(bug_id=4321).count(), 1)
+
     def test_unicode_bug_title(self):
         bug = self.obj.bugs[0]
         bug.title = u'foo\xe9bar'
         from bodhi.util import bug_link
         link = bug_link(None, bug)
-        eq_(link, "<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a> foo\xc3\xa9bar")
+        eq_(link, u"<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a> foo\xe9bar")
 
     def test_set_request_untested_stable(self):
         """

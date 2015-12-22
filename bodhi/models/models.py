@@ -430,9 +430,10 @@ class Package(Base):
         wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
         cat_page = 'Category:Package %s test cases' % self.name
 
-        def list_categorymembers(wiki, cat_page, limit=10):
+        def list_categorymembers(wiki, cat_page, limit=500):
             # Build query arguments and call wiki
-            query = dict(action='query', list='categorymembers', cmtitle=cat_page)
+            query = dict(action='query', list='categorymembers',
+                         cmtitle=cat_page, cmlimit=limit)
             response = wiki.call(query)
             members = [entry['title'] for entry in
                        response.get('query',{}).get('categorymembers',{})
@@ -879,7 +880,7 @@ class Update(Base):
             for oldBuild in db.query(Build).join(Update).filter(
                 and_(Build.nvr != build.nvr,
                      Build.package == build.package,
-                     Update.request == None,
+                     Update.locked == False,
                      Update.release == self.release,
                      or_(Update.status == UpdateStatus.testing,
                          Update.status == UpdateStatus.pending))
@@ -1308,8 +1309,10 @@ class Update(Base):
         for bug in to_remove:
             self.bugs.remove(bug)
             if len(bug.updates) == 0:
-                log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
-                session.delete(bug)
+                # Don't delete the Bug instance if there is any associated BugKarma
+                if not session.query(BugKarma).filter_by(bug_id=bug.bug_id).count():
+                    log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
+                    session.delete(bug)
         session.flush()
 
         new = []
@@ -1562,7 +1565,7 @@ class Update(Base):
         Return a list of User objects that have commit access to all of the
         packages that are contained within this update.
         """
-        people = set()
+        people = set([self.user])
         for build in self.builds:
             if build.package.committers:
                 for committer in build.package.committers:
@@ -1758,7 +1761,7 @@ class Update(Base):
         for build in self.builds:
             for test in build.package.test_cases:
                 tests.add(test.name)
-        return list(tests)
+        return sorted(list(tests))
 
     @property
     def full_test_cases(self):
@@ -1766,7 +1769,7 @@ class Update(Base):
         for build in self.builds:
             for test in build.package.test_cases:
                 tests.add(test)
-        return list(tests)
+        return sorted(list(tests))
 
     @property
     def requested_tag(self):
@@ -1945,9 +1948,7 @@ class Bug(Base):
                 else:
                     log.warn("No 'testing_bug_epel_msg' found in the config.")
 
-            message += template % (
-                ' '.join([build.package.name for build in update.builds]),
-                config.get('base_address') + update.get_url())
+            message += template % (config.get('base_address') + update.get_url())
         return message
 
     def add_comment(self, update, comment=None):
