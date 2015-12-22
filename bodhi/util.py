@@ -532,8 +532,8 @@ def sorted_updates(updates):
             update = build_to_update[builds[package].pop()]
             if update not in async and update not in sync:
                 async.append(update)
-    log.info('sync = %s' % sync)
-    log.info('async = %s' % async)
+    log.info('sync = %s' % ([up.title for up in sync],))
+    log.info('async = %s' % ([up.title for up in async],))
     return sync, async
 
 
