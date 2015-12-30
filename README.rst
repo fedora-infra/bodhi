@@ -47,7 +47,8 @@ Import the bodhi2 database
 ::
 
     curl -O https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
-    xzcat bodhi2.dump.xz | psql -U postgres
+    sudo -u postgres createdb bodhi2
+    xzcat bodhi2.dump.xz | sudo -u postgres psql bodhi2
 
 .. note:: If you do not have a PostgreSQL server running, please see the
           instructions at the bottom of the file.
