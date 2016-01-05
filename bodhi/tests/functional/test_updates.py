@@ -1764,7 +1764,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         # Note that caveats above don't support markdown, but comments do.
         self.assertEquals(r['comments'][-1]['text'],
                           u'This update has obsoleted [bodhi-2.0.0-2.fc17]'
-                          '(http://0.0.0.0:6543/updates/FEDORA-2015-033713b73b), '
+                          '(http://0.0.0.0:6543/updates/FEDORA-2016-033713b73b), '
                           'and has inherited its bugs and notes.')
         publish.assert_called_with(
             topic='update.request.testing', msg=mock.ANY)
@@ -1774,7 +1774,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up.comments[-1].text,
                           u'This update has been obsoleted by '
                           '[bodhi-2.0.0-3.fc17](http://0.0.0.0:6543/'
-                          'updates/FEDORA-2015-53345602d5).')
+                          'updates/FEDORA-2016-53345602d5).')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
