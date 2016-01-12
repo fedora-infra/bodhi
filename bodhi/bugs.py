@@ -74,7 +74,16 @@ class Bugzilla(BugTracker):
             if len(comment) > 65535:
                 raise InvalidComment("Comment is too long: %s" % comment)
             bug = self.bz.getbug(bug_id)
-            bug.addcomment(comment)
+            attempts = 0
+            while attempts < 5:
+                try:
+                    bug.addcomment(comment)
+                    break
+                except xmlrpclib.Fault as e:
+                    attempts += 1
+                    log.exception(
+                        "\nA fault has occured \nFault code: %d \nFault string: %s" %
+                        (e.faultCode, e.faultString))
         except InvalidComment:
             log.exception(
                 "Comment too long for bug #%d:  %s" % (bug_id, comment))
