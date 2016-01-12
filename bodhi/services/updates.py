@@ -213,6 +213,10 @@ def query_updates(request):
         query = query.join(Update.builds).join(Build.package)
         query = query.filter(or_(*[Package.name==pkg for pkg in packages]))
 
+    package = None
+    if packages and len(packages):
+        package = packages[0]
+
     builds = data.get('builds')
     if builds is not None:
         query = query.join(Update.builds)
@@ -302,6 +306,7 @@ def query_updates(request):
         chrome=data.get('chrome'),
         display_user=data.get('display_user', False),
         display_request=data.get('display_request', True),
+        package=package,
     )
 
 
