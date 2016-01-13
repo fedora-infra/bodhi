@@ -245,6 +245,8 @@
             'package': '${override.build.package.name}',
           % elif user:
             'user': '${user["name"]}',
+          % elif package:
+            'package': '${package}',
           % endif
       });
     </script>
