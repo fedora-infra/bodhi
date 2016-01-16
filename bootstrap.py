@@ -111,7 +111,7 @@ def link_system_libs():
                 'krbVmodule', 'deltarpm', '_deltarpmmodule',
                 'fedora_cert', 'libxml2', 'libxml2mod', 'librepo', 'createrepo_c',
                 'dnf', 'libcomps', 'gpgme', 'lzma', 'iniparse', 'hawkey',
-                'yum', 'PIL'):
+                'yum'):
         _link_system_lib(mod)
 
 
