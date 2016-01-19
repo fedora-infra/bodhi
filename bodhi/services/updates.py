@@ -25,6 +25,7 @@ from bodhi.models import Update, Build, Bug, CVE, Package, UpdateRequest, Releas
 import bodhi.schemas
 import bodhi.security
 import bodhi.services.errors
+import bodhi.util
 from bodhi.validators import (
     validate_nvrs,
     validate_uniqueness,
@@ -92,7 +93,7 @@ def get_update_for_editing(request):
     return dict(
         update=request.validated['update'],
         types=reversed(bodhi.models.UpdateType.values()),
-        severities=reversed(bodhi.models.UpdateSeverity.values()),
+        severities=sorted(bodhi.models.UpdateSeverity.values(), key=bodhi.util.sort_severity),
         suggestions=reversed(bodhi.models.UpdateSuggestion.values()),
     )
 
