@@ -612,3 +612,15 @@ class TransactionalSessionMaker(object):
             session.close()
 
 transactional_session_maker = TransactionalSessionMaker
+
+def sort_severity(value):
+    """ Sorts UpdateSeverity by severity importance"""
+    value_map = {
+        'unspecified': 1,
+        'low': 2,
+        'medium': 3,
+        'high': 4,
+        'urgent': 5
+    }
+
+    return value_map.get(value, 99)
