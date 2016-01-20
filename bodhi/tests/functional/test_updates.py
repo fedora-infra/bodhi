@@ -1810,6 +1810,25 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.request, None)
 
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_obsoletion_unlocked_with_open_stable_request(self, publish, *args):
+        """ Ensure that we don't obsolete updates that have a stable request """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.request = UpdateRequest.stable
+        self.db.flush()
+
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        r = self.app.post_json('/updates/', args).json_body
+        self.assertEquals(r['request'], 'testing')
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEquals(up.status, UpdateStatus.pending)
+        self.assertEquals(up.request, UpdateRequest.stable)
+
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_invalid_request(self, *args):

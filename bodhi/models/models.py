@@ -882,6 +882,8 @@ class Update(Base):
                      Build.package == build.package,
                      Update.locked == False,
                      Update.release == self.release,
+                     or_(Update.request == UpdateStatus.testing,
+                         Update.request == None),
                      or_(Update.status == UpdateStatus.testing,
                          Update.status == UpdateStatus.pending))
             ).all():
