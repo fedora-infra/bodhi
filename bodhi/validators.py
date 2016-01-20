@@ -112,10 +112,15 @@ def validate_build_tags(request):
     release = None
     if edited:
         valid_tags = tag_types['candidate'] + tag_types['testing']
-        release = request.db.query(Update)\
+        update = request.db.query(Update)\
                          .filter_by(title=edited)\
-                         .first()\
-                         .release
+                         .first()
+        if not update:
+            # No need to tack on any more errors here, since they should have
+            # already been added by `validate_builds`
+            return
+
+        release = update.release
         if not release:
             # If the edited update has no release, something went wrong a while
             # ago.  We're already in a corrupt state.  We can't perform the
