@@ -2198,6 +2198,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
+    def test_edit_missing_update(self, publish, *args):
+        """ Attempt to edit an update that doesn't exist """
+        build = 'bodhi-2.0.0-2.fc17'
+        edited = 'bodhi-1.0-1.fc17'
+        args = self.get_update(build)
+        args['edited'] = edited
+        r = self.app.post_json('/updates/', args, status=400).json_body
+        self.assertEquals(r['status'], 'error')
+        self.assertEquals(r['errors'][0]['description'], 'Cannot find update to edit: %s' % edited)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
     def test_edit_update_and_disable_features(self, publish, *args):
         build = 'bodhi-2.0.0-2.fc17'
         args = self.get_update('bodhi-2.0.0-2.fc17')
