@@ -377,7 +377,10 @@ class MasherThread(threading.Thread):
             self.success = True
             self.remove_state()
             self.unlock_updates()
+
             self.check_all_karma_thresholds()
+            self.obsolete_older_updates()
+
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             self.save_state()
@@ -409,13 +412,21 @@ class MasherThread(threading.Thread):
         the karma thresholds
         """
         if self.request is UpdateRequest.testing:
-            log.info('Determing if any testing updates reached the karma '
-                     'thresholds during the push')
+            self.log.info('Determing if any testing updates reached the karma '
+                          'thresholds during the push')
             for update in self.updates:
                 try:
                     update.check_karma_thresholds(self.db, agent=u'bodhi')
                 except BodhiException:
                     self.log.exception('Problem checking karma thresholds')
+
+    def obsolete_older_updates(self):
+        """
+        Obsolete any older updates that may still be lying around.
+        """
+        self.log.info('Checking for obsolete updates')
+        for update in self.updates:
+            update.obsolete_older_updates(self.db)
 
     def verify_updates(self):
         for update in list(self.updates):

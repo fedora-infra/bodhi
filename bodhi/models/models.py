@@ -867,14 +867,12 @@ class Update(Base):
 
         return up, caveats
 
-    def obsolete_older_updates(self, request):
+    def obsolete_older_updates(self, db):
         """Obsolete any older pending/testing updates.
 
         If a build is associated with multiple updates, make sure that
         all updates are safe to obsolete, or else just skip it.
         """
-        db = request.db
-        buildinfo = request.buildinfo
         caveats = []
         for build in self.builds:
             for oldBuild in db.query(Build).join(Update).filter(
@@ -888,7 +886,7 @@ class Update(Base):
                          Update.status == UpdateStatus.pending))
             ).all():
                 obsoletable = False
-                nvr = buildinfo[build.nvr]['nvr']
+                nvr = get_nvr(build.nvr)
                 if rpm.labelCompare(get_nvr(oldBuild.nvr), nvr) < 0:
                     log.debug("%s is newer than %s" % (nvr, oldBuild.nvr))
                     obsoletable = True
