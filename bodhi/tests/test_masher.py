@@ -1020,3 +1020,47 @@ References:
             up = session.query(Update).one()
             self.assertIsNone(up.request)
             self.assertIsNotNone(up.date_stable)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.consumers.masher.MasherThread.update_comps')
+    @mock.patch('bodhi.consumers.masher.MashThread.run')
+    @mock.patch('bodhi.consumers.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.notifications.publish')
+    def test_obsolete_older_updates(self, publish, *args):
+        otherbuild = 'bodhi-2.0-2.fc17'
+        oldbuild = None
+        self.msg['body']['msg']['updates'].insert(0, otherbuild)
+
+        with self.db_factory() as session:
+            # Put the older update into testing
+            oldupdate = session.query(Update).one()
+            oldbuild = oldupdate.builds[0].nvr
+            oldupdate.status = UpdateStatus.testing
+            oldupdate.request = None
+            oldupdate.locked = False
+
+            # Create a newer build
+            build = Build(nvr=otherbuild, package=oldupdate.builds[0].package)
+            session.add(build)
+            update = Update(title=otherbuild, builds=[build], type=UpdateType.bugfix,
+                    request=UpdateRequest.testing, notes=u'second update',
+                    user=oldupdate.user, release=oldupdate.release)
+            session.add(update)
+            session.flush()
+
+        self.masher.consume(self.msg)
+
+        with self.db_factory() as session:
+            # Ensure that the older update got obsoleted
+            up = session.query(Update).filter_by(title=oldbuild).one()
+            self.assertEquals(up.status, UpdateStatus.obsolete)
+            self.assertEquals(up.request, None)
+
+            # The latest update should be in testing
+            up = session.query(Update).filter_by(title=otherbuild).one()
+            self.assertEquals(up.status, UpdateStatus.testing)
+            self.assertEquals(up.request, None)
