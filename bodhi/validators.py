@@ -12,11 +12,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import rpm
 import koji
 
 from datetime import datetime, timedelta
 
-from sqlalchemy.sql import or_
+from sqlalchemy.sql import or_, and_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.httpexceptions import HTTPFound
 import pyramid.threadlocal
@@ -921,3 +922,42 @@ def validate_requirements(request):
                     requirement, ", ".join(valid_requirements)))
             request.errors.status = HTTPBadRequest.code
             return
+
+
+def validate_request(request):
+    """
+    Ensure that this update is newer than whatever is in the requested state
+    """
+    log.debug('validating request')
+    update = request.validated['update']
+    db = request.db
+
+    if 'request' not in request.validated:
+        # Invalid request. Let the colander error from our schemas.py bubble up.
+        return
+    if request.validated['request'] is UpdateRequest.stable:
+        target = UpdateStatus.stable
+    elif request.validated['request'] is UpdateRequest.testing:
+        target = UpdateStatus.testing
+    else:
+        # obsolete, unpush, revoke...
+        return
+
+    for build in update.builds:
+        nvr = get_nvr(build.nvr)
+        for other_build in db.query(Build).join(Update).filter(
+                and_(Build.package==build.package,
+                     Build.nvr != build.nvr,
+                     Update.status == target,
+                     Update.release == update.release),
+                ).all():
+
+            log.info('Checking against %s' % other_build.nvr)
+
+            if rpm.labelCompare(get_nvr(other_build.nvr), nvr) > 0:
+                log.debug('%s is older than %s', build.nvr, other_build.nvr)
+                request.errors.add('querystring', 'update',
+                        'Cannot submit %s to %s since it is older than %s' %
+                        (build.nvr, target.description, other_build.nvr))
+                request.errors.status = HTTPBadRequest.code
+                return

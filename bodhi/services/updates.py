@@ -39,6 +39,7 @@ from bodhi.validators import (
     validate_update_id,
     validate_requirements,
     validate_bugs,
+    validate_request,
 )
 
 
@@ -104,6 +105,7 @@ def get_update_for_editing(request):
                          validate_update_id,
                          validate_build_tags,
                          validate_acls,
+                         validate_request,
                      ),
                      permission='edit', renderer='json',
                      error_handler=bodhi.services.errors.json_handler)
