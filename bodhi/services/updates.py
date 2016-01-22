@@ -419,7 +419,7 @@ def new_update(request):
 
     for update in updates:
         try:
-            caveats.extend(update.obsolete_older_updates(request))
+            caveats.extend(update.obsolete_older_updates(request.db))
         except Exception as e:
             caveats.append({
                 'name': 'update',
