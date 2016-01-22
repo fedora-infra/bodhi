@@ -38,7 +38,9 @@ from bodhi.models import (
     UpdateRequest,
     Release,
     ReleaseState,
-    BuildrootOverride
+    BuildrootOverride,
+    UpdateStatus,
+    UpdateType,
 )
 
 YEAR = time.localtime().tm_year
@@ -2405,3 +2407,36 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         r = self.app.post_json('/updates/', args)
         up = r.json_body
         self.assertEquals(up['title'], nvr)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_submit_older_build_to_stable(self, publish, *args):
+        """
+        Ensure we cannot submit an older build to stable when a newer one
+        already exists there.
+        """
+        update = self.db.query(Update).one()
+        update.status = UpdateStatus.stable
+        update.request = None
+        self.db.flush()
+
+        oldbuild = 'bodhi-1.0-1.fc17'
+
+        # Create a newer build
+        build = Build(nvr=oldbuild, package=update.builds[0].package)
+        self.db.add(build)
+        update = Update(title=oldbuild, builds=[build], type=UpdateType.bugfix,
+                        request=UpdateRequest.testing, notes=u'second update',
+                        user=update.user, release=update.release)
+        update.karma = 3
+        self.db.add(update)
+        self.db.flush()
+
+        # Try and submit an older build to stable
+        resp = self.app.post_json('/updates/%s/request' % oldbuild,
+                {'request': 'stable', 'csrf_token': self.get_csrf_token()},
+                status=400)
+        eq_(resp.json['status'], 'error')
+        eq_(resp.json['errors'][0]['description'],
+            'Cannot submit bodhi-1.0-1.fc17 to stable since it is older than bodhi-2.0-1.fc17')
