@@ -46,6 +46,9 @@ def push(username, password, cert_prefix, **kwargs):
     client = Bodhi2Client(username=username, password=password,
                           staging=staging)
 
+    # Don't try and push locked updates
+    kwargs['locked'] = False
+
     # If we're resuming a push
     if resume:
         updates = []
