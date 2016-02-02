@@ -1112,6 +1112,18 @@ class Update(Base):
             if not self.release.candidate_tag in self.get_tags():
                 self.add_tag(self.release.candidate_tag)
 
+        # If status is pending going to testing request and action is revoke,
+        # set the status to unpushed
+        if self.status is UpdateStatus.pending and self.request is UpdateRequest.testing \
+                and action is UpdateRequest.revoke:
+            self.status = UpdateStatus.unpushed
+
+        # If status is testing going to stable request and action is revoke,
+        # keep the status at testing
+        if self.status is UpdateStatus.testing and self.request is UpdateRequest.stable \
+                and action is UpdateRequest.revoke:
+            self.status = UpdateStatus.testing
+
         self.request = action
 
         notes = notes and '. '.join(notes) + '.' or ''
