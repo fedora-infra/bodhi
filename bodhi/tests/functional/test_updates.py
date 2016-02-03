@@ -1869,6 +1869,52 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_revoke_action_for_stable_request(self, publish, *args):
+        """
+        Test revoke action for stable request on testing update
+        and check status after revoking the request
+        """
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.request = UpdateRequest.stable
+        self.db.flush()
+
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'revoke', 'csrf_token': self.get_csrf_token()})
+        eq_(resp.json['update']['request'], None)
+        eq_(resp.json['update']['status'], 'testing')
+        publish.assert_called_with(
+                topic='update.request.revoke', msg=mock.ANY)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_revoke_action_for_testing_request(self, publish, *args):
+        """
+        Test revoke action for testing request on pending update
+        and check status after revoking the request
+        """
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.pending
+        up.request = UpdateRequest.testing
+        self.db.flush()
+
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'revoke', 'csrf_token': self.get_csrf_token()})
+        eq_(resp.json['update']['request'], None)
+        eq_(resp.json['update']['status'], 'unpushed')
+        publish.assert_called_with(
+                topic='update.request.revoke', msg=mock.ANY)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
     def test_invalid_stable_request(self, *args):
         """Test submitting a stable request for an update that has yet to meet the stable requirements"""
         Update.get(u'bodhi-2.0-1.fc17', self.db).locked = False
