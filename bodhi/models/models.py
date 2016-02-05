@@ -1042,6 +1042,29 @@ class Update(Base):
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
+
+        # If status is pending going to testing request and action is revoke,
+        # set the status to unpushed
+        elif self.status is UpdateStatus.pending and self.request is UpdateRequest.testing \
+                and action is UpdateRequest.revoke:
+            self.status = UpdateStatus.unpushed
+            self.revoke()
+            flash_log("%s has been revoked." % self.title)
+            notifications.publish(topic=topic, msg=dict(
+                update=self, agent=username))
+            return
+
+        # If status is testing going to stable request and action is revoke,
+        # keep the status at testing
+        elif self.status is UpdateStatus.testing and self.request is UpdateRequest.stable \
+                and action is UpdateRequest.revoke:
+            self.status = UpdateStatus.testing
+            self.revoke()
+            flash_log("%s has been revoked." % self.title)
+            notifications.publish(topic=topic, msg=dict(
+                update=self, agent=username))
+            return
+
         elif action is UpdateRequest.revoke:
             self.revoke()
             flash_log("%s has been revoked." % self.title)
