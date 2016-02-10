@@ -276,7 +276,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         post_data = dict(update=nvr, request='stable',
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
-        res = app.post_json('/updates/%s/request' % nvr, post_data, status=400)
+        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it meets the requirements
         eq_(res.json_body['status'], 'error')
@@ -312,7 +312,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Try and submit the update to stable as a proventester
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
-        res = app.post_json('/updates/%s/request' % nvr,
+        res = app.post_json('/updates/%s/request' % str(nvr),
                             dict(update=nvr, request='stable',
                                 csrf_token=app.get('/csrf').json_body['csrf_token']),
                             status=200)
@@ -320,7 +320,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(res.json_body['update']['request'], 'stable')
 
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
-        res = app.post_json('/updates/%s/request' % nvr,
+        res = app.post_json('/updates/%s/request' % str(nvr),
                             dict(update=nvr, request='obsolete',
                                  csrf_token=app.get('/csrf').json_body['csrf_token']),
                             status=200)
@@ -331,18 +331,18 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Test that bob has can_edit True, provenpackager
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
-        res = app.get('/updates/%s' % nvr, status=200)
+        res = app.get('/updates/%s' % str(nvr), status=200)
         eq_(res.json_body['can_edit'], True)
 
         # Test that ralph has can_edit True, they submitted it.
         app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
-        res = app.get('/updates/%s' % nvr, status=200)
+        res = app.get('/updates/%s' % str(nvr), status=200)
         eq_(res.json_body['can_edit'], True)
 
         # Test that someuser has can_edit False, they are unrelated
         # This check *failed* with the old acls code.
         app = TestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
-        res = app.get('/updates/%s' % nvr, status=200)
+        res = app.get('/updates/%s' % str(nvr), status=200)
         eq_(res.json_body['can_edit'], False)
 
         # Test that an anonymous user has can_edit False, obv.
@@ -354,7 +354,7 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         })
 
         app = TestApp(main({}, session=self.db, **anonymous_settings))
-        res = app.get('/updates/%s' % nvr, status=200)
+        res = app.get('/updates/%s' % str(nvr), status=200)
         eq_(res.json_body['can_edit'], False)
 
     @mock.patch(**mock_valid_requirements)
