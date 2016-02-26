@@ -463,6 +463,13 @@ $(document).ready(function(){
       </tr>
       % endif
 
+      % if update.days_to_stable:
+      <tr>
+        <td>Days to Stable</td>
+        <td>${update.days_to_stable}</td>
+      </tr>
+      % endif
+
       % if update.date_modified:
       <tr>
         <td>Modified</td>
