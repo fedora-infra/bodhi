@@ -1757,6 +1757,16 @@ class Update(Base):
         return False
 
     @property
+    def days_to_stable(self):
+        """ Return the number of days until an update can be pushed to stable """
+        for comment in self.comments:
+            if comment.user.name == 'bodhi' and \
+                'can be pushed to stable now if the ' \
+                'maintainer wishes' in comment.text:
+                return (comment.timestamp - self.date_submitted).days
+        return 0
+
+    @property
     def days_in_testing(self):
         """ Return the number of days that this update has been in testing """
         if self.date_testing:
