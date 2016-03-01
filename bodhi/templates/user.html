@@ -16,7 +16,9 @@
                   var date = e.raw_messages[0].meta.date;
                   $('#lastactive').text('Last bodhi-related activity: ' + date);
               },
-
+              error: function(e) {
+                $('#lastactive').text('Failed to query for activity status...')
+              },
           });
       $.ajax(
           "${urls['recent_updates']}" + "&chrome=False&rows_per_page=12&display_user=False",
