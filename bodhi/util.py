@@ -89,8 +89,8 @@ def get_rpm_header(nvr, tries=0):
 
 def get_nvr(nvr):
     """ Return the [ name, version, release ] a given name-ver-rel. """
-    x = nvr.split('-')
-    return ['-'.join(x[:-2]), x[-2], x[-1]]
+    x = map(str, nvr.split('-'))
+    return ('-'.join(x[:-2]), x[-2], x[-1])
 
 
 def mkmetadatadir(path):
@@ -148,7 +148,7 @@ def get_repo_tag(repo):
 def build_evr(build):
     if not build['epoch']:
         build['epoch'] = 0
-    return (str(build['epoch']), build['version'], build['release'])
+    return tuple(map(str, (build['epoch'], build['version'], build['release'])))
 
 
 def link(href, text):
