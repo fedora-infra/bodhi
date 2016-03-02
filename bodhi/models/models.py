@@ -506,7 +506,7 @@ class Build(Base):
             koji_session = buildsys.get_session()
             build = koji_session.getBuild(self.nvr)
             evr = build_evr(build)
-            self.epoch = evr[0]
+            self.epoch = unicode(evr[0])
             return evr
 
     def get_latest(self):
