@@ -489,6 +489,7 @@ class Build(Base):
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
+    epoch = Column(Unicode(3), nullable=True)
     inherited = Column(Boolean, default=False)
     package_id = Column(Integer, ForeignKey('packages.id'))
     release_id = Column(Integer, ForeignKey('releases.id'))
