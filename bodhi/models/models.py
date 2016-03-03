@@ -489,7 +489,7 @@ class Build(Base):
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
-    epoch = Column(Unicode(3), nullable=True)
+    epoch = Column(Integer, default=0)
     inherited = Column(Boolean, default=False)
     package_id = Column(Integer, ForeignKey('packages.id'))
     release_id = Column(Integer, ForeignKey('releases.id'))
@@ -501,12 +501,12 @@ class Build(Base):
     def evr(self):
         if self.epoch:
             name, version, release = get_nvr(self.nvr)
-            return (self.epoch, version, release)
+            return (str(self.epoch), version, release)
         else:
             koji_session = buildsys.get_session()
             build = koji_session.getBuild(self.nvr)
             evr = build_evr(build)
-            self.epoch = unicode(evr[0])
+            self.epoch = int(evr[0])
             return evr
 
     def get_latest(self):
