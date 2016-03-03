@@ -954,10 +954,10 @@ def validate_request(request):
 
             log.info('Checking against %s' % other_build.nvr)
 
-            if rpm.labelCompare(get_nvr(other_build.nvr), nvr) > 0:
-                log.debug('%s is older than %s', build.nvr, other_build.nvr)
+            if rpm.labelCompare(other_build.evr, build.evr) > 0:
+                log.debug('%s is older than %s', build.evr, other_build.evr)
                 request.errors.add('querystring', 'update',
-                        'Cannot submit %s to %s since it is older than %s' %
-                        (build.nvr, target.description, other_build.nvr))
+                        'Cannot submit %s %s to %s since it is older than %s' %
+                        (build.package.name, build.evr, target.description, other_build.evr))
                 request.errors.status = HTTPBadRequest.code
                 return

@@ -489,12 +489,25 @@ class Build(Base):
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
+    epoch = Column(Integer, default=0)
     inherited = Column(Boolean, default=False)
     package_id = Column(Integer, ForeignKey('packages.id'))
     release_id = Column(Integer, ForeignKey('releases.id'))
     update_id = Column(Integer, ForeignKey('updates.id'))
 
     release = relationship('Release', backref='builds', lazy=False)
+
+    @property
+    def evr(self):
+        if self.epoch:
+            name, version, release = get_nvr(self.nvr)
+            return (str(self.epoch), version, release)
+        else:
+            koji_session = buildsys.get_session()
+            build = koji_session.getBuild(self.nvr)
+            evr = build_evr(build)
+            self.epoch = int(evr[0])
+            return evr
 
     def get_latest(self):
         koji_session = buildsys.get_session()
@@ -507,7 +520,7 @@ class Build(Base):
         # packages that never make their way over stable, so we don't want to
         # generate ChangeLogs against those.
         latest = None
-        evr = build_evr(koji_session.getBuild(self.nvr))
+        evr = self.evr
         for tag in [self.update.release.stable_tag, self.update.release.dist_tag]:
             builds = koji_session.getLatestBuilds(
                     tag, package=self.package.name)

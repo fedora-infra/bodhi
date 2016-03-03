@@ -2485,4 +2485,4 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
                 status=400)
         eq_(resp.json['status'], 'error')
         eq_(resp.json['errors'][0]['description'],
-            'Cannot submit bodhi-1.0-1.fc17 to stable since it is older than bodhi-2.0-1.fc17')
+            "Cannot submit bodhi ('0', '1.0', '1.fc17') to stable since it is older than ('0', '2.0', '1.fc17')")
