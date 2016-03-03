@@ -589,7 +589,7 @@ class Update(Base):
     __include_extras__ = ('meets_testing_requirements', 'url',)
     __get_by__ = ('title', 'alias')
 
-    title = Column(UnicodeText, default=None, index=True)
+    title = Column(UnicodeText, unique=True, default=None, index=True)
 
     karma = Column(Integer, default=0)
     stable_karma = Column(Integer, nullable=True)

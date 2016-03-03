@@ -382,8 +382,9 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
     def test_list_comments_by_update_no_comments(self):
+        nvr = u'bodhi-2.0-201.fc17'
         update = Update(
-            title=u'bodhi-2.0-200.fc17',
+            title=nvr,
             #builds=[build],
             #user=user,
             request=UpdateRequest.testing,
@@ -398,7 +399,7 @@ class TestCommentsService(bodhi.tests.functional.base.BaseWSGICase):
         self.db.add(update)
         self.db.flush()
 
-        res = self.app.get('/comments/', {"updates": "bodhi-2.0-200.fc17"})
+        res = self.app.get('/comments/', {"updates": nvr})
         body = res.json_body
         self.assertEquals(len(body['comments']), 0)
 

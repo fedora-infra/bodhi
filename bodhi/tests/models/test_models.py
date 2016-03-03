@@ -195,6 +195,7 @@ class TestUpdate(ModelTest):
 
     def get_update(self, name=u'TurboGears-1.0.8-3.fc11'):
         attrs = self.attrs.copy()
+        attrs['title'] = name
         pkg = self.db.query(model.Package) \
                 .filter_by(name=u'TurboGears').one()
         rel = self.db.query(model.Release) \
