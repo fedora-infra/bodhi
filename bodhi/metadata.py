@@ -206,7 +206,6 @@ class ExtendedMetadata(object):
         rec.rights = config.get('updateinfo_rights')
 
         if update.date_pushed:
-            log.warning('No date_pushed set for %s' % update.title)
             rec.issued_date = update.date_pushed
         if update.date_modified:
             rec.updated_date = update.date_modified
