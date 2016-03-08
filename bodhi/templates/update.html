@@ -463,7 +463,7 @@ $(document).ready(function(){
       </tr>
       % endif
 
-      % if update.days_to_stable:
+      % if update.days_to_stable and update.status.description == 'testing':
       <tr>
         <td>Days to Stable</td>
         <td>${update.days_to_stable}</td>
