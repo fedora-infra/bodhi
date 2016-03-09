@@ -24,7 +24,7 @@
         <span class="pull-right">
           <a href="${comment.url()}">
             %if not display_update:
-            ${util.age(comment.timestamp)}, <small>${comment.timestamp}</small>
+            ${util.age(comment.timestamp)}, <small>${comment.timestamp} (UTC)</small>
             % else:
             ${util.age(comment.timestamp)}
             % endif
