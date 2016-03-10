@@ -52,7 +52,11 @@ def push(username, password, cert_prefix, **kwargs):
     # If we're resuming a push
     if resume:
         updates = []
-        for lockfile in glob.glob('/mnt/koji/mash/updates/MASHING-*'):
+        if staging:
+            locks = '/var/cache/bodhi/mashing/MASHING-*'
+        else:
+            locks = '/mnt/koji/mash/updates/MASHING-*'
+        for lockfile in glob.glob(locks):
             doit = raw_input('Resume %s? (y/n)' % lockfile).strip().lower()
             if doit == 'n':
                 continue
