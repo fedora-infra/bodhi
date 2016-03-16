@@ -833,7 +833,7 @@ class Update(Base):
 
             # Remove all koji tags and change the status back to pending
             if not up.status is UpdateStatus.pending:
-                up.unpush()
+                up.unpush(db)
                 caveats.append({
                     'name': 'status',
                     'description': 'Builds changed.  Your update is being '
@@ -1043,7 +1043,7 @@ class Update(Base):
 
         topic = u'update.request.%s' % action
         if action is UpdateRequest.unpush:
-            self.unpush()
+            self.unpush(db)
             self.comment(db, u'This update has been unpushed.', author=username)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
@@ -1527,7 +1527,7 @@ class Update(Base):
         mail.send(people, 'comment', self, sender=None, agent=author)
         return comment, caveats
 
-    def unpush(self):
+    def unpush(self, db):
         """ Move this update back to its dist-fX-updates-candidate tag """
         log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
@@ -1540,7 +1540,7 @@ class Update(Base):
             raise BodhiException("Can't unpush a %s update"
                                  % self.status.description)
 
-        self.untag()
+        self.untag(db)
 
         for build in self.builds:
             koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
@@ -1571,13 +1571,18 @@ class Update(Base):
 
         self.request = None
 
-    def untag(self):
+    def untag(self, db):
         """ Untag all of the builds in this update """
         log.info("Untagging %s" % self.title)
         koji = buildsys.get_session()
+        tag_types, tag_rels = Release.get_tags(db)
         for build in self.builds:
             for tag in build.get_tags():
-                koji.untagBuild(tag, build.nvr, force=True)
+                # Only remove tags that we know about
+                if tag in tag_rels:
+                    koji.untagBuild(tag, build.nvr, force=True)
+                else:
+                    log.info("Skipping tag that we don't know about: %s" % tag)
         self.pushed = False
 
     def obsolete(self, db, newer=None):
@@ -1587,7 +1592,7 @@ class Update(Base):
         mash takes place.
         """
         log.debug("Obsoleting %s" % self.title)
-        self.untag()
+        self.untag(db)
         self.status = UpdateStatus.obsolete
         self.request = None
         if newer:

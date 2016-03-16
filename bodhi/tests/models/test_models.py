@@ -223,7 +223,9 @@ class TestUpdate(ModelTest):
         koji = buildsys.get_session()
         koji.clear()
         koji.__tagged__[b.nvr] = [release.testing_tag,
-                                  release.pending_testing_tag]
+                                  release.pending_testing_tag,
+                                  # Add an unknown tag that we shouldn't touch
+                                  release.dist_tag + '-compose']
         self.obj.builds[0].unpush(koji)
         eq_(koji.__moved__, [(u'dist-f11-updates-testing', u'dist-f11-updates-candidate', u'TurboGears-1.0.8-3.fc11')])
         eq_(koji.__untag__, [(u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11')])
