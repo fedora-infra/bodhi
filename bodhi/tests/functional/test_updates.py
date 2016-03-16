@@ -2486,3 +2486,52 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         eq_(resp.json['status'], 'error')
         eq_(resp.json['errors'][0]['description'],
             "Cannot submit bodhi ('0', '1.0', '1.fc17') to stable since it is older than ('0', '2.0', '1.fc17')")
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_edit_testing_update_with_build_from_different_update(self, publish, *args):
+        """
+        https://github.com/fedora-infra/bodhi/issues/803
+        """
+        # Create an update with a build that we will try and add to another update
+        nvr1 = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr1)
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+        # Mark it as testing
+        upd = Update.get(nvr1, self.db)
+        upd.status = UpdateStatus.testing
+        upd.request = None
+        self.db.flush()
+
+        # Create an update for a different build
+        nvr2 = u'koji-2.0.0-1.fc17'
+        args = self.get_update(nvr2)
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+        # Mark it as testing
+        upd = Update.get(nvr2, self.db)
+        upd.status = UpdateStatus.testing
+        upd.request = None
+        self.db.flush()
+
+        # Edit the nvr2 update and add nvr1
+        args['edited'] = args['builds']
+        args['builds'] = '%s,%s' % (nvr1, nvr2)
+        r = self.app.post_json('/updates/', args, status=400)
+        up = r.json_body
+        self.assertEquals(up['status'], 'error')
+        self.assertEquals(up['errors'][0]['description'], 'Update for bodhi-2.0.0-2.fc17 already exists')
+
+        up = Update.get(nvr2, self.db)
+        self.assertEquals(up.title, nvr2)  # nvr1 shouldn't be able to be added
+        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEquals(len(up.builds), 1)
+        self.assertEquals(up.builds[0].nvr, nvr2)
+
+        # nvr1 update should remain intact
+        up = Update.get(nvr1, self.db)
+        self.assertEquals(up.title, nvr1)
+        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEquals(len(up.builds), 1)
+        self.assertEquals(up.builds[0].nvr, nvr1)
