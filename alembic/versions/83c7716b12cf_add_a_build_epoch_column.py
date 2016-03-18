@@ -1,14 +1,14 @@
 """Add a Build.epoch column
 
 Revision ID: 83c7716b12cf
-Revises: 3aae6532b560
+Revises: 6383ec38980
 Create Date: 2016-03-01 19:05:54.649231
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '83c7716b12cf'
-down_revision = '3aae6532b560'
+down_revision = '6383ec38980'
 
 from alembic import op
 import sqlalchemy as sa
