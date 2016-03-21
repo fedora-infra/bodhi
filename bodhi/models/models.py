@@ -1547,6 +1547,7 @@ class Update(Base):
 
         self.pushed = False
         self.status = UpdateStatus.unpushed
+        self.request = None
 
     def revoke(self):
         """ Remove pending request for this update """

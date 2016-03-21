@@ -1915,6 +1915,26 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_request_after_unpush(self, publish, *args):
+        """Test request of this update after unpushing"""
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.request = UpdateRequest.stable
+        self.db.flush()
+
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'unpush', 'csrf_token': self.get_csrf_token()})
+        eq_(resp.json['update']['request'], None)
+        eq_(resp.json['update']['status'], 'unpushed')
+        publish.assert_called_with(
+                topic='update.request.unpush', msg=mock.ANY)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
     def test_invalid_stable_request(self, *args):
         """Test submitting a stable request for an update that has yet to meet the stable requirements"""
         Update.get(u'bodhi-2.0-1.fc17', self.db).locked = False
