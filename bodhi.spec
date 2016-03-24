@@ -14,6 +14,7 @@ BuildArch:      noarch
 ExcludeArch:    ppc64 ppc
 
 # For the tests
+BuildRequires:   python2
 BuildRequires:   python-nose
 #BuildRequires:   python-nose-cov
 BuildRequires:   python-webtest
@@ -77,6 +78,7 @@ Requires:        python-webob1.4
 %endif
 
 Requires:       python-psycopg2
+Requires:       python2
 
 %description
 Bodhi is a web application that facilitates the process of publishing
