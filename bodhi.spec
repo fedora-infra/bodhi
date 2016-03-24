@@ -225,6 +225,7 @@ PYTHONPATH=. %{__python} setup.py test
 %{_bindir}/bodhi-approve-testing
 %{_bindir}/bodhi-push
 %{_bindir}/bodhi-untag-branched
+%{_bindir}/bodhi-manage-releases
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %config(noreplace) %{_sysconfdir}/fedmsg.d/*
 %dir %{_sysconfdir}/bodhi/
