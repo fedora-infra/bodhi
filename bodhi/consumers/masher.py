@@ -43,12 +43,7 @@ from bodhi.exceptions import BodhiException
 
 
 def checkpoint(method):
-    """ A decorator for skipping sections of the mash when resuming.
-
-    We started working on this on deployment day, but don't really have time to
-    think about the rammifications right now... so we're going to leave the
-    decorator here, but not yet employ is in methods of the MasherThread.
-    """
+    """ A decorator for skipping sections of the mash when resuming. """
 
     key = method.__name__
 
