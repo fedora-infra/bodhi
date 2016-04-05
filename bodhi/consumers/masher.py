@@ -176,7 +176,8 @@ Once mash is done:
         """
         body = msg['body']['msg']
         resume = body.get('resume', False)
-        notifications.publish(topic="mashtask.start", msg=dict(), force=True)
+        agent = body.get('agent')
+        notifications.publish(topic="mashtask.start", msg=dict(agent=agent), force=True)
 
         with self.db_factory() as session:
             releases = self.organize_updates(session, body)
@@ -192,7 +193,7 @@ Once mash is done:
                     if request == req:
                         self.log.info('Starting thread for %s %s for %d updates',
                                       release, request, len(updates))
-                        thread = MasherThread(release, request, updates,
+                        thread = MasherThread(release, request, updates, agent,
                                               self.log, self.db_factory,
                                               self.mash_dir, resume)
                         threads.append(thread)
@@ -225,11 +226,12 @@ Once mash is done:
 
 class MasherThread(threading.Thread):
 
-    def __init__(self, release, request, updates, log, db_factory,
-                 mash_dir, resume=False):
+    def __init__(self, release, request, updates, agent,
+                 log, db_factory, mash_dir, resume=False):
         super(MasherThread, self).__init__()
         self.db_factory = db_factory
         self.log = log
+        self.agent = agent
         self.mash_dir = mash_dir
         self.request = UpdateRequest.from_string(request)
         self.release = release
@@ -297,7 +299,7 @@ class MasherThread(threading.Thread):
 
         notifications.publish(
             topic="mashtask.mashing",
-            msg=dict(repo=self.id, updates=self.state['updates']),
+            msg=dict(repo=self.id, updates=self.state['updates'], agent=self.agent),
             force=True,
         )
 
@@ -470,6 +472,7 @@ class MasherThread(threading.Thread):
                 reason=reason,
                 request=self.request,
                 release=self.release,
+                agent=self.agent,
             ),
             force=True,
         )
@@ -523,7 +526,7 @@ class MasherThread(threading.Thread):
         self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
         notifications.publish(
             topic="mashtask.complete",
-            msg=dict(success=success, repo=self.id),
+            msg=dict(success=success, repo=self.id, agent=self.agent),
             force=True,
         )
 
@@ -751,7 +754,7 @@ class MasherThread(threading.Thread):
         self.log.info('Waiting for updates to hit the master mirror')
         notifications.publish(
             topic="mashtask.sync.wait",
-            msg=dict(repo=self.id),
+            msg=dict(repo=self.id, agent=self.agent),
             force=True,
         )
         mash_path = os.path.join(self.path, self.id)
@@ -784,7 +787,7 @@ class MasherThread(threading.Thread):
                 self.log.info("master repomd.xml matches!")
                 notifications.publish(
                     topic="mashtask.sync.done",
-                    msg=dict(repo=self.id),
+                    msg=dict(repo=self.id, agent=self.agent),
                     force=True,
                 )
                 return

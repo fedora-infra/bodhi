@@ -77,7 +77,7 @@ class FakeHub(object):
 
 def makemsg(body=None):
     if not body:
-        body = {'updates': ['bodhi-2.0-1.fc17']}
+        body = {'updates': ['bodhi-2.0-1.fc17'], 'agent': 'lmacken'}
     return {
         'topic': u'org.fedoraproject.dev.bodhi.masher.start',
         'body': {
@@ -194,7 +194,7 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=False, repo='f17-updates-testing'),
+            msg=dict(success=False, repo='f17-updates-testing', agent='lmacken'),
             force=True)
 
         with self.db_factory() as session:
@@ -239,7 +239,7 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=True, repo='f17-updates-testing'),
+            msg=dict(success=True, repo='f17-updates-testing', agent='lmacken'),
             force=True)
 
         # Ensure our single update was moved
@@ -313,7 +313,7 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=True, repo='f17-updates-testing'),
+            msg=dict(success=True, repo='f17-updates-testing', agent='lmacken'),
             force=True)
 
         # Ensure our two updates were moved
@@ -327,7 +327,8 @@ class TestMasher(unittest.TestCase):
             u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
 
     def test_statefile(self):
-        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'], log, self.db_factory, self.tempdir)
+        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                         'ralph', log, self.db_factory, self.tempdir)
         t.id = 'f17-updates-testing'
         t.init_state()
         t.save_state()
@@ -352,7 +353,7 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.mail._send_mail')
     def test_testing_digest(self, mail, *args):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         log, self.db_factory, self.tempdir)
+                         'ralph', log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
             t.db = session
             t.work()
@@ -383,7 +384,7 @@ References:
 
     def test_sanity_check(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         log, self.db_factory, self.tempdir)
+                         'ralph', log, self.db_factory, self.tempdir)
         t.id = 'f17-updates-testing'
         t.init_path()
 
@@ -417,7 +418,7 @@ References:
 
     def test_stage(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         log, self.db_factory, self.tempdir)
+                         'ralph', log, self.db_factory, self.tempdir)
         t.id = 'f17-updates-testing'
         t.init_path()
         t.stage_repo()
@@ -483,20 +484,25 @@ References:
         # mashtask.complete
         self.assertEquals(calls[1], mock.call(
             force=True,
-            msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18']},
+            msg={'repo': u'f18-updates',
+                 'updates': [u'bodhi-2.0-1.fc18'],
+                 'agent': 'lmacken'},
             topic='mashtask.mashing'))
         self.assertEquals(calls[4], mock.call(
             force=True,
-            msg={'success': True, 'repo': 'f18-updates'},
+            msg={'success': True, 'repo': 'f18-updates', 'agent': 'lmacken'},
             topic='mashtask.complete'))
         self.assertEquals(calls[5], mock.call(
             force=True,
             msg={'repo': u'f17-updates-testing',
-                 'updates': [u'bodhi-2.0-1.fc17']},
+                 'updates': [u'bodhi-2.0-1.fc17'],
+                 'agent': 'lmacken'},
             topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(
             force=True,
-            msg={'success': True, 'repo': 'f17-updates-testing'},
+            msg={'success': True,
+                 'repo': 'f17-updates-testing',
+                 'agent': 'lmacken'},
             topic='mashtask.complete'))
 
     @mock.patch(**mock_taskotron_results)
@@ -550,20 +556,24 @@ References:
         calls = publish.mock_calls
         self.assertEquals(calls[1], mock.call(
             msg={'repo': u'f17-updates-testing',
-                 'updates': [u'bodhi-2.0-1.fc17']},
+                 'updates': [u'bodhi-2.0-1.fc17'],
+                 'agent': 'lmacken'},
             force=True,
             topic='mashtask.mashing'))
         self.assertEquals(calls[3], mock.call(
-            msg={'success': True, 'repo': 'f17-updates-testing'},
+            msg={'success': True,
+                 'repo': 'f17-updates-testing',
+                 'agent': 'lmacken'},
             force=True,
             topic='mashtask.complete'))
         self.assertEquals(calls[4], mock.call(
             msg={'repo': u'f18-updates',
-                 'updates': [u'bodhi-2.0-1.fc18']},
+                 'updates': [u'bodhi-2.0-1.fc18'],
+                 'agent': 'lmacken'},
             force=True,
             topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(
-            msg={'success': True, 'repo': 'f18-updates'},
+            msg={'success': True, 'repo': 'f18-updates', 'agent': 'lmacken'},
             force=True,
             topic='mashtask.complete'))
 
@@ -619,17 +629,20 @@ References:
         calls = publish.mock_calls
         if calls[1] == mock.call(
             msg={'repo': u'f18-updates',
-                 'updates': [u'bodhi-2.0-1.fc18']},
+                 'updates': [u'bodhi-2.0-1.fc18'],
+                 'agent': 'lmacken'},
             force=True,
             topic='mashtask.mashing'):
             self.assertEquals(calls[2], mock.call(
                 msg={'repo': u'f17-updates',
-                     'updates': [u'bodhi-2.0-1.fc17']},
+                     'updates': [u'bodhi-2.0-1.fc17'],
+                     'agent': 'lmacken'},
                 force=True,
                 topic='mashtask.mashing'))
         elif calls[1] == self.assertEquals(calls[1], mock.call(
             msg={'repo': u'f17-updates',
-                 'updates': [u'bodhi-2.0-1.fc17']},
+                 'updates': [u'bodhi-2.0-1.fc17'],
+                 'agent': 'lmacken'},
             force=True,
             topic='mashtask.mashing')):
             self.assertEquals(calls[2], mock.call(
@@ -666,8 +679,8 @@ References:
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
 
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
-                         self.db_factory, self.tempdir)
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                         'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
             t.db = session
@@ -677,7 +690,9 @@ References:
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    force=True,
-                                   msg=dict(success=True, repo='f17-updates'))
+                                   msg=dict(success=True,
+                                            repo='f17-updates',
+                                            agent='ralph'))
         publish.assert_any_call(topic='update.complete.stable',
                                 force=True,
                                 msg=mock.ANY)
@@ -699,8 +714,8 @@ References:
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
 
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
-                         self.db_factory, self.tempdir)
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                         'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
             t.db = session
@@ -710,7 +725,9 @@ References:
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    force=True,
-                                   msg=dict(success=True, repo='f17-updates'))
+                                   msg=dict(success=True,
+                                            repo='f17-updates',
+                                            agent='ralph'))
         publish.assert_any_call(topic='update.eject', msg=mock.ANY, force=True)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
@@ -729,8 +746,8 @@ References:
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
 
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
-                         self.db_factory, self.tempdir)
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                         'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
             t.db = session
@@ -740,7 +757,9 @@ References:
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    force=True,
-                                   msg=dict(success=True, repo='f17-updates'))
+                                   msg=dict(success=True,
+                                            repo='f17-updates',
+                                            agent='ralph'))
         publish.assert_any_call(topic='update.eject', msg=mock.ANY, force=True)
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
@@ -776,8 +795,8 @@ References:
     @mock.patch('bodhi.bugs.bugtracker.close')
     def test_modify_stable_bugs(self, close, comment, *args):
         self.set_stable_request('bodhi-2.0-1.fc17')
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'], log,
-                         self.db_factory, self.tempdir)
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                         'ralph', log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
             t.db = session
             t.work()
@@ -845,7 +864,7 @@ References:
     def test_get_security_updates(self,  *args):
         build = u'bodhi-2.0-1.fc17'
         t = MasherThread(u'F17', u'testing', [build],
-                         log, self.db_factory, self.tempdir)
+                         'ralph', log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
             t.db = session
             u = session.query(Update).one()
@@ -1009,7 +1028,7 @@ References:
         publish.assert_called_with(
             topic="mashtask.complete",
             force=True,
-            msg=dict(success=True, repo='f17-updates-testing'))
+            msg=dict(success=True, repo='f17-updates-testing', agent='lmacken'))
 
         self.koji.clear()
 
