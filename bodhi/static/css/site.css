@@ -209,6 +209,7 @@ ul.updateslist li {
 .markdown p {
     word-wrap:      break-word; /* old-school */
     overflow-wrap:  break-word; /* new-school */
+    padding:        5px;
 }
 
 #markdown-help strong {
