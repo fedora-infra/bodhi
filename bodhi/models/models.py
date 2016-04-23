@@ -1792,6 +1792,12 @@ class Update(Base):
             return 0
 
     @property
+    def date_locked(self):
+        """ Return the date when the update has been locked """
+        if self.locked:
+            return datetime.utcnow()
+
+    @property
     def num_admin_approvals(self):
         """ Return the number of Releng/QA approvals of this update """
         approvals = 0
