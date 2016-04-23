@@ -183,7 +183,10 @@ class ExtendedMetadata(object):
             self.builds[build['nvr']] = build
             build_obj = self.db.query(Build).filter_by(nvr=unicode(build['nvr'])).first()
             if build_obj:
-                self.updates.add(build_obj.update)
+                if build_obj.update:
+                    self.updates.add(build_obj.update)
+                else:
+                    log.warn('%s does not have a corresponding update' % build['nvr'])
             else:
                 nonexistent.append(build['nvr'])
         if nonexistent:
