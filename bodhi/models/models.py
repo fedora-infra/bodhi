@@ -637,6 +637,7 @@ class Update(Base):
     date_pushed = Column(DateTime)
     date_testing = Column(DateTime)
     date_stable = Column(DateTime)
+    date_locked = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(32), unique=True, nullable=True)
@@ -1790,12 +1791,6 @@ class Update(Base):
             return (datetime.utcnow() - self.date_testing).days
         else:
             return 0
-
-    @property
-    def date_locked(self):
-        """ Return the date when the update has been locked """
-        if self.locked:
-            return datetime.utcnow()
 
     @property
     def num_admin_approvals(self):
