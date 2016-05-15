@@ -380,7 +380,7 @@ class MasherThread(threading.Thread):
             self.obsolete_older_updates()
 
             # Update datetime for locking on update
-            self.locked_date_for_update
+            self.locked_date_for_update()
 
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
