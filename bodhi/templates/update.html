@@ -444,14 +444,14 @@ $(document).ready(function(){
       <tr>
         <td>Submitted</td>
         <td>${self.util.age(update.date_submitted)},
-          <small>${str(update.date_submitted).split('.')[0]} (UTC)</small></td>
+          <small>${(update.date_submitted).strftime("%Y-%m-%d %H:%M:%S")} (UTC)</small></td>
       </tr>
 
       % if update.date_testing:
       <tr>
         <td>In Testing</td>
         <td>${self.util.age(update.date_testing)},
-          <small>${str(update.date_testing).split('.')[0]} (UTC)</small></td>
+          <small>${(update.date_testing).strftime("%Y-%m-%d %H:%M:%S")} (UTC)</small></td>
       </tr>
       % endif
 
@@ -459,7 +459,7 @@ $(document).ready(function(){
       <tr>
         <td>In Stable</td>
         <td>${self.util.age(update.date_stable)},
-          <small>${str(update.date_stable).split('.')[0]} (UTC)</small></td>
+          <small>${(update.date_stable).strftime("%Y-%m-%d %H:%M:%S")} (UTC)</small></td>
       </tr>
       % endif
 
@@ -474,7 +474,7 @@ $(document).ready(function(){
       <tr>
         <td>Modified</td>
         <td>${self.util.age(update.date_modified)},
-          <small>${str(update.date_modified).split('.')[0]} (UTC)</small></td>
+          <small>${(update.date_modified).strftime("%Y-%m-%d %H:%M:%S")} (UTC)</small></td>
       </tr>
       % endif
 
@@ -482,7 +482,7 @@ $(document).ready(function(){
       <tr>
         <td>approved</td>
         <td>${self.util.age(update.date_approved)},
-          <small>${str(update.date_approved).split('.')[0]} (UTC)</small></td>
+          <small>${(update.date_approved).strftime("%Y-%m-%d %H:%M:%S")} (UTC)</small></td>
       </tr>
       % endif
 
@@ -506,7 +506,7 @@ $(document).ready(function(){
       <div class="alert alert-info" role="alert">
         <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
         <span class="sr-only">Locked:</span>
-        This update is currently locked since <small>${str(update.date_locked).split('.')[0]} (UTC)</small> and cannot be modified.
+        This update is currently locked since <small>${(update.date_locked).strftime("%Y-%m-%d %H:%M:%S")} (UTC)</small> and cannot be modified.
         <a href="https://fedoraproject.org/wiki/Bodhi2#FAQ" target="_blank">
           <span data-toggle="tooltip" data-placement="top" title="What does this mean?" class="glyphicon glyphicon-question-sign"></span>
         </a>
