@@ -14,6 +14,13 @@ Add the following to your `~/.bashrc`::
     export WORKON_HOME=$HOME/.virtualenvs
     source /usr/bin/virtualenvwrapper.sh
 
+Set PYTHONPATH
+--------------
+
+Add the following to your `~/.bashrc`
+
+``export PYTHONPATH=$PYTHONPATH:$HOME/.virtualenv``
+
 Then on the terminal ::
 
     source ~/.bashrc
