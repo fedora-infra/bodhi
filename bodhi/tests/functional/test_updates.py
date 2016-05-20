@@ -2512,6 +2512,9 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(upd.status, UpdateStatus.testing)
         self.assertEquals(upd.request, None)
 
+        text = config.get('testing_approval_msg_based_on_karma')
+        upd.comment(self.db, text, author=u'bodhi')
+
         # Checks Push to Stable text in the html page for this update
         id = 'bodhi-2.0.0-2.fc17'
         resp = self.app.get('/updates/%s' % id,
