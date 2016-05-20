@@ -605,6 +605,7 @@ class Update(Base):
     title = Column(UnicodeText, unique=True, default=None, index=True)
 
     karma = Column(Integer, default=0)
+    autokarma = Column(Boolean, default=True)
     stable_karma = Column(Integer, nullable=True)
     unstable_karma = Column(Integer, nullable=True)
     requirements = Column(UnicodeText)
@@ -705,16 +706,6 @@ class Update(Base):
                 list(tokenize(pkg.requirements)) for pkg in [
                     build.package for build in data['builds']
                 ] if pkg.requirements], []))))
-
-        if not data['autokarma']:
-            del(data['stable_karma'])
-            del(data['unstable_karma'])
-            caveats.append({
-                'name': 'autokarma',
-                'description': 'Auto-karma stable requests disabled.',
-            })
-
-        del(data['autokarma'])
 
         del(data['edited'])
 
@@ -1662,13 +1653,18 @@ class Update(Base):
         if not self.locked:
             if self.status is UpdateStatus.testing:
                 if self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
-                    log.info("Automatically marking %s as stable" % self.title)
-                    self.set_request(db, UpdateRequest.stable, agent)
-                    self.request = UpdateRequest.stable
-                    self.date_pushed = None
-                    notifications.publish(
-                        topic='update.karma.threshold.reach',
-                        msg=dict(update=self, status='stable'))
+                    if self.autokarma:
+                        log.info("Automatically marking %s as stable" % self.title)
+                        self.set_request(db, UpdateRequest.stable, agent)
+                        self.request = UpdateRequest.stable
+                        self.date_pushed = None
+                        notifications.publish(
+                            topic='update.karma.threshold.reach',
+                            msg=dict(update=self, status='stable'))
+                    else:
+                        log.info("%s now reaches stable karma threshold and can be manually pushed to stable now" % self.title)
+                        self.request = None
+                        # We have to add the 'testing_approval_msg_based_on_karma' message as comment after this
                 elif self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
                     log.info("Automatically unpushing %s" % self.title)
                     self.obsolete(db)
