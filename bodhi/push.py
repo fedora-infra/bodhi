@@ -46,26 +46,28 @@ def push(username, password, cert_prefix, **kwargs):
     client = Bodhi2Client(username=username, password=password,
                           staging=staging)
 
-    # Don't try and push locked updates
-    kwargs['locked'] = False
+    lockfiles = defaultdict(list)
+    locked_updates = []
+    if staging:
+        locks = '/var/cache/bodhi/mashing/MASHING-*'
+    else:
+        locks = '/mnt/koji/mash/updates/MASHING-*'
+    for lockfile in glob.glob(locks):
+        with file(lockfile) as lock:
+            state = json.load(lock)
+        for update in state['updates']:
+            lockfiles[lockfile].append(update)
+            locked_updates.append(update)
 
     # If we're resuming a push
     if resume:
         updates = []
-        if staging:
-            locks = '/var/cache/bodhi/mashing/MASHING-*'
-        else:
-            locks = '/mnt/koji/mash/updates/MASHING-*'
-        for lockfile in glob.glob(locks):
+        for lockfile in lockfiles:
             doit = raw_input('Resume %s? (y/n)' % lockfile).strip().lower()
             if doit == 'n':
                 continue
 
-            with file(lockfile) as lock:
-                state = json.load(lock)
-
-            click.echo(lockfile)
-            for update in state['updates']:
+            for update in lockfiles[lockfile]:
                 updates.append(update)
                 click.echo(update)
     else:
@@ -82,6 +84,16 @@ def push(username, password, cert_prefix, **kwargs):
         for request in requests:
             resp = client.query(request=request, **kwargs)
             for update in resp.updates:
+                # Skip locked updates that are in a current push
+                if update.locked:
+                    if update.title in locked_updates:
+                        continue
+                    # Warn about locked updates that aren't a part of a push and
+                    # push them again.
+                    else:
+                        click.echo('Warning: %s is locked but not in a push' %
+                                   update.title)
+
                 updates.append(update.title)
                 for build in update.builds:
                     releases[update.release.name][request].append(build.nvr)
