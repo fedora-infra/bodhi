@@ -1662,9 +1662,10 @@ class Update(Base):
                             topic='update.karma.threshold.reach',
                             msg=dict(update=self, status='stable'))
                     else:
-                        log.info("%s now reaches stable karma threshold and can be manually pushed to stable now" % self.title)
+                        # Add the 'testing_approval_msg_based_on_karma' message now
+                        log.info("%s update has reached the stable karma threshold and can be pushed to "\
+                        "stable now if the maintainer wishes" % self.title)
                         self.request = None
-                        # We have to add the 'testing_approval_msg_based_on_karma' message as comment after this
                 elif self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
                     log.info("Automatically unpushing %s" % self.title)
                     self.obsolete(db)
