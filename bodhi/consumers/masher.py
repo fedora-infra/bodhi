@@ -275,6 +275,9 @@ class MasherThread(threading.Thread):
         #        src=src, dest=dest, nvr=nvr)
 
     def work(self):
+        # Update datetime for locking on update
+        self.locked_date_for_update()
+
         self.koji = buildsys.get_session()
         self.release = self.db.query(Release)\
                               .filter_by(name=self.release).one()
@@ -378,9 +381,6 @@ class MasherThread(threading.Thread):
 
             self.check_all_karma_thresholds()
             self.obsolete_older_updates()
-
-            # Update datetime for locking on update
-            self.locked_date_for_update()
 
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
