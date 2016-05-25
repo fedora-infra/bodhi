@@ -28,6 +28,7 @@ import urllib2
 import hashlib
 import threading
 import fedmsg.consumers
+from datetime import datetime
 
 from collections import defaultdict
 from pyramid.paster import get_appsettings
@@ -274,6 +275,9 @@ class MasherThread(threading.Thread):
         #        src=src, dest=dest, nvr=nvr)
 
     def work(self):
+        # Update datetime for locking on update
+        self.locked_date_for_update()
+
         self.koji = buildsys.get_session()
         self.release = self.db.query(Release)\
                               .filter_by(name=self.release).one()
@@ -402,6 +406,21 @@ class MasherThread(threading.Thread):
         for update in self.updates:
             update.locked = False
         self.db.flush()
+
+    def locked_date_for_update(self):
+        """ Return the date & time when an update has been locked """
+        for update in self.updates:
+            # Return datetime when an update is locked and datetime is
+            # not yet assigned to the column date_locked
+            if update.locked and not update.date_locked:
+                update.date_locked = datetime.utcnow()
+                self.db.commit()
+                self.db.refresh(update)
+                return update.date_locked
+            # Reset the column date_locked to None when an update gets unlocked
+            elif not update.locked and update.date_locked:
+                update.date_locked = None
+                self.db.commit()
 
     def check_all_karma_thresholds(self):
         """
