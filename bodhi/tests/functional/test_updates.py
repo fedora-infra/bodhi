@@ -1950,6 +1950,48 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
+    def test_request_to_stable_based_on_stable_karma(self, *args):
+        """
+        Test request to stable before an update reaches stable karma
+        and after it reaches stable karma when autokarma is disabled
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = False
+        args['stable_karma'] = 1
+        resp = self.app.post_json('/updates/', args)
+
+        up = Update.get(nvr, self.db)
+        up.status = UpdateStatus.testing
+        up.request = None
+        self.db.flush()
+
+        # Checks failure for requesting to stable push before the update reaches stable karma
+        up.comment(self.db, u'Not working', author=u'ralph', karma=0)
+        up = Update.get(nvr, self.db)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'stable', 'csrf_token': self.get_csrf_token()},
+            status=400)
+        self.assertEquals(up.request, None)
+        self.assertEquals(up.status, UpdateStatus.testing)
+
+        # Checks Success for requesting to stable push after the update reaches stable karma
+        up.comment(self.db, u'LGTM', author=u'ralph', karma=1)
+        up = Update.get(nvr, self.db)
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'stable', 'csrf_token': self.get_csrf_token()},
+            status=200)
+        self.assertEquals(up.request, UpdateRequest.stable)
+        self.assertEquals(up.status, UpdateStatus.testing)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')
     def test_stable_request_after_testing(self, publish, *args):
         """Test submitting a stable request to an update that has met the minimum amount of time in testing"""
@@ -2433,6 +2475,53 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
 
         # Bob should be able to give karma again since the reset
         self.assertEquals(upd.karma, 1)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_manually_push_to_stable_based_on_karma(self, publish, *args):
+        """
+        Test manually push to stable when autokarma is disabled
+        and karma threshold is reached
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        # Makes autokarma disabled
+        # Sets stable karma to 1
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = False
+        args['stable_karma'] = 1
+        resp = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        # Marks it as testing
+        upd = Update.get(nvr, self.db)
+        upd.status = UpdateStatus.testing
+        upd.request = None
+        self.db.flush()
+
+        # Checks karma threshold is reached
+        # Makes sure stable karma is not None
+        # Ensures Request doesn't get set to stable automatically since autokarma is disabled
+        upd.comment(self.db, u'LGTM', author=u'ralph', karma=1)
+        upd = Update.get(nvr, self.db)
+        self.assertEquals(upd.karma, 1)
+        self.assertEquals(upd.stable_karma, 1)
+        self.assertEquals(upd.status, UpdateStatus.testing)
+        self.assertEquals(upd.request, None)
+
+        text = config.get('testing_approval_msg_based_on_karma')
+        upd.comment(self.db, text, author=u'bodhi')
+
+        # Checks Push to Stable text in the html page for this update
+        id = 'bodhi-2.0.0-2.fc17'
+        resp = self.app.get('/updates/%s' % id,
+                            headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('Push to Stable', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.notifications.publish')

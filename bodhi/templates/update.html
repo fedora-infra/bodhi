@@ -535,6 +535,8 @@ $(document).ready(function(){
             % endif
           % elif update.meets_testing_requirements and getattr(update.request, 'description', None) != 'stable':
             <a id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
+          % elif update.stable_karma not in (0, None) and update.karma >= update.stable_karma and not update.autokarma and getattr(update.request, 'description', None) != 'stable':
+            <a id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
           % endif
           <a id='unpush' class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-circle-arrow-left"></span> Unpush</a>
         % endif
