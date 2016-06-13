@@ -1,5 +1,26 @@
-bodhi v2.0
+==================================
+bodhi v2.0 development environment
+==================================
+
+There are two ways to bootstrap a Bodhi development environment. You can use Vagrant, or you can use
+virtualenv on an existing host.
+
+Vagrant
+=======
+
+To use Vagrant, please read the instructions at
+https://pagure.io/fedora-apps-vagrantfiles/blob/master/f/bodhi/README.md
+
+The code from your development host will be mounted in /vagrant in the guest, and you can run the
+unit tests with nosetests::
+
+    cd /vagrant
+    nosetests
+
+Virtualenv
 ==========
+
+Virtualenv is another option for building a development environment.
 
 Dependencies
 ------------

@@ -3,6 +3,7 @@
 *.pyo
 *.swp
 .bodhi.tmp
+.vagrant
 dist
 MANIFEST
 virtenv
@@ -14,3 +15,4 @@ bodhi.db*
 dogpile-cache.dbm*
 html-docs
 masher/
+Vagrantfile
