@@ -502,7 +502,7 @@ $(document).ready(function(){
   </div>
 
   <div class="col-md-7">
-    % if update.locked:
+    % if update.locked and update.date_locked:
       <div class="alert alert-info" role="alert">
         <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
         <span class="sr-only">Locked:</span>
