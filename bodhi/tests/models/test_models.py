@@ -198,6 +198,7 @@ class TestUpdate(ModelTest):
             )
 
     def get_update(self, name=u'TurboGears-1.0.8-3.fc11'):
+        """Return an Update instance for testing."""
         attrs = self.attrs.copy()
         attrs['title'] = name
         pkg = self.db.query(model.Package) \
@@ -215,6 +216,55 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].nvr, u'TurboGears-1.0.8-3.fc11')
         eq_(self.obj.builds[0].release.name, u'F11')
         eq_(self.obj.builds[0].package.name, u'TurboGears')
+
+    @mock.patch('bodhi.models.models.bugtracker.close')
+    @mock.patch('bodhi.models.models.bugtracker.comment')
+    def test_modify_bugs_stable_close(self, comment, close):
+        """Test the modify_bugs() method with a stable status and with close_bugs set to True."""
+        update = self.get_update()
+        bug_1 = model.Bug(bug_id=1)
+        bug_2 = model.Bug(bug_id=2)
+        update.bugs.append(bug_1)
+        update.bugs.append(bug_2)
+        update.close_bugs = True
+        update.status = UpdateStatus.stable
+
+        update.modify_bugs()
+
+        # The comment call shouldn't have been made, since the comment should be included with the
+        # call to close().
+        eq_(comment.call_count, 0)
+        # Make sure close() was called correctly.
+        eq_([c[1][0] for c in close.mock_calls], [1, 2])
+        eq_(all(
+            ['to the Fedora 11 stable repository' in c[2]['comment'] for c in close.mock_calls]),
+            True)
+        eq_(all(
+            [c[2]['versions']['TurboGears'] == 'TurboGears-1.0.8-3.fc11'
+                for c in close.mock_calls]),
+            True)
+
+    @mock.patch('bodhi.models.models.bugtracker.close')
+    @mock.patch('bodhi.models.models.bugtracker.comment')
+    def test_modify_bugs_stable_no_close(self, comment, close):
+        """Test the modify_bugs() method with a stable status and with close_bugs set to False."""
+        update = self.get_update()
+        bug_1 = model.Bug(bug_id=1)
+        bug_2 = model.Bug(bug_id=2)
+        update.bugs.append(bug_1)
+        update.bugs.append(bug_2)
+        update.close_bugs = False
+        update.status = UpdateStatus.stable
+
+        update.modify_bugs()
+
+        # Make sure bugs number 1 and 2 were commented on correctly.
+        eq_([c[1][0] for c in comment.mock_calls], [1, 2])
+        eq_(all(
+            ['pushed to the Fedora 11 stable repository' in c[1][1] for c in comment.mock_calls]),
+            True)
+        # No bugs should have been closed
+        eq_(close.call_count, 0)
 
     def test_unpush_build(self):
         eq_(len(self.obj.builds), 1)

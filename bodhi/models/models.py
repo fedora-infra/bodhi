@@ -1203,11 +1203,11 @@ class Update(Base):
                 log.debug('Adding testing comment to bugs for %s', self.title)
                 bug.testing(self)
         elif self.status is UpdateStatus.stable:
-            for bug in self.bugs:
-                log.debug('Adding stable comment to bugs for %s', self.title)
-                bug.add_comment(self)
-
-            if self.close_bugs:
+            if not self.close_bugs:
+                for bug in self.bugs:
+                    log.debug('Adding stable comment to bugs for %s', self.title)
+                    bug.add_comment(self)
+            else:
                 if self.type is UpdateType.security:
                     # Only close the tracking bugs
                     # https://github.com/fedora-infra/bodhi/issues/368#issuecomment-135155215
@@ -2027,7 +2027,7 @@ class Bug(Base):
         versions = dict([
             (get_nvr(b.nvr)[0], b.nvr) for b in update.builds
         ])
-        bugtracker.close(self.bug_id, versions=versions)
+        bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
 
     def modified(self, update):
         """ Change the status of this bug to MODIFIED """
