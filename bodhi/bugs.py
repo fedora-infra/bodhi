@@ -18,6 +18,8 @@ import xmlrpclib
 from kitchen.text.converters import to_unicode
 from bunch import Bunch
 from bodhi.config import config
+import bugzilla
+
 
 log = logging.getLogger('bodhi')
 
@@ -161,7 +163,6 @@ class Bugzilla(BugTracker):
 
 
 if config.get('bugtracker') == 'bugzilla':
-    import bugzilla
     log.info('Using python-bugzilla')
     bugtracker = Bugzilla()
 else:
