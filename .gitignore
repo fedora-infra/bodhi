@@ -4,6 +4,7 @@
 *.swp
 .bodhi.tmp
 .vagrant
+development.ini
 dist
 MANIFEST
 virtenv
