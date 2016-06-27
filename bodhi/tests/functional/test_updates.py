@@ -1831,6 +1831,48 @@ class TestUpdatesService(bodhi.tests.functional.base.BaseWSGICase):
         self.assertEquals(up.status, UpdateStatus.pending)
         self.assertEquals(up.request, UpdateRequest.stable)
 
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.notifications.publish')
+    def test_push_to_stable_for_obsolete_update(self, publish, *args):
+        """
+        Obsolete update should not be submitted to testing
+        Test Push to Stable option for obsolete update
+        """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        with mock.patch(**mock_uuid4_version1):
+            self.app.post_json('/updates/', args)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+        publish.call_args_list = []
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+
+        new_nvr = 'bodhi-2.0.0-3.fc17'
+        args = self.get_update(new_nvr)
+        with mock.patch(**mock_uuid4_version2):
+            r = self.app.post_json('/updates/', args).json_body
+        self.assertEquals(r['request'], 'testing')
+        publish.assert_called_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEquals(up.status, UpdateStatus.obsolete)
+        self.assertEquals(up.comments[-1].text,
+                          u'This update has been obsoleted by '
+                          '[bodhi-2.0.0-3.fc17](http://0.0.0.0:6543/'
+                          'updates/FEDORA-2016-53345602d5).')
+
+        # Check Push to Stable button for obsolete update
+        id = 'bodhi-2.0.0-2.fc17'
+        resp = self.app.get('/updates/%s' % id,
+                        headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertNotIn('Push to Stable', resp)
+
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_invalid_request(self, *args):

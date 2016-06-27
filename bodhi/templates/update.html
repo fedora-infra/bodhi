@@ -521,7 +521,7 @@ $(document).ready(function(){
             % if update.status.description != 'testing':
             <a id='testing' class="btn btn-sm btn-primary"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Testing</a>
             % endif
-            % if update.status.description != 'stable':
+            % if update.status.description not in ['stable', 'obsolete']:
               <a id='stable' class="btn btn-sm btn-success"><span class="glyphicon glyphicon-circle-arrow-right"></span> Push to Stable</a>
             % endif
           % else:
