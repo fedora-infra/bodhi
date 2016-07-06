@@ -104,8 +104,12 @@ class Bugzilla(BugTracker):
         except:
             log.exception("Unable to alter bug #%d" % bug_id)
 
-    def close(self, bug_id, versions):
-        args = {}
+    def close(self, bug_id, versions, comment):
+        """
+        Close the bug given by bug_id, mark it as fixed in the given versions,
+        and add a comment.
+        """
+        args = {'comment': comment}
         try:
             bug = self.bz.getbug(bug_id)
             # If this bug is for one of these builds...
