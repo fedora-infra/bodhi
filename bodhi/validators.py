@@ -889,11 +889,26 @@ def validate_captcha(request):
             request.errors.status = HTTPBadRequest.code
             return
 
+        if 'captcha' not in request.session:
+            request.errors.add('session', 'captcha',
+                               'Captcha cipher not in the session (replay).')
+            request.errors.status = HTTPBadRequest.code
+            return
+
+        if request.session['captcha'] != key:
+            request.errors.add('session', 'captcha',
+                               'No captcha session cipher match (replay). %r %r' % (request.session['captcha'], key))
+            request.errors.status = HTTPBadRequest.code
+            return
+
         if not captcha.validate(request, key, value):
             request.errors.add('body', 'captcha_value',
                                'Incorrect response to the captcha.')
             request.errors.status = HTTPBadRequest.code
             return
+
+        # Nuke this to stop replay attacks.  Once valid, never again.
+        del request.session['captcha']
 
 
 def validate_stack(request):
