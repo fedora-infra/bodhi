@@ -98,6 +98,11 @@ to point to the postgresql database. Something like:
     sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2
 
 
+Upgrade the database
+--------------------
+``alembic upgrade head``
+
+
 Run the web app
 ---------------
 ``pserve development.ini --reload``
