@@ -364,9 +364,9 @@ def karma2html(context, karma):
         if karma < -2:
             cls = 'danger'
         elif karma == 0:
-        	cls = 'primary'
+            cls = 'primary'
         else:
-        	cls = 'success'
+            cls = 'success'
 
     if karma > 0:
         karma = "+%i" % karma
