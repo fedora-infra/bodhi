@@ -72,7 +72,7 @@ BuildRequires:   python-sphinx
 # For the bodhi-client
 BuildRequires:   python-click
 
-%if 0%{?rhel} <= 7
+%if 0%{?rhel} >= 7
 BuildRequires:   python-webob1.4
 Requires:        python-webob1.4
 %endif
