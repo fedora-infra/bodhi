@@ -66,6 +66,14 @@ Setting up
 
 ``pip install psycopg2``
 
+Create the `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/development.ini.example>`_ file
+--------------------------------------------------------------------------------------------------------------------------
+
+Copy ``development.ini.example`` to ``development.ini``:
+::
+
+    cp development.ini.example development.ini
+    
 Run the test suite
 ------------------
 ``python setup.py test``
@@ -82,15 +90,10 @@ Import the bodhi2 database
           instructions at the bottom of the file.
 
 
-Create and adjust the `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/development.ini.example>`_ file
+Adjust database configuration in `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/development.ini.example>`_ file
 --------------------------------------------------------------------------------------------------------------------------
 
-Copy ``development.ini.example`` to ``development.ini``:
-::
-
-    cp development.ini.example development.ini
-
-Now adjust the configuration key
+Set the configuration key
 `sqlalchemy.url <https://github.com/fedora-infra/bodhi/blob/02d0a883c156d9a27a4dbac994409ecf726d00a9/development.ini#L413>`_
 to point to the postgresql database. Something like:
 ::
