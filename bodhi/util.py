@@ -363,6 +363,8 @@ def karma2html(context, karma):
     if not cls:
         if karma < -2:
             cls = 'danger'
+        elif karma == 0:
+            cls = 'primary'
         else:
             cls = 'success'
 
