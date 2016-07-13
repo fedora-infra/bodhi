@@ -11,11 +11,16 @@ Vagrant
 To use Vagrant, please read the instructions at
 https://pagure.io/fedora-apps-vagrantfiles/blob/master/f/bodhi/README.md
 
+Run test suite for Vagrant setup
+-------------------------------
+
 The code from your development host will be mounted in /vagrant in the guest, and you can run the
 unit tests with nosetests::
 
+    vagrant up
+    vagrant ssh
     cd /vagrant
-    nosetests
+    nosetests -v
 
 Virtualenv
 ==========
