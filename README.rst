@@ -24,7 +24,7 @@ Virtualenv is another option for building a development environment.
 
 Dependencies
 ------------
-``sudo dnf install libffi-devel openssl-devel koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel python-pillow zeromq-devel``
+``sudo dnf install libffi-devel postgresql-devel openssl-devel koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel python-pillow zeromq-devel``
 
 Setup virtualenvwrapper
 -----------------------
