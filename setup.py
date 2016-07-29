@@ -76,7 +76,7 @@ if sys.version_info[:3] < (2,5,0):
     requires.append('pysqlite')
 
 setup(name='bodhi',
-      version='2.0',
+      version='2.1.9',
       description='bodhi',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
