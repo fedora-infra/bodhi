@@ -1681,6 +1681,10 @@ class Update(Base):
             raise LockedUpdateException
 
     @property
+    def builds_json(self):
+        return json.dumps([build.nvr for build in self.builds])
+
+    @property
     def requirements_json(self):
         return json.dumps(list(tokenize(self.requirements or '')))
 

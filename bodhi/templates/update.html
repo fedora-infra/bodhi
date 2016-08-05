@@ -35,7 +35,7 @@
     // and hardcode something like this:
     //var update = 'ugene-1.14.2-1.fc21';
     var update = '${update.title}';
-    var since = '${update.last_modified.isoformat().rsplit(".", 1)[0]}';
+    var builds = ${update.builds_json | n};
 
     // These are the required taskotron tests
     var requirements = ${update.requirements_json | n};
@@ -198,12 +198,14 @@
       gather_testcases(data.next);
       // And queue up requests for the results of the testcases we already know about.
       $.each(data.data, function(i, testcase) {
-        var param = $.param({
-            item: update,
-            since: since
+        $.each(builds, function(j, nvr) {
+          var param = $.param({
+              type: 'koji_build',
+              item: nvr,
+          });
+          var url = base_url + 'testcases/' + testcase.name + '/results?' + param;
+          request_resultsdb_page(url);
         });
-        var url = base_url + 'testcases/' + testcase.name + '/results?' + param;
-        request_resultsdb_page(url);
       });
     }
 
