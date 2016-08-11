@@ -11,6 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import datetime
 import sys, os
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -43,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'bodhi'
-copyright = u'2007-2014, Red Hat, Inc.'
+copyright = u'2007-{}, Red Hat, Inc.'.format(datetime.datetime.utcnow().year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -215,8 +216,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'bodhi', u'bodhi Documentation',
-     [u'Luke Macken'], 1)
+    ('man_bodhi', 'bodhi', u'manage Fedora updates', ['Randy Barlow', 'Luke Macken'], 1)
 ]
 
 # If true, show URL addresses after external links.
