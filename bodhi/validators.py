@@ -164,7 +164,12 @@ def validate_build_tags(request):
                 if not build_rel:
                     raise KeyError("Couldn't find release from build tags")
             except KeyError:
-                msg = 'Cannot find release associated with build: {}, tags: {}'.format(build, tags)
+                if tags:
+                    msg = 'Cannot find release associated with build: '
+                    '{}, tags: {}'.format(build, tags)
+                else:
+                    msg = 'Cannot find any tags associated with build: '
+                    '{}'.format(build)
                 log.warn(msg)
                 request.errors.add('body', 'builds', msg)
                 return
@@ -180,8 +185,9 @@ def validate_build_tags(request):
                 valid = True
                 break
         if not valid:
-            request.errors.add('body', 'builds', 'Invalid tag: {} tagged with '
-                               '{}'.format(build, valid_tags))
+            request.errors.add('body', 'builds',
+                'Invalid tag: {} not tagged with any of the following tags '
+                '{}'.format(build, valid_tags))
 
 
 def validate_tags(request):
