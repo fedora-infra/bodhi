@@ -5,22 +5,46 @@ bodhi v2.0 development environment
 There are two ways to bootstrap a Bodhi development environment. You can use Vagrant, or you can use
 virtualenv on an existing host.
 
+
 Vagrant
 =======
 
-To use Vagrant, please read the instructions at
-https://pagure.io/fedora-apps-vagrantfiles/blob/master/f/bodhi/README.md
+[Vagrant](https://www.vagrantup.com/) allows contributors to get quickly up and running with a Bodhi
+development environment by automatically configuring a virtual machine. To get started, simply use
+these commands::
 
-Run test suite for Vagrant setup
--------------------------------
+    # This won't be necessary once https://bugzilla.redhat.com/show_bug.cgi?id=1343814 is done
+    $ sudo dnf copr enable dustymabe/vagrant-sshfs
+    $ sudo dnf install vagrant-libvirt vagrant-sshfs
+    $ cp Vagrantfile.example Vagrantfile
+    # Make sure your bodhi checkout is your shell's cwd
+    $ vagrant up
 
-The code from your development host will be mounted in /vagrant in the guest, and you can run the
-unit tests with nosetests::
 
-    vagrant up
-    vagrant ssh
-    cd /vagrant
-    nosetests -v
+Quick tips about the Bodhi Vagrant environment
+----------------------------------------------
+
+
+You can ssh into your running Vagrant box like this::
+
+    # Make sure your bodhi checkout is your shell's cwd
+    $ vagrant ssh
+
+Keep in mind that all ``vagrant`` commands should be run with your current working directory set to
+your Bodhi checkout. The code from your development host will be mounted in ``/vagrant`` in the
+guest. You can edit this code on the host, and the vagrant-sshfs plugin will cause the changes to
+automatically be reflected in the guest's ``/vagrant`` folder.
+
+You can run the unit tests within the guest with nosetests::
+
+    $ cd /vagrant
+    $ nosetests -v
+
+When you are done with your Vagrant guest, you can destroy it permanently by running this command on
+the host::
+
+    $ vagrant destroy
+
 
 Virtualenv
 ==========
