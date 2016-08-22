@@ -35,7 +35,7 @@
     // and hardcode something like this:
     //var update = 'ugene-1.14.2-1.fc21';
     var update = '${update.title}';
-    var since = '${update.last_modified.isoformat().rsplit(".", 1)[0]}';
+    var builds = ${update.builds_json | n};
 
     // These are the required taskotron tests
     var requirements = ${update.requirements_json | n};
@@ -91,15 +91,18 @@
 
         var name = result.testcase.name;
         var arch = result.result_data.arch;
+        var item = result.result_data.item;
         var submit_time = new Date(result.submit_time);
         if (latest[name] === undefined)
           latest[name] = {};
-        if (latest[name][arch] === undefined) {
-          latest[name][arch] = result;
+        if (latest[name][arch] === undefined)
+          latest[name][arch] = {};
+        if (latest[name][arch][item] === undefined) {
+          latest[name][arch][item] = result;
           changed = true;
         }
-        if (new Date(latest[name][arch].submit_time) < submit_time) {
-          latest[name][arch] = result;
+        if (new Date(latest[name][arch][item].submit_time) < submit_time) {
+          latest[name][arch][item] = result;
           changed = true;
         }
       });
@@ -144,9 +147,11 @@
 
       // So, let's complete pruning.  Collapse that nested structure back to a list.
       var data = [];
-      $.each(latest, function(name, obj) {
-        $.each(obj, function(arch, result) {
-          data.push(result);
+      $.each(latest, function(name, obj1) {
+        $.each(obj1, function(arch, obj2) {
+          $.each(obj2, function(item, result) {
+            data.push(result);
+          });
         });
       });
 
@@ -198,12 +203,14 @@
       gather_testcases(data.next);
       // And queue up requests for the results of the testcases we already know about.
       $.each(data.data, function(i, testcase) {
-        var param = $.param({
-            item: update,
-            since: since
+        $.each(builds, function(j, nvr) {
+          var param = $.param({
+              type: 'koji_build',
+              item: nvr,
+          });
+          var url = base_url + 'testcases/' + testcase.name + '/results?' + param;
+          request_resultsdb_page(url);
         });
-        var url = base_url + 'testcases/' + testcase.name + '/results?' + param;
-        request_resultsdb_page(url);
       });
     }
 
