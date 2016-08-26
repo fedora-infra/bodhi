@@ -22,30 +22,10 @@ Vagrant.configure(2) do |config|
       domain.video_type = "qxl"
   end
 
-  config.vm.provision "shell", inline: "sudo dnf -y install python python-webob libjpeg-devel zlib-devel gcc redhat-rpm-config python-devel libffi-devel openssl-devel python-zmq koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel python-pillow postgresql-devel postgresql-server rpl python2-createrepo_c createrepo_c python-librepo python-alembic"
+  # Ansible needs the guest to have these
+  config.vm.provision "shell", inline: "sudo dnf install -y libselinux-python python2-dnf"
 
-  # For unit tests
-  config.vm.provision "shell", inline: "sudo dnf install -y python-nose python-mock python-webtest"
-
-  config.vm.provision "shell", inline: "pushd /vagrant/; sudo python setup.py develop; popd;"
-  config.vm.provision "shell", inline: "sudo dnf -y install python-psycopg2"
-  config.vm.provision "shell", inline: "sudo postgresql-setup initdb"
-
-  config.vm.provision "shell", inline: "sudo rpl 'host    all             all             127.0.0.1/32            ident' 'host    all             all             127.0.0.1/32            trust' /var/lib/pgsql/data/pg_hba.conf"
-  config.vm.provision "shell", inline: "sudo rpl 'host    all             all             ::1/128                 ident' 'host    all             all             ::1/128                 trust' /var/lib/pgsql/data/pg_hba.conf"
-
-  config.vm.provision "shell", inline: "sudo systemctl enable postgresql.service"
-  config.vm.provision "shell", inline: "sudo systemctl start postgresql.service"
-
-  config.vm.provision "shell", inline: "pushd /tmp/; curl -O https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz; popd;"
-  config.vm.provision "shell", inline: "sudo runuser -l postgres -c 'createdb bodhi2'"
-
-  config.vm.provision "shell", inline: "xzcat /tmp/bodhi2.dump.xz | sudo runuser -l postgres -c 'psql bodhi2'"
-
-  # Set up development.ini
-  config.vm.provision "shell", inline: "pushd /vagrant/; cp development.ini.example development.ini; popd;"
-  config.vm.provision "shell", inline: "pushd /vagrant/; rpl 'sqlalchemy.url = sqlite:///%(here)s/bodhi.db' 'sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2' development.ini; popd;"
-
-  # Run the migrations
-  config.vm.provision "shell", inline: "pushd /vagrant/; alembic upgrade head; popd;"
+  config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "devel/ansible/playbook.yml"
+  end
 end

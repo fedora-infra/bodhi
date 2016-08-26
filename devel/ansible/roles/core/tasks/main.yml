@@ -1,0 +1,13 @@
+---
+- name: Install basic packages
+  dnf:
+      name: "{{ item }}"
+      state: present
+  with_items:
+      - bash-completion
+      - dstat
+      - fedora-easy-karma
+      - htop
+      - screen
+      - tmux
+      - tree

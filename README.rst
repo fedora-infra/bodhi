@@ -15,7 +15,7 @@ these commands::
 
     # This won't be necessary once https://bugzilla.redhat.com/show_bug.cgi?id=1343814 is done
     $ sudo dnf copr enable dustymabe/vagrant-sshfs
-    $ sudo dnf install vagrant-libvirt vagrant-sshfs
+    $ sudo dnf install ansible vagrant-libvirt vagrant-sshfs
     $ cp Vagrantfile.example Vagrantfile
     # Make sure your bodhi checkout is your shell's cwd
     $ vagrant up
@@ -39,6 +39,10 @@ You can run the unit tests within the guest with nosetests::
 
     $ cd /vagrant
     $ nosetests -v
+
+You can run the development server from inside the Vagrant environment::
+
+    $ pserve /vagrant/development.ini --reload
 
 When you are done with your Vagrant guest, you can destroy it permanently by running this command on
 the host::
