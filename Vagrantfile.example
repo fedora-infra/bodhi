@@ -1,0 +1,51 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# On your host:
+# git clone https://github.com/fedora-infra/bodhi.git
+# cd bodhi
+# cp Vagrantfile.example Vagrantfile
+# vagrant up
+# vagrant ssh -c "cd /vagrant/; pserve development.ini --reload"
+
+Vagrant.configure(2) do |config|
+  config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/23/Cloud/x86_64/Images/Fedora-Cloud-Base-Vagrant-23-20151030.x86_64.vagrant-libvirt.box"
+  config.vm.box = "f23-cloud-libvirt"
+  config.vm.network "forwarded_port", guest: 6543, host: 5000
+  config.vm.synced_folder ".", "/vagrant", type: "sshfs"
+
+  config.vm.provider :libvirt do |domain|
+      domain.cpus = 4
+      domain.graphics_type = "spice"
+      # The unit tests use a lot of RAM.
+      domain.memory = 4096
+      domain.video_type = "qxl"
+  end
+
+  config.vm.provision "shell", inline: "sudo dnf -y install python python-webob libjpeg-devel zlib-devel gcc redhat-rpm-config python-devel libffi-devel openssl-devel python-zmq koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel python-pillow postgresql-devel postgresql-server rpl python2-createrepo_c createrepo_c python-librepo python-alembic"
+
+  # For unit tests
+  config.vm.provision "shell", inline: "sudo dnf install -y python-nose python-mock python-webtest"
+
+  config.vm.provision "shell", inline: "pushd /vagrant/; sudo python setup.py develop; popd;"
+  config.vm.provision "shell", inline: "sudo dnf -y install python-psycopg2"
+  config.vm.provision "shell", inline: "sudo postgresql-setup initdb"
+
+  config.vm.provision "shell", inline: "sudo rpl 'host    all             all             127.0.0.1/32            ident' 'host    all             all             127.0.0.1/32            trust' /var/lib/pgsql/data/pg_hba.conf"
+  config.vm.provision "shell", inline: "sudo rpl 'host    all             all             ::1/128                 ident' 'host    all             all             ::1/128                 trust' /var/lib/pgsql/data/pg_hba.conf"
+
+  config.vm.provision "shell", inline: "sudo systemctl enable postgresql.service"
+  config.vm.provision "shell", inline: "sudo systemctl start postgresql.service"
+
+  config.vm.provision "shell", inline: "pushd /tmp/; curl -O https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz; popd;"
+  config.vm.provision "shell", inline: "sudo runuser -l postgres -c 'createdb bodhi2'"
+
+  config.vm.provision "shell", inline: "xzcat /tmp/bodhi2.dump.xz | sudo runuser -l postgres -c 'psql bodhi2'"
+
+  # Set up development.ini
+  config.vm.provision "shell", inline: "pushd /vagrant/; cp development.ini.example development.ini; popd;"
+  config.vm.provision "shell", inline: "pushd /vagrant/; rpl 'sqlalchemy.url = sqlite:///%(here)s/bodhi.db' 'sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2' development.ini; popd;"
+
+  # Run the migrations
+  config.vm.provision "shell", inline: "pushd /vagrant/; alembic upgrade head; popd;"
+end

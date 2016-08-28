@@ -6,6 +6,7 @@
 .vagrant
 development.ini
 dist
+docs/_build
 MANIFEST
 virtenv
 build

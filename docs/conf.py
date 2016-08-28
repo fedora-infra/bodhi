@@ -11,6 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import datetime
 import sys, os
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -23,13 +24,9 @@ import sys, os
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
 
-import cornice
-
-sys.path.insert(0, os.path.abspath(cornice.__file__))
-
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'cornice.ext.sphinxext',
+extensions = ['sphinx.ext.autodoc',
               #'sphinx.ext.intersphinx',
               'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.viewcode']
 
@@ -47,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'bodhi'
-copyright = u'2007-2014, Red Hat, Inc.'
+copyright = u'2007-{}, Red Hat, Inc.'.format(datetime.datetime.utcnow().year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -219,8 +216,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'bodhi', u'bodhi Documentation',
-     [u'Luke Macken'], 1)
+    ('man_bodhi', 'bodhi', u'manage Fedora updates', ['Randy Barlow', 'Luke Macken'], 1)
 ]
 
 # If true, show URL addresses after external links.
