@@ -1653,7 +1653,11 @@ class Update(Base):
         """Check if we have reached either karma threshold, and call set_request if necessary"""
         if not self.locked:
             if self.status is UpdateStatus.testing:
-                if self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
+                # If critical update receives negative karma disable autopush
+                if self.critpath and self.autokarma and self.has_negative_karma:
+                    log.info("Disabling Auto Push since the critical update has negative karma")
+                    self.autokarma = False
+                elif self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
                     if self.autokarma:
                         log.info("Automatically marking %s as stable" % self.title)
                         self.set_request(db, UpdateRequest.stable, agent)
@@ -1706,6 +1710,18 @@ class Update(Base):
 
         possibilities.sort()  # Sort smallest to largest (oldest to newest)
         return possibilities[-1]  # Return the last one
+
+    @property
+    def has_negative_karma(self):
+        """Check for negative karma, Returns True if the update has negative karma"""
+        feedback = defaultdict(int)
+        for comment in self.comments:
+            if not comment.anonymous:
+                feedback[comment.user.name] = comment.karma
+        for karma in feedback.values():
+            if karma < 0:
+                return True
+        return False
 
     @property
     def critpath_approved(self):
