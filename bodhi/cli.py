@@ -25,6 +25,7 @@ from fedora.client.bodhi import Bodhi2Client
 
 
 @click.group()
+@click.version_option(message='%(version)s')
 def cli():
     pass
 
