@@ -36,6 +36,10 @@ Most of the commands will accept these three options:
 
     Many commands accept this flag to specify which user's updates should be operated upon.
 
+``--version``
+
+    Show version and exit. Not accepted by subcommands.
+
 
 Commands
 ========
