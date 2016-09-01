@@ -15,3 +15,12 @@ engine = engine_from_config(settings, 'sqlalchemy.')
 Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Session.configure(bind=engine)
 db = Session()
+
+def delete_update(up):
+        for b in up.builds:
+                db.delete(b)
+                if b.override:
+                        db.delete(b.override)
+        for c in up.comments:
+                db.delete(c)
+        db.delete(up)
