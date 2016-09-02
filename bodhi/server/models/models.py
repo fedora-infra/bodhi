@@ -1400,6 +1400,18 @@ class Update(Base):
             color = '#00ff00'  # green
         return color
 
+    def obsolete_if_unstable(self, db):
+        """
+        If an update with pending status(autopush enabled) reaches unstable karma
+        threshold, make sure it gets obsoleted.
+        """
+        if self.autokarma and self.status is UpdateStatus.pending and self.request is UpdateRequest.testing \
+                and self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
+            log.info("%s has reached unstable karma thresholds" % self.title)
+            self.obsolete(db)
+            flash_log("%s has been obsoleted." % self.title)
+        return
+
     def comment(self, session, text, karma=0, author=None, anonymous=False,
                 karma_critpath=0, bug_feedback=None, testcase_feedback=None,
                 check_karma=True):
@@ -1465,6 +1477,9 @@ class Update(Base):
                         caveats.append({
                             'name': 'karma', 'description': str(e),
                         })
+
+                # Obsolete pending update if it reaches unstable karma threshold
+                self.obsolete_if_unstable(session)
             else:
                 log.debug('Ignoring duplicate %d karma from %s on %s' % (karma, author, self.title))
 
