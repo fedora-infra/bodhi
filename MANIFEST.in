@@ -5,5 +5,5 @@ recursive-include alembic *
 recursive-include tools *
 recursive-include docs *
 recursive-include fedmsg.d *
-include bodhi/locale/.placeholder
+include bodhi/server/locale/.placeholder
 include COPYING

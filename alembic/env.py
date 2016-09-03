@@ -3,8 +3,8 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
 
-from bodhi.config import config as bodhi_config
-from bodhi.models import Base
+from bodhi.server.config import config as bodhi_config
+from bodhi.server.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

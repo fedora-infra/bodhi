@@ -16,7 +16,7 @@ import transaction
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from bodhi.models import Release, Base
+from bodhi.server.models import Release, Base
 
 
 def upgrade():

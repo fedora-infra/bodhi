@@ -1,0 +1,242 @@
+<%namespace name="util" module="bodhi.server.util"/>
+
+<%def name="comment(comment, display_update=True)">
+<div class="row">
+  <div class="col-md-12">
+    <div class="panel panel-${util.karma2class(comment.karma)}">
+      <div class="panel-heading clearfix">
+        <span class="pull-left">
+          % if comment.user:
+          <a href="${request.route_url('user', name=comment.user.name)}">
+            <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
+            ${comment.user.name}
+          </a>
+          % endif
+          % if display_update:
+          <small>on
+            <a href="${comment.update.get_url()}">
+              ${comment.update.get_title(', ', 1, ", &hellip;") | n}
+            </a>
+          </small>
+          % endif
+        </span>
+
+        <span class="pull-right">
+          <a href="${comment.url()}">
+            %if not display_update:
+            ${util.age(comment.timestamp)}, <small>${str(comment.timestamp).split('.')[0]} (UTC)</small>
+            % else:
+            ${util.age(comment.timestamp)}
+            % endif
+          </a>
+        </span>
+      </div>
+
+      <div class="panel-body">
+        <div class="col-md-8">
+          ${util.markup(comment.text) | n}
+        </div>
+        <div class="col-md-4 text-right">
+          % if comment.karma:
+          <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
+          <hr />
+          % endif
+
+          % if comment.karma_critpath:
+          <span class="nowrap">critpath: ${util.karma2html(comment.karma_critpath) | n}</span>
+          <hr />
+          % endif
+
+          % for feedback in comment.bug_feedback:
+          % if feedback.karma:
+          <span class="nowrap">${util.bug_link(feedback.bug, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
+          <hr />
+          % endif
+          % endfor
+        </div>
+
+        % if comment.testcase_feedback:
+        <div class="clearfix"></div>
+        <div class="col-md-12 text-right">
+          % for feedback in comment.testcase_feedback:
+          % if feedback.karma:
+          <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
+          <hr />
+          % endif
+          % endfor
+        </div>
+        % endif
+
+      </div>
+    </div>
+  </div>
+</div>
+</%def>
+
+<%def name="update(update, display_user=True, display_request=False, display_release=True, display_karma=True)">
+  <td>${util.update2html(update) | n}</td>
+  <td class="nobreak">
+    <span title="${update['date_submitted']} UTC">
+      ${util.age(update['date_submitted'], True)}
+    </span>
+  </td>
+  %if display_user:
+  <td class="nobreak">
+    <a href="${request.route_url('user', name=update['user']['name'])}">
+      <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+      ${update['user']['name']}
+    </a>
+  </td>
+  %endif
+  %if display_release:
+  <td class="hidejs">
+    % if update['release']:
+    <a href="${request.route_url('release', name=update['release']['name'])}">
+      ${update['release']['name']}
+    </a>
+    % endif
+  </td>
+  %endif
+  %if display_karma:
+  <td class="hidejs">
+    ${util.karma2html(update['karma']) | n}
+  </td>
+  %endif
+  %if display_request:
+  <td class="hidejs">
+    % if update['request']:
+      ${util.request2html(update['request']) | n}
+    % endif
+  </td>
+  %endif
+  <td class="hidejs">
+    ${util.status2html(update['status']) | n}
+  </td>
+</%def>
+
+<%def name="override(override, display_user=True)">
+  <td>
+    <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
+      ${override['build']['nvr']}
+    </a>
+  </td>
+  <td class="nobreak">
+    <span title="${override['submission_date']} UTC">
+      ${util.age(override['submission_date'], True)}
+    </span>
+  </td>
+  %if display_user:
+  <td class="nobreak">
+    <a href="${request.route_url('user', name=override['submitter']['name'])}">
+      <img class="img-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
+      ${override['submitter']['name']}
+    </a>
+  </td>
+  %endif
+  <td class="hidejs">
+    % if override['expired_date'] is None:
+    <span title="Expires on ${override['expiration_date']}">Active</span>
+    % else:
+    <span title="Expired since ${override['expired_date']}">Expired</span>
+    % endif
+  </td>
+</%def>
+
+<%def name="markdown_help_modal()">
+  <div class="modal fade" id="markdown-help" tabindex="-1" role="dialog" aria-labelledby="markdown-help-label">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="markdown-help-label">Fedora-Flavored Markdown</h4>
+        </div>
+        <div class="modal-body">
+          <p> Text fields in Bodhi2 support an
+          <a href="https://github.com/fedora-infra/bodhi/blob/develop/bodhi/ffmarkdown.py">enhanced</a>
+          version of <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown</a>.
+          This is a cheat sheet for your reference.
+          </p>
+          <hr/>
+          <div class="row">
+            <div class="col-md-4">
+              <p>You can do <strong>headers</strong> by underlining or by prefixing with the <code>&#35;</code> character:</p>
+              <pre><code>This is an H1
+=============
+
+This is an H2
+-------------
+
+&#35; This is another H1
+
+&#35;&#35; This is another H2
+</code></pre>
+              <hr/>
+              <p>You can do <strong>blockquotes</strong> using email-style prefixes with the <code>&gt;</code> character:</p>
+              <pre><code>&gt; This is a quotation
+&gt; over many lines
+&gt; &gt; and it can be nested(!)
+</code></pre>
+              <hr/>
+              <p><strong>Lists</strong> work like you'd expect, by prefixing with any of the <code>*</code>, <code>+</code>, or <code>-</code> characters:</p>
+              <pre><code>Check out this list:
+
+* This
+* is
+* a list..
+</code></pre>
+              <p>You need a blank line between a paragraph and the start of a list for the renderer to pick up on it.</p>
+              </div>
+              <div class="col-md-4">
+              <p><strong>Emphasis</strong> can be added like this:</p>
+              <pre><code>*italics*
+_italics_
+**bold**
+__bold__
+</code></pre>
+              <hr/>
+              <p>You can save your <strong>code</strong> references from being misinterpreted as emphasis by surrounding them with backtick characters (<code>`</code>):</p>
+              <pre><code>Use `the_best_function()` and _not_ that crummy one.</code></pre>
+              <hr/>
+              <p><strong>Links</strong> look like this:</p>
+              <pre><code>[text](http://getfedora.org)</code></pre>
+              <p>..but we also support bare links if you just provide a URL.</p>
+              <hr/>
+              <p> You can create <strong>code blocks</strong> by indenting
+              every line of the block by at least 4 spaces or 1 tab. </p>
+              <pre><code>Here is a code block:
+
+    for i in range(4):
+        print i
+    print "done."
+</code></pre>
+            </div>
+            <div class="col-md-4">
+              <p>You can reference <strong>bug reports</strong> by simply writing something of the form <code>tracker&#35;ticketid</code>.</p>
+              <pre><code>This fixes PHP#1234 and Python#2345</code></pre>
+              <p>... we will automatically generate links to the tickets in the appropriate trackers in place.</p>
+              <p>The supported bug tracker prefixes are: (these are all case-insensitive)</p>
+              <ul>
+                <li><code>Fedora</code>, <code>RHBZ</code> and <code>RH</code> (all point to the Red Hat Bugzilla)</li>
+                <li><code>GNOME</code></li>
+                <li><code>KDE</code></li>
+                <li><code>PEAR</code></li>
+                <li><code>PHP</code></li>
+                <li><code>Python</code></li>
+              </ul>
+              <hr/>
+              <p>And you can refer to <strong>other users</strong> by prefixing their username with the <code>@</code> symbol.</p>
+              <pre><code>Thanks @mattdm!</code></pre>
+              <p>This will generate a link to their profile, but it won't necessarily send them a notification unless they have a special <a href="https://apps.fedoraproject.org/notifications" target="_blank">FMN</a> rule set up to catch it.</p>
+              <hr/>
+              <p>Lastly, you can embed inline <strong>images</strong> with syntax like this:</p>
+              <pre><code>![Alt text](/path/to/img.jpg)</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          You can read much more about markdown syntax at <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">daringfireball.net</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+</%def>

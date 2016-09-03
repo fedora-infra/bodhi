@@ -381,7 +381,7 @@ updateinfo_rights = Copyright (C) 2015 Red Hat, Inc. and others.
 ##
 
 # pyramid.openid
-openid.success_callback = bodhi.security:remember_me
+openid.success_callback = bodhi.server.security:remember_me
 openid.provider = https://id.fedoraproject.org/openid/
 openid.url = https://id.fedoraproject.org/
 openid_template = {username}.id.fedoraproject.org
@@ -418,7 +418,7 @@ sqlalchemy.url = sqlite:///%(here)s/bodhi.db
 ##
 ## Templates
 ##
-mako.directories = bodhi:templates
+mako.directories = bodhi:server/templates
 
 ##
 ## Authentication & Sessions
@@ -448,8 +448,8 @@ host = 0.0.0.0
 port = 6543
 
 [pshell]
-m = bodhi.models
-db = bodhi.models.DBSession
+m = bodhi.server.models
+db = bodhi.server.models.DBSession
 t = transaction
 
 # Begin logging configuration

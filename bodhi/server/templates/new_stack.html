@@ -1,0 +1,180 @@
+<%inherit file="master.html"/>
+
+<div class="row">
+  <div id='js-warning' class="col-md-6 col-md-offset-3">
+    <div class=" panel panel-warning">
+      <div class="panel-heading clearfix">
+        <span class="pull-left">New Stack Form Requires JavaScript</span>
+      </div>
+      <div class="panel-body">
+        <p class="lead">This page only works with JavaScript enabled.</p>
+        <p>If you have JavaScript disabled with a plugin like NoScript, please
+        disable that plugin and reload the page.  If you trust Fedora
+        Infrastructure, you might find it convenient to enable JavaScript just
+        for the domain <code>fedoraproject.org</code>.</p>
+        <p>If you are opposed to JavaScript in principle, you're not left out!
+        Please use the fully-featured <a href="#">Bodhi command-line
+        interface tool</a>.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>$("#js-warning").addClass('hidden');</script>
+
+  <div id="new-stack-form" class="col-md-12 hidden">
+
+    <div class="row">
+      <div class="col-md-12">
+        <h2 class="pull-left">New Stack</span>
+      </div>
+    </div>
+
+    <div class="row">
+
+      <div class="col-md-5">
+        <div class=" panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Name</span>
+          </div>
+          <div class="panel-body">
+            <form id="search" role="search">
+              <div id="stack-name" class="form-group noui">
+                <input class="typeahead form-control noui" name="name" type="text"
+            % if stack is not UNDEFINED:
+                       value="${stack.name}" readonly
+            % endif
+                       placeholder="The name of this stack">
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Packages</span>
+          </div>
+          <div class="panel-body">
+            <input id="builds-adder" class="typeahead form-control noui" type="text"
+                placeholder="Add a package name">
+            <input name="builds" type="hidden"/>
+            <div id="candidate-checkboxes" class="col-md-5">
+            % if stack is not UNDEFINED:
+                % for pkg in stack.packages:
+                    <div class="checkbox">
+                        <label>
+                            <input name="packages" data-package-name="${pkg.name}"
+                                   type="checkbox" value="${pkg.name}" checked>
+                            ${pkg.name}
+                        </label>
+                    </div>
+                % endfor
+            % endif
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- end row -->
+
+    <div class="row">
+      <div class="col-md-5">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Stack description</span>
+          </div>
+          <div class="panel-body">
+            <textarea class="form-control" id="description" name="description" rows="6"
+              placeholder="Stack description goes here. You can use **markdown** to make it look nice."
+              required="true">${stack.description if stack is not UNDEFINED else ''}</textarea>
+            <p class="pull-right">Stack descriptions support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+    ${self.fragments.markdown_help_modal()}
+
+    <div class="row">
+      <div class="col-md-5">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Required Checks</span>
+          </div>
+          <div class="panel-body">
+            <div id="stack-requirements" class="form-group noui">
+              <input class="typeahead form-control noui" name="requirements" type="text"
+            % if stack is not UNDEFINED:
+                         value="${stack.requirements}"
+            % else:
+                         value="${request.registry.settings.get('site_requirements', '')}"
+            % endif
+                         placeholder="An optional list of Taskotron checks required for updates of this stack.">
+              </div>
+
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+    <div class="row">
+      <div class="col-md-5">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Users</span>
+          </div>
+          <div class="panel-body">
+            <div id="stack-users" class="form-group noui">
+              <input class="typeahead form-control noui" name="users" type="text"
+            % if stack is not UNDEFINED:
+                       value="${' '.join([u.name for u in stack.users])}"
+            % endif
+                       placeholder="An optional list of FAS users that can modify this stack.">
+              </div>
+
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+    <div class="row">
+      <div class="col-md-5">
+        <div class="panel formpanel panel-default">
+          <div class="panel-heading clearfix">
+            <span class="pull-left">Groups</span>
+          </div>
+          <div class="panel-body">
+            <div id="stack-groups" class="form-group noui">
+              <input class="typeahead form-control noui" name="roups" type="text"
+            % if stack is not UNDEFINED:
+                       value="${' '.join([g.name for g in stack.groups])}"
+            % endif
+                       placeholder="An optional list of FAS groups that can modify this stack.">
+              </div>
+
+          </div>
+        </div>
+      </div>
+    </div> <!-- end row -->
+
+    <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
+
+    <div class="row col-md-5">
+      % if stack is not UNDEFINED:
+      <div class="pull-left">
+            <button id="delete" class="btn btn-danger">
+              <span class="indicator fa fa-trash-o" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+              Delete
+            </button>
+      </div>
+      % endif
+      <div class="pull-right">
+            <button id="submit" class="btn btn-success">
+              <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+              Save
+            </button>
+      </div>
+    </div> <!-- end row -->
+
+  </div>
+</div>
+<script src="${request.static_url('bodhi:server/static/js/stack_form.js')}"></script>

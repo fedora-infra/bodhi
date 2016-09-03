@@ -20,7 +20,7 @@ import transaction
 import logging
 log = logging.getLogger('alembic.migration')
 
-from bodhi.models import Base, Update
+from bodhi.server.models import Base, Update
 
 def upgrade():
     log.warn("Skipping.  Do this by hand by uncommenting and running in tmux.")

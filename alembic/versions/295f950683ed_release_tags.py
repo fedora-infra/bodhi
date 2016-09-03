@@ -17,7 +17,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 import transaction
 
-from bodhi.models import Base, Release
+from bodhi.server.models import Base, Release
 
 def upgrade():
     engine = op.get_bind()

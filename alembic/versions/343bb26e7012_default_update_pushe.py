@@ -17,7 +17,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 import transaction
 
-from bodhi.models import Base, Update
+from bodhi.server.models import Base, Update
 
 
 def upgrade():

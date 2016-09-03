@@ -106,18 +106,18 @@ setup(name='bodhi',
       ]},
       entry_points = """\
       [paste.app_factory]
-      main = bodhi:main
+      main = bodhi.server:main
       [console_scripts]
-      initialize_bodhi_db = bodhi.scripts.initializedb:main
-      bodhi = bodhi.cli:cli
-      bodhi-push = bodhi.push:push
-      bodhi-expire-overrides = bodhi.scripts.expire_overrides:main
-      bodhi-untag-branched = bodhi.scripts.untag_branched:main
-      bodhi-approve-testing = bodhi.scripts.approve_testing:main
-      bodhi-manage-releases = bodhi.scripts.manage_releases:main
+      initialize_bodhi_db = bodhi.server.scripts.initializedb:main
+      bodhi = bodhi.client:cli
+      bodhi-push = bodhi.server.push:push
+      bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
+      bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
+      bodhi-approve-testing = bodhi.server.scripts.approve_testing:main
+      bodhi-manage-releases = bodhi.server.scripts.manage_releases:main
       [moksha.consumer]
-      masher = bodhi.consumers.masher:Masher
-      updates = bodhi.consumers.updates:UpdatesHandler
+      masher = bodhi.server.consumers.masher:Masher
+      updates = bodhi.server.consumers.updates:UpdatesHandler
       """,
       paster_plugins=['pyramid'],
       )

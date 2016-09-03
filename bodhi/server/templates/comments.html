@@ -1,0 +1,38 @@
+<%!
+def inherit(context):
+  if context.get('chrome'):
+    return 'master.html'
+  return None
+%>
+<%inherit file="${inherit(context)}"/>
+
+<%namespace name="util" module="bodhi.server.util"/>
+<%namespace name="fragments" file="fragments.html"/>
+
+<link rel="alternate" type="application/atom+xml" title="New Comments" href="${request.route_url('comments_rss') + '?' + request.query_string}"/>
+
+% if chrome:
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <h3>Comments <small>page #${page} of ${pages} pages
+      % if page == 1:
+      <a href="${request.route_url('comments_rss') + '?' + request.query_string}">
+        <span class="fa fa-rss"></span>
+      </a>
+      % endif
+      </small>
+    </h3>
+    ${self.pager.render(page, pages)}
+% endif
+    <ul>
+    % for comment in comments:
+    <li>
+      ${fragments.comment(comment)}
+    </li>
+    % endfor
+    </ul>
+% if chrome:
+    ${self.pager.render(page, pages)}
+  </div>
+</div>
+% endif

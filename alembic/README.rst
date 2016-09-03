@@ -6,7 +6,7 @@ This folder contains the stuff to migrate the Bodhi database. We use
 Create a new migration script
 =============================
 
-Say you've modified the model in ``bodhi/models/models.py``. You now need to
+Say you've modified a model in ``bodhi/server/models/models.py``. You now need to
 create a migration script, so that the current database can be "upgraded" to
 your new model.
 

@@ -17,8 +17,8 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 import transaction
 
-from bodhi.models import Base, Release, Update
-from bodhi.util import get_critpath_pkgs
+from bodhi.server.models import Base, Release, Update
+from bodhi.server.util import get_critpath_pkgs
 
 
 def upgrade():

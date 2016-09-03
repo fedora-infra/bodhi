@@ -32,8 +32,8 @@ from sqlalchemy.sql import and_
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from bodhi.util import header, get_critpath_pkgs
-from bodhi.models import Update, Release, UpdateStatus, UpdateType
+from bodhi.server.util import header, get_critpath_pkgs
+from bodhi.server.models import Update, Release, UpdateStatus, UpdateType
 
 import bodhi
 
@@ -50,7 +50,7 @@ def short_url(update):
 
 
 def main(releases=None):
-    engine = bodhi.config['sqlalchemy.url']
+    engine = bodhi.server.config['sqlalchemy.url']
     Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
     Session.configure(bind=engine)
     db = Session()

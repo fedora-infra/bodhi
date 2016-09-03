@@ -19,7 +19,7 @@ import transaction
 import logging
 log = logging.getLogger('alembic.migration')
 
-from bodhi.models import Update, Base
+from bodhi.server.models import Update, Base
 
 
 def upgrade():

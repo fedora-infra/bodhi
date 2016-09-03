@@ -16,7 +16,7 @@ from alembic import op
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from bodhi.models import Update, Base
+from bodhi.server.models import Update, Base
 
 import logging
 log = logging.getLogger('alembic.migration')

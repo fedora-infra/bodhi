@@ -1,0 +1,256 @@
+<%namespace name="util" module="bodhi.server.util" inheritable="True"/>
+<%namespace name="pager" file="pager.html" inheritable="True" />
+<%namespace name="tables" file="tables.html" inheritable="True" />
+<%namespace name="fragments" file="fragments.html" inheritable="True" />
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="management of Fedora Project updates" />
+    <meta name="author" content="Luke Macken" />
+    <meta name="author" content="Ralph Bean" />
+
+    <!-- Only allow websockets connections to fedoraproject.org. -->
+    <meta http-equiv="Content-Security-Policy" content="connect-src ${request.registry.settings['cors_connect_src']}">
+
+    <link rel="shortcut icon" href="${request.static_url('bodhi:server/static/ico/favicon.ico')}">
+
+    <base href="${request.registry.settings['base_address']}"/>
+    % if not update:
+        <title>Fedora Updates System</title>
+    % else:
+        <title>${update.title} - Fedora Updates System</title>
+    % endif
+    <link href="${request.static_url('bodhi:server/static/bootstrap/css/bootstrap.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/font-awesome-4.4.0/css/font-awesome.min.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/text.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/navbar.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/footer.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/site.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/datagrepper-feed.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/panel.css') }" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:server/static/js/jquery-1.10.2.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/Chart-0.2.0.min.js')}"></script>
+  </head>
+
+  <body>
+    <div id="wrap">
+      <!-- Static navbar -->
+      <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="${request.route_url('home')}">
+              Fedora Update System
+            </a>
+          </div>
+
+          <div class="navbar-collapse collapse">
+            <form id="search" role="search" class="nav navbar-form navbar-left">
+              <div id="bloodhound" class="form-group">
+                <input class="typeahead form-control" name="term" type="text" placeholder="Search...">
+              </div>
+            </form>
+
+            <div class="clearfix hidden-md hidden-lg"></div>
+
+            <ul class="nav navbar-nav navbar-right">
+              % if request.user:
+              % if request.matched_route and request.matched_route.name in ('new_update', 'new_override', 'new_stack'):
+              <li class="dropdown active">
+              % else:
+              <li class="dropdown">
+              % endif
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="glyphicon glyphicon-plus"></span>
+                  Create
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="${request.route_url('new_update')}">
+                      New Update
+                  </a></li>
+                  <li><a href="${request.route_url('new_override')}">
+                      New Override
+                  </a></li>
+                  % if request.registry.settings.get('stacks_enabled') == 'True':
+                  <li><a href="${request.route_url('new_stack')}">
+                      New Stack
+                  </a></li>
+                  % endif
+                </ul>
+              </li>
+              % endif
+
+              % if request.matched_route and request.matched_route.name in ('metrics', 'releases', 'release', 'overrides'):
+              <li class="dropdown active">
+              % else:
+              <li class="dropdown">
+              % endif
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="glyphicon glyphicon-tags"></span>
+                  Releases
+                </a>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="${request.route_url('metrics')}">
+                      Overall Metrics
+                    </a>
+                  </li>
+                  <li>
+                    <a href="${request.route_url('masher_status')}">
+                      Masher Status
+                    </a>
+                  </li>
+                  % for state in request.releases:
+                  <li role="separator" class="divider"></li>
+                  % for r in request.releases[state]:
+                  <li>
+                    <a href="${request.route_url('releases')}${r['name']}">
+                      ${r['long_name']}
+                    </a>
+                  </li>
+                  % endfor
+                  % endfor
+                </ul>
+              </li>
+
+              % if request.user:
+              % if request.matched_route and request.matched_route.name == 'user' and request.user and user and request.user.name == user['name']:
+              <li class="dropdown active">
+              % else:
+              <li class="dropdown">
+              % endif
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="glyphicon glyphicon-user"></span>
+                  Profile
+                </a>
+                <ul class="dropdown-menu">
+
+                  <li>
+                    <a href="${request.route_url('user', name=request.user.name)}">
+                      Your Profile
+                    </a>
+                  </li>
+                  <li>
+                    <a href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
+                      Manage Alerts
+                    </a>
+                  </li>
+                  <li>
+                    <form id="popup_toggle" action="${request.route_url('popup_toggle')}" method="POST">
+                      % if request.matched_route:
+                      <input type="hidden" name="next" value="${request.current_route_url()}">
+                      % endif
+                    </form>
+                    <a href="javascript:$('#popup_toggle').submit();">
+                      % if request.user.show_popups:
+                      Disable popups
+                      % else:
+                      Enable popups
+                      % endif
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              % endif
+
+
+              <li>
+                % if request.user:
+                <a href="${request.route_url('logout')}">
+                  <span class="glyphicon glyphicon-log-out"></span>
+                  Logout</a>
+                % elif request.matched_route:
+                <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
+                  <span class="glyphicon glyphicon-log-in"></span>
+                  Login</a>
+                % else:
+                <a href="${request.route_url('login')}">
+                  <span class="glyphicon glyphicon-log-in"></span>
+                  Login</a>
+                % endif
+              </li>
+            </ul>
+          </div>
+        </div><!--/.nav-collapse -->
+      </div>
+
+      <div class="container">
+        ${self.body()}
+      </div>
+
+      <div id="ghost-cabbage">
+        <img src="${request.static_url('bodhi:server/static/img/logo-large.png')}"/>
+      </div>
+    </div> <!-- /#wrap -->
+
+    <div id="footer">
+      <div class="container">
+        <p class="text-muted text-center"> Running
+          <code>bodhi-${util.version()}</code> on
+          <code>${util.hostname()}</code>.
+        <a href="https://github.com/fedora-infra/bodhi">
+        bodhi<span class="glyphicon glyphicon-link"></span></a> is Free Software.
+        Please <a href="https://github.com/fedora-infra/bodhi/issues">
+        file issues<span class="glyphicon glyphicon-link"></span></a>
+        if you have any problems.  Copyright &copy; 2007-2015 Red Hat, Inc. and
+        <a href="https://github.com/fedora-infra/bodhi/graphs/contributors">
+        others<span class="glyphicon glyphicon-link"></span></a>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="${request.static_url('bodhi:server/static/jquery.flot.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/jquery.flot.stack.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/bootstrap/js/bootstrap.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/moment/moment.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/cabbage.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/site.js')}"></script>
+    % if request.user and request.user.show_popups:
+    <script src="${request.static_url('bodhi:server/static/js/live.js')}"></script>
+    % endif
+    <script src="${request.static_url('bodhi:server/static/messenger/js/messenger.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/messenger/js/messenger-theme-flat.js')}"></script>
+    <link href="${request.static_url('bodhi:server/static/messenger/css/messenger.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:server/static/js/typeahead.bundle.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/search.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/konami.js')}"></script>
+
+    % if 'fedmenu.url' in request.registry.settings:
+    <script src="${request.registry.settings.get('fedmenu.url')}/js/fedora-libravatar.js"></script>
+    <script src="${request.registry.settings.get('fedmenu.url')}/js/fedmenu.js"></script>
+    <script>
+      fedmenu({
+          'url': '${request.registry.settings.get("fedmenu.data_url")}',
+          'mimeType': 'application/javascript',
+          'position': 'bottom-right',
+          % if update:
+            'user': '${update.user.name}',
+            % if len(update.builds) == 1:
+              'package': '${update.builds[0].package.name}',
+            % endif
+          % elif override:
+            'user': '${override.submitter.name}',
+            'package': '${override.build.package.name}',
+          % elif user:
+            'user': '${user["name"]}',
+          % elif package:
+            'package': '${package}',
+          % endif
+      });
+    </script>
+    % endif
+
+  </body>
+</html>

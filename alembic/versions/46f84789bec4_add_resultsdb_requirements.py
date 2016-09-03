@@ -12,7 +12,7 @@ down_revision = '4efd62c610a6'
 
 from alembic import op
 import sqlalchemy as sa
-import bodhi.models as m
+import bodhi.server.models as m
 import transaction
 
 from sqlalchemy.orm import scoped_session, sessionmaker

@@ -1,0 +1,99 @@
+<%inherit file="master.html"/>
+
+<script src="${request.static_url('bodhi:server/static/js/newsfeed.js')}"></script>
+
+<div class="row">
+  <div id="newsfeed" class="col-md-6 onlyjs">
+    <img src="${request.static_url('bodhi:server/static/img/spinner.gif')}"
+         alt="Loading..."
+         id="loader" />
+    <div id="datagrepper-widget"></div>
+    <script>
+        $(document).ready(function() {
+          generate_newsfeed(
+            "${request.registry.settings.get('datagrepper_url', 'https://apps.fedoraproject.org/datagrepper')}",
+            ${str([idx.strip() for idx in request.registry.settings.get('badge_ids', '').split('|') if idx.strip()]) | n});
+        });
+    </script>
+  </div>
+
+  <div class="col-md-12 remove-cols js-md-6">
+
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 nopadding">
+          <div class="sidepanel panel panel-default">
+            <div class="panel-heading clearfix">
+              <span class="pull-left">This week's top testers</span>
+            </div>
+            <div class="panel-body">
+              <table class="table">
+                % for tester, count in top_testers:
+                <tr>
+                  <td>
+                    <strong>#${str(loop.index + 1)}</strong>
+                    <a href="${request.route_url('user', name=tester['name'])}">
+                      <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
+                      ${tester['name']}
+                    </a>
+                  </td>
+                  <td>(${str(count)})</td>
+                </tr>
+                % endfor
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      % if critpath_updates:
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 nopadding">
+          <div class="sidepanel panel panel-default">
+            <div class="panel-heading clearfix">
+              <span class="pull-left">Latest Critical Path Updates in Need of Testing</span>
+              <span class="pull-right">
+                <a href="${request.route_url('updates_rss')}?status=testing">
+                  RSS
+                  <span class="fa fa-rss"></span>
+                </a>
+                <a href="${request.route_url('updates')}?status=testing">
+                  View all
+                  <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+              </span>
+            </div>
+            <div class="panel-body">
+              ${self.tables.updates(critpath_updates)}
+            </div>
+          </div>
+        </div>
+      </div>
+      % endif
+
+      % if security_updates:
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1 remove-cols js-md-12 nopadding">
+          <div class="sidepanel panel panel-default">
+            <div class="panel-heading clearfix">
+              <span class="pull-left">Latest Security Updates in Need of Testing</span>
+              <span class="pull-right">
+                <a href="${request.route_url('updates_rss')}?type=security&status=testing">
+                  RSS
+                  <span class="fa fa-rss"></span>
+                </a>
+                <a href="${request.route_url('updates')}?type=security&status=testing">
+                  View all
+                  <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+              </span>
+            </div>
+            <div class="panel-body">
+              ${self.tables.updates(security_updates)}
+            </div>
+          </div>
+        </div>
+      </div>
+      %endif
+    </div>
+  </div>
+</div>
