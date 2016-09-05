@@ -29,6 +29,7 @@ import hashlib
 import threading
 import fedmsg.consumers
 from datetime import datetime
+import sys
 
 from collections import defaultdict
 from pyramid.paster import get_appsettings
@@ -248,6 +249,9 @@ class MasherThread(threading.Thread):
             'completed_repos': []
         }
         self.success = False
+
+        reload(sys)
+        sys.setdefaultencoding('utf8')
 
     def run(self):
         try:
