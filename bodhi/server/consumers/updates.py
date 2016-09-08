@@ -137,25 +137,28 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         log.info("Got %i bugs to sync for %r" % (len(bugs), update.alias))
         for bug in bugs:
             log.info("Getting RHBZ bug %r" % bug.bug_id)
-            rhbz_bug = bugtracker.getbug(bug.bug_id)
+            try:
+                rhbz_bug = bugtracker.getbug(bug.bug_id)
 
-            log.info("Updating our details for %r" % bug.bug_id)
-            bug.update_details(rhbz_bug)
-            log.info("  Got title %r for %r" % (bug.title, bug.bug_id))
+                log.info("Updating our details for %r" % bug.bug_id)
+                bug.update_details(rhbz_bug)
+                log.info("  Got title %r for %r" % (bug.title, bug.bug_id))
 
-            # If you set the type of your update to 'enhancement' but you
-            # attach a security bug, we automatically change the type of your
-            # update to 'security'. We need to do this first, so we don't
-            # accidentally comment on stuff that we shouldn't.
-            if bug.security:
-                log.info("Setting our UpdateType to security.")
-                update.type = UpdateType.security
+                # If you set the type of your update to 'enhancement' but you
+                # attach a security bug, we automatically change the type of your
+                # update to 'security'. We need to do this first, so we don't
+                # accidentally comment on stuff that we shouldn't.
+                if bug.security:
+                    log.info("Setting our UpdateType to security.")
+                    update.type = UpdateType.security
 
-            log.info("Commenting on %r" % bug.bug_id)
-            comment = self.settings['initial_bug_msg'] % (
-                update.title, update.release.long_name, update.abs_url())
-            bug.add_comment(update, comment)
+                log.info("Commenting on %r" % bug.bug_id)
+                comment = self.settings['initial_bug_msg'] % (
+                    update.title, update.release.long_name, update.abs_url())
+                bug.add_comment(update, comment)
 
-            log.info("Modifying %r" % bug.bug_id)
-            bug.modified(update)
+                log.info("Modifying %r" % bug.bug_id)
+                bug.modified(update)
+            except Exception as ex:
+                log.warning('Error occured during updating single bug', exc_info=True)
 
