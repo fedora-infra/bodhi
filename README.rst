@@ -194,3 +194,12 @@ As a privileged user on a Fedora system run the following:
 ::
 
     sudo systemctl start postgresql.service
+
+
+Meetings
+========
+
+There is a meeting every four weeks between Bodhi developers and stakeholder,
+held on IRC. If you would like to attend, you can see details here:
+
+https://apps.fedoraproject.org/calendar/infrastructure/2016/9/13/#m4667
