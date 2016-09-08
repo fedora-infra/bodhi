@@ -9,9 +9,9 @@ virtualenv on an existing host.
 Vagrant
 =======
 
-[Vagrant](https://www.vagrantup.com/) allows contributors to get quickly up and running with a Bodhi
-development environment by automatically configuring a virtual machine. To get started, simply use
-these commands::
+`Vagrant <https://www.vagrantup.com/>`_ allows contributors to get quickly up and running with a
+Bodhi development environment by automatically configuring a virtual machine. To get started, simply
+use these commands::
 
     # This won't be necessary once https://bugzilla.redhat.com/show_bug.cgi?id=1343814 is done
     $ sudo dnf copr enable dustymabe/vagrant-sshfs
