@@ -1,0 +1,60 @@
+---
+- name: Install dev packages
+  dnf:
+      name: "{{ item }}"
+      state: present
+  with_items:
+      - createrepo_c
+      - freetype-devel
+      - gcc
+      - git
+      - koji
+      - libffi-devel
+      - libjpeg-devel
+      - libjpeg-turbo-devel
+      - openssl-devel
+      - pcaro-hermit-fonts
+      - postgresql-devel
+      - python
+      - python-alembic
+      - python-devel
+      - python-librepo
+      - python-mock
+      - python-nose
+      - python-pillow
+      - python-psycopg2
+      - python-webob
+      - python-webtest
+      - python-zmq
+      - python2-createrepo_c
+      - redhat-rpm-config
+      - zlib-devel
+
+- name: Install bodhi in developer mode
+  command: python /vagrant/setup.py develop
+  args:
+      chdir: /vagrant
+      creates: /usr/lib/python2.7/site-packages/bodhi.egg-link
+
+- name: Retrieve database dump
+  get_url:
+      url: https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
+      dest: /tmp/bodhi2.dump.xz
+
+- shell: xzcat /tmp/bodhi2.dump.xz | runuser -l postgres -c 'psql bodhi2' && touch /home/vagrant/.db-imported
+  args:
+      creates: /home/vagrant/.db-imported
+
+- command: cp /vagrant/development.ini.example /vagrant/development.ini
+  args:
+      creates: /vagrant/development.ini
+
+- replace:
+    dest: /vagrant/development.ini
+    regexp: "sqlalchemy.url = sqlite:///%(here)s/bodhi.db"
+    replace: "sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2"
+
+- name: Apply database migrations
+  command: alembic upgrade head
+  args:
+      chdir: /vagrant

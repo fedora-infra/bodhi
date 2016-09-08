@@ -4,6 +4,7 @@
 *.swp
 .bodhi.tmp
 .vagrant
+devel/ansible/playbook.retry
 development.ini
 dist
 docs/_build

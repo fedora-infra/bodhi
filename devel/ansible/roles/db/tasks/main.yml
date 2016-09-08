@@ -1,0 +1,32 @@
+---
+- name: Install database packages
+  dnf:
+      name: "{{ item }}"
+      state: present
+  with_items:
+      - postgresql-server
+
+- name: Initialize PostgreSQL
+  command: postgresql-setup initdb
+  args:
+      creates: /var/lib/pgsql/data/pg_hba.conf
+
+- replace:
+    dest: /var/lib/pgsql/data/pg_hba.conf
+    regexp: "host    all             all             127.0.0.1/32            ident"
+    replace: "host    all             all             127.0.0.1/32            trust"
+
+- replace:
+    dest: /var/lib/pgsql/data/pg_hba.conf
+    regexp: "host    all             all             ::1/128                 ident"
+    replace: "host    all             all             ::1/128                 trust"
+
+- service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Create a database for Bodhi
+  shell: runuser -l postgres -c 'createdb bodhi2' && touch /home/vagrant/.db-created
+  args:
+      creates: /home/vagrant/.db-created
