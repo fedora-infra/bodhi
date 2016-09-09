@@ -11,12 +11,15 @@ import os
 import sys
 
 from setuptools import setup, find_packages
+import setuptools.command.egg_info
+
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
+VERSION = '2.1.9'
 
-requires = [
+server_requires = [
     'pyramid',
     'pyramid_mako',
     'pyramid_debugtoolbar',
@@ -63,21 +66,75 @@ requires = [
 
     'Sphinx',
 
-    # For the bodhi-client
-    'click',
-
     'WebOb>=1.4.1',
     ]
 
 if sys.version_info[:3] < (2,7,0):
-    requires.append('importlib')
+    server_requires.append('importlib')
 
 if sys.version_info[:3] < (2,5,0):
-    requires.append('pysqlite')
+    server_requires.append('pysqlite')
+
+
+setuptools.command.egg_info.manifest_maker.template = 'BODHI_MANIFEST.in'
+
 
 setup(name='bodhi',
-      version='2.1.9',
-      description='bodhi',
+      version=VERSION,
+      description='bodhi common package',
+      long_description=README + '\n\n' +  CHANGES,
+      classifiers=[
+        "Programming Language :: Python",
+        ],
+      author='',
+      author_email='',
+      url='',
+      keywords='fedora',
+      packages=['bodhi'],
+      include_package_data=True,
+      zip_safe=False,
+      install_requires = [],
+      tests_require = [
+          'nose',
+          'nose-cov',
+          'webtest',
+          'mock'
+      ],
+      test_suite="nose.collector",
+      )
+
+
+setuptools.command.egg_info.manifest_maker.template = 'CLIENT_MANIFEST.in'
+
+
+setup(name='bodhi-client',
+      version=VERSION,
+      description='bodhi client',
+      long_description=README + '\n\n' +  CHANGES,
+      classifiers=[
+        "Programming Language :: Python",
+        ],
+      author='',
+      author_email='',
+      url='',
+      keywords='fedora',
+      packages=['bodhi.client'],
+      include_package_data=False,
+      zip_safe=False,
+      install_requires = ['click'],
+      entry_points = """\
+      [console_scripts]
+      bodhi = bodhi.client:cli
+      """,
+      )
+
+
+setuptools.command.egg_info.manifest_maker.template = 'SERVER_MANIFEST.in'
+
+
+setup(name='bodhi-server',
+      version=VERSION,
+      description='bodhi server',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
         "Programming Language :: Python",
@@ -89,17 +146,12 @@ setup(name='bodhi',
       author_email='',
       url='',
       keywords='web fedora pyramid',
-      packages=find_packages(),
+      packages=find_packages(
+          exclude=['bodhi', 'bodhi.client', 'bodhi.client.*', 'bodhi.tests', 'bodhi.tests.*']),
       include_package_data=True,
+#      script_args=sys.argv.extend(['--template', 'TEST']),
       zip_safe=False,
-      install_requires = requires,
-      tests_require = [
-          'nose',
-          'nose-cov',
-          'webtest',
-          'mock'
-      ],
-      test_suite="nose.collector",
+      install_requires = server_requires,
       message_extractors = { '.': [
           #('**.py', 'lingua_python', None),
           #('**.mak', 'lingua_xml', None),
@@ -109,7 +161,6 @@ setup(name='bodhi',
       main = bodhi.server:main
       [console_scripts]
       initialize_bodhi_db = bodhi.server.scripts.initializedb:main
-      bodhi = bodhi.client:cli
       bodhi-push = bodhi.server.push:push
       bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
       bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
@@ -121,4 +172,3 @@ setup(name='bodhi',
       """,
       paster_plugins=['pyramid'],
       )
-
