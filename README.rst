@@ -13,12 +13,11 @@ Vagrant
 Bodhi development environment by automatically configuring a virtual machine. To get started, simply
 use these commands::
 
-    # This won't be necessary once https://bugzilla.redhat.com/show_bug.cgi?id=1343814 is done
-    $ sudo dnf copr enable dustymabe/vagrant-sshfs
     $ sudo dnf install ansible vagrant-libvirt vagrant-sshfs
     $ cp Vagrantfile.example Vagrantfile
     # Make sure your bodhi checkout is your shell's cwd
     $ vagrant up
+    $ vagrant ssh -c "cd /vagrant/; pserve development.ini --reload"
 
 
 Quick tips about the Bodhi Vagrant environment
