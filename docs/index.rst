@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    man_bodhi
+   release_notes
    services
 
 
