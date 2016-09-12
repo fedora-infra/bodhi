@@ -75,7 +75,7 @@ class ExtendedMetadata(object):
         # Load from the cache if it exists
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
                                             '.repocache', 'repodata/')
-        if os.path.isdir(self.cached_repodata):
+        if os.path.isfile(os.path.join(self.cached_repodata, 'repomd.xml')):
             self._load_cached_updateinfo()
         else:
             log.debug("Generating new updateinfo.xml")
