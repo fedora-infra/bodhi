@@ -1,6 +1,6 @@
-==================================
-bodhi v2.0 development environment
-==================================
+=============================
+bodhi development environment
+=============================
 
 There are two ways to bootstrap a Bodhi development environment. You can use Vagrant, or you can use
 virtualenv on an existing host.
