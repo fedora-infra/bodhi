@@ -252,12 +252,12 @@ Description :
 
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
-This update can be installed with the "yum" update program. Use
-su -c 'yum%(yum_repository)s update %(name)s' at the command line.
-For more information, refer to "Managing Software with yum",
-available at https://docs.fedoraproject.org/yum/.
+This update can be installed with the "dnf" update program. Use
+su -c 'dnf%(yum_repository)s upgrade %(name)s' at the command line.
+For more information, refer to the dnf documentation available at
+http://dnf.readthedocs.io/en/latest/command_ref.html#upgrade-command-label
 
-All packages are signed with the Fedora Project GPG key.  More details on the
+All packages are signed with the Fedora Project GPG key. More details on the
 GPG keys used by the Fedora Project can be found at
 https://fedoraproject.org/keys
 --------------------------------------------------------------------------------
@@ -281,10 +281,41 @@ Description :
 
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
+This update can be installed with the "dnf" update programs.  Use
+su -c 'dnf%(yum_repository)s upgrade %(name)s' at the command line.
+For more information, refer to the dnf documentation available at
+http://dnf.readthedocs.io/en/latest/command_ref.html#upgrade-command-label
+
+All packages are signed with the Fedora EPEL GPG key. More details on the
+GPG keys used by the Fedora Project can be found at
+https://fedoraproject.org/keys
+--------------------------------------------------------------------------------
+"""
+
+# message template for legacy systems, still pointing users to use "yum"
+fedora_epel_legacy_errata_template = u"""\
+--------------------------------------------------------------------------------
+Fedora EPEL%(testing)s Update Notification
+%(updateid)s
+%(date)s
+--------------------------------------------------------------------------------
+
+Name        : %(name)s
+Product     : %(product)s
+Version     : %(version)s
+Release     : %(release)s
+URL         : %(url)s
+Summary     : %(summary)s
+Description :
+%(description)s
+
+--------------------------------------------------------------------------------
+%(notes)s%(changelog)s%(references)s
 This update can be installed with the "yum" update programs.  Use
 su -c 'yum%(yum_repository)s update %(name)s' at the command line.
-For more information, refer to "Managing Software with yum",
-available at https://docs.fedoraproject.org/yum/.
+For more information, refer to "YUM", available at
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7\
+/html/System_Administrators_Guide/ch-yum.html
 
 All packages are signed with the Fedora EPEL GPG key.  More details on the
 GPG keys used by the Fedora Project can be found at

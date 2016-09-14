@@ -1247,7 +1247,13 @@ class Update(Base):
             mailinglist = config.get('%s_announce_list' % release_name)
         elif self.status is UpdateStatus.testing:
             mailinglist = config.get('%s_test_announce_list' % release_name)
-        templatetype = '%s_errata_template' % release_name
+        
+        # switch email template to legacy if update aims to EPEL <= 7
+        if release_name == 'fedora_epel' and self.release.version_int <= 7:
+            templatetype = '%s_errata_legacy_template' % release_name
+        else:
+            templatetype = '%s_errata_template' % release_name
+
         if mailinglist:
             for subject, body in mail.get_template(self, templatetype):
                 mail.send_mail(sender, mailinglist, subject, body)
@@ -1256,6 +1262,7 @@ class Update(Base):
         else:
             log.error("Cannot find mailing list address for update notice")
             log.error("release_name = %r", release_name)
+
 
     def get_url(self):
         """ Return the relative URL to this update """
