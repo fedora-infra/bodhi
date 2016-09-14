@@ -301,6 +301,10 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     candidate_tag = colander.SchemaNode(
         colander.String(),
     )
+    pending_signing_tag = colander.SchemaNode(
+        colander.String(),
+        missing="",
+    )
     pending_testing_tag = colander.SchemaNode(
         colander.String(),
         missing="",

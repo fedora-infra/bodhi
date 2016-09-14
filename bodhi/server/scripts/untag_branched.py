@@ -73,6 +73,7 @@ def main(argv=sys.argv):
                         tags = build.get_tags()
                         stable_tag = release.dist_tag
                         testing_tag = release.testing_tag
+                        pending_signing_tag = Release.pending_signing_tag
                         pending_testing_tag = Release.pending_testing_tag
                         if stable_tag not in tags:
                             log.error('%s not tagged as stable %s' % (build.nvr, tags))
@@ -80,6 +81,9 @@ def main(argv=sys.argv):
                         if testing_tag in tags:
                             log.info('Removing %s from %s' % (testing_tag, build.nvr))
                             koji.untagBuild(testing_tag, build.nvr)
+                        if pending_signing_tag in tags:
+                            log.info('Removing %s from %s' % (pending_signing_tag, build.nvr))
+                            koji.untagBuild(pending_signing_tag, build.nvr)
                         if pending_testing_tag in tags:
                             log.info('Removing %s from %s' % (pending_testing_tag, build.nvr))
                             koji.untagBuild(pending_testing_tag, build.nvr)
