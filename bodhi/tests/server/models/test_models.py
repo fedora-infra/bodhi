@@ -51,6 +51,7 @@ class TestRelease(ModelTest):
         stable_tag=u"dist-f11-updates",
         testing_tag=u"dist-f11-updates-testing",
         candidate_tag=u"dist-f11-updates-candidate",
+        pending_signing_tag=u"dist-f11-updates-testing-signing",
         pending_testing_tag=u"dist-f11-updates-testing-pending",
         pending_stable_tag=u"dist-f11-updates-pending",
         override_tag=u"dist-f11-override",
@@ -273,12 +274,13 @@ class TestUpdate(ModelTest):
         koji = buildsys.get_session()
         koji.clear()
         koji.__tagged__[b.nvr] = [release.testing_tag,
+                                  release.pending_signing_tag,
                                   release.pending_testing_tag,
                                   # Add an unknown tag that we shouldn't touch
                                   release.dist_tag + '-compose']
         self.obj.builds[0].unpush(koji)
         eq_(koji.__moved__, [(u'dist-f11-updates-testing', u'dist-f11-updates-candidate', u'TurboGears-1.0.8-3.fc11')])
-        eq_(koji.__untag__, [(u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11')])
+        eq_(koji.__untag__, [(u'dist-f11-updates-testing-signing', u'TurboGears-1.0.8-3.fc11'), (u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11')])
 
     def test_title(self):
         eq_(self.obj.title, u'TurboGears-1.0.8-3.fc11')
@@ -316,6 +318,7 @@ class TestUpdate(ModelTest):
                                  stable_tag=u'dist-fc10-updates',
                                  testing_tag=u'dist-fc10-updates-testing',
                                  candidate_tag=u'dist-fc10-updates-candidate',
+                                 pending_signing_tag=u'dist-fc10-updates-testing-signing',
                                  pending_testing_tag=u'dist-fc10-updates-testing-pending',
                                  pending_stable_tag=u'dist-fc10-updates-pending',
                                  override_tag=u'dist-fc10-override',
@@ -349,6 +352,7 @@ class TestUpdate(ModelTest):
                           stable_tag=u'dist-5E-epel',
                           testing_tag=u'dist-5E-epel-testing',
                           candidate_tag=u'dist-5E-epel-testing-candidate',
+                          pending_signing_tag=u'dist-5E-epel-testing-signing',
                           pending_testing_tag=u'dist-5E-epel-testing-pending',
                           pending_stable_tag=u'dist-5E-epel-pending',
                           override_tag=u'dist-5E-epel-override',

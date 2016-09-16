@@ -128,6 +128,7 @@ def latest_candidates(request):
             if testing:
                 koji.listTagged(release.testing_tag, **kwargs)
                 koji.listTagged(release.pending_testing_tag, **kwargs)
+                koji.listTagged(release.pending_signing_tag, **kwargs)
 
         builds = koji.multiCall() or []  # Protect against None
 

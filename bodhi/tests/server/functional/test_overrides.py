@@ -128,6 +128,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
                             dist_tag=u'f42', stable_tag=u'f42-updates',
                             testing_tag=u'f42-updates-testing',
                             candidate_tag=u'f42-updates-candidate',
+                            pending_signing_tag=u'f42-updates-testing-signing',
                             pending_testing_tag=u'f42-updates-testing-pending',
                             pending_stable_tag=u'f42-updates-pending',
                             override_tag=u'f42-override',

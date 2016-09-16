@@ -290,6 +290,7 @@ class Release(Base):
     stable_tag = Column(UnicodeText, nullable=False)
     testing_tag = Column(UnicodeText, nullable=False)
     candidate_tag = Column(UnicodeText, nullable=False)
+    pending_signing_tag = Column(UnicodeText, nullable=False)
     pending_testing_tag = Column(UnicodeText, nullable=False)
     pending_stable_tag = Column(UnicodeText, nullable=False)
     override_tag = Column(UnicodeText, nullable=False)
@@ -585,6 +586,9 @@ class Build(Base):
         log.info('Unpushing %s' % self.nvr)
         release = self.update.release
         for tag in self.get_tags(koji):
+            if tag == release.pending_signing_tag:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
             if tag == release.pending_testing_tag:
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
@@ -1129,7 +1133,7 @@ class Update(Base):
         # Add the appropriate 'pending' koji tag to this update, so tools like
         # AutoQA can mash repositories of them for testing.
         if action is UpdateRequest.testing:
-            self.add_tag(self.release.pending_testing_tag)
+            self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)
 
@@ -1558,6 +1562,7 @@ class Update(Base):
         # Remove the 'pending' koji tags from this update so taskotron stops
         # evalulating them.
         if self.request is UpdateRequest.testing:
+            self.remove_tag(self.release.pending_signing_tag)
             self.remove_tag(self.release.pending_testing_tag)
         elif self.request is UpdateRequest.stable:
             self.remove_tag(self.release.pending_stable_tag)

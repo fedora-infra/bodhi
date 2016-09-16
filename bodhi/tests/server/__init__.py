@@ -37,6 +37,7 @@ def populate(db):
         dist_tag=u'f17', stable_tag=u'f17-updates',
         testing_tag=u'f17-updates-testing',
         candidate_tag=u'f17-updates-candidate',
+        pending_signing_tag=u'f17-updates-testing-signing',
         pending_testing_tag=u'f17-updates-testing-pending',
         pending_stable_tag=u'f17-updates-pending',
         override_tag=u'f17-override',

@@ -149,6 +149,7 @@ def print_release(release):
         print("  Stable Tag:          %s" % release['stable_tag'])
         print("  Testing Tag:         %s" % release['testing_tag'])
         print("  Candidate Tag:       %s" % release['candidate_tag'])
+        print("  Pending Signing Tag: %s" % release['pending_signing_tag'])
         print("  Pending Testing Tag: %s" % release['pending_testing_tag'])
         print("  Pending Stable Tag:  %s" % release['pending_stable_tag'])
         print("  Override Tag:        %s" % release['override_tag'])
