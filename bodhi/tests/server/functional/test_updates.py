@@ -2522,6 +2522,379 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    def test_has_negative_karma(self, publish, *args):
+        """The test asserts that has_negative_karma returns True when an update receives negative karma"""
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = 'bodhi-2.1-1.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args).json_body
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.request = None
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        # The user gives negative karma first
+        up.comment(self.db, u'Failed to work', author=u'luke', karma=-1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertTrue(up.has_negative_karma)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_has_no_negative_karma_with_changed_karma(self, publish, *args):
+        """
+        This test asserts that has_negative_karma returns False when a user posts negative karma 
+        and then later posts positive karma.
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = 'bodhi-2.1-1.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args).json_body
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.request = None
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        # The user gives negative karma first
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertTrue(up.has_negative_karma)
+
+        # The same user gives positive karma later
+        up.comment(self.db, u'wfm', author=u'ralph', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertFalse(up.has_negative_karma)
+        self.assertEquals(up.karma, 1)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_has_negative_karma_with_positive_karma_first(self, publish, *args):
+        """
+        This test asserts that has_negative_karma returns True when a user posts positive karma 
+        and then another user posts negative karma.
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'bodhi-2.1-1.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args).json_body
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.request = None
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        #  user gives positive karma first
+        up.comment(self.db, u'Works for me', author=u'ralph', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertFalse(up.has_negative_karma)
+
+        # Another user gives negative karma later
+        up.comment(self.db, u'Failed to work', author=u'bowlofeggs', karma=-1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertTrue(up.has_negative_karma)
+        self.assertEquals(up.karma, 0)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_has_no_negative_karma(self, publish, *args):
+        """The test asserts that has_negative_karma returns False when there is no negative karma"""
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = 'bodhi-2.1-1.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args).json_body
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.request = None
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        up.comment(self.db, u'LGTM', author=u'mac', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertFalse(up.has_negative_karma)
+
+        # Karma with no comment
+        up.comment(self.db, u' ', author=u'bowlofeggs', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertFalse(up.has_negative_karma)
+        self.assertEquals(up.karma, 2)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_has_negative_karma_with_Anonymous_karma(self, publish, *args):
+        """
+        The test asserts that has_negative_karma returns False when an anonymous user
+        gives negative karma to an update
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = 'bodhi-2.1-1.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args).json_body
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.request = None
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        up.comment(self.db, u'Not working', author='me', anonymous=True, karma=-1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertFalse(up.has_negative_karma)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_has_negative_karma_with_no_feedback(self, publish, *args):
+        """This test asserts that has_negative_karma return False when an update has no feedback"""
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = 'bodhi-2.1-1.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args).json_body
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.request = None
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertFalse(up.has_negative_karma)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_disable_autopush_for_critical_updates(self, publish, *args):
+        """Make sure that autopush is disabled if a critical update receives any negative karma"""
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'kernel-3.11.5-300.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        resp = self.app.post_json('/updates/', args)
+        self.assertTrue(resp.json['critpath'])
+        self.assertEquals(resp.json['request'], 'testing')
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+        self.db.flush()
+
+        # A user gives negative karma first
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        # Another user gives positive karma
+        up.comment(self.db, u'wfm', author=u'bowlofeggs', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        self.assertEquals(up.karma, 0)
+        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEquals(up.request, None)
+
+        # Autopush gets disabled since there is a negative karma from ralph
+        self.assertEquals(up.autokarma, False)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_autopush_critical_update_with_no_negative_karma(self, publish, *args):
+        """Autopush critical update when it has no negative karma"""
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'kernel-3.11.5-300.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 2
+        args['unstable_karma'] = -2
+
+        resp = self.app.post_json('/updates/', args)
+        self.assertTrue(resp.json['critpath'])
+        self.assertEquals(resp.json['request'], 'testing')
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        up.comment(self.db, u'LGTM', author=u'ralph', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        self.assertEquals(up.karma, 2)
+
+        # No negative karma: Update gets automatically marked as stable
+        self.assertEquals(up.autokarma, True)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        self.assertEquals(up.request, UpdateRequest.stable)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_manually_push_critical_update_with_negative_karma(self, publish, *args):
+        """
+        Manually push critical update when it has negative karma
+        Autopush gets disabled after it receives negative karma
+        A user gives negative karma, but another 3 users give positive karma
+        The critical update should be manually pushed because of the negative karma
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'kernel-3.11.5-300.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 3
+        args['unstable_karma'] = -3
+
+        resp = self.app.post_json('/updates/', args)
+        self.assertTrue(resp.json['critpath'])
+        self.assertEquals(resp.json['request'], 'testing')
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'wfm', author=u'luke', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'LGTM', author=u'puiterwijk', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'LGTM', author=u'trishnag', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        self.assertEquals(up.karma, 3)
+        self.assertEquals(up.autokarma, False)
+
+        # Checks Push to Stable text in the html page for this update
+        id = 'kernel-3.11.5-300.fc17'
+        resp = self.app.get('/updates/%s' % id,
+                            headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('Push to Stable', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_manually_push_critical_update_with_autopush_turned_off(self, publish, *args):
+        """
+        Manually push critical update when it has Autopush turned off
+        and make sure the update doesn't get Autopushed
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'kernel-3.11.5-300.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = False
+        args['stable_karma'] = 3
+        args['unstable_karma'] = -3
+
+        resp = self.app.post_json('/updates/', args)
+        self.assertTrue(resp.json['critpath'])
+        self.assertEquals(resp.json['request'], 'testing')
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        up.comment(self.db, u'LGTM Now', author=u'ralph', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'wfm', author=u'luke', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'LGTM', author=u'puiterwijk', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        self.assertEquals(up.karma, 3)
+        self.assertEquals(up.autokarma, False)
+
+        # Checks Push to Stable text in the html page for this update
+        id = 'kernel-3.11.5-300.fc17'
+        resp = self.app.get('/updates/%s' % id,
+                            headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('Push to Stable', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_autopush_non_critical_update_with_negative_karma(self, publish, *args):
+        """Autopush Non Critical update even though it receives negative karma"""
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 3
+        args['unstable_karma'] = -3
+
+        resp = self.app.post_json('/updates/', args)
+        self.assertEquals(resp.json['request'], 'testing')
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'LGTM Now', author=u'ralph', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'wfm', author=u'luke', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'LGTM', author=u'puiterwijk', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        self.assertEquals(up.karma, 3)
+        self.assertEquals(up.autokarma, True)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        self.assertEquals(up.request, UpdateRequest.stable)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
     def test_manually_push_to_stable_based_on_karma(self, publish, *args):
         """
         Test manually push to stable when autokarma is disabled
