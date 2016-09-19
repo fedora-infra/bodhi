@@ -242,5 +242,9 @@ $(document).ready(function() {
 
     // Lastly show the main form
     $("#new-update-form").removeClass('hidden');
+    // and set focus to the packages input
+    $("#packages-search input.typeahead").focus();
+
     update_markdown_preview($("#notes").val());
+
 });
