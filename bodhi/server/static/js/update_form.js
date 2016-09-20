@@ -163,15 +163,28 @@ $(document).ready(function() {
     $('#packages-search input.typeahead').on('typeahead:selected', function (e, datum) {
         $("#candidate-checkboxes").prepend("<img class='spinner' src='static/img/spinner.gif'>")
         $("#bugs-checkboxes").prepend("<img class='spinner' src='static/img/spinner.gif'>")
+        // Get a list of currently checked items
+        var checked_bug_ids = [];
+        $("#bugs-checkboxes input:checkbox:checked").each(function(){
+            checked_bug_ids.push(parseInt($(this).val()));
+        });
+        var checked_candidate_ids = [];
+        $("#candidate-checkboxes input:checkbox:checked").each(function(){
+            checked_candidate_ids.push(parseInt($(this).attr('data-build-id')));
+        });
         // Get the candidate builds
         $.ajax({
             url: 'latest_candidates',
             data: $.param({package: datum.name}),
             success: function(builds) {
                 $("#candidate-checkboxes .spinner").remove();
+                $("#candidate-checkboxes input:checkbox:not(:checked)").parents("div.checkbox").remove();
                 if (builds.length == 0) {return candidate_error(datum.name);}
                 $.each(builds, function(i, build) {
-                    add_build_checkbox(build.nvr, build.id, false);
+                    // Insert the checkbox only if this ID is not already listed
+                    if ($.inArray(build.id, checked_candidate_ids) == -1) {
+                        add_build_checkbox(build.nvr, build.id, false);
+                    }
                 });
             },
             error: function() {candidate_error(datum.name);},
@@ -183,10 +196,14 @@ $(document).ready(function() {
             url: base + prefix + datum.name + suffix,
             success: function(data) {
                 $("#bugs-checkboxes .spinner").remove();
+                $("#bugs-checkboxes input:checkbox:not(:checked)").parents("div.checkbox").remove();
                 data = JSON.parse(data);
                 if (data.rows.length == 0) {return bugs_error(datum.name);}
                 $.each(data.rows, function(i, bug) {
-                    add_bug_checkbox(bug.id, bug.description, false);
+                    // Insert the checkbox only if this ID is not already listed
+                    if ($.inArray(bug.id, checked_bug_ids) == -1) {
+                        add_bug_checkbox(bug.id, bug.description, false);
+                    }
                 });
                 // TODO -- tack on 'And 200 more bugs..'
             },
