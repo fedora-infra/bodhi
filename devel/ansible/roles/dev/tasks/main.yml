@@ -49,9 +49,10 @@
   args:
       creates: /vagrant/development.ini
 
-- replace:
+- name: Switch the database connection to postgres
+  replace:
     dest: /vagrant/development.ini
-    regexp: "sqlalchemy.url = sqlite:///%(here)s/bodhi.db"
+    regexp: "^sqlalchemy.url = sqlite.*$"
     replace: "sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2"
 
 - name: Apply database migrations
