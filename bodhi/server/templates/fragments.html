@@ -34,7 +34,9 @@
 
       <div class="panel-body">
         <div class="col-md-8">
+          %if comment.text:
           ${util.markup(comment.text) | n}
+          $endif
         </div>
         <div class="col-md-4 text-right">
           % if comment.karma:
