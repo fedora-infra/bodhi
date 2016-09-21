@@ -93,9 +93,9 @@ def get_update_for_editing(request):
     """Return a single update from an id, title, or alias for the edit form"""
     return dict(
         update=request.validated['update'],
-        types=reversed(bodhi.models.UpdateType.values()),
-        severities=sorted(bodhi.models.UpdateSeverity.values(), key=bodhi.server.util.sort_severity),
-        suggestions=reversed(bodhi.models.UpdateSuggestion.values()),
+        types=reversed(bodhi.server.models.UpdateType.values()),
+        severities=sorted(bodhi.server.models.UpdateSeverity.values(), key=bodhi.server.util.sort_severity),
+        suggestions=reversed(bodhi.server.models.UpdateSuggestion.values()),
     )
 
 
