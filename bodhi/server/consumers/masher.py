@@ -325,27 +325,21 @@ class MasherThread(threading.Thread):
             self.remove_pending_tags()
             self.update_comps()
 
-            if self.resume and self.path in self.state['completed_repos']:
-                self.log.info('Skipping completed repo: %s', self.path)
-                self.complete_requests()
-                # We still need to generate the testing digest, since it's stored in memory
-                self.generate_testing_digest()
-            else:
-                if not self.skip_mash:
-                    mash_thread = self.mash()
+            if not self.skip_mash:
+                mash_thread = self.mash()
 
-                # Things we can do while we're mashing
-                self.complete_requests()
-                self.generate_testing_digest()
+            # Things we can do while we're mashing
+            self.complete_requests()
+            self.generate_testing_digest()
 
-                if not self.skip_mash:
-                    uinfo = self.generate_updateinfo()
+            if not self.skip_mash:
+                uinfo = self.generate_updateinfo()
 
-                    self.wait_for_mash(mash_thread)
+                self.wait_for_mash(mash_thread)
 
-                    uinfo.insert_updateinfo()
-                    uinfo.insert_pkgtags()
-                    uinfo.cache_repodata()
+                uinfo.insert_updateinfo()
+                uinfo.insert_pkgtags()
+                uinfo.cache_repodata()
 
             # Compose OSTrees from our freshly mashed repos
             if config.get('compose_atomic_trees'):
