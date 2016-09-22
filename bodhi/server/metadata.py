@@ -279,7 +279,7 @@ class ExtendedMetadata(object):
 
     def insert_updateinfo(self):
         fd, name = tempfile.mkstemp()
-        os.write(fd, self.uinfo.xml_dump())
+        os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
         os.close(fd)
         self.modifyrepo(name)
         os.unlink(name)
