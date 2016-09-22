@@ -76,9 +76,10 @@ class ExtendedMetadata(object):
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
                                             '.repocache', 'repodata/')
         if os.path.isdir(self.cached_repodata):
+            log.info('Loading cached updateinfo.xml')
             self._load_cached_updateinfo()
         else:
-            log.debug("Generating new updateinfo.xml")
+            log.info("Generating new updateinfo.xml")
             self.uinfo = cr.UpdateInfo()
             for update in self.updates:
                 if update.alias:
