@@ -1,6 +1,26 @@
 Release notes
 =============
 
+2.2.1
+-----
+
+Bodhi 2.2.1 is a bug fix release, primarily focusing on mashing issues:
+
+* Register date locked during mashing (`#952
+  <https://github.com/fedora-infra/bodhi/issues/952>`_).
+* UTF-8 encode the updateinfo before writing it to disk (`#955
+  <https://github.com/fedora-infra/bodhi/issues/955>`_).
+* Improved logging during updateinfo generation (`#956
+  <https://github.com/fedora-infra/bodhi/issues/956>`_).
+* Removed some unused code
+  (`07ff664f <https://github.com/fedora-infra/bodhi/commit/07ff664f>`_).
+* Fix some incorrect imports
+  (`9dd5bdbc <https://github.com/fedora-infra/bodhi/commit/9dd5bdbc>`_ and
+  `b1cc12ad <https://github.com/fedora-infra/bodhi/commit/b1cc12ad>`_).
+* Rely on self.skip_mash to detect when it is ok to skip a mash
+  (`ad65362e <https://github.com/fedora-infra/bodhi/commit/ad65362e>`_).
+
+
 2.2.0
 -----
 
