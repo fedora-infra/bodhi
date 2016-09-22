@@ -218,6 +218,7 @@ Once mash is done:
                     self.log.info('%s request revoked' % update.title)
                     continue
                 update.locked = True
+                update.date_locked = datetime.utcnow()
                 repo = releases[update.release.name][update.request.value]
                 repo.append(update)
             else:
