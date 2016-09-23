@@ -1925,7 +1925,7 @@ class Comment(Base):
 
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
-    text = Column(UnicodeText)
+    text = Column(UnicodeText, nullable=False)
     anonymous = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
