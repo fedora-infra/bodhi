@@ -685,6 +685,9 @@ class MasherThread(threading.Thread):
         return mash_thread
 
     def wait_for_mash(self, mash_thread):
+        if mash_thread is None:
+            self.log.info('Not waiting for mash thread, as there was no mash')
+            return
         self.log.debug('Waiting for mash thread to finish')
         mash_thread.join()
         if mash_thread.success:
