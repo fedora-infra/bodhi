@@ -1,7 +1,7 @@
 """Do not allow NULL values in the text column of the comments table.
 
 Revision ID: 37f38ddc4c8d
-Revises: 4df1fcd59050
+Revises: 3c72757fa59e
 Create Date: 2016-09-21 19:51:04.946521
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '37f38ddc4c8d'
-down_revision = '4df1fcd59050'
+down_revision = '3c72757fa59e'
 
 
 def upgrade():
