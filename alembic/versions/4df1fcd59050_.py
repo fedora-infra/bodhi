@@ -1,7 +1,7 @@
 """Add the new pending_signing_tag column to the releases table.
 
 Revision ID: 4df1fcd59050
-Revises: 3c72757fa59e
+Revises: 37f38ddc4c8d
 Create Date: 2016-09-16 18:51:19.514301
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '4df1fcd59050'
-down_revision = '3c72757fa59e'
+down_revision = '37f38ddc4c8d'
 
 
 def upgrade():
