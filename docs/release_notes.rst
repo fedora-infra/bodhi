@@ -1,6 +1,20 @@
 Release notes
 =============
 
+2.2.2
+-----
+
+This is another in a series of bug fix releases for Bodhi this week. In this release, we've fixed
+the following issues:
+
+* Disallow comment text to be set to the NULL value in the database
+  (`#949 <https://github.com/fedora-infra/bodhi/issues/949>`_).
+* Fix autopush on updates that predate the 2.2.0 release
+  (`#950 <https://github.com/fedora-infra/bodhi/issues/950>`_).
+* Don't wait on mashes when there aren't any
+  (`68de510c <https://github.com/fedora-infra/bodhi/commit/68de510c>`_).
+
+
 2.2.1
 -----
 
