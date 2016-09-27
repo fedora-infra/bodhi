@@ -1,6 +1,13 @@
 Release notes
 =============
 
+2.2.3
+-----
+
+This release fixes `#951 <https://github.com/fedora-infra/bodhi/issues/951>`_, which prevented
+updates with large numbers of packages to be viewable in web browsers.
+
+
 2.2.2
 -----
 
