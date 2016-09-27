@@ -17,6 +17,7 @@
 """Test suite for the Bodhi models"""
 
 import time
+import unittest
 import cornice
 import mock
 
@@ -36,6 +37,16 @@ from bodhi.server.exceptions import BodhiException
 
 class DummyUser(object):
     name = 'guest'
+
+
+class TestComment(unittest.TestCase):
+    def test_text_nullable(self):
+        """Assert that the text column does not allow NULL values.
+
+        For history about why this is important, see
+        https://github.com/fedora-infra/bodhi/issues/949.
+        """
+        self.assertEqual(model.Comment.__table__.columns['text'].nullable, False)
 
 
 class TestRelease(ModelTest):
