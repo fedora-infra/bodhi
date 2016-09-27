@@ -43,6 +43,11 @@ You can run the development server from inside the Vagrant environment::
 
     $ pserve /vagrant/development.ini --reload
 
+It is possible to connect your Vagrant box to the staging Koji instance for testing, which can be
+handy at times. You will need to copy your ``.fedora.cert`` and ``.fedora-server-ca.cert`` that you
+normally use to connect to Koji into your Vagrant box, storing them in ``/home/vagrant``. Once you
+have those in place, you can set ``buildsystem = koji`` in your ``development.ini`` file.
+
 When you are done with your Vagrant guest, you can destroy it permanently by running this command on
 the host::
 
