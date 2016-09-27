@@ -110,7 +110,7 @@ def get_update_for_editing(request):
                      permission='edit', renderer='json',
                      error_handler=bodhi.server.services.errors.json_handler)
 def set_request(request):
-    """Sets a specific :class:`bodhi.models.UpdateRequest` on a given update"""
+    """Sets a specific :class:`bodhi.server.models.UpdateRequest` on a given update"""
     update = request.validated['update']
     action = request.validated['request']
 
