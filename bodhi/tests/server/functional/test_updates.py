@@ -1956,6 +1956,108 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         publish.assert_called_with(
                 topic='update.request.revoke', msg=mock.ANY)
 
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_obsolete_if_unstable_with_autopush_enabled_when_pending(self, publish, *args):
+        """
+        Send update to obsolete state if it reaches unstable karma on
+        pending state where request is testing when Autopush is enabled. Make sure that it
+        does not go to update-testing state.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 1
+        args['unstable_karma'] = -1
+
+        resp = self.app.post_json('/updates/', args)
+        up = Update.get(nvr, self.db)
+        up.status = UpdateStatus.pending
+        up.request = UpdateRequest.testing
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
+        self.db.flush()
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEquals(up.karma, -1)
+        self.assertEquals(up.status, UpdateStatus.obsolete)
+        self.assertEquals(up.request, None)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_obsolete_if_unstable_with_autopush_disabled_when_pending(self, publish, *args):
+        """
+        Don't automatically send update to obsolete state if it reaches unstable karma on
+        pending state when Autopush is disabled.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = False
+        args['stable_karma'] = 1
+        args['unstable_karma'] = -1
+
+        resp = self.app.post_json('/updates/', args)
+        up = Update.get(nvr, self.db)
+        up.status = UpdateStatus.pending
+        up.request = UpdateRequest.testing
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
+        self.db.flush()
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEquals(up.karma, -1)
+        self.assertEquals(up.status, UpdateStatus.pending)
+        self.assertEquals(up.request, UpdateRequest.testing)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_obsolete_if_unstable_karma_not_reached_with_autopush_enabled_when_pending(self, publish, *args):
+        """
+        Don't send update to obsolete state if it does not reach unstable karma threshold
+        on pending state when Autopush is enabled.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 2
+        args['unstable_karma'] = -2
+
+        resp = self.app.post_json('/updates/', args)
+        up = Update.get(nvr, self.db)
+        up.status = UpdateStatus.pending
+        up.request = UpdateRequest.testing
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
+        self.db.flush()
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEquals(up.karma, -1)
+        self.assertEquals(up.status, UpdateStatus.pending)
+        self.assertEquals(up.request, UpdateRequest.testing)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_obsolete_if_unstable_with_autopush_enabled_when_testing(self, publish, *args):
+        """
+        Send update to obsolete state if it reaches unstable karma threshold on
+        testing state where request is stable when Autopush is enabled. Make sure that it
+        does not go to stable state.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 1
+        args['unstable_karma'] = -1
+
+        resp = self.app.post_json('/updates/', args)
+        up = Update.get(nvr, self.db)
+        up.status = UpdateStatus.testing
+        up.request = UpdateRequest.stable
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
+        self.db.flush()
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEquals(up.karma, -1)
+        self.assertEquals(up.status, UpdateStatus.obsolete)
+        self.assertEquals(up.request, None)
+
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
