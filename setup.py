@@ -17,7 +17,7 @@ import setuptools.command.egg_info
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
-VERSION = '2.2.2'
+VERSION = '2.2.3'
 
 server_requires = [
     'pyramid',
