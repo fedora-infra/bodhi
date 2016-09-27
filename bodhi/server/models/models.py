@@ -1267,7 +1267,6 @@ class Update(Base):
             log.error("Cannot find mailing list address for update notice")
             log.error("release_name = %r", release_name)
 
-
     def get_url(self):
         """ Return the relative URL to this update """
         path = ['updates']
