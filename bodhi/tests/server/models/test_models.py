@@ -602,6 +602,44 @@ class TestUpdate(ModelTest):
         for value in mail.MESSAGES.values():
             value['body'] % value['fields']('guest', self.obj)
 
+    @mock.patch('bodhi.server.mail.get_template')
+    def test_send_update_notice_message_template(self, get_template):
+        """Ensure update message template reflects aimed distribution"""
+        update = self.obj
+        update.status = UpdateStatus.stable
+        update.send_update_notice()
+        get_template.assert_called_with(update, u'fedora_errata_template')
+
+        update = self.get_update(name=u'TurboGears-3.1-1.el7')
+        release = model.Release(name=u'EL-7', long_name=u'Fedora EPEL 7',
+                          id_prefix=u'FEDORA-EPEL', dist_tag=u'dist-7E-epel',
+                          stable_tag=u'dist-7E-epel',
+                          testing_tag=u'dist-7E-epel-testing',
+                          candidate_tag=u'dist-7E-epel-testing-candidate',
+                          pending_testing_tag=u'dist-7E-epel-testing-pending',
+                          pending_stable_tag=u'dist-7E-epel-pending',
+                          override_tag=u'dist-7E-epel-override',
+                          branch=u'el7', version=u'7')
+        update.release = release
+        update.status = UpdateStatus.stable
+        update.send_update_notice()
+        get_template.assert_called_with(update, u'fedora_epel_errata_legacy_template')
+
+        update = self.get_update(name=u'TurboGears-4.1-1.el8')
+        release = model.Release(name=u'EL-8', long_name=u'Fedora EPEL 8',
+                          id_prefix=u'FEDORA-EPEL', dist_tag=u'dist-8E-epel',
+                          stable_tag=u'dist-8E-epel',
+                          testing_tag=u'dist-8E-epel-testing',
+                          candidate_tag=u'dist-8E-epel-testing-candidate',
+                          pending_testing_tag=u'dist-8E-epel-testing-pending',
+                          pending_stable_tag=u'dist-8E-epel-pending',
+                          override_tag=u'dist-8E-epel-override',
+                          branch=u'el8', version=u'8')
+        update.release = release
+        update.status = UpdateStatus.stable
+        update.send_update_notice()
+        get_template.assert_called_with(update, u'fedora_epel_errata_template')
+
 
 class TestUser(ModelTest):
     klass = model.User
