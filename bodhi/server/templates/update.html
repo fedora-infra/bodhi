@@ -158,14 +158,19 @@
       // Then, once we have pruned, build a bunch of cells and render each
       // result in the table
       $.each(data, function(i, result) {
-        $('#resultsdb table').append(make_row(
-              result.outcome,
-              result.testcase.name,
-              result.result_data.item,
-              result.result_data.arch,
-              result.submit_time,
-              result.log_url
-        ));
+        // When there are many builds in an update, the large number of taskotron results can be a
+        // problem for browsers. Only show the non-passing results in this case.
+        // See https://github.com/fedora-infra/bodhi/issues/951
+        if (builds.length < 16 || result.outcome != "PASSED") {
+            $('#resultsdb table').append(make_row(
+                result.outcome,
+                result.testcase.name,
+                result.result_data.item,
+                result.result_data.arch,
+                result.submit_time,
+                result.log_url
+            ));
+        }
       });
 
       finish();
@@ -228,6 +233,9 @@
 
     }
 
+    if (builds.length > 16) {
+	$("<h4>Large update detected: passing test results filtered.</h4>").insertBefore('#resultsdb table');
+    }
     // Kick off a few chains of paginated queries.  One for each of the
     // possible testcases.
     gather_testcases(base_url + 'testcases');
