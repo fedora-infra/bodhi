@@ -939,12 +939,24 @@ class MasherThread(threading.Thread):
                 release['repos']['updates'] = mash_path
 
             # Compose the tree, and raise an exception upon failure
+            notifications.publish(topic="ostree.compose.start",
+                                  msg=dict(tag=tag),
+                                  force=True)
             result = composer.compose(release)
             if result['result'] != 'success':
                 self.log.error(result)
+                notifications.publish(topic="ostree.compose.fail",
+                                      msg=dict(tag=tag),
+                                      force=True)
                 raise Exception('%s atomic compose failed' % tag)
             else:
                 self.log.info('%s atomic tree compose successful', tag)
+                notifications.publish(
+                    topic="ostree.compose.finish",
+                    msg=dict(tag=tag,
+                             ref=result.get('ref'),
+                             commitid=results.get('commitid')),
+                    force=True)
 
 
 class MashThread(threading.Thread):
