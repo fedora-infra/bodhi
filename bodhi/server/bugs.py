@@ -53,17 +53,26 @@ class InvalidComment(Exception):
 class Bugzilla(BugTracker):
 
     def __init__(self):
+        self._bz = None
+
+    def _connect(self):
         user = config.get('bodhi_email')
         password = config.get('bodhi_password', None)
         url = config.get("bz_server")
         log.info("Using BZ URL %s" % url)
         if user and password:
-            self.bz = bugzilla.Bugzilla(url=url,
-                                        user=user, password=password,
-                                        cookiefile=None, tokenfile=None)
+            self._bz = bugzilla.Bugzilla(url=url,
+                                         user=user, password=password,
+                                         cookiefile=None, tokenfile=None)
         else:
-            self.bz = bugzilla.Bugzilla(url=url,
-                                        cookiefile=None, tokenfile=None)
+            self._bz = bugzilla.Bugzilla(url=url,
+                                         cookiefile=None, tokenfile=None)
+
+    @property
+    def bz(self):
+        if self._bz is None:
+            self._connect()
+        return self._bz
 
     def get_url(self, bug_id):
         return "%s/show_bug.cgi?id=%s" % (config['bz_baseurl'], bug_id)
