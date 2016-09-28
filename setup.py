@@ -16,7 +16,6 @@ import setuptools.command.egg_info
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 VERSION = '2.2.3'
 
 server_requires = [
@@ -82,7 +81,7 @@ setuptools.command.egg_info.manifest_maker.template = 'BODHI_MANIFEST.in'
 setup(name='bodhi',
       version=VERSION,
       description='bodhi common package',
-      long_description=README + '\n\n' +  CHANGES,
+      long_description=README,
       classifiers=[
         "Programming Language :: Python",
         ],
@@ -110,7 +109,7 @@ setuptools.command.egg_info.manifest_maker.template = 'CLIENT_MANIFEST.in'
 setup(name='bodhi-client',
       version=VERSION,
       description='bodhi client',
-      long_description=README + '\n\n' +  CHANGES,
+      long_description=README,
       classifiers=[
         "Programming Language :: Python",
         ],
@@ -135,7 +134,7 @@ setuptools.command.egg_info.manifest_maker.template = 'SERVER_MANIFEST.in'
 setup(name='bodhi-server',
       version=VERSION,
       description='bodhi server',
-      long_description=README + '\n\n' +  CHANGES,
+      long_description=README,
       classifiers=[
         "Programming Language :: Python",
         "Framework :: Pyramid",
