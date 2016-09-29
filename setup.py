@@ -16,8 +16,21 @@ import setuptools.command.egg_info
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 VERSION = '2.2.3'
+# Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
+CLASSIFIERS = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Intended Audience :: System Administrators',
+    'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+    'Operating System :: POSIX :: Linux',
+    'Programming Language :: Python :: 2.7',
+    'Topic :: System :: Software Distribution']
+LICENSE = 'GPLv2+'
+MAINTAINER = 'Fedora Infrastructure Team'
+MAINTAINER_EMAIL = 'infrastructure@lists.fedoraproject.org'
+PLATFORMS = ['Fedora', 'GNU/Linux']
+URL = 'https://github.com/fedora-infra/bodhi'
 
 server_requires = [
     'pyramid',
@@ -82,13 +95,13 @@ setuptools.command.egg_info.manifest_maker.template = 'BODHI_MANIFEST.in'
 setup(name='bodhi',
       version=VERSION,
       description='bodhi common package',
-      long_description=README + '\n\n' +  CHANGES,
-      classifiers=[
-        "Programming Language :: Python",
-        ],
-      author='',
-      author_email='',
-      url='',
+      long_description=README,
+      classifiers=CLASSIFIERS,
+      license=LICENSE,
+      maintainer=MAINTAINER,
+      maintainer_email=MAINTAINER_EMAIL,
+      platforms=PLATFORMS,
+      url=URL,
       keywords='fedora',
       packages=['bodhi'],
       include_package_data=True,
@@ -110,13 +123,13 @@ setuptools.command.egg_info.manifest_maker.template = 'CLIENT_MANIFEST.in'
 setup(name='bodhi-client',
       version=VERSION,
       description='bodhi client',
-      long_description=README + '\n\n' +  CHANGES,
-      classifiers=[
-        "Programming Language :: Python",
-        ],
-      author='',
-      author_email='',
-      url='',
+      long_description=README,
+      classifiers=CLASSIFIERS,
+      license=LICENSE,
+      maintainer=MAINTAINER,
+      maintainer_email=MAINTAINER_EMAIL,
+      platforms=PLATFORMS,
+      url=URL,
       keywords='fedora',
       packages=['bodhi.client'],
       include_package_data=False,
@@ -135,16 +148,17 @@ setuptools.command.egg_info.manifest_maker.template = 'SERVER_MANIFEST.in'
 setup(name='bodhi-server',
       version=VERSION,
       description='bodhi server',
-      long_description=README + '\n\n' +  CHANGES,
-      classifiers=[
-        "Programming Language :: Python",
+      long_description=README,
+      classifiers=CLASSIFIERS + [
         "Framework :: Pyramid",
+        'Programming Language :: JavaScript',
         "Topic :: Internet :: WWW/HTTP",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
-        ],
-      author='',
-      author_email='',
-      url='',
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"],
+      license=LICENSE,
+      maintainer=MAINTAINER,
+      maintainer_email=MAINTAINER_EMAIL,
+      platforms=PLATFORMS,
+      url=URL,
       keywords='web fedora pyramid',
       packages=find_packages(
           exclude=['bodhi', 'bodhi.client', 'bodhi.client.*', 'bodhi.tests', 'bodhi.tests.*']),
