@@ -2900,14 +2900,17 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         self.assertEquals(up.karma, 3)
         self.assertEquals(up.autokarma, False)
+        # The request should still be at testing. This assertion tests for
+        # https://github.com/fedora-infra/bodhi/issues/989 where karma comments were resetting the
+        # request to None.
+        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEquals(up.status, UpdateStatus.testing)
 
-        # Checks Push to Stable text in the html page for this update
         id = 'kernel-3.11.5-300.fc17'
         resp = self.app.get('/updates/%s' % id,
                             headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(id, resp)
-        self.assertIn('Push to Stable', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -2946,14 +2949,17 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         self.assertEquals(up.karma, 3)
         self.assertEquals(up.autokarma, False)
+        # The request should still be at testing. This assertion tests for
+        # https://github.com/fedora-infra/bodhi/issues/989 where karma comments were resetting the
+        # request to None.
+        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEquals(up.status, UpdateStatus.testing)
 
-        # Checks Push to Stable text in the html page for this update
         id = 'kernel-3.11.5-300.fc17'
         resp = self.app.get('/updates/%s' % id,
                             headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(id, resp)
-        self.assertIn('Push to Stable', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')

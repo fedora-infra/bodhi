@@ -1697,7 +1697,6 @@ class Update(Base):
                         # Add the 'testing_approval_msg_based_on_karma' message now
                         log.info("%s update has reached the stable karma threshold and can be pushed to "\
                         "stable now if the maintainer wishes" % self.title)
-                        self.request = None
                 elif self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
                     log.info("Automatically unpushing %s" % self.title)
                     self.obsolete(db)
