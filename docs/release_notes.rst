@@ -1,6 +1,13 @@
 Release notes
 =============
 
+2.2.4
+-----
+
+This release fixes `#989 <https://github.com/fedora-infra/bodhi/issues/989>`_, where Karma on
+non-autopush updates would reset the request to None.
+
+
 2.2.3
 -----
 
