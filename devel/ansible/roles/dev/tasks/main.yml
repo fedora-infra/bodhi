@@ -28,6 +28,7 @@
       - python-zmq
       - python2-createrepo_c
       - python2-fedmsg-atomic-composer
+      - python2-flake8
       - redhat-rpm-config
       - zlib-devel
 

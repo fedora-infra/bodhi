@@ -110,6 +110,7 @@ setup(name='bodhi',
       zip_safe=False,
       install_requires = [],
       tests_require = [
+          'flake8',
           'nose',
           'nose-cov',
           'webtest',
