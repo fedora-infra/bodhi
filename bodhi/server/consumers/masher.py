@@ -31,6 +31,8 @@ import fedmsg.consumers
 from datetime import datetime
 
 from collections import defaultdict
+from fedmsg_atomic_composer.composer import AtomicComposer
+from fedmsg_atomic_composer.config import config as atomic_config
 from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 
@@ -911,9 +913,6 @@ class MasherThread(threading.Thread):
     @checkpoint
     def compose_atomic_trees(self):
         """Compose Atomic OSTrees for each tag that we mashed"""
-        from fedmsg_atomic_composer.composer import AtomicComposer
-        from fedmsg_atomic_composer.config import config as atomic_config
-
         composer = AtomicComposer()
         mashed_repos = dict([('-'.join(os.path.basename(repo).split('-')[:-1]), repo)
                              for repo in self.state['completed_repos']])
