@@ -143,6 +143,12 @@ setup(name='bodhi-client',
 
 
 setuptools.command.egg_info.manifest_maker.template = 'SERVER_MANIFEST.in'
+# Due to https://github.com/pypa/setuptools/issues/808, we need to include the bodhi superpackage
+# and then remove it if we want find_packages() to find the bodhi.server package and its
+# subpackages without including the bodhi top level package.
+server_packages = find_packages(
+    exclude=['bodhi.client', 'bodhi.client.*', 'bodhi.tests', 'bodhi.tests.*'])
+server_packages.remove('bodhi')
 
 
 setup(name='bodhi-server',
@@ -160,8 +166,7 @@ setup(name='bodhi-server',
       platforms=PLATFORMS,
       url=URL,
       keywords='web fedora pyramid',
-      packages=find_packages(
-          exclude=['bodhi', 'bodhi.client', 'bodhi.client.*', 'bodhi.tests', 'bodhi.tests.*']),
+      packages=server_packages,
       include_package_data=True,
 #      script_args=sys.argv.extend(['--template', 'TEST']),
       zip_safe=False,
