@@ -4,8 +4,12 @@ Release notes
 2.2.4
 -----
 
-This release fixes `#989 <https://github.com/fedora-infra/bodhi/issues/989>`_, where Karma on
-non-autopush updates would reset the request to None.
+This release fixes two issues:
+
+* `#989 <https://github.com/fedora-infra/bodhi/issues/989>`_, where Karma on
+  non-autopush updates would reset the request to None.
+* `#994 <https://github.com/fedora-infra/bodhi/issues/994>`_, allowing Bodhi to
+  be built on setuptools-28.
 
 
 2.2.3
