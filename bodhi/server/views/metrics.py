@@ -23,8 +23,10 @@ def compute_ticks_and_data(db, releases, update_types):
     """ Return the data and ticks to make the stats graph. """
     data, ticks = [], []
 
-    for i, release in enumerate(sorted(releases, cmp=lambda x, y:
-            cmp(int(x.version_int), int(y.version_int)))):
+    releases = sorted(releases, cmp=lambda x, y:
+            cmp(int(x.version_int), int(y.version_int)))
+
+    for i, release in enumerate(releases):
         ticks.append([i, release.name])
 
     for update_type, label in update_types.items():
