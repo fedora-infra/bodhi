@@ -15,6 +15,7 @@
 import os
 import mock
 import time
+import urlparse
 import json
 import shutil
 import unittest
@@ -781,8 +782,15 @@ References:
     @mock.patch('bodhi.server.bugs.bugtracker.on_qa')
     def test_modify_testing_bugs(self, on_qa, modified, *args):
         self.masher.consume(self.msg)
-        on_qa.assert_called_once_with(12345,
-                u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems still persist, please make note of it in this bug report.\nSee https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how to install test updates.\nYou can provide feedback for this update here: http://0.0.0.0:6543/updates/FEDORA-2016-a3bbe1a8f2')
+
+        expected_message = (
+            u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems '
+            u'still persist, please make note of it in this bug report.\nSee '
+            u'https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how to '
+            u'install test updates.\nYou can provide feedback for this update here: {}')
+        expected_message = expected_message.format(
+            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-a3bbe1a8f2'))
+        on_qa.assert_called_once_with(12345, expected_message)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')

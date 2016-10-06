@@ -18,6 +18,7 @@ import copy
 import textwrap
 import time
 import mock
+import urlparse
 
 from mock import ANY
 from nose.tools import eq_
@@ -433,7 +434,6 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(len(body['updates']), 1)
 
         alias = u'FEDORA-%s-a3bbe1a8f2' % YEAR
-        baseurl = 'http://0.0.0.0:6543'
 
         up = body['updates'][0]
         self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
@@ -453,7 +453,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(up['locked'], True)
         self.assertEquals(up['alias'], alias)
         self.assertEquals(up['karma'], 1)
-        self.assertEquals(up['url'], '%s/updates/%s' % (baseurl, alias))
+        self.assertEquals(up['url'], (urlparse.urljoin(config['base_address'], '/updates/%s' % alias)))
 
     def test_list_updates_jsonp(self):
         res = self.app.get('/updates/',
@@ -1765,19 +1765,21 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         # Check for the comment multiple ways
         # Note that caveats above don't support markdown, but comments do.
-        self.assertEquals(r['comments'][-1]['text'],
-                          u'This update has obsoleted [bodhi-2.0.0-2.fc17]'
-                          '(http://0.0.0.0:6543/updates/FEDORA-2016-033713b73b), '
-                          'and has inherited its bugs and notes.')
+        expected_comment = (
+            u'This update has obsoleted [bodhi-2.0.0-2.fc17]({}), '
+            u'and has inherited its bugs and notes.')
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-033713b73b'))
+        self.assertEquals(r['comments'][-1]['text'], expected_comment)
         publish.assert_called_with(
             topic='update.request.testing', msg=mock.ANY)
 
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEquals(up.status, UpdateStatus.obsolete)
-        self.assertEquals(up.comments[-1].text,
-                          u'This update has been obsoleted by '
-                          '[bodhi-2.0.0-3.fc17](http://0.0.0.0:6543/'
-                          'updates/FEDORA-2016-53345602d5).')
+        expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-53345602d5'))
+        self.assertEquals(up.comments[-1].text, expected_comment)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -1861,10 +1863,10 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEquals(up.status, UpdateStatus.obsolete)
-        self.assertEquals(up.comments[-1].text,
-                          u'This update has been obsoleted by '
-                          '[bodhi-2.0.0-3.fc17](http://0.0.0.0:6543/'
-                          'updates/FEDORA-2016-53345602d5).')
+        expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-53345602d5'))
+        self.assertEquals(up.comments[-1].text, expected_comment)
 
         # Check Push to Stable button for obsolete update
         id = 'bodhi-2.0.0-2.fc17'
