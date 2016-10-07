@@ -76,6 +76,8 @@ server_requires = [
 
     # "python setup.py test" needs one of fedmsg's setup.py extra_requires
     'fedmsg[consumers]',
+    # The masher needs fedmsg-atomic-composer
+    'fedmsg-atomic-composer',
 
     'Sphinx',
 

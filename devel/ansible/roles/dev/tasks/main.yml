@@ -27,6 +27,7 @@
       - python-webtest
       - python-zmq
       - python2-createrepo_c
+      - python2-fedmsg-atomic-composer
       - redhat-rpm-config
       - zlib-devel
 
