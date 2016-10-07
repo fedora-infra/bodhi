@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 import mock
 
 import bodhi.tests.server.functional.base
-from bodhi.server.models import (Build, Package, Release, User)
+from bodhi.server.models import (Build, Package, Release, User, Group)
 
 
 class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
@@ -179,6 +179,79 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(errors[0]['name'], 'user')
         self.assertEquals(errors[0]['description'],
                           "Invalid user specified: santa")
+
+    def test_visibility_of_submit_and_expire_button_for_packager(self):
+        """
+        Submit and Expire buttons should be shown to the users who belong
+        to packager group
+        """
+        release = Release.get(u'F17', self.db)
+        package = Package(name=u'not-bodhi')
+        self.db.add(package)
+        user = User(name=u'bochecha')
+        self.db.add(user)
+        group = self.db.query(Group).filter_by(name=u'packager').one()
+        user.groups.append(group)
+
+        build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
+                      release=release)
+        self.db.add(build)
+        self.db.flush()
+
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date, 'csrf_token': self.get_csrf_token()}
+        resp = self.app.post('/overrides/', data)
+        o = resp.json_body
+        self.assertEquals(o['build_id'], build.id)
+        self.assertEquals(o['notes'], 'blah blah blah')
+        self.assertEquals(o['expiration_date'], expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(o['expired_date'], None)
+
+        id = 'not-bodhi-2.0-2.fc17'
+        resp = self.app.get('/overrides/%s' % id,
+                            headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('Submit', resp)
+        self.assertIn('Expire', resp)
+
+    def test_visibility_of_submit_and_expire_button_for_provenpackager(self):
+        """
+        Submit and Expire buttons should be shown to the users who belong
+        to provenpackager group
+        """
+        release = Release.get(u'F17', self.db)
+        package = Package(name=u'not-bodhi')
+        self.db.add(package)
+        user = User(name=u'bochecha')
+        self.db.add(user)
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+        print(user.groups)
+
+        build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
+                      release=release)
+        self.db.add(build)
+        self.db.flush()
+
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date, 'csrf_token': self.get_csrf_token()}
+        resp = self.app.post('/overrides/', data)
+        o = resp.json_body
+        self.assertEquals(o['build_id'], build.id)
+        self.assertEquals(o['notes'], 'blah blah blah')
+        self.assertEquals(o['expiration_date'], expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEquals(o['expired_date'], None)
+
+        id = 'not-bodhi-2.0-2.fc17'
+        resp = self.app.get('/overrides/%s' % id,
+                            headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('Submit', resp)
+        self.assertIn('Expire', resp)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override(self, publish):
