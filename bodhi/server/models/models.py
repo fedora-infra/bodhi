@@ -487,6 +487,7 @@ class Build(Base):
     package_id = Column(Integer, ForeignKey('packages.id'))
     release_id = Column(Integer, ForeignKey('releases.id'))
     update_id = Column(Integer, ForeignKey('updates.id'))
+    signed = Column(Boolean, default=False, nullable=False)
 
     release = relationship('Release', backref='builds', lazy=False)
 
@@ -864,6 +865,10 @@ class Update(Base):
             update=up, agent=request.user.name, new_bugs=new_bugs))
 
         return up, caveats
+
+    @property
+    def signed(self):
+        return all([build.signed for build in self.builds])
 
     def obsolete_older_updates(self, db):
         """Obsolete any older pending/testing updates.
