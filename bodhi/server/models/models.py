@@ -189,13 +189,12 @@ class BodhiBase(object):
         return new, same, removed
 
 
-
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
 
 
 ##
-## Enumerated type declarations
+#  Enumerated type declarations
 ##
 
 class UpdateStatus(DeclEnum):
@@ -244,35 +243,28 @@ class ReleaseState(DeclEnum):
 
 
 ##
-## Association tables
+#  Association tables
 ##
 
-#update_release_table = Table('update_release_table', metadata,
-#        Column('release_id', Integer, ForeignKey('releases.id')),
-#        Column('update_id', Integer, ForeignKey('updates.id')))
+update_bug_table = Table(
+    'update_bug_table', metadata,
+    Column('update_id', Integer, ForeignKey('updates.id')),
+    Column('bug_id', Integer, ForeignKey('bugs.id')))
 
-#update_build_table = Table('update_build_table', metadata,
-#        Column('update_id', Integer, ForeignKey('updates.id')),
-#        Column('build_id', Integer, ForeignKey('builds.id')))
+update_cve_table = Table(
+    'update_cve_table', metadata,
+    Column('update_id', Integer, ForeignKey('updates.id')),
+    Column('cve_id', Integer, ForeignKey('cves.id')))
 
+bug_cve_table = Table(
+    'bug_cve_table', metadata,
+    Column('bug_id', Integer, ForeignKey('bugs.id')),
+    Column('cve_id', Integer, ForeignKey('cves.id')))
 
-##
-
-update_bug_table = Table('update_bug_table', metadata,
-        Column('update_id', Integer, ForeignKey('updates.id')),
-        Column('bug_id', Integer, ForeignKey('bugs.id')))
-
-update_cve_table = Table('update_cve_table', metadata,
-        Column('update_id', Integer, ForeignKey('updates.id')),
-        Column('cve_id', Integer, ForeignKey('cves.id')))
-
-bug_cve_table = Table('bug_cve_table', metadata,
-        Column('bug_id', Integer, ForeignKey('bugs.id')),
-        Column('cve_id', Integer, ForeignKey('cves.id')))
-
-user_package_table = Table('user_package_table', metadata,
-        Column('user_id', Integer, ForeignKey('users.id')),
-        Column('package_id', Integer, ForeignKey('packages.id')))
+user_package_table = Table(
+    'user_package_table', metadata,
+    Column('user_id', Integer, ForeignKey('users.id')),
+    Column('package_id', Integer, ForeignKey('packages.id')))
 
 
 class Release(Base):
@@ -437,7 +429,7 @@ class Package(Base):
                          cmtitle=cat_page, cmlimit=limit)
             response = wiki.call(query)
             members = [entry['title'] for entry in
-                       response.get('query',{}).get('categorymembers',{})
+                       response.get('query', {}).get('categorymembers', {})
                        if 'title' in entry]
 
             # Determine whether we need to recurse
@@ -447,8 +439,8 @@ class Package(Base):
                     break
                 # Recurse?
                 if members[idx].startswith('Category:') and limit > 0:
-                    members.extend(list_categorymembers(wiki, members[idx], limit-1))
-                    members.remove(members[idx]) # remove Category from list
+                    members.extend(list_categorymembers(wiki, members[idx], limit - 1))
+                    members.remove(members[idx])  # remove Category from list
                 else:
                     idx += 1
 
@@ -524,7 +516,7 @@ class Build(Base):
         evr = self.evr
         for tag in [self.update.release.stable_tag, self.update.release.dist_tag]:
             builds = koji_session.getLatestBuilds(
-                    tag, package=self.package.name)
+                tag, package=self.package.name)
 
             # Find the first build that is older than us
             for build in builds:
@@ -596,9 +588,11 @@ class Build(Base):
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
             elif tag == release.testing_tag:
-                log.info('Moving %s from %s to %s' % (self.nvr, tag,
-                    release.candidate_tag))
+                log.info(
+                    'Moving %s from %s to %s' % (
+                        self.nvr, tag, release.candidate_tag))
                 koji.moveBuild(tag, release.candidate_tag, self.nvr)
+
 
 class Update(Base):
     __tablename__ = 'updates'
@@ -662,11 +656,6 @@ class Update(Base):
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
     cves = relationship('CVE', secondary=update_cve_table, backref='updates')
-
-    # We may or may not need this, since we can determine the releases from the
-    # builds
-    #releases = relationship('Release', secondary=update_release_table,
-    #                        backref='updates', lazy=False)
 
     user_id = Column(Integer, ForeignKey('users.id'))
 
@@ -828,7 +817,7 @@ class Update(Base):
             data['request'] = UpdateRequest.testing
 
             # Remove all koji tags and change the status back to pending
-            if not up.status is UpdateStatus.pending:
+            if up.status is not UpdateStatus.pending:
                 up.unpush(db)
                 caveats.append({
                     'name': 'status',
@@ -953,8 +942,8 @@ class Update(Base):
 
     def get_title(self, delim=' ', limit=None, after_limit='…'):
         all_nvrs = map(lambda x: x.nvr, self.builds)
-        nvrs     = all_nvrs[:limit]
-        builds   = delim.join(sorted(nvrs)) + (after_limit if limit and len(all_nvrs) > limit else "")
+        nvrs = all_nvrs[:limit]
+        builds = delim.join(sorted(nvrs)) + (after_limit if limit and len(all_nvrs) > limit else "")
         return builds
 
     def get_bugstring(self, show_titles=False):
@@ -963,8 +952,8 @@ class Update(Base):
         if show_titles:
             i = 0
             for bug in self.bugs:
-                bugstr = u'%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
-                                          bug.bug_id, bug.title)
+                bugstr = u'%s%s - %s\n' % (
+                    i and ' ' * 11 + ': ' or '', bug.bug_id, bug.title)
                 val += u'\n'.join(wrap(
                     bugstr, width=67,
                     subsequent_indent=' ' * 11 + ': ')) + '\n'
@@ -1085,19 +1074,20 @@ class Update(Base):
         if action is UpdateRequest.stable and self.critpath:
             if config.get('critpath.num_admin_approvals') is not None:
                 if not self.critpath_approved:
-                    notes.append('This critical path update has not '
-                                 'yet been approved for pushing to the stable '
-                                 'repository.  It must first reach a karma '
-                                 'of %s, consisting of %s positive karma from '
-                                 'proventesters, along with %d additional '
-                                 'karma from the community. Or, it must '
-                                 'spend %s days in testing without any '
-                                 'negative feedback'
-                                 % (config.get('critpath.min_karma'),
-                                    config.get('critpath.num_admin_approvals'),
-                                    int(config.get('critpath.min_karma')) -
-                                            int(config.get('critpath.num_admin_approvals')),
-                                    config.get('critpath.stable_after_days_without_negative_karma')))
+                    stern_note = (
+                        'This critical path update has not yet been approved for pushing to the '
+                        'stable repository.  It must first reach a karma of %s, consisting of %s '
+                        'positive karma from proventesters, along with %d additional karma from '
+                        'the community. Or, it must spend %s days in testing without any negative '
+                        'feedback')
+                    stern_note = stern_note % (
+                        config.get('critpath.min_karma'),
+                        config.get('critpath.num_admin_approvals'),
+                        (int(config.get('critpath.min_karma')) -
+                            int(config.get('critpath.num_admin_approvals'))),
+                        config.get('critpath.stable_after_days_without_negative_karma'))
+                    notes.append(stern_note)
+
                     if self.status is UpdateStatus.testing:
                         self.request = None
                         raise BodhiException('. '.join(notes))
@@ -1110,7 +1100,7 @@ class Update(Base):
         if action is UpdateRequest.stable and not self.critpath:
             # Check if we've met the karma requirements
             if (self.stable_karma not in (None, 0) and self.karma >=
-                self.stable_karma) or self.critpath_approved:
+                    self.stable_karma) or self.critpath_approved:
                 log.debug('%s meets stable karma requirements' % self.title)
             else:
                 # If we haven't met the stable karma requirements, check if it
@@ -1141,15 +1131,16 @@ class Update(Base):
         # it to the pending state, and make sure it's tagged as a candidate
         if self.status in (UpdateStatus.obsolete, UpdateStatus.unpushed):
             self.status = UpdateStatus.pending
-            if not self.release.candidate_tag in self.get_tags():
+            if self.release.candidate_tag not in self.get_tags():
                 self.add_tag(self.release.candidate_tag)
 
         self.request = action
 
         notes = notes and '. '.join(notes) + '.' or ''
         flash_notes = flash_notes and '. %s' % flash_notes
-        flash_log("%s has been submitted for %s. %s%s" % (self.title,
-            action.description, notes, flash_notes))
+        flash_log(
+            "%s has been submitted for %s. %s%s" % (
+                self.title, action.description, notes, flash_notes))
         self.comment(db, u'This update has been submitted for %s by %s. %s' % (
             action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
@@ -1251,7 +1242,7 @@ class Update(Base):
             mailinglist = config.get('%s_announce_list' % release_name)
         elif self.status is UpdateStatus.testing:
             mailinglist = config.get('%s_test_announce_list' % release_name)
-        
+
         # switch email template to legacy if update aims to EPEL <= 7
         if release_name == 'fedora_epel' and self.release.version_int <= 7:
             templatetype = '%s_errata_legacy_template' % release_name
@@ -1261,7 +1252,8 @@ class Update(Base):
         if mailinglist:
             for subject, body in mail.get_template(self, templatetype):
                 mail.send_mail(sender, mailinglist, subject, body)
-                notifications.publish(topic='errata.publish',
+                notifications.publish(
+                    topic='errata.publish',
                     msg=dict(subject=subject, body=body, update=self))
         else:
             log.error("Cannot find mailing list address for update notice")
@@ -1299,7 +1291,7 @@ class Update(Base):
                       self.type.description, self.karma)
         if self.critpath:
             val += u"\n   Critpath: %s" % self.critpath
-        if self.request != None:
+        if self.request is not None:
             val += u"\n    Request: %s" % self.request.description
         if len(self.bugs):
             bugs = self.get_bugstring(show_titles=True)
@@ -1411,8 +1403,9 @@ class Update(Base):
         If an update with pending status(autopush enabled) reaches unstable karma
         threshold, make sure it gets obsoleted.
         """
-        if self.autokarma and self.status is UpdateStatus.pending and self.request is UpdateRequest.testing \
-                and self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
+        if self.autokarma and self.status is UpdateStatus.pending \
+                and self.request is UpdateRequest.testing and self.unstable_karma not in (0, None) \
+                and self.karma <= self.unstable_karma:
             log.info("%s has reached unstable karma thresholds" % self.title)
             self.obsolete(db)
             flash_log("%s has been obsoleted." % self.title)
@@ -1447,8 +1440,8 @@ class Update(Base):
             # Take all comments since the previous karma reset
             reset_index = 0
             for i, comment in enumerate(self.comments):
-                if (comment.user.name == u'bodhi' and ('New build' in
-                    comment.text or 'Removed build' in comment.text)):
+                if (comment.user.name == u'bodhi' and
+                        ('New build' in comment.text or 'Removed build' in comment.text)):
                     reset_index = i
 
             mycomments = [c.karma for c in self.comments if c.user.name == author][reset_index:]
@@ -1694,8 +1687,9 @@ class Update(Base):
                             msg=dict(update=self, status='stable'))
                     else:
                         # Add the 'testing_approval_msg_based_on_karma' message now
-                        log.info("%s update has reached the stable karma threshold and can be pushed to "\
-                        "stable now if the maintainer wishes" % self.title)
+                        log.info((
+                            "%s update has reached the stable karma threshold and can be pushed to "
+                            "stable now if the maintainer wishes") % self.title)
                 elif self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
                     log.info("Automatically unpushing %s" % self.title)
                     self.obsolete(db)
@@ -1758,15 +1752,14 @@ class Update(Base):
         status = config.get('%s.status' % release_name, None)
         if status:
             num_admin_approvals = config.get('%s.%s.critpath.num_admin_approvals' % (
-                    release_name, status), None)
+                release_name, status), None)
             min_karma = config.get('%s.%s.critpath.min_karma' % (
-                    release_name, status), None)
+                release_name, status), None)
             if num_admin_approvals is not None and min_karma:
                 return self.num_admin_approvals >= int(num_admin_approvals) and \
-                        self.karma >= int(min_karma)
-        return self.num_admin_approvals >= int(config.get(
-                'critpath.num_admin_approvals', 2)) and \
-               self.karma >= int(config.get('critpath.min_karma', 2))
+                    self.karma >= int(min_karma)
+        return self.num_admin_approvals >= int(config.get('critpath.num_admin_approvals', 2)) and \
+            self.karma >= int(config.get('critpath.min_karma', 2))
 
     @property
     def meets_testing_requirements(self):
@@ -1822,7 +1815,9 @@ class Update(Base):
     def days_to_stable(self):
         """ Return the number of days until an update can be pushed to stable """
         if self.meets_testing_requirements:
-            return self.release.mandatory_days_in_testing - (datetime.utcnow() - self.date_testing).days
+            return (
+                self.release.mandatory_days_in_testing -
+                (datetime.utcnow() - self.date_testing).days)
         else:
             return 0
 
@@ -1909,7 +1904,6 @@ class Update(Base):
         return result
 
 
-
 # Used for many-to-many relationships between karma and a bug
 class BugKarma(Base):
     __tablename__ = 'comment_bug_assoc'
@@ -1991,7 +1985,7 @@ class CVE(Base):
     @property
     def url(self):
         return "http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s" % \
-                self.cve_id
+            self.cve_id
 
 
 class Bug(Base):
@@ -2175,9 +2169,10 @@ class BuildrootOverride(Base):
                                '%s is already in a override' % build.nvr)
             return
 
-        old_build = db.query(Build).filter(and_(
-                Build.package_id==build.package_id,
-                Build.release_id==build.release_id)).first()
+        old_build = db.query(Build).filter(
+            and_(
+                Build.package_id == build.package_id,
+                Build.release_id == build.release_id)).first()
 
         if old_build is not None and old_build.override is not None:
             # There already is a buildroot override for an older build of this
