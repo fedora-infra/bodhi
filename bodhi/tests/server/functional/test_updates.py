@@ -2319,7 +2319,6 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = self.app.post_json('/updates/', args)
 
         # Note that this does **not** obsolete the other update
-        print resp.json_body['caveats']
         self.assertEquals(len(resp.json_body['caveats']), 1)
         self.assertEquals(resp.json_body['caveats'][0]['description'],
                           "Please be aware that there is another update in "
@@ -2399,7 +2398,6 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         data = r.json_body
 
         self.assertIn('caveats', data)
-        import pprint; pprint.pprint(data['caveats'])
         self.assertEquals(len(data['caveats']), 1)
         self.assertEquals(data['caveats'][0]['description'], "Your update is being split into 2, one for each release.")
 
