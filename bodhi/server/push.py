@@ -16,13 +16,18 @@ The tool for triggering updates pushes.
 """
 
 import click
+from datetime import datetime
 import json
 import glob
 
 from collections import defaultdict
-from fedora.client.bodhi import Bodhi2Client
+from pyramid.paster import get_appsettings
+from sqlalchemy import engine_from_config
+from sqlalchemy.sql import or_
 
 import bodhi.server.notifications
+from bodhi.server.util import transactional_session_maker
+from bodhi.server.models import Update, Base, UpdateRequest
 
 
 @click.command()
@@ -33,18 +38,17 @@ import bodhi.server.notifications
         help='Push updates with a specific request (default: testing,stable)')
 @click.option('--builds', help='Push updates for specific builds')
 @click.option('--username', envvar='USERNAME')
-@click.option('--password', prompt=True, hide_input=True)
 @click.option('--cert-prefix', default="shell",
               help="The prefix of a fedmsg cert used to sign the message.")
+@click.option('--config', help='Configuration file to use for database credentials',
+              default='/etc/bodhi/production.ini')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @click.option('--resume', help='Resume one or more previously failed pushes',
               is_flag=True, default=False)
-def push(username, password, cert_prefix, **kwargs):
+def push(username, cert_prefix, config, **kwargs):
     staging = kwargs.pop('staging')
     resume = kwargs.pop('resume')
-    client = Bodhi2Client(username=username, password=password,
-                          staging=staging)
 
     lockfiles = defaultdict(list)
     locked_updates = []
@@ -59,31 +63,51 @@ def push(username, password, cert_prefix, **kwargs):
             lockfiles[lockfile].append(update)
             locked_updates.append(update)
 
-    # If we're resuming a push
-    if resume:
-        updates = []
-        for lockfile in lockfiles:
-            doit = raw_input('Resume %s? (y/n)' % lockfile).strip().lower()
-            if doit == 'n':
-                continue
+    settings = get_appsettings(config)
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    Base.metadata.create_all(engine)
+    db_factory = transactional_session_maker(engine)
 
-            for update in lockfiles[lockfile]:
-                updates.append(update)
-                click.echo(update)
-    else:
-        # release->request->updates
-        releases = defaultdict(lambda: defaultdict(list))
-        updates = []
+    update_titles = None
 
-        # Gather the list of updates based on the query parameters
-        # Since there's currently no simple way to get a list of all updates with
-        # any request, we'll take a comma/space-delimited list of them and query
-        # one at a time.
-        requests = kwargs['request'].replace(',', ' ').split(' ')
-        del(kwargs['request'])
-        for request in requests:
-            resp = client.query(request=request, **kwargs)
-            for update in resp.updates:
+    with db_factory() as session:
+        updates = []
+        # If we're resuming a push
+        if resume:
+            for lockfile in lockfiles:
+                doit = raw_input('Resume %s? (y/n)' % lockfile).strip().lower()
+                if doit == 'n':
+                    continue
+
+                for update in lockfiles[lockfile]:
+                    update = Update.get(update).first()
+                    updates.append(update)
+                    click.echo(update)
+        else:
+            # Accept both comma and space separated request list
+            requests = kwargs['request'].replace(',', ' ').split(' ')
+            requests = [UpdateRequest.from_string(val) for val in requests]
+
+            query = session.query(Update).filter(Update.request.in_(requests))
+
+            if kwargs.get('builds'):
+                query = query.join(Update.builds)
+                query = query.filter(or_(*[Build.nvr==build for build in kwargs['builds']]))
+
+            if kwargs.get('releases'):
+                releases = []
+                for r in kwargs['releases']:
+                    release = db.query(Release).filter(
+                        or_(Release.name==r,
+                            Release.name==r.upper(),
+                            Release.version==r)).first()
+                    if not release:
+                        click.echo('Unknown release: %s' % r)
+                    else:
+                        releases.append(r)
+                query = query.filter(or_(*[Update.release==r for r in releases]))
+
+            for update in query.all():
                 # Skip locked updates that are in a current push
                 if update.locked:
                     if update.title in locked_updates:
@@ -94,29 +118,31 @@ def push(username, password, cert_prefix, **kwargs):
                         click.echo('Warning: %s is locked but not in a push' %
                                    update.title)
 
-                updates.append(update.title)
-                for build in update.builds:
-                    releases[update.release.name][request].append(build.nvr)
-            while resp.page < resp.pages:
-                resp = client.query(request=request, page=resp.page + 1, **kwargs)
-                for update in resp.updates:
-                    updates.append(update.title)
-                    for build in update.builds:
-                        releases[update.release.name][request].append(build.nvr)
+                # Skip unsigned updates (this checks that all builds in the update are signed)
+                if not update.signed:
+                    click.echo('Warning: %s has unsigned builds and has been skipped' %
+                               update.title)
+                    continue
 
-            # Write out a file that releng uses to pass to sigul for signing
-            # TODO: in the future we should integrate signing into the workflow
-            for release in releases:
-                output_filename = request.title() + '-' + release
-                click.echo(output_filename + '\n==========')
-                with file(output_filename, 'w') as out:
-                    for build in releases[release][request]:
-                        out.write(build + '\n')
-                        click.echo(build)
-                click.echo('')
+                updates.append(update)
 
-    doit = raw_input('Push these %d updates? (y/n)' % len(updates)).lower().strip()
-    if doit == 'y':
+        for update in updates:
+            print update.title
+
+        doit = raw_input('Push these %d updates? (y/n)' % len(updates)).lower().strip()
+        if doit == 'y':
+            click.echo('\nLocking updates...')
+            for update in updates:
+                update.locked = True
+                update.date_locked = datetime.utcnow()
+
+            update_titles = list([update.title for update in updates])
+        else:
+            click.echo('\nAborting push')
+            raise Exception('Aborting push')
+
+
+    if update_titles:
         click.echo('\nSending masher.start fedmsg')
         # Because we're a script, we want to send to the fedmsg-relay,
         # that's why we say active=True
@@ -124,15 +150,12 @@ def push(username, password, cert_prefix, **kwargs):
         bodhi.server.notifications.publish(
             topic='masher.start',
             msg=dict(
-                updates=list(updates),
+                updates=update_titles,
                 resume=resume,
                 agent=username,
             ),
             force=True,
         )
-    else:
-        click.echo('\nAborting push')
-
 
 if __name__ == '__main__':
     push()
