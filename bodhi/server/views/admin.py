@@ -22,6 +22,7 @@ admin_service = Service(name='admin', path='/admin/',
                         description='Administrator view',
                         acl=admin_only_acl)
 
+
 @admin_service.get(permission='admin')
 def admin(request):
     user = request.user
