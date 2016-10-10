@@ -62,7 +62,7 @@ def main(argv=sys.argv):
                 continue
             if update.meets_testing_requirements:
                 print('%s now meets testing requirements' % update.title)
-                text = config.get('testing_approval_msg') % update.days_in_testing
+                text = config.get('testing_approval_msg') % update.release.mandatory_days_in_testing
                 update.comment(db, text, author='bodhi')
 
             # Approval message when testing based on karma threshold
