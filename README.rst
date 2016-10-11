@@ -43,6 +43,34 @@ You can run the development server from inside the Vagrant environment::
 
     $ pserve /vagrant/development.ini --reload
 
+You can use ``pshell`` and ``tools/shelldb.py`` to get a Python shell quickly set up with a nice
+environment for you to hack in::
+
+	[vagrant@localhost vagrant]$ pshell development.ini
+	Python 2.7.12 (default, Sep 29 2016, 13:30:34)
+	[GCC 6.2.1 20160916 (Red Hat 6.2.1-2)] on linux2
+	Type "help" for more information.
+
+	Environment:
+	  app          The WSGI application.
+	  registry     Active Pyramid registry.
+	  request      Active request object.
+	  root         Root of the default resource tree.
+	  root_factory Default root factory used to create `root`.
+
+	Custom Variables:
+	  m            bodhi.server.models
+	  t            transaction
+
+	>>> execfile('tools/shelldb.py')
+
+Once you've run that ``execfile('tools/shelldb.py')`` tools command, it's pretty easy to run
+database queries::
+
+	>>> db.query(m.Update).filter_by(alias='FEDORA-2016-840ff89708').one().title
+	<output trimmed>
+	u'gtk3-3.22.1-1.fc25'
+
 It is possible to connect your Vagrant box to the staging Koji instance for testing, which can be
 handy at times. You will need to copy your ``.fedora.cert`` and ``.fedora-server-ca.cert`` that you
 normally use to connect to Koji into your Vagrant box, storing them in ``/home/vagrant``. Once you
