@@ -10,10 +10,14 @@ Vagrant
 =======
 
 `Vagrant <https://www.vagrantup.com/>`_ allows contributors to get quickly up and running with a
-Bodhi development environment by automatically configuring a virtual machine. To get started, simply
+Bodhi development environment by automatically configuring a virtual machine. Before you get
+started, ensure that your host machine has virtualization extensions enabled in its BIOS so the
+guest doesn't go slower than molasses. To get started, simply
 use these commands::
 
-    $ sudo dnf install ansible vagrant-libvirt vagrant-sshfs
+    $ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs
+    $ sudo systemctl enable libvirtd
+    $ sudo systemctl start libvirtd
     $ cp Vagrantfile.example Vagrantfile
     # Make sure your bodhi checkout is your shell's cwd
     $ vagrant up
