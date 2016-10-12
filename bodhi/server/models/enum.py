@@ -104,6 +104,10 @@ class DeclEnumType(SchemaType, TypeDecorator):
         return DeclEnumType(self.enum)
 
     def process_bind_param(self, value, dialect):
+        """
+        :type value:   bodhi.server.models.enum.EnumSymbol
+        :type dialect: sqlalchemy.engine.default.DefaultDialect
+        """
         if value is None:
             return None
         return value.value
