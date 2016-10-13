@@ -428,6 +428,15 @@ $(document).ready(function(){
         </td>
       </tr>
 
+      <tr>
+        <td>Autopush</td>
+          % if update.autokarma is True:
+          <td><span class='label label-success'>Enabled</span></td>
+          % elif update.autokarma is False:
+          <td><span class='label label-danger'>Disabled</span></td>
+          % endif
+      </tr>
+
       % if update.type:
       <tr>
         <td>Type</td><td>${self.util.type2html(update.type) | n}</td>

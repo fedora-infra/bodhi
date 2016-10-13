@@ -1876,6 +1876,34 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertIn(id, resp)
         self.assertNotIn('Push to Stable', resp)
 
+    @mock.patch(**mock_valid_requirements)
+    def test_enabled_button_for_autopush(self, *args):
+        """Test Enabled button on Update page when autopush is True"""
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        resp = self.app.post_json('/updates/', args)
+
+        resp = self.app.get('/updates/%s' % nvr,
+                        headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertIn('Enabled', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    def test_disabled_button_for_autopush(self, *args):
+        """Test Disabled button on Update page when autopush is False"""
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = False
+        resp = self.app.post_json('/updates/', args)
+
+        resp = self.app.get('/updates/%s' % nvr,
+                        headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertIn('Disabled', resp)
+
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_invalid_request(self, *args):
