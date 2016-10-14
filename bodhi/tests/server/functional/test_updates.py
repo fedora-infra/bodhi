@@ -3025,6 +3025,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         upd = Update.get(nvr, self.db)
         upd.status = UpdateStatus.testing
         upd.request = None
+        upd.date_testing = datetime.now() - timedelta(days=1)
         self.db.flush()
 
         # Checks karma threshold is reached

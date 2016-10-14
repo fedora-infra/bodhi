@@ -32,9 +32,10 @@ class ModelTest(object):
     klass = None
     attrs = {}
 
-    def setup(self):
+    def setUp(self):
         engine = create_engine('sqlite://')
-        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+        Session = scoped_session(
+            sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))
         Session.configure(bind=engine)
         self.db = Session()
         Base.metadata.create_all(engine)
