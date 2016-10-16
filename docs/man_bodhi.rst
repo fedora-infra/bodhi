@@ -243,6 +243,58 @@ The ``updates`` command allows users to interact with bodhi updates.
 
     Request that the given update be changed to the given state. ``update`` should be given by
     update id, and ``state`` should be one of testing, stable, unpush, obsolete, or revoke.
+    
+    
+    
+Examples
+========
+
+Some common examples of bodhi CLI operations:
+
+    ``$ bodhi --new --type bugfix bodhi-0.4.2-1.fc7``
+        
+        Submitting a new update
+        
+    ``bodhi --n -t bugfix bodhi-0.4.2-1.fc7,python-fedora-0.2.90.21-1.fc8``
+    
+        Submitting a new update for multiple builds
+        
+       
+    ``bodhi --delete bodhi-0.4.2-1.fc7``
+        
+        Deleting an update
+        
+    ``bodhi --candidates``
+      
+        Viewing your update candidates
+    
+    ``bodhi --testable``
+        
+        Viewing what testing updates you have installed
+        
+    ``bodhi --latest kernel``     
+        
+        Viewing the latest builds for every tags across all releases
+        
+    ``bodhi --type security kernel``
+        
+        View all kernel security updates
+        
+    ``bodhi --status testing --release F8``
+        
+        View updates by status
+        
+    ``bodhi --buildroot-override=mocha-1.12.0-3.fc20 --duration=5 --notes="For running test suites when building other nodejs packages"``
+    
+        Submitting a new override
+        
+    ``bodhi --expire-override=mocha-1.12.0-3.fc20``
+    
+        Manually expiring your buildroot override 
+        
+    ``bodhi --edit-override=mocha-1.12.0-3.fc20 --duration=10 --notes="Oh hai"``
+    
+       Extending your duration or editing override notes   
 
 
 Bugs
