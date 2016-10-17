@@ -49,11 +49,10 @@ update = Service(name='update', path='/updates/{id}',
                  acl=bodhi.server.security.packagers_allowed_acl,
                  cors_origins=bodhi.server.security.cors_origins_ro)
 
-update_edit = Service(name='update_edit', path='/updates/{id}/edit',
-                 validators=(validate_update_id,),
-                 description='Update submission service',
-                 acl=bodhi.server.security.packagers_allowed_acl,
-                 cors_origins=bodhi.server.security.cors_origins_rw)
+update_edit = Service(
+    name='update_edit', path='/updates/{id}/edit', validators=(validate_update_id,),
+    description='Update submission service', acl=bodhi.server.security.packagers_allowed_acl,
+    cors_origins=bodhi.server.security.cors_origins_rw)
 
 updates = Service(name='updates', path='/updates/',
                   acl=bodhi.server.security.packagers_allowed_acl,
@@ -69,6 +68,7 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
                          acl=bodhi.server.security.packagers_allowed_acl,
                          cors_origins=bodhi.server.security.cors_origins_rw)
+
 
 @update.get(accept=('application/json', 'text/json'), renderer='json',
             error_handler=bodhi.server.services.errors.json_handler)
@@ -92,9 +92,9 @@ def get_update(request):
 def get_update_for_editing(request):
     """Return a single update from an id, title, or alias for the edit form"""
     return dict(
-        update=request.validated['update'],
-        types=reversed(bodhi.server.models.UpdateType.values()),
-        severities=sorted(bodhi.server.models.UpdateSeverity.values(), key=bodhi.server.util.sort_severity),
+        update=request.validated['update'], types=reversed(bodhi.server.models.UpdateType.values()),
+        severities=sorted(
+            bodhi.server.models.UpdateSeverity.values(), key=bodhi.server.util.sort_severity),
         suggestions=reversed(bodhi.server.models.UpdateSuggestion.values()),
     )
 
@@ -151,6 +151,8 @@ validators = (
     validate_username,
     validate_bugs,
 )
+
+
 @updates_rss.get(schema=bodhi.server.schemas.ListUpdateSchema, renderer='rss',
                  error_handler=bodhi.server.services.errors.html_handler,
                  validators=validators)
@@ -182,16 +184,16 @@ def query_updates(request):
     bugs = data.get('bugs')
     if bugs is not None:
         query = query.join(Update.bugs)
-        query = query.filter(or_(*[Bug.bug_id==bug_id for bug_id in bugs]))
+        query = query.filter(or_(*[Bug.bug_id == bug_id for bug_id in bugs]))
 
     critpath = data.get('critpath')
     if critpath is not None:
-        query = query.filter(Update.critpath==critpath)
+        query = query.filter(Update.critpath == critpath)
 
     cves = data.get('cves')
     if cves is not None:
         query = query.join(Update.cves)
-        query = query.filter(or_(*[CVE.cve_id==cve_id for cve_id in cves]))
+        query = query.filter(or_(*[CVE.cve_id == cve_id for cve_id in cves]))
 
     like = data.get('like')
     if like is not None:
@@ -201,7 +203,7 @@ def query_updates(request):
 
     locked = data.get('locked')
     if locked is not None:
-        query = query.filter(Update.locked==locked)
+        query = query.filter(Update.locked == locked)
 
     modified_since = data.get('modified_since')
     if modified_since is not None:
@@ -214,7 +216,7 @@ def query_updates(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Update.builds).join(Build.package)
-        query = query.filter(or_(*[Package.name==pkg for pkg in packages]))
+        query = query.filter(or_(*[Package.name == pkg for pkg in packages]))
 
     package = None
     if packages and len(packages):
@@ -223,11 +225,11 @@ def query_updates(request):
     builds = data.get('builds')
     if builds is not None:
         query = query.join(Update.builds)
-        query = query.filter(or_(*[Build.nvr==build for build in builds]))
+        query = query.filter(or_(*[Build.nvr == build for build in builds]))
 
     pushed = data.get('pushed')
     if pushed is not None:
-        query = query.filter(Update.pushed==pushed)
+        query = query.filter(Update.pushed == pushed)
 
     pushed_since = data.get('pushed_since')
     if pushed_since is not None:
@@ -239,25 +241,25 @@ def query_updates(request):
 
     releases = data.get('releases')
     if releases is not None:
-        query = query.filter(or_(*[Update.release==r for r in releases]))
+        query = query.filter(or_(*[Update.release == r for r in releases]))
 
     # This singular version of the plural "releases" is purely for bodhi1
     # backwards compat (mostly for RSS feeds) - threebean
     release = data.get('release')
     if release is not None:
-        query = query.filter(Update.release==release)
+        query = query.filter(Update.release == release)
 
     req = data.get('request')
     if req is not None:
-        query = query.filter(Update.request==req)
+        query = query.filter(Update.request == req)
 
     severity = data.get('severity')
     if severity is not None:
-        query = query.filter(Update.severity==severity)
+        query = query.filter(Update.severity == severity)
 
     status = data.get('status')
     if status is not None:
-        query = query.filter(Update.status==status)
+        query = query.filter(Update.status == status)
 
     submitted_since = data.get('submitted_since')
     if submitted_since is not None:
@@ -269,22 +271,22 @@ def query_updates(request):
 
     suggest = data.get('suggest')
     if suggest is not None:
-        query = query.filter(Update.suggest==suggest)
+        query = query.filter(Update.suggest == suggest)
 
     type = data.get('type')
     if type is not None:
-        query = query.filter(Update.type==type)
+        query = query.filter(Update.type == type)
 
     user = data.get('user')
     if user is not None:
-        query = query.filter(Update.user==user)
+        query = query.filter(Update.user == user)
 
     updateid = data.get('updateid')
     if updateid is not None:
-        query = query.filter(or_(*[Update.alias==uid for uid in updateid]))
+        query = query.filter(or_(*[Update.alias == uid for uid in updateid]))
     alias = data.get('alias')
     if alias is not None:
-        query = query.filter(or_(*[Update.alias==a for a in alias]))
+        query = query.filter(or_(*[Update.alias == a for a in alias]))
 
     query = query.order_by(Update.date_submitted.desc())
 
@@ -367,7 +369,6 @@ def new_update(request):
             build.release = request.buildinfo[build.nvr]['release']
             builds.append(build)
             releases.add(request.buildinfo[build.nvr]['release'])
-
 
         if data.get('edited'):
 
