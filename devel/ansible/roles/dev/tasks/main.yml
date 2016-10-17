@@ -29,6 +29,7 @@
       - python2-createrepo_c
       - python2-fedmsg-atomic-composer
       - python2-flake8
+      - python2-nose-cov
       - redhat-rpm-config
       - zlib-devel
 
