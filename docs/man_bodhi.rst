@@ -235,7 +235,7 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Filter by update type.
 
-    ``--user <username``
+    ``--user <username>``
 
         Filter for updates by the given username.
 
