@@ -449,7 +449,6 @@ port = 6543
 
 [pshell]
 m = bodhi.server.models
-db = bodhi.server.models.DBSession
 t = transaction
 
 # Begin logging configuration
