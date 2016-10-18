@@ -212,3 +212,13 @@ There is a meeting every four weeks between Bodhi developers and stakeholder,
 held on IRC. If you would like to attend, you can see details here:
 
 https://apps.fedoraproject.org/calendar/meeting/4667/
+
+
+IRC
+===
+
+Come join us on `Freenode <https://freenode.net/>`_! We've got two channels:
+
+* #bodhi - We use this channel to discuss upstream bodhi development
+* #fedora-apps - We use this channel to discuss Fedora's Bodhi deployment (it is more generally
+  about all of Fedora's infrastructure applications.)
