@@ -191,6 +191,7 @@ setup(name='bodhi-server',
       [moksha.consumer]
       masher = bodhi.server.consumers.masher:Masher
       updates = bodhi.server.consumers.updates:UpdatesHandler
+      signed = bodhi.server.consumers.signed:SignedHandler
       """,
       paster_plugins=['pyramid'],
       )
