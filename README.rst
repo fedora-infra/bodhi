@@ -19,6 +19,11 @@ use these commands::
     $ vagrant up
     $ vagrant ssh -c "cd /vagrant/; pserve development.ini --reload"
 
+``Vagrantfile.example`` sets up a port forward from the host machine's port 6543 into the Vagrant
+guest's port 6543, so you can now visit http://localhost:6543 with your browser to see your Bodhi
+development instance if your browser is on the same host as the Vagrant host. If not, you will need
+to connect to port 6543 on your Vagrant host, which is an exercise left for the reader.
+
 
 Quick tips about the Bodhi Vagrant environment
 ----------------------------------------------
