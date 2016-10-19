@@ -40,7 +40,7 @@ class DummyUser(object):
 
 
 class TestComment(unittest.TestCase):
-    def test_text_nullable(self):
+    def test_text_not_nullable(self):
         """Assert that the text column does not allow NULL values.
 
         For history about why this is important, see
