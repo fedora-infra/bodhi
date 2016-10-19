@@ -514,28 +514,152 @@ class TestUpdate(ModelTest):
             topic='update.request.stable', msg=mock.ANY)
 
     @mock.patch('bodhi.server.notifications.publish')
-    def test_set_meets_then_met_requirements(self, publish):
-        req = DummyRequest()
-        req.errors = cornice.Errors()
-        req.koji = buildsys.get_session()
-        req.user = model.User(name='bob')
-
+    def test_met_testing_requirements_at_7_days_after_bodhi_comment(self, publish):
+        """
+        Ensure a correct True return value from Update.met_testing_requirements() after an update
+        has been in testing for 7 days and after bodhi has commented about it.
+        """
         self.obj.status = UpdateStatus.testing
-        self.obj.request = None
-
         # Pretend it's been in testing for a week
         self.obj.comment(
             self.db, u'This update has been pushed to testing.', author=u'bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         eq_(self.obj.days_in_testing, 7)
+        # The update should be eligible to receive the testing_approval_msg now.
         eq_(self.obj.meets_testing_requirements, True)
-        eq_(self.obj.met_testing_requirements, False)
-
+        # Add the testing_approval_message
         text = config.get('testing_approval_msg') % self.obj.days_in_testing
         self.obj.comment(self.db, text, author=u'bodhi')
 
-        eq_(self.obj.meets_testing_requirements, True)
+        # met_testing_requirement() should return True since Bodhi has commented on the Update to
+        # say that it can now be pushed to stable.
         eq_(self.obj.met_testing_requirements, True)
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_met_testing_requirements_at_7_days_before_bodhi_comment(self, publish):
+        """
+        Ensure a correct False return value from Update.met_testing_requirements() after an update
+        has been in testing for 7 days but before bodhi has commented about it.
+        """
+        self.obj.status = UpdateStatus.testing
+        # Pretend it's been in testing for a week
+        self.obj.comment(
+            self.db, u'This update has been pushed to testing.', author=u'bodhi')
+        self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
+        eq_(self.obj.days_in_testing, 7)
+        # The update should be eligible to receive the testing_approval_msg now.
+        eq_(self.obj.meets_testing_requirements, True)
+
+        # Since bodhi hasn't added the testing_approval_message yet, this should be False.
+        eq_(self.obj.met_testing_requirements, False)
+
+    def test_meets_testing_requirements_with_non_autokarma_update_below_stable_karma(self):
+        """
+        Assert that meets_testing_requirements() correctly returns True for non-autokarma updates
+        that haven't reached the days in testing but have reached the stable_karma threshold.
+        """
+        self.obj.autokarma = False
+        self.obj.status = UpdateStatus.testing
+        self.obj.stable_karma = 1
+
+        # meets_testing_requirement() should return False since the karma threshold has not been
+        # reached (note that this Update does not have any karma).
+        eq_(self.obj.meets_testing_requirements, False)
+
+    def test_meets_testing_requirements_with_non_autokarma_update_reaching_stable_karma(self):
+        """
+        Assert that meets_testing_requirements() correctly returns True for non-autokarma updates
+        that haven't reached the days in testing but have reached the stable_karma threshold.
+        """
+        self.obj.autokarma = False
+        self.obj.status = UpdateStatus.testing
+        self.obj.stable_karma = 1
+        # Now let's add some karma to get it to the required threshold
+        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
+
+        # meets_testing_requirement() should return True since the karma threshold has been reached
+        eq_(self.obj.meets_testing_requirements, True)
+
+    def test_meets_testing_requirements_with_non_autokarma_update_with_stable_karma_0(self):
+        """
+        Assert that meets_testing_requirements() correctly returns False for non-autokarma updates
+        that haven't reached the days in testing but have stable_karma set to 0 (indicating that the
+        update must stay in testing for the full amount of time).
+        """
+        self.obj.autokarma = False
+        self.obj.status = UpdateStatus.testing
+        self.obj.stable_karma = 0
+        # Now let's add some karma to get it above stable_karma, which should not be counted as
+        # meeting the requirements.
+        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
+
+        # meets_testing_requirement() should return False since the stable_karma threshold is 0.
+        eq_(self.obj.meets_testing_requirements, False)
+
+    def test_meets_testing_requirements_with_non_autokarma_update_with_stable_karma_None(self):
+        """
+        Assert that meets_testing_requirements() correctly returns False for non-autokarma updates
+        that haven't reached the days in testing but have stable_karma set to None (indicating that
+        the update must stay in testing for the full amount of time).
+        """
+        self.obj.autokarma = False
+        self.obj.status = UpdateStatus.testing
+        self.obj.stable_karma = None
+        # Now let's add some karma to get it above stable_karma, which should not be counted as
+        # meeting the requirements.
+        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
+
+        # meets_testing_requirement() should return False since the stable_karma threshold is None.
+        eq_(self.obj.meets_testing_requirements, False)
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_met_testing_requirements_with_karma_after_bodhi_comment(self, publish):
+        """
+        Ensure a correct True return value from Update.met_testing_requirements() after a
+        non-autokarma update has reached the karma requirement and after bodhi has commented about
+        it.
+        """
+        self.obj.autokarma = False
+        self.obj.status = UpdateStatus.testing
+        # Pretend it's been in testing for a day
+        self.obj.comment(
+            self.db, u'This update has been pushed to testing.', author=u'bodhi')
+        self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
+        eq_(self.obj.days_in_testing, 1)
+        # Now let's add some karma to get it to the required threshold
+        self.obj.comment(self.db, u'testing', author='hunter1', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author='hunter3', anonymous=False, karma=1)
+        # Add the testing_approval_message
+        text = config.get('testing_approval_msg_based_on_karma')
+        self.obj.comment(self.db, text, author=u'bodhi')
+
+        # met_testing_requirement() should return True since Bodhi has commented on the Update to
+        # say that it can now be pushed to stable.
+        eq_(self.obj.met_testing_requirements, True)
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_met_testing_requirements_with_karma_before_bodhi_comment(self, publish):
+        """
+        Ensure a correct False return value from Update.met_testing_requirements() after a
+        non-autokarma update has reached the karma requirement but before bodhi has commented about
+        it.
+        """
+        self.obj.autokarma = False
+        self.obj.status = UpdateStatus.testing
+        # Pretend it's been in testing for a day
+        self.obj.comment(
+            self.db, u'This update has been pushed to testing.', author=u'bodhi')
+        self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
+        eq_(self.obj.days_in_testing, 1)
+        # Now let's add some karma to get it to the required threshold
+        self.obj.comment(self.db, u'testing', author='hunter1', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author='hunter3', anonymous=False, karma=1)
+
+        # met_testing_requirement() should return False since Bodhi has not yet commented on the
+        # Update to say that it can now be pushed to stable.
+        eq_(self.obj.met_testing_requirements, False)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_set_request_obsolete(self, publish):

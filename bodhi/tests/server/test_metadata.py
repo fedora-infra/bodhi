@@ -49,7 +49,7 @@ class TestExtendedMetadata(unittest.TestCase):
 
     def setUp(self):
         engine = create_engine(DB_PATH)
-        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))
         Session.configure(bind=engine)
         log.debug('Creating all models for %s' % engine)
         Base.metadata.bind = engine

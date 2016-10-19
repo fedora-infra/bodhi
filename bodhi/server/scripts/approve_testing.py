@@ -41,13 +41,7 @@ def main(argv=sys.argv):
     if len(argv) != 2:
         usage(argv)
 
-    config_uri = argv[1]
-
-    settings = get_appsettings(config_uri)
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-    Session.configure(bind=engine)
-    db = Session()
+    db = _get_db_session(argv[1])
 
     with transaction.manager:
         testing = db.query(Update).filter_by(status=UpdateStatus.testing,
@@ -57,10 +51,17 @@ def main(argv=sys.argv):
             if not update.release.mandatory_days_in_testing:
                 print('%s doesn\'t have mandatory days in testing' % update.release.name)
                 continue
+
             # If this has already met testing requirements, skip it
             if update.met_testing_requirements:
                 continue
-            if update.meets_testing_requirements:
+
+            # If autokarma updates have reached the testing threshold, say something! Keep in mind
+            # that we don't care about karma here, because autokarma updates get their request set
+            # to stable by the Update.comment() workflow when they hit the required threshold. Thus,
+            # this function only needs to consider the time requirements because these updates have
+            # not reached the karma threshold.
+            if update.autokarma and update.meets_testing_requirements:
                 print('%s now meets testing requirements' % update.title)
                 text = config.get('testing_approval_msg') % update.release.mandatory_days_in_testing
                 update.comment(db, text, author='bodhi')
@@ -71,3 +72,20 @@ def main(argv=sys.argv):
                 print('%s now reaches stable karma threshold' % update.title)
                 text = config.get('testing_approval_msg_based_on_karma')
                 update.comment(db, text, author='bodhi')
+
+
+def _get_db_session(config_uri):
+    """
+    Construct and return a database session using settings from the given config_uri.
+
+    :param config_uri: A path to a config file to use to get the db settings.
+    :type  config_uri: basestring
+    :return:           A database session
+    """
+    # There are many blocks of code like this in the codebase. We should consolidate them into a
+    # single utility function as described in https://github.com/fedora-infra/bodhi/issues/1028
+    settings = get_appsettings(config_uri)
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    Session.configure(bind=engine)
+    return Session()

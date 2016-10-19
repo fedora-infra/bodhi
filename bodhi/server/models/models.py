@@ -1788,16 +1788,28 @@ class Update(Base):
                     return False
             num_days = int(config.get('critpath.stable_after_days_without_negative_karma'))
             return self.days_in_testing >= num_days
+
         num_days = self.release.mandatory_days_in_testing
         if not num_days:
             return True
+
+        # non-autokarma updates have met the testing requirements if they've reached the karma
+        # threshold.
+        if not self.autokarma and self.stable_karma not in (0, None)\
+                and self.karma >= self.stable_karma:
+            return True
+
+        # Any update that reaches num_days has met the testing requirements.
         return self.days_in_testing >= num_days
 
     @property
     def met_testing_requirements(self):
         """
         Return whether or not this update has already met the testing
-        requirements.
+        requirements and bodhi has commented on the update that the
+        requirements have been met. This is used to determine whether bodhi
+        should add the comment about the Update's eligibility to be pushed,
+        as we only want Bodhi to add the comment once.
 
         If this release does not have a mandatory testing requirement, then
         simply return True.
@@ -1811,7 +1823,7 @@ class Update(Base):
         for comment in self.comments:
             if comment.user.name == 'bodhi' and \
                comment.text.startswith('This update has reached') and \
-               'days in testing and can be pushed to stable now if the ' \
+               'and can be pushed to stable now if the ' \
                'maintainer wishes' in comment.text:
                 return True
         return False

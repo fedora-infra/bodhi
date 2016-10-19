@@ -13,23 +13,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
-import unittest
 
 from webtest import TestApp
-from sqlalchemy import create_engine
-from sqlalchemy import event
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 
-from bodhi.server import main, log
-from bodhi.tests.server import populate
-from bodhi.server.models import (
-    Base,
-)
+from bodhi.server import main
+from bodhi.tests.server.base import BaseTestCase, DB_NAME, DB_PATH
+
 
 FAITOUT = 'http://209.132.184.152/faitout/'
-DB_PATH = 'sqlite://'
-DB_NAME = None
 # The BUILD_ID environment variable is set by Jenkins and allows us to detect if
 # we are running the tests in jenkins or not
 # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
@@ -45,7 +36,7 @@ if os.environ.get('BUILD_ID'):
         pass
 
 
-class BaseWSGICase(unittest.TestCase):
+class BaseWSGICase(BaseTestCase):
     app_settings = {
         'sqlalchemy.url': DB_PATH,
         'mako.directories': 'bodhi:server/templates',
@@ -84,26 +75,11 @@ class BaseWSGICase(unittest.TestCase):
     }
 
     def setUp(self):
-        engine = create_engine(DB_PATH)
-        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-        Session.configure(bind=engine)
-        log.debug('Creating all models for %s' % engine)
-        Base.metadata.bind = engine
-        Base.metadata.create_all(engine)
-        self.db = Session()
-        populate(self.db)
+        super(BaseWSGICase, self).setUp()
         self.app = TestApp(main({}, testing=u'guest', session=self.db, **self.app_settings))
 
-        # Track sql statements in every test
-        self.sql_statements = []
-        def track(conn, cursor, statement, param, ctx, many):
-            self.sql_statements.append(statement)
-
-        event.listen(engine, "before_cursor_execute", track)
-
     def tearDown(self):
-        log.debug('Removing session')
-        self.db.close()
+        super(BaseWSGICase, self).tearDown()
         if DB_NAME:
             try:
                 import requests
