@@ -75,7 +75,7 @@ def push(username, cert_prefix, config, **kwargs):
         # If we're resuming a push
         if resume:
             for lockfile in lockfiles:
-                doit = raw_input('Resume %s? (y/n)' % lockfile).strip().lower()
+                doit = raw_input('Resume %s? (y/n) ' % lockfile).strip().lower()
                 if doit == 'n':
                     continue
 
@@ -129,7 +129,7 @@ def push(username, cert_prefix, config, **kwargs):
         for update in updates:
             print update.title
 
-        doit = raw_input('Push these %d updates? (y/n)' % len(updates)).lower().strip()
+        doit = raw_input('Push these %d updates? (y/n) ' % len(updates)).lower().strip()
         if doit == 'y':
             click.echo('\nLocking updates...')
             for update in updates:
