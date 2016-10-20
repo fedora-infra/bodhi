@@ -1,6 +1,88 @@
 Release notes
 =============
 
+2.3.0
+-----
+
+Bodhi 2.3.0 is a feature and bug fix release.
+
+Features
+^^^^^^^^
+
+* The package input field is now autofocused when creating new updates
+  (`#876 <https://github.com/fedora-infra/bodhi/pull/876>`_).
+* Releases now have a ``pending_signing_tag``
+  (`3fe3e219 <https://github.com/fedora-infra/bodhi/commit/3fe3e219>`_).
+* fedmsg notifications are now sent during ostree compositions
+  (`b972cad0 <https://github.com/fedora-infra/bodhi/commit/b972cad0>`_).
+* Critical path updates will have autopush disabled if they receive negative karma
+  (`b1f71006 <https://github.com/fedora-infra/bodhi/commit/b1f71006>`_).
+* The e-mail templates reference dnf for Fedora and yum for Enterprise Linux
+  (`1c1f2ab7 <https://github.com/fedora-infra/bodhi/commit/1c1f2ab7>`_).
+* Updates are now obsoleted if they reach the unstable threshold while pending
+  (`f033c74c <https://github.com/fedora-infra/bodhi/commit/f033c74c>`_).
+* Bodhi now gates Updates based on whether they are signed yet or not
+  (`#1011 <https://github.com/fedora-infra/bodhi/pull/1011>`_).
+
+
+Bugs
+^^^^
+
+* Candidate builds and bugs are no longer duplicated while searching
+  (`#897 <https://github.com/fedora-infra/bodhi/issues/897>`_).
+* The Bugzilla connection is only initialized when needed
+  (`950eee2c <https://github.com/fedora-infra/bodhi/commit/950eee2c>`_).
+* A sorting issue was fixed on the metrics page so the data is presented correctly
+  (`487acaaf <https://github.com/fedora-infra/bodhi/commit/487acaaf>`_).
+* The Copyright date in the footer of the web interface is updated
+  (`1447b6c7 <https://github.com/fedora-infra/bodhi/commit/1447b6c7>`_).
+* Bodhi will comment with the required time instead of the elapsed time on updates
+  (`#1017 <https://github.com/fedora-infra/bodhi/issues/1017>`_).
+* Bodhi will only comment once to say that non-autopush updates have reached the threshold
+  (`#1009 <https://github.com/fedora-infra/bodhi/issues/1009>`_).
+* ``/masher/`` is now allowed in addition to ``/masher`` for GET requests
+  (`cdb621ba <https://github.com/fedora-infra/bodhi/commit/cdb621ba>`_).
+
+
+Dependencies
+^^^^^^^^^^^^
+
+Bodhi now depends on fedmsg-atomic-composer >= 2016.3, which addresses a few issues during mashing.
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Bodhi 2.3.0 also has a few improvements to the development environment that make it easier to
+contribute to Bodhi or improve Bodhi's automated tests:
+
+* Documentation was added to describe how to connect development Bodhi to staging Koji
+  (`7f3b5fa2 <https://github.com/fedora-infra/bodhi/commit/7f3b5fa2>`_).
+* An unused ``locked_date_for_update()`` method was removed
+  (`b87a6395 <https://github.com/fedora-infra/bodhi/commit/b87a6395>`_).
+* The development.ini.example base_address was changed to localhost so requests would be allowed
+  (`0fd5901d <https://github.com/fedora-infra/bodhi/commit/0fd5901d>`_).
+* The ``setup.py`` file has more complete metadata, making it more suitable for submission to PyPI
+  (`5c201ac2 <https://github.com/fedora-infra/bodhi/commit/5c201ac2>`_).
+* The #bodhi and #fedora-apps channels are now documented in the readme file
+  (`52093069 <https://github.com/fedora-infra/bodhi/commit/52093069>`_).
+* A new test has been added to enforce PEP-8 style and a few modules have been converted to conform
+  (`bbafc9e6 <https://github.com/fedora-infra/bodhi/commit/bbafc9e6>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following contributors authored patches for 2.3.0:
+
+* Josef Sukdol
+* Julio Faracco
+* Patrick Uiterwijk
+* Randy Barlow
+* Richard Fearn
+* Trishna Guha
+
+
 2.2.4
 -----
 
