@@ -375,9 +375,9 @@ $(document).ready(function(){
               <td>${build.nvr}</td>
               <td class="pull-right">
                 % if build.signed:
-                  <span class="glyphicon glyphicon-lock" alt="Build signed"></span>
+                  <span class="glyphicon glyphicon-lock" data-toggle="tooltip" data-placement="top" title="Build signed"></span>
                 % else:
-                  <span class="glyphicon glyphicon-unlock" alt="Build not signed"></span>
+                  <span class="glyphicon glyphicon-unlock" data-toggle="tooltip" data-placement="top" title="Build not signed"></span>
                 % endif
                 <a href='${request.route_url("updates_rss") + "?packages=" + build.package.name}'>
                   <span class="fa fa-rss" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
@@ -449,7 +449,7 @@ $(document).ready(function(){
       <tr>
         <td>Request</td><td>${self.util.request2html(update.request) | n}
         % if not update.signed:
-          <span class="glyphicon glyphicon-unlock" alt="Update contains unsigned builds"></span>
+          <span class="glyphicon glyphicon-unlock" data-toggle="tooltip" data-placement="top" title="Update contains unsigned builds"></span>
         % endif
         </td>
       </tr>
