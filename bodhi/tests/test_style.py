@@ -34,8 +34,10 @@ class TestStyle(unittest.TestCase):
         slowly. This test enforces only modules that have been corrected to comply with flake8. The
         goal is that this test would one day check the entire codebase.
         """
-        enforced_paths = ['bodhi/server/models/__init__.py', 'bodhi/server/models/models.py',
-                          'bodhi/server/services/updates.py', 'bodhi/server/views/admin.py']
+        enforced_paths = [
+            'bodhi/server/models/__init__.py', 'bodhi/server/models/models.py',
+            'bodhi/server/services/overrides.py', 'bodhi/server/services/updates.py',
+            'bodhi/server/views/admin.py']
 
         enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
 
