@@ -27,7 +27,7 @@ from sqlalchemy.sql import or_
 
 import bodhi.server.notifications
 from bodhi.server.util import transactional_session_maker
-from bodhi.server.models import Update, Base, UpdateRequest
+from bodhi.server.models import Update, Base, UpdateRequest, Build, Release
 
 
 @click.command()
@@ -92,19 +92,19 @@ def push(username, cert_prefix, config, **kwargs):
 
             if kwargs.get('builds'):
                 query = query.join(Update.builds)
-                query = query.filter(or_(*[Build.nvr==build for build in kwargs['builds']]))
+                query = query.filter(or_(*[Build.nvr==build for build in kwargs['builds'].split(',')]))
 
             if kwargs.get('releases'):
                 releases = []
-                for r in kwargs['releases']:
-                    release = db.query(Release).filter(
+                for r in kwargs['releases'].split(','):
+                    release = session.query(Release).filter(
                         or_(Release.name==r,
                             Release.name==r.upper(),
                             Release.version==r)).first()
                     if not release:
                         click.echo('Unknown release: %s' % r)
                     else:
-                        releases.append(r)
+                        releases.append(release)
                 query = query.filter(or_(*[Update.release==r for r in releases]))
 
             for update in query.all():
