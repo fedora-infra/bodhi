@@ -46,7 +46,7 @@ automatically be reflected in the guest's ``/vagrant`` folder.
 You can run the unit tests within the guest with nosetests::
 
     $ cd /vagrant
-    $ nosetests -v
+    $ python setup.py nosetests
 
 You can run the development server from inside the Vagrant environment::
 
@@ -122,7 +122,7 @@ Copy ``development.ini.example`` to ``development.ini``:
     
 Run the test suite
 ------------------
-``python setup.py test``
+``python setup.py nosetests``
 
 Import the bodhi2 database
 --------------------------
