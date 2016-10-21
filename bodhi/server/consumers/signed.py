@@ -52,6 +52,7 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
             prefix + '.' + env + '.buildsys.tag'
         ]
 
+        super(SignedHandler, self).__init__(hub, *args, **kwargs)
         log.info('Bodhi signed handler listening on:\n'
                  '%s' % pprint.pformat(self.topic))
 
