@@ -52,14 +52,13 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
             prefix + '.' + env + '.buildsys.tag'
         ]
 
+        super(SignedHandler, self).__init__(hub, *args, **kwargs)
         log.info('Bodhi signed handler listening on:\n'
                  '%s' % pprint.pformat(self.topic))
 
     def consume(self, message):
         msg = message['body']['msg']
         topic = message['topic']
-
-        log.info("Signed Handler handling  %s, %s" % (alias, topic))
 
         build_nvr = '%(name)s-%(version)s-%(release)s' % msg
         tag = msg['tag']
