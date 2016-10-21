@@ -60,8 +60,6 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
         msg = message['body']['msg']
         topic = message['topic']
 
-        log.info("Signed Handler handling  %s, %s" % (alias, topic))
-
         build_nvr = '%(name)s-%(version)s-%(release)s' % msg
         tag = msg['tag']
 
