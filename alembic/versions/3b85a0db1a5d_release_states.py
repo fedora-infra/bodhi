@@ -13,7 +13,7 @@ down_revision = '2519ca5cbba4'
 from alembic import op
 import sqlalchemy as sa
 
-from bodhi.server.models.models import ReleaseState
+from bodhi.server.models.__init__ import ReleaseState
 
 
 def upgrade():

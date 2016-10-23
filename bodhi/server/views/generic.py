@@ -59,10 +59,10 @@ def get_latest_updates(request, critpath, security):
             models.Update.critpath==True)
     if security:
         query = query.filter(
-            models.Update.type==models.UpdateType.security)
+            __init__.Update.type==__init__.UpdateType.security)
 
     query = query.filter(
-        models.Update.status==models.UpdateStatus.testing)
+        __init__.Update.status==__init__.UpdateStatus.testing)
 
     query = query.order_by(models.Update.date_submitted.desc())
     return query.limit(5).all()
