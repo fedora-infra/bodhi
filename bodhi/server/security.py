@@ -91,9 +91,8 @@ def remember_me(context, request, info, *args, **kw):
         db.add(user)
         db.flush()
     else:
-        # We used to not track email addresses, so fill in the fields as people
-        # log back in
-        if not user.email:
+        # Update email address if the address changed
+        if user.email != email:
             user.email = email
             db.flush()
 
