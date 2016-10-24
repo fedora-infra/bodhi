@@ -229,7 +229,7 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].release.name, u'F11')
         eq_(self.obj.builds[0].package.name, u'TurboGears')
 
-    @mock.patch('bodhi.server.models.models.bugtracker.close')
+    @mock.patch('bodhi.server.models.__init.py__.bugtracker.close')
     @mock.patch('bodhi.server.models.models.bugtracker.comment')
     def test_modify_bugs_stable_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to True."""
@@ -256,8 +256,8 @@ class TestUpdate(ModelTest):
                 for c in close.mock_calls]),
             True)
 
-    @mock.patch('bodhi.server.models.models.bugtracker.close')
-    @mock.patch('bodhi.server.models.models.bugtracker.comment')
+    @mock.patch('bodhi.server.models.__init__.bugtracker.close')
+    @mock.patch('bodhi.server.models.__init__.bugtracker.comment')
     def test_modify_bugs_stable_no_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to False."""
         update = self.get_update()

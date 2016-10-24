@@ -20,7 +20,7 @@ from mock import patch
 import transaction
 
 from bodhi.server.config import config
-from bodhi.server.models import models
+from bodhi.server.__init__ import __init__
 from bodhi.server.scripts import approve_testing
 from bodhi.tests.server.base import BaseTestCase
 
@@ -157,7 +157,7 @@ class TestMain(BaseTestCase):
         self.assertEqual(self.db.query(models.Comment).count(), 3)
         usernames = [
             c.user.name
-            for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
+            for c in self.db.query(__init__.Comment).order_by(__init__.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
 
     def test_non_autokarma_update_with_stable_karma_None(self):
@@ -181,7 +181,7 @@ class TestMain(BaseTestCase):
         self.assertEqual(self.db.query(models.Comment).count(), 3)
         usernames = [
             c.user.name
-            for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
+            for c in self.db.query(__init__.Comment).order_by(__init__.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
 
     def test_non_autokarma_update_with_unmet_karma_requirement(self):
@@ -205,7 +205,7 @@ class TestMain(BaseTestCase):
         self.assertEqual(self.db.query(models.Comment).count(), 3)
         usernames = [
             c.user.name
-            for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
+            for c in self.db.query(__init__.Comment).order_by(__init__.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
@@ -233,5 +233,5 @@ class TestMain(BaseTestCase):
         self.assertEqual(self.db.query(models.Comment).count(), 3)
         usernames = [
             c.user.name
-            for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
+            for c in self.db.query(__init__.Comment).order_by(__init__.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
