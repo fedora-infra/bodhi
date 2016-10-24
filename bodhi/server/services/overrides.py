@@ -79,6 +79,8 @@ validators = (
     validate_releases,
     validate_username,
 )
+
+
 @overrides_rss.get(schema=bodhi.server.schemas.ListOverrideSchema, renderer='rss',
                    error_handler=bodhi.server.services.errors.html_handler,
                    validators=validators)
@@ -102,19 +104,19 @@ def query_overrides(request):
     expired = data.get('expired')
     if expired is not None:
         if expired:
-            query = query.filter(BuildrootOverride.expired_date!=None)
+            query = query.filter(BuildrootOverride.expired_date.isnot(None))
         else:
-            query = query.filter(BuildrootOverride.expired_date==None)
+            query = query.filter(BuildrootOverride.expired_date.is_(None))
 
     packages = data.get('packages')
     if packages is not None:
         query = query.join(BuildrootOverride.build).join(Build.package)
-        query = query.filter(or_(*[Package.name==pkg.name for pkg in packages]))
+        query = query.filter(or_(*[Package.name == pkg.name for pkg in packages]))
 
     releases = data.get('releases')
     if releases is not None:
         query = query.join(BuildrootOverride.build).join(Build.release)
-        query = query.filter(or_(*[Release.name==r.name for r in releases]))
+        query = query.filter(or_(*[Release.name == r.name for r in releases]))
 
     like = data.get('like')
     if like is not None:
@@ -125,7 +127,7 @@ def query_overrides(request):
 
     submitter = data.get('user')
     if submitter is not None:
-        query = query.filter(BuildrootOverride.submitter==submitter)
+        query = query.filter(BuildrootOverride.submitter == submitter)
 
     query = query.order_by(BuildrootOverride.submission_date.desc())
 
@@ -194,7 +196,8 @@ def save_override(request):
             for build in builds:
                 log.info("Creating a new buildroot override: %s" % build.nvr)
                 if BuildrootOverride.get(build.id, request.db):
-                    request.errors.add('body', 'builds', 'Buildroot override for %s already exists' % build.nvr)
+                    request.errors.add('body', 'builds',
+                                       'Buildroot override for %s already exists' % build.nvr)
                     return
                 else:
                     overrides.append(BuildrootOverride.new(
@@ -219,10 +222,9 @@ def save_override(request):
                 return
 
             result = BuildrootOverride.edit(
-                    request, edited=edited, submitter=submitter,
-                    notes=data["notes"], expired=data["expired"],
-                    expiration_date=data["expiration_date"]
-                    )
+                request, edited=edited, submitter=submitter,
+                notes=data["notes"], expired=data["expired"],
+                expiration_date=data["expiration_date"])
 
             if not result:
                 # Some error inside .edit(...)
