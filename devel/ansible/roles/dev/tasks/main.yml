@@ -17,6 +17,7 @@
       - postgresql-devel
       - python
       - python-alembic
+      - python-cornice
       - python-devel
       - python-librepo
       - python-mock
