@@ -603,7 +603,6 @@ class Update(Base):
 
     title = Column(UnicodeText, unique=True, default=None, index=True)
 
-    karma = Column(Integer, default=0)
     autokarma = Column(Boolean, default=True)
     stable_karma = Column(Integer, nullable=True)
     unstable_karma = Column(Integer, nullable=True)
@@ -659,6 +658,51 @@ class Update(Base):
     cves = relationship('CVE', secondary=update_cve_table, backref='updates')
 
     user_id = Column(Integer, ForeignKey('users.id'))
+
+    @property
+    def karma(self):
+        """
+        Calculate and return the karma for the Update.
+
+        :return: The Update's current karma.
+        :rtype:  int
+        """
+        positive_karma, negative_karma = self._composite_karma
+        return positive_karma + negative_karma
+
+    @property
+    def _composite_karma(self):
+        """
+        Calculate and return a 2-tuple of the sum of the positive karma comments, and the sum of the
+        negative karma comments. The total karma is simply the sum of the two elements of this
+        2-tuple.
+
+        :return: a 2-tuple of (positive_karma, negative_karma)
+        :rtype:  tuple
+        """
+        positive_karma = 0
+        negative_karma = 0
+        users_counted = set()
+        # We want to traverse the comments in reverse order so we only consider the most recent
+        # comments from any given user, and only the comments since the most recent karma reset
+        # event.
+        for comment in reversed(self.comments):
+            if (comment.user.name == u'bodhi' and
+                    ('New build' in comment.text or 'Removed build' in comment.text)):
+                # We only want to consider comments since the most recent karma reset, which happens
+                # whenever a build is added or removed from an Update. Since we are traversing the
+                # comments in reverse order, once we find one of these comments we can simply exit
+                # this loop.
+                break
+            if not comment.anonymous and comment.user.name not in users_counted:
+                # Make sure we only count the last comment this user made
+                users_counted.add(comment.user.name)
+                if comment.karma > 0:
+                    positive_karma += comment.karma
+                else:
+                    negative_karma += comment.karma
+
+        return positive_karma, negative_karma
 
     @classmethod
     def new(cls, request, data):
@@ -838,7 +882,6 @@ class Update(Base):
         # And, updates with new or removed builds always get their karma reset.
         # https://github.com/fedora-infra/bodhi/issues/511
         if new_builds or removed_builds:
-            data['karma'] = 0
             data['karma_critpath'] = 0
 
         new_bugs = up.update_bugs(data['bugs'], db)
@@ -1419,11 +1462,9 @@ class Update(Base):
     def comment(self, session, text, karma=0, author=None, anonymous=False,
                 karma_critpath=0, bug_feedback=None, testcase_feedback=None,
                 check_karma=True):
-        """ Add a comment to this update, adjusting the karma appropriately.
+        """Add a comment to this update.
 
-        Each user has the ability to comment as much as they want, but only
-        their last karma adjustment will be counted.  If the karma reaches
-        the 'stable_karma' value, then request that this update be marked
+        If the karma reaches the 'stable_karma' value, then request that this update be marked
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
         if not author:
@@ -1441,56 +1482,59 @@ class Update(Base):
                 notice = 'You may not give karma to your own updates.'
                 caveats.append({'name': 'karma', 'description': notice})
 
-        if not anonymous and karma != 0:
-            # Take all comments since the previous karma reset
-            reset_index = 0
-            for i, comment in enumerate(self.comments):
-                if (comment.user.name == u'bodhi' and
-                        ('New build' in comment.text or 'Removed build' in comment.text)):
-                    reset_index = i
-
-            mycomments = [c.karma for c in self.comments if c.user.name == author][reset_index:]
-            if karma not in mycomments:
-                if karma == 1 and -1 in mycomments:
-                    self.karma += 2
-                    caveats.append({
-                        'name': 'karma',
-                        'description': 'Your karma standing was reversed.',
-                    })
-                elif karma == -1 and 1 in mycomments:
-                    self.karma -= 2
-                    caveats.append({
-                        'name': 'karma',
-                        'description': 'Your karma standing was reversed.',
-                    })
-                else:
-                    self.karma += karma
-
-                log.info("Updated %s karma to %d" % (self.title, self.karma))
-
-                if check_karma and author not in config.get('system_users').split():
-                    try:
-                        self.check_karma_thresholds(session, 'bodhi')
-                    except LockedUpdateException:
-                        pass
-                    except BodhiException as e:
-                        # This gets thrown if the karma is pushed over the
-                        # threshold, but it is a critpath update that is not
-                        # critpath_approved. ... among other cases.
-                        log.exception('Problem checking the karma threshold.')
-                        caveats.append({
-                            'name': 'karma', 'description': str(e),
-                        })
-
-                # Obsolete pending update if it reaches unstable karma threshold
-                self.obsolete_if_unstable(session)
-            else:
-                log.debug('Ignoring duplicate %d karma from %s on %s' % (karma, author, self.title))
-
         comment = Comment(
             text=text, anonymous=anonymous,
             karma=karma, karma_critpath=karma_critpath)
         session.add(comment)
+
+        if anonymous:
+            author = u'anonymous'
+        try:
+            user = session.query(User).filter_by(name=author).one()
+        except NoResultFound:
+            user = User(name=author)
+            session.add(user)
+
+        user.comments.append(comment)
+        self.comments.append(comment)
+        session.flush()
+
+        if not anonymous and karma != 0:
+            # Determine whether this user has already left karma, and if so what the most recent
+            # karma value they left was. We should examine all but the most recent comment, since
+            # that is the comment we just added.
+            previous_karma = None
+            for c in reversed(self.comments[:-1]):
+                if c.user.name == author and c.karma:
+                    previous_karma = c.karma
+                    break
+            if previous_karma and karma != previous_karma:
+                caveats.append({
+                    'name': 'karma',
+                    'description': 'Your karma standing was reversed.',
+                })
+            else:
+                log.debug('Ignoring duplicate %d karma from %s on %s' % (karma, author, self.title))
+
+            log.info("Updated %s karma to %d" % (self.title, self.karma))
+
+            if check_karma and author not in config.get('system_users').split():
+                try:
+                    self.check_karma_thresholds(session, 'bodhi')
+                except LockedUpdateException:
+                    pass
+                except BodhiException as e:
+                    # This gets thrown if the karma is pushed over the
+                    # threshold, but it is a critpath update that is not
+                    # critpath_approved. ... among other cases.
+                    log.exception('Problem checking the karma threshold.')
+                    caveats.append({
+                        'name': 'karma', 'description': str(e),
+                    })
+
+            # Obsolete pending update if it reaches unstable karma threshold
+            self.obsolete_if_unstable(session)
+
         session.flush()
 
         for feedback_dict in bug_feedback:
@@ -1503,19 +1547,6 @@ class Update(Base):
             session.add(feedback)
             comment.testcase_feedback.append(feedback)
 
-        session.flush()
-
-        if anonymous:
-            author = u'anonymous'
-        try:
-            user = session.query(User).filter_by(name=author).one()
-        except NoResultFound:
-            user = User(name=author)
-            session.add(user)
-            session.flush()
-
-        user.comments.append(comment)
-        self.comments.append(comment)
         session.flush()
 
         # Publish to fedmsg
@@ -1678,7 +1709,7 @@ class Update(Base):
         if not self.locked:
             if self.status is UpdateStatus.testing:
                 # If critical update receives negative karma disable autopush
-                if self.critpath and self.autokarma and self.has_negative_karma:
+                if self.critpath and self.autokarma and self._composite_karma[1] != 0:
                     log.info("Disabling Auto Push since the critical update has negative karma")
                     self.autokarma = False
                 elif self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
@@ -1734,18 +1765,6 @@ class Update(Base):
 
         possibilities.sort()  # Sort smallest to largest (oldest to newest)
         return possibilities[-1]  # Return the last one
-
-    @property
-    def has_negative_karma(self):
-        """Check for negative karma, Returns True if the update has negative karma"""
-        feedback = defaultdict(int)
-        for comment in self.comments:
-            if not comment.anonymous:
-                feedback[comment.user.name] = comment.karma
-        for karma in feedback.values():
-            if karma < 0:
-                return True
-        return False
 
     @property
     def critpath_approved(self):
@@ -1903,6 +1922,8 @@ class Update(Base):
         # Also, put the update submitter's name in the same place we put
         # it for bodhi1 to make fedmsg.meta compat much more simple.
         result['submitter'] = result['user']['name']
+        # Include the karma total in the results
+        result['karma'] = self.karma
 
         # For https://github.com/fedora-infra/bodhi/issues/270, throw the JSON
         # of the test cases in our output as well but take extra care to
@@ -1978,6 +1999,12 @@ class Comment(Base):
 
         # Similarly, duplicate the update's title as update_title.
         result['update_title'] = result['update']['title']
+
+        # Updates used to have a karma column which would be included in result['update']. The
+        # column was replaced with a property, so we need to include it here for backwards
+        # compatibility.
+        result['update']['karma'] = self.update.karma
+
         return result
 
     def __str__(self):

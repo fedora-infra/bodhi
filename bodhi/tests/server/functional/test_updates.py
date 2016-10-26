@@ -2549,8 +2549,10 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         upd = Update.get(nvr, self.db)
         upd.status = UpdateStatus.testing
         upd.request = None
-        upd.karma = 2
+        upd.comment(self.db, u'LGTM', author=u'bob', karma=1)
+        upd.comment(self.db, u'LGTM2ME2', author=u'other_bob', karma=1)
         self.db.flush()
+        self.assertEqual(upd.karma, 2)
 
         # Then.. edit it and change the builds!
         args['edited'] = args['builds']
@@ -2624,8 +2626,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_has_negative_karma(self, publish, *args):
-        """The test asserts that has_negative_karma returns True when an update receives negative karma"""
+    def test__composite_karma_with_one_negative(self, publish, *args):
+        """The test asserts that _composite_karma returns (0, -1) when an update receives one
+           negative karma"""
         user = User(name=u'bob')
         self.db.add(user)
         self.db.flush()
@@ -2643,13 +2646,13 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         # The user gives negative karma first
         up.comment(self.db, u'Failed to work', author=u'luke', karma=-1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertTrue(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (0, -1))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_has_no_negative_karma_with_changed_karma(self, publish, *args):
+    def test__composite_karma_with_changed_karma(self, publish, *args):
         """
-        This test asserts that has_negative_karma returns False when a user posts negative karma 
+        This test asserts that _composite_karma returns (1, 0) when a user posts negative karma
         and then later posts positive karma.
         """
         user = User(name=u'bob')
@@ -2669,19 +2672,19 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         # The user gives negative karma first
         up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertTrue(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (0, -1))
 
         # The same user gives positive karma later
         up.comment(self.db, u'wfm', author=u'ralph', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertFalse(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (1, 0))
         self.assertEquals(up.karma, 1)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_has_negative_karma_with_positive_karma_first(self, publish, *args):
+    def test__composite_karma_with_positive_karma_first(self, publish, *args):
         """
-        This test asserts that has_negative_karma returns True when a user posts positive karma 
+        This test asserts that _composite_karma returns (1, -1) when one user posts positive karma
         and then another user posts negative karma.
         """
         user = User(name=u'bob')
@@ -2701,18 +2704,18 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         #  user gives positive karma first
         up.comment(self.db, u'Works for me', author=u'ralph', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertFalse(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (1, 0))
 
         # Another user gives negative karma later
         up.comment(self.db, u'Failed to work', author=u'bowlofeggs', karma=-1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertTrue(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (1, -1))
         self.assertEquals(up.karma, 0)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_has_no_negative_karma(self, publish, *args):
-        """The test asserts that has_negative_karma returns False when there is no negative karma"""
+    def test__composite_karma_with_no_negative_karma(self, publish, *args):
+        """The test asserts that _composite_karma returns (*, 0) when there is no negative karma."""
         user = User(name=u'bob')
         self.db.add(user)
         self.db.flush()
@@ -2729,20 +2732,20 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         up.comment(self.db, u'LGTM', author=u'mac', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertFalse(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (1, 0))
 
         # Karma with no comment
         up.comment(self.db, u' ', author=u'bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertFalse(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (2, 0))
         self.assertEquals(up.karma, 2)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_has_negative_karma_with_Anonymous_karma(self, publish, *args):
+    def test__composite_karma_with_anonymous_comment(self, publish, *args):
         """
-        The test asserts that has_negative_karma returns False when an anonymous user
-        gives negative karma to an update
+        The test asserts that _composite_karma returns (0, 0) when an anonymous user
+        gives negative karma to an update.
         """
         user = User(name=u'bob')
         self.db.add(user)
@@ -2760,12 +2763,12 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         up.comment(self.db, u'Not working', author='me', anonymous=True, karma=-1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertFalse(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (0, 0))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_has_negative_karma_with_no_feedback(self, publish, *args):
-        """This test asserts that has_negative_karma return False when an update has no feedback"""
+    def test__composite_karma_with_no_feedback(self, publish, *args):
+        """This test asserts that _composite_karma returns (0, 0) when an update has no feedback."""
         user = User(name=u'bob')
         self.db.add(user)
         self.db.flush()
@@ -2781,7 +2784,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.db.flush()
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertFalse(up.has_negative_karma)
+        self.assertEqual(up._composite_karma, (0, 0))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3110,7 +3113,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         update = Update(title=oldbuild, builds=[build], type=UpdateType.bugfix,
                         request=UpdateRequest.testing, notes=u'second update',
                         user=update.user, release=update.release)
-        update.karma = 3
+        update.comment(self.db, u"foo1", 1, u'foo1')
+        update.comment(self.db, u"foo2", 1, u'foo2')
+        update.comment(self.db, u"foo3", 1, u'foo3')
         self.db.add(update)
         self.db.flush()
 
