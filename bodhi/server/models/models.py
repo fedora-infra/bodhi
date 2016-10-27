@@ -868,6 +868,8 @@ class Update(Base):
 
     @property
     def signed(self):
+        if not self.release.pending_signing_tag:
+            return True
         return all([build.signed for build in self.builds])
 
     def obsolete_older_updates(self, db):
