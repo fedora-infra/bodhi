@@ -1,6 +1,15 @@
 Release notes
 =============
 
+2.3.1
+-----
+
+Bodhi 2.3.1 fixes `#1067 <https://github.com/fedora-infra/bodhi/issues/1067>`_,
+such that edited updates now tag new builds into the ``pending_signing_tag``
+instead of the ``pending_testing_tag``. This is needed for automatic signing
+gating to work.
+
+
 2.3.0
 -----
 
