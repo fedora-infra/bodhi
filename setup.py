@@ -16,7 +16,7 @@ import setuptools.command.egg_info
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-VERSION = '2.2.4'
+VERSION = '2.3.0'
 # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
@@ -77,7 +77,7 @@ server_requires = [
     # "python setup.py test" needs one of fedmsg's setup.py extra_requires
     'fedmsg[consumers]',
     # The masher needs fedmsg-atomic-composer
-    'fedmsg-atomic-composer',
+    'fedmsg-atomic-composer >= 2016.3',
 
     'Sphinx',
 
