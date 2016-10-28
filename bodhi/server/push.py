@@ -80,7 +80,7 @@ def push(username, cert_prefix, config, **kwargs):
                     continue
 
                 for update in lockfiles[lockfile]:
-                    update = Update.get(update).first()
+                    update = session.query(Update).filter(Update.title==update).first()
                     updates.append(update)
                     click.echo(update)
         else:
