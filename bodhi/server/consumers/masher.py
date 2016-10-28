@@ -954,7 +954,7 @@ class MasherThread(threading.Thread):
                     topic="ostree.compose.finish",
                     msg=dict(tag=tag,
                              ref=result.get('ref'),
-                             commitid=results.get('commitid')),
+                             commitid=result.get('commitid')),
                     force=True)
 
 
