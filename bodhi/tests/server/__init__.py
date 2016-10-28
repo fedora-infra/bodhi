@@ -11,6 +11,7 @@ from bodhi.server.models import (
     Group,
     Package,
     Release,
+    ReleaseState,
     Update,
     UpdateType,
     User,
@@ -41,7 +42,7 @@ def populate(db):
         pending_testing_tag=u'f17-updates-testing-pending',
         pending_stable_tag=u'f17-updates-pending',
         override_tag=u'f17-override',
-        branch=u'f17')
+        branch=u'f17', state=ReleaseState.current)
     db.add(release)
     pkg = Package(name=u'bodhi')
     db.add(pkg)

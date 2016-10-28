@@ -27,7 +27,7 @@ from sqlalchemy.sql import or_
 
 import bodhi.server.notifications
 from bodhi.server.util import transactional_session_maker
-from bodhi.server.models import Update, Base, UpdateRequest, Build, Release
+from bodhi.server.models import Update, Base, UpdateRequest, Build, Release, ReleaseState
 
 
 @click.command()
@@ -94,18 +94,7 @@ def push(username, cert_prefix, config, **kwargs):
                 query = query.join(Update.builds)
                 query = query.filter(or_(*[Build.nvr==build for build in kwargs['builds'].split(',')]))
 
-            if kwargs.get('releases'):
-                releases = []
-                for r in kwargs['releases'].split(','):
-                    release = session.query(Release).filter(
-                        or_(Release.name==r,
-                            Release.name==r.upper(),
-                            Release.version==r)).first()
-                    if not release:
-                        click.echo('Unknown release: %s' % r)
-                    else:
-                        releases.append(release)
-                query = query.filter(or_(*[Update.release==r for r in releases]))
+            query = _filter_releases(session, query, kwargs.get('releases'))
 
             for update in query.all():
                 # Skip locked updates that are in a current push
@@ -156,6 +145,41 @@ def push(username, cert_prefix, config, **kwargs):
             ),
             force=True,
         )
+
+
+def _filter_releases(session, query, releases=None):
+    """
+    Apply a filter() transformation to the given query on Updates to filter updates that match the
+    given releases argument. If releases evaluates "Falsey", this function will filter for Updates
+    that are part of a current Release.
+
+    :param session:  The database session
+    :param query:    An Update query that we want to modify by filtering based on Releases
+    :param releases: A comma-separated string of release names
+
+    :returns:        A filtered version of query with an additional filter based on releases.
+    """
+    # We will store models.Release object here that we want to filter by
+    _releases = []
+
+    if releases:
+        for r in releases.split(','):
+            release = session.query(Release).filter(
+                or_(Release.name == r,
+                    Release.name == r.upper(),
+                    Release.version == r)).first()
+            if not release:
+                raise click.BadParameter('Unknown release: %s' % r)
+            else:
+                _releases.append(release)
+    else:
+        # Since the user didn't ask for specific Releases, let's just filter for releases that are
+        # current.
+        _releases = session.query(Release).filter(or_(Release.state == ReleaseState.current,
+                                                      Release.state == ReleaseState.pending))
+
+    return query.filter(or_(*[Update.release == r for r in _releases]))
+
 
 if __name__ == '__main__':
     push()
