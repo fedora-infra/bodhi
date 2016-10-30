@@ -61,15 +61,12 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
     """
     config_key = 'updates_handler'
 
-    def __init__(self, hub, db_factory=None, *args, **kwargs):
-        if not db_factory:
-            config_uri = '/etc/bodhi/production.ini'
-            self.settings = get_appsettings(config_uri)
-            engine = engine_from_config(self.settings, 'sqlalchemy.')
-            Base.metadata.create_all(engine)
-            self.db_factory = transactional_session_maker(engine)
-        else:
-            self.db_factory = db_factory
+    def __init__(self, hub, *args, **kwargs):
+        config_uri = '/etc/bodhi/production.ini'
+        self.settings = get_appsettings(config_uri)
+        engine = engine_from_config(self.settings, 'sqlalchemy.')
+        Base.metadata.create_all(engine)
+        self.db_factory = transactional_session_maker(engine)
 
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
