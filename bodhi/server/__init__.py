@@ -38,11 +38,18 @@ log = logging.getLogger(__name__)
 from bodhi.server import ffmarkdown
 ffmarkdown.inject()
 
+
 #
 # Request methods
 #
 
-def get_dbsession(request):
+def get_db_session_for_request(request=None):
+    """
+    This function returns a database session that is meant to be used for the given request. It sets
+    up the Zope transaction manager and configures the request to close the session when it is
+    completed. If you need a database session that is not tied to a request, you can use
+    bodhi.server.models.models.get_db_factory() to return a session generator.
+    """
     engine = engine_from_config(request.registry.settings, 'sqlalchemy.')
     Sess = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
     Sess.configure(bind=engine)
@@ -149,7 +156,7 @@ def main(global_config, testing=None, session=None, **settings):
     if session:
         config.add_request_method(lambda _: session, 'db', reify=True)
     else:
-        config.add_request_method(get_dbsession, 'db', reify=True)
+        config.add_request_method(get_db_session_for_request, 'db', reify=True)
 
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
