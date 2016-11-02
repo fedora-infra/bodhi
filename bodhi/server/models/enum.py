@@ -72,10 +72,7 @@ class DeclEnum(object):
         try:
             return cls._reg[value]
         except KeyError:
-            raise ValueError(
-                    "Invalid value for %r: %r" %
-                    (cls.__name__, value)
-                )
+            raise ValueError("Invalid value for %r: %r" % (cls.__name__, value))
 
     @classmethod
     def values(cls):
@@ -90,12 +87,8 @@ class DeclEnumType(SchemaType, TypeDecorator):
     def __init__(self, enum):
         self.enum = enum
         self.impl = Enum(
-                        *enum.values(),
-                        name="ck%s" % re.sub(
-                                    '([A-Z])',
-                                    lambda m: "_" + m.group(1).lower(),
-                                    enum.__name__)
-                    )
+            *enum.values(),
+            name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__))
 
     def _set_table(self, table, column):
         self.impl._set_table(table, column)
