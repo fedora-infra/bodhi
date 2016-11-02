@@ -33,6 +33,8 @@ PLATFORMS = ['Fedora', 'GNU/Linux']
 URL = 'https://github.com/fedora-infra/bodhi'
 
 server_requires = [
+    # push.py uses click
+    'click',
     'pyramid',
     'pyramid_mako',
     'pyramid_debugtoolbar',
