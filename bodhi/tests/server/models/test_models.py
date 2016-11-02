@@ -26,8 +26,8 @@ from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from pyramid.testing import DummyRequest
 
-from bodhi.server import models as model, buildsys, mail
-from bodhi.server.models import (UpdateStatus, UpdateType, UpdateRequest,
+from bodhi.server import models as model, buildsys, mail, util
+from bodhi.server.models import (get_db_factory, UpdateStatus, UpdateType, UpdateRequest,
                           UpdateSeverity, UpdateSuggestion, ReleaseState,
                           BugKarma)
 from bodhi.tests.server.models import ModelTest
@@ -47,6 +47,18 @@ class TestComment(unittest.TestCase):
         https://github.com/fedora-infra/bodhi/issues/949.
         """
         self.assertEqual(model.Comment.__table__.columns['text'].nullable, False)
+
+
+class TestGetDBFactory(unittest.TestCase):
+    """
+    This class contains tests for the get_db_factory() function.
+    """
+    def test_return_type(self):
+        """
+        """
+        Session = get_db_factory()
+
+        self.assertEqual(type(Session), util.TransactionalSessionMaker)
 
 
 class TestRelease(ModelTest):

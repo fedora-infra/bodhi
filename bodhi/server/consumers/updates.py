@@ -35,11 +35,7 @@ import pprint
 
 import fedmsg.consumers
 
-from pyramid.paster import get_appsettings
-from sqlalchemy import engine_from_config
-
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.util import transactional_session_maker
 from bodhi.server.models import (
     Bug,
     Update,
@@ -48,6 +44,8 @@ from bodhi.server.models import (
 )
 
 from bodhi.server.bugs import bugtracker
+from bodhi.server.config import config
+from bodhi.server.models import models
 
 import logging
 log = logging.getLogger('bodhi')
@@ -62,11 +60,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
     config_key = 'updates_handler'
 
     def __init__(self, hub, *args, **kwargs):
-        config_uri = '/etc/bodhi/production.ini'
-        self.settings = get_appsettings(config_uri)
-        engine = engine_from_config(self.settings, 'sqlalchemy.')
-        Base.metadata.create_all(engine)
-        self.db_factory = transactional_session_maker(engine)
+        self.db_factory = models.get_db_factory()
 
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
@@ -75,7 +69,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             prefix + '.' + env + '.bodhi.update.edit',
         ]
 
-        self.handle_bugs = bool(self.settings.get('bodhi_email'))
+        self.handle_bugs = bool(config.get('bodhi_email'))
         if not self.handle_bugs:
             log.warn("No bodhi_email defined; not fetching bug details")
 
@@ -150,7 +144,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
                     update.type = UpdateType.security
 
                 log.info("Commenting on %r" % bug.bug_id)
-                comment = self.settings['initial_bug_msg'] % (
+                comment = config['initial_bug_msg'] % (
                     update.title, update.release.long_name, update.abs_url())
                 bug.add_comment(update, comment)
 
