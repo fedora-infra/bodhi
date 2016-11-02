@@ -194,7 +194,6 @@ class TestUpdate(ModelTest):
         unstable_karma=-3,
         close_bugs=True,
         notes=u'foobar',
-        karma=0,
         )
 
     def do_get_dependencies(self):
@@ -386,6 +385,96 @@ class TestUpdate(ModelTest):
     def test_dupe(self):
         self.get_update()
         self.get_update()
+
+    def test_karma_no_comments(self):
+        """Check that karma returns the correct value with one negative and two positive comments.
+        """
+        eq_(self.obj.karma, 0)
+
+    def test_karma_one_negative_two_positive(self):
+        """Check that karma returns the correct value with one negative and two positive comments.
+        """
+        self.obj.comment(self.db, u"foo", 1, u'foo')
+        self.obj.comment(self.db, u"foo", -1, u'bar')
+        self.obj.comment(self.db, u"foo", 1, u'biz')
+
+        eq_(self.obj.karma, 1)
+
+    def test_karma_two_negative_one_positive(self):
+        """Check that karma returns the correct value with two negative and one positive comments.
+        """
+        self.obj.comment(self.db, u"foo", -1, u'foo')
+        self.obj.comment(self.db, u"foo", -1, u'bar')
+        self.obj.comment(self.db, u"foo", 1, u'biz')
+
+        eq_(self.obj.karma, -1)
+
+    def test__composite_karma_ignores_anonymous_karma(self):
+        """Assert that _composite_karma ignores anonymous karma."""
+        self.obj.comment(self.db, u"foo", -1, u'foo')
+        self.obj.comment(self.db, u"foo", -1, u'bar')
+        # This one shouldn't get counted
+        self.obj.comment(self.db, u"foo", 1, u'biz', anonymous=True)
+
+        eq_(self.obj._composite_karma, (0, -2))
+
+    def test__composite_karma_ignores_comments_before_new_build(self):
+        """Assert that _composite_karma ignores karma from before a new build karma reset event."""
+        self.obj.comment(self.db, u"foo", -1, u'foo')
+        self.obj.comment(self.db, u"foo", -1, u'bar')
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        self.obj.comment(self.db, u"New build", 0, u'bodhi')
+        self.obj.comment(self.db, u"foo", 1, u'biz')
+
+        eq_(self.obj._composite_karma, (1, 0))
+
+    def test__composite_karma_ignores_comments_before_removed_build(self):
+        """Assert that _composite_karma ignores karma from before a removed build karma reset event."""
+        self.obj.comment(self.db, u"foo", 1, u'foo')
+        self.obj.comment(self.db, u"foo", 1, u'bar')
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        self.obj.comment(self.db, u"Removed build", 0, u'bodhi')
+        self.obj.comment(self.db, u"foo", -1, u'biz')
+
+        eq_(self.obj._composite_karma, (0, -1))
+
+    def test__composite_karma_ignores_old_comments(self):
+        """Assert that _composite_karma ignores karma from a user's previous responses."""
+        self.obj.comment(self.db, u"I", -1, u'foo')
+        self.obj.comment(self.db, u"can't", 1, u'foo')
+        self.obj.comment(self.db, u"make", -1, u'foo')
+        self.obj.comment(self.db, u"up", 1, u'foo')
+        self.obj.comment(self.db, u"my", -1, u'foo')
+        self.obj.comment(self.db, u"mind", 1, u'foo')
+        self.obj.comment(self.db, u".", -37, u'foo')
+
+        eq_(self.obj._composite_karma, (0, -37))
+
+    def test__composite_karma_mixed_case(self):
+        """Assert _composite_karma with mixed responses that hits a lot of the method."""
+        self.obj.comment(self.db, u"ignored", -1, u'foo1')
+        self.obj.comment(self.db, u"forgotten", -1, u'foo2')
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        self.obj.comment(self.db, u"Removed build", 0, u'bodhi')
+        self.obj.comment(self.db, u"Nice job", -1, u'foo')
+        self.obj.comment(self.db, u"Whoops my last comment was wrong", 1, u'foo')
+        self.obj.comment(self.db, u"LGTM", 1, u'foo2')
+        self.obj.comment(self.db, u"Don't ignore me", -1, u'foo1')
+
+        eq_(self.obj._composite_karma, (2, -1))
+
+    def test__composite_karma_no_comments(self):
+        """Assert _composite_karma with no comments is (0, 0)."""
+        eq_(self.obj._composite_karma, (0, 0))
+
+    def test__composite_karma_one_negative_two_positive(self):
+        """Assert that _composite_karma returns (2, -1) with one negative and two positive comments.
+        """
+        self.obj.comment(self.db, u"foo", 1, u'foo')
+        self.obj.comment(self.db, u"foo", -1, u'bar')
+        self.obj.comment(self.db, u"foo", 1, u'biz')
+
+        eq_(self.obj._composite_karma, (2, -1))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_stable_karma(self, publish):
