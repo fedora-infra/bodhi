@@ -1295,7 +1295,7 @@ class Update(Base):
 
         # switch email template to legacy if update aims to EPEL <= 7
         if release_name == 'fedora_epel' and self.release.version_int <= 7:
-            templatetype = '%s_errata_legacy_template' % release_name
+            templatetype = '%s_legacy_errata_template' % release_name
         else:
             templatetype = '%s_errata_template' % release_name
 
