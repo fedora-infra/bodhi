@@ -37,7 +37,7 @@ from bodhi.server.models import Update, Base, UpdateRequest, Build, Release
 @click.option('--request', default='testing,stable',
         help='Push updates with a specific request (default: testing,stable)')
 @click.option('--builds', help='Push updates for specific builds')
-@click.option('--username', envvar='USERNAME')
+@click.option('--username', envvar='USERNAME', prompt=True)
 @click.option('--cert-prefix', default="shell",
               help="The prefix of a fedmsg cert used to sign the message.")
 @click.option('--config', help='Configuration file to use for database credentials',
@@ -80,7 +80,7 @@ def push(username, cert_prefix, config, **kwargs):
                     continue
 
                 for update in lockfiles[lockfile]:
-                    update = Update.get(update).first()
+                    update = session.query(Update).filter(Update.title==update).first()
                     updates.append(update)
                     click.echo(update)
         else:
