@@ -29,7 +29,7 @@ from pyramid.view import view_config
 
 def math_generator(plainkey, settings):
     """ Given a plainkey, return its expected value.
-    If plainkey is None, return a random one.
+    If plainkey is None, return a random one. settings is not used.
     """
     if not plainkey:
         x = random.randint(1, 100)
