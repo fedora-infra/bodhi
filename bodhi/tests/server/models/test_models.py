@@ -763,7 +763,7 @@ class TestUpdate(ModelTest):
 
         update.send_update_notice()
 
-        get_template.assert_called_with(update, u'fedora_epel_errata_legacy_template')
+        get_template.assert_called_with(update, u'fedora_epel_legacy_errata_template')
 
     @mock.patch('bodhi.server.mail.get_template')
     def test_send_update_notice_message_template_el8(self, get_template):
