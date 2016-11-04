@@ -34,7 +34,7 @@ except ImportError:
 
 
 from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, engine_from_config
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
 from sqlalchemy.sql import text
@@ -55,6 +55,8 @@ from bodhi.server.models.enum import DeclEnum, EnumSymbol
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.config import config
 from bodhi.server.bugs import bugtracker
+from bodhi.server.util import transactional_session_maker
+
 
 try:
     import rpm
@@ -2309,3 +2311,15 @@ class Stack(Base):
     # Many-to-many relationships
     groups = relationship("Group", secondary=stack_group_table, backref='stacks')
     users = relationship("User", secondary=stack_user_table, backref='stacks')
+
+
+def get_db_factory():
+    """
+    This function generates and returns a database factory that can be used for non-request
+    transactions. You can instantiate the class returned by this function to get a database
+    session that you can use with a context manager. If you wish to get a database session for a
+    request, see bodhi.server.get_db_session_for_request().
+    """
+    engine = engine_from_config(config, 'sqlalchemy.')
+    Base.metadata.create_all(engine)
+    return transactional_session_maker(engine)
