@@ -21,10 +21,6 @@ from sqlalchemy.sql import or_
 
 from bodhi.server import log
 from bodhi.server.models import Comment, Build, Update
-import bodhi.server.captcha
-import bodhi.server.schemas
-import bodhi.server.security
-import bodhi.server.services.errors
 from bodhi.server.validators import (
     validate_packages,
     validate_update,
@@ -37,12 +33,15 @@ from bodhi.server.validators import (
     validate_testcase_feedback,
     validate_captcha,
 )
+import bodhi.server.captcha
+import bodhi.server.schemas
+import bodhi.server.security
+import bodhi.server.services.errors
 
 
-comment = Service(name='comment', path='/comments/{id}',
-                 validators=(validate_comment_id,),
-                 description='Comment submission service',
-                 cors_origins=bodhi.server.security.cors_origins_ro)
+comment = Service(
+    name='comment', path='/comments/{id}', validators=(validate_comment_id,),
+    description='Comment submission service', cors_origins=bodhi.server.security.cors_origins_ro)
 
 comments = Service(name='comments', path='/comments/',
                    description='Comment submission service',
@@ -67,28 +66,28 @@ def get_comment(request):
     return dict(comment=request.validated['comment'])
 
 
-validators=(
+validators = (
     validate_username,
     validate_update_owner,
     validate_ignore_user,
     validate_updates,
     validate_packages,
 )
-@comments_rss.get(schema=bodhi.server.schemas.ListCommentSchema, renderer='rss',
-                  error_handler=bodhi.server.services.errors.html_handler,
-                  validators=validators)
-@comments.get(schema=bodhi.server.schemas.ListCommentSchema,
-             accept=('application/json', 'text/json'), renderer='json',
-             error_handler=bodhi.server.services.errors.json_handler,
-             validators=validators)
-@comments.get(schema=bodhi.server.schemas.ListCommentSchema,
-             accept=('application/javascript'), renderer='jsonp',
-             error_handler=bodhi.server.services.errors.jsonp_handler,
-             validators=validators)
-@comments.get(schema=bodhi.server.schemas.ListCommentSchema,
-             accept=('text/html'), renderer='comments.html',
-             error_handler=bodhi.server.services.errors.html_handler,
-             validators=validators)
+
+
+@comments_rss.get(
+    schema=bodhi.server.schemas.ListCommentSchema, renderer='rss',
+    error_handler=bodhi.server.services.errors.html_handler, validators=validators)
+@comments.get(
+    schema=bodhi.server.schemas.ListCommentSchema, accept=('application/json', 'text/json'),
+    renderer='json', error_handler=bodhi.server.services.errors.json_handler, validators=validators)
+@comments.get(
+    schema=bodhi.server.schemas.ListCommentSchema, accept=('application/javascript'),
+    renderer='jsonp', error_handler=bodhi.server.services.errors.jsonp_handler,
+    validators=validators)
+@comments.get(
+    schema=bodhi.server.schemas.ListCommentSchema, accept=('text/html'), renderer='comments.html',
+    error_handler=bodhi.server.services.errors.html_handler, validators=validators)
 def query_comments(request):
     db = request.db
     data = request.validated
@@ -110,7 +109,7 @@ def query_comments(request):
             .join(Comment.update)\
             .join(Update.builds)\
             .join(Build.package)
-        query = query.filter(or_(*[Build.package==pkg for pkg in packages]))
+        query = query.filter(or_(*[Build.package == pkg for pkg in packages]))
 
     since = data.get('since')
     if since is not None:
@@ -118,20 +117,20 @@ def query_comments(request):
 
     updates = data.get('updates')
     if updates is not None:
-        query = query.filter(or_(*[Comment.update==u for u in updates]))
+        query = query.filter(or_(*[Comment.update == u for u in updates]))
 
     update_owner = data.get('update_owner')
     if update_owner is not None:
         query = query.join(Comment.update)
-        query = query.filter(Update.user==update_owner)
+        query = query.filter(Update.user == update_owner)
 
     ignore_user = data.get('ignore_user')
     if ignore_user is not None:
-        query = query.filter(Comment.user!=ignore_user)
+        query = query.filter(Comment.user != ignore_user)
 
     user = data.get('user')
     if user is not None:
-        query = query.filter(Comment.user==user)
+        query = query.filter(Comment.user == user)
 
     query = query.order_by(Comment.timestamp.desc())
 
@@ -158,7 +157,6 @@ def query_comments(request):
 
 
 @comments.post(schema=bodhi.server.schemas.SaveCommentSchema,
-               #permission='create',  # We need an ACL for this to work...
                renderer='json',
                error_handler=bodhi.server.services.errors.json_handler,
                validators=(
