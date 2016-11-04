@@ -234,6 +234,14 @@ class TestUpdate(ModelTest):
             ))
         return self.klass(**attrs)
 
+    def test_autokarma_not_nullable(self):
+        """Assert that the autokarma column does not allow NULL values.
+
+        For history about why this is important, see
+        https://github.com/fedora-infra/bodhi/issues/1048
+        """
+        eq_(model.Update.__table__.columns['autokarma'].nullable, False)
+
     def test_builds(self):
         eq_(len(self.obj.builds), 1)
         eq_(self.obj.builds[0].nvr, u'TurboGears-1.0.8-3.fc11')

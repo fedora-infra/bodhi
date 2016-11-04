@@ -605,7 +605,7 @@ class Update(Base):
 
     title = Column(UnicodeText, unique=True, default=None, index=True)
 
-    autokarma = Column(Boolean, default=True)
+    autokarma = Column(Boolean, default=True, nullable=False)
     stable_karma = Column(Integer, nullable=True)
     unstable_karma = Column(Integer, nullable=True)
     requirements = Column(UnicodeText)
