@@ -25,6 +25,7 @@ from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 from sqlalchemy.sql import or_
 
+from bodhi.server import buildsys
 import bodhi.server.notifications
 from bodhi.server.util import transactional_session_maker
 from bodhi.server.models import Update, Base, UpdateRequest, Build, Release, ReleaseState
@@ -42,6 +43,8 @@ from bodhi.server.models import Update, Base, UpdateRequest, Build, Release, Rel
               help="The prefix of a fedmsg cert used to sign the message.")
 @click.option('--config', help='Configuration file to use for database credentials',
               default='/etc/bodhi/production.ini')
+@click.option('--check-sig-status', help='Check signature status with koji',
+              is_flag=True, default=False)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @click.option('--resume', help='Resume one or more previously failed pushes',
@@ -49,6 +52,7 @@ from bodhi.server.models import Update, Base, UpdateRequest, Build, Release, Rel
 def push(username, cert_prefix, config, **kwargs):
     staging = kwargs.pop('staging')
     resume = kwargs.pop('resume')
+    koji = None
 
     lockfiles = defaultdict(list)
     locked_updates = []
@@ -108,6 +112,18 @@ def push(username, cert_prefix, config, **kwargs):
                                    update.title)
 
                 # Skip unsigned updates (this checks that all builds in the update are signed)
+                if not update.signed and kwargs['check_sig_status']:
+                    # Only initialize the buildsys instance once
+                    if koji is None:
+                        buildsys.setup_buildsystem(settings)
+                        koji = buildsys.get_session()
+                    for build in update.builds:
+                        if not build.signed:
+                            build_tags = build.get_tags(koji)
+                            if not update.release.pending_signing_tag in build_tags:
+                                click.echo('Update %s was refreshed as signed' % build.nvr)
+                                build.signed = True
+
                 if not update.signed:
                     click.echo('Warning: %s has unsigned builds and has been skipped' %
                                update.title)
