@@ -23,9 +23,8 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 import transaction
 
-from ..models import Base, BuildrootOverride
-
 from ..buildsys import setup_buildsystem
+from ..models import BuildrootOverride
 
 
 def usage(argv):
@@ -56,7 +55,7 @@ def main(argv=sys.argv):
         now = datetime.utcnow()
 
         overrides = db.query(BuildrootOverride)
-        overrides = overrides.filter(BuildrootOverride.expired_date == None)
+        overrides = overrides.filter(BuildrootOverride.expired_date.is_(None))
         overrides = overrides.filter(BuildrootOverride.expiration_date < now)
 
         count = overrides.count()
