@@ -185,6 +185,7 @@ setup(name='bodhi-server',
       main = bodhi.server:main
       [console_scripts]
       initialize_bodhi_db = bodhi.server.scripts.initializedb:main
+      bodhi-clean-old-mashes = bodhi.server.scripts.clean_old_mashes:clean_up
       bodhi-push = bodhi.server.push:push
       bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
       bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
