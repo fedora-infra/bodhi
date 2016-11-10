@@ -115,7 +115,7 @@ The ``updates`` command allows users to interact with bodhi updates.
 
 ``bodhi updates new [options] <builds>``
 
-    Create a new bodhi update containing the builds, given as a space separated list of NVRs. The
+    Create a new bodhi update containing the builds, given as a comma separated list of NVRs. The
     ``new`` subcommand supports the following options:
 
     ``--type [security | bugfix | enhancement | newpackage]``
