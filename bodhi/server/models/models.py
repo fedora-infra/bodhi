@@ -1709,39 +1709,41 @@ class Update(Base):
         return True, "All checks pass."
 
     def check_karma_thresholds(self, db, agent):
-        """Check if we have reached either karma threshold, and call set_request if necessary"""
-        if not self.locked:
-            if self.status is UpdateStatus.testing:
-                # If critical update receives negative karma disable autopush
-                if self.critpath and self.autokarma and self._composite_karma[1] != 0:
-                    log.info("Disabling Auto Push since the critical update has negative karma")
-                    self.autokarma = False
-                elif self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
-                    if self.autokarma:
-                        log.info("Automatically marking %s as stable" % self.title)
-                        self.set_request(db, UpdateRequest.stable, agent)
-                        self.request = UpdateRequest.stable
-                        self.date_pushed = None
-                        notifications.publish(
-                            topic='update.karma.threshold.reach',
-                            msg=dict(update=self, status='stable'))
-                    else:
-                        # Add the 'testing_approval_msg_based_on_karma' message now
-                        log.info((
-                            "%s update has reached the stable karma threshold and can be pushed to "
-                            "stable now if the maintainer wishes") % self.title)
-                elif self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
-                    log.info("Automatically unpushing %s" % self.title)
-                    self.obsolete(db)
-                    notifications.publish(
-                        topic='update.karma.threshold.reach',
-                        msg=dict(update=self, status='unstable'))
-            else:
-                # Ignore karma thresholds for pending/stable/obsolete updates
-                pass
-        else:
+        """
+        Check if we have reached either karma threshold, call set_request if necessary,
+        and Ignore karma thresholds if the update is locked and raise exception
+        """
+        # Raise Exception if the update is locked
+        if self.locked:
             log.debug('%s locked. Ignoring karma thresholds.' % self.title)
             raise LockedUpdateException
+        # Return if the status of the update is not in testing
+        if self.status != UpdateStatus.testing:
+            return
+        # If critical update receives negative karma disable autopush
+        if self.critpath and self.autokarma and self._composite_karma[1] != 0:
+            log.info("Disabling Auto Push since the critical update has negative karma")
+            self.autokarma = False
+        elif self.stable_karma and self.karma >= self.stable_karma:
+            if self.autokarma:
+                log.info("Automatically marking %s as stable" % self.title)
+                self.set_request(db, UpdateRequest.stable, agent)
+                self.request = UpdateRequest.stable
+                self.date_pushed = None
+                notifications.publish(
+                    topic='update.karma.threshold.reach',
+                    msg=dict(update=self, status='stable'))
+            else:
+                # Add the 'testing_approval_msg_based_on_karma' message now
+                log.info((
+                    "%s update has reached the stable karma threshold and can be pushed to "
+                    "stable now if the maintainer wishes") % self.title)
+        elif self.unstable_karma and self.karma <= self.unstable_karma:
+            log.info("Automatically unpushing %s" % self.title)
+            self.obsolete(db)
+            notifications.publish(
+                topic='update.karma.threshold.reach',
+                msg=dict(update=self, status='unstable'))
 
     @property
     def builds_json(self):
