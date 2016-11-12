@@ -2452,112 +2452,14 @@ class Stack(Base):
     groups = relationship("Group", secondary=stack_group_table, backref='stacks')
     users = relationship("User", secondary=stack_user_table, backref='stacks')
 
-import re
+def get_db_factory():
+    """
+    This function generates and returns a database factory that can be used for non-request
+    transactions. You can instantiate the class returned by this function to get a database
+    session that you can use with a context manager. If you wish to get a database session for a
+    request, see bodhi.server.get_db_session_for_request().
+    """
+    engine = engine_from_config(config, 'sqlalchemy.')
+    Base.metadata.create_all(engine)
+return transactional_session_maker(engine)
 
-from sqlalchemy.types import SchemaType, TypeDecorator, Enum
-
-
-class EnumSymbol(object):
-    """Define a fixed symbol tied to a parent class."""
-
-    def __init__(self, cls_, name, value, description):
-        self.cls_ = cls_
-        self.name = name
-        self.value = value
-        self.description = description
-
-    def __reduce__(self):
-        """Allow unpickling to return the symbol
-        linked to the DeclEnum class."""
-        return getattr, (self.cls_, self.name)
-
-    def __iter__(self):
-        return iter([self.value, self.description])
-
-    def __repr__(self):
-        return "<%s>" % self.name
-
-    def __unicode__(self):
-        return unicode(self.description)
-
-    def __json__(self, request=None):
-        return self.description
-
-
-class EnumMeta(type):
-    """Generate new DeclEnum classes."""
-
-    def __init__(cls, classname, bases, dict_):
-        cls._reg = reg = cls._reg.copy()
-        for k, v in dict_.items():
-            if isinstance(v, tuple):
-                sym = reg[v[0]] = EnumSymbol(cls, k, *v)
-                setattr(cls, k, sym)
-        return type.__init__(cls, classname, bases, dict_)
-
-    def __iter__(cls):
-        return iter(cls._reg.values())
-
-
-class DeclEnum(object):
-    """Declarative enumeration."""
-
-    __metaclass__ = EnumMeta
-    _reg = {}
-
-    @classmethod
-    def from_string(cls, value):
-        try:
-            return cls._reg[value]
-        except KeyError:
-            raise ValueError("Invalid value for %r: %r" % (cls.__name__, value))
-
-    @classmethod
-    def values(cls):
-        return cls._reg.keys()
-
-    @classmethod
-    def db_type(cls):
-        return DeclEnumType(cls)
-
-
-class DeclEnumType(SchemaType, TypeDecorator):
-    def __init__(self, enum):
-        self.enum = enum
-        self.impl = Enum(
-            *enum.values(),
-            name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__))
-
-    def _set_table(self, table, column):
-        self.impl._set_table(table, column)
-
-    def copy(self):
-        return DeclEnumType(self.enum)
-
-    def process_bind_param(self, value, dialect):
-        """
-        :type value:   bodhi.server.models.enum.EnumSymbol
-        :type dialect: sqlalchemy.engine.default.DefaultDialect
-        """
-        if value is None:
-            return None
-        return value.value
-
-    def process_result_value(self, value, dialect):
-        if value is None:
-            return None
-        return self.enum.from_string(value.strip())
-
-    def create(self, bind=None, checkfirst=False):
-        """Issue CREATE ddl for this type, if applicable."""
-        super(DeclEnumType, self).create(bind, checkfirst)
-        t = self.dialect_impl(bind.dialect)
-        if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
-            t.impl.create(bind=bind, checkfirst=checkfirst)
-
-    def drop(self, bind=None, checkfirst=False):
-        """Issue DROP ddl for this type, if applicable."""
-        super(DeclEnumType, self).drop(bind, checkfirst)
-        t = self.dialect_impl(bind.dialect)
-        if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
-            t.impl.drop(bind=bind, checkfirst=checkfirst)
