@@ -1,3 +1,51 @@
+import os
+import re
+import copy
+import hashlib
+import json
+import time
+import uuid
+
+from textwrap import wrap
+from datetime import datetime
+from collections import defaultdict
+
+try:
+    # python3
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
+
+
+from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
+from sqlalchemy import DateTime
+from sqlalchemy import Table, Column, ForeignKey
+from sqlalchemy import and_, or_
+from sqlalchemy.sql import text
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import class_mapper
+from sqlalchemy.orm.properties import RelationshipProperty
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm.exc import NoResultFound
+from pyramid.settings import asbool
+
+from bodhi.server import buildsys, mail, notifications, log
+from bodhi.server.util import (
+    header, build_evr, get_nvr, flash_log, get_age, get_critpath_pkgs,
+    get_rpm_header, get_age_in_days, avatar as get_avatar, tokenize,
+)
+import bodhi.server.util
+
+from bodhi.server.exceptions import BodhiException, LockedUpdateException
+from bodhi.server.config import config
+from bodhi.server.bugs import bugtracker
+
+try:
+    import rpm
+except ImportError:
+    log.warning("Could not import 'rpm'")
+
+
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -12,7 +60,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from bodhi.server.models import models
+
 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -156,52 +204,7 @@ t.impl.drop(bind=bind, checkfirst=checkfirst)
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import os
-import re
-import copy
-import hashlib
-import json
-import time
-import uuid
 
-from textwrap import wrap
-from datetime import datetime
-from collections import defaultdict
-
-try:
-    # python3
-    from urllib.parse import quote
-except ImportError:
-    from urllib import quote
-
-
-from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
-from sqlalchemy import DateTime
-from sqlalchemy import Table, Column, ForeignKey
-from sqlalchemy import and_, or_
-from sqlalchemy.sql import text
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.orm import class_mapper
-from sqlalchemy.orm.properties import RelationshipProperty
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm.exc import NoResultFound
-from pyramid.settings import asbool
-
-from bodhi.server import buildsys, mail, notifications, log
-from bodhi.server.util import (
-    header, build_evr, get_nvr, flash_log, get_age, get_critpath_pkgs,
-    get_rpm_header, get_age_in_days, avatar as get_avatar, tokenize,
-)
-import bodhi.server.util
-from bodhi.server.models.enum import DeclEnum, EnumSymbol
-from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.config import config
-from bodhi.server.bugs import bugtracker
-
-try:
-    import rpm
-except ImportError:
-    log.warning("Could not import 'rpm'")
 
 
 class BodhiBase(object):
