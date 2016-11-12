@@ -2461,5 +2461,5 @@ def get_db_factory():
     """
     engine = engine_from_config(config, 'sqlalchemy.')
     Base.metadata.create_all(engine)
-return transactional_session_maker(engine)
+    return transactional_session_maker(engine)
 
