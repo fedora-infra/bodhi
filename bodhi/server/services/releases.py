@@ -29,9 +29,6 @@ from bodhi.server.models import (
     Package,
     Release,
 )
-import bodhi.server.schemas
-import bodhi.server.security
-import bodhi.server.services.errors
 from bodhi.server.validators import (
     validate_tags,
     validate_enums,
@@ -39,6 +36,9 @@ from bodhi.server.validators import (
     validate_packages,
     validate_release,
 )
+import bodhi.server.schemas
+import bodhi.server.security
+import bodhi.server.services.errors
 
 
 release = Service(name='release', path='/releases/{name}',
@@ -50,6 +50,7 @@ releases = Service(name='releases', path='/releases/',
                    # a ``post`` section at the bottom.
                    cors_origins=bodhi.server.security.cors_origins_rw)
 
+
 @release.get(accept="text/html", renderer="release.html",
              error_handler=bodhi.server.services.errors.html_handler)
 def get_release_html(request):
@@ -59,11 +60,11 @@ def get_release_html(request):
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code
     updates = request.db.query(Update).filter(
-        Update.release==release).order_by(
+        Update.release == release).order_by(
             Update.date_submitted.desc())
 
     updates_count = request.db.query(Update.date_submitted, Update.type).filter(
-        Update.release==release).order_by(
+        Update.release == release).order_by(
             Update.date_submitted.desc())
 
     date_commits = {}
@@ -73,7 +74,7 @@ def get_release_html(request):
         d = update.date_submitted
         yearmonth = str(d.year) + '/' + str(d.month).zfill(2)
         dates.add(yearmonth)
-        if not update.type.description in date_commits:
+        if update.type.description not in date_commits:
             date_commits[update.type.description] = {}
         if yearmonth in date_commits[update.type.description]:
             date_commits[update.type.description][yearmonth] += 1
@@ -81,50 +82,50 @@ def get_release_html(request):
             date_commits[update.type.description][yearmonth] = 0
 
     base_count_query = request.db.query(Update)\
-        .filter(Update.release==release)
+        .filter(Update.release == release)
 
     num_updates_pending = base_count_query\
-        .filter(Update.status==UpdateStatus.pending).count()
+        .filter(Update.status == UpdateStatus.pending).count()
     num_updates_testing = base_count_query\
-        .filter(Update.status==UpdateStatus.testing).count()
+        .filter(Update.status == UpdateStatus.testing).count()
     num_updates_stable = base_count_query\
-        .filter(Update.status==UpdateStatus.stable).count()
+        .filter(Update.status == UpdateStatus.stable).count()
     num_updates_unpushed = base_count_query\
-        .filter(Update.status==UpdateStatus.unpushed).count()
+        .filter(Update.status == UpdateStatus.unpushed).count()
     num_updates_obsolete = base_count_query\
-        .filter(Update.status==UpdateStatus.obsolete).count()
+        .filter(Update.status == UpdateStatus.obsolete).count()
 
     num_updates_security = base_count_query\
-        .filter(Update.type==UpdateType.security).count()
+        .filter(Update.type == UpdateType.security).count()
     num_updates_bugfix = base_count_query\
-        .filter(Update.type==UpdateType.bugfix).count()
+        .filter(Update.type == UpdateType.bugfix).count()
     num_updates_enhancement = base_count_query\
-        .filter(Update.type==UpdateType.enhancement).count()
+        .filter(Update.type == UpdateType.enhancement).count()
     num_updates_newpackage = base_count_query\
-        .filter(Update.type==UpdateType.newpackage).count()
+        .filter(Update.type == UpdateType.newpackage).count()
 
     num_active_overrides = request.db.query(
         BuildrootOverride
     ).filter(
-        BuildrootOverride.expired_date==None
+        BuildrootOverride.expired_date.is_(None)
     ).join(
         BuildrootOverride.build
     ).join(
         Build.release
     ).filter(
-        Build.release==release
+        Build.release == release
     ).count()
 
     num_expired_overrides = request.db.query(
         BuildrootOverride
     ).filter(
-        BuildrootOverride.expired_date!=None
+        BuildrootOverride.expired_date.isnot(None)
     ).join(
         BuildrootOverride.build
     ).join(
         Build.release
     ).filter(
-        Build.release==release
+        Build.release == release
     ).count()
 
     return dict(release=release,
@@ -148,6 +149,7 @@ def get_release_html(request):
                 num_expired_overrides=num_expired_overrides,
                 )
 
+
 @release.get(accept=('application/json', 'text/json'), renderer='json',
              error_handler=bodhi.server.services.errors.json_handler)
 @release.get(accept=('application/javascript'), renderer='jsonp',
@@ -159,6 +161,7 @@ def get_release_json(request):
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code
     return release
+
 
 @releases.get(accept="text/html", schema=bodhi.server.schemas.ListReleaseSchema,
               renderer='releases.html',
@@ -178,6 +181,7 @@ def query_releases_html(request):
     db = request.db
     releases = db.query(Release).order_by(Release.id.desc()).all()
     return dict(releases=collect_releases(releases))
+
 
 @releases.get(accept=('application/json', 'text/json'),
               schema=bodhi.server.schemas.ListReleaseSchema, renderer='json',
@@ -226,6 +230,7 @@ def query_releases_json(request):
         total=total,
     )
 
+
 @releases.post(schema=bodhi.server.schemas.SaveReleaseSchema,
                acl=bodhi.server.security.admin_only_acl, renderer='json',
                error_handler=bodhi.server.services.errors.json_handler,
@@ -253,7 +258,7 @@ def save_release(request):
 
         else:
             log.info("Editing release: %s" % edited)
-            r = request.db.query(Release).filter(Release.name==edited).one()
+            r = request.db.query(Release).filter(Release.name == edited).one()
             for k, v in data.items():
                 setattr(r, k, v)
 
@@ -262,7 +267,6 @@ def save_release(request):
         request.errors.add('body', 'release',
                            'Unable to create update: %s' % e)
         return
-
 
     request.db.add(r)
     request.db.flush()
