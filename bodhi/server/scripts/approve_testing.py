@@ -26,7 +26,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 import transaction
 
-from ..models import Base, Update, UpdateStatus
+from ..models import Update, UpdateStatus
 from ..config import config
 
 
