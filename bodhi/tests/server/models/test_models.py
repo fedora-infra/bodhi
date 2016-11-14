@@ -736,9 +736,9 @@ class TestUpdate(ModelTest):
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
         eq_(self.obj.days_in_testing, 1)
         # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, u'testing', author='hunter1', anonymous=False, karma=1)
-        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
-        self.obj.comment(self.db, u'testing', author='hunter3', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter1', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter3', anonymous=False, karma=1)
         # Add the testing_approval_message
         text = config.get('testing_approval_msg_based_on_karma')
         self.obj.comment(self.db, text, author=u'bodhi')
@@ -762,9 +762,9 @@ class TestUpdate(ModelTest):
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
         eq_(self.obj.days_in_testing, 1)
         # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, u'testing', author='hunter1', anonymous=False, karma=1)
-        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
-        self.obj.comment(self.db, u'testing', author='hunter3', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter1', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter3', anonymous=False, karma=1)
 
         # met_testing_requirement() should return False since Bodhi has not yet commented on the
         # Update to say that it can now be pushed to stable.
