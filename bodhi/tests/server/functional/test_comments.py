@@ -488,7 +488,7 @@ class TestCommentsService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     def test_post_json_comment(self):
         self.app.post_json('/comments/', self.make_comment(text='awesome'))
-        up = self.db.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
+        up = self.db.query(Update).filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertEquals(len(up.comments), 3)
         self.assertEquals(up.comments[-1]['text'], 'awesome')
 
@@ -508,7 +508,7 @@ class TestCommentsService(bodhi.tests.server.functional.base.BaseWSGICase):
         comment = self.make_comment('bodhi-2.0-1.fc17', karma=1)
         # The author of this comment is "guest"
 
-        up = self.db.query(Update).filter_by(title='bodhi-2.0-1.fc17').one()
+        up = self.db.query(Update).filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertEquals(up.user.name, 'guest')
 
         r = self.app.post_json('/comments/', comment)
