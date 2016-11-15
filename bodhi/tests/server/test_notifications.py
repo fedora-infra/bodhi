@@ -28,6 +28,7 @@ class TestInit(unittest.TestCase):
     @mock.patch('bodhi.server.log.info')
     @mock.patch('fedmsg.config.load_config')
     @mock.patch('fedmsg.init')
+    @mock.patch('socket.gethostname', mock.MagicMock(return_value='coolhostname.very.cool.tld'))
     def test_config_passed(self, init, load_config, info):
         """
         Assert that the config from load_config() is passed to init().
@@ -35,7 +36,7 @@ class TestInit(unittest.TestCase):
         load_config.return_value = {'a': 'config'}
         notifications.init()
 
-        init.assert_called_once_with(a='config')
+        init.assert_called_once_with(a='config', name='bodhi.coolhostname')
         info.assert_called_once_with('fedmsg initialized')
 
     @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': False})
