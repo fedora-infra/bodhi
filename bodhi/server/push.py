@@ -128,7 +128,7 @@ def push(username, cert_prefix, config, **kwargs):
             update_titles = list([update.title for update in updates])
         else:
             click.echo('\nAborting push')
-            raise Exception('Aborting push')
+            raise click.ClickException('Aborting push')
 
 
     if update_titles:
