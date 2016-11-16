@@ -417,6 +417,42 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(r.json_body['errors'][0]['description'],
                           "Unable to create update.  oops!")
 
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.services.updates.Update.obsolete_older_updates',
+                side_effect=RuntimeError("bet you didn't see this coming!"))
+    def test_obsoletion_with_exception(self, *args):
+        """
+        Assert that an exception during obsoletion is properly handled.
+        """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        with mock.patch(**mock_uuid4_version1):
+            self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+
+        with mock.patch(**mock_uuid4_version2):
+            r = self.app.post_json('/updates/', args).json_body
+
+        self.assertEquals(r['request'], 'testing')
+        # The exception handler should have put an error message in the caveats.
+        self.assertEquals(r['caveats'][0]['description'],
+                          "Problem obsoleting older updates: bet you didn't see this coming!")
+        # Check for the comment multiple ways. The comment will be about the update being submitted
+        # for testing instead of being about the obsoletion, since the obsoletion failed.
+        # Note that caveats above don't support markdown, but comments do.
+        expected_comment = 'This update has been submitted for testing by guest. '
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-033713b73b'))
+        self.assertEquals(r['comments'][-1]['text'], expected_comment)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The old update failed to get obsoleted.
+        self.assertEquals(up.status, UpdateStatus.testing)
+        expected_comment = u'This update has been submitted for testing by guest. '
+        self.assertEquals(up.comments[-1].text, expected_comment)
+
 
 class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
