@@ -651,10 +651,11 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
-    def test_list_updates_pagination(self):
+    @mock.patch(**mock_valid_requirements)
+    def test_list_updates_pagination(self, *args):
 
         # First, stuff a second update in there
-        self.test_new_update()
+        self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-2.fc17'))
 
         # Then, test pagination
         res = self.app.get('/updates/',
