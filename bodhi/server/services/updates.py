@@ -351,11 +351,8 @@ def new_update(request):
         # Create the Package and Build entities
         for nvr in data['builds']:
             name, version, release = request.buildinfo[nvr]['nvr']
-            package = request.db.query(Package).filter_by(name=name).first()
-            if not package:
-                package = Package(name=name)
-                request.db.add(package)
-                request.db.flush()
+            # The package will have been created by validate_acls
+            package = request.db.query(Package).filter_by(name=name).one()
 
             build = Build.get(nvr, request.db)
 

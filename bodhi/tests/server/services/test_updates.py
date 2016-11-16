@@ -304,6 +304,31 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         eq_(resp.json['title'], 'bodhi-2.0.0-3.fc17')
 
     @mock.patch(**mock_valid_requirements)
+    def test_new_update_with_existing_package(self, *args):
+        """Test submitting a new update with a package that is already in the database."""
+        package = Package(name='existing-package')
+        self.db.add(package)
+        self.db.flush()
+        args = self.get_update(u'existing-package-2.4.1-5.fc17')
+
+        resp = self.app.post_json('/updates/', args)
+
+        eq_(resp.json['title'], 'existing-package-2.4.1-5.fc17')
+        package = self.db.query(Package).filter_by(name=u'existing-package').one()
+        self.assertEqual(package.name, 'existing-package')
+
+    @mock.patch(**mock_valid_requirements)
+    def test_new_update_with_missing_package(self, *args):
+        """Test submitting a new update with a package that is not already in the database."""
+        args = self.get_update(u'missing-package-2.4.1-5.fc17')
+
+        resp = self.app.post_json('/updates/', args)
+
+        eq_(resp.json['title'], 'missing-package-2.4.1-5.fc17')
+        package = self.db.query(Package).filter_by(name=u'missing-package').one()
+        self.assertEqual(package.name, 'missing-package')
+
+    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_cascade_package_requirements_to_update(self, publish, *args):
 
