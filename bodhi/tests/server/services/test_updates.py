@@ -404,6 +404,19 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
             urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-53345602d5'))
         self.assertEquals(up.comments[-1].text, expected_comment)
 
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch('bodhi.server.services.updates.Update.new', side_effect=IOError('oops!'))
+    def test_unexpected_exception(self, publish, *args):
+        """Ensure that an unexpected Exception is handled by new_update()."""
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+
+        r = self.app.post_json('/updates/', update, status=400)
+
+        self.assertEquals(r.json_body['status'], 'error')
+        self.assertEquals(r.json_body['errors'][0]['description'],
+                          "Unable to create update.  oops!")
+
 
 class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
