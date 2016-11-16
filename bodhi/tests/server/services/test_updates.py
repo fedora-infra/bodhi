@@ -409,13 +409,16 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch('bodhi.server.services.updates.Update.new', side_effect=IOError('oops!'))
     def test_unexpected_exception(self, publish, *args):
         """Ensure that an unexpected Exception is handled by new_update()."""
-        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update = self.get_update('bodhi-2.3.2-1.fc17')
 
         r = self.app.post_json('/updates/', update, status=400)
 
         self.assertEquals(r.json_body['status'], 'error')
         self.assertEquals(r.json_body['errors'][0]['description'],
                           "Unable to create update.  oops!")
+        # Despite the Exception, the Build should still exist in the database
+        build = self.db.query(Build).filter(Build.nvr == u'bodhi-2.3.2-1.fc17').one()
+        self.assertEqual(build.package.name, 'bodhi')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.obsolete_older_updates',
