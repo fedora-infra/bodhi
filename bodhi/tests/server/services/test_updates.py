@@ -304,6 +304,31 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         eq_(resp.json['title'], 'bodhi-2.0.0-3.fc17')
 
     @mock.patch(**mock_valid_requirements)
+    def test_new_update_with_existing_package(self, *args):
+        """Test submitting a new update with a package that is already in the database."""
+        package = Package(name='existing-package')
+        self.db.add(package)
+        self.db.flush()
+        args = self.get_update(u'existing-package-2.4.1-5.fc17')
+
+        resp = self.app.post_json('/updates/', args)
+
+        eq_(resp.json['title'], 'existing-package-2.4.1-5.fc17')
+        package = self.db.query(Package).filter_by(name=u'existing-package').one()
+        self.assertEqual(package.name, 'existing-package')
+
+    @mock.patch(**mock_valid_requirements)
+    def test_new_update_with_missing_package(self, *args):
+        """Test submitting a new update with a package that is not already in the database."""
+        args = self.get_update(u'missing-package-2.4.1-5.fc17')
+
+        resp = self.app.post_json('/updates/', args)
+
+        eq_(resp.json['title'], 'missing-package-2.4.1-5.fc17')
+        package = self.db.query(Package).filter_by(name=u'missing-package').one()
+        self.assertEqual(package.name, 'missing-package')
+
+    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_cascade_package_requirements_to_update(self, publish, *args):
 
@@ -377,6 +402,58 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-53345602d5'))
+        self.assertEquals(up.comments[-1].text, expected_comment)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch('bodhi.server.services.updates.Update.new', side_effect=IOError('oops!'))
+    def test_unexpected_exception(self, publish, *args):
+        """Ensure that an unexpected Exception is handled by new_update()."""
+        update = self.get_update('bodhi-2.3.2-1.fc17')
+
+        r = self.app.post_json('/updates/', update, status=400)
+
+        self.assertEquals(r.json_body['status'], 'error')
+        self.assertEquals(r.json_body['errors'][0]['description'],
+                          "Unable to create update.  oops!")
+        # Despite the Exception, the Build should still exist in the database
+        build = self.db.query(Build).filter(Build.nvr == u'bodhi-2.3.2-1.fc17').one()
+        self.assertEqual(build.package.name, 'bodhi')
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.services.updates.Update.obsolete_older_updates',
+                side_effect=RuntimeError("bet you didn't see this coming!"))
+    def test_obsoletion_with_exception(self, *args):
+        """
+        Assert that an exception during obsoletion is properly handled.
+        """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        with mock.patch(**mock_uuid4_version1):
+            self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+
+        with mock.patch(**mock_uuid4_version2):
+            r = self.app.post_json('/updates/', args).json_body
+
+        self.assertEquals(r['request'], 'testing')
+        # The exception handler should have put an error message in the caveats.
+        self.assertEquals(r['caveats'][0]['description'],
+                          "Problem obsoleting older updates: bet you didn't see this coming!")
+        # Check for the comment multiple ways. The comment will be about the update being submitted
+        # for testing instead of being about the obsoletion, since the obsoletion failed.
+        # Note that caveats above don't support markdown, but comments do.
+        expected_comment = 'This update has been submitted for testing by guest. '
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-033713b73b'))
+        self.assertEquals(r['comments'][-1]['text'], expected_comment)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The old update failed to get obsoleted.
+        self.assertEquals(up.status, UpdateStatus.testing)
+        expected_comment = u'This update has been submitted for testing by guest. '
         self.assertEquals(up.comments[-1].text, expected_comment)
 
 
