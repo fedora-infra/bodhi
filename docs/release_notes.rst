@@ -1,6 +1,38 @@
 Release notes
 =============
 
+2.3.2
+-----
+
+Bodhi 2.3.2 is a bugfix release that addresses the following issues:
+
+* ``push.py`` now defaults to the current releases
+  (`#1071 <https://github.com/fedora-infra/bodhi/issues/1071>`_).
+* Fixed a typo in the masher in sending an ostree compose message
+  (`#1072 <https://github.com/fedora-infra/bodhi/pull/1072>`_).
+* Fixed a typo in looking up an e-mail template
+  (`#1073 <https://github.com/fedora-infra/bodhi/issues/1073>`_).
+* The fedmsg name is now passed explicitly
+  (`#1079 <https://github.com/fedora-infra/bodhi/pull/1079>`_).
+* The man page was corrected to state that builds should be comma separated
+  (`#1095 <https://github.com/fedora-infra/bodhi/pull/1095>`_).
+* Fixed a race condition between robosignatory and the signed handler
+  (`#1111 <https://github.com/fedora-infra/bodhi/issues/1111>`_).
+* Fix querying the updates for resumption in ``push.py``
+  (`e7cb3f13 <https://github.com/fedora-infra/bodhi/commit/e7cb3f13>`_).
+* ``push.py`` now prompts for the username if not given
+  (`abeca57e <https://github.com/fedora-infra/bodhi/commit/abeca57e>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following contributors authored patches for 2.3.2:
+
+* Patrick Uiterwijk
+* Randy Barlow
+
+
 2.3.1
 -----
 
