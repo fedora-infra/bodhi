@@ -22,11 +22,8 @@ import logging
 import pprint
 
 import fedmsg.consumers
-from pyramid.paster import get_appsettings
-from sqlalchemy import engine_from_config
 
-from bodhi.server.models import Base, Build, Release
-from bodhi.server.util import transactional_session_maker
+from bodhi.server.models import Base, Build, get_db_factory, Release
 
 log = logging.getLogger('bodhi')
 
@@ -40,11 +37,7 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
     config_key = 'signed_handler'
 
     def __init__(self, hub, *args, **kwargs):
-        config_uri = '/etc/bodhi/production.ini'
-        self.settings = get_appsettings(config_uri)
-        engine = engine_from_config(self.settings, 'sqlalchemy.')
-        Base.metadata.create_all(engine)
-        self.db_factory = transactional_session_maker(engine)
+        self.db_factory = get_db_factory()
 
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')

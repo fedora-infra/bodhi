@@ -18,6 +18,7 @@ import math
 from cornice import Service
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
+import transaction
 
 from bodhi.server import log
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -351,11 +352,8 @@ def new_update(request):
         # Create the Package and Build entities
         for nvr in data['builds']:
             name, version, release = request.buildinfo[nvr]['nvr']
-            package = request.db.query(Package).filter_by(name=name).first()
-            if not package:
-                package = Package(name=name)
-                request.db.add(package)
-                request.db.flush()
+            # The package will have been created by validate_acls
+            package = request.db.query(Package).filter_by(name=name).one()
 
             build = Build.get(nvr, request.db)
 
@@ -369,6 +367,13 @@ def new_update(request):
             build.release = request.buildinfo[build.nvr]['release']
             builds.append(build)
             releases.add(request.buildinfo[build.nvr]['release'])
+
+        # We want to go ahead and commit the transaction now so that the Builds are in the database.
+        # Otherwise, there will be a race condition between robosignatory signing the Builds and the
+        # signed handler attempting to mark the builds as signed. When we lose that race, the signed
+        # handler doesn't see the Builds in the database and gives up. After that, nothing will mark
+        # the builds as signed.
+        transaction.commit()
 
         if data.get('edited'):
 

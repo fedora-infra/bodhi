@@ -22,6 +22,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import event
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
+import transaction
 
 from bodhi.server import log
 from bodhi.tests.server import populate
@@ -37,12 +38,13 @@ class BaseTestCase(unittest.TestCase):
     def setUp(self):
         engine = create_engine(DB_PATH)
         # We want a special session that lasts longer than a transaction
-        Session = scoped_session(
+        self.Session = scoped_session(
             sessionmaker(bind=engine, extension=ZopeTransactionExtension(keep_session=True)))
         log.debug('Creating all models for %s' % engine)
         Base.metadata.bind = engine
         Base.metadata.create_all(engine)
-        self.db = Session()
+        self.db = self.Session()
+        transaction.begin()
         populate(self.db)
 
         # Track sql statements in every test
@@ -54,6 +56,8 @@ class BaseTestCase(unittest.TestCase):
         event.listen(engine, "before_cursor_execute", track)
 
     def tearDown(self):
+        transaction.abort()
         log.debug('Removing session')
         self.db.close()
+        self.Session.remove()
         del self.sql_statements

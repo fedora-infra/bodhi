@@ -115,7 +115,7 @@ The ``updates`` command allows users to interact with bodhi updates.
 
 ``bodhi updates new [options] <builds>``
 
-    Create a new bodhi update containing the builds, given as a space separated list of NVRs. The
+    Create a new bodhi update containing the builds, given as a comma separated list of NVRs. The
     ``new`` subcommand supports the following options:
 
     ``--type [security | bugfix | enhancement | newpackage]``
@@ -243,6 +243,14 @@ The ``updates`` command allows users to interact with bodhi updates.
 
     Request that the given update be changed to the given state. ``update`` should be given by
     update id, and ``state`` should be one of testing, stable, unpush, obsolete, or revoke.
+
+
+Examples
+========
+
+Create a new update with multiple builds::
+
+    $ bodhi updates new --user bowlofeggs --type bugfix --notes "Fix permission issues during startup." --bugs 1393587 --close-bugs --request testing --autokarma --stable-karma 3 --unstable-karma -3 ejabberd-16.09-2.fc25,erlang-esip-1.0.8-1.fc25,erlang-fast_tls-1.0.7-1.fc25,erlang-fast_yaml-1.0.6-1.fc25,erlang-fast_xml-1.1.15-1.fc25,erlang-iconv-1.0.2-1.fc25,erlang-stringprep-1.0.6-1.fc25,erlang-stun-1.0.7-1.fc25
 
 
 Bugs

@@ -16,7 +16,7 @@ import setuptools.command.egg_info
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-VERSION = '2.3.1'
+VERSION = '2.3.2'
 # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
@@ -185,6 +185,7 @@ setup(name='bodhi-server',
       main = bodhi.server:main
       [console_scripts]
       initialize_bodhi_db = bodhi.server.scripts.initializedb:main
+      bodhi-clean-old-mashes = bodhi.server.scripts.clean_old_mashes:clean_up
       bodhi-push = bodhi.server.push:push
       bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
       bodhi-untag-branched = bodhi.server.scripts.untag_branched:main

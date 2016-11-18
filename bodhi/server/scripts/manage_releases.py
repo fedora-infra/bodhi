@@ -12,7 +12,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-managereleases.py create --name F23 --long-name "Fedora 23" --id-prefix FEDORA --version 23 --branch f23 --dist-tag f23 --stable-tag f23-updates --testing-tag f23-updates-testing --candidate-tag f23-updates-candidate --pending-stable-tag f23-updates-pending --pending-testing-tag f23-updates-testing-pending --override-tag f23-override --state pending
+managereleases.py create --name F23 --long-name "Fedora 23" --id-prefix FEDORA --version 23 \
+--branch f23 --dist-tag f23 --stable-tag f23-updates --testing-tag f23-updates-testing \
+--candidate-tag f23-updates-candidate --pending-stable-tag f23-updates-pending \
+--pending-testing-tag f23-updates-testing-pending --override-tag f23-override --state pending
 """
 
 import sys
