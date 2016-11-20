@@ -84,7 +84,19 @@ class DevBuildsys(Buildsystem):
     __tagged__ = {}
     __rpms__ = []
 
+    def __init__(self):
+        self._time_started = time.time()
+
+    def _check_expiration(self):
+        # Make sure that we are not caching buildsys references for too long by testing for it in
+        # the DevBuildsys.
+        # Note that 30 seconds is way shorter than koji's expiration, but then the tests are most
+        # likely a lot faster than in production.
+        if time.time() > self._time_started + 30:
+            raise Exception('Buildsys ref retained for longer than 30 seconds. Uncache ref!')
+
     def clear(self):
+        self._check_expiration()
         DevBuildsys.__untag__ = []
         DevBuildsys.__moved__ = []
         DevBuildsys.__added__ = []
@@ -92,35 +104,44 @@ class DevBuildsys(Buildsystem):
         DevBuildsys.__rpms__ = []
 
     def multiCall(self):
+        self._check_expiration()
         return []
 
     def moveBuild(self, from_tag, to_tag, build, *args, **kw):
         log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
+        self._check_expiration()
         DevBuildsys.__moved__.append((from_tag, to_tag, build))
 
     def tagBuild(self, tag, build, *args, **kw):
         log.debug("tagBuild(%s, %s)" % (tag, build))
+        self._check_expiration()
         DevBuildsys.__added__.append((tag, build))
 
     def untagBuild(self, tag, build, *args, **kw):
         log.debug("untagBuild(%s, %s)" % (tag, build))
+        self._check_expiration()
         DevBuildsys.__untag__.append((tag, build))
 
     def ssl_login(self, *args, **kw):
         log.debug("ssl_login(%s, %s)" % (args, kw))
+        self._check_expiration()
 
     def taskFinished(self, task):
+        self._check_expiration()
         return True
 
     def getTaskInfo(self, task):
+        self._check_expiration()
         return {'state': koji.TASK_STATES['CLOSED']}
 
     def listPackages(self):
+        self._check_expiration()
         return [
             {'package_id': 2625, 'package_name': 'nethack'},
         ]
 
     def getBuild(self, build='TurboGears-1.0.2.2-2.fc7', other=False):
+        self._check_expiration()
         data = {'build_id': 16058,
                 'completion_time': '2007-08-24 23:26:10.890319',
                 'creation_event_id': 151517,
@@ -164,6 +185,7 @@ class DevBuildsys(Buildsystem):
         return data
 
     def listBuildRPMs(self, id, *args, **kw):
+        self._check_expiration()
         rpms = [{'arch': 'src',
                  'build_id': 6475,
                  'buildroot_id': 1883,
@@ -196,6 +218,7 @@ class DevBuildsys(Buildsystem):
         return rpms
 
     def listTags(self, build, *args, **kw):
+        self._check_expiration()
         if 'el5' in build:
             result = [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
@@ -217,6 +240,7 @@ class DevBuildsys(Buildsystem):
         return result
 
     def listTagged(self, tag, *args, **kw):
+        self._check_expiration()
         builds = []
         for build in [self.getBuild(), self.getBuild(other=True)]:
             if build['nvr'] in self.__untag__:
@@ -231,9 +255,11 @@ class DevBuildsys(Buildsystem):
         return builds
 
     def getLatestBuilds(self, *args, **kw):
+        self._check_expiration()
         return [self.getBuild()]
 
     def getTag(self, taginfo, **kw):
+        self._check_expiration()
         if isinstance(taginfo, int):
             taginfo = "f%d" % taginfo
 
@@ -249,6 +275,7 @@ class DevBuildsys(Buildsystem):
                 'maven_include_all': False, 'perm_id': None}
 
     def getRPMHeaders(self, rpmID, headers):
+        self._check_expiration()
         return {
             'description':
                 "The libseccomp library provides an easy to use interface to the "
