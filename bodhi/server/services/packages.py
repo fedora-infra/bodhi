@@ -11,19 +11,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import math
 
 from cornice import Service
 from sqlalchemy import func, distinct
-
-import math
 
 from bodhi.server.models import Package
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
-#from bodhi.server.validators import (
-#    # None yet...
-#)
 
 
 packages = Service(name='packages', path='/packages/',
@@ -43,7 +39,7 @@ def query_packages(request):
 
     name = data.get('name')
     if name is not None:
-        query = query.filter(Package.name==name)
+        query = query.filter(Package.name == name)
 
     like = data.get('like')
     if like is not None:

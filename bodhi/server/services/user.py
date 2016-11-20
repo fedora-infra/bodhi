@@ -11,29 +11,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import math
 
 from cornice import Service
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-import math
-
-from bodhi.server.models import (
-    Group,
-    Package,
-    Update,
-    User,
-)
+from bodhi.server.models import Group, Package, Update, User
+from bodhi.server.validators import validate_updates, validate_packages, validate_groups
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
 import bodhi.server.services.updates
-from bodhi.server.validators import (
-    validate_updates,
-    validate_packages,
-    validate_groups,
-)
 
 
 user = Service(name='user', path='/users/{name}',
@@ -46,9 +36,8 @@ users = Service(name='users', path='/users/',
                 # These we leave wide-open since these are only GETs
                 cors_origins=bodhi.server.security.cors_origins_ro)
 
-users_rss = Service(name='users_rss', path='/rss/users/',
-                description='Bodhi users RSS feed',
-                cors_origins=bodhi.server.security.cors_origins_ro)
+users_rss = Service(name='users_rss', path='/rss/users/', description='Bodhi users RSS feed',
+                    cors_origins=bodhi.server.security.cors_origins_ro)
 
 
 @user.get(accept=("application/json", "text/json"), renderer="json",
@@ -89,6 +78,8 @@ validators = (
     validate_updates,
     validate_packages,
 )
+
+
 @users.get(schema=bodhi.server.schemas.ListUserSchema,
            accept=("application/json", "text/json"), renderer="json",
            error_handler=bodhi.server.services.errors.json_handler,
@@ -118,20 +109,20 @@ def query_users(request):
     groups = data.get('groups')
     if groups is not None:
         query = query.join(User.groups)
-        query = query.filter(or_(*[Group.id==grp.id for grp in groups]))
+        query = query.filter(or_(*[Group.id == grp.id for grp in groups]))
 
     updates = data.get('updates')
     if updates is not None:
         query = query.join(User.updates)
         args = \
-            [Update.title==update.title for update in updates] +\
-            [Update.alias==update.alias for update in updates]
+            [Update.title == update.title for update in updates] +\
+            [Update.alias == update.alias for update in updates]
         query = query.filter(or_(*args))
 
     packages = data.get('packages')
     if packages is not None:
         query = query.join(User.packages)
-        query = query.filter(or_(*[Package.id==p.id for p in packages]))
+        query = query.filter(or_(*[Package.id == p.id for p in packages]))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.

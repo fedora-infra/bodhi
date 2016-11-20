@@ -19,15 +19,13 @@ get defined in the other service modules.
 """
 
 from cornice import Service
-
 from pyramid.httpexceptions import HTTPFound
-
-import bodhi.server.security
 
 from bodhi.server.services.comments import comments
 from bodhi.server.services.overrides import overrides
 from bodhi.server.services.updates import updates
 from bodhi.server.services.user import users
+import bodhi.server.security
 
 
 def redirect_maker(target):
@@ -63,6 +61,7 @@ zz_bodhi1_update_redirect = Service(
     name='bodhi1_update_redirect', path='/updates/{id}/{title}',
     description='Redirect to old updates/ALIAS/TITLE urls',
     cors_origins=bodhi.server.security.cors_origins_rw)
+
 
 @zz_bodhi1_update_redirect.get()
 def zz_get_bodhi1_update_redirect(request):

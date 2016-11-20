@@ -15,23 +15,19 @@
 import math
 
 from cornice import Service
-from pyramid.view import view_config
 from pyramid.exceptions import HTTPForbidden
 from pyramid.security import authenticated_userid
+from pyramid.view import view_config
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server import log, notifications
 from bodhi.server.models import Package, Stack, Group, User
+from bodhi.server.util import tokenize
+from bodhi.server.validators import validate_packages, validate_stack, validate_requirements
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
-from bodhi.server.util import tokenize
-from bodhi.server.validators import (
-    validate_packages,
-    validate_stack,
-    validate_requirements,
-)
 
 
 stack = Service(name='stack', path='/stacks/{name}',
@@ -80,7 +76,7 @@ def query_stacks(request):
     packages = data.get('packages')
     if packages:
         query = query.join(Package.stack)
-        query = query.filter(or_(*[Package.name==pkg.name for pkg in packages]))
+        query = query.filter(or_(*[Package.name == pkg.name for pkg in packages]))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
@@ -133,7 +129,7 @@ def save_stack(request):
                          user.name, stack.name)
                 log.debug('owners = %s; groups = %s', stack.users, stack.groups)
                 request.errors.add('body', 'name', '%s does not have privileges'
-                        ' to modify the %s stack' % (user.name, stack.name))
+                                   ' to modify the %s stack' % (user.name, stack.name))
                 request.errors.status = HTTPForbidden.code
                 return
 
