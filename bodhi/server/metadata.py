@@ -54,7 +54,6 @@ class ExtendedMetadata(object):
         self.builds = {}
         self.missing_ids = []
         self._from = config.get('bodhi_email')
-        self.koji = get_session()
         self._fetch_updates()
 
         self.uinfo = cr.UpdateInfo()
@@ -177,7 +176,7 @@ class ExtendedMetadata(object):
     def _fetch_updates(self):
         """Based on our given koji tag, populate a list of Update objects"""
         log.debug("Fetching builds tagged with '%s'" % self.tag)
-        kojiBuilds = self.koji.listTagged(self.tag, latest=True)
+        kojiBuilds = get_session().listTagged(self.tag, latest=True)
         nonexistent = []
         log.debug("%d builds found" % len(kojiBuilds))
         for build in kojiBuilds:
@@ -218,13 +217,14 @@ class ExtendedMetadata(object):
         col.name = to_bytes(update.release.long_name)
         col.shortname = to_bytes(update.release.name)
 
+        koji = get_session()
         for build in update.builds:
             try:
                 kojiBuild = self.builds[build.nvr]
             except:
-                kojiBuild = self.koji.getBuild(build.nvr)
+                kojiBuild = koji.getBuild(build.nvr)
 
-            rpms = self.koji.listBuildRPMs(kojiBuild['id'])
+            rpms = koji.listBuildRPMs(kojiBuild['id'])
             for rpm in rpms:
                 pkg = cr.UpdateCollectionPackage()
                 pkg.name = rpm['name']
