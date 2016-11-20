@@ -38,6 +38,20 @@ class TestBuildsystem(unittest.TestCase):
                 bs.multiCall, bs.getTag):
             self.assertRaises(NotImplementedError, method)
 
+    def test_raises_not_configured(self):
+        """
+        buildsys.get_session requires buildsys.setup_buildsystem to be called first. Ensure
+        that if not, we crash hard.
+        """
+        buildsys.teardown_buildsystem()
+        self.assertRaises(AssertionError, buildsys.get_session)
+
+    def test_raises_unknown_buildsys(self):
+        """
+        Ensure that we crash if we try to configure an invalid buildsys.
+        """
+        self.assertRaises(ValueError, buildsys.setup_buildsystem, {'buildsystem': 'invalid'})
+
 
 class TestGetKrbConf(unittest.TestCase):
     """This class contains tests for the get_krb_conf() function."""

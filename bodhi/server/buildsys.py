@@ -315,10 +315,15 @@ def get_krb_conf(config):
 def get_session():
     """ Get a new buildsystem instance """
     global _buildsystem
-    if not _buildsystem:
-        log.warning('No buildsystem configured; assuming testing')
-        return DevBuildsys()
+    if _buildsystem is None:
+        raise RuntimeError('Buildsys needs to be setup')
     return _buildsystem()
+
+
+def teardown_buildsystem():
+    global _buildsystem
+    _buildsystem = None
+    DevBuildsys.clear()
 
 
 def setup_buildsystem(settings):
@@ -336,6 +341,9 @@ def setup_buildsystem(settings):
     elif buildsys in ('dev', 'dummy', None):
         log.debug('Using DevBuildsys')
         _buildsystem = DevBuildsys
+
+    else:
+        raise ValueError('Buildsys %s not known' % buildsys)
 
 
 def wait_for_tasks(tasks, session=None, sleep=300):
