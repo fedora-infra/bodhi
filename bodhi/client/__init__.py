@@ -56,7 +56,7 @@ def updates():
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def new(user, password, **kwargs):
-    client = bindings.Bodhi2Client(username=user, password=password, staging=kwargs['staging'])
+    client = bindings.BodhiClient(username=user, password=password, staging=kwargs['staging'])
 
     if kwargs['file'] is None:
         updates = [kwargs]
@@ -115,7 +115,7 @@ def new(user, password, **kwargs):
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def query(**kwargs):
-    client = bindings.Bodhi2Client(staging=kwargs['staging'])
+    client = bindings.BodhiClient(staging=kwargs['staging'])
     resp = client.query(**kwargs)
     print_resp(resp, client)
 
@@ -130,7 +130,7 @@ def query(**kwargs):
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def request(update, state, user, password, **kwargs):
-    client = bindings.Bodhi2Client(username=user, password=password, staging=kwargs['staging'])
+    client = bindings.BodhiClient(username=user, password=password, staging=kwargs['staging'])
     resp = client.request(update, state)
     print_resp(resp, client)
 
@@ -144,7 +144,7 @@ def request(update, state, user, password, **kwargs):
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def comment(update, text, karma, user, password, **kwargs):
-    client = bindings.Bodhi2Client(username=user, password=password, staging=kwargs['staging'])
+    client = bindings.BodhiClient(username=user, password=password, staging=kwargs['staging'])
     print('%r %r %r' % (update, text, karma))
     resp = client.comment(update, text, karma)
     print_resp(resp, client)
@@ -157,7 +157,7 @@ def comment(update, text, karma, user, password, **kwargs):
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
 def download(**kwargs):
-    client = bindings.Bodhi2Client(staging=kwargs['staging'])
+    client = bindings.BodhiClient(staging=kwargs['staging'])
     del(kwargs['staging'])
     # At this point we need to have reduced the kwargs dict to only our
     # query options (cves, updateid, builds)
@@ -204,7 +204,7 @@ def overrides():
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def query_buildroot_overrides(user=None, **kwargs):
-    client = bindings.Bodhi2Client(staging=kwargs['staging'])
+    client = bindings.BodhiClient(staging=kwargs['staging'])
     resp = client.list_overrides(user=user)
     print_resp(resp, client)
 
@@ -220,7 +220,7 @@ def query_buildroot_overrides(user=None, **kwargs):
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def save_buildroot_overrides(nvr, duration, notes, user, password, staging):
-    client = bindings.Bodhi2Client(username=user, password=password, staging=staging)
+    client = bindings.BodhiClient(username=user, password=password, staging=staging)
     resp = client.save_override(nvr=nvr, duration=duration, notes=notes)
     print_resp(resp, client)
 
