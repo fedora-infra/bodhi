@@ -21,13 +21,11 @@ import json
 import glob
 
 from collections import defaultdict
-from pyramid.paster import get_appsettings
-from sqlalchemy import engine_from_config
 from sqlalchemy.sql import or_
 
 import bodhi.server.notifications
 from bodhi.server.util import transactional_session_maker
-from bodhi.server.models import Update, Base, UpdateRequest, Build, Release, ReleaseState
+from bodhi.server.models import Build, get_db_factory, Release, ReleaseState, Update, UpdateRequest
 
 
 @click.command()
@@ -63,10 +61,7 @@ def push(username, cert_prefix, config, **kwargs):
             lockfiles[lockfile].append(update)
             locked_updates.append(update)
 
-    settings = get_appsettings(config)
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    Base.metadata.create_all(engine)
-    db_factory = transactional_session_maker(engine)
+    db_factory = get_db_factory()
 
     update_titles = None
 
