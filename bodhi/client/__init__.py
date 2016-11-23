@@ -131,7 +131,12 @@ def query(**kwargs):
               is_flag=True, default=False)
 def request(update, state, user, password, **kwargs):
     client = bindings.BodhiClient(username=user, password=password, staging=kwargs['staging'])
-    resp = client.request(update, state)
+
+    try:
+        resp = client.request(update, state)
+    except bindings.UpdateNotFound as exc:
+        raise click.BadParameter(unicode(exc), param_hint='UPDATE')
+
     print_resp(resp, client)
 
 

@@ -52,6 +52,14 @@ class BodhiClientException(FedoraClientError):
     pass
 
 
+class UpdateNotFound(BodhiClientException):
+    def __init__(self, update):
+        self.update = unicode(update)
+
+    def __unicode__(self):
+        return u'Update not found: {}'.format(self.update)
+
+
 def errorhandled(method):
     """ A decorator for BodhiClient that raises exceptions on failure. """
     @functools.wraps(method)
@@ -146,10 +154,17 @@ class BodhiClient(OpenIdBaseClient):
         :arg request: The request (``testing``, ``stable``, ``obsolete``,
                                    ``unpush``, ``revoke``)
         """
-        return self.send_request('updates/{0}/request'.format(update),
-                                 verb='POST', auth=True,
-                                 data={'update': update, 'request': request,
-                                       'csrf_token': self.csrf()})
+        try:
+            return self.send_request('updates/{0}/request'.format(update),
+                                     verb='POST', auth=True,
+                                     data={'update': update, 'request': request,
+                                           'csrf_token': self.csrf()})
+        except fedora.client.ServerError as exc:
+            if exc.code == 404:
+                # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
+                raise UpdateNotFound(update)
+            else:
+                raise
 
     @errorhandled
     def delete(self, update):
