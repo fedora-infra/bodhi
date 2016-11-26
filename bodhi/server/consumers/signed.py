@@ -23,7 +23,8 @@ import pprint
 
 import fedmsg.consumers
 
-from bodhi.server.models import Base, Build, get_db_factory, Release
+from bodhi.server.models import Build, get_db_factory
+
 
 log = logging.getLogger('bodhi')
 
@@ -51,7 +52,6 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
 
     def consume(self, message):
         msg = message['body']['msg']
-        topic = message['topic']
 
         build_nvr = '%(name)s-%(version)s-%(release)s' % msg
         tag = msg['tag']

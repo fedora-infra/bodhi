@@ -30,24 +30,19 @@ message gets received here and triggers us to do all that network-laden heavy
 lifting.
 """
 
-import time
+import logging
 import pprint
+import time
 
 import fedmsg.consumers
 
-from bodhi.server.exceptions import BodhiException
-from bodhi.server.models import (
-    Bug,
-    Update,
-    UpdateType,
-    Base,
-)
-
 from bodhi.server.bugs import bugtracker
 from bodhi.server.config import config
+from bodhi.server.exceptions import BodhiException
+from bodhi.server.models import Bug, Update, UpdateType
 from bodhi.server.models import models
 
-import logging
+
 log = logging.getLogger('bodhi')
 
 
@@ -82,7 +77,6 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         topic = message['topic']
         alias = msg['update'].get('alias')
 
-
         log.info("Updates Handler handling  %s, %s" % (alias, topic))
 
         # Go to sleep for a second to try and avoid a race condition
@@ -91,7 +85,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
 
         if not alias:
             log.error("Update Handler got update with no "
-                           "alias %s." % pprint.pformat(msg))
+                      "alias %s." % pprint.pformat(msg))
             return
 
         with self.db_factory() as session:
@@ -150,6 +144,5 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
 
                 log.info("Modifying %r" % bug.bug_id)
                 bug.modified(update)
-            except Exception as ex:
+            except Exception:
                 log.warning('Error occured during updating single bug', exc_info=True)
-

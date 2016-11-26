@@ -35,6 +35,7 @@ class TestStyle(unittest.TestCase):
         goal is that this test would one day check the entire codebase.
         """
         enforced_paths = [
+            'bodhi/server/consumers',
             'bodhi/server/models', 'bodhi/server/scripts', 'bodhi/server/services',
             'bodhi/server/views/admin.py']
 

@@ -19,30 +19,30 @@ comprised of a fedmsg consumer that launches threads for each repository being
 mashed.
 """
 
-import os
 import copy
 import functools
+import hashlib
 import json
+import os
+import threading
 import time
 import urllib2
-import hashlib
-import threading
-import fedmsg.consumers
+from collections import defaultdict
 from datetime import datetime
 
-from collections import defaultdict
 from fedmsg_atomic_composer.composer import AtomicComposer
 from fedmsg_atomic_composer.config import config as atomic_config
 from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
+import fedmsg.consumers
 
 from bodhi.server import log, buildsys, notifications, mail, util
-from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 from bodhi.server.config import config
-from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
-                          UpdateStatus, ReleaseState, Base)
-from bodhi.server.metadata import ExtendedMetadata
 from bodhi.server.exceptions import BodhiException
+from bodhi.server.metadata import ExtendedMetadata
+from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
+                                 UpdateStatus, ReleaseState, Base)
+from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 
 
 def checkpoint(method):
@@ -266,16 +266,6 @@ class MasherThread(threading.Thread):
         yield "  name:  %(name)-20s  success:  %(success)s" % dict(
             zip(attrs, [getattr(self, attr, 'Undefined') for attr in attrs])
         )
-        ## If we wanted to include more info in the summary at the end, we
-        ## could do this.. but I bet it would be so spammy that it would ruin
-        ## the effect of a summary.  It would scroll longer than one page, and
-        ## you wouldn't be able to see the success/failure status of all the
-        ## different threads all in one glance.
-        #for tag, nvr in self.add_tags:
-        #    yield "    added tag %(tag)s to %(nvr)s" % dict(tag=tag, nvr=nvr)
-        #for src, dest, nvr in self.add_tags:
-        #    yield "    moved %(nvr)s from %(src)s to %(nvr)s" % dict(
-        #        src=src, dest=dest, nvr=nvr)
 
     def work(self):
         self.koji = buildsys.get_session()
@@ -886,10 +876,10 @@ class MasherThread(threading.Thread):
     def get_security_updates(self, release):
         release = self.db.query(Release).filter_by(long_name=release).one()
         updates = self.db.query(Update).filter(
-                Update.type == UpdateType.security,
-                Update.status == UpdateStatus.testing,
-                Update.release == release,
-                Update.request == None
+            Update.type == UpdateType.security,
+            Update.status == UpdateStatus.testing,
+            Update.release == release,
+            Update.request.is_(None)
         ).all()
         updates = self.sort_by_days_in_testing(updates)
         return updates
@@ -930,8 +920,8 @@ class MasherThread(threading.Thread):
                 updates_tag = tag.replace('-testing', '')
                 if updates_tag in mashed_repos:
                     release['repos']['updates'] = 'file://' + os.path.join(
-                            mashed_repos[updates_tag], updates_tag,
-                            release['arch'])
+                        mashed_repos[updates_tag], updates_tag,
+                        release['arch'])
                 log.debug('Using the updates repo from %s',
                           release['repos']['updates'])
             else:
@@ -980,7 +970,7 @@ class MashThread(threading.Thread):
         self.log.info('Mashing %s', self.tag)
         out, err, returncode = util.cmd(self.mash_cmd)
         self.log.info('Took %s seconds to mash %s', time.time() - start,
-                 self.tag)
+                      self.tag)
         if returncode != 0:
             self.log.error('There was a problem running mash (%d)' % returncode)
             self.log.error(out)
