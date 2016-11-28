@@ -56,13 +56,13 @@ def get_latest_updates(request, critpath, security):
 
     if critpath:
         query = query.filter(
-            models.Update.critpath==True)
+            models.Update.critpath == True)
     if security:
         query = query.filter(
-            models.Update.type==models.UpdateType.security)
+            models.Update.type == models.UpdateType.security)
 
     query = query.filter(
-        models.Update.status==models.UpdateStatus.testing)
+        models.Update.status == models.UpdateStatus.testing)
 
     query = query.order_by(models.Update.date_submitted.desc())
     return query.limit(5).all()
@@ -145,7 +145,6 @@ def latest_candidates(request):
                 if item not in result:
                     result.append(item)
         return result
-
 
     pkg = request.params.get('package')
     testing = asbool(request.params.get('testing'))

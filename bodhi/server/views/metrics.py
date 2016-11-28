@@ -24,7 +24,7 @@ def compute_ticks_and_data(db, releases, update_types):
     data, ticks = [], []
 
     releases = sorted(releases, cmp=lambda x, y:
-            cmp(int(x.version_int), int(y.version_int)))
+                      cmp(int(x.version_int), int(y.version_int)))
 
     for i, release in enumerate(releases):
         ticks.append([i, release.name])
@@ -42,7 +42,6 @@ def compute_ticks_and_data(db, releases, update_types):
         data.append(dict(data=d, label=label))
 
     return (data, ticks)
-
 
 
 @view_config(route_name='metrics', renderer='metrics.html')

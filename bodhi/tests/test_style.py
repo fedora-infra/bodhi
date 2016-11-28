@@ -37,7 +37,7 @@ class TestStyle(unittest.TestCase):
         enforced_paths = [
             'bodhi/server/consumers',
             'bodhi/server/models', 'bodhi/server/scripts', 'bodhi/server/services',
-            'bodhi/server/views/admin.py']
+            'bodhi/server/views']
 
         enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
 
