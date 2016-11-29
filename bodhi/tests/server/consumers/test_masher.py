@@ -1150,7 +1150,7 @@ class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
         """
         up = self.db.query(Update).one()
         up.request = UpdateRequest.testing
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.3.2-1.fc17'],
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
                          'bowlofeggs', log, self.Session, self.tempdir)
         t.db = self.Session()
         # t.work() would normally set this up for us, so we'll just fake it
@@ -1169,3 +1169,5 @@ class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
             force=True)
         # The update should have been removed from t.updates
         self.assertEqual(t.updates, set([]))
+        # The update's title should also have been removed from t.state['updates']
+        self.assertEqual(t.state['updates'], [])

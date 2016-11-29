@@ -448,8 +448,8 @@ class MasherThread(threading.Thread):
             update.remove_tag(update.release.pending_testing_tag,
                               koji=buildsys.get_session())
         update.request = None
-        if update in self.state['updates']:
-            self.state['updates'].remove(update)
+        if update.title in self.state['updates']:
+            self.state['updates'].remove(update.title)
         if update in self.updates:
             self.updates.remove(update)
         notifications.publish(
