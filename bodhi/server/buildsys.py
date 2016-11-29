@@ -84,12 +84,13 @@ class DevBuildsys(Buildsystem):
     __tagged__ = {}
     __rpms__ = []
 
-    def clear(self):
-        DevBuildsys.__untag__ = []
-        DevBuildsys.__moved__ = []
-        DevBuildsys.__added__ = []
-        DevBuildsys.__tagged__ = {}
-        DevBuildsys.__rpms__ = []
+    @classmethod
+    def clear(cls):
+        cls.__untag__ = []
+        cls.__moved__ = []
+        cls.__added__ = []
+        cls.__tagged__ = {}
+        cls.__rpms__ = []
 
     def multiCall(self):
         return []

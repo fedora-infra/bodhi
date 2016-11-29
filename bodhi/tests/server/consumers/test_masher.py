@@ -30,7 +30,7 @@ from bodhi.server.models import (Base, Update, User, Release,
                           Build, UpdateRequest, UpdateType,
                           ReleaseState, BuildrootOverride,
                           UpdateStatus)
-from bodhi.tests.server import populate
+from bodhi.tests.server import base, populate
 
 from bodhi.server.util import mkmetadatadir, transactional_session_maker
 
@@ -1095,3 +1095,77 @@ References:
             up = session.query(Update).filter_by(title=otherbuild).one()
             self.assertEquals(up.status, UpdateStatus.testing)
             self.assertEquals(up.request, None)
+
+
+class MasherThreadBaseTestCase(base.BaseTestCase):
+    """
+    This test class has common setUp() and tearDown() methods that are useful for testing the
+    MasherThread class.
+    """
+    def setUp(self):
+        """
+        Set up the test conditions.
+        """
+        super(MasherThreadBaseTestCase, self).setUp()
+        self.tempdir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        """
+        Clean up after the tests.
+        """
+        super(MasherThreadBaseTestCase, self).tearDown()
+        shutil.rmtree(self.tempdir)
+        buildsys.DevBuildsys.clear()
+
+
+class TestMasherThread__perform_tag_actions(MasherThreadBaseTestCase):
+    """This test class contains tests for the MasherThread._perform_tag_actions() method."""
+    @mock.patch('bodhi.server.consumers.masher.buildsys.wait_for_tasks')
+    def test_with_failed_tasks(self, wait_for_tasks):
+        """
+        Assert that the method raises an Exception when the buildsys gives us failed tasks.
+        """
+        wait_for_tasks.return_value = ['failed_task_1']
+        t = MasherThread(u'F26', u'stable', [u'bodhi-2.3.2-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.move_tags_async.append(
+            (u'f26-updates-candidate', u'f26-updates-testing', u'bodhi-2.3.2-1.fc26'))
+
+        with self.assertRaises(Exception) as exc:
+            t._perform_tag_actions()
+
+        self.assertEqual(unicode(exc.exception), "Failed to move builds: ['failed_task_1']")
+        # Since the task didn't really fail (we just mocked that it did) the DevBuildsys should have
+        # registered that the move occurred.
+        self.assertEqual(buildsys.DevBuildsys.__moved__,
+                         [('f26-updates-candidate', 'f26-updates-testing', 'bodhi-2.3.2-1.fc26')])
+
+
+class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
+    """This test class contains tests for the MasherThread.eject_from_mash() method."""
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_testing_request(self, publish):
+        """
+        Assert correct behavior when the update's request is set to testing.
+        """
+        up = self.db.query(Update).one()
+        up.request = UpdateRequest.testing
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.3.2-1.fc17'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.db = self.Session()
+        # t.work() would normally set this up for us, so we'll just fake it
+        t.id = getattr(self.db.query(Release).one(), '{}_tag'.format('stable'))
+        t.updates = set([up])
+
+        t.eject_from_mash(up, 'This update is unacceptable!')
+
+        self.assertEqual(buildsys.DevBuildsys.__untag__,
+                         [(u'f17-updates-testing-pending', u'bodhi-2.0-1.fc17')])
+        publish.assert_called_once_with(
+            topic='update.eject',
+            msg={'repo': 'f17-updates', 'update': up,
+                 'reason': 'This update is unacceptable!', 'request': UpdateRequest.stable,
+                 'release': 'F17', 'agent': 'bowlofeggs'},
+            force=True)
+        # The update should have been removed from t.updates
+        self.assertEqual(t.updates, set([]))
