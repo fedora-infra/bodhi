@@ -1,6 +1,20 @@
 Release notes
 =============
 
+2.3.3
+-----
+
+Bodhi 2.3.3 converts koji auth to be done with krb5 and fixes one bug:
+
+* Use krb5 for koji
+  (`#1129 <https://github.com/fedora-infra/bodhi/pull/1129>`_).
+* Disable caching koji sessions during mashing process
+  (`#1134 <https://github.com/fedora-infra/bodhi/pull/1134>`_).
+
+
+Thanks to Patrick Uiterwijk for contributing both of these commits!
+
+
 2.3.2
 -----
 
