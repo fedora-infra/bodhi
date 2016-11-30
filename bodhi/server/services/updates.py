@@ -375,6 +375,17 @@ def new_update(request):
         # the builds as signed.
         transaction.commit()
 
+        # After we commit the transaction, we need to get the builds and releases again, since they
+        # were tied to the previous session that has now been terminated.
+        builds = []
+        releases = set()
+        for build in data['builds']:
+            # At this moment, we are sure the builds are in the database (that is what the commit
+            # was for actually).
+            build = Build.get(nvr, request.db)
+            builds.append(build)
+            releases.add(build.release)
+
         if data.get('edited'):
 
             log.info('Editing update: %s' % data['edited'])
