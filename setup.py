@@ -41,7 +41,7 @@ server_requires = [
     'pyramid_tm',
     'waitress',
     'colander',
-    'cornice',
+    'cornice<2',
 
     'python-openid',
     'pyramid_fas_openid',
