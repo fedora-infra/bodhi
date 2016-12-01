@@ -6,11 +6,13 @@
 .bodhi.tmp
 .vagrant
 .vagrant.d
+coverage.xml
 devel/ansible/playbook.retry
 development.ini
 dist
 docs/_build
 MANIFEST
+nosetests.xml
 virtenv
 build
 bodhi-pickledb*
