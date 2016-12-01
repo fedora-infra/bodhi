@@ -64,6 +64,10 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
                 log.info("Build was not submitted, skipping")
                 return
 
+            if not build.release:
+                log.info('Build is not assigned to release, skipping')
+                return
+
             if build.release.pending_testing_tag != tag:
                 log.info("Tag is not pending_testing tag, skipping")
                 return
