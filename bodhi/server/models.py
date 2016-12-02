@@ -52,10 +52,12 @@ from bodhi.server.bugs import bugtracker
 
 try:
     # python3
-    import rpm
     from urllib.parse import quote
 except ImportError:
     from urllib import quote
+
+try:
+    import rpm
 except ImportError:
     log.warning("Could not import 'rpm'")
 
@@ -164,7 +166,7 @@ class DeclEnumType(SchemaType, TypeDecorator):
         super(DeclEnumType, self).drop(bind, checkfirst)
         t = self.dialect_impl(bind.dialect)
         if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
-        t.impl.drop(bind=bind, checkfirst=checkfirst)
+            t.impl.drop(bind=bind, checkfirst=checkfirst)
 
 
 
