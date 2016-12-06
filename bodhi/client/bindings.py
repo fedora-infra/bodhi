@@ -426,8 +426,10 @@ class BodhiClient(OpenIdBaseClient):
         val += """    Release: %s
      Status: %s
        Type: %s
-      Karma: %d""" % (update['release']['long_name'], update['status'],
-                      update['type'], update['karma'])
+      Karma: %d
+  Autokarma: %s  [%d, %d]""" % (update['release']['long_name'], update['status'],
+                      update['type'], update['karma'], update['autokarma'],
+                      update['unstable_karma'], update['stable_karma'])
         if update['request'] is not None:
             val += "\n    Request: %s" % update['request']
         if len(update['bugs']):

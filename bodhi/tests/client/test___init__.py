@@ -33,6 +33,7 @@ EXAMPLE_UPDATE_OUTPUT = u"""====================================================
      Status: stable
        Type: bugfix
       Karma: 0
+  Autokarma: True  [-3, 3]
       Notes: Update to 2.2.4. Release notes available at https://github.com
            : /fedora-infra/bodhi/releases/tag/2.2.4
   Submitter: bowlofeggs
