@@ -56,21 +56,22 @@ def main(argv=sys.argv):
             if update.met_testing_requirements:
                 continue
 
-            # If autokarma updates have reached the testing threshold, say something! Keep in mind
-            # that we don't care about karma here, because autokarma updates get their request set
-            # to stable by the Update.comment() workflow when they hit the required threshold. Thus,
-            # this function only needs to consider the time requirements because these updates have
-            # not reached the karma threshold.
-            if update.autokarma and update.meets_testing_requirements:
-                print('%s now meets testing requirements' % update.title)
-                text = config.get('testing_approval_msg') % update.release.mandatory_days_in_testing
-                update.comment(db, text, author='bodhi')
-
             # Approval message when testing based on karma threshold
             if update.stable_karma not in (0, None) and update.karma >= update.stable_karma \
                     and not update.autokarma:
                 print('%s now reaches stable karma threshold' % update.title)
                 text = config.get('testing_approval_msg_based_on_karma')
+                update.comment(db, text, author='bodhi')
+                continue
+
+            # If autokarma updates have reached the testing threshold, say something! Keep in mind
+            # that we don't care about karma here, because autokarma updates get their request set
+            # to stable by the Update.comment() workflow when they hit the required threshold. Thus,
+            # this function only needs to consider the time requirements because these updates have
+            # not reached the karma threshold.
+            if update.meets_testing_requirements:
+                print('%s now meets testing requirements' % update.title)
+                text = config.get('testing_approval_msg') % update.release.mandatory_days_in_testing
                 update.comment(db, text, author='bodhi')
 
 

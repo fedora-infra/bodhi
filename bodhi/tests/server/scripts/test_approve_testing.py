@@ -208,6 +208,32 @@ class TestMain(BaseTestCase):
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
 
+    def test_non_autokarma_update_with_unmet_karma_requirement_after_time_met(self):
+        """
+        A non-autokarma update without enough karma that reaches mandatory days in testing should
+        get a comment from Bodhi that the update can be pushed to stable.
+
+        See https://github.com/fedora-infra/bodhi/issues/1094
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.request = None
+        update.stable_karma = 10
+        update.status = models.UpdateStatus.testing
+        update.date_testing = datetime.now() - timedelta(days=7)
+        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+
+        with patch(
+                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
+            approve_testing.main(['nosetests', 'some_config.ini'])
+
+        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
+        self.assertEqual(comment_q.count(), 1)
+        self.assertEqual(
+            comment_q[0].text,
+            config.get('testing_approval_msg') % update.release.mandatory_days_in_testing)
+
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     def test_non_autokarma_update_without_mandatory_days_in_testing(self):
