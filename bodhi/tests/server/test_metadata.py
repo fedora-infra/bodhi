@@ -177,6 +177,50 @@ class TestExtendedMetadata(unittest.TestCase):
             if record.title == title:
                 return record
 
+    def test___init___checks_existence_if_repomd_xml(self):
+        """
+        The __init__() method has a test for finding cached repodata. It used to check for the
+        existence of a repodata folder, but this caused crashes sometimes because due to an unsolved
+        bug[0] this directory sometimes does not contain a repomd.xml file. This test ensures that
+        the existence of the repomd.xml file itself is tested to decide if it can load a cache.
+
+        [0] https://github.com/fedora-infra/bodhi/issues/887
+        """
+        update = self.db.query(Update).one()
+        # Pretend it's pushed to testing
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.date_pushed = datetime.utcnow()
+        DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
+        # Generate the XML
+        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
+        # Insert the updateinfo.xml into the repository
+        md.insert_updateinfo()
+        md.cache_repodata()
+        updateinfo = self._verify_updateinfo(self.repodata)
+        # Change the notes on the update, but not the date_modified. Since this test deletes
+        # repomd.xml the cached notes should be ignored and we should see this 'x' in the notes.
+        # We can test for this to ensure that the cache was not used.
+        update.notes = u'x'
+        # Re-initialize our temporary repo
+        shutil.rmtree(self.temprepo)
+        os.mkdir(self.temprepo)
+        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
+        # Simulate the repomd.xml file missing. This should cause new updateinfo to be generated
+        # instead of it trying to load from the cache.
+        os.remove(
+            join(self.temprepo, '..', 'f17-updates-testing.repocache', 'repodata', 'repomd.xml'))
+
+        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
+
+        md.insert_updateinfo()
+        updateinfo = self._verify_updateinfo(self.repodata)
+        # Read and verify the updateinfo.xml.gz
+        uinfo = createrepo_c.UpdateInfo(updateinfo)
+        notice = self.get_notice(uinfo, update.title)
+        # Since 'x' made it into the xml, we know it didn't use the cache.
+        self.assertEquals(notice.description, u'x')  # not u'Useful details!'
+
     def test_extended_metadata(self):
         update = self.db.query(Update).one()
 
