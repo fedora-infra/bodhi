@@ -82,7 +82,7 @@ def push(username, cert_prefix, config, **kwargs):
                 for update in lockfiles[lockfile]:
                     update = session.query(Update).filter(Update.title==update).first()
                     updates.append(update)
-                    click.echo(update)
+                    click.echo(update.title)
         else:
             # Accept both comma and space separated request list
             requests = kwargs['request'].replace(',', ' ').split(' ')
