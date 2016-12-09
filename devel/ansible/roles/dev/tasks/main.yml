@@ -9,6 +9,7 @@
       - gcc
       - git
       - koji
+      - liberation-mono-fonts
       - libffi-devel
       - libjpeg-devel
       - libjpeg-turbo-devel
