@@ -257,3 +257,16 @@ As a privileged user on a Fedora system run the following:
 ::
 
     sudo systemctl start postgresql.service
+
+
+Database Schema
+---------------
+
+The Bodhi database schema can be seen below.
+
+.. figure:: images/database.png
+   :align:  center
+
+   Database schema.
+
+

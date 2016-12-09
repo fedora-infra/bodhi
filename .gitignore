@@ -11,6 +11,7 @@ devel/ansible/playbook.retry
 development.ini
 dist
 docs/_build
+docs/images/database.png
 MANIFEST
 nosetests.xml
 virtenv
