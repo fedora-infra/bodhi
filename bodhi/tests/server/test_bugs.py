@@ -17,6 +17,8 @@
 
 import unittest
 
+import bunch
+
 from bodhi.server import bugs
 
 
@@ -27,3 +29,15 @@ class TestBugzilla(unittest.TestCase):
         bz = bugs.Bugzilla()
 
         self.assertIsNone(bz._bz)
+
+
+class TestFakeBugTracker(unittest.TestCase):
+    """This test class contains tests for the FakeBugTracker class."""
+    def test_getbug(self):
+        """Ensure correct return value of the getbug() method."""
+        bt = bugs.FakeBugTracker()
+
+        b = bt.getbug(1234)
+
+        self.assertTrue(isinstance(b, bunch.Bunch))
+        self.assertEqual(b.bug_id, 1234)
