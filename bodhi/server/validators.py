@@ -12,17 +12,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import rpm
-import koji
-
 from datetime import datetime, timedelta
 
-from sqlalchemy.sql import or_, and_
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.httpexceptions import HTTPFound
-import pyramid.threadlocal
-
+from sqlalchemy.sql import or_, and_
 import colander
+import koji
+import pyramid.threadlocal
+import rpm
 
 from . import captcha
 from . import log
@@ -31,7 +29,6 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateSuggestion, User, Group, Comment,
                      Bug, TestCase, ReleaseState, Stack)
 from .util import get_nvr, tokenize, taskotron_results
-
 import bodhi.server.schemas
 
 
@@ -39,6 +36,7 @@ csrf_error_message = """CSRF tokens do not match.  This happens if you have
 the page open for a long time. Please reload the page and try to submit your
 data again. Make sure to save your input somewhere before reloading.
 """.replace('\n', ' ')
+
 
 # This one is a colander validator which is different from the cornice
 # validators defined elsehwere.
@@ -52,7 +50,7 @@ def validate_csrf_token(node, value):
 def cache_nvrs(request, build):
     if build in request.buildinfo and 'nvr' in request.buildinfo[build]:
         return
-    if not build in request.buildinfo:
+    if build not in request.buildinfo:
         request.buildinfo[build] = {}
     name, version, release = get_nvr(build)
     request.buildinfo[build]['nvr'] = name, version, release
@@ -77,10 +75,8 @@ def validate_builds(request):
     user = User.get(request.user.name, request.db)
 
     if not request.validated.get('builds', []):
-        request.errors.add('body', 'builds',
-                            "You may not specify an empty list of builds.")
+        request.errors.add('body', 'builds', "You may not specify an empty list of builds.")
         return
-
 
     if edited:
         up = request.db.query(Update).filter_by(title=edited).first()
@@ -123,9 +119,7 @@ def validate_build_tags(request):
     release = None
     if edited:
         valid_tags = tag_types['candidate'] + tag_types['testing']
-        update = request.db.query(Update)\
-                         .filter_by(title=edited)\
-                         .first()
+        update = request.db.query(Update).filter_by(title=edited).first()
         if not update:
             # No need to tack on any more errors here, since they should have
             # already been added by `validate_builds`
@@ -175,9 +169,8 @@ def validate_build_tags(request):
                 return
 
             if build_rel is not release:
-                request.errors.add('body', 'builds',
-                        'Cannot add a %s build to an %s update' %
-                        (build_rel.name, release.name))
+                request.errors.add('body', 'builds', 'Cannot add a %s build to an %s update' % (
+                    build_rel.name, release.name))
                 return
 
         for tag in tags:
@@ -185,9 +178,10 @@ def validate_build_tags(request):
                 valid = True
                 break
         if not valid:
-            request.errors.add('body', 'builds',
-                'Invalid tag: {} not tagged with any of the following tags '
-                '{}'.format(build, valid_tags))
+            request.errors.add(
+                'body', 'builds',
+                'Invalid tag: {} not tagged with any of the following tags {}'.format(
+                    build, valid_tags))
 
 
 def validate_tags(request):
@@ -395,9 +389,9 @@ def validate_uniqueness(request):
             release2 = nvr2[-1].split('.')[-1]
 
             if nvr1[0] == nvr2[0] and release1 == release2:
-                request.errors.add('body', 'builds', "Multiple {} builds "
-                                   "specified: {} & {}".format(nvr1[0], build1,
-                                   build2))
+                request.errors.add(
+                    'body', 'builds', "Multiple {} builds specified: {} & {}".format(
+                        nvr1[0], build1, build2))
                 return
 
 
@@ -454,8 +448,8 @@ def validate_updates(request):
 
     for u in updates:
         update = db.query(Update).filter(or_(
-            Update.title==u,
-            Update.alias==u,
+            Update.title == u,
+            Update.alias == u,
         )).first()
 
         if not update:
@@ -482,7 +476,7 @@ def validate_groups(request):
     validated_groups = []
 
     for g in groups:
-        group = db.query(Group).filter(Group.name==g).first()
+        group = db.query(Group).filter(Group.name == g).first()
 
         if not group:
             bad_groups.append(g)
@@ -504,10 +498,9 @@ def validate_release(request):
         return
 
     db = request.db
-    release = db.query(Release).filter(
-            or_(Release.name==releasename,
-                Release.name==releasename.upper(),
-                Release.version==releasename)).first()
+    release = db.query(Release).filter(or_(
+        Release.name == releasename, Release.name == releasename.upper(),
+        Release.version == releasename)).first()
 
     if release:
         request.validated["release"] = release
@@ -527,10 +520,8 @@ def validate_releases(request):
     validated_releases = []
 
     for r in releases:
-        release = db.query(Release).filter(
-                or_(Release.name==r,
-                    Release.name==r.upper(),
-                    Release.version==r)).first()
+        release = db.query(Release).filter(or_(Release.name == r, Release.name == r.upper(),
+                                               Release.version == r)).first()
 
         if not release:
             bad_releases.append(r)
@@ -643,7 +634,7 @@ def _conditionally_get_update(request):
     # So.. we have to handle either situation.  It is, however, not our
     # responsibility to put the update object back in the request.validated
     # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
-    if not isinstance(update, Update) and not update is None:
+    if not isinstance(update, Update) and update is not None:
         update = Update.get(update, request.db)
 
     return update
@@ -667,9 +658,9 @@ def validate_bug_feedback(request):
 
     for item in feedback:
         bug_id = item.pop('bug_id')
-        bug = db.query(Bug).filter(Bug.bug_id==bug_id).first()
+        bug = db.query(Bug).filter(Bug.bug_id == bug_id).first()
 
-        if not bug or not update in bug.updates:
+        if not bug or update not in bug.updates:
             bad_bugs.append(bug_id)
         else:
             item['bug'] = bug
@@ -716,9 +707,9 @@ def validate_testcase_feedback(request):
 
     for item in feedback:
         name = item.pop('testcase_name')
-        testcase = db.query(TestCase).filter(TestCase.name==name).first()
+        testcase = db.query(TestCase).filter(TestCase.name == name).first()
 
-        if not testcase or not testcase.package in packages:
+        if not testcase or testcase.package not in packages:
             bad_testcases.append(name)
         else:
             item['testcase'] = testcase
@@ -902,8 +893,9 @@ def validate_captcha(request):
             return
 
         if request.session['captcha'] != key:
-            request.errors.add('session', 'captcha',
-                               'No captcha session cipher match (replay). %r %r' % (request.session['captcha'], key))
+            request.errors.add(
+                'session', 'captcha', 'No captcha session cipher match (replay). %r %r' % (
+                    request.session['captcha'], key))
             request.errors.status = HTTPBadRequest.code
             return
 
@@ -942,7 +934,7 @@ def validate_requirements(request):
         request.validated['requirements'] = None
         return
 
-    requirements =  tokenize(requirements)
+    requirements = tokenize(requirements)
     valid_requirements = _get_valid_requirements(request)
 
     for requirement in requirements:
@@ -975,20 +967,18 @@ def validate_request(request):
         return
 
     for build in update.builds:
-        nvr = get_nvr(build.nvr)
-        for other_build in db.query(Build).join(Update).filter(
-                and_(Build.package==build.package,
-                     Build.nvr != build.nvr,
-                     Update.status == target,
-                     Update.release == update.release),
-                ).all():
+        other_builds = db.query(Build).join(Update).filter(
+            and_(Build.package == build.package, Build.nvr != build.nvr, Update.status == target,
+                 Update.release == update.release)).all()
+        for other_build in other_builds:
 
             log.info('Checking against %s' % other_build.nvr)
 
             if rpm.labelCompare(other_build.evr, build.evr) > 0:
                 log.debug('%s is older than %s', build.evr, other_build.evr)
-                request.errors.add('querystring', 'update',
-                        'Cannot submit %s %s to %s since it is older than %s' %
-                        (build.package.name, build.evr, target.description, other_build.evr))
+                request.errors.add(
+                    'querystring', 'update',
+                    'Cannot submit %s %s to %s since it is older than %s' % (
+                        build.package.name, build.evr, target.description, other_build.evr))
                 request.errors.status = HTTPBadRequest.code
                 return
