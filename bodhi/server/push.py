@@ -21,13 +21,10 @@ import json
 import glob
 
 from collections import defaultdict
-from pyramid.paster import get_appsettings
-from sqlalchemy import engine_from_config
 from sqlalchemy.sql import or_
 
 import bodhi.server.notifications
-from bodhi.server.util import transactional_session_maker
-from bodhi.server.models import Update, Base, UpdateRequest, Build, Release, ReleaseState
+from bodhi.server.models import Build, get_db_factory, Release, ReleaseState, Update, UpdateRequest
 
 
 @click.command()
@@ -40,13 +37,11 @@ from bodhi.server.models import Update, Base, UpdateRequest, Build, Release, Rel
 @click.option('--username', envvar='USERNAME', prompt=True)
 @click.option('--cert-prefix', default="shell",
               help="The prefix of a fedmsg cert used to sign the message.")
-@click.option('--config', help='Configuration file to use for database credentials',
-              default='/etc/bodhi/production.ini')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @click.option('--resume', help='Resume one or more previously failed pushes',
               is_flag=True, default=False)
-def push(username, cert_prefix, config, **kwargs):
+def push(username, cert_prefix, **kwargs):
     staging = kwargs.pop('staging')
     resume = kwargs.pop('resume')
 
@@ -63,14 +58,9 @@ def push(username, cert_prefix, config, **kwargs):
             lockfiles[lockfile].append(update)
             locked_updates.append(update)
 
-    settings = get_appsettings(config)
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    Base.metadata.create_all(engine)
-    db_factory = transactional_session_maker(engine)
-
     update_titles = None
 
-    with db_factory() as session:
+    with get_db_factory()() as session:
         updates = []
         # If we're resuming a push
         if resume:
