@@ -182,7 +182,7 @@ class TestMain(BaseTestCase):
         """
         Ensure that a non-autokarma update that meets the required karma threshold gets only one
         comment from Bodhi to that effect, even on subsequent runs of main(). There was an issue[0]
-        where Bodhi wasn't correctly detected that it has already commented on updates, and would
+        where Bodhi wasn't correctly detecting that it has already commented on updates, and would
         repeatedly comment that non-autokarma updates could be pushed. This test ensures that issue
         stays fixed.
 
