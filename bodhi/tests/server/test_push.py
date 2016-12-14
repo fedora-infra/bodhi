@@ -161,13 +161,14 @@ TEST_ABORT_PUSH_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but not
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-Push these 2 updates? (y/n) 
-Aborting push
+Push these 2 updates? [y/N]: n
+Aborted!
 """
 
 TEST_BUILDS_FLAG_EXPECTED_OUTPUT = """ejabberd-16.09-4.fc17
 python-nose-1.3.7-11.fc17
-Push these 2 updates? (y/n) 
+Push these 2 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -177,7 +178,8 @@ TEST_CERT_PREFIX_FLAG_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked b
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-Push these 2 updates? (y/n) 
+Push these 2 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -187,7 +189,8 @@ TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-Push these 2 updates? (y/n) 
+Push these 2 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -197,7 +200,8 @@ TEST_LOCKED_UPDATES_NOT_IN_A_PUSH_EXPECTED_OUTPUT = """Warning: ejabberd-16.09-4
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
 ejabberd-16.09-4.fc17
-Push these 3 updates? (y/n) 
+Push these 3 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -207,13 +211,15 @@ TEST_NO_UPDATES_TO_PUSH_EXPECTED_OUTPUT = """Warning: python-nose-1.3.7-11.fc17 
 Warning: python-paste-deploy-1.5.2-8.fc17 has unsigned builds and has been skipped
 Warning: bodhi-2.0-1.fc17 is locked but not in a push
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
-Push these 0 updates? (y/n) 
+Push these 0 updates? [y/N]: y
+
 Locking updates...
 """
 
 TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """python-nose-1.3.7-11.fc25
 python-paste-deploy-1.5.2-8.fc26
-Push these 2 updates? (y/n) 
+Push these 2 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -222,7 +228,8 @@ Sending masher.start fedmsg
 TEST_REQUEST_FLAG_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but not in a push
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
 python-paste-deploy-1.5.2-8.fc17
-Push these 1 updates? (y/n) 
+Push these 1 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -243,7 +250,8 @@ TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-
   http://localhost:6543/updates/ejabberd-16.09-4.fc17
 
 ejabberd-16.09-4.fc17
-Push these 1 updates? (y/n) 
+Push these 1 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -264,7 +272,8 @@ TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MAS
   http://localhost:6543/updates/ejabberd-16.09-4.fc17
 
 ejabberd-16.09-4.fc17
-Push these 1 updates? (y/n) 
+Push these 1 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -274,7 +283,8 @@ TEST_STAGING_FLAG_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but n
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-Push these 2 updates? (y/n) 
+Push these 2 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -284,7 +294,8 @@ TEST_UNSIGNED_UPDATES_SKIPPED_EXPECTED_OUTPUT = """Warning: python-nose-1.3.7-11
 Warning: bodhi-2.0-1.fc17 is locked but not in a push
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
 python-paste-deploy-1.5.2-8.fc17
-Push these 1 updates? (y/n) 
+Push these 1 updates? [y/N]: y
+
 Locking updates...
 
 Sending masher.start fedmsg
@@ -319,8 +330,8 @@ class TestPush(base.BaseTestCase):
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='n')
 
-        # The exit code is -1 when the push is aborted.
-        self.assertEqual(result.exit_code, -1)
+        # The exit code is 1 when the push is aborted.
+        self.assertEqual(result.exit_code, 1)
         self.assertEqual(result.output, TEST_ABORT_PUSH_EXPECTED_OUTPUT)
         self.assertEqual(publish.call_count, 0)
 

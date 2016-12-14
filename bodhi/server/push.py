@@ -108,18 +108,14 @@ def push(username, cert_prefix, **kwargs):
         for update in updates:
             print update.title
 
-        doit = raw_input('Push these %d updates? (y/n) ' % len(updates)).lower().strip()
-        if doit == 'y':
-            click.echo('\nLocking updates...')
-            for update in updates:
-                update.locked = True
-                update.date_locked = datetime.utcnow()
+        click.confirm('Push these {:d} updates?'.format(len(updates)), abort=True)
 
-            update_titles = list([update.title for update in updates])
-        else:
-            click.echo('\nAborting push')
-            raise Exception('Aborting push')
+        click.echo('\nLocking updates...')
+        for update in updates:
+            update.locked = True
+            update.date_locked = datetime.utcnow()
 
+        update_titles = list([update.title for update in updates])
 
     if update_titles:
         click.echo('\nSending masher.start fedmsg')
