@@ -235,21 +235,7 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-updates? (y/n) ================================================================================
-     ejabberd-16.09-4.fc17
-================================================================================
-    Release: Fedora 17
-     Status: pending
-       Type: bugfix
-      Karma: 0
-    Request: testing
-      Notes: Useful details!
-  Submitter: guest
-  Submitted: 1984-11-02 00:00:00
-
-  http://localhost:6543/updates/ejabberd-16.09-4.fc17
-
-ejabberd-16.09-4.fc17
+TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-updates? (y/n) ejabberd-16.09-4.fc17
 Push these 1 updates? [y/N]: y
 
 Locking updates...
@@ -257,21 +243,7 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-testing? (y/n) Resume /mnt/koji/mash/updates/MASHING-f17-updates? (y/n) ================================================================================
-     ejabberd-16.09-4.fc17
-================================================================================
-    Release: Fedora 17
-     Status: pending
-       Type: bugfix
-      Karma: 0
-    Request: testing
-      Notes: Useful details!
-  Submitter: guest
-  Submitted: 1984-11-02 00:00:00
-
-  http://localhost:6543/updates/ejabberd-16.09-4.fc17
-
-ejabberd-16.09-4.fc17
+TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-testing? (y/n) Resume /mnt/koji/mash/updates/MASHING-f17-updates? (y/n) ejabberd-16.09-4.fc17
 Push these 1 updates? [y/N]: y
 
 Locking updates...
