@@ -65,8 +65,7 @@ def push(username, cert_prefix, **kwargs):
         # If we're resuming a push
         if resume:
             for lockfile in lockfiles:
-                doit = raw_input('Resume %s? (y/n) ' % lockfile).strip().lower()
-                if doit == 'n':
+                if not click.confirm('Resume {}?'.format(lockfile)):
                     continue
 
                 for update in lockfiles[lockfile]:
@@ -105,7 +104,7 @@ def push(username, cert_prefix, **kwargs):
                 updates.append(update)
 
         for update in updates:
-            print update.title
+            click.echo(update.title)
 
         if updates:
             click.confirm('Push these {:d} updates?'.format(len(updates)), abort=True)

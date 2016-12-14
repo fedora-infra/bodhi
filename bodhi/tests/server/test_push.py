@@ -234,7 +234,8 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-updates? (y/n) ejabberd-16.09-4.fc17
+TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-updates? [y/N]: y
+ejabberd-16.09-4.fc17
 Push these 1 updates? [y/N]: y
 
 Locking updates...
@@ -242,7 +243,9 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-testing? (y/n) Resume /mnt/koji/mash/updates/MASHING-f17-updates? (y/n) ejabberd-16.09-4.fc17
+TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-testing? [y/N]: n
+Resume /mnt/koji/mash/updates/MASHING-f17-updates? [y/N]: y
+ejabberd-16.09-4.fc17
 Push these 1 updates? [y/N]: y
 
 Locking updates...
