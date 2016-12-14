@@ -107,12 +107,14 @@ def push(username, cert_prefix, **kwargs):
         for update in updates:
             print update.title
 
-        click.confirm('Push these {:d} updates?'.format(len(updates)), abort=True)
-
-        click.echo('\nLocking updates...')
-        for update in updates:
-            update.locked = True
-            update.date_locked = datetime.utcnow()
+        if updates:
+            click.confirm('Push these {:d} updates?'.format(len(updates)), abort=True)
+            click.echo('\nLocking updates...')
+            for update in updates:
+                update.locked = True
+                update.date_locked = datetime.utcnow()
+        else:
+            click.echo('\nThere are no updates to push.')
 
         update_titles = list([update.title for update in updates])
 

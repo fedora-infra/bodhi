@@ -211,9 +211,8 @@ TEST_NO_UPDATES_TO_PUSH_EXPECTED_OUTPUT = """Warning: python-nose-1.3.7-11.fc17 
 Warning: python-paste-deploy-1.5.2-8.fc17 has unsigned builds and has been skipped
 Warning: bodhi-2.0-1.fc17 is locked but not in a push
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
-Push these 0 updates? [y/N]: y
 
-Locking updates...
+There are no updates to push.
 """
 
 TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """python-nose-1.3.7-11.fc25
