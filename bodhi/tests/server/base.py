@@ -15,7 +15,7 @@
 This module contains a useful base test class that helps with common testing needs when testing
 bodhi.server modules.
 """
-
+from contextlib import contextmanager
 import unittest
 
 from sqlalchemy import create_engine
@@ -24,11 +24,9 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 import transaction
 
-from bodhi.server import log
-from bodhi.tests.server import populate
-from bodhi.server.models import (
-    Base,
-)
+from bodhi.server import log, models
+from bodhi.tests.server import create_update, populate
+
 
 DB_PATH = 'sqlite://'
 DB_NAME = None
@@ -41,8 +39,8 @@ class BaseTestCase(unittest.TestCase):
         self.Session = scoped_session(
             sessionmaker(bind=engine, extension=ZopeTransactionExtension(keep_session=True)))
         log.debug('Creating all models for %s' % engine)
-        Base.metadata.bind = engine
-        Base.metadata.create_all(engine)
+        models.Base.metadata.bind = engine
+        models.Base.metadata.create_all(engine)
         self.db = self.Session()
         transaction.begin()
         populate(self.db)
@@ -61,3 +59,44 @@ class BaseTestCase(unittest.TestCase):
         self.db.close()
         self.Session.remove()
         del self.sql_statements
+
+    def create_update(self, build_nvrs, release_name=u'F17'):
+        """
+        Create and return an Update with the given iterable of build_nvrs. Each build_nvr should be
+        a tuple of strings describing the name, version, and release for the build. For example,
+        build_nvrs might look like this:
+
+        ((u'bodhi', u'2.3.3', u'1.fc24'), (u'python-fedora-atomic-composer', u'2016.3', u'1.fc24'))
+
+        You can optionally pass a release_name to select a different release than the default F17,
+        but the release must already exist in the database.
+
+        This is a convenience wrapper around bodhi.tests.server.create_update so that tests can just
+        call self.create_update() and not have to pass self.db.
+        """
+        return create_update(self.db, build_nvrs, release_name)
+
+
+class TransactionalSessionMaker(object):
+    """
+    Mimic the behavior of bodhi.server.utils.TransactionalSessionMaker, but allow tests to inject
+    the test database Session.
+    """
+    def __init__(self, Session):
+        """
+        Store the Session for later retrieval.
+        """
+        self._Session = Session
+
+    @contextmanager
+    def __call__(self):
+        session = self._Session()
+        transaction.begin()
+        try:
+            yield session
+            transaction.commit()
+        except:
+            transaction.abort()
+            raise
+        finally:
+            session.close()

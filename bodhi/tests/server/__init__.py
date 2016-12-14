@@ -1,6 +1,8 @@
-import mock
-
 from datetime import datetime, timedelta
+
+import mock
+import sqlalchemy
+
 from bodhi.server.models import (
     Base,
     Bug,
@@ -19,6 +21,54 @@ from bodhi.server.models import (
     UpdateRequest,
     TestCase,
 )
+
+
+def create_update(session, build_nvrs, release_name=u'F17'):
+    """
+    Use the given session to create and return an Update with the given iterable of build_nvrs. Each
+    build_nvr should be a string describing the name, version, and release for the build separated
+    by dashes. For example, build_nvrs might look like this:
+
+    (u'bodhi-2.3.3-1.fc24', u'python-fedora-atomic-composer-2016.3-1.fc24')
+
+    You can optionally pass a release_name to select a different release than the default F17, but
+    the release must already exist in the database.
+    """
+    release = session.query(Release).filter_by(name=release_name).one()
+    user = session.query(User).filter_by(name=u'guest').one()
+
+    builds = []
+    for nvr in build_nvrs:
+        name, version, rel = nvr.rsplit('-', 2)
+        try:
+            package = session.query(Package).filter_by(name=name).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            package = Package(name=name)
+            session.add(package)
+            user.packages.append(package)
+            testcase = TestCase(name=u'Wat')
+            session.add(testcase)
+            package.test_cases.append(testcase)
+
+        builds.append(Build(nvr=nvr, release=release, package=package))
+        session.add(builds[-1])
+
+        # Add a buildroot override for this build
+        expiration_date = datetime.utcnow()
+        expiration_date = expiration_date + timedelta(days=1)
+        override = BuildrootOverride(build=builds[-1], submitter=user,
+                                     notes=u'blah blah blah',
+                                     expiration_date=expiration_date)
+        session.add(override)
+
+    update = Update(
+        title=', '.join(build_nvrs), builds=builds, user=user, request=UpdateRequest.testing,
+        notes=u'Useful details!', release=release, date_submitted=datetime(1984, 11, 02),
+        requirements=u'rpmlint', stable_karma=3, unstable_karma=-3,
+        type=UpdateType.bugfix)
+    session.add(update)
+
+    return update
 
 
 def populate(db):
@@ -44,23 +94,7 @@ def populate(db):
         override_tag=u'f17-override',
         branch=u'f17', state=ReleaseState.current)
     db.add(release)
-    pkg = Package(name=u'bodhi')
-    db.add(pkg)
-    user.packages.append(pkg)
-    build = Build(nvr=u'bodhi-2.0-1.fc17', release=release, package=pkg)
-    db.add(build)
-    testcase = TestCase(name=u'Wat')
-    db.add(testcase)
-    pkg.test_cases.append(testcase)
-    update = Update(
-        title=u'bodhi-2.0-1.fc17',
-        builds=[build], user=user,
-        request=UpdateRequest.testing,
-        notes=u'Useful details!', release=release,
-        date_submitted=datetime(1984, 11, 02),
-        requirements=u'rpmlint',
-        stable_karma=3, unstable_karma=-3,
-    )
+    update = create_update(db, [u'bodhi-2.0-1.fc17'])
     update.type = UpdateType.bugfix
     bug = Bug(bug_id=12345)
     db.add(bug)
@@ -82,14 +116,6 @@ def populate(db):
     with mock.patch(target='uuid.uuid4', return_value='wat'):
         update.assign_alias()
     db.add(update)
-
-    expiration_date = datetime.utcnow()
-    expiration_date = expiration_date + timedelta(days=1)
-
-    override = BuildrootOverride(build=build, submitter=user,
-                                 notes=u'blah blah blah',
-                                 expiration_date=expiration_date)
-    db.add(override)
 
     update.locked = True
 
