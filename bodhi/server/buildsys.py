@@ -291,7 +291,7 @@ class DevBuildsys(Buildsystem):
 
 def koji_login(config):
     """ Login to Koji and return the session """
-    koji_client = koji.ClientSession(_koji_hub, {})
+    koji_client = koji.ClientSession(_koji_hub, {'krb_rdns': False})
     if not koji_client.krb_login(**get_krb_conf(config)):
         log.error('Koji krb_login failed')
     return koji_client
