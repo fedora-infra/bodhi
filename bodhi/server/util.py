@@ -16,47 +16,53 @@
 Random functions that don't fit elsewhere
 """
 
-import os
-import arrow
-import socket
-import urllib
-import tempfile
-import markdown
-import requests
-import subprocess
-import libravatar
-import hashlib
-import collections
-import pkg_resources
-import functools
-import transaction
-
-from os.path import join, dirname, basename, isfile
-from datetime import datetime
 from collections import defaultdict
 from contextlib import contextmanager
+from datetime import datetime
+from os.path import join, dirname, basename, isfile
+import collections
+import functools
+import hashlib
+import os
+import pkg_resources
+import socket
+import subprocess
+import tempfile
+import urllib
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
+import arrow
+import libravatar
+import markdown
+import requests
+import transaction
 
-from . import log, buildsys
-from .exceptions import RepodataException
-from .config import config
+from bodhi.server import log, buildsys
+from bodhi.server.config import config
+from bodhi.server.exceptions import RepodataException
 
 try:
     import rpm
 except ImportError:
     log.warning("Could not import 'rpm'")
 
+
 _ = TranslationStringFactory('bodhi')
 
-## Display a given message as a heading
-header = lambda x: u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
-pluralize = lambda val, name: val == 1 and name or "%ss" % name
+def header(x):
+    """Display a given message as a heading."""
+    return u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
+
+
+def pluralize(val, name):
+    """
+    Returns name if val == 1, or returns name with an 's' appended to the end if val != 1.
+    """
+    return val == 1 and name or "%ss" % name
 
 
 def get_rpm_header(nvr, tries=0):
@@ -100,7 +106,7 @@ def mkmetadatadir(path):
     """
     if not os.path.isdir(path):
         os.makedirs(path)
-    subprocess.check_call(['createrepo_c',  '--xz', '--database', '--quiet', path])
+    subprocess.check_call(['createrepo_c', '--xz', '--database', '--quiet', path])
 
 
 def get_age(date):
@@ -126,8 +132,6 @@ def get_age_in_days(date):
 
 def flash_log(msg):
     """ Flash and log a given message """
-    # FIXME: request.session.flash()
-    #flash(msg)
     log.debug(msg)
 
 
@@ -205,7 +209,7 @@ def get_critpath_pkgs(collection='master'):
 
 class Singleton(object):
     def __new__(cls, *args, **kw):
-        if not '_instance' in cls.__dict__:
+        if '_instance' not in cls.__dict__:
             cls._instance = object.__new__(cls)
         return cls._instance
 
@@ -317,6 +321,7 @@ def status2html(context, status):
     }[status]
     return "<span class='label label-%s'>%s</span>" % (cls, status)
 
+
 def state2class(context, state):
     state = unicode(state)
     cls = {
@@ -326,6 +331,7 @@ def state2class(context, state):
         'archived': 'danger'
     }
     return cls[state] if state in cls.keys() else 'default'
+
 
 def type2color(context, t):
     t = unicode(t)
@@ -337,9 +343,11 @@ def type2color(context, t):
     }
     return cls[t] if t in cls.keys() else cls['default']
 
+
 def state2html(context, state):
     state_class = state2class(context, state)
     return "<span class='label label-%s'>%s</span>" % (state_class, state)
+
 
 def karma2class(context, karma, default='default'):
     if karma and karma >= -2 and karma <= 2:
@@ -351,6 +359,7 @@ def karma2class(context, karma, default='default'):
             2: 'success',
         }.get(karma)
     return default
+
 
 def karma2html(context, karma):
 
@@ -613,7 +622,9 @@ class TransactionalSessionMaker(object):
         finally:
             session.close()
 
+
 transactional_session_maker = TransactionalSessionMaker
+
 
 def sort_severity(value):
     """ Sorts UpdateSeverity by severity importance"""
