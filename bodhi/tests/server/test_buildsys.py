@@ -44,7 +44,7 @@ class TestBuildsystem(unittest.TestCase):
         that if not, we crash hard.
         """
         buildsys.teardown_buildsystem()
-        self.assertRaises(AssertionError, buildsys.get_session)
+        self.assertRaises(RuntimeError, buildsys.get_session)
 
     def test_raises_unknown_buildsys(self):
         """

@@ -95,6 +95,8 @@ def makemsg(body=None):
 class TestMasher(unittest.TestCase):
 
     def setUp(self):
+        buildsys.setup_buildsystem({'buildsystem': 'dev'})
+
         fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
         db_path = 'sqlite:///%s' % self.db_filename
         # The BUILD_ID environment variable is set by Jenkins and allows us to
@@ -133,6 +135,7 @@ class TestMasher(unittest.TestCase):
             os.remove(self.db_filename)
         except:
             pass
+        buildsys.teardown_buildsystem()
 
     def set_stable_request(self, title):
         with self.db_factory() as session:
@@ -1107,6 +1110,7 @@ class MasherThreadBaseTestCase(base.BaseTestCase):
         Set up the test conditions.
         """
         super(MasherThreadBaseTestCase, self).setUp()
+        buildsys.setup_buildsystem({'buildsystem': 'dev'})
         self.tempdir = tempfile.mkdtemp()
 
     def tearDown(self):
@@ -1115,7 +1119,7 @@ class MasherThreadBaseTestCase(base.BaseTestCase):
         """
         super(MasherThreadBaseTestCase, self).tearDown()
         shutil.rmtree(self.tempdir)
-        buildsys.DevBuildsys.clear()
+        buildsys.teardown_buildsystem()
 
 
 class TestMasherThread__perform_tag_actions(MasherThreadBaseTestCase):
