@@ -25,33 +25,6 @@ from bodhi import client
 from bodhi.tests import client as client_test_data
 
 
-EXAMPLE_UPDATE_OUTPUT = u"""================================================================================
-     bodhi-2.2.4-1.el7
-================================================================================
-  Update ID: FEDORA-EPEL-2016-3081a94111
-    Release: Fedora EPEL 7
-     Status: stable
-       Type: bugfix
-      Karma: 0
-  Autokarma: True  [-3, 3]
-      Notes: Update to 2.2.4. Release notes available at https://github.com
-           : /fedora-infra/bodhi/releases/tag/2.2.4
-  Submitter: bowlofeggs
-  Submitted: 2016-10-05 18:10:22
-   Comments: bodhi - 2016-10-05 18:10:22 (karma 0)
-             This update has been submitted for testing by
-             bowlofeggs.
-             bodhi - 2016-10-05 18:10:27 (karma 0)
-             This update has obsoleted [bodhi-2.2.3-1.el7](https://
-             bodhi.fedoraproject.org/updates/FEDORA-
-             EPEL-2016-a0eb4cc41f), and has inherited its bugs and
-             notes.
-
-  http://example.com/tests/updates/FEDORA-EPEL-2016-3081a94111
-
-"""
-
-
 class TestRequest(unittest.TestCase):
     """
     This class tests the request() function.
@@ -73,7 +46,7 @@ class TestRequest(unittest.TestCase):
                                                 'some_user', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, EXAMPLE_UPDATE_OUTPUT)
+        self.assertEqual(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT + '\n')
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': u'revoke',

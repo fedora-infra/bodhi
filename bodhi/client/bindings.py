@@ -427,7 +427,7 @@ class BodhiClient(OpenIdBaseClient):
      Status: %s
        Type: %s
       Karma: %d
-  Autokarma: %s  [%d, %d]""" % (update['release']['long_name'], update['status'],
+  Autokarma: %s  [%s, %s]""" % (update['release']['long_name'], update['status'],
                       update['type'], update['karma'], update['autokarma'],
                       update['unstable_karma'], update['stable_karma'])
         if update['request'] is not None:

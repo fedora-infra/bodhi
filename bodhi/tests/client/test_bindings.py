@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.client.bindings."""
-
+import copy
 import unittest
 
 import fedora.client
@@ -102,6 +102,39 @@ class TestBodhiClient_Resource(unittest.TestCase):
             data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
                   'update': u'bodhi-2.2.4-1.el7'})
         __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
+
+
+class TestBodhiClient_update_str(unittest.TestCase):
+    """This test contains tests for BodhiClient.update_str."""
+    def test_with_autokarma_set(self):
+        """
+        Ensure correct operation when autokarma is True, and stable/unstable karmas are set.
+        """
+        client = bindings.BodhiClient(username='some_user', password='s3kr3t')
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertEqual(text, client_test_data.EXPECTED_UPDATE_OUTPUT)
+
+    def test_with_autokarma_unset(self):
+        """
+        Ensure correct operation when autokarma is Fale, and stable/unstable karmas are None.
+        """
+        client = bindings.BodhiClient(username='some_user', password='s3kr3t')
+        client.base_url = 'http://example.com/tests/'
+        update = copy.deepcopy(client_test_data.EXAMPLE_UPDATE_MUNCH)
+        # Set the update's autokarma and thresholds to False/None.
+        update.autokarma = False
+        update.unstable_karma = None
+        update.stable_karma = None
+
+        text = client.update_str(update)
+
+        self.maxDiff = None
+        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+            'Autokarma: True  [-3, 3]', 'Autokarma: False  [None, None]')
+        self.assertEqual(text, expected_output)
 
 
 class TestUpdateNotFound(unittest.TestCase):
