@@ -442,7 +442,17 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_LOCKED_UPDATES_NOT_IN_A_PUSH_EXPECTED_OUTPUT)
+        # The packages might be printed in any order and the order isn't important. So let's compare
+        # the output with the package list removed to make sure that it is correct.
+        self.assertEqual(
+            '\n'.join([l for l in result.output.split('\n') if l[-4:] != 'fc17']),
+            '\n'.join([l for l in TEST_LOCKED_UPDATES_NOT_IN_A_PUSH_EXPECTED_OUTPUT.split('\n')
+                       if l[-4:] != 'fc17']))
+        # Now let's assert that the package list is correct
+        self.assertEqual(
+            set([l for l in result.output.split('\n') if l[-4:] == 'fc17']),
+            set([l for l in TEST_LOCKED_UPDATES_NOT_IN_A_PUSH_EXPECTED_OUTPUT.split('\n')
+                 if l[-4:] == 'fc17']))
         glob.assert_called_once_with('/mnt/koji/mash/updates/MASHING-*')
         publish.assert_called_once_with(
             topic='masher.start',
