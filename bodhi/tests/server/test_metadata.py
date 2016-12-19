@@ -32,7 +32,8 @@ from bodhi.server.config import config
 from bodhi.server.util import mkmetadatadir
 from bodhi.server.models import (Package, Update, Build, Base,
         UpdateRequest, UpdateStatus, UpdateType)
-from bodhi.server.buildsys import get_session, DevBuildsys
+from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
+                                   get_session, DevBuildsys)
 from bodhi.server.metadata import ExtendedMetadata
 from bodhi.tests.server import base
 from bodhi.tests.server.functional.base import DB_PATH
@@ -49,6 +50,7 @@ class TestAddUpdate(base.BaseTestCase):
         Initialize our temporary repo.
         """
         super(TestAddUpdate, self).setUp()
+        setup_buildsystem({'buildsystem': 'dev'})
         self.tempdir = tempfile.mkdtemp('bodhi')
         self.temprepo = join(self.tempdir, 'f17-updates-testing')
         mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
@@ -58,6 +60,7 @@ class TestAddUpdate(base.BaseTestCase):
         Clean up the tempdir.
         """
         super(TestAddUpdate, self).tearDown()
+        teardown_buildsystem()
         shutil.rmtree(self.tempdir)
 
     def test_build_not_in_builds(self):
@@ -128,6 +131,7 @@ class TestExtendedMetadata(unittest.TestCase):
             os.makedirs(repo_path)
 
     def setUp(self):
+        setup_buildsystem({'buildsystem': 'dev'})
         engine = create_engine(DB_PATH)
         Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))
         Session.configure(bind=engine)
@@ -162,6 +166,7 @@ class TestExtendedMetadata(unittest.TestCase):
         self.db.close()
         get_session().clear()
         shutil.rmtree(self.tempdir)
+        teardown_buildsystem()
 
     def _verify_updateinfo(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))
