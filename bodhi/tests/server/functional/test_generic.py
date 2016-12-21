@@ -98,7 +98,7 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
 
     def test_home(self):
         res = self.app.get('/', status=200)
-        self.assertIn('Logout', res)
+        self.assertIn('Log out', res)
         self.assertIn('Fedora Update System', res)
 
     def test_markdown(self):
