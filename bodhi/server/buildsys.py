@@ -14,6 +14,7 @@
 
 import time
 import logging
+from threading import Lock
 
 from os.path import join, expanduser
 
@@ -314,18 +315,20 @@ def get_krb_conf(config):
 
 def get_session():
     """ Get a new buildsystem instance """
-    global _buildsystem
-    if not _buildsystem:
-        log.warning('No buildsystem configured; assuming testing')
-        return DevBuildsys()
-    return _buildsystem()
+    global _buildsystem, _buildsystem_login_lock
+    with _buildsystem_login_lock:
+        if not _buildsystem:
+            log.warning('No buildsystem configured; assuming testing')
+            return DevBuildsys()
+        return _buildsystem()
 
 
 def setup_buildsystem(settings):
-    global _buildsystem, _koji_hub
+    global _buildsystem, _koji_hub, _buildsystem_login_lock
     if _buildsystem:
         return
 
+    _buildsystem_login_lock = Lock()
     _koji_hub = settings.get('koji_hub')
     buildsys = settings.get('buildsystem')
 
