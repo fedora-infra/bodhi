@@ -337,11 +337,9 @@ def setup_buildsystem(settings):
     if buildsys == 'koji':
         log.debug('Using Koji Buildsystem')
         _buildsystem = lambda: koji_login(config=settings)
-
     elif buildsys in ('dev', 'dummy', None):
         log.debug('Using DevBuildsys')
         _buildsystem = DevBuildsys
-
     else:
         raise ValueError('Buildsys %s not known' % buildsys)
 
