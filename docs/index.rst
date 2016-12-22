@@ -13,6 +13,7 @@ Contents:
    :maxdepth: 2
 
    man_bodhi
+   man_bodhi-push
    release_notes
    developer_docs
    services
