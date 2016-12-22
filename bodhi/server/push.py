@@ -41,6 +41,7 @@ from bodhi.server.models import Build, get_db_factory, Release, ReleaseState, Up
               is_flag=True, default=False)
 @click.option('--resume', help='Resume one or more previously failed pushes',
               is_flag=True, default=False)
+@click.version_option(message='%(version)s')
 def push(username, cert_prefix, **kwargs):
     staging = kwargs.pop('staging')
     resume = kwargs.pop('resume')
