@@ -28,19 +28,18 @@ from bodhi.server.models import Build, get_db_factory, Release, ReleaseState, Up
 
 
 @click.command()
-@click.option('--releases', help='Push updates for specific releases')
-#@click.option('--type', default=None, help='Push a specific type of update',
-#        type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
-@click.option('--request', default='testing,stable',
-        help='Push updates with a specific request (default: testing,stable)')
-@click.option('--builds', help='Push updates for specific builds')
-@click.option('--username', envvar='USERNAME', prompt=True)
+@click.option('--builds', help='Push updates for a comma-separated list of builds')
 @click.option('--cert-prefix', default="shell",
-              help="The prefix of a fedmsg cert used to sign the message.")
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
+              help="The prefix of a fedmsg cert used to sign the message")
+@click.option('--releases', help=('Push updates for a comma-separated list of releases (default: '
+                                  'current and pending releases)'))
+@click.option('--request', default='testing,stable',
+              help='Push updates with a specific request (default: testing,stable)')
 @click.option('--resume', help='Resume one or more previously failed pushes',
               is_flag=True, default=False)
+@click.option('--staging', help='Use the staging bodhi instance',
+              is_flag=True, default=False)
+@click.option('--username', envvar='USERNAME', prompt=True)
 @click.version_option(message='%(version)s')
 def push(username, cert_prefix, **kwargs):
     staging = kwargs.pop('staging')
@@ -161,7 +160,7 @@ def _filter_releases(session, query, releases=None):
                 _releases.append(release)
     else:
         # Since the user didn't ask for specific Releases, let's just filter for releases that are
-        # current.
+        # current or pending.
         _releases = session.query(Release).filter(or_(Release.state == ReleaseState.current,
                                                       Release.state == ReleaseState.pending))
 
