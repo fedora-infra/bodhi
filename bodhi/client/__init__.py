@@ -241,7 +241,6 @@ def print_resp(resp, client):
             click.echo('%s updates found (%d shown)' % (
                 resp.total, len(resp.updates)))
     elif resp.get('update'):
-        click.echo(resp)
         click.echo(client.update_str(resp['update']))
     elif 'title' in resp:
         click.echo(client.update_str(resp))
