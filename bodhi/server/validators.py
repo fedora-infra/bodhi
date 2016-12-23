@@ -28,8 +28,7 @@ from .models import (Release, Package, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
                      Bug, TestCase, ReleaseState, Stack)
-from .util import get_nvr, tokenize, taskotron_results
-import bodhi.server.schemas
+from .util import get_nvr, splitter, tokenize, taskotron_results
 
 
 csrf_error_message = """CSRF tokens do not match.  This happens if you have
@@ -745,7 +744,7 @@ def validate_comment_id(request):
 
 def validate_override_builds(request):
     """ Ensure that the build is properly tagged """
-    nvrs = bodhi.server.schemas.splitter(request.validated['nvr'])
+    nvrs = splitter(request.validated['nvr'])
     db = request.db
 
     if not nvrs:

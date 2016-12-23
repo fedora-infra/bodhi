@@ -16,32 +16,13 @@ import re
 
 import colander
 
-from kitchen.iterutils import iterate
-
+from bodhi.server import util
 from bodhi.server.models import (UpdateRequest, UpdateSeverity, UpdateStatus,
                           UpdateSuggestion, UpdateType, ReleaseState)
-
 from bodhi.server.validators import validate_csrf_token
 
 
 CVE_REGEX = re.compile(r"CVE-[0-9]{4,4}-[0-9]{4,}")
-
-
-def splitter(value):
-    """Parse a string or list of comma or space delimited builds"""
-    if value == colander.null:
-        return
-
-    items = []
-    for v in iterate(value):
-        if isinstance(v, basestring):
-            for item in v.replace(',', ' ').split():
-                items.append(item)
-
-        elif v is not None:
-            items.append(v)
-
-    return items
 
 
 class CSRFProtectedSchema(colander.MappingSchema):
@@ -145,12 +126,12 @@ class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
 
 class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     builds = Builds(colander.Sequence(accept_scalar=True),
-                    preparer=[splitter])
+                    preparer=[util.splitter])
 
     bugs = Bugs(
             colander.Sequence(accept_scalar=True),
             missing=None,
-            preparer=[splitter]
+            preparer=[util.splitter]
     )
 
     close_bugs = colander.SchemaNode(
@@ -261,14 +242,14 @@ class ListReleaseSchema(PaginatedSchema):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     packages = Packages(
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
 
@@ -338,7 +319,7 @@ class ListStackSchema(PaginatedSchema, SearchableSchema):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
 
@@ -350,7 +331,7 @@ class SaveStackSchema(CSRFProtectedSchema, colander.MappingSchema):
     packages = Packages(
         colander.Sequence(accept_scalar=True),
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     description = colander.SchemaNode(
@@ -375,21 +356,21 @@ class ListUserSchema(PaginatedSchema, SearchableSchema):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     updates = Updates(
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     packages = Packages(
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
 
@@ -398,7 +379,7 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     approved_since = colander.SchemaNode(
@@ -417,14 +398,14 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     builds = Builds(
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     critpath = colander.SchemaNode(
@@ -437,7 +418,7 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     locked = colander.SchemaNode(
@@ -462,7 +443,7 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     pushed = colander.SchemaNode(
@@ -487,7 +468,7 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     # This singular version of the plural "releases" is purely for bodhi1
@@ -555,7 +536,7 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
 
@@ -578,21 +559,21 @@ class ListBuildSchema(PaginatedSchema):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     releases = Releases(
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     updates = Updates(
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
 
@@ -608,14 +589,14 @@ class ListCommentSchema(PaginatedSchema, SearchableSchema):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     packages = Packages(
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     user = colander.SchemaNode(
@@ -660,14 +641,14 @@ class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     releases = Releases(
         colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        preparer=[splitter],
+        preparer=[util.splitter],
     )
 
     user = colander.SchemaNode(

@@ -30,11 +30,13 @@ import subprocess
 import tempfile
 import urllib
 
+from kitchen.iterutils import iterate
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 import arrow
+import colander
 import libravatar
 import markdown
 import requests
@@ -294,6 +296,23 @@ def avatar(context, username, size):
         return 'libravatar.org'
 
     return work(username, size)
+
+
+def splitter(value):
+    """Parse a string or list of comma or space delimited builds"""
+    if value == colander.null:
+        return
+
+    items = []
+    for v in iterate(value):
+        if isinstance(v, basestring):
+            for item in v.replace(',', ' ').split():
+                items.append(item)
+
+        elif v is not None:
+            items.append(v)
+
+    return items
 
 
 def version(context=None):
