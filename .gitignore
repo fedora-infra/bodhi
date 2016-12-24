@@ -23,3 +23,5 @@ dogpile-cache.dbm*
 html-docs
 masher/
 Vagrantfile
+.python
+*.idea/*
