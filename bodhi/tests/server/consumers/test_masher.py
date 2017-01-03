@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
+import datetime
 import os
 import mock
 import time
@@ -792,7 +792,9 @@ References:
             u'https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how to '
             u'install test updates.\nYou can provide feedback for this update here: {}')
         expected_message = expected_message.format(
-            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-a3bbe1a8f2'))
+            urlparse.urljoin(
+                config['base_address'],
+                '/updates/FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.now().year)))
         on_qa.assert_called_once_with(12345, expected_message)
 
     @mock.patch(**mock_taskotron_results)

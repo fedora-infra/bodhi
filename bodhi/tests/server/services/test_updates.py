@@ -392,7 +392,8 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
             u'This update has obsoleted [bodhi-2.0.0-2.fc17]({}), '
             u'and has inherited its bugs and notes.')
         expected_comment = expected_comment.format(
-            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-033713b73b'))
+            urlparse.urljoin(config['base_address'],
+                             '/updates/FEDORA-{}-033713b73b'.format(datetime.now().year)))
         self.assertEquals(r['comments'][-1]['text'], expected_comment)
         publish.assert_called_with(
             topic='update.request.testing', msg=mock.ANY)
@@ -401,7 +402,8 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(up.status, UpdateStatus.obsolete)
         expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
-            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-53345602d5'))
+            urlparse.urljoin(config['base_address'],
+                             '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
         self.assertEquals(up.comments[-1].text, expected_comment)
 
     @mock.patch(**mock_valid_requirements)
@@ -1960,7 +1962,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(up.status, UpdateStatus.obsolete)
         expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
-            urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-53345602d5'))
+            urlparse.urljoin(config['base_address'],
+                             '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
         self.assertEquals(up.comments[-1].text, expected_comment)
 
         # Check Push to Stable button for obsolete update
