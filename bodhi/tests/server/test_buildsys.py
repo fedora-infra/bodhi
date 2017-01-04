@@ -124,8 +124,18 @@ class TestKojiLogin(unittest.TestCase):
         """Assert correct behavior for a successful login event."""
         config = {'some_meaningless_other_key': 'boring_value', 'krb_ccache': 'a_ccache',
                   'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal'}
+        default_koji_opts = {
+            'krb_rdns': False,
+            'max_retries': 30,
+            'retry_interval': 10,
+            'offline_retry': True,
+            'offline_retry_interval': 10,
+            'anon_retry': True,
+        }
 
         client = buildsys.koji_login(config)
+        for key in default_koji_opts:
+            self.assertEqual(default_koji_opts[key], client.opts[key])
 
         self.assertEqual(type(client), koji.ClientSession)
         # No error should have been logged
