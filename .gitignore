@@ -23,3 +23,4 @@ dogpile-cache.dbm*
 html-docs
 masher/
 Vagrantfile
+.dnf-cache/
