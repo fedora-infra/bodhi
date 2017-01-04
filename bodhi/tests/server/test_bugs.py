@@ -18,6 +18,7 @@
 import unittest
 
 import bunch
+import mock
 
 from bodhi.server import bugs
 
@@ -29,6 +30,31 @@ class TestBugzilla(unittest.TestCase):
         bz = bugs.Bugzilla()
 
         self.assertIsNone(bz._bz)
+
+    @mock.patch('bodhi.server.bugs.bugzilla.Bugzilla.__init__', return_value=None)
+    def test__connect_with_creds(self, __init__):
+        """Test the _connect() method when the config contains credentials."""
+        bz = bugs.Bugzilla()
+        patch_config = {'bodhi_email': 'bodhi@example.com', 'bodhi_password': 'bodhi_secret',
+                        'bz_server': 'https://example.com/bz'}
+
+        with mock.patch.dict('bodhi.server.bugs.config', patch_config):
+            bz._connect()
+
+        __init__.assert_called_once_with(url='https://example.com/bz', user='bodhi@example.com',
+                                         password='bodhi_secret', cookiefile=None, tokenfile=None)
+
+    @mock.patch('bodhi.server.bugs.bugzilla.Bugzilla.__init__', return_value=None)
+    def test__connect_without_creds(self, __init__):
+        """Test the _connect() method when the config does not contain credentials."""
+        bz = bugs.Bugzilla()
+        patch_config = {'bz_server': 'https://example.com/bz'}
+
+        with mock.patch.dict('bodhi.server.bugs.config', patch_config):
+            bz._connect()
+
+        __init__.assert_called_once_with(url='https://example.com/bz',
+                                         cookiefile=None, tokenfile=None)
 
 
 class TestFakeBugTracker(unittest.TestCase):
