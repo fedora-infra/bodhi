@@ -13,26 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
-"""Test suite for the Bodhi models"""
-
+"""Test suite for bodhi.server.models.models."""
+from datetime import datetime, timedelta
 import time
 import unittest
+
+from nose.tools import eq_, raises
+from pyramid.testing import DummyRequest
+from sqlalchemy.exc import IntegrityError
 import cornice
 import mock
 
-from nose.tools import eq_, raises
-from datetime import datetime, timedelta
-from sqlalchemy.exc import IntegrityError
-from pyramid.testing import DummyRequest
-
 from bodhi.server import models as model, buildsys, mail, util
-from bodhi.server.models import (get_db_factory, UpdateStatus, UpdateType, UpdateRequest,
-                          UpdateSeverity, UpdateSuggestion, ReleaseState,
-                          BugKarma)
-from bodhi.tests.server.models import ModelTest
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
+from bodhi.server.models import (
+    BugKarma, get_db_factory, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
+    UpdateSuggestion, UpdateType)
+from bodhi.tests.server.models import ModelTest
 
 
 class DummyUser(object):
@@ -78,8 +76,7 @@ class TestRelease(ModelTest):
         pending_testing_tag=u"dist-f11-updates-testing-pending",
         pending_stable_tag=u"dist-f11-updates-pending",
         override_tag=u"dist-f11-override",
-        state=model.ReleaseState.current,
-        )
+        state=model.ReleaseState.current)
 
     def test_version_int(self):
         eq_(self.obj.version_int, 11)
@@ -148,16 +145,11 @@ class TestPackage(ModelTest):
 class TestBuild(ModelTest):
     """Unit test case for the ``Build`` model."""
     klass = model.Build
-    attrs = dict(
-        nvr=u"TurboGears-1.0.8-3.fc11",
-        inherited=False,
-        )
+    attrs = dict(nvr=u"TurboGears-1.0.8-3.fc11", inherited=False)
 
     def do_get_dependencies(self):
-        return dict(
-                release=model.Release(**TestRelease.attrs),
-                package=model.Package(**TestPackage.attrs),
-                )
+        return dict(release=model.Release(**TestRelease.attrs),
+                    package=model.Package(**TestPackage.attrs))
 
     def test_release_relation(self):
         eq_(self.obj.release.name, u"F11")
@@ -173,23 +165,8 @@ class TestBuild(ModelTest):
         self.obj.epoch = '1'
         eq_(self.obj.evr, ("1", "1.0.8", "3.fc11"))
 
-    #def test_latest(self):
-    #    # Note, this build is hardcoded in bodhi/buildsys.py:DevBuildsys
-    #    eq_(self.obj.get_latest(), u"TurboGears-1.0.8-7.fc11")
-
-    #def test_latest_with_eq_build(self):
-    #    self.obj.nvr = 'TurboGears-1.0.8-7.fc11'
-    #    eq_(self.obj.get_latest(), None)
-
-    #def test_latest_with_newer_build(self):
-    #    self.obj.nvr = 'TurboGears-1.0.8-8.fc11'
-    #    eq_(self.obj.get_latest(), None)
-
     def test_url(self):
         eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
-
-    #def test_get_latest(self):
-    #    eq_(self.obj.get_latest(), None)
 
 
 class TestUpdate(ModelTest):
@@ -205,33 +182,27 @@ class TestUpdate(ModelTest):
         stable_karma=3,
         unstable_karma=-3,
         close_bugs=True,
-        notes=u'foobar',
-        )
+        notes=u'foobar')
 
     def do_get_dependencies(self):
         release = model.Release(**TestRelease.attrs)
         return dict(
             builds=[model.Build(nvr=u'TurboGears-1.0.8-3.fc11',
-                                  package=model.Package(**TestPackage.attrs),
-                                  release=release)],
+                                package=model.Package(**TestPackage.attrs), release=release)],
             bugs=[model.Bug(bug_id=1), model.Bug(bug_id=2)],
             cves=[model.CVE(cve_id=u'CVE-2009-0001')],
             release=release,
-            user=model.User(name=u'lmacken')
-            )
+            user=model.User(name=u'lmacken'))
 
     def get_update(self, name=u'TurboGears-1.0.8-3.fc11'):
         """Return an Update instance for testing."""
         attrs = self.attrs.copy()
         attrs['title'] = name
-        pkg = self.db.query(model.Package) \
-                .filter_by(name=u'TurboGears').one()
-        rel = self.db.query(model.Release) \
-                .filter_by(name=u'F11').one()
+        pkg = self.db.query(model.Package).filter_by(name=u'TurboGears').one()
+        rel = self.db.query(model.Release).filter_by(name=u'F11').one()
         attrs.update(dict(
             builds=[model.Build(nvr=name, package=pkg, release=rel)],
-            release=rel,
-            ))
+            release=rel))
         return self.klass(**attrs)
 
     def test_autokarma_not_nullable(self):
@@ -309,15 +280,20 @@ class TestUpdate(ModelTest):
                                   # Add an unknown tag that we shouldn't touch
                                   release.dist_tag + '-compose']
         self.obj.builds[0].unpush(koji)
-        eq_(koji.__moved__, [(u'dist-f11-updates-testing', u'dist-f11-updates-candidate', u'TurboGears-1.0.8-3.fc11')])
-        eq_(koji.__untag__, [(u'dist-f11-updates-testing-signing', u'TurboGears-1.0.8-3.fc11'), (u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11')])
+        eq_(koji.__moved__, [(u'dist-f11-updates-testing', u'dist-f11-updates-candidate',
+                              u'TurboGears-1.0.8-3.fc11')])
+        eq_(koji.__untag__, [(u'dist-f11-updates-testing-signing', u'TurboGears-1.0.8-3.fc11'),
+                             (u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11')])
 
     def test_title(self):
         eq_(self.obj.title, u'TurboGears-1.0.8-3.fc11')
 
     def test_pkg_str(self):
         """ Ensure str(pkg) is correct """
-        eq_(str(self.obj.builds[0].package), '================================================================================\n     TurboGears\n================================================================================\n\n Pending Updates (1)\n    o TurboGears-1.0.8-3.fc11\n')
+        eq_(str(self.obj.builds[0].package),
+            ('================================================================================\n   '
+             '  TurboGears\n======================================================================='
+             '=========\n\n Pending Updates (1)\n    o TurboGears-1.0.8-3.fc11\n'))
 
     def test_bugstring(self):
         eq_(self.obj.get_bugstring(), u'1 2')
@@ -339,9 +315,9 @@ class TestUpdate(ModelTest):
         idx = '016462d41f'
         eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
-        ## Create another update for another release that has the same
-        ## Release.id_prefix.  This used to trigger a bug that would cause
-        ## duplicate IDs across Fedora 10/11 updates.
+        # Create another update for another release that has the same
+        # Release.id_prefix.  This used to trigger a bug that would cause
+        # duplicate IDs across Fedora 10/11 updates.
         update = self.get_update(name=u'nethack-3.4.5-1.fc10')
         otherrel = model.Release(name=u'fc10', long_name=u'Fedora 10',
                                  id_prefix=u'FEDORA', dist_tag=u'dist-fc10',
@@ -377,16 +353,14 @@ class TestUpdate(ModelTest):
         eq_(update.alias, u'FEDORA-%s-%s' % (time.localtime()[0], idx))
 
         update = self.get_update(name=u'TurboGears-2.1-1.el5')
-        release = model.Release(name=u'EL-5', long_name=u'Fedora EPEL 5',
-                          id_prefix=u'FEDORA-EPEL', dist_tag=u'dist-5E-epel',
-                          stable_tag=u'dist-5E-epel',
-                          testing_tag=u'dist-5E-epel-testing',
-                          candidate_tag=u'dist-5E-epel-testing-candidate',
-                          pending_signing_tag=u'dist-5E-epel-testing-signing',
-                          pending_testing_tag=u'dist-5E-epel-testing-pending',
-                          pending_stable_tag=u'dist-5E-epel-pending',
-                          override_tag=u'dist-5E-epel-override',
-                          branch=u'el5', version=u'5')
+        release = model.Release(
+            name=u'EL-5', long_name=u'Fedora EPEL 5', id_prefix=u'FEDORA-EPEL',
+            dist_tag=u'dist-5E-epel', stable_tag=u'dist-5E-epel',
+            testing_tag=u'dist-5E-epel-testing', candidate_tag=u'dist-5E-epel-testing-candidate',
+            pending_signing_tag=u'dist-5E-epel-testing-signing',
+            pending_testing_tag=u'dist-5E-epel-testing-pending',
+            pending_stable_tag=u'dist-5E-epel-pending', override_tag=u'dist-5E-epel-override',
+            branch=u'el5', version=u'5')
         update.release = release
         idx = 'a3bbe1a8f2'
         with mock.patch(target='uuid.uuid4', return_value='wat'):
@@ -449,7 +423,8 @@ class TestUpdate(ModelTest):
         eq_(self.obj._composite_karma, (1, 0))
 
     def test__composite_karma_ignores_comments_before_removed_build(self):
-        """Assert that _composite_karma ignores karma from before a removed build karma reset event."""
+        """Assert that _composite_karma ignores karma from before a removed build karma reset event.
+        """
         self.obj.comment(self.db, u"foo", 1, u'foo')
         self.obj.comment(self.db, u"foo", 1, u'bar')
         # This is a "karma reset event", so the above comments should not be counted in the karma.
@@ -513,7 +488,6 @@ class TestUpdate(ModelTest):
         eq_(update.karma, 3)
         eq_(update.request, UpdateRequest.stable)
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
-        #publish.assert_called_with(topic='update.request.stable', msg=mock.ANY)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_unstable_karma(self, publish):
@@ -579,7 +553,8 @@ class TestUpdate(ModelTest):
         bug.title = u'foo\xe9bar'
         from bodhi.server.util import bug_link
         link = bug_link(None, bug)
-        eq_(link, u"<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a> foo\xe9bar")
+        eq_(link, (u"<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a>"
+                   u" foo\xe9bar"))
 
     def test_set_request_untested_stable(self):
         """
@@ -796,13 +771,13 @@ class TestUpdate(ModelTest):
         eq_(len(self.obj.comments), 1)
         eq_(self.obj.comments[0].user.name, u'bodhi')
         eq_(self.obj.comments[0].text,
-                u'This update has been pushed to testing.')
+            u'This update has been pushed to testing.')
         self.obj.status = UpdateStatus.stable
         self.obj.status_comment(self.db)
         eq_(len(self.obj.comments), 2)
         eq_(self.obj.comments[1].user.name, u'bodhi')
         eq_(self.obj.comments[1].text,
-                u'This update has been pushed to stable.')
+            u'This update has been pushed to stable.')
         assert str(self.obj.comments[1]).endswith(
             'This update has been pushed to stable.')
 
@@ -921,5 +896,4 @@ class TestBuildrootOverride(ModelTest):
             build=model.Build(nvr=u'TurboGears-1.0.8-3.fc11',
                               package=model.Package(**TestPackage.attrs),
                               release=model.Release(**TestRelease.attrs)),
-            submitter=model.User(name=u'lmacken'),
-            )
+            submitter=model.User(name=u'lmacken'))
