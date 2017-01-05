@@ -39,9 +39,9 @@
       - zlib-devel
 
 - name: Install bodhi in developer mode
-  command: python /vagrant/setup.py develop
+  command: python /home/vagrant/bodhi/setup.py develop
   args:
-      chdir: /vagrant
+      chdir: /home/vagrant/bodhi
       creates: /usr/lib/python2.7/site-packages/bodhi.egg-link
 
 - name: Retrieve database dump
@@ -53,17 +53,17 @@
   args:
       creates: /home/vagrant/.db-imported
 
-- command: cp /vagrant/development.ini.example /vagrant/development.ini
+- command: cp /home/vagrant/bodhi/development.ini.example /home/vagrant/bodhi/development.ini
   args:
-      creates: /vagrant/development.ini
+      creates: /home/vagrant/bodhi/development.ini
 
 - name: Switch the database connection to postgres
   replace:
-    dest: /vagrant/development.ini
+    dest: /home/vagrant/bodhi/development.ini
     regexp: "^sqlalchemy.url = sqlite.*$"
     replace: "sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2"
 
 - name: Apply database migrations
   command: alembic upgrade head
   args:
-      chdir: /vagrant
+      chdir: /home/vagrant/bodhi
