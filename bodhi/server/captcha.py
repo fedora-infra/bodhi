@@ -16,15 +16,14 @@
 # Authors:  Ralph Bean <rbean@redhat.com>
 
 import base64
-import cryptography.fernet
 import math
 import random
-import six
 
 from PIL import Image, ImageDraw, ImageFont
-
 from pyramid.httpexceptions import HTTPGone, HTTPNotFound
 from pyramid.view import view_config
+import cryptography.fernet
+import six
 
 
 def math_generator(plainkey, settings):
@@ -79,6 +78,7 @@ def jpeg_generator(plainkey, settings):
 
     return img
 
+
 def warp_image(image):
     r = 10  # individually warp a bunch of 10x10 tiles.
     mesh_x = (image.size[0] / r) + 2
@@ -124,10 +124,10 @@ def warp_image(image):
         Specified counter-clockwise as a tuple.
         """
         return (
-            warp[i  ][j  ][0], warp[i  ][j  ][1],
-            warp[i  ][j+1][0], warp[i  ][j+1][1],
-            warp[i+1][j+1][0], warp[i+1][j+1][1],
-            warp[i+1][j  ][0], warp[i+1][j  ][1],
+            warp[i][j][0], warp[i][j][1],
+            warp[i][j + 1][0], warp[i][j + 1][1],
+            warp[i + 1][j + 1][0], warp[i + 1][j + 1][1],
+            warp[i + 1][j][0], warp[i + 1][j][1],
         )
 
     # Finally, prepare our list of sources->destinations for PIL.
@@ -136,8 +136,8 @@ def warp_image(image):
             _destination_rectangle(i, j),
             _source_quadrilateral(i, j),
         )
-        for j in range(mesh_y-1)
-        for i in range(mesh_x-1)
+        for j in range(mesh_y - 1)
+        for i in range(mesh_x - 1)
     ]
     # And do it.
     return image.transform(image.size, Image.MESH, mesh, Image.BILINEAR)
