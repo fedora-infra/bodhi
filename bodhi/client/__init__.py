@@ -80,7 +80,8 @@ def new(user, password, **kwargs):
         except bindings.BodhiClientException as e:
             click.echo(str(e))
         except Exception as e:
-            traceback.print_exc()
+            sys.tracebacklimit = 0
+	    print("Wrong password, Try again")
 
 
 @updates.command()
