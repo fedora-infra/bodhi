@@ -227,7 +227,7 @@ class TestUpdatesHandlerInit(unittest.TestCase):
                       'topic_prefix': 'topic_prefix'}
 
         with mock.patch.dict(updates.config, {'bodhi_email': 'bowlofeggs@fpo.org'}):
-            h = updates.UpdatesHandler(hub)
+            updates.UpdatesHandler(hub)
 
         __init__.assert_called_once_with(hub)
 

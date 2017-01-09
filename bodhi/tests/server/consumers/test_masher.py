@@ -12,27 +12,25 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import datetime
-import os
-import mock
-import time
-import urlparse
 import json
+import os
 import shutil
-import unittest
 import tempfile
+import time
+import unittest
+import urlparse
 
 from sqlalchemy import create_engine
+import mock
 
 from bodhi.server import buildsys, log
 from bodhi.server.config import config
 from bodhi.server.consumers.masher import Masher, MasherThread
-from bodhi.server.models import (Base, Update, User, Release,
-                          Build, UpdateRequest, UpdateType,
-                          ReleaseState, BuildrootOverride,
-                          UpdateStatus)
+from bodhi.server.models import (Base, Build, BuildrootOverride, Release, ReleaseState, Update,
+                                 UpdateRequest, UpdateStatus, UpdateType, User)
+from bodhi.server.util import mkmetadatadir, transactional_session_maker
 from bodhi.tests.server import base, populate
 
-from bodhi.server.util import mkmetadatadir, transactional_session_maker
 
 mock_exc = mock.Mock()
 mock_exc.side_effect = Exception
@@ -43,7 +41,7 @@ mock_taskotron_results = {
     'return_value': [{
         "outcome": "PASSED",
         "result_data": {},
-        "testcase": { "name": "rpmlint", }
+        "testcase": {"name": "rpmlint"}
     }],
 }
 
@@ -52,7 +50,7 @@ mock_failed_taskotron_results = {
     'return_value': [{
         "outcome": "FAILED",
         "result_data": {},
-        "testcase": { "name": "rpmlint", }
+        "testcase": {"name": "rpmlint"}
     }],
 }
 
@@ -120,7 +118,6 @@ class TestMasher(unittest.TestCase):
         with self.db_factory() as session:
             populate(session)
             assert session.query(Update).count() == 1
-
 
         self.koji = buildsys.get_session()
         self.koji.clear()  # clear out our dev introspection
@@ -249,8 +246,8 @@ class TestMasher(unittest.TestCase):
         # Ensure our single update was moved
         self.assertEquals(len(self.koji.__moved__), 1)
         self.assertEquals(len(self.koji.__added__), 0)
-        self.assertEquals(self.koji.__moved__[0], (u'f17-updates-candidate',
-            u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
+        self.assertEquals(self.koji.__moved__[0],
+                          (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
 
         # The override tag won't get removed until it goes to stable
         self.assertEquals(self.koji.__untag__[0], (pending_testing_tag, nvr))
@@ -300,12 +297,14 @@ class TestMasher(unittest.TestCase):
         self.msg['body']['msg']['updates'].insert(0, otherbuild)
 
         with self.db_factory() as session:
-            firstupdate = session.query(Update).filter_by(title=self.msg['body']['msg']['updates'][1]).one()
+            firstupdate = session.query(Update).filter_by(
+                title=self.msg['body']['msg']['updates'][1]).one()
             build = Build(nvr=otherbuild, package=firstupdate.builds[0].package)
             session.add(build)
-            update = Update(title=otherbuild, builds=[build], type=UpdateType.bugfix,
-                    request=UpdateRequest.testing, notes=u'second update',
-                    user=firstupdate.user, release=firstupdate.release)
+            update = Update(
+                title=otherbuild, builds=[build], type=UpdateType.bugfix,
+                request=UpdateRequest.testing, notes=u'second update', user=firstupdate.user,
+                release=firstupdate.release)
             session.add(update)
             session.flush()
 
@@ -325,10 +324,10 @@ class TestMasher(unittest.TestCase):
         self.assertEquals(len(self.koji.__added__), 0)
 
         # Ensure the most recent version is tagged last in order to be the 'koji latest-pkg'
-        self.assertEquals(self.koji.__moved__[0], (u'f17-updates-candidate',
-            u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
-        self.assertEquals(self.koji.__moved__[1], (u'f17-updates-candidate',
-            u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
+        self.assertEquals(self.koji.__moved__[0],
+                          (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
+        self.assertEquals(self.koji.__moved__[1],
+                          (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
 
     def test_statefile(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
@@ -340,8 +339,7 @@ class TestMasher(unittest.TestCase):
         with file(t.mash_lock) as f:
             state = json.load(f)
         try:
-            self.assertEquals(state, {u'updates':
-                [u'bodhi-2.0-1.fc17'], u'completed_repos': []})
+            self.assertEquals(state, {u'updates': [u'bodhi-2.0-1.fc17'], u'completed_repos': []})
         finally:
             t.remove_state()
 
@@ -381,10 +379,23 @@ References:
 
 """ % time.strftime('%Y'))
 
-        mail.assert_called_with(config.get('bodhi_email'), config.get('fedora_test_announce_list'), mock.ANY)
+        mail.assert_called_with(config.get('bodhi_email'), config.get('fedora_test_announce_list'),
+                                mock.ANY)
         assert len(mail.mock_calls) == 2, len(mail.mock_calls)
         body = mail.mock_calls[1][1][2]
-        assert body.startswith('From: updates@fedoraproject.org\r\nTo: %s\r\nX-Bodhi: fedoraproject.org\r\nSubject: Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n================================================================================\n libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)\n Enhanced seccomp library\n--------------------------------------------------------------------------------\nUpdate Information:\n\nUseful details!\n--------------------------------------------------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------------------------------------------------------------------\n\n' % (config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
+        assert body.startswith(
+            ('From: updates@fedoraproject.org\r\nTo: %s\r\nX-Bodhi: fedoraproject.org\r\nSubject: '
+             'Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to '
+             'Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n====='
+             '===========================================================================\n '
+             'libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)\n Enhanced seccomp library\n----------'
+             '----------------------------------------------------------------------\nUpdate '
+             'Information:\n\nUseful details!\n----------------------------------------------------'
+             '----------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None\n        '
+             'https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        '
+             'http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------'
+             '------------------------------------------------------------\n\n') % (
+                 config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
     def test_sanity_check(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
@@ -635,29 +646,23 @@ References:
         # Ensure that F18 and F17 run in parallel
         calls = publish.mock_calls
         if calls[1] == mock.call(
-            msg={'repo': u'f18-updates',
-                 'updates': [u'bodhi-2.0-1.fc18'],
-                 'agent': 'lmacken'},
-            force=True,
-            topic='mashtask.mashing'):
-            self.assertEquals(calls[2], mock.call(
-                msg={'repo': u'f17-updates',
-                     'updates': [u'bodhi-2.0-1.fc17'],
-                     'agent': 'lmacken'},
-                force=True,
-                topic='mashtask.mashing'))
-        elif calls[1] == self.assertEquals(calls[1], mock.call(
-            msg={'repo': u'f17-updates',
-                 'updates': [u'bodhi-2.0-1.fc17'],
-                 'agent': 'lmacken'},
-            force=True,
-            topic='mashtask.mashing')):
-            self.assertEquals(calls[2], mock.call(
-                msg={'repo': u'f18-updates',
-                     'updates': [u'bodhi-2.0-1.fc18']},
-                force=True,
-                topic='mashtask.mashing'))
-
+                msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18'], 'agent': 'lmacken'},
+                force=True, topic='mashtask.mashing'):
+            self.assertEquals(
+                calls[2],
+                mock.call(msg={'repo': u'f17-updates', 'updates': [u'bodhi-2.0-1.fc17'],
+                               'agent': 'lmacken'},
+                          force=True, topic='mashtask.mashing'))
+        elif calls[1] == self.assertEquals(
+                calls[1],
+                mock.call(
+                    msg={'repo': u'f17-updates', 'updates': [u'bodhi-2.0-1.fc17'],
+                         'agent': 'lmacken'},
+                    force=True, topic='mashtask.mashing')):
+            self.assertEquals(
+                calls[2],
+                mock.call(msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18']},
+                          force=True, topic='mashtask.mashing'))
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MashThread.run')
@@ -706,7 +711,6 @@ References:
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
         self.assertEquals(len(t.state['completed_repos']), 1)
-
 
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -820,7 +824,8 @@ References:
         close.assert_called_with(
             12345,
             versions=dict(bodhi=u'bodhi-2.0-1.fc17'),
-            comment=u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If problems still persist, please make note of it in this bug report.')
+            comment=(u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If '
+                     u'problems still persist, please make note of it in this bug report.'))
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
@@ -832,7 +837,7 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
-    def test_status_comment_testing(self,  *args):
+    def test_status_comment_testing(self, *args):
         title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
@@ -855,7 +860,7 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
-    def test_status_comment_stable(self,  *args):
+    def test_status_comment_stable(self, *args):
         title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
@@ -878,7 +883,7 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
-    def test_get_security_updates(self,  *args):
+    def test_get_security_updates(self, *args):
         build = u'bodhi-2.0-1.fc17'
         t = MasherThread(u'F17', u'testing', [build],
                          'ralph', log, self.db_factory, self.tempdir)
@@ -903,7 +908,7 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
-    def test_unlock_updates(self,  *args):
+    def test_unlock_updates(self, *args):
         title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             up = session.query(Update).filter_by(title=title).one()
@@ -927,7 +932,7 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
-    def test_resume_push(self,  *args):
+    def test_resume_push(self, *args):
         title = self.msg['body']['msg']['updates'][0]
         with mock.patch.object(MasherThread, 'generate_testing_digest', mock_exc):
             with self.db_factory() as session:
@@ -963,7 +968,7 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
-    def test_stable_requirements_met_during_push(self,  *args):
+    def test_stable_requirements_met_during_push(self, *args):
         """
         Test reaching the stablekarma threshold while the update is being
         pushed to testing
@@ -1082,9 +1087,10 @@ References:
             # Create a newer build
             build = Build(nvr=otherbuild, package=oldupdate.builds[0].package)
             session.add(build)
-            update = Update(title=otherbuild, builds=[build], type=UpdateType.bugfix,
-                    request=UpdateRequest.testing, notes=u'second update',
-                    user=oldupdate.user, release=oldupdate.release)
+            update = Update(
+                title=otherbuild, builds=[build], type=UpdateType.bugfix,
+                request=UpdateRequest.testing, notes=u'second update', user=oldupdate.user,
+                release=oldupdate.release)
             session.add(update)
             session.flush()
 
