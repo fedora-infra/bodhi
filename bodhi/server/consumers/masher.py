@@ -938,7 +938,7 @@ class MasherThread(threading.Thread):
                 notifications.publish(topic="ostree.compose.fail",
                                       msg=dict(tag=tag),
                                       force=True)
-                raise Exception('%s atomic compose failed' % tag)
+                self.log.error('%s atomic tree compose failed', tag)
             else:
                 self.log.info('%s atomic tree compose successful', tag)
                 notifications.publish(
