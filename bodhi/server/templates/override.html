@@ -138,6 +138,7 @@
 
     <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
 
+    %if request.user and ('provenpackager' or 'packager' in request.user.groups):
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
@@ -157,6 +158,7 @@
         </div>
       </div>
     </div> <!-- end row -->
+    %endif
 
   </div>
 </div>
