@@ -28,6 +28,7 @@
       - python-webob
       - python-webtest
       - python-zmq
+      - python-zope-sqlalchemy
       - python2-createrepo_c
       # We can switch this back to python2-fedmsg-atomic-composer once
       # https://bodhi.fedoraproject.org/updates/FEDORA-2016-bf2a514f37 is stable.
