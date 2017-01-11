@@ -1720,9 +1720,9 @@ class Update(Base):
         # Return if the status of the update is not in testing
         if self.status != UpdateStatus.testing:
             return
-        # If critical update receives negative karma disable autopush
-        if self.critpath and self.autokarma and self._composite_karma[1] != 0:
-            log.info("Disabling Auto Push since the critical update has negative karma")
+        # If an update receives negative karma disable autopush
+        if self.autokarma and self._composite_karma[1] != 0:
+            log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
         elif self.stable_karma and self.karma >= self.stable_karma:
             if self.autokarma:

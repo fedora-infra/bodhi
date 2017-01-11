@@ -2165,24 +2165,35 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_obsolete_if_unstable_with_autopush_enabled_when_testing(self, publish, *args):
         """
         Send update to obsolete state if it reaches unstable karma threshold on
-        testing state where request is stable when Autopush is enabled. Make sure that it
-        does not go to stable state.
+        testing state where request is stable when Autopush is enabled. Make sure that the
+        autopush is disabled and the update does not go to stable state.
         """
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['autokarma'] = True
-        args['stable_karma'] = 1
-        args['unstable_karma'] = -1
+        args['stable_karma'] = 2
+        args['unstable_karma'] = -2
 
         resp = self.app.post_json('/updates/', args)
         up = Update.get(nvr, self.db)
         up.status = UpdateStatus.testing
         up.request = UpdateRequest.stable
-        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
         self.db.flush()
 
+        up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.karma, -1)
+
+        up.comment(self.db, u'WFM', author=u'puiterwijk', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        up.comment(self.db, u'It has bug', author=u'bowlofeggs', karma=-1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        up.comment(self.db, u'Still not working', author=u'bob', karma=-1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        self.assertEquals(up.karma, -2)
+        self.assertEquals(up.autokarma, False)
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.request, None)
 
@@ -3080,8 +3091,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_autopush_non_critical_update_with_negative_karma(self, publish, *args):
-        """Autopush Non Critical update even though it receives negative karma"""
+    def test_disable_autopush_non_critical_update_with_negative_karma(self, publish, *args):
+        """Disable autokarma on non-critical updates upon negative comment."""
         user = User(name=u'bob')
         self.db.add(user)
         self.db.flush()
@@ -3113,6 +3124,46 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
         self.assertEquals(up.karma, 3)
+        self.assertEquals(up.autokarma, False)
+
+        # Request and Status remains testing since the autopush is disabled
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEquals(up.status, UpdateStatus.testing)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_autopush_non_critical_update_with_no_negative_karma(self, publish, *args):
+        """
+        Make sure autopush doesn't get disabled for Non Critical update if it
+        does not receive any negative karma. Test update gets automatically
+        marked as stable.
+        """
+        user = User(name=u'bob')
+        self.db.add(user)
+        self.db.flush()
+
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 2
+        args['unstable_karma'] = -2
+
+        resp = self.app.post_json('/updates/', args)
+        self.assertEquals(resp.json['request'], 'testing')
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        self.db.flush()
+
+        up.comment(self.db, u'LGTM Now', author=u'ralph', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'WFM', author=u'puiterwijk', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        # No negative karma: Update gets automatically marked as stable
         self.assertEquals(up.autokarma, True)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -3154,6 +3205,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(upd.stable_karma, 1)
         self.assertEquals(upd.status, UpdateStatus.testing)
         self.assertEquals(upd.request, None)
+        self.assertEquals(upd.autokarma, False)
 
         text = config.get('testing_approval_msg_based_on_karma')
         upd.comment(self.db, text, author=u'bodhi')
