@@ -14,6 +14,7 @@ Contents:
 
    man_bodhi
    man_bodhi-push
+   man_initialize_bodhi_db
    release_notes
    developer_docs
    services
