@@ -12,16 +12,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
-
+from textwrap import wrap
 import smtplib
 
-from textwrap import wrap
-from kitchen.text.converters import to_unicode, to_bytes
 from kitchen.iterutils import iterate
+from kitchen.text.converters import to_unicode, to_bytes
 
-from . import log
-from .util import get_rpm_header
-from .config import config
+from bodhi.server import log
+from bodhi.server.config import config
+from bodhi.server.util import get_rpm_header
+
 
 #
 # All of the email messages that bodhi is going to be sending around.
@@ -502,7 +502,7 @@ def send(to, msg_type, update, sender=None, agent=None):
 
     subject_template = '[Fedora Update] %s[%s] %s'
     for person in iterate(to):
-        subject = subject_template  % (critpath, msg_type, update.title)
+        subject = subject_template % (critpath, msg_type, update.title)
         fields = MESSAGES[msg_type]['fields'](agent, update)
         body = MESSAGES[msg_type]['body'] % fields
         send_mail(sender, person, subject, body, headers=headers)

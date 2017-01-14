@@ -41,8 +41,7 @@ def bug_url(tracker, idx):
             'php': "https://bugs.php.net/bug.php?id=%s",
             'python': "https://bugs.python.org/issue%s",
             'rh': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
-            'rhbz': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
-            }[tracker.lower()] % idx
+            'rhbz': "https://bugzilla.redhat.com/show_bug.cgi?id=%s"}[tracker.lower()] % idx
 
     except KeyError:
         return None

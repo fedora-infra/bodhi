@@ -11,23 +11,21 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-__version__ = '2.0'
-
-import os
 import logging
+import os
 import shutil
 import tempfile
 
-from urlgrabber.grabber import urlgrab
 from kitchen.text.converters import to_bytes
-
+from urlgrabber.grabber import urlgrab
 import createrepo_c as cr
 
+from bodhi.server.buildsys import get_session
 from bodhi.server.config import config
 from bodhi.server.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
-from bodhi.server.buildsys import get_session
 
+
+__version__ = '2.0'
 log = logging.getLogger(__name__)
 
 
@@ -250,9 +248,10 @@ class ExtendedMetadata(object):
                 else:
                     arch = rpm['arch']
 
-                pkg.src = os.path.join(config.get('file_url'), update.status is
-                        UpdateStatus.testing and 'testing' or '',
-                        str(update.release.version), arch, filename[0], filename)
+                pkg.src = os.path.join(
+                    config.get('file_url'),
+                    update.status is UpdateStatus.testing and 'testing' or '',
+                    str(update.release.version), arch, filename[0], filename)
 
                 col.append(pkg)
 

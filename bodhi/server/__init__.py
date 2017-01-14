@@ -13,29 +13,29 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from collections import defaultdict
+import logging
+
+from cornice.validators import DEFAULT_FILTERS
 from dogpile.cache import make_region
 from munch import munchify
+from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
+from pyramid.config import Configurator
+from pyramid.exceptions import HTTPForbidden
+from pyramid.renderers import JSONP
+from pyramid.security import unauthenticated_userid
+from pyramid.settings import asbool
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from pyramid.settings import asbool
-from pyramid.security import unauthenticated_userid
-from pyramid.config import Configurator
-from pyramid.authentication import AuthTktAuthenticationPolicy
-from pyramid.authorization import ACLAuthorizationPolicy
-from pyramid.renderers import JSONP
-from pyramid.exceptions import HTTPForbidden
+from bodhi.server import buildsys, ffmarkdown
 
-from . import buildsys
-
-import logging
 
 log = logging.getLogger(__name__)
 
 
 # TODO -- someday move this externally to "fedora_flavored_markdown"
-from bodhi.server import ffmarkdown
 ffmarkdown.inject()
 
 
@@ -56,14 +56,8 @@ def get_db_session_for_request(request=None):
     session = Sess()
 
     def cleanup(request):
-        ## No need to do rollback/commit ourselves.  the zope transaction
-        ## manager takes care of that for us...
-        #if request.exception is not None:
-        #    session.rollback()
-        #else:
-        #    session.commit()
-        ## However, we may still want to explicitly close the session we opened
-        #log.debug("Closing session at the end of a request.")
+        # No need to do rollback/commit ourselves.  the zope transaction manager takes care of that
+        # for us. However, we want to explicitly close the session we opened
         session.close()
 
     request.add_finished_callback(cleanup)
@@ -109,6 +103,7 @@ def get_releases(request):
     from bodhi.server.models import Release
     return Release.all_releases(request.db)
 
+
 #
 # Cornice filters
 #
@@ -119,7 +114,6 @@ def exception_filter(response, request):
         log.exception('Unhandled exception raised:  %r' % response)
     return response
 
-from cornice.validators import DEFAULT_FILTERS
 DEFAULT_FILTERS.insert(0, exception_filter)
 
 
@@ -182,10 +176,8 @@ def main(global_config, testing=None, session=None, **settings):
         config.testing_securitypolicy(userid=testing, permissive=True)
     else:
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
-                settings['authtkt.secret'],
-                callback=groupfinder,
-                secure=asbool(settings['authtkt.secure']),
-                hashalg='sha512'))
+            settings['authtkt.secret'], callback=groupfinder,
+            secure=asbool(settings['authtkt.secure']), hashalg='sha512'))
         config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # Frontpage
@@ -224,6 +216,5 @@ def main(global_config, testing=None, session=None, **settings):
     config.scan('bodhi.server.views')
     config.scan('bodhi.server.services')
     config.scan('bodhi.server.captcha')
-    config.scan('bodhi.server.events')
 
     return config.make_wsgi_app()

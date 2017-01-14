@@ -12,19 +12,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-The tool for triggering updates pushes.
+The CLI tool for triggering update pushes.
 """
-
-import click
-from datetime import datetime
-import json
-import glob
-
 from collections import defaultdict
-from sqlalchemy.sql import or_
+from datetime import datetime
+import glob
+import json
 
-import bodhi.server.notifications
+from sqlalchemy.sql import or_
+import click
+
 from bodhi.server.models import Build, get_db_factory, Release, ReleaseState, Update, UpdateRequest
+import bodhi.server.notifications
 
 
 @click.command()
@@ -69,7 +68,7 @@ def push(username, cert_prefix, **kwargs):
                     continue
 
                 for update in lockfiles[lockfile]:
-                    update = session.query(Update).filter(Update.title==update).first()
+                    update = session.query(Update).filter(Update.title == update).first()
                     updates.append(update)
         else:
             # Accept both comma and space separated request list
@@ -80,7 +79,8 @@ def push(username, cert_prefix, **kwargs):
 
             if kwargs.get('builds'):
                 query = query.join(Update.builds)
-                query = query.filter(or_(*[Build.nvr==build for build in kwargs['builds'].split(',')]))
+                query = query.filter(
+                    or_(*[Build.nvr == build for build in kwargs['builds'].split(',')]))
 
             query = _filter_releases(session, query, kwargs.get('releases'))
 

@@ -17,8 +17,8 @@ import re
 import colander
 
 from bodhi.server import util
-from bodhi.server.models import (UpdateRequest, UpdateSeverity, UpdateStatus,
-                          UpdateSuggestion, UpdateType, ReleaseState)
+from bodhi.server.models import (ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
+                                 UpdateSuggestion, UpdateType)
 from bodhi.server.validators import validate_csrf_token
 
 
@@ -79,6 +79,7 @@ class BugFeedback(colander.MappingSchema):
         missing=0,
     )
 
+
 class BugFeedbacks(colander.SequenceSchema):
     bug_feedback = BugFeedback()
 
@@ -90,6 +91,7 @@ class TestcaseFeedback(colander.MappingSchema):
         validator=colander.Range(min=-1, max=1),
         missing=0,
     )
+
 
 class TestcaseFeedbacks(colander.SequenceSchema):
     testcase_feedback = TestcaseFeedback()
@@ -128,11 +130,7 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     builds = Builds(colander.Sequence(accept_scalar=True),
                     preparer=[util.splitter])
 
-    bugs = Bugs(
-            colander.Sequence(accept_scalar=True),
-            missing=None,
-            preparer=[util.splitter]
-    )
+    bugs = Bugs(colander.Sequence(accept_scalar=True), missing=None, preparer=[util.splitter])
 
     close_bugs = colander.SchemaNode(
         colander.Boolean(),

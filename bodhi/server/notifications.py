@@ -13,14 +13,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import copy
-
-import transaction
+import socket
 
 import fedmsg
 import fedmsg.config
 import fedmsg.encoding
-
-import socket
+import transaction
 
 import bodhi.server
 import bodhi.server.config
@@ -97,7 +95,7 @@ class ManagerMapping(object):
 
     def get_current_data_manager(self):
         current_transaction_manager = transaction.get()
-        if not current_transaction_manager in self:
+        if current_transaction_manager not in self:
             current_data_manager = FedmsgDataManager()
             self.add(current_transaction_manager, current_data_manager)
             current_transaction_manager.join(current_data_manager)

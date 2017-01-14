@@ -12,20 +12,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import time
 import logging
+import time
 
-from os.path import join, expanduser
+import koji
+
 
 log = logging.getLogger('bodhi')
-
 _buildsystem = None
-
-try:
-    import koji
-except ImportError:
-    log.warn("Could not import 'koji'")
-
 # URL of the koji hub
 _koji_hub = None
 
@@ -198,20 +192,22 @@ class DevBuildsys(Buildsystem):
 
     def listTags(self, build, *args, **kw):
         if 'el5' in build:
-            result = [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
-                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
-                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-5E-epel', 'perm': None, 'perm_id': None}]
+            result = [
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                 'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                 'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True, 'name': 'dist-5E-epel',
+                 'perm': None, 'perm_id': None}]
         else:
             release = build.split('.')[-1].replace('fc', 'f')
-            result = [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
-                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': '%s' % release, 'perm': None, 'perm_id': None},
-                    {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': '%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
+            result = [
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                 'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True, 'name': '%s' % release,
+                 'perm': None, 'perm_id': None},
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                 'name': '%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
         if build in DevBuildsys.__tagged__:
             for tag in DevBuildsys.__tagged__[build]:
                 result += [{'name': tag}]
@@ -346,7 +342,12 @@ def setup_buildsystem(settings):
 
     if buildsys == 'koji':
         log.debug('Using Koji Buildsystem')
-        _buildsystem = lambda: koji_login(config=settings)
+
+        def get_koji_login():
+            """Call koji_login with settings and return the result."""
+            return koji_login(config=settings)
+
+        _buildsystem = get_koji_login
     elif buildsys in ('dev', 'dummy', None):
         log.debug('Using DevBuildsys')
         _buildsystem = DevBuildsys
