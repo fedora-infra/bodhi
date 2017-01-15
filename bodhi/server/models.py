@@ -32,9 +32,8 @@ try:
 except ImportError:
     from urllib import quote
 
-
 from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
-from sqlalchemy import DateTime, engine_from_config
+from sqlalchemy import DateTime
 from sqlalchemy import Table, Column, ForeignKey
 from sqlalchemy import and_, or_
 from sqlalchemy.sql import text
@@ -43,6 +42,7 @@ from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 from pyramid.settings import asbool
 
 from bodhi.server import buildsys, mail, notifications, log
@@ -51,17 +51,123 @@ from bodhi.server.util import (
     get_rpm_header, get_age_in_days, avatar as get_avatar, tokenize,
 )
 import bodhi.server.util
-from bodhi.server.models.enum import DeclEnum, EnumSymbol
+
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.config import config
 from bodhi.server.bugs import bugtracker
-from bodhi.server.util import transactional_session_maker
-
 
 try:
     import rpm
 except ImportError:
     log.warning("Could not import 'rpm'")
+
+# http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
+
+class EnumSymbol(object):
+    """Define a fixed symbol tied to a parent class."""
+
+    def __init__(self, cls_, name, value, description):
+        self.cls_ = cls_
+        self.name = name
+        self.value = value
+        self.description = description
+
+    def __reduce__(self):
+        """Allow unpickling to return the symbol
+        linked to the DeclEnum class."""
+        return getattr, (self.cls_, self.name)
+
+    def __iter__(self):
+        return iter([self.value, self.description])
+
+    def __repr__(self):
+        return "<%s>" % self.name
+
+    def __unicode__(self):
+        return unicode(self.description)
+
+    def __json__(self, request=None):
+        return self.description
+
+
+class EnumMeta(type):
+    """Generate new DeclEnum classes."""
+
+    def __init__(cls, classname, bases, dict_):
+        cls._reg = reg = cls._reg.copy()
+        for k, v in dict_.items():
+            if isinstance(v, tuple):
+                sym = reg[v[0]] = EnumSymbol(cls, k, *v)
+                setattr(cls, k, sym)
+        return type.__init__(cls, classname, bases, dict_)
+
+    def __iter__(cls):
+        return iter(cls._reg.values())
+
+
+class DeclEnum(object):
+    """Declarative enumeration."""
+
+    __metaclass__ = EnumMeta
+    _reg = {}
+
+    @classmethod
+    def from_string(cls, value):
+        try:
+            return cls._reg[value]
+        except KeyError:
+            raise ValueError("Invalid value for %r: %r" % (cls.__name__, value))
+
+    @classmethod
+    def values(cls):
+        return cls._reg.keys()
+
+    @classmethod
+    def db_type(cls):
+        return DeclEnumType(cls)
+
+
+class DeclEnumType(SchemaType, TypeDecorator):
+    def __init__(self, enum):
+        self.enum = enum
+        self.impl = Enum(
+            *enum.values(),
+            name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__))
+
+    def _set_table(self, table, column):
+        self.impl._set_table(table, column)
+
+    def copy(self):
+        return DeclEnumType(self.enum)
+
+    def process_bind_param(self, value, dialect):
+        """
+        :type value:   bodhi.server.models.enum.EnumSymbol
+        :type dialect: sqlalchemy.engine.default.DefaultDialect
+        """
+        if value is None:
+            return None
+        return value.value
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return self.enum.from_string(value.strip())
+
+    def create(self, bind=None, checkfirst=False):
+        """Issue CREATE ddl for this type, if applicable."""
+        super(DeclEnumType, self).create(bind, checkfirst)
+        t = self.dialect_impl(bind.dialect)
+        if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
+            t.impl.create(bind=bind, checkfirst=checkfirst)
+
+    def drop(self, bind=None, checkfirst=False):
+        """Issue DROP ddl for this type, if applicable."""
+        super(DeclEnumType, self).drop(bind, checkfirst)
+        t = self.dialect_impl(bind.dialect)
+        if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
+            t.impl.drop(bind=bind, checkfirst=checkfirst)
+
 
 
 class BodhiBase(object):
@@ -158,12 +264,10 @@ class BodhiBase(object):
 
     def update_relationship(self, name, model, data, db):
         """Add items to or remove items from a many-to-many relationship
-
         :name: The name of the relationship column on self, as well as
                the key in `data`
         :model: The model class of the relationship that we're updating
         :data: A dict containing the key `name` with a list of values
-
         Returns a three-tuple of lists, `new`, `same`, and `removed` indicating
         which items have been added and removed, and which remain unchanged.
         """
@@ -380,7 +484,6 @@ class Package(Base):
 
     def get_pkg_pushers(self, branch, settings):
         """ Pull users who can commit and are watching a package.
-
         Return two two-tuples of lists:
         * The first tuple is for usernames.  The second tuple is for groups.
         * The first list of the tuple is for committers. The second is for
@@ -665,7 +768,6 @@ class Update(Base):
     def karma(self):
         """
         Calculate and return the karma for the Update.
-
         :return: The Update's current karma.
         :rtype:  int
         """
@@ -678,7 +780,6 @@ class Update(Base):
         Calculate and return a 2-tuple of the sum of the positive karma comments, and the sum of the
         negative karma comments. The total karma is simply the sum of the two elements of this
         2-tuple.
-
         :return: a 2-tuple of (positive_karma, negative_karma)
         :rtype:  tuple
         """
@@ -919,7 +1020,6 @@ class Update(Base):
 
     def obsolete_older_updates(self, db):
         """Obsolete any older pending/testing updates.
-
         If a build is associated with multiple updates, make sure that
         all updates are safe to obsolete, or else just skip it.
         """
@@ -1049,7 +1149,6 @@ class Update(Base):
 
     def assign_alias(self):
         """Return a randomly-suffixed update ID.
-
         This function used to construct update IDs in a monotonic sequence, but
         we ran into race conditions so we do it randomly now.
         """
@@ -1242,7 +1341,6 @@ class Update(Base):
 
     def modify_bugs(self):
         """ Comment on and close this updates bugs as necessary
-
         This typically gets called by the Masher at the end.
         """
         if self.status is UpdateStatus.testing:
@@ -1383,7 +1481,6 @@ class Update(Base):
         """
         Create any new bugs, and remove any missing ones. Destroy removed bugs
         that are no longer referenced anymore.
-
         :returns: a list of new Bug instances.
         """
         to_remove = [bug for bug in self.bugs if bug.bug_id not in bug_ids]
@@ -1467,7 +1564,6 @@ class Update(Base):
                 karma_critpath=0, bug_feedback=None, testcase_feedback=None,
                 check_karma=True):
         """Add a comment to this update.
-
         If the karma reaches the 'stable_karma' value, then request that this update be marked
         as stable.  If it reaches the 'unstable_karma', it is unpushed.
         """
@@ -1667,7 +1763,6 @@ class Update(Base):
 
     def check_requirements(self, session, settings):
         """ Check that an update meets its self-prescribed policy to be pushed
-
         Returns a tuple containing (result, reason) where result is a boolean
         and reason is a string.
         """
@@ -1709,41 +1804,39 @@ class Update(Base):
         return True, "All checks pass."
 
     def check_karma_thresholds(self, db, agent):
-        """
-        Check if we have reached either karma threshold, call set_request if necessary,
-        and Ignore karma thresholds if the update is locked and raise exception
-        """
-        # Raise Exception if the update is locked
-        if self.locked:
+        """Check if we have reached either karma threshold, and call set_request if necessary"""
+        if not self.locked:
+            if self.status is UpdateStatus.testing:
+                # If critical update receives negative karma disable autopush
+                if self.critpath and self.autokarma and self._composite_karma[1] != 0:
+                    log.info("Disabling Auto Push since the critical update has negative karma")
+                    self.autokarma = False
+                elif self.stable_karma not in (0, None) and self.karma >= self.stable_karma:
+                    if self.autokarma:
+                        log.info("Automatically marking %s as stable" % self.title)
+                        self.set_request(db, UpdateRequest.stable, agent)
+                        self.request = UpdateRequest.stable
+                        self.date_pushed = None
+                        notifications.publish(
+                            topic='update.karma.threshold.reach',
+                            msg=dict(update=self, status='stable'))
+                    else:
+                        # Add the 'testing_approval_msg_based_on_karma' message now
+                        log.info((
+                            "%s update has reached the stable karma threshold and can be pushed to "
+                            "stable now if the maintainer wishes") % self.title)
+                elif self.unstable_karma not in (0, None) and self.karma <= self.unstable_karma:
+                    log.info("Automatically unpushing %s" % self.title)
+                    self.obsolete(db)
+                    notifications.publish(
+                        topic='update.karma.threshold.reach',
+                        msg=dict(update=self, status='unstable'))
+            else:
+                # Ignore karma thresholds for pending/stable/obsolete updates
+                pass
+        else:
             log.debug('%s locked. Ignoring karma thresholds.' % self.title)
             raise LockedUpdateException
-        # Return if the status of the update is not in testing
-        if self.status != UpdateStatus.testing:
-            return
-        # If critical update receives negative karma disable autopush
-        if self.critpath and self.autokarma and self._composite_karma[1] != 0:
-            log.info("Disabling Auto Push since the critical update has negative karma")
-            self.autokarma = False
-        elif self.stable_karma and self.karma >= self.stable_karma:
-            if self.autokarma:
-                log.info("Automatically marking %s as stable" % self.title)
-                self.set_request(db, UpdateRequest.stable, agent)
-                self.request = UpdateRequest.stable
-                self.date_pushed = None
-                notifications.publish(
-                    topic='update.karma.threshold.reach',
-                    msg=dict(update=self, status='stable'))
-            else:
-                # Add the 'testing_approval_msg_based_on_karma' message now
-                log.info((
-                    "%s update has reached the stable karma threshold and can be pushed to "
-                    "stable now if the maintainer wishes") % self.title)
-        elif self.unstable_karma and self.karma <= self.unstable_karma:
-            log.info("Automatically unpushing %s" % self.title)
-            self.obsolete(db)
-            notifications.publish(
-                topic='update.karma.threshold.reach',
-                msg=dict(update=self, status='unstable'))
 
     @property
     def builds_json(self):
@@ -1756,7 +1849,6 @@ class Update(Base):
     @property
     def last_modified(self):
         """ Return the last time this update was edited or created.
-
         This gets used specifically by taskotron/resultsdb queries so we only
         query for depcheck runs that occur *after* the last time this update
         (in its current form) was in play.
@@ -1796,7 +1888,6 @@ class Update(Base):
         """
         Return whether or not this update meets the testing requirements
         for this specific release.
-
         If this release does not have a mandatory testing requirement, then
         simply return True.
         """
@@ -1835,7 +1926,6 @@ class Update(Base):
         requirements have been met. This is used to determine whether bodhi
         should add the comment about the Update's eligibility to be pushed,
         as we only want Bodhi to add the comment once.
-
         If this release does not have a mandatory testing requirement, then
         simply return True.
         """
@@ -2067,7 +2157,6 @@ class Bug(Base):
 
     def update_details(self, bug=None):
         """ Grab details from rhbz to populate our bug fields.
-
         This is typically called "offline" in the UpdatesHandler consumer.
         """
         bugtracker.update_details(bug, self)
@@ -2314,7 +2403,6 @@ class Stack(Base):
     groups = relationship("Group", secondary=stack_group_table, backref='stacks')
     users = relationship("User", secondary=stack_user_table, backref='stacks')
 
-
 def get_db_factory():
     """
     This function generates and returns a database factory that can be used for non-request
@@ -2325,3 +2413,4 @@ def get_db_factory():
     engine = engine_from_config(config, 'sqlalchemy.')
     Base.metadata.create_all(engine)
     return transactional_session_maker(engine)
+
