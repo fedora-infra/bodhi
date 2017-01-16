@@ -6,6 +6,7 @@
 .bodhi.tmp
 .vagrant
 .vagrant.d
+cover/
 coverage.xml
 devel/ansible/playbook.retry
 development.ini
