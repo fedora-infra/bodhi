@@ -38,7 +38,8 @@ class TestStyle(unittest.TestCase):
             'bodhi/server/captcha.py', 'bodhi/server/consumers',
             'bodhi/server/models', 'bodhi/server/scripts', 'bodhi/server/services',
             'bodhi/server/util.py', 'bodhi/server/validators.py', 'bodhi/server/views',
-            'bodhi/tests/server/consumers/', 'bodhi/tests/server/models/']
+            'bodhi/tests/server/consumers/', 'bodhi/tests/server/models/',
+            'bodhi/tests/server/services/']
 
         enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
 
