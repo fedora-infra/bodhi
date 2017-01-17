@@ -8,6 +8,7 @@
       - freetype-devel
       - gcc
       - git
+      - graphviz
       - koji
       - liberation-mono-fonts
       - libffi-devel
@@ -35,6 +36,9 @@
       - python2-fedmsg-consumers
       - python2-flake8
       - python2-nose-cov
+      # We can switch this to python2-sqlalchemy_schemadisplay once
+      # https://bodhi.fedoraproject.org/updates/FEDORA-2017-e54acedb77 is stable
+      - https://kojipkgs.fedoraproject.org//packages/python-sqlalchemy_schemadisplay/1.3/1.fc24/noarch/python2-sqlalchemy_schemadisplay-1.3-1.fc24.noarch.rpm
       - redhat-rpm-config
       - zlib-devel
 
