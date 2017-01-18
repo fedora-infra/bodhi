@@ -37,7 +37,6 @@ server_requires = [
     'click',
     'pyramid',
     'pyramid_mako',
-    'pyramid_debugtoolbar',
     'pyramid_tm',
     'waitress',
     'colander',
@@ -80,8 +79,6 @@ server_requires = [
     'fedmsg[consumers]',
     # The masher needs fedmsg-atomic-composer
     'fedmsg-atomic-composer >= 2016.3',
-
-    'Sphinx',
 
     'WebOb>=1.4.1',
     ]
