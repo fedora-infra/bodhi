@@ -379,7 +379,7 @@ def new_update(request):
         # were tied to the previous session that has now been terminated.
         builds = []
         releases = set()
-        for build in data['builds']:
+        for nvr in data['builds']:
             # At this moment, we are sure the builds are in the database (that is what the commit
             # was for actually).
             build = Build.get(nvr, request.db)
