@@ -1183,3 +1183,48 @@ class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
         self.assertEqual(t.updates, set([]))
         # The update's title should also have been removed from t.state['updates']
         self.assertEqual(t.state['updates'], [])
+
+
+class TestMasherThread_update_comps(unittest.TestCase):
+    """This test class contains tests for the MasherThread.update_comps() method."""
+
+    def setUp(self):
+        self.masher_thread = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                                          u'bowlofeggs', mock.Mock(), mock.Mock(), mock.Mock())
+
+    @mock.patch('bodhi.server.consumers.masher.os.path.exists')
+    @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path',
+                                                         'comps_url': 'https://example.com/'})
+    @mock.patch('bodhi.server.consumers.masher.util.cmd')
+    def test_comps_no_dir(self, mock_cmd, mock_exists):
+        mock_exists.return_value = False
+        calls = [
+            mock.call(['git', 'clone', 'https://example.com/', '/some/path'], '/some'),
+            mock.call(['git', 'pull'], '/some/path'),
+            mock.call(['make'], '/some/path'),
+        ]
+        self.masher_thread.update_comps()
+        self.assertEqual(calls, mock_cmd.call_args_list)
+        mock_exists.assert_called_once_with('/some/path')
+
+    @mock.patch('bodhi.server.consumers.masher.os.path.exists')
+    @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path',
+                                                         'comps_url': 'https://example.com/'})
+    @mock.patch('bodhi.server.consumers.masher.util.cmd')
+    def test_comps_existing_dir(self, mock_cmd, mock_exists):
+        mock_exists.return_value = True
+        calls = [
+            mock.call(['git', 'pull'], '/some/path'),
+            mock.call(['make'], '/some/path'),
+        ]
+        self.masher_thread.update_comps()
+        self.assertEqual(calls, mock_cmd.call_args_list)
+        mock_exists.assert_called_once_with('/some/path')
+
+    @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path',
+                                                         'comps_url': 'http://example.com/'})
+    @mock.patch('bodhi.server.consumers.masher.util.cmd')
+    def test_comps_unsafe_http_url(self, mock_cmd):
+        self.masher_thread.update_comps()
+        self.assertEqual(0, mock_cmd.call_count)
+        self.masher_thread.log.error.assert_called_once_with('comps_url must start with https://')
