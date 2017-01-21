@@ -20,7 +20,7 @@ from mock import patch
 import transaction
 
 from bodhi.server.config import config
-from bodhi.server.models import models
+from bodhi.server import models
 from bodhi.server.scripts import approve_testing
 from bodhi.tests.server.base import BaseTestCase
 
