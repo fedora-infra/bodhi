@@ -40,7 +40,7 @@ from bodhi.server.bugs import bugtracker
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Bug, Update, UpdateType
-from bodhi.server.models import models
+from bodhi.server import models
 
 
 log = logging.getLogger('bodhi')

@@ -23,7 +23,7 @@ import mock
 import transaction
 
 from bodhi.server import push
-from bodhi.server.models import models
+from bodhi.server import models
 from bodhi.tests.server import base
 
 

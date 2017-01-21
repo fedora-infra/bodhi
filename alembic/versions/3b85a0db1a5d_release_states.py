@@ -8,7 +8,7 @@ Create Date: 2014-06-02 19:50:59.299902
 from alembic import op
 import sqlalchemy as sa
 
-from bodhi.server.models.models import ReleaseState
+from bodhi.server.models import ReleaseState
 
 
 # revision identifiers, used by Alembic.

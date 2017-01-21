@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Test suite for bodhi.server.models.models."""
+"""Test suite for bodhi.server.models"""
 from datetime import datetime, timedelta
 import time
 import unittest
@@ -219,8 +219,8 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].release.name, u'F11')
         eq_(self.obj.builds[0].package.name, u'TurboGears')
 
-    @mock.patch('bodhi.server.models.models.bugtracker.close')
-    @mock.patch('bodhi.server.models.models.bugtracker.comment')
+    @mock.patch('bodhi.server.models.bugtracker.close')
+    @mock.patch('bodhi.server.models.bugtracker.comment')
     def test_modify_bugs_stable_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to True."""
         update = self.get_update()
@@ -246,8 +246,8 @@ class TestUpdate(ModelTest):
                 for c in close.mock_calls]),
             True)
 
-    @mock.patch('bodhi.server.models.models.bugtracker.close')
-    @mock.patch('bodhi.server.models.models.bugtracker.comment')
+    @mock.patch('bodhi.server.models.bugtracker.close')
+    @mock.patch('bodhi.server.models.bugtracker.comment')
     def test_modify_bugs_stable_no_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to False."""
         update = self.get_update()
