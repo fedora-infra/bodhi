@@ -106,6 +106,20 @@
       dest: /etc/systemd/system/bodhi.service
       mode: 0644
 
+- name: Install the .bashrc
+  copy:
+      src: .bashrc
+      dest: /home/vagrant/.bashrc
+      mode: 0644
+      owner: vagrant
+      group: vagrant
+
+- name: Install the motd
+  copy:
+      src: motd
+      dest: /etc/motd
+      mode: 0644
+
 - name: Start and enable the bodhi service
   systemd:
       name: bodhi

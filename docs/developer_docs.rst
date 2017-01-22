@@ -59,15 +59,20 @@ You can ssh into your running Vagrant box like this::
     # Make sure your bodhi checkout is your shell's cwd
     $ vagrant ssh
 
+Once you are inside the development environment, there are a helpful set of commands in your
+``.bashrc``:
+
+* ``bdocs``: Build Bodhi's documentation.
+* ``blog``: View Bodhi's log.
+* ``brestart``: Restart the Bodhi service.
+* ``bstart``: Start the Bodhi service.
+* ``bstop``: Stop the Bodhi service.
+* ``btest``: Run Bodhi's test suite.
+
 Keep in mind that all ``vagrant`` commands should be run with your current working directory set to
 your Bodhi checkout. The code from your development host will be mounted in ``/home/vagrant/bodhi``
 in the guest. You can edit this code on the host, and the vagrant-sshfs plugin will cause the
 changes to automatically be reflected in the guest's ``/home/vagrant/bodhi`` folder.
-
-You can run the unit tests within the guest with nosetests::
-
-    $ cd /home/vagrant/bodhi
-    $ python setup.py nosetests
 
 The development server is run inside the Vagrant environment by the ``bodhi.service`` systemd unit.
 You can use ``pshell`` and ``tools/shelldb.py`` to get a Python shell quickly set up with a nice
