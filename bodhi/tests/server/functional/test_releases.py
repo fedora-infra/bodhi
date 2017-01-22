@@ -12,13 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from bodhi.server.models import Release, ReleaseState, Update
 import bodhi.tests.server.functional.base
-
-from bodhi.server.models import (
-    Release,
-    ReleaseState,
-    Update,
-)
 
 
 class TestReleasesService(bodhi.tests.server.functional.base.BaseWSGICase):
@@ -145,7 +140,7 @@ class TestReleasesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         attrs.pop('csrf_token')
 
-        r = self.db.query(Release).filter(Release.name==attrs["name"]).one()
+        r = self.db.query(Release).filter(Release.name == attrs["name"]).one()
 
         for k, v in attrs.items():
             self.assertEquals(getattr(r, k), v)
@@ -179,7 +174,7 @@ class TestReleasesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         res = self.app.post("/releases/", r, status=200)
 
-        r = self.db.query(Release).filter(Release.name==name).one()
+        r = self.db.query(Release).filter(Release.name == name).one()
         self.assertEquals(r.state, ReleaseState.current)
 
     def test_get_single_release_html(self):

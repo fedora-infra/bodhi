@@ -12,23 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from datetime import datetime, timedelta
-from webtest import TestApp
-
+from bodhi.server.models import Build
 import bodhi.tests.server.functional.base
-
-from bodhi.server import main
-from bodhi.server.models import (
-    Base,
-    Bug,
-    Build,
-    CVE,
-    Group,
-    Package,
-    Release,
-    Build,
-    User,
-)
 
 
 class TestBuildsService(bodhi.tests.server.functional.base.BaseWSGICase):
@@ -68,7 +53,6 @@ class TestBuildsService(bodhi.tests.server.functional.base.BaseWSGICase):
         build2 = body['builds'][0]
 
         self.assertNotEquals(build1, build2)
-
 
     def test_list_builds_by_package(self):
         res = self.app.get('/builds/', {"packages": "bodhi"})

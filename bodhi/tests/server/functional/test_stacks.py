@@ -14,14 +14,8 @@
 
 import mock
 
+from bodhi.server.models import Group, Package, Stack, User
 import bodhi.tests.server.functional.base
-
-from bodhi.server.models import (
-    Group,
-    Package,
-    User,
-    Stack,
-)
 
 
 mock_valid_requirements = {
@@ -117,7 +111,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'KDE')
-        r = self.db.query(Stack).filter(Stack.name==attrs["name"]).one()
+        r = self.db.query(Stack).filter(Stack.name == attrs["name"]).one()
         self.assertEquals(r.name, 'KDE')
         self.assertEquals(len(r.packages), 2)
         self.assertEquals(r.packages[0].name, 'kde-filesystem')
@@ -136,7 +130,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
                  "csrf_token": self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=400)
         self.assertEquals(res.json_body['status'], 'error')
-        c = self.db.query(Stack).filter(Stack.name==attrs["name"]).count()
+        c = self.db.query(Stack).filter(Stack.name == attrs["name"]).count()
         self.assertEquals(c, 0)
 
     @mock.patch(**mock_valid_requirements)
@@ -144,10 +138,10 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         attrs = {"name": "Hackey", "packages": "nethack",
                  "requirements": "rpmlint",
                  "csrf_token": self.get_csrf_token()}
-        res = self.app.post("/stacks/", attrs)#, status=200)
+        res = self.app.post("/stacks/", attrs)
         body = res.json_body['stack']
         self.assertEquals(body['name'], 'Hackey')
-        r = self.db.query(Stack).filter(Stack.name==attrs["name"]).one()
+        r = self.db.query(Stack).filter(Stack.name == attrs["name"]).one()
         self.assertEquals(r.name, 'Hackey')
         self.assertEquals(len(r.packages), 1)
         self.assertEquals(r.requirements, attrs['requirements'])
@@ -166,13 +160,11 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(body['requirements'], 'upgradepath')
 
         # Adding gnome-music to the stack should change its requirements, too.
-        package = self.db.query(Package)\
-            .filter(Package.name==u'gnome-music').one()
+        package = self.db.query(Package).filter(Package.name == u'gnome-music').one()
         self.assertEquals(package.requirements, attrs['requirements'])
 
         # But not gnome-shell, since it was already in the stack.
-        package = self.db.query(Package)\
-            .filter(Package.name==u'gnome-shell').one()
+        package = self.db.query(Package).filter(Package.name == u'gnome-shell').one()
         self.assertEquals(package.requirements, None)
 
     def test_delete_stack(self):
@@ -204,7 +196,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(body['status'], 'error')
         self.assertEquals(body['errors'][0]['description'],
-                'guest does not have privileges to modify the GNOME stack')
+                          'guest does not have privileges to modify the GNOME stack')
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_no_user_privs(self, *args):
@@ -219,7 +211,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(body['status'], 'error')
         self.assertEquals(body['errors'][0]['description'],
-                'guest does not have privileges to modify the GNOME stack')
+                          'guest does not have privileges to modify the GNOME stack')
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_user_privs(self, *args):

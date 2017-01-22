@@ -16,8 +16,8 @@ from datetime import datetime, timedelta
 
 import mock
 
+from bodhi.server.models import Build, Package, Release, User
 import bodhi.tests.server.functional.base
-from bodhi.server.models import (Build, Package, Release, User)
 
 
 class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
@@ -32,9 +32,6 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(override['build']['nvr'], "bodhi-2.0-1.fc17")
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
-
-        # check to catch performance regressions
-        #self.assertEquals(len(self.sql_statements), 3)
 
     def test_list_overrides(self):
         res = self.app.get('/overrides/')
@@ -240,7 +237,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         # Submit it again
         res = self.app.post('/overrides/', data, status=400)
         self.assertEquals(res.json_body['errors'][0]['description'],
-                'Buildroot override for %s already exists' % build.nvr)
+                          'Buildroot override for %s already exists' % build.nvr)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
@@ -248,14 +245,14 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         package = Package(name=u'not-bodhi')
         self.db.add(package)
         build1 = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
-                      release=release)
+                       release=release)
         self.db.add(build1)
         self.db.flush()
 
         package = Package(name=u'another-not-bodhi')
         self.db.add(package)
         build2 = Build(nvr=u'another-not-bodhi-2.0-2.fc17', package=package,
-                      release=release)
+                       release=release)
         self.db.add(build2)
         self.db.flush()
 

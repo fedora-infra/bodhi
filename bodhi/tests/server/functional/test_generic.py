@@ -12,12 +12,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import bodhi.tests.server.functional.base
-
-from bodhi.server.security import remember_me
-from bodhi.server.models import User, Group
-
 from pyramid.testing import DummyRequest
+
+from bodhi.server.models import Group, User
+from bodhi.server.security import remember_me
+import bodhi.tests.server.functional.base
 
 
 class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
@@ -50,7 +49,7 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertIsNone(User.get(u'lmacken', self.db))
         self.assertIsNone(Group.get(u'releng', self.db))
 
-        resp = remember_me(None, req, info)
+        remember_me(None, req, info)
 
         # The user should now exist, and be a member of the releng group
         user = User.get(u'lmacken', self.db)
@@ -63,12 +62,11 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
         info['groups'] = []
         req.session = {'came_from': '/'}
 
-        resp = remember_me(None, req, info)
+        remember_me(None, req, info)
 
         user = User.get(u'lmacken', self.db)
         self.assertEquals(len(user.groups), 0)
         self.assertEquals(len(Group.get(u'releng', self.db).users), 0)
-
 
     def test_remember_me_with_bad_endpoint(self):
         """Test the post-login hook with a bad openid endpoint"""
@@ -76,8 +74,10 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
             'openid.op_endpoint': 'bad_endpoint',
         })
         req.db = self.db
+
         def flash(msg):
             pass
+
         req.session.flash = flash
         info = {
             'identity_url': 'http://lmacken.id.fedoraproject.org',
@@ -86,7 +86,7 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
         req.registry.settings = self.app_settings
 
         try:
-            resp = remember_me(None, req, info)
+            remember_me(None, req, info)
             assert False, 'remember_me should have thrown an exception'
         except Exception:
             # A ComponentLookupError is thrown because we're doing this outside

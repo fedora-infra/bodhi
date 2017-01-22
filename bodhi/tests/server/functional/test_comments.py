@@ -12,22 +12,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import mock
 from datetime import datetime, timedelta
 
+import mock
+
+from bodhi.server.models import (Comment, Release, Update, UpdateRequest, UpdateStatus, UpdateType,
+                                 User)
 import bodhi.tests.server.functional.base
 
-from bodhi.server.models import (
-    Comment,
-    Release,
-    User,
-    Update,
-    UpdateRequest,
-    UpdateStatus,
-    UpdateType,
-)
 
 someone_elses_update = up2 = u'bodhi-2.0-200.fc17'
+
 
 class TestCommentsService(bodhi.tests.server.functional.base.BaseWSGICase):
     def setUp(self, *args, **kwargs):
@@ -41,7 +36,6 @@ class TestCommentsService(bodhi.tests.server.functional.base.BaseWSGICase):
         release = self.db.query(Release).filter_by(name=u'F17').one()
         update = Update(
             title=someone_elses_update,
-            #builds=[build],
             user=user2,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
@@ -180,9 +174,6 @@ class TestCommentsService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         # Mainly, ensure that the karma didn't increase *again*
         self.assertEquals(res.json_body['comment']['update']['karma'], 1)
-        # A caveat message might be nice?  not necessary at this point...
-        #self.assertEquals(res.json_body['caveats'][0]['description'],
-        #                  'lol, you cant double up son')
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_twice_with_positive_then_negative_karma(self, publish):
@@ -385,12 +376,9 @@ class TestCommentsService(bodhi.tests.server.functional.base.BaseWSGICase):
         nvr = u'bodhi-2.0-201.fc17'
         update = Update(
             title=nvr,
-            #builds=[build],
-            #user=user,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
             notes=u'Useful details!',
-            #release=release,
             date_submitted=datetime(1984, 11, 02),
             requirements=u'rpmlint',
             stable_karma=3,

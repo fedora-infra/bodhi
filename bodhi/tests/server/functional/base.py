@@ -12,28 +12,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import os
-
 from webtest import TestApp
 
 from bodhi.server import main
-from bodhi.tests.server.base import BaseTestCase, DB_NAME, DB_PATH
-
-
-FAITOUT = 'http://209.132.184.152/faitout/'
-# The BUILD_ID environment variable is set by Jenkins and allows us to detect if
-# we are running the tests in jenkins or not
-# https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
-if os.environ.get('BUILD_ID'):
-    try:
-        import requests
-        req = requests.get('%s/new' % FAITOUT)
-        if req.status_code == 200:
-            DB_PATH = req.text
-            DB_NAME = DB_PATH.rsplit('/', 1)[1]
-            print 'Using faitout at: %s' % DB_PATH
-    except:
-        pass
+from bodhi.tests.server.base import BaseTestCase, DB_NAME, DB_PATH, FAITOUT
 
 
 class BaseWSGICase(BaseTestCase):

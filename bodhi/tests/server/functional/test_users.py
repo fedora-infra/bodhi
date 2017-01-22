@@ -14,13 +14,9 @@
 
 from pyramid.settings import asbool
 
-import bodhi.tests.server.functional.base
-
 from bodhi.server.config import config
-from bodhi.server.models import (
-    Update,
-    User,
-)
+from bodhi.server.models import Update, User
+import bodhi.tests.server.functional.base
 
 
 class TestUsersService(bodhi.tests.server.functional.base.BaseWSGICase):
@@ -96,9 +92,6 @@ class TestUsersService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertIn('callback', res)
         self.assertIn('bodhi', res)
         self.assertIn('guest', res)
-        # FIXME: for some reason this bounces between 3 and 4
-        # check to catch performance regressions
-        #self.assertEquals(len(self.sql_statements), 4)
 
     def test_list_users_rss(self):
         res = self.app.get('/rss/users/',

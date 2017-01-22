@@ -16,12 +16,14 @@ This module contains a useful base test class that helps with common testing nee
 bodhi.server modules.
 """
 from contextlib import contextmanager
+import os
 import unittest
 
 from sqlalchemy import create_engine
 from sqlalchemy import event
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
+import requests
 import transaction
 
 from bodhi.server import log, models
@@ -30,6 +32,21 @@ from bodhi.tests.server import create_update, populate
 
 DB_PATH = 'sqlite://'
 DB_NAME = None
+
+
+FAITOUT = 'http://209.132.184.152/faitout/'
+# The BUILD_ID environment variable is set by Jenkins and allows us to detect if
+# we are running the tests in jenkins or not
+# https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
+if os.environ.get('BUILD_ID'):
+    try:
+        req = requests.get('%s/new' % FAITOUT)
+        if req.status_code == 200:
+            DB_PATH = req.text
+            DB_NAME = DB_PATH.rsplit('/', 1)[1]
+            print 'Using faitout at: %s' % DB_PATH
+    except:
+        pass
 
 
 class BaseTestCase(unittest.TestCase):
