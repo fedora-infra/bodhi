@@ -99,3 +99,15 @@
   command: alembic upgrade head
   args:
       chdir: /home/vagrant/bodhi
+
+- name: Install the systemd unit
+  copy:
+      src: bodhi.service
+      dest: /etc/systemd/system/bodhi.service
+      mode: 0644
+
+- name: Start and enable the bodhi service
+  systemd:
+      name: bodhi
+      state: started
+      enabled: yes

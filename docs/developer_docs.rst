@@ -43,7 +43,6 @@ use these commands::
     $ cp Vagrantfile.example Vagrantfile
     # Make sure your bodhi checkout is your shell's cwd
     $ vagrant up
-    $ vagrant ssh -c "cd /home/vagrant/bodhi; pserve development.ini --reload"
 
 ``Vagrantfile.example`` sets up a port forward from the host machine's port 6543 into the Vagrant
 guest's port 6543, so you can now visit http://localhost:6543 with your browser to see your Bodhi
@@ -70,10 +69,7 @@ You can run the unit tests within the guest with nosetests::
     $ cd /home/vagrant/bodhi
     $ python setup.py nosetests
 
-You can run the development server from inside the Vagrant environment::
-
-    $ pserve /home/vagrant/bodhi/development.ini --reload
-
+The development server is run inside the Vagrant environment by the ``bodhi.service`` systemd unit.
 You can use ``pshell`` and ``tools/shelldb.py`` to get a Python shell quickly set up with a nice
 environment for you to hack in::
 

@@ -1,0 +1,11 @@
+[Unit]
+Description=bodhi
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=vagrant
+ExecStart=/usr/bin/pserve /home/vagrant/bodhi/development.ini --reload
+
+[Install]
+WantedBy=multi-user.target
