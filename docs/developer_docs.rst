@@ -18,7 +18,7 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
 * New code should follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_. You can use the
   ``flake8`` utility to automatically check your code. There is a
   ``bodhi.tests.test_style.TestStyle.test_code_with_flake8`` test, that is slowly being expanded to
-  enforce PEP-8 across the codebase.
+  enforce PEP-8 across the codebase. Additionally, Bodhi uses spaces instead of tabs.
 
 
 Create a Bodhi development environment
