@@ -40,7 +40,7 @@ FAITOUT = 'http://209.132.184.152/faitout/'
 # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
 if os.environ.get('BUILD_ID'):
     try:
-        req = requests.get('%s/new' % FAITOUT)
+        req = requests.get('%s/new' % FAITOUT, timeout=60)
         if req.status_code == 200:
             DB_PATH = req.text
             DB_NAME = DB_PATH.rsplit('/', 1)[1]
