@@ -35,14 +35,14 @@ def get_top_testers(request):
 
     query = db.query(
         models.User,
-        sa.func.count(models.User.comments).label('count_1')
+        sa.func.count(models.User.comments).label(u'count_1')
     ).join(models.Comment)
     query = query\
-        .order_by('count_1 desc')\
+        .order_by(u'count_1 desc')\
         .filter(models.Comment.timestamp > start_time)
 
     for user in blacklist:
-        query = query.filter(models.User.name != user)
+        query = query.filter(models.User.name != unicode(user))
 
     return query\
         .group_by(models.User)\

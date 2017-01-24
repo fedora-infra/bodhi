@@ -25,7 +25,7 @@ from bodhi.server.models import (
 class TestPackagesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_basic_json(self):
         """ Test querying with no arguments... """
-        self.db.add(Package(name='a_second_package'))
+        self.db.add(Package(name=u'a_second_package'))
         resp = self.app.get('/packages/')
         body = resp.json_body
         self.assertEquals(len(body['packages']), 2)
@@ -33,7 +33,7 @@ class TestPackagesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_filter_by_name(self):
         """ Test that filtering by name returns one package and not the other.
         """
-        self.db.add(Package(name='a_second_package'))
+        self.db.add(Package(name=u'a_second_package'))
         resp = self.app.get('/packages/', dict(name='bodhi'))
         body = resp.json_body
         self.assertEquals(len(body['packages']), 1)
@@ -41,7 +41,7 @@ class TestPackagesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_filter_by_like(self):
         """ Test that filtering by like returns one package and not the other.
         """
-        self.db.add(Package(name='a_second_package'))
+        self.db.add(Package(name=u'a_second_package'))
         resp = self.app.get('/packages/', dict(like='odh'))
         body = resp.json_body
         self.assertEquals(len(body['packages']), 1)

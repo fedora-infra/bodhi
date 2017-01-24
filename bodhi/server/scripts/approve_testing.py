@@ -60,8 +60,8 @@ def main(argv=sys.argv):
             if update.stable_karma not in (0, None) and update.karma >= update.stable_karma \
                     and not update.autokarma and update.meets_testing_requirements:
                 print('%s now reaches stable karma threshold' % update.title)
-                text = config.get('testing_approval_msg_based_on_karma')
-                update.comment(db, text, author='bodhi')
+                text = unicode(config.get('testing_approval_msg_based_on_karma'))
+                update.comment(db, text, author=u'bodhi')
                 continue
 
             # If autokarma updates have reached the testing threshold, say something! Keep in mind
@@ -71,8 +71,9 @@ def main(argv=sys.argv):
             # not reached the karma threshold.
             if update.meets_testing_requirements:
                 print('%s now meets testing requirements' % update.title)
-                text = config.get('testing_approval_msg') % update.release.mandatory_days_in_testing
-                update.comment(db, text, author='bodhi')
+                text = unicode(
+                    config.get('testing_approval_msg') % update.release.mandatory_days_in_testing)
+                update.comment(db, text, author=u'bodhi')
 
 
 def _get_db_session(config_uri):

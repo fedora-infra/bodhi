@@ -280,7 +280,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_build(self, *args):
         """Test submitting a new update with a build already in the database"""
-        package = Package.get('bodhi', self.db)
+        package = Package.get(u'bodhi', self.db)
         self.db.add(Build(nvr=u'bodhi-2.0.0-3.fc17', package=package))
         self.db.flush()
 
@@ -292,7 +292,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_package(self, *args):
         """Test submitting a new update with a package that is already in the database."""
-        package = Package(name='existing-package')
+        package = Package(name=u'existing-package')
         self.db.add(package)
         self.db.flush()
         args = self.get_update(u'existing-package-2.4.1-5.fc17')
@@ -350,7 +350,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion(self, publish, *args):
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         with mock.patch(**mock_uuid4_version1):
             self.app.post_json('/updates/', args)
@@ -415,7 +415,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         """
         Assert that an exception during obsoletion is properly handled.
         """
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         with mock.patch(**mock_uuid4_version1):
             self.app.post_json('/updates/', args)
@@ -1738,7 +1738,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_edit_update_with_different_release(self, publish, *args):
         """Test editing an update for one release with builds from another."""
         nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update('bodhi-2.0.0-2.fc17')
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
@@ -1775,7 +1775,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(publish.call_args_list, [])
 
         # First, create a testing update
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         r = self.app.post_json('/updates/', args, status=200)
         publish.assert_called_once_with(
@@ -1798,7 +1798,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_locked_update(self, publish, *args):
         """Make sure some changes are prevented"""
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         r = self.app.post_json('/updates/', args, status=200)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
@@ -1853,7 +1853,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion_locked_with_open_request(self, publish, *args):
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args)
 
@@ -1872,7 +1872,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion_unlocked_with_open_request(self, publish, *args):
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args)
 
@@ -1888,7 +1888,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion_unlocked_with_open_stable_request(self, publish, *args):
         """ Ensure that we don't obsolete updates that have a stable request """
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args)
         up = self.db.query(Update).filter_by(title=nvr).one()
@@ -1910,7 +1910,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         Obsolete update should not be submitted to testing
         Test Push to Stable option for obsolete update
         """
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         with mock.patch(**mock_uuid4_version1):
             self.app.post_json('/updates/', args)
@@ -1922,7 +1922,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.status = UpdateStatus.testing
         up.request = None
 
-        new_nvr = 'bodhi-2.0.0-3.fc17'
+        new_nvr = u'bodhi-2.0.0-3.fc17'
         args = self.get_update(new_nvr)
         with mock.patch(**mock_uuid4_version2):
             r = self.app.post_json('/updates/', args).json_body
@@ -1949,7 +1949,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_enabled_button_for_autopush(self, *args):
         """Test Enabled button on Update page when autopush is True"""
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['autokarma'] = True
         resp = self.app.post_json('/updates/', args)
@@ -1962,7 +1962,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_disabled_button_for_autopush(self, *args):
         """Test Disabled button on Update page when autopush is False"""
-        nvr = 'bodhi-2.0.0-2.fc17'
+        nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['autokarma'] = False
         resp = self.app.post_json('/updates/', args)
@@ -2258,7 +2258,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.db.flush()
         eq_(up.days_in_testing, 7)
@@ -2302,7 +2302,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.db.flush()
         eq_(up.days_in_testing, 7)
@@ -2324,7 +2324,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.db.flush()
         eq_(up.days_in_testing, 7)
@@ -2347,9 +2347,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.stable
         up.request = None
-        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
-        up.comment(self.db, 'This update has been pushed to stable', author='bodhi')
+        up.comment(self.db, u'This update has been pushed to stable', author=u'bodhi')
         self.db.flush()
         eq_(up.days_in_testing, 14)
         eq_(up.meets_testing_requirements, True)
@@ -2376,7 +2376,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.status = UpdateStatus.testing
         up.request = None
-        up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
+        up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         self.db.flush()
         eq_(up.days_in_testing, 14)
@@ -2511,8 +2511,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update_bugs(self, publish, *args):
-        build = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update('bodhi-2.0.0-2.fc17')
+        build = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
         args['bugs'] = '56789'
         r = self.app.post_json('/updates/', args)
         self.assertEquals(len(r.json['bugs']), 1)
@@ -2555,7 +2555,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_missing_update(self, publish, *args):
         """ Attempt to edit an update that doesn't exist """
-        build = 'bodhi-2.0.0-2.fc17'
+        build = u'bodhi-2.0.0-2.fc17'
         edited = 'bodhi-1.0-1.fc17'
         args = self.get_update(build)
         args['edited'] = edited
@@ -2566,8 +2566,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update_and_disable_features(self, publish, *args):
-        build = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update('bodhi-2.0.0-2.fc17')
+        build = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
@@ -2605,8 +2605,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update_change_type(self, publish, *args):
-        build = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update('bodhi-2.0.0-2.fc17')
+        build = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
         args['type'] = 'newpackage'
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
@@ -2732,7 +2732,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.db.add(user)
         self.db.flush()
 
-        nvr = 'bodhi-2.1-1.fc17'
+        nvr = u'bodhi-2.1-1.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args).json_body
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
@@ -2758,7 +2758,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.db.add(user)
         self.db.flush()
 
-        nvr = 'bodhi-2.1-1.fc17'
+        nvr = u'bodhi-2.1-1.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args).json_body
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
@@ -2819,7 +2819,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.db.add(user)
         self.db.flush()
 
-        nvr = 'bodhi-2.1-1.fc17'
+        nvr = u'bodhi-2.1-1.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args).json_body
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
@@ -2850,7 +2850,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.db.add(user)
         self.db.flush()
 
-        nvr = 'bodhi-2.1-1.fc17'
+        nvr = u'bodhi-2.1-1.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args).json_body
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
@@ -2872,7 +2872,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.db.add(user)
         self.db.flush()
 
-        nvr = 'bodhi-2.1-1.fc17'
+        nvr = u'bodhi-2.1-1.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args).json_body
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
@@ -3181,7 +3181,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(upd.request, None)
         self.assertEquals(upd.autokarma, False)
 
-        text = config.get('testing_approval_msg_based_on_karma')
+        text = unicode(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
 
         # Checks Push to Stable text in the html page for this update
@@ -3242,7 +3242,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         update.request = None
         self.db.flush()
 
-        oldbuild = 'bodhi-1.0-1.fc17'
+        oldbuild = u'bodhi-1.0-1.fc17'
 
         # Create a newer build
         build = Build(nvr=oldbuild, package=update.builds[0].package)

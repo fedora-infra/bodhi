@@ -436,7 +436,7 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertIsNotNone(notice)
 
         # Create a new non-security update for the same package
-        newbuild = 'bodhi-2.0-2.fc17'
+        newbuild = u'bodhi-2.0-2.fc17'
         pkg = self.db.query(Package).filter_by(name=u'bodhi').one()
         build = Build(nvr=newbuild, package=pkg)
         self.db.add(build)
@@ -503,7 +503,7 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertIsNotNone(notice)
 
         # Create a new non-security update for the same package
-        newbuild = 'bodhi-2.0-2.fc17'
+        newbuild = u'bodhi-2.0-2.fc17'
         pkg = self.db.query(Package).filter_by(name=u'bodhi').one()
         build = Build(nvr=newbuild, package=pkg)
         self.db.add(build)

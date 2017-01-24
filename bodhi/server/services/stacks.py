@@ -144,7 +144,7 @@ def save_stack(request):
     # assume they mean *really*, no requirements so we leave the value null.
     reqs = data['requirements']
     if reqs is None:
-        stack.requirements = request.registry.settings.get('site_requirements')
+        stack.requirements = unicode(request.registry.settings.get('site_requirements'))
     elif reqs:
         stack.requirements = reqs
 

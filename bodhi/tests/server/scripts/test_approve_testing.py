@@ -127,7 +127,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         with patch(
                 'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
@@ -159,7 +159,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         with patch(
                 'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
@@ -193,7 +193,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         with patch(
                 'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
@@ -217,7 +217,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 0
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         with patch(
                 'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
@@ -241,7 +241,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = None
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         with patch(
                 'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
@@ -265,7 +265,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         with patch(
                 'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
@@ -293,7 +293,7 @@ class TestMain(BaseTestCase):
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
         update.date_testing = datetime.now() - timedelta(days=7)
-        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         with patch(
                 'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
@@ -318,7 +318,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, 'testing', author='hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
         transaction.commit()
 
         with patch(

@@ -125,7 +125,7 @@ class TestReleasesService(bodhi.tests.server.functional.base.BaseWSGICase):
                           'Invalid packages specified: carbunkle')
 
     def test_new_release(self):
-        attrs = {"name": "F42", "long_name": "Fedora 42", "version": "42",
+        attrs = {"name": u"F42", "long_name": "Fedora 42", "version": "42",
                  "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
                  "stable_tag": "f42-updates",
                  "testing_tag": "f42-updates-testing",

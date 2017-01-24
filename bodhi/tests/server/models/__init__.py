@@ -23,6 +23,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
+from bodhi.server import buildsys
 from bodhi.server.models import Base
 
 
@@ -33,6 +34,7 @@ class ModelTest(object):
     attrs = {}
 
     def setUp(self):
+        buildsys.setup_buildsystem({'buildsystem': 'dev'})
         engine = create_engine('sqlite://')
         Session = scoped_session(
             sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))

@@ -612,7 +612,7 @@ class TestUpdate(ModelTest):
         # The update should be eligible to receive the testing_approval_msg now.
         eq_(self.obj.meets_testing_requirements, True)
         # Add the testing_approval_message
-        text = config.get('testing_approval_msg') % self.obj.days_in_testing
+        text = unicode(config.get('testing_approval_msg') % self.obj.days_in_testing)
         self.obj.comment(self.db, text, author=u'bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
@@ -659,7 +659,7 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.testing
         self.obj.stable_karma = 1
         # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
         eq_(self.obj.meets_testing_requirements, True)
@@ -675,7 +675,7 @@ class TestUpdate(ModelTest):
         self.obj.stable_karma = 0
         # Now let's add some karma to get it above stable_karma, which should not be counted as
         # meeting the requirements.
-        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         # meets_testing_requirement() should return False since the stable_karma threshold is 0.
         eq_(self.obj.meets_testing_requirements, False)
@@ -691,7 +691,7 @@ class TestUpdate(ModelTest):
         self.obj.stable_karma = None
         # Now let's add some karma to get it above stable_karma, which should not be counted as
         # meeting the requirements.
-        self.obj.comment(self.db, u'testing', author='hunter2', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         # meets_testing_requirement() should return False since the stable_karma threshold is None.
         eq_(self.obj.meets_testing_requirements, False)
@@ -715,7 +715,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
         self.obj.comment(self.db, u'testing', author=u'hunter3', anonymous=False, karma=1)
         # Add the testing_approval_message
-        text = config.get('testing_approval_msg_based_on_karma')
+        text = unicode(config.get('testing_approval_msg_based_on_karma'))
         self.obj.comment(self.db, text, author=u'bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to

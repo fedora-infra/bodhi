@@ -76,7 +76,7 @@ class FakeHub(object):
 
 def makemsg(body=None):
     if not body:
-        body = {'updates': ['bodhi-2.0-1.fc17'], 'agent': 'lmacken'}
+        body = {'updates': [u'bodhi-2.0-1.fc17'], 'agent': u'lmacken'}
     return {
         'topic': u'org.fedoraproject.dev.bodhi.masher.start',
         'body': {
@@ -168,7 +168,7 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_invalid_update(self, publish):
         msg = makemsg()
-        msg['body']['msg']['updates'] = 'invalidbuild-1.0-1.fc17'
+        msg['body']['msg']['updates'] = u'invalidbuild-1.0-1.fc17'
         self.masher.consume(msg)
         self.assertEquals(len(publish.call_args_list), 1)
 
@@ -293,7 +293,7 @@ class TestMasher(unittest.TestCase):
         Test pushing an batch of updates with multiple builds for the same package.
         Ensure that the latest version is tagged last.
         """
-        otherbuild = 'bodhi-2.0-2.fc17'
+        otherbuild = u'bodhi-2.0-2.fc17'
         self.msg['body']['msg']['updates'].insert(0, otherbuild)
 
         with self.db_factory() as session:
@@ -483,7 +483,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += ['bodhi-2.0-1.fc18']
+        self.msg['body']['msg']['updates'] += [u'bodhi-2.0-1.fc18']
 
         self.masher.consume(self.msg)
 
@@ -565,7 +565,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += ['bodhi-2.0-1.fc18']
+        self.msg['body']['msg']['updates'] += [u'bodhi-2.0-1.fc18']
 
         self.masher.consume(self.msg)
 
@@ -639,7 +639,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += ['bodhi-2.0-1.fc18']
+        self.msg['body']['msg']['updates'] += [u'bodhi-2.0-1.fc18']
 
         self.masher.consume(self.msg)
 
@@ -689,7 +689,7 @@ References:
         cmd.return_value = '', '', 0
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request('bodhi-2.0-1.fc17')
+        self.set_stable_request(u'bodhi-2.0-1.fc17')
 
         t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
                          'ralph', log, self.db_factory, self.tempdir)
@@ -723,7 +723,7 @@ References:
         cmd.return_value = '', '', 0
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request('bodhi-2.0-1.fc17')
+        self.set_stable_request(u'bodhi-2.0-1.fc17')
 
         t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
                          'ralph', log, self.db_factory, self.tempdir)
@@ -755,7 +755,7 @@ References:
         cmd.return_value = '', '', 0
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request('bodhi-2.0-1.fc17')
+        self.set_stable_request(u'bodhi-2.0-1.fc17')
 
         t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
                          'ralph', log, self.db_factory, self.tempdir)
@@ -814,7 +814,7 @@ References:
     @mock.patch('bodhi.server.bugs.bugtracker.comment')
     @mock.patch('bodhi.server.bugs.bugtracker.close')
     def test_modify_stable_bugs(self, close, comment, *args):
-        self.set_stable_request('bodhi-2.0-1.fc17')
+        self.set_stable_request(u'bodhi-2.0-1.fc17')
         t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
                          'ralph', log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
@@ -1072,7 +1072,7 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_older_updates(self, publish, *args):
-        otherbuild = 'bodhi-2.0-2.fc17'
+        otherbuild = u'bodhi-2.0-2.fc17'
         oldbuild = None
         self.msg['body']['msg']['updates'].insert(0, otherbuild)
 

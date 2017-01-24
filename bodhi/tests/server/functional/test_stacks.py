@@ -20,7 +20,7 @@ import bodhi.tests.server.functional.base
 
 mock_valid_requirements = {
     'target': 'bodhi.server.validators._get_valid_requirements',
-    'return_value': ['rpmlint', 'upgradepath'],
+    'return_value': [u'rpmlint', 'upgradepath'],
 }
 
 
@@ -82,7 +82,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(body['stacks'][0]['name'], 'GNOME')
 
     def test_list_stacks_by_name_mismatch(self):
-        res = self.app.get('/stacks/', {'like': '%KDE%'})
+        res = self.app.get('/stacks/', {'like': u'%KDE%'})
         body = res.json_body
         self.assertEquals(len(body['stacks']), 0)
 
@@ -106,7 +106,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack(self, *args):
-        attrs = {'name': 'KDE', 'packages': 'kde-filesystem kdegames',
+        attrs = {'name': u'KDE', 'packages': 'kde-filesystem kdegames',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
@@ -115,7 +115,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(r.name, 'KDE')
         self.assertEquals(len(r.packages), 2)
         self.assertEquals(r.packages[0].name, 'kde-filesystem')
-        self.assertEquals(r.requirements, 'rpmlint')
+        self.assertEquals(r.requirements, u'rpmlint')
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_invalid_name(self, *args):
@@ -125,7 +125,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_invalid_requirement(self, *args):
-        attrs = {"name": "Hackey", "packages": "nethack",
+        attrs = {"name": u"Hackey", "packages": "nethack",
                  "requirements": "silly-dilly",
                  "csrf_token": self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=400)
@@ -135,8 +135,8 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_valid_requirement(self, *args):
-        attrs = {"name": "Hackey", "packages": "nethack",
-                 "requirements": "rpmlint",
+        attrs = {"name": u"Hackey", "packages": "nethack",
+                 "requirements": u"rpmlint",
                  "csrf_token": self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs)
         body = res.json_body['stack']

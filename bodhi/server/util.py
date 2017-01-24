@@ -97,7 +97,7 @@ def get_rpm_header(nvr, tries=0):
 
 def get_nvr(nvr):
     """ Return the [ name, version, release ] a given name-ver-rel. """
-    x = map(str, nvr.split('-'))
+    x = map(unicode, nvr.split('-'))
     return ('-'.join(x[:-2]), x[-2], x[-1])
 
 

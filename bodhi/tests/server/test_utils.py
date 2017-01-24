@@ -14,7 +14,7 @@
 
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.models import Update
-from bodhi.server.util import (get_critpath_pkgs, markup,
+from bodhi.server.util import (get_critpath_pkgs, get_nvr, markup,
                                get_rpm_header, cmd, sorted_builds, sorted_updates)
 from bodhi.server.config import config
 
@@ -35,6 +35,14 @@ class TestUtils(object):
         """Ensure the pkgdb's critpath API works"""
         pkgs = get_critpath_pkgs()
         assert 'kernel' in pkgs, pkgs
+
+    def test_get_nvr(self):
+        """Assert the correct return value and type from get_nvr()."""
+        result = get_nvr(u'ejabberd-16.12-3.fc26')
+
+        assert result == ('ejabberd', '16.12', '3.fc26')
+        for element in result:
+            assert isinstance(element, unicode)
 
     def test_markup(self):
         """Ensure we escape HTML"""

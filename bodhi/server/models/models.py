@@ -980,7 +980,7 @@ class Update(Base):
                                 'inherited its bugs and notes.')
                     link = "[%s](%s)" % (oldBuild.nvr,
                                          oldBuild.update.abs_url())
-                    self.comment(db, template % link, author='bodhi')
+                    self.comment(db, template % link, author=u'bodhi')
                     caveats.append({
                         'name': 'update',
                         'description': template % oldBuild.nvr,
@@ -1524,7 +1524,7 @@ class Update(Base):
 
             if check_karma and author not in config.get('system_users').split():
                 try:
-                    self.check_karma_thresholds(session, 'bodhi')
+                    self.check_karma_thresholds(session, u'bodhi')
                 except LockedUpdateException:
                     pass
                 except BodhiException as e:
@@ -1846,7 +1846,7 @@ class Update(Base):
         else:
             return True
         for comment in self.comments:
-            if comment.user.name == 'bodhi' and \
+            if comment.user.name == u'bodhi' and \
                comment.text.startswith('This update has reached') and \
                'and can be pushed to stable now if the ' \
                'maintainer wishes' in comment.text:
@@ -1979,7 +1979,7 @@ class Comment(Base):
     __exclude_columns__ = tuple()
     __get_by__ = ('id',)
     # If 'anonymous' is true, then scrub the 'author' field in __json__(...)
-    __anonymity_map__ = {'user': 'anonymous'}
+    __anonymity_map__ = {'user': u'anonymous'}
 
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
@@ -2001,7 +2001,7 @@ class Comment(Base):
         if not self.anonymous and result['user']:
             result['author'] = result['user']['name']
         else:
-            result['author'] = 'anonymous'
+            result['author'] = u'anonymous'
 
         # Similarly, duplicate the update's title as update_title.
         result['update_title'] = result['update']['title']
