@@ -15,6 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for the bodhi.server.buildsys module."""
 
+from threading import Lock
 import unittest
 
 import koji
@@ -140,3 +141,58 @@ class TestKojiLogin(unittest.TestCase):
         self.assertEqual(type(client), koji.ClientSession)
         # No error should have been logged
         self.assertEqual(error.call_count, 0)
+
+
+class TestGetSession(unittest.TestCase):
+    """Tests :func:`bodhi.server.buildsys.get_session` function"""
+
+    @mock.patch('bodhi.server.buildsys._buildsystem', None)
+    def test_uninitialized_buildsystem(self):
+        """Assert calls to get_session raise RuntimeError when uninitialized"""
+        self.assertRaises(RuntimeError, buildsys.get_session)
+
+    @mock.patch('bodhi.server.buildsys._buildsystem')
+    @mock.patch('bodhi.server.buildsys._buildsystem_login_lock', wraps=Lock())
+    def test_buildsys_lock(self, mock_lock, mock_buildsystem):
+        """Assert the buildsystem lock is aquired and released in get_session"""
+        session = buildsys.get_session()
+        mock_lock.__enter__.assert_called_once()
+        mock_lock.__exit__.assert_called_once()
+        mock_buildsystem.assert_called_once_with()
+
+
+class TestSetupBuildsystem(unittest.TestCase):
+    """Tests :func:`bodhi.server.buildsys.setup_buildsystem` function"""
+
+    @mock.patch('bodhi.server.buildsys._buildsystem', mock.Mock())
+    def test_initialized_buildsystem(self):
+        """Assert nothing happens when the buildsystem is already initialized"""
+        old_buildsystem = buildsys._buildsystem
+        buildsys.setup_buildsystem({})
+        self.assertTrue(old_buildsystem is buildsys._buildsystem)
+
+    @mock.patch('bodhi.server.buildsys._buildsystem', None)
+    @mock.patch('bodhi.server.buildsys.koji_login')
+    def test_koji_buildsystem(self, mock_koji_login):
+        """Assert the buildsystem initializes correctly for koji"""
+        config = {'buildsystem': 'koji', 'some': 'key'}
+        self.assertTrue(buildsys._buildsystem is None)
+        buildsys.setup_buildsystem(config)
+        self.assertFalse(buildsys._buildsystem is None)
+        login = buildsys._buildsystem()
+        mock_koji_login.assert_called_once_with(config=config)
+
+
+    @mock.patch('bodhi.server.buildsys._buildsystem', None)
+    def test_dev_buildsystem(self):
+        """Assert the buildsystem initializes correctly for dev"""
+        self.assertTrue(buildsys._buildsystem is None)
+        buildsys.setup_buildsystem({'buildsystem': 'dev'})
+        self.assertTrue(buildsys._buildsystem is buildsys.DevBuildsys)
+
+    @mock.patch('bodhi.server.buildsys._buildsystem', None)
+    def test_nonsense_buildsystem(self):
+        """Assert the buildsystem setup crashes with nonsense values"""
+        self.assertTrue(buildsys._buildsystem is None)
+        self.assertRaises(ValueError, buildsys.setup_buildsystem,
+                          {'buildsystem': 'Something unsupported'})
