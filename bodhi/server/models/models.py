@@ -1022,15 +1022,19 @@ class Update(Base):
     def get_bug_karma(self, bug):
         good, bad, seen = 0, 0, set()
         for comment in reversed(self.comments):
-            if comment.user.name in seen:
-                continue
-            seen.add(comment.user.name)
-            for feedback in comment.bug_feedback:
-                if feedback.bug == bug:
-                    if feedback.karma > 0:
-                        good += 1
-                    elif feedback.karma < 0:
-                        bad += 1
+            if comment.user:
+                if (comment.user.name == u'bodhi' and
+                        ('New build' in comment.text or 'Removed build' in comment.text)):
+                    break
+                if comment.user.name in seen:
+                    continue
+                seen.add(comment.user.name)
+                for feedback in comment.bug_feedback:
+                    if feedback.bug == bug:
+                        if feedback.karma > 0:
+                            good += 1
+                        elif feedback.karma < 0:
+                            bad += 1
         return bad * -1, good
 
     def get_testcase_karma(self, testcase):
@@ -1260,11 +1264,26 @@ class Update(Base):
                     # https://github.com/fedora-infra/bodhi/issues/368#issuecomment-135155215
                     for bug in self.bugs:
                         if not bug.parent:
-                            log.debug("Closing tracker bug %d" % bug.bug_id)
-                            bug.close_bug(self)
+                            bad, good = self.get_bug_karma(bug)
+                            bug_karma = good + bad
+                            if bug_karma >= 0:
+                                log.debug("Closing tracker bug %d" % bug.bug_id)
+                                bug.close_bug(self)
+                            else:
+                                log.debug('Adding stable comment to bugs for %s', self.title)
+                                bug.add_comment(self)
                 else:
                     for bug in self.bugs:
-                        bug.close_bug(self)
+                        # Close only when the bug has good or no karma
+                        # https://github.com/fedora-infra/bodhi/issues/1160
+                        bad, good = self.get_bug_karma(bug)
+                        bug_karma = good + bad
+                        if bug_karma >= 0:
+                            log.debug("Closing tracker bug %d" % bug.bug_id)
+                            bug.close_bug(self)
+                        else:
+                            log.debug('Adding stable comment to bugs for %s', self.title)
+                            bug.add_comment(self)
 
     def status_comment(self, db):
         """

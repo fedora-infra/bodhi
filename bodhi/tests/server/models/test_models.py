@@ -248,6 +248,48 @@ class TestUpdate(ModelTest):
 
     @mock.patch('bodhi.server.models.models.bugtracker.close')
     @mock.patch('bodhi.server.models.models.bugtracker.comment')
+    def test_modify_bugs_karma_stable_close(self, comment, close):
+        """Test the modify_bugs() method with a stable status and bug karmas effect."""
+        update = self.get_update()
+        bug_1 = model.Bug(bug_id=1)
+        bug_2 = model.Bug(bug_id=2)
+        update.bugs.append(bug_1)
+        update.bugs.append(bug_2)
+        update.close_bugs = True
+        update.status = UpdateStatus.stable
+
+        # testing bug karma effect on the bug closure
+        user_1 = model.User(name=u'anass')
+        user_2 = model.User(name=u'mark')
+        comment_1 = model.Comment(user=user_1, karma=1)
+        comment_2 = model.Comment(user=user_2, karma=0)
+        bug_1_karma = model.BugKarma(bug=bug_1, karma=10)
+        bug_2_karma = model.BugKarma(bug=bug_2, karma=-2)
+        comment_1.bug_feedback.append(bug_1_karma)
+        comment_2.bug_feedback.append(bug_2_karma)
+        update.comments.append(comment_1)
+        update.comments.append(comment_2)
+
+        update.modify_bugs()
+
+        # The comment call shouldn't have been made in the first bug, since the comment should be
+        # included with the call to close(), but the second bug will call comment to add stable
+        # comment to the unclosed bug.
+        eq_(comment.call_count, 1)
+        eq_(close.call_count, 1)
+        # Make sure close() was called correctly.
+        eq_([c[1][0] for c in close.mock_calls], [1,])
+        eq_('to the Fedora 11 stable repository' in close.mock_calls[0][2]['comment'],
+            True)
+        eq_(close.mock_calls[0][2]['versions']['TurboGears'] == 'TurboGears-1.0.8-3.fc11',
+            True)
+        # Make sure bugs number 2 was commented on correctly.
+        eq_([c[1][0] for c in comment.mock_calls], [2])
+        eq_('pushed to the Fedora 11 stable repository' in comment.mock_calls[0][1][1],
+            True)
+
+    @mock.patch('bodhi.server.models.models.bugtracker.close')
+    @mock.patch('bodhi.server.models.models.bugtracker.comment')
     def test_modify_bugs_stable_no_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to False."""
         update = self.get_update()
