@@ -44,7 +44,7 @@ clean:
 
 schema:
 	@mkdir -p images
-	@./generate_db_schema
+	@PYTHONPATH=.. ./generate_db_schema
 
 html: schema
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
