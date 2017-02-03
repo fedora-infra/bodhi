@@ -60,9 +60,7 @@ def jpeg_generator(plainkey, settings):
     background_color = settings.get('captcha.background_color', '#ffffff')
     padding = int(settings.get('captcha.padding', 5))
 
-    img = Image.new('RGB', image_size)
-
-    img.paste(background_color)
+    img = Image.new('RGB', image_size, color=background_color)
 
     font = ImageFont.truetype(font_path, font_size)
     width, height = font.getsize(plainkey)
