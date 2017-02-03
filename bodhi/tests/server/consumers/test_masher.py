@@ -68,6 +68,7 @@ class FakeHub(object):
             'releng_fedmsg_certname': None,
             'masher_topic': 'bodhi.start',
             'masher': True,
+            'validate_signatures': False,
         }
 
     def subscribe(self, *args, **kw):
