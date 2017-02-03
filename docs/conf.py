@@ -216,7 +216,10 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('man_bodhi', 'bodhi', u'manage Fedora updates', ['Randy Barlow', 'Luke Macken'], 1)
+    ('man_bodhi', 'bodhi', u'manage Fedora updates', ['Randy Barlow', 'Luke Macken'], 1),
+    ('man_bodhi-push', 'bodhi-push', u'push Fedora updates', ['Randy Barlow'], 1),
+    ('man_initialize_bodhi_db', 'initialize_bodhi_db', u'intialize bodhi\'s database',
+     ['Randy Barlow'], 1)
 ]
 
 # If true, show URL addresses after external links.
