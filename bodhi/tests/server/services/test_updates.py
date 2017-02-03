@@ -3258,7 +3258,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         # Try and submit an older build to stable
         resp = self.app.post_json(
-            '/updates/%s/request' % oldbuild,
+            '/updates/%s/request' % str(oldbuild),
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=400)
         eq_(resp.json['status'], 'error')
