@@ -379,7 +379,7 @@ class TestPush(base.BaseTestCase):
                  'resume': False, 'agent': 'bowlofeggs'},
             force=True)
 
-    @mock.patch('bodhi.server.push.file')
+    @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
@@ -419,7 +419,7 @@ class TestPush(base.BaseTestCase):
             self.assertTrue(u.locked)
             self.assertTrue(u.date_locked <= datetime.utcnow())
 
-    @mock.patch('bodhi.server.push.file')
+    @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
@@ -608,7 +608,7 @@ class TestPush(base.BaseTestCase):
         self.assertTrue(python_paste_deploy.locked)
         self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
 
-    @mock.patch('bodhi.server.push.file')
+    @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
@@ -653,7 +653,7 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.file')
+    @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-testing',
@@ -705,7 +705,7 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.file')
+    @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
