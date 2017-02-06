@@ -221,7 +221,8 @@ def api_version(request):
 def notfound_view(context, request):
     """ Automatically redirects to slash-appended routes.
 
-    http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html#redirecting-to-slash-appended-rou
+    Note: The URL below spans two lines.
+    http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/urldispatch.html
     """
     return exception_view(context, request)
 

@@ -552,10 +552,8 @@ class MasherThread(threading.Thread):
                             from_tag = tag
                             break
                     else:
-                        reason = (
-                            'Cannot find relevant tag for %s.  '
-                            'None of %s are in %s.') % (
-                                build.nvr, tags, tag_types[status])
+                        reason = 'Cannot find relevant tag for %s.  None of %s are in %s.'
+                        reason = reason % (build.nvr, tags, tag_types[status])
                         self.eject_from_mash(update, reason)
                         break
 

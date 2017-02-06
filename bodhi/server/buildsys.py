@@ -248,13 +248,13 @@ class DevBuildsys(Buildsystem):
 
     def getRPMHeaders(self, rpmID, headers):
         return {
-            'description':
+            'description': (
                 "The libseccomp library provides an easy to use interface to the "
                 "Linux Kernel's\nsyscall filtering mechanism, seccomp. The "
                 "libseccomp API allows an application\nto specify which "
                 "syscalls, and optionally which syscall arguments, the\n"
                 "application is allowed to execute, all of which are "
-                "enforced by the Linux\nKernel.",
+                "enforced by the Linux\nKernel."),
             'url': 'http://libseccomp.sourceforge.net',
             'changelogname': [
                 'Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.1.0-1',

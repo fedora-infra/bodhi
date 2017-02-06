@@ -59,13 +59,11 @@ def get_release_html(request):
     if not release:
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code
-    updates = request.db.query(Update).filter(
-        Update.release == release).order_by(
-            Update.date_submitted.desc())
+    updates = request.db.query(Update).filter(Update.release == release).order_by(
+        Update.date_submitted.desc())
 
     updates_count = request.db.query(Update.date_submitted, Update.type).filter(
-        Update.release == release).order_by(
-            Update.date_submitted.desc())
+        Update.release == release).order_by(Update.date_submitted.desc())
 
     date_commits = {}
     dates = set()

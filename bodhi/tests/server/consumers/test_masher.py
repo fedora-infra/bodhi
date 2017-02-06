@@ -101,7 +101,9 @@ class TestMasher(unittest.TestCase):
         # The BUILD_ID environment variable is set by Jenkins and allows us to
         # detect if
         # we are running the tests in jenkins or not
-        # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
+        # Note: The URL below spans two lines.
+        # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project
+        # #Buildingasoftwareproject-below
         if os.environ.get('BUILD_ID'):
             faitout = 'http://209.132.184.152/faitout/'
             try:
@@ -396,7 +398,7 @@ References:
              'https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        '
              'http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------'
              '------------------------------------------------------------\n\n') % (
-                 config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
+                config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
     def test_sanity_check(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
