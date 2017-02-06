@@ -54,7 +54,6 @@ class TestJPEGGenerator(unittest.TestCase):
 
         truetype.assert_called_once_with('/path/to/cool/font', 24)
         truetype.return_value.getsize.assert_called_once_with('42 + 7')
-        Draw.assert_called_once_with(img)
         Draw.return_value.text.assert_called_once_with((52, 78), '42 + 7',
                                                        font=truetype.return_value, fill='#012345')
         img.verify()
