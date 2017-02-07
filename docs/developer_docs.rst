@@ -19,6 +19,8 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
   ``flake8`` utility to automatically check your code. There is a
   ``bodhi.tests.test_style.TestStyle.test_code_with_flake8`` test, that is slowly being expanded to
   enforce PEP-8 across the codebase.
+* Add an entry to ``docs/release_notes.rst`` for any changes you make that should be in release
+  notes.
 
 
 Create a Bodhi development environment
