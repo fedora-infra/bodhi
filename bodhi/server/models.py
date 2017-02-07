@@ -962,6 +962,8 @@ class Update(Base):
             comment += '\n\nRemoved build(s):\n'
             for removed_build in removed_builds:
                 comment += "\n- %s" % removed_build
+        if new_builds or removed_builds:
+            comment += '\n\nKarma has been reset.'
         up.comment(db, comment, karma=0, author=u'bodhi')
         caveats.append({'name': 'builds', 'description': comment})
 
