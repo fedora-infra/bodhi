@@ -1,6 +1,105 @@
 Release notes
 =============
 
+2.4.0
+-----
+
+Bodhi 2.4.0 is a feature and bugfix release.
+
+
+Features
+^^^^^^^^
+* The web interface now displays whether an update has autopush enabled
+  (`#999 <https://github.com/fedora-infra/bodhi/issues/999>`_).
+* Autopush is now disabled on any update that receives authenticated negative karma
+  (`#1191 <https://github.com/fedora-infra/bodhi/issues/1191>`_).
+* Bodhi now links to Koji builds via TLS instead of plaintext
+  (`#1246 <https://github.com/fedora-infra/bodhi/issues/1246>`_).
+* Some usage examples have been added to the ``bodhi`` man page.
+* Bodhi's server package has a new script called ``bodhi-clean-old-mashes`` that can recursively
+  delete any folders with names that end in a dash followed by a string that can be interpreted as a
+  float, sparing the newest 10 by lexigraphical sorting. This should help release engineers keep the
+  Koji mashing folder clean.
+* There is now a ``bodhi.client.bindings`` module provided by the Bodhi client package. It contains
+  Python bindings to Bodhi's REST API.
+* The ``bodhi`` CLI now prints autokarma and thresholds when displaying updates.
+* ``bodhi-push`` now has a ``--version`` flag.
+* There are now man pages for ``bodhi-push`` and ``initialize_bodhi_db``.
+
+
+Bugs
+^^^^
+* Users' e-mail addresses will now be updated when they log in to Bodhi
+  (`#902 <https://github.com/fedora-infra/bodhi/issues/902>`_).
+* The masher now tests for ``repomd.xml`` instead of the directory that contains it
+  (`#908 <https://github.com/fedora-infra/bodhi/issues/908>`_).
+* Users can now only upvote an update once
+  (`#1018 <https://github.com/fedora-infra/bodhi/issues/1018>`_).
+* Only comment on non-autokarma updates when they meet testing requirements
+  (`#1009 <https://github.com/fedora-infra/bodhi/issues/1009>`_).
+* Autokarma can no longer be set to NULL
+  (`#1048 <https://github.com/fedora-infra/bodhi/issues/1048>`_).
+* Users can now be more fickle than ever about karma
+  (`#1064 <https://github.com/fedora-infra/bodhi/issues/1064>`_).
+* Critical path updates can now be free of past negative karma ghosts
+  (`#1065 <https://github.com/fedora-infra/bodhi/issues/1065>`_).
+* Bodhi now comments on non-autokarma updates after enough time has passed
+  (`#1094 <https://github.com/fedora-infra/bodhi/issues/1094>`_).
+* ``bodhi-push`` now does not crash when users abort a push
+  (`#1107 <https://github.com/fedora-infra/bodhi/issues/1107>`_).
+* ``bodhi-push`` now does not print updates when resuming a push
+  (`#1113 <https://github.com/fedora-infra/bodhi/issues/1113>`_).
+* Bodhi now says "Log in" and "Log out" instead of "Login" and "Logout"
+  (`#1146 <https://github.com/fedora-infra/bodhi/issues/1146>`_).
+* Bodhi now configures the Koji client to retry, which should help make the masher more reliable
+  (`#1201 <https://github.com/fedora-infra/bodhi/issues/1201>`_).
+* Bodhi is now compatible with Pillow-4.0.0
+  (`#1262 <https://github.com/fedora-infra/bodhi/issues/1262>`_).
+* The bodhi cli no longer prints update JSON when setting the request
+  (`#1408195 <https://bugzilla.redhat.com/show_bug.cgi?id=1408195>`_).
+* Bodhi's signed handler now skips builds that were not assigned to a release.
+* The comps file is now cloned into an explicit path during mashing.
+* The buildsystem is now locked during login.
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+* A great deal of tests were written for Bodhi. Test coverage is now up to 81% and is enforced by
+  the test suite.
+* Bodhi's server code is now PEP-8 compliant.
+* The docs now contain contribution guidelines.
+* The build system will now fail with a useful Exception if used without being set up.
+* The Vagrantfile is a good bit fancier, with hostname, dnf caching, unsafe but performant disk I/O,
+  and more.
+* The docs now include a database schema image.
+* Bodhi is now run by systemd in the Vagrant guest.
+* The Vagrant environment now has several helpful shell aliases and a helpful MOTD to advertise
+  them to developers.
+* The development environment now uses Fedora 25 by default.
+* The test suite is less chatty, as several unicode warnings have been fixed.
+
+
+Dependency change
+^^^^^^^^^^^^^^^^^
+* Bodhi server now depends on click for ``bodhi-push``.
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following contributors submitted patches for Bodhi 2.4.0:
+
+* Trishna Guha
+* Patrick Uiterwijk
+* Jeremy Cline
+* Till Mass
+* Josef Sukdol
+* Clement Verna
+* andreas
+* Ankit Raj Ojha
+* Randy Barlow
+
+
 2.3.3
 -----
 
