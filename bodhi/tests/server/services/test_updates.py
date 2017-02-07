@@ -1639,6 +1639,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         Removed build(s):
 
         - bodhi-2.0.0-2.fc17
+
+        Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-1]['text'], comment)
         self.assertEquals(len(up['builds']), 1)
@@ -1680,6 +1682,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         Removed build(s):
 
         - bodhi-2.0.0-2.fc17
+
+        Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
         self.assertEquals(up['comments'][-3]['text'],
@@ -1723,6 +1727,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         Removed build(s):
 
         - bodhi-2.0.0-2.fc17
+
+        Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
         self.assertEquals(up['comments'][-3]['text'],
