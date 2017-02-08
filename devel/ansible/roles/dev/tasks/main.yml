@@ -121,7 +121,7 @@
       mode: 0644
 
 - name: Start and enable the bodhi service
-  systemd:
+  service:
       name: bodhi
       state: started
       enabled: yes
