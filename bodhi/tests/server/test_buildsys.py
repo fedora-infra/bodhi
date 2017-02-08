@@ -155,7 +155,7 @@ class TestGetSession(unittest.TestCase):
     @mock.patch('bodhi.server.buildsys._buildsystem_login_lock', wraps=Lock())
     def test_buildsys_lock(self, mock_lock, mock_buildsystem):
         """Assert the buildsystem lock is aquired and released in get_session"""
-        session = buildsys.get_session()
+        buildsys.get_session()
         mock_lock.__enter__.assert_called_once()
         mock_lock.__exit__.assert_called_once()
         mock_buildsystem.assert_called_once_with()
@@ -179,9 +179,8 @@ class TestSetupBuildsystem(unittest.TestCase):
         self.assertTrue(buildsys._buildsystem is None)
         buildsys.setup_buildsystem(config)
         self.assertFalse(buildsys._buildsystem is None)
-        login = buildsys._buildsystem()
+        buildsys._buildsystem()
         mock_koji_login.assert_called_once_with(config=config)
-
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
     def test_dev_buildsystem(self):

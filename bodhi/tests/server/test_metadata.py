@@ -12,33 +12,30 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os
+from datetime import datetime
+from hashlib import sha256
+from os.path import join, exists, basename
 import glob
+import os
 import shutil
 import tempfile
 import unittest
 
-from datetime import datetime
-from hashlib import sha256
-from os.path import join, exists, basename
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
-
 import createrepo_c
 
 from bodhi.server import log
-from bodhi.server.config import config
-from bodhi.server.util import mkmetadatadir
-from bodhi.server.models import (Package, Update, Build, Base,
-        UpdateRequest, UpdateStatus, UpdateType)
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
                                    get_session, DevBuildsys)
+from bodhi.server.config import config
+from bodhi.server.models import (Package, Update, Build, Base, UpdateRequest, UpdateStatus,
+                                 UpdateType)
 from bodhi.server.metadata import ExtendedMetadata
-from bodhi.tests.server import base
+from bodhi.server.util import mkmetadatadir
+from bodhi.tests.server import base, populate
 from bodhi.tests.server.functional.base import DB_PATH
-
-from bodhi.tests.server import populate
 
 
 class TestAddUpdate(base.BaseTestCase):
@@ -133,7 +130,8 @@ class TestExtendedMetadata(unittest.TestCase):
     def setUp(self):
         setup_buildsystem({'buildsystem': 'dev'})
         engine = create_engine(DB_PATH)
-        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))
+        Session = scoped_session(
+            sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))
         Session.configure(bind=engine)
         log.debug('Creating all models for %s' % engine)
         Base.metadata.bind = engine
@@ -259,7 +257,6 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.fromstr, config.get('bodhi_email'))
         self.assertEquals(notice.rights, config.get('updateinfo_rights'))
         self.assertEquals(notice.description, update.notes)
-        #self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
         bug = notice.references[0]
         self.assertEquals(bug.href, update.bugs[0].url)
@@ -277,7 +274,10 @@ class TestExtendedMetadata(unittest.TestCase):
         pkg = col.packages[0]
         self.assertEquals(pkg.epoch, '0')
         self.assertEquals(pkg.name, 'TurboGears')
-        self.assertEquals(pkg.src, 'https://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/T/TurboGears-1.0.2.2-2.fc7.src.rpm')
+        self.assertEquals(
+            pkg.src,
+            ('https://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/T/'
+             'TurboGears-1.0.2.2-2.fc7.src.rpm'))
         self.assertEquals(pkg.version, '1.0.2.2')
         self.assertFalse(pkg.reboot_suggested)
         self.assertEquals(pkg.arch, 'src')
@@ -312,9 +312,7 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.updated_date, update.date_modified)
         self.assertEquals(notice.fromstr, config.get('bodhi_email'))
         self.assertEquals(notice.description, update.notes)
-        #self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
-        #self.assertIsNone(notice.epoch)
         bug = notice.references[0]
         url = update.bugs[0].url
         self.assertEquals(bug.href, url)
@@ -376,7 +374,6 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(notice.description, update.notes)
         self.assertIsNotNone(notice.issued_date)
         self.assertEquals(notice.id, update.alias)
-        #self.assertIsNone(notice.epoch)
         bug = notice.references[0]
         self.assertEquals(bug.href, update.bugs[0].url)
         self.assertEquals(bug.id, '12345')

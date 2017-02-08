@@ -13,10 +13,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
-from bodhi.server.models import Update
-from bodhi.server.util import (get_critpath_pkgs, get_nvr, markup,
-                               get_rpm_header, cmd, sorted_builds, sorted_updates)
 from bodhi.server.config import config
+from bodhi.server.util import (get_critpath_pkgs, get_nvr, markup,
+                               get_rpm_header, cmd, sorted_builds)
 
 
 class TestUtils(object):

@@ -12,8 +12,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import platform
 import os
+import platform
 import subprocess
 import sys
 import traceback
@@ -109,8 +109,7 @@ def new(user, password, **kwargs):
 @click.option('--suggest', help='Filter by post-update user suggestion',
               type=click.Choice(['logout', 'reboot']))
 @click.option('--type', default=None, help='Filter by update type',
-              type=click.Choice(['newpackage', 'security',
-                                 'bugfix', 'enhancement',]))
+              type=click.Choice(['newpackage', 'security', 'bugfix', 'enhancement']))
 @click.option('--user', help='Updates submitted by a specific user')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
@@ -197,7 +196,6 @@ def download(**kwargs):
                         click.echo("WARNING: download of {0} failed!".format(build['nvr']))
 
 
-
 @cli.group()
 def overrides():
     pass
@@ -250,8 +248,8 @@ def print_resp(resp, client):
         else:
             for override in resp.overrides:
                 click.echo(client.override_str(override).strip())
-        click.echo('%s overrides found (%d shown)' % (resp.total,
-            len(resp.overrides)))
+        click.echo(
+            '%s overrides found (%d shown)' % (resp.total, len(resp.overrides)))
     elif 'build' in resp:
         click.echo(client.override_str(resp))
     elif 'comment' in resp:

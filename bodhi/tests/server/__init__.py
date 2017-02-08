@@ -4,23 +4,8 @@ import mock
 import sqlalchemy
 
 from bodhi.server.models import (
-    Base,
-    Bug,
-    Build,
-    BuildrootOverride,
-    Comment,
-    CVE,
-    Group,
-    Package,
-    Release,
-    ReleaseState,
-    Update,
-    UpdateType,
-    User,
-    UpdateStatus,
-    UpdateRequest,
-    TestCase,
-)
+    Bug, Build, BuildrootOverride, Comment, CVE, Group, Package, Release, ReleaseState, Update,
+    UpdateRequest, UpdateType, User, TestCase)
 
 
 def create_update(session, build_nvrs, release_name=u'F17'):

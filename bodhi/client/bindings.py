@@ -26,14 +26,14 @@ This module provides Python bindings to the Bodhi REST API.
 .. moduleauthor:: Randy Barlow <bowlofeggs@fedoraproject.org>
 """
 
-import os
 import datetime
 import functools
 import getpass
 import logging
+import os
+import re
 import textwrap
 import warnings
-import re
 
 import six
 
@@ -86,8 +86,8 @@ class BodhiClient(OpenIdBaseClient):
             fedora.client.openidproxyclient.FEDORA_OPENID_API = STG_OPENID_API
             base_url = STG_BASE_URL
 
-        super(BodhiClient, self).__init__(base_url, login_url=base_url +
-                'login', username=username, **kwargs)
+        super(BodhiClient, self).__init__(base_url, login_url=base_url + 'login', username=username,
+                                          **kwargs)
 
         self._password = password
         self.csrf_token = None
@@ -187,7 +187,8 @@ class BodhiClient(OpenIdBaseClient):
             ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
         :kwarg mine: If True, only query the users updates.  Default: False.
         :kwarg packages: A space or comma delimited list of package names
-        :kwarg limit: A deprecated argument, sets ``rows_per_page``. See its docstring for more info.
+        :kwarg limit: A deprecated argument, sets ``rows_per_page``. See its docstring for more
+                      info.
         :kwarg approved_before: A datetime string
         :kwarg approved_since: A datetime string
         :kwarg builds: A space or comma delimited string of build nvrs
@@ -256,10 +257,10 @@ class BodhiClient(OpenIdBaseClient):
         :kwarg email: Whether or not to trigger email notifications
 
         """
-        return self.send_request('comments/', verb='POST', auth=True,
-                data={'update': update, 'text': comment,
-                      'karma': karma, 'email': email,
-                      'csrf_token': self.csrf()})
+        return self.send_request(
+            'comments/', verb='POST', auth=True,
+            data={'update': update, 'text': comment, 'karma': karma, 'email': email,
+                  'csrf_token': self.csrf()})
 
     @errorhandled
     def save_override(self, nvr, duration, notes):
@@ -346,8 +347,7 @@ class BodhiClient(OpenIdBaseClient):
                 'stable_karma': config.get(section, 'stable_karma', raw=True),
                 'unstable_karma': config.get(
                     section, 'unstable_karma', raw=True),
-                'suggest': config.get(section, 'suggest', raw=True),
-                }
+                'suggest': config.get(section, 'suggest', raw=True)}
 
             updates.append(update)
 
@@ -420,16 +420,16 @@ class BodhiClient(OpenIdBaseClient):
             return val
         val = "%s\n%s\n%s\n" % ('=' * 80, '\n'.join(
             textwrap.wrap(update['title'].replace(',', ', '), width=80,
-                          initial_indent=' '*5, subsequent_indent=' '*5)), '=' * 80)
+                          initial_indent=' ' * 5, subsequent_indent=' ' * 5)), '=' * 80)
         if update['alias']:
             val += "  Update ID: %s\n" % update['alias']
         val += """    Release: %s
      Status: %s
        Type: %s
       Karma: %d
-  Autokarma: %s  [%s, %s]""" % (update['release']['long_name'], update['status'],
-                      update['type'], update['karma'], update['autokarma'],
-                      update['unstable_karma'], update['stable_karma'])
+  Autokarma: %s  [%s, %s]""" % (
+            update['release']['long_name'], update['status'], update['type'], update['karma'],
+            update['autokarma'], update['unstable_karma'], update['stable_karma'])
         if update['request'] is not None:
             val += "\n    Request: %s" % update['request']
         if len(update['bugs']):
@@ -439,7 +439,7 @@ class BodhiClient(OpenIdBaseClient):
                 bugstr = '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
                                           bug['bug_id'], bug['title'])
                 bugs += '\n'.join(textwrap.wrap(bugstr, width=67,
-                                                subsequent_indent=' '*11+': ')) + '\n'
+                                                subsequent_indent=' ' * 11 + ': ')) + '\n'
                 i += 1
             bugs = bugs[:-1]
             val += "\n       Bugs: %s" % bugs

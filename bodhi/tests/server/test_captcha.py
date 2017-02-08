@@ -80,7 +80,7 @@ class TestJPEGGenerator(unittest.TestCase):
 
 class TestMathGenerator(unittest.TestCase):
     """This test class contains tests for the math_generator() function.
-    
+
     Every test here passes None as the second settings argument to math_generator(), as that
     parameter is not used.
     """
