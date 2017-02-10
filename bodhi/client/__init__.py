@@ -124,8 +124,6 @@ def query(**kwargs):
 @click.argument('state')
 @click.option('--user', envvar='USERNAME')
 @click.option('--password', prompt=True, hide_input=True)
-@click.option('--request', help='Requested repository',
-              type=click.Choice(['testing', 'stable', 'unpush', 'obsolete', 'revoke']))
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 def request(update, state, user, password, **kwargs):
