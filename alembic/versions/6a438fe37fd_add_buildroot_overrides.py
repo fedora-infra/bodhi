@@ -5,19 +5,20 @@ Revises: 3b85a0db1a5d
 Create Date: 2014-06-04 18:26:39.899842
 
 """
-
-# revision identifiers, used by Alembic.
-revision = '6a438fe37fd'
-down_revision = '3b85a0db1a5d'
-
 from datetime import datetime
 
 from alembic import op
 import sqlalchemy as sa
 
 
+# revision identifiers, used by Alembic.
+revision = '6a438fe37fd'
+down_revision = '3b85a0db1a5d'
+
+
 def upgrade():
-    op.create_table('buildroot_overrides',
+    op.create_table(
+        'buildroot_overrides',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('build_id', sa.Integer(), nullable=False),
         sa.Column('submitter_id', sa.Integer(), nullable=False),

@@ -23,7 +23,7 @@ def upgrade():
     # Set autokarma to True if there is a stable threshold set and autokarma is None.
     op.execute(
         updates.update().where(
-            updates.c.stable_karma != None).where(updates.c.autokarma == None).values(
+            updates.c.stable_karma.isnot(None)).where(updates.c.autokarma.isnot(None)).values(
                 {'autokarma': True}))
 
 

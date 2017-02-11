@@ -5,22 +5,22 @@ Revises: 4efd62c610a6
 Create Date: 2014-10-29 11:48:29.622675
 
 """
+import logging
+
+from alembic import op
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
+import sqlalchemy as sa
+import transaction
+
+import bodhi.server.models as m
+
 
 # revision identifiers, used by Alembic.
 revision = '46f84789bec4'
 down_revision = '4efd62c610a6'
 
-from alembic import op
-import sqlalchemy as sa
-import bodhi.server.models as m
-import transaction
-
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
-
-import logging
 log = logging.getLogger('alembic.migration')
-
 
 
 def upgrade():
@@ -40,8 +40,6 @@ def upgrade():
     # launch we could change this to "just" depcheck, or something else.  It is
     # a policy question for FESCo, I think.  -- threebean
     default_reqs = 'depcheck upgradepath'
-    ## Some day we'll have rpmgrill, and that will be cool.  Ask tflink.
-    #default_reqs = 'depcheck upgradepath rpmlint'
 
     with transaction.manager:
         log.info("Applying default reqs %r to all stacks." % default_reqs)

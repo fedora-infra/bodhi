@@ -5,13 +5,13 @@ Revises: 7f3bd827e70
 Create Date: 2014-05-06 15:42:08.805202
 
 """
+from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
 revision = '5834b7b7e4cb'
 down_revision = '7f3bd827e70'
-
-from alembic import op
-import sqlalchemy as sa
 
 
 def upgrade():
