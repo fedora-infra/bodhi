@@ -13,6 +13,7 @@ Contents:
    :maxdepth: 2
 
    man_pages/index
+   python_bindings
    developer_docs
    services
    release_notes
