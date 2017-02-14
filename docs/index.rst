@@ -12,12 +12,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   man_bodhi
-   man_bodhi-push
-   man_initialize_bodhi_db
-   release_notes
+   man_pages/index
    developer_docs
    services
+   release_notes
 
 
 Indices and tables
