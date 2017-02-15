@@ -136,7 +136,7 @@ setup(name='bodhi-client',
       packages=['bodhi.client'],
       include_package_data=False,
       zip_safe=False,
-      install_requires = ['click'],
+      install_requires = ['click', 'six'],
       entry_points = """\
       [console_scripts]
       bodhi = bodhi.client:cli
