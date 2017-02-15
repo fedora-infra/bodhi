@@ -5,20 +5,18 @@ Revises: 4d7508f9cabc
 Create Date: 2013-08-27 11:15:41.938750
 
 """
-
-# revision identifiers, used by Alembic.
-revision = '1eb754722e44'
-down_revision = '4d7508f9cabc'
-
 from alembic import op
-import sqlalchemy as sa
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
-
 import transaction
 
 from bodhi.server.models import Base, Release, Update
 from bodhi.server.util import get_critpath_pkgs
+
+
+# revision identifiers, used by Alembic.
+revision = '1eb754722e44'
+down_revision = '4d7508f9cabc'
 
 
 def upgrade():

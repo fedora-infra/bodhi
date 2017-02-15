@@ -5,14 +5,13 @@ Revises: 1c58aa468b17
 Create Date: 2015-07-06 15:39:13.768827
 
 """
+from alembic import op
+from sqlalchemy.types import UnicodeText, Unicode
+
 
 # revision identifiers, used by Alembic.
 revision = '22f1e11fb509'
 down_revision = '1c58aa468b17'
-
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.types import UnicodeText, Unicode
 
 
 def upgrade():

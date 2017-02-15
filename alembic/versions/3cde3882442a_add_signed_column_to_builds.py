@@ -5,13 +5,13 @@ Revises: 4df1fcd59050
 Create Date: 2016-10-11 19:37:30.847965
 
 """
+from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
 revision = '3cde3882442a'
 down_revision = '4df1fcd59050'
-
-from alembic import op
-import sqlalchemy as sa
 
 
 def upgrade():

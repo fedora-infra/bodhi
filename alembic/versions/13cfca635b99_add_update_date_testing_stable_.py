@@ -5,13 +5,13 @@ Revises: 52dcf7261a86
 Create Date: 2015-09-02 15:55:40.940168
 
 """
+from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
 revision = '13cfca635b99'
 down_revision = '52dcf7261a86'
-
-from alembic import op
-import sqlalchemy as sa
 
 
 def upgrade():

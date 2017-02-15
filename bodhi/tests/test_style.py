@@ -34,7 +34,7 @@ class TestStyle(unittest.TestCase):
         slowly. This test enforces only modules that have been corrected to comply with flake8. The
         goal is that this test would one day check the entire codebase.
         """
-        enforced_paths = ['bodhi']
+        enforced_paths = ['alembic', 'bodhi']
 
         enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
 

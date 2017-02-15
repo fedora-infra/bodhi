@@ -17,12 +17,14 @@ down_revision = '3c72757fa59e'
 
 def upgrade():
     """
-    We will need to set all existing NULL comments to "", then change the column to disallow NULL comments.
+    We will need to set all existing NULL comments to "", then change the column to disallow NULL
+    comments.
     """
     # Build a fake mini version of the comments table so we can form an UPDATE statement.
     comments = sa.sql.table('comments', sa.sql.column('text', sa.UnicodeText))
     # Set existing NULL comments to "".
-    op.execute(comments.update().where(comments.c.text==None).values({'text': op.inline_literal('')}))
+    op.execute(
+        comments.update().where(comments.c.text.is_(None)).values({'text': op.inline_literal('')}))
 
     # Disallow new NULL comments.
     op.alter_column('comments', 'text', existing_type=sa.TEXT(), nullable=False)

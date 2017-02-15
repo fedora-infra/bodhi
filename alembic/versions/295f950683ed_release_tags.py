@@ -5,19 +5,19 @@ Revises: 105840e66024
 Create Date: 2014-06-02 18:12:07.541496
 
 """
+from alembic import op
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
+import sqlalchemy as sa
+import transaction
+
+from bodhi.server.models import Base, Release
+
 
 # revision identifiers, used by Alembic.
 revision = '295f950683ed'
 down_revision = '105840e66024'
 
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
-
-import transaction
-
-from bodhi.server.models import Base, Release
 
 def upgrade():
     engine = op.get_bind()
@@ -56,6 +56,7 @@ def upgrade():
     op.drop_column('releases', '_stable_tag')
     op.drop_column('releases', '_testing_tag')
     op.drop_column('releases', '_candidate_tag')
+
 
 def downgrade():
     engine = op.get_bind()

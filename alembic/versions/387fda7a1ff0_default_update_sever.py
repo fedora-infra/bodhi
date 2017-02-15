@@ -5,21 +5,17 @@ Revises: 343bb26e7012
 Create Date: 2013-10-15 17:06:03.433125
 
 """
-
-# revision identifiers, used by Alembic.
-revision = '387fda7a1ff0'
-down_revision = '343bb26e7012'
-
 from alembic import op
-import sqlalchemy as sa
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
-
 import transaction
 
 from bodhi.server.models import Base, Update, UpdateSeverity
 
 
+# revision identifiers, used by Alembic.
+revision = '387fda7a1ff0'
+down_revision = '343bb26e7012'
 
 
 def upgrade():

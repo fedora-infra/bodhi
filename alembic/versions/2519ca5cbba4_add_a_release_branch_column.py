@@ -5,18 +5,18 @@ Revises: 295f950683ed
 Create Date: 2014-06-03 13:15:06.129856
 
 """
+from alembic import op
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
+import sqlalchemy as sa
+import transaction
+
+from bodhi.server.models import Release, Base
+
 
 # revision identifiers, used by Alembic.
 revision = '2519ca5cbba4'
 down_revision = '295f950683ed'
-
-from alembic import op
-import sqlalchemy as sa
-import transaction
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
-
-from bodhi.server.models import Release, Base
 
 
 def upgrade():
