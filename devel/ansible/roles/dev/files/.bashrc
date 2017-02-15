@@ -11,8 +11,8 @@ fi
 shopt -s expand_aliases
 alias bdocs="pushd /home/vagrant/bodhi/docs && make html && make man; popd"
 alias blog="sudo journalctl -u bodhi"
-alias brestart="sudo systemctl restart bodhi"
-alias bstart="sudo systemctl start bodhi"
+alias brestart="sudo systemctl restart bodhi && echo 'The Application is running on http://localhost:6543'"
+alias bstart="sudo systemctl start bodhi && echo 'The Application is running on http://localhost:6543'"
 alias bstop="sudo systemctl stop bodhi"
 
 function btest {
