@@ -48,7 +48,7 @@ def get_db_session_for_request(request=None):
     This function returns a database session that is meant to be used for the given request. It sets
     up the Zope transaction manager and configures the request to close the session when it is
     completed. If you need a database session that is not tied to a request, you can use
-    bodhi.server.models.models.get_db_factory() to return a session generator.
+    bodhi.server.models.get_db_factory() to return a session generator.
     """
     engine = engine_from_config(request.registry.settings, 'sqlalchemy.')
     Sess = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))

@@ -23,7 +23,7 @@ def upgrade():
 def downgrade():
     """
     Downgrade is not supported. If we ever do want to do this for some reason, we can use the
-    code from the bodhi.server.models.models.Update.karma() property that was written in the same
+    code from the bodhi.server.models.Update.karma() property that was written in the same
     commit that introduced this migration as a guide for how to calculate the karma column. As it is
     highly unlikely that will ever be needed, this function simply raises an Exception for now.
     """
