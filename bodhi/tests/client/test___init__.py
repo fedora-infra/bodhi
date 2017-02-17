@@ -203,7 +203,7 @@ class TestRequest(unittest.TestCase):
                 return_value=client_test_data.EXAMPLE_UPDATE_MUNCH)
     def test_successful_operation(self, send_request, __init__):
         """
-        Assert that a successful operation is handled properly.
+        Assert that a successful updates request is handled properly.
         """
         runner = testing.CliRunner()
 
@@ -358,3 +358,40 @@ class TestWarnIfUrlAndStagingSet(unittest.TestCase):
         self.assertEqual(result, 'http://localhost:6543')
         echo.assert_called_once_with(
             '\nWarning: url and staging flags are both set. url will be ignored.\n', err=True)
+
+
+class TestEdit(unittest.TestCase):
+    """
+    This class tests the edit() function.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_url_flag(self, send_request, query):
+        """
+        Assert that a successful updates edit request is handled properly.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--notes', 'this is an edited note',
+                          '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_with(
+            bindings_client, 'updates/', auth=True, verb='POST',
+            data={
+                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': True,
+                'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
+                'notes': u'this is an edited note', 'request': None, 'bugs': u'',
+                'unstable_karma': None, 'type': 'bugfix'})
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
