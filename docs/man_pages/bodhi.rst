@@ -172,6 +172,48 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         A path to a file containing all the update details.
 
+``bodhi updates edit [options] <updateid>``
+
+    Edit an existing bodhi update, given an update id. The
+    ``edit`` subcommand supports the following options:
+
+    ``--type [security | bugfix | enhancement | newpackage]``
+
+        The type of the new update.
+
+    ``--notes <text>``
+
+        The description of the update.
+
+    ``--bugs <bugs>``
+
+        A comma separated list of bugs to associate with this update.
+
+    ``--close-bugs``
+
+        If given, this flag will cause bodhi to close the referenced bugs automatically when the
+        update reaches stable.
+
+    ``--request [testing | stable | upush]``
+
+        The repository requested for this update.
+
+    ``--autokarma``
+
+        Enable autokarma for this update.
+
+    ``--stable-karma <integer>``
+
+        Configure the stable karma threshold for the given value.
+
+    ``--unstable-karma <integer>``
+
+        Configure the unstable karma threshold for the given value.
+
+    ``--suggest [logout | reboot]``
+
+        Suggest that the user logout or reboot upon applying the update.
+
 ``bodhi updates query [options]``
 
     Query the bodhi server for updates. The ``query`` subcommand supports the following options:

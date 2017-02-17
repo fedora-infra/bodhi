@@ -22,6 +22,40 @@ import click
 
 from bodhi.client import bindings
 
+new_edit_options = [
+    click.option('--user', envvar='USERNAME'),
+    click.option('--password', prompt=True, hide_input=True),
+    click.option('--type', default='bugfix', help='Update type', required=True,
+                 type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
+    click.option('--notes', help='Update description'),
+    click.option('--bugs', help='Comma-seperated list of bug numbers', default=''),
+    click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs'),
+    click.option('--request', help='Requested repository',
+                 type=click.Choice(['testing', 'stable', 'unpush'])),
+    click.option('--autokarma', default=True, is_flag=True, help='Enable karma automatism'),
+    click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
+    click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
+    click.option('--suggest', help='Post-update user suggestion',
+                 type=click.Choice(['logout', 'reboot'])),
+    click.option('--staging', help='Use the staging bodhi instance',
+                 is_flag=True, default=False)]
+
+
+def add_options(options):
+    """ Given a list of click options this creates a decorator that
+    will return a function used to add the options to a click command.
+    :param options: a list of click.options decorator.
+    """
+    def _add_options(func):
+        """ Given a click command and a list of click options this will
+        return the click command decorated with all the options in the list.
+        :param func: a click command function.
+        """
+        for option in reversed(options):
+            func = option(func)
+        return func
+    return _add_options
+
 
 def _warn_if_url_and_staging_set(ctx, param, value):
     """
@@ -66,26 +100,10 @@ def updates():
 
 
 @updates.command()
+@add_options(new_edit_options)
 @click.argument('builds')
-@click.option('--user', envvar='USERNAME')
-@click.option('--password', prompt=True, hide_input=True)
-@click.option('--type', default='bugfix', help='Update type', required=True,
-              type=click.Choice(['security', 'bugfix',
-                                 'enhancement', 'newpackage']))
-@click.option('--notes', help='Update description')
 @click.option('--notes-file', help='Update description from a file')
-@click.option('--bugs', help='Comma-seperated list of bug numbers', default='')
-@click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs')
-@click.option('--request', help='Requested repository',
-              type=click.Choice(['testing', 'stable', 'unpush']))
-@click.option('--autokarma', default=True, is_flag=True, help='Enable karma automatism')
-@click.option('--stable-karma', type=click.INT, help='Stable karma threshold')
-@click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold')
-@click.option('--suggest', help='Post-update user suggestion',
-              type=click.Choice(['logout', 'reboot']))
 @click.option('--file', help='A text file containing all the update details')
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
 @url_option
 def new(user, password, url, **kwargs):
     """
@@ -124,6 +142,38 @@ def new(user, password, url, **kwargs):
             click.echo(str(e))
         except Exception as e:
             traceback.print_exc()
+
+
+@updates.command()
+@add_options(new_edit_options)
+@click.argument('updateid')
+@url_option
+def edit(user, password, url, **kwargs):
+    """
+    Edit an existing update.
+
+    Args:
+        user (unicode): The username to authenticate as.
+        password (unicode): The user's password.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, username=user, password=password,
+                                  staging=kwargs['staging'])
+
+    try:
+        query_param = {'updateid': kwargs['updateid']}
+        del(kwargs['updateid'])
+        resp = client.query(**query_param)
+        title = resp['updates'][0]['title']
+        kwargs['builds'] = title
+        kwargs['edited'] = title
+
+        resp = client.save(**kwargs)
+        print_resp(resp, client)
+    except bindings.BodhiClientException as e:
+        click.echo(str(e))
 
 
 @updates.command()

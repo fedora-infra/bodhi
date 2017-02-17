@@ -24,6 +24,8 @@ Features
   (`#1366 <https://github.com/fedora-infra/bodhi/pulls/1366>`_).
 * The web UI footer has been added with the documentation link.
   (`#1321 <https://github.com/fedora-infra/bodhi/issues/1321>`_).
+* The bodhi CLI now supports editing an update using the update id.
+  (`#937 <https://github.com/fedora-infra/bodhi/issues/937>`_)
 
 
 Bugs
@@ -69,6 +71,7 @@ The following contributors submitted patches for REPLACE THIS WITH A VERSION BEF
 * Ryan Lerch
 * Bianca Nenciu
 * Randy Barlow
+* Clement Verna
 
 
 2.5.0
