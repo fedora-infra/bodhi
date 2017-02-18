@@ -4,12 +4,11 @@ Used with the bodhi pshell.
     pshell /etc/bodhi/production.ini
     execfile('shelldb.py')
 """
-from pyramid.paster import get_appsettings, setup_logging
+from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 import sys
-import transaction
 
 
 config_uri = None

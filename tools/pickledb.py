@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-import __main__
-__requires__ = __main__.__requires__ = 'WebOb>=1.4.1'
-import pkg_resources
-
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -16,27 +12,28 @@ import pkg_resources
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 """
 This script pickles all updates/bugs/cves/comments and writes it out to disk
 in the format of bodhi-pickledb-YYYYMMDD.HHMM
 """
+import __main__
+__requires__ = __main__.__requires__ = 'WebOb>=1.4.1'
+import pkg_resources  # noqa
 
-__requires__ = 'bodhi'
+import cPickle as pickle  # noqa
+import sys  # noqa
 
-import sys
+from progressbar import ProgressBar, SimpleProgress, Percentage, Bar  # noqa
+from pyramid.paster import setup_logging  # noqa
+from sqlalchemy.orm import scoped_session, sessionmaker  # noqa
+from zope.sqlalchemy import ZopeTransactionExtension  # noqa
+import transaction  # noqa
 
-import cPickle as pickle
+from bodhi.server.util import get_critpath_pkgs  # noqa
+import bodhi  # noqa
 
-from progressbar import ProgressBar, SimpleProgress, Percentage, Bar
-from pyramid.paster import setup_logging
+
 setup_logging('/etc/bodhi/production.ini')
-
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
-
-from bodhi.server.util import get_critpath_pkgs
-import bodhi
 
 
 def load_sqlalchemy_db():
@@ -44,12 +41,9 @@ def load_sqlalchemy_db():
     db = file(sys.argv[2], 'r')
     data = pickle.load(db)
 
-    import transaction
-    from bodhi.server.models import Base
     from bodhi.server.models import Release, Update, Build, Comment, User, Bug, CVE
     from bodhi.server.models import Package, Group
     from bodhi.server.models import UpdateType, UpdateStatus, UpdateRequest
-    from sqlalchemy import create_engine
     from sqlalchemy.orm.exc import NoResultFound
 
     # Caches for quick lookup
@@ -119,8 +113,7 @@ def load_sqlalchemy_db():
         if whitelist and release.name not in whitelist:
             continue
 
-        ## Backwards compatbility
-        request = u['request']
+        # Backwards compatbility
         if u['request'] == 'move':
             u['request'] = 'stable'
         elif u['request'] == 'push':
@@ -129,7 +122,7 @@ def load_sqlalchemy_db():
             u['request'] = 'obsolete'
         if u['approved'] not in (True, False):
             u['approved'] = None
-        if u.has_key('update_id'):
+        if 'update_id' in u:
             u['updateid'] = u['update_id']
             u['alias'] = u['update_id']
 
@@ -138,7 +131,7 @@ def load_sqlalchemy_db():
                 year, id = split[-2:]
                 aliases.append((int(year), int(id)))
 
-        if not u.has_key('date_modified'):
+        if 'date_modified' not in u:
             u['date_modified'] = None
 
         # Port to new enum types
@@ -192,7 +185,6 @@ def load_sqlalchemy_db():
                             status=u['status'],
                             request=u['request'],
                             )
-                            #approved=u['approved'])
             db.add(update)
             db.flush()
 
@@ -208,7 +200,7 @@ def load_sqlalchemy_db():
                 users[u['submitter']] = user
             user.updates.append(update)
 
-        ## Create Package and Build objects
+        # Create Package and Build objects
         for pkg, nvr in u['builds']:
             try:
                 package = packages[pkg]
@@ -228,7 +220,7 @@ def load_sqlalchemy_db():
                 db.add(build)
                 update.builds.append(build)
 
-        ## Create all Bugzilla objects for this update
+        # Create all Bugzilla objects for this update
         for bug_num, bug_title, security, parent in u['bugs']:
             try:
                 bug = db.query(Bug).filter_by(bug_id=bug_num).one()
@@ -238,7 +230,7 @@ def load_sqlalchemy_db():
                 db.add(bug)
             update.bugs.append(bug)
 
-        ## Create all CVE objects for this update
+        # Create all CVE objects for this update
         for cve_id in u['cves']:
             try:
                 cve = db.query(CVE).filter_by(cve_id=cve_id).one()
@@ -247,7 +239,7 @@ def load_sqlalchemy_db():
                 db.add(cve)
             update.cves.append(cve)
 
-        ## Create all Comments for this update
+        # Create all Comments for this update
         for c in u['comments']:
             try:
                 timestamp, author, text, karma, anonymous = c
@@ -294,8 +286,8 @@ def load_sqlalchemy_db():
 
         db.flush()
 
-    # Hack to get the Bodhi2 alias generator working with bodhi1 data.
-    # The new generator assumes that the alias is assigned at submission time, as opposed to push time.
+    # Hack to get the Bodhi2 alias generator working with bodhi1 data. The new generator assumes
+    # that the alias is assigned at submission time, as opposed to push time.
     year, id = max(aliases)
     print('Highest alias = %r %r' % (year, id))
     up = db.query(Update).filter_by(alias=u'FEDORA-%s-%s' % (year, id)).one()

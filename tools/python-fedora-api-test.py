@@ -1,17 +1,15 @@
-import os
-import getpass
 import logging
+import os
+import subprocess
 
 from fedora.client import BodhiClient, BodhiClientException
 from fedora.client.bodhi import Bodhi2Client
+
 
 log = logging.getLogger('fedora.client.bodhi')
 
 build = u'qt-creator-3.4.1-3.fc23'
 username = os.getenv('USER')
-#username = raw_input('FAS Username: ')
-#password = getpass.getpass()
-import subprocess
 p = subprocess.Popen(['/usr/bin/pass', 'fedora'], stdout=subprocess.PIPE)
 out, err = p.communicate()
 password = out.strip()
@@ -23,11 +21,8 @@ print('Logged in! Creating new update...')
 
 try:
     result = bodhi.save(
-            builds=build,
-            type='bugfix',
-            notes='The quick brown fox jumped over the lazy dog',
-            bugs='1234106,1234107',
-    )
+        builds=build, type='bugfix', notes='The quick brown fox jumped over the lazy dog',
+        bugs='1234106,1234107')
     print(result)
     assert len(result.bugs) == 2, result.bugs
 except BodhiClientException as e:
@@ -36,13 +31,12 @@ except BodhiClientException as e:
 print('Editing update')
 try:
     result = bodhi.save(
-            builds=build,
-            edited=build,
-            type='enhancement',
-            notes='The quick brown fox jumped over the lazy dog',
-            bugs='1234106',
-            require_bugs=True,
-    )
+        builds=build,
+        edited=build,
+        type='enhancement',
+        notes='The quick brown fox jumped over the lazy dog',
+        bugs='1234106',
+        require_bugs=True)
     assert len(result.bugs) == 1, result.bugs
     assert result.require_bugs, result
     for caveat in result.caveats:
@@ -170,9 +164,9 @@ print('Testing the Bodhi2Client(staging=True) directly')
 bodhi = Bodhi2Client(staging=True, username=username, password=password)
 try:
     result = bodhi.save(
-            builds=build,
-            type='bugfix',
-            notes='The quick brown fox jumped over the lazy dog',
+        builds=build,
+        type='bugfix',
+        notes='The quick brown fox jumped over the lazy dog',
     )
     print(result)
 except BodhiClientException as e:

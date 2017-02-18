@@ -3,23 +3,19 @@
 Print out a list of builds that need signing.
 """
 
-__requires__ = 'bodhi'
-
-import pkg_resources
+import optparse
 import os
-import sys
 import pickle
 
-import optparse
-
 from fedora.client import BodhiClient
+
 
 bodhi = BodhiClient(base_url='http://localhost/updates/')
 
 
 parser = optparse.OptionParser()
-parser.add_option('-e', '--epel',    action='store_true', help='Output EPEL builds')
-parser.add_option('-f', '--fedora',  action='store_true', help='Output Fedora builds')
+parser.add_option('-e', '--epel', action='store_true', help='Output EPEL builds')
+parser.add_option('-f', '--fedora', action='store_true', help='Output Fedora builds')
 parser.add_option('-v', '--verbose', action='store_true', help='Verbose output')
 opts, args = parser.parse_args()
 
@@ -41,6 +37,7 @@ def signable_builds(release):
             for build in update['builds']:
                 if build['nvr'] not in locked:
                     yield build['nvr']
+
 
 if __name__ == '__main__':
     for release in bodhi.get_releases()['releases']:

@@ -6,9 +6,11 @@
 # pshell /etc/bodhi/production.ini
 # execfile('fix-testing-updates.py')
 
+from datetime import datetime
 import pprint
 
-from datetime import datetime
+from shelldb import db, m, request
+
 
 bad = []
 

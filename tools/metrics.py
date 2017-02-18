@@ -13,29 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 """
 A tool for generating statistics for each release.
 
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
 """
-
-__requires__ = 'bodhi'
-
+from collections import defaultdict
+from datetime import timedelta
+from operator import itemgetter
 import sys
 
-from operator import itemgetter
-from datetime import timedelta
-from collections import defaultdict
-
-from sqlalchemy.sql import and_
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.sql import and_
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from bodhi.server.util import header, get_critpath_pkgs
 from bodhi.server.models import Update, Release, UpdateStatus, UpdateType
-
+from bodhi.server.util import header, get_critpath_pkgs
 import bodhi
+
 
 statuses = ('stable', 'testing', 'pending', 'obsolete')
 types = ('bugfix', 'enhancement', 'security', 'newpackage')
@@ -59,7 +54,6 @@ def main(releases=None):
     feedback = 0  # total number of updates that received feedback
     karma = defaultdict(int)  # {username: # of karma submissions}
     num_updates = db.query(Update).count()
-    proventesters = set()
 
     for release in db.query(Release).all():
         if releases and release.name not in releases:
@@ -145,17 +139,21 @@ def main(releases=None):
 
                 if update.status == UpdateStatus.stable:
                     if not stablekarma_done:
-                        if comment.text == 'This update has reached the stable karma threshold and will be pushed to the stable updates repository':
+                        if comment.text == (
+                                'This update has reached the stable karma threshold and will be '
+                                'pushed to the stable updates repository'):
                             data['num_stablekarma'] += 1
                             stablekarma_done = True
-                        elif comment.text and comment.text.endswith('days in testing and can be pushed to stable now if the maintainer wishes'):
+                        elif comment.text and comment.text.endswith(
+                                'days in testing and can be pushed to stable now if the maintainer '
+                                'wishes'):
                             data['num_testingtime'] += 1
                             stablekarma_done = True
 
                 # For figuring out if an update has received feedback or not
                 if not feedback_done:
-                    if (not comment.user.name == 'bodhi'
-                        and comment.karma != 0 and not comment.anonymous):
+                    if (not comment.user.name == 'bodhi' and
+                            comment.karma != 0 and not comment.anonymous):
                         data['num_feedback'] += 1  # per-release tracking of feedback
                         feedback += 1  # total number of updates that have received feedback
                         feedback_done = True  # so we don't run this for each comment
@@ -172,14 +170,14 @@ def main(releases=None):
                         karma[author] += 1
 
                 if (not testingtime_done and
-                    comment.text == 'This update has been pushed to testing'):
+                        comment.text == 'This update has been pushed to testing'):
                     for othercomment in update.comments:
                         if othercomment.text == 'This update has been pushed to stable':
                             delta = othercomment.timestamp - comment.timestamp
                             data['deltas'].append(delta)
                             data['occurrences'][delta.days] = \
                                 data['occurrences'].setdefault(
-                                        delta.days, 0) + 1
+                                    delta.days, 0) + 1
                             data['accumulative'] += delta
                             testingtime_done = True
                             break
@@ -191,12 +189,11 @@ def main(releases=None):
                     if update.status in (UpdateStatus.testing, UpdateStatus.pending):
                         data['num_critpath_unapproved'] += 1
                 data['num_critpath'] += 1
-                #if not feedback_done:
                 if update.status == UpdateStatus.stable and update.karma == 0:
                     data['critpath_without_karma'].add(update)
 
                 # Proventester metrics
-                proventester_karma = defaultdict(int) # {username: karma}
+                proventester_karma = defaultdict(int)  # {username: karma}
                 positive_proventesters = 0
                 negative_proventesters = 0
                 for comment in update.comments:
@@ -234,77 +231,82 @@ def main(releases=None):
         for status in statuses:
             print " * %d %s updates" % (data['num_%s' % status], status)
         for type in types:
-            print " * %d %s updates (%0.2f%%)" % (data['num_%s' % type], type,
-                    float(data['num_%s' % type]) / data['num_updates'] * 100)
+            print " * %d %s updates (%0.2f%%)" % (
+                data['num_%s' % type], type,
+                float(data['num_%s' % type]) / data['num_updates'] * 100)
         print " * %d bugs resolved" % len(data['bugs'])
-        print " * %d critical path updates (%0.2f%%)" % (data['num_critpath'],
-                float(data['num_critpath']) / data['num_updates'] * 100)
+        print " * %d critical path updates (%0.2f%%)" % (
+            data['num_critpath'], float(data['num_critpath']) / data['num_updates'] * 100)
         print " * %d approved critical path updates" % (
-                data['num_critpath_approved'])
+            data['num_critpath_approved'])
         print " * %d unapproved critical path updates" % (
-                data['num_critpath_unapproved'])
+            data['num_critpath_unapproved'])
         print " * %d updates received feedback (%0.2f%%)" % (
-                data['num_feedback'], (float(data['num_feedback']) /
-                 data['num_updates'] * 100))
+            data['num_feedback'], (float(data['num_feedback']) / data['num_updates'] * 100))
         print " * %d +0 comments" % data['0']
         print " * %d +1 comments" % data['1']
         print " * %d -1 comments" % data['-1']
         print " * %d unique authenticated karma submitters" % (
-                len(data['karma']))
+            len(data['karma']))
         print " * %d proventesters" % len(data['proventesters'])
         print "   * %d +1's from proventesters" % data['proventesters_1']
         print "   * %d -1's from proventesters" % data['proventesters_-1']
         if data['num_critpath']:
-            print " * %d critpath updates with conflicting proventesters (%0.2f%% of critpath)" % (len(data['conflicted_proventesters']), float(len(data['conflicted_proventesters'])) / data['num_critpath'] * 100)
+            print " * %d critpath updates with conflicting proventesters (%0.2f%% of critpath)" % (
+                len(data['conflicted_proventesters']),
+                float(len(data['conflicted_proventesters'])) / data['num_critpath'] * 100)
             for u in sorted(data['conflicted_proventesters']):
                 print '   <li><a href="%s">%s</a></li>' % (u, u.split('/')[-1])
-            print " * %d critpath updates with positive karma and negative proventester feedback (%0.2f%% of critpath)" % (len(data['critpath_positive_karma_negative_proventesters']), float(len(data['critpath_positive_karma_negative_proventesters'])) / data['num_critpath'] * 100)
+            msg = (" * %d critpath updates with positive karma and negative proventester feedback "
+                   "(%0.2f%% of critpath)")
+            print msg % (
+                len(data['critpath_positive_karma_negative_proventesters']),
+                float(len(data['critpath_positive_karma_negative_proventesters'])) /
+                data['num_critpath'] * 100)
             for u in sorted(data['critpath_positive_karma_negative_proventesters']):
                 print '   <li><a href="%s">%s</a></li>' % (u, u.split('/')[-1])
-            print " * %d critpath updates with positive karma and positive proventester feedback (%0.2f%% of critpath)" % (len(data['critpath_positive_karma_including_proventesters']), float(len(data['critpath_positive_karma_including_proventesters'])) / data['num_critpath'] * 100)
+            msg = (" * %d critpath updates with positive karma and positive proventester feedback "
+                   "(%0.2f%% of critpath)")
+            print msg % (
+                len(data['critpath_positive_karma_including_proventesters']),
+                float(len(data['critpath_positive_karma_including_proventesters'])) /
+                data['num_critpath'] * 100)
         print " * %d anonymous users gave feedback (%0.2f%%)" % (
-                data['num_anon_feedback'], float(data['num_anon_feedback']) /
-                (data['num_anon_feedback'] + sum(data['karma'].values())) * 100)
-# This does not take into account updates that reach stablekarma before being pushed to testing!
-#        print " * %d out of %d stable updates went through testing (%0.2f%%)" %(
-#                data['num_tested'], data['num_stable'],
-#                float(data['num_tested']) / data['num_stable'] * 100)
-        print " * %d stable updates reached the stable karma threshold (%0.2f%%)" %(
-                data['num_stablekarma'],
-                float(data['num_stablekarma']) / data['num_stable'] * 100)
+            data['num_anon_feedback'], float(data['num_anon_feedback']) /
+            (data['num_anon_feedback'] + sum(data['karma'].values())) * 100)
+        print " * %d stable updates reached the stable karma threshold (%0.2f%%)" % (
+            data['num_stablekarma'], float(data['num_stablekarma']) / data['num_stable'] * 100)
         print " * %d stable updates reached the minimum time in testing threshold (%0.2f%%)" % (
-                data['num_testingtime'],
-                float(data['num_testingtime']) / data['num_stable'] * 100)
-        print " * %d went from testing to stable *without* karma (%0.2f%%)" %(
-                data['num_tested_without_karma'],
-                float(data['num_tested_without_karma']) /
-                data['num_tested'] * 100)
+            data['num_testingtime'], float(data['num_testingtime']) / data['num_stable'] * 100)
+        print " * %d went from testing to stable *without* karma (%0.2f%%)" % (
+            data['num_tested_without_karma'],
+            float(data['num_tested_without_karma']) / data['num_tested'] * 100)
         print " * %d updates were pushed to stable with negative karma (%0.2f%%)" % (
-                data['stable_with_negative_karma'], float(data['stable_with_negative_karma']) / data['num_stable'] * 100)
+            data['stable_with_negative_karma'],
+            float(data['stable_with_negative_karma']) / data['num_stable'] * 100)
         print " * %d critical path updates pushed to stable *without* karma" % (
-                len(data['critpath_without_karma']))
-        #for update in data['critpath_without_karma']:
-        #    print "   * %s submitted by %s" % (update.title, update.submitter)
+            len(data['critpath_without_karma']))
         print " * Time spent in testing:"
-        print "   * mean = %d days" % (data['accumulative'].days /
-                len(data['deltas']))
+        print "   * mean = %d days" % (
+            data['accumulative'].days / len(data['deltas']))
         print "   * median = %d days" % (
-                data['deltas'][len(data['deltas']) / 2].days)
+            data['deltas'][len(data['deltas']) / 2].days)
         print "   * mode = %d days" % (
-                sorted(data['occurrences'].items(), key=itemgetter(1))[-1][0])
+            sorted(data['occurrences'].items(), key=itemgetter(1))[-1][0])
 
         print "Out of %d packages updated, the top 50 were:" % (
-                len(data['packages']))
+            len(data['packages']))
         for package in sorted(data['packages'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
             print " * %s (%d)" % (package[0], package[1])
 
         print "Out of %d update submitters, the top 50 were:" % (
-                len(data['submitters']))
-        for submitter in sorted(data['submitters'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
+            len(data['submitters']))
+        for submitter in sorted(
+                data['submitters'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
             print " * %s (%d)" % (submitter[0], submitter[1])
 
         print "Out of %d critical path updates, the top 50 updated were:" % (
-                len(data['critpath_pkgs']))
+            len(data['critpath_pkgs']))
         for x in sorted(data['critpath_pkgs'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
             print " * %s (%d)" % (x[0], x[1])
 
@@ -313,7 +315,7 @@ def main(releases=None):
             if pkg not in data['critpath_pkgs']:
                 critpath_not_updated.add(pkg)
         print "Out of %d critical path packages, %d were never updated:" % (
-                len(critpath_pkgs), len(critpath_not_updated))
+            len(critpath_pkgs), len(critpath_not_updated))
         for pkg in sorted(critpath_not_updated):
             print(' * %s' % pkg)
 
@@ -321,9 +323,9 @@ def main(releases=None):
 
     print
     print "Out of %d total updates, %d received feedback (%0.2f%%)" % (
-            num_updates, feedback, (float(feedback) / num_updates * 100))
+        num_updates, feedback, (float(feedback) / num_updates * 100))
     print "Out of %d total unique commenters, the top 50 were:" % (
-            len(karma))
+        len(karma))
     for submitter in sorted(karma.iteritems(), key=itemgetter(1), reverse=True)[:50]:
         print " * %s (%d)" % (submitter[0], submitter[1])
 

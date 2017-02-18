@@ -6,9 +6,11 @@ each one took to respond/load.
 
 import collections
 import commands
-import requests
 import time
 import sys
+
+import requests
+
 
 reflength = 10
 
@@ -18,8 +20,7 @@ items = collections.OrderedDict([
     ('update_list_gnome', 'http://0.0.0.0:6543/updates/?packages=gnome-2048'),
     ('update_view', ('http://0.0.0.0:6543/updates/'
                      'FEDORA-2015-13946')),
-    ('update_view_gnome', ('http://0.0.0.0:6543/updates/'
-                     'FEDORA-2015-16555')),
+    ('update_view_gnome', ('http://0.0.0.0:6543/updates/FEDORA-2015-16555')),
     ('release_list', 'http://0.0.0.0:6543/releases/'),
     ('release_view', 'http://0.0.0.0:6543/releases/f22'),
     ('comment_list', 'http://0.0.0.0:6543/comments/'),
@@ -28,7 +29,6 @@ items = collections.OrderedDict([
     ('user_view', 'http://0.0.0.0:6543/users/adamwill'),
     ('f-e-k-query', 'http://0.0.0.0:6543/updates/?status=testing&release=F22&limit=100')
 ])
-
 
 
 def clock_url(url, tries=4):
