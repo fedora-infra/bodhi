@@ -217,7 +217,7 @@ def query_updates(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Update.builds).join(Build.package)
-        query = query.filter(or_(*[Package.name == pkg for pkg in packages]))
+        query = query.filter(or_(*[Package.name.ilike('%pkg%') for pkg in packages]))
 
     package = None
     if packages and len(packages):
