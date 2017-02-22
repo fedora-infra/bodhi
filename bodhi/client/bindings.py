@@ -280,10 +280,7 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def list_overrides(self, user=None):
-        """ Save a buildroot overrides.
-
-        This entails either creating a new buildroot override, or editing an
-        existing one.
+        """ List buildroot overrides.
 
         :kwarg user: A username whose buildroot overrides you want returned.
 
