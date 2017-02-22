@@ -33,7 +33,6 @@ import logging
 import os
 import re
 import textwrap
-import warnings
 
 import six
 
@@ -165,13 +164,6 @@ class BodhiClient(OpenIdBaseClient):
                 raise UpdateNotFound(update)
             else:
                 raise
-
-    @errorhandled
-    def delete(self, update):
-        warnings.warn('Deleting updates has been disabled in Bodhi. '
-                      'This API call will unpush the update instead. '
-                      'Please use `set_request(update, "unpush")` instead')
-        self.request(update, 'unpush')
 
     @errorhandled
     def query(self, **kwargs):
