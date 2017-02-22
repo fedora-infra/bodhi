@@ -222,7 +222,7 @@ class BodhiClient(OpenIdBaseClient):
             # update ID, so try and figure it out
             if re.search(r'(\.el|\.fc)\d\d?', kwargs['package']):
                 kwargs['builds'] = kwargs['package']
-            elif re.search(r'FEDORA-(EPEL)?-\d{4,4}', kwargs['package']):
+            elif re.search(r'FEDORA-(EPEL-)?\d{4,4}', kwargs['package']):
                 kwargs['updateid'] = kwargs['package']
             else:
                 kwargs['packages'] = kwargs['package']
