@@ -372,7 +372,8 @@ class BodhiClient(OpenIdBaseClient):
                 for update in update_list:
                     yield update
 
-    def override_str(self, override):
+    @staticmethod
+    def override_str(override):
         """ Return a string representation of a given override dictionary.
 
         :arg override: An override dictionary.
