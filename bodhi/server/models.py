@@ -1970,13 +1970,17 @@ class Update(Base):
 
     @property
     def days_to_stable(self):
-        """ Return the number of days until an update can be pushed to stable """
-        if self.meets_testing_requirements:
+        """Return the number of days until an update can be pushed to stable.
+
+        This method will return the number of days until an update can be pushed to stable, or 0.
+        0 is returned if the update meets testing requirements already, if it doesn't have a
+        "truthy" date_testing attribute, or if it's been in testing for the release's
+        mandatory_days_in_testing or longer."""
+        if not self.meets_testing_requirements and self.date_testing:
             return (
                 self.release.mandatory_days_in_testing -
                 (datetime.utcnow() - self.date_testing).days)
-        else:
-            return 0
+        return 0
 
     @property
     def days_in_testing(self):

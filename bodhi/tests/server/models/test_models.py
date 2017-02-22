@@ -219,6 +219,46 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].release.name, u'F11')
         eq_(self.obj.builds[0].package.name, u'TurboGears')
 
+    def test_days_to_stable_meets_testing_requirements(self):
+        """
+        The Update.days_to_stable() method should return 0 if Update.meets_testing_requirements()
+        returns True.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.stable_karma = 1
+        update.comment(self.db, u'I found $100 after applying this update.', karma=1,
+                       author=u'bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, True)
+
+        eq_(update.days_to_stable, 0)
+
+    def test_days_to_stable_not_meets_testing_requirements_no_date_testing(self):
+        """
+        The Update.days_to_stable() method should return 0 if Update.meets_testing_requirements()
+        returns False but the Update's date_testing attribute is not truthy.
+        """
+        update = self.get_update()
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, False)
+        eq_(update.date_testing, None)
+
+        eq_(update.days_to_stable, 0)
+
+    def test_days_to_stable_not_meets_testing_requirements_with_date_testing(self):
+        """
+        The Update.days_to_stable() method should return a positive integer if
+        Update.meets_testing_requirements() returns False and the Update's date_testing attribute is
+        truthy.
+        """
+        update = self.get_update()
+        update.date_testing = datetime.utcnow() + timedelta(days=-4)
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, False)
+
+        eq_(update.days_to_stable, 3)
+
     @mock.patch('bodhi.server.models.bugtracker.close')
     @mock.patch('bodhi.server.models.bugtracker.comment')
     def test_modify_bugs_stable_close(self, comment, close):
