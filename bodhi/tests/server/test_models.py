@@ -15,12 +15,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test suite for bodhi.server.models"""
 from datetime import datetime, timedelta
+import json
 import time
 import unittest
 
-from nose.tools import eq_, raises
+from nose.tools import assert_equals, eq_, raises
 from pyramid.testing import DummyRequest
+from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 import cornice
 import mock
 
@@ -28,13 +32,64 @@ from bodhi.server import models as model, buildsys, mail, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
-    BugKarma, get_db_factory, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
+    Base, BugKarma, get_db_factory, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType)
-from bodhi.tests.server.models import ModelTest
 
 
 class DummyUser(object):
     name = 'guest'
+
+
+class ModelTest(object):
+    """Base unit test case for the models."""
+
+    klass = None
+    attrs = {}
+
+    def setUp(self):
+        buildsys.setup_buildsystem({'buildsystem': 'dev'})
+        engine = create_engine('sqlite://')
+        Session = scoped_session(
+            sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))
+        Session.configure(bind=engine)
+        self.db = Session()
+        Base.metadata.create_all(engine)
+        try:
+            new_attrs = {}
+            new_attrs.update(self.attrs)
+            new_attrs.update(self.do_get_dependencies())
+            self.obj = self.klass(**new_attrs)
+            self.db.add(self.obj)
+            self.db.flush()
+            return self.obj
+        except:
+            self.db.rollback()
+            raise
+
+    def tearDown(self):
+        self.db.close()
+
+    def do_get_dependencies(self):
+        """ Use this method to pull in other objects that need to be
+        created for this object to be built properly.
+        """
+
+        return {}
+
+    def test_create_obj(self):
+        pass
+
+    def test_query_obj(self):
+        for key, value in self.attrs.iteritems():
+            assert_equals(getattr(self.obj, key), value)
+
+    def test_json(self):
+        """ Ensure our models can return valid JSON """
+        assert json.dumps(self.obj.__json__())
+
+    def test_get(self):
+        for col in self.obj.__get_by__:
+            eq_(self.klass.get(getattr(self.obj, col), self.db), self.obj)
 
 
 class TestComment(unittest.TestCase):
