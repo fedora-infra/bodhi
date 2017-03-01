@@ -26,11 +26,17 @@ from bodhi.client import bindings
 @click.group()
 @click.version_option(message='%(version)s')
 def cli():
+    """
+    Create the main CLI group.
+    """
     pass
 
 
 @cli.group()
 def updates():
+    """
+    Create the updates group.
+    """
     pass
 
 
@@ -196,6 +202,9 @@ def download(**kwargs):
 
 @cli.group()
 def overrides():
+    """
+    Create the overrides CLI group.
+    """
     pass
 
 
