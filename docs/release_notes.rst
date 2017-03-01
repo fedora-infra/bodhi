@@ -29,6 +29,7 @@ Development improvements
 
 * The Vagrant development environment automatically configures the BODHI_URL environment
   variable so that the client talks to the local server instead of production or staging.
+* Test coverage is up another percentage to 82%.
 
 
 2.4.0
