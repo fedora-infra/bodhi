@@ -18,3 +18,5 @@ alias bstop="sudo systemctl stop bodhi"
 function btest {
     pushd /home/vagrant/bodhi && python setup.py nosetests $@; popd
 }
+
+export PYTHONWARNINGS="once"
