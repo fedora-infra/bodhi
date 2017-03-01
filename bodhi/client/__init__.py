@@ -23,6 +23,31 @@ import click
 from bodhi.client import bindings
 
 
+def _warn_if_url_and_staging_set(ctx, param, value):
+    """
+    This function will print a warning to stderr if the user has set both the --url and --staging
+    flags, so that the user is aware that --staging supercedes --url.
+
+    Args:
+        ctx (click.core.Context): The Click context, used to find out if the --staging flag is set.
+        param (click.core.Option): The option being handled. Unused.
+        value (unicode): The value of the --url flag.
+
+    Returns:
+        unicode: The value of the --url flag.
+    """
+    if ctx.params.get('staging', False):
+        click.echo('\nWarning: url and staging flags are both set. url will be ignored.\n',
+                   err=True)
+    return value
+
+
+url_option = click.option('--url', envvar='BODHI_URL', default=bindings.BASE_URL,
+                          help=('URL of a Bodhi server. Ignored if --staging is set. Can be set '
+                                'with BODHI_URL environment variable'),
+                          callback=_warn_if_url_and_staging_set)
+
+
 @click.group()
 @click.version_option(message='%(version)s')
 def cli():
@@ -61,8 +86,20 @@ def updates():
 @click.option('--file', help='A text file containing all the update details')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def new(user, password, **kwargs):
-    client = bindings.BodhiClient(username=user, password=password, staging=kwargs['staging'])
+@url_option
+def new(user, password, url, **kwargs):
+    """
+    Create a new update.
+
+    Args:
+        user (unicode): The username to authenticate as.
+        password (unicode): The user's password.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, username=user, password=password,
+                                  staging=kwargs['staging'])
 
     if kwargs['file'] is None:
         updates = [kwargs]
@@ -119,8 +156,17 @@ def new(user, password, **kwargs):
 @click.option('--user', help='Updates submitted by a specific user')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def query(**kwargs):
-    client = bindings.BodhiClient(staging=kwargs['staging'])
+@url_option
+def query(url, **kwargs):
+    """
+    Query updates based on flags.
+
+    Args:
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     resp = client.query(**kwargs)
     print_resp(resp, client)
 
@@ -132,8 +178,24 @@ def query(**kwargs):
 @click.option('--password', prompt=True, hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def request(update, state, user, password, **kwargs):
-    client = bindings.BodhiClient(username=user, password=password, staging=kwargs['staging'])
+@url_option
+def request(update, state, user, password, url, **kwargs):
+    """
+    Change an update's request to the given state.
+
+    Args:
+        update (unicode): The update you wish to modify.
+        state (unicode): The state you wish to change the update's request to. Valid options are
+                         testing, stable, obsolete, unpush, and revoke.
+        user (unicode): The username to authenticate as.
+        password (unicode): The user's password.
+        staging (bool): Whether to use the staging server or not.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, username=user, password=password,
+                                  staging=kwargs['staging'])
 
     try:
         resp = client.request(update, state)
@@ -151,9 +213,24 @@ def request(update, state, user, password, **kwargs):
 @click.option('--password', prompt=True, hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def comment(update, text, karma, user, password, **kwargs):
-    client = bindings.BodhiClient(username=user, password=password, staging=kwargs['staging'])
-    print('%r %r %r' % (update, text, karma))
+@url_option
+def comment(update, text, karma, user, password, url, **kwargs):
+    """
+    Comment on an update.
+
+    Args:
+        update (unicode): The update you wish to modify.
+        text (unicode): The text of the comment you wish to leave on the update.
+        karma (int): The karma you wish to leave on the update. Must be +1, 0, or -1.
+        user (unicode): The username to authenticate as.
+        password (unicode): The user's password.
+        staging (bool): Whether to use the staging server or not.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, username=user, password=password,
+                                  staging=kwargs['staging'])
     resp = client.comment(update, text, karma)
     print_resp(resp, client)
 
@@ -164,8 +241,18 @@ def comment(update, text, karma, user, password, **kwargs):
 @click.option('--cves', help='Download update(s) by CVE(s) (comma-separated list)')
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
-def download(**kwargs):
-    client = bindings.BodhiClient(staging=kwargs['staging'])
+@url_option
+def download(url, **kwargs):
+    """
+    Download the builds for an update.
+
+    Args:
+        staging (bool): Whether to use the staging server or not.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     del(kwargs['staging'])
     # At this point we need to have reduced the kwargs dict to only our
     # query options (cves, updateid, builds)
@@ -213,8 +300,19 @@ def overrides():
               help='Updates submitted by a specific user')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def query_buildroot_overrides(user=None, **kwargs):
-    client = bindings.BodhiClient(staging=kwargs['staging'])
+@url_option
+def query_buildroot_overrides(url, user=None, **kwargs):
+    """
+    Query the buildroot overrides.
+
+    Args:
+        user (unicode): If supplied, overrides for this user will be queried.
+        staging (bool): Whether to use the staging server or not.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     resp = client.list_overrides(user=user)
     print_resp(resp, client)
 
@@ -229,8 +327,23 @@ def query_buildroot_overrides(user=None, **kwargs):
 @click.option('--password', prompt=True, hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-def save_buildroot_overrides(nvr, duration, notes, user, password, staging):
-    client = bindings.BodhiClient(username=user, password=password, staging=staging)
+@url_option
+def save_buildroot_overrides(nvr, duration, notes, user, password, staging, url):
+    """
+    Create or modify a buildroot override.
+
+    Args:
+        nvr (unicode): The NVR of the update you wish to submit as a buildroot override.
+        duration (int): The number of days you wish the override to be active for.
+        notes (unicode): Notes to leave on the override.
+        user (unicode): The username to authenticate as.
+        password (unicode): The user's password.
+        staging (bool): Whether to use the staging server or not.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
     resp = client.save_override(nvr=nvr, duration=duration, notes=notes)
     print_resp(resp, client)
 

@@ -1,8 +1,11 @@
 Release notes
 =============
 
-develop
--------
+2.5.0
+-----
+
+Bodhi 2.5.0 is a feature and bugfix release.
+
 
 Features
 ^^^^^^^^
@@ -11,11 +14,15 @@ Features
   update page has also been revamped to display the information about an update
   in a clearer manner.
   (`#1313 <https://github.com/fedora-infra/bodhi/issues/1313>`_).
+* The ``bodhi`` CLI now has a ``--url`` flag that can be used to switch which Bodhi server it
+  communicates with. The ``BODHI_URL`` environment can also be used to configure this flag.
+
 
 Bugs
 ^^^^
 * The position of the Add Comment button is now the bottom right.
   (`#902 <https://github.com/fedora-infra/bodhi/issues/902>`_).
+
 
 2.4.0
 -----

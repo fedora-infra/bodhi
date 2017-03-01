@@ -18,7 +18,7 @@ be used to create or modify updates and overrides.
 Options
 =======
 
-Most of the commands will accept these three options:
+Most of the commands will accept these options:
 
 ``--help``
 
@@ -31,6 +31,11 @@ Most of the commands will accept these three options:
 ``--staging``
 
     Use the staging bodhi instance instead of the production instance.
+
+``--url <url>``
+
+    Use the Bodhi server at the given URL instead of the default server. This can also be set with
+    the ``BODHI_URL`` environment variable. This is ignored if the ``--staging`` flag is set.
 
 ``--user <username>``
 
