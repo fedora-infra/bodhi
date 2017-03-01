@@ -24,6 +24,13 @@ Bugs
   (`#902 <https://github.com/fedora-infra/bodhi/issues/902>`_).
 
 
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The Vagrant development environment automatically configures the BODHI_URL environment
+  variable so that the client talks to the local server instead of production or staging.
+
+
 2.4.0
 -----
 

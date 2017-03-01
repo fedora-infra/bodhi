@@ -8,5 +8,8 @@ bstart:   Start the Bodhi service.
 bstop:    Stop the Bodhi service.
 btest:    Run Bodhi's test suite.
 
+The BODHI_URL environment variable is set to http://localhost:6543 so the
+bodhi client will use the local development server.
+
 Happy hacking!
 

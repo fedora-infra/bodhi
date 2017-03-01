@@ -19,4 +19,5 @@ function btest {
     pushd /home/vagrant/bodhi && python setup.py nosetests $@; popd
 }
 
+export BODHI_URL="http://localhost:6543/"
 export PYTHONWARNINGS="once"
