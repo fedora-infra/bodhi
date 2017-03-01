@@ -29,6 +29,14 @@ class TestBodhiClient___init__(unittest.TestCase):
     """
     This class contains tests for the BodhiClient.__init__() method.
     """
+    def test_base_url_not_ends_in_slash(self):
+        """
+        If the base_url doesn't end in a slash, __init__() should append one.
+        """
+        client = bindings.BodhiClient(base_url='http://localhost:6543')
+
+        self.assertEqual(client.base_url, 'http://localhost:6543/')
+
     def test_staging_false(self):
         """
         Test with staging set to False.

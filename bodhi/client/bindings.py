@@ -81,9 +81,24 @@ def errorhandled(method):
 class BodhiClient(OpenIdBaseClient):
 
     def __init__(self, base_url=BASE_URL, username=None, password=None, staging=False, **kwargs):
+        """
+        Initialize the Bodhi client.
+
+        Args:
+            base_url (basestring): The URL of the Bodhi server to connect to. Ignored if
+                                   ```staging``` is True.
+            username (basestring): The username to use to authenticate with the server.
+            password (basestring): The password to use to authenticate with the server.
+            staging (bool): If True, use the staging server. If False, use base_url.
+            kwargs (dict): Other keyword arguments to pass on to
+                           :class:`fedora.client.OpenIdBaseClient`
+        """
         if staging:
             fedora.client.openidproxyclient.FEDORA_OPENID_API = STG_OPENID_API
             base_url = STG_BASE_URL
+
+        if base_url[-1] != '/':
+            base_url = base_url + '/'
 
         super(BodhiClient, self).__init__(base_url, login_url=base_url + 'login', username=username,
                                           **kwargs)
