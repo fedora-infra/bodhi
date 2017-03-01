@@ -58,6 +58,11 @@ from bodhi.server.bugs import bugtracker
 from bodhi.server.util import transactional_session_maker
 
 
+DEFAULT_DISABLE_AUTOPUSH_MESSAGE = (
+    u'Bodhi is disabling automatic push to stable due to negative karma. '
+    u'The maintainer may push manually if they determine that the issue is not severe.')
+
+
 try:
     import rpm
 except ImportError:
@@ -1834,10 +1839,8 @@ class Update(Base):
         if self.autokarma and self._composite_karma[1] != 0:
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
-            default_comment = (
-                u'Bodhi is disabling automatic push to stable due to negative karma. '
-                u'The maintainer may manually if they determine that the issue is not severe.')
-            text = unicode(config.get('disable_automatic_push_to_stable', default_comment))
+            text = unicode(config.get(
+                'disable_automatic_push_to_stable', DEFAULT_DISABLE_AUTOPUSH_MESSAGE))
             self.comment(db, text, author=u'bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
             if self.autokarma:

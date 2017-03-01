@@ -27,8 +27,9 @@ import mock
 
 from bodhi.server import main
 from bodhi.server.config import config
-from bodhi.server.models import (Build, BuildrootOverride, Group, Package, Release, ReleaseState,
-                                 Update, UpdateRequest, UpdateStatus, UpdateType, User)
+from bodhi.server.models import (
+    Build, BuildrootOverride, DEFAULT_DISABLE_AUTOPUSH_MESSAGE, Group, Package, Release,
+    ReleaseState, Update, UpdateRequest, UpdateStatus, UpdateType, User)
 import bodhi.tests.server.functional.base
 
 
@@ -3094,10 +3095,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
-        default_comment = (
-            u'Bodhi is disabling automatic push to stable due to negative karma. '
-            u'The maintainer may manually if they determine that the issue is not severe.')
-        expected_comment = unicode(config.get('disable_automatic_push_to_stable', default_comment))
+        expected_comment = unicode(config.get(
+            'disable_automatic_push_to_stable', DEFAULT_DISABLE_AUTOPUSH_MESSAGE))
         self.assertEquals(up.comments[2].text, expected_comment)
 
         up.comment(self.db, u'LGTM Now', author=u'ralph', karma=1)
