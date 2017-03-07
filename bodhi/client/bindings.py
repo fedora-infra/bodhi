@@ -228,7 +228,10 @@ class BodhiClient(OpenIdBaseClient):
                 kwargs['packages'] = kwargs['package']
             del(kwargs['package'])
         if 'release' in kwargs:
-            kwargs['releases'] = kwargs['release']
+            if isinstance(kwargs['release'], list):
+                kwargs['releases'] = kwargs['release']
+            else:
+                kwargs['releases'] = [kwargs['release']]
             del(kwargs['release'])
         if 'type_' in kwargs:
             kwargs['type'] = kwargs['type_']

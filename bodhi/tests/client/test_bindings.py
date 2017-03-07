@@ -355,9 +355,22 @@ class TestBodhiClient_query(unittest.TestCase):
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi'})
 
-    def test_with_release(self):
+    def test_with_release_list(self):
         """
-        Test with a 'release' kwarg.
+        Test with a 'release' kwarg set to a list.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='return_value')
+
+        result = client.query(packages='bodhi', release=['f27'])
+
+        self.assertEqual(result, 'return_value')
+        client.send_request.assert_called_once_with(
+            'updates/', verb='GET', params={'packages': 'bodhi', 'releases': ['f27']})
+
+    def test_with_release_str(self):
+        """
+        Test with a 'release' kwarg set to a str.
         """
         client = bindings.BodhiClient()
         client.send_request = mock.MagicMock(return_value='return_value')
@@ -366,7 +379,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         self.assertEqual(result, 'return_value')
         client.send_request.assert_called_once_with(
-            'updates/', verb='GET', params={'packages': 'bodhi', 'releases': 'f26'})
+            'updates/', verb='GET', params={'packages': 'bodhi', 'releases': ['f26']})
 
     def test_with_type_(self):
         """
