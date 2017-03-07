@@ -145,10 +145,10 @@ $(document).ready(function() {
         if (idx == '' || idx == null || idx === undefined) return;
         $("#bugs-checkboxes").prepend(
             [
-                '<div class="checkbox">',
-                '<label>',
+                '<div>',
+                '<label class="c-input c-checkbox">',
                 '<input name="bugs" type="checkbox" value="' + idx + '"' + (checked ? ' checked' : '') + '>',
-                '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=' + idx + '">',
+                '<span class="c-indicator"></span><a href="https://bugzilla.redhat.com/show_bug.cgi?id=' + idx + '">',
                 '#' + idx + '</a> ' + description,
                 '</label>',
                 '</div>',

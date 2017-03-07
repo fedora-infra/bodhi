@@ -74,12 +74,6 @@ hr {
     display: inline;
 }
 
-/* Crunch nav elements together to make room for search */
-.nav > li > a {
-    padding: 15px 6px 15px 6px !important;
-    cursor: pointer;
-}
-
 /* Make the navbar collapse take effect at larger sizes than it normally would
  * so we don't crowd out the search widget...
  */
@@ -122,7 +116,7 @@ hr {
 
 /* Search-y stuff */
 form#search, form#search input, .twitter-typeahead {
-    width: 250px;
+    width: 100%;
 }
 
 .tt-hint {
@@ -143,9 +137,6 @@ form#search, form#search input, .twitter-typeahead {
   background-color: #fff;
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
-  -webkit-border-radius: 8px;
-     -moz-border-radius: 8px;
-          border-radius: 8px;
   -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
      -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
           box-shadow: 0 5px 10px rgba(0,0,0,.2);
@@ -225,4 +216,31 @@ ul.updateslist li {
     margin-top: 100px;
     padding: 20px 40px 40px 40px;
     border: 1px solid;
+}
+
+.stretch-table-column {
+    min-width: 99%;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+.subheader{
+  background: #f3f3f3;
+  border-bottom: 1px solid #DDD;
+}
+
+.comment-preview{
+  background: #eee;
+  border: 1px solid #ddd;
+  min-height:10em;
+}
+
+.nav.nav-tabs{
+  margin-bottom: -1px;
+}
+
+.hidden {
+  display: none !important;
+  visibility: hidden !important;
 }

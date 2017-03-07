@@ -1,19 +1,15 @@
 <%inherit file="master.html"/>
-
+<div class="container">
 <div class="row">
-  <div id='js-warning' class="col-md-6 col-md-offset-3">
-    <div class=" panel panel-warning">
-      <div class="panel-heading clearfix">
-        <span class="pull-left">
+  <div id='js-warning' class="col-md-10 col-md-offset-1 m-t-3">
+    <div class="alert alert-warning">
+        <h3>
           % if not update:
-          New Update Form Requires JavaScript
+          Creating a new update requires JavaScript
           % else:
-          Edit Update Form Requires JavaScript
+          Editing an update requires JavaScript
           % endif
-        </span>
-      </div>
-      <div class="panel-body">
-        <p class="lead">This page only works with JavaScript enabled.</p>
+        </h3>
         <p>If you have JavaScript disabled with a plugin like NoScript, please
         disable that plugin and reload the page.  If you trust Fedora
         Infrastructure, you might find it convenient to enable JavaScript just
@@ -21,14 +17,10 @@
         <p>If you are opposed to JavaScript in principle, you're not left out!
         Please use the fully-featured <a href="#">Bodhi command-line
         interface tool</a>.</p>
-      </div>
     </div>
   </div>
 
-  <script>$("#js-warning").addClass('hidden');</script>
-
-  <div id="new-update-form" class="col-md-12 hidden">
-
+  <div id="new-update-form" class="col-md-12 hidden m-t-3" style="display:none;">
     <div class="row">
       <div class="col-md-12">
         % if not update:
@@ -53,14 +45,14 @@
     <div class="row">
 
       <div class="col-md-5">
-        <div class=" panel formpanel panel-default">
-          <div class="panel-heading clearfix">
+        <div class="card card-form">
+          <div class="card-header clearfix">
             <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="This is a helper field, here only to pre-populate the builds and the bugs lists with relevant options.  You can leave it empty if you like.">
             Packages</span>
           </div>
-          <div class="panel-body">
+          <div class="card-block p-a-0">
             <form id="search" role="search">
-              <div id="packages-search" class="form-group noui">
+              <div id="packages-search" class="form-group noui m-b-0">
                 <input class="typeahead form-control noui" name="term" type="text"
                        placeholder="Add a package">
               </div>
@@ -68,18 +60,18 @@
           </div>
         </div>
 
-        <div class="panel formpanel panel-default">
-          <div class="panel-heading clearfix">
+        <div class="card card-form">
+          <div class="card-header clearfix">
             <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of candidate builds that you want to be included in this update.  This is required.  (What is an update without a list of builds anyways... it doesn't make any sense.)">
             Candidate Builds</span>
           </div>
-          <div class="panel-body">
+          <div class="card-block p-a-0">
             <div id="builds-adder" class="input-group">
               <input class="form-control noui" type="text"
                   placeholder="Add a build, like package-0.2.1-5.fc20">
               <span class="input-group-btn">
                 <button class="btn btn-default" type="button">
-                  <span class="glyphicon glyphicon-plus"></span>
+                  <span class="fa fa-plus" data-glyph="plus"></span>
                 </button>
               </span>
             </div>
@@ -101,18 +93,18 @@
       </div>
 
       <div class="col-md-7">
-        <div class="panel formpanel panel-default">
-          <div class="panel-heading clearfix">
+        <div class="card card-form">
+          <div class="card-header clearfix">
             <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of bugzilla bug IDs that you want to be associated with this update.  Associated bugs will prompt testers to test them.  You can furthermore mark bug feedback as required in the 'details' panel at the bottom of this form.">
             Related Bugs</span>
           </div>
-          <div class="panel-body">
+          <div class="card-block p-a-0">
             <div id="bugs-adder" class="input-group">
               <input class="form-control noui" type="text"
                      placeholder="Add #RHBZ">
               <span class="input-group-btn">
                 <button class="btn btn-default" type="button">
-                  <span class="glyphicon glyphicon-plus"></span>
+                  <span class="fa fa-plus" data-glyph="plus"></span>
                 </button>
               </span>
             </div>
@@ -139,12 +131,12 @@
 
     <div class="row">
       <div class="col-md-6">
-        <div class="panel formpanel panel-default">
-          <div class="panel-heading clearfix">
+        <div class="card card-form">
+          <div class="card-header clearfix">
             <span class="pull-left" data-toggle="tooltip" title="Tell people what's new and give them a heads up about what to test.  Any gotchas?  Where's the changelog?">
               Update notes</span>
           </div>
-          <div class="panel-body">
+          <div class="card-block p-a-0">
             <textarea class="form-control" id="notes" name="notes" rows="6"
               placeholder="Update notes go here.  They're really *really* useful, so feel free to write as you please." required="true">
 % if update:
@@ -159,12 +151,12 @@ ${update.notes}
       ${self.fragments.markdown_help_modal()}
 
       <div class="col-md-6">
-        <div class="panel formpanel panel-default">
-          <div class="panel-heading clearfix">
+        <div class="card card-form">
+          <div class="card-header clearfix">
             <span class="pull-left" data-toggle="tooltip" title="Perhaps unsurprisingly, this is a preview of how your update notes will be rendered.">
             Preview</span>
           </div>
-          <div class="panel-body">
+          <div class="card-block p-a-0">
             <div id="preview"><h3><small>Preview</small></h3></div>
           </div>
         </div>
@@ -173,59 +165,55 @@ ${update.notes}
 
     <div class="row">
       <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading clearfix">
+        <div class="card">
+          <div class="card-header clearfix">
             <span class="pull-left">Final details</span>
           </div>
-          <div class="panel-body">
-
+          <div class="card-block">
             <div class="row">
               <div class="col-md-7">
-                <dl id='radios' class="dl-horizontal">
-                  <dt data-toggle="tooltip" title="What kind of update is this?">
-                  Type</dt>
-                  <dd>
-                    % for value in types:
-                    <label class="radio-inline">
-                      <input type="radio" name="type" value="${value}"
-                      % if update and update.type.description == value:
-                      checked="checked"
-                      % endif
-                      > ${value}
-                    </label>
-                    % endfor
-                  </dd>
-
-                  <dt data-toggle="tooltip" title="How important is this update, really?">
-                  Severity</dt>
-                  <dd>
-                    % for value in severities:
-                    <label class="radio-inline">
-                      <input type="radio" name="severity" value="${value}"
-                      % if update and update.severity.description == value:
-                      checked="checked"
-                      % endif
-                      > ${value}
-                    </label>
-                    % endfor
-                  </dd>
-
-                  <dt data-toggle="tooltip" title="What action should testers take after installing the update?  Do they need to update or reboot to see if things are really working?">
-                  Suggestion</dt>
-                  <dd>
-                    % for value in suggestions:
-                    <label class="radio-inline">
-                      <input type="radio" name="suggest" value="${value}"
-                      % if update and update.suggest.description == value:
-                      checked="checked"
-                      % endif
-                      > ${value}
-                    </label>
-                    % endfor
-                  </dd>
-
-                  <hr/>
-
+                <fieldset class="form-group radio-group">
+                  <div data-toggle="tooltip" title="What kind of update is this?"><strong>Type</strong></div>
+                  % for value in types:
+                  <label class="c-input c-radio">
+                    <input type="radio" name="type" value="${value}"
+                    % if update and update.type.description == value:
+                    checked="checked"
+                    % endif
+                    > ${value}
+                    <span class="c-indicator"></span>
+                  </label>
+                  % endfor
+                </fieldset>
+                <fieldset class="form-group radio-group">
+                  <div data-toggle="tooltip" title=title="How important is this update, really?"><strong>Severity</strong></div>
+                  % for value in severities:
+                  <label class="c-input c-radio">
+                    <input type="radio" name="severity" value="${value}"
+                    % if update and update.severity.description == value:
+                    checked="checked"
+                    % endif
+                    > ${value}
+                    <span class="c-indicator"></span>
+                  </label>
+                  % endfor
+                </fieldset>
+                <fieldset class="form-group radio-group">
+                  <div data-toggle="tooltip" title="What action should testers take after installing the update?  Do they need to update or reboot to see if things are really working?">
+                    <strong>Suggestion</strong>
+                  </div>
+                  % for value in suggestions:
+                  <label class="c-input c-radio">
+                    <input type="radio" name="suggest" value="${value}"
+                    % if update and update.suggest.description == value:
+                    checked="checked"
+                    % endif
+                    > ${value}
+                    <span class="c-indicator"></span>
+                  </label>
+                  % endfor
+                </fieldset>
+                <dl>
                   <dt data-toggle="tooltip" title="If checked, then associated bugs in RHBZ will be closed once this update is pushed to the stable repository.">
                   Close bugs on stable?</dt>
                   <dd> <input type="checkbox" name="close_bugs" data-singleton="true"
@@ -268,8 +256,6 @@ ${update.notes}
                       value="-3"
                       % endif
                     ></dd>
-
-                  <hr/>
 
                   <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated bugs before the update can pass to stable.  If your update has no associated bugs, this option has no effect.">
                   Require bugs
@@ -327,10 +313,11 @@ ${update.notes}
 
   </div>
 </div>
+</div>
 <script src="${request.static_url('bodhi:server/static/js/update_form.js')}"></script>
+<script>$("#js-warning").hide();$("#new-update-form").show();</script>
 <script> $(document).ready(function() { $('.panel-heading > span, dt').tooltip(); }); </script>
 % if not update:
 <!-- Pre-select the radio buttons -->
-<script> $(document).ready(function() { $("#radios dd label:first-child input").attr('checked', true); }); </script>
+<script> $(document).ready(function() { $(".radio-group > label:first-of-type input").attr('checked', 'checked')}); </script>
 % endif
-

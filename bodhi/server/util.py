@@ -101,6 +101,11 @@ def get_nvr(nvr):
     return ('-'.join(x[:-2]), x[-2], x[-1])
 
 
+def packagename_from_nvr(context, nvr):
+    x = map(unicode, nvr.split('-'))
+    return '-'.join(x[:-2])
+
+
 def mkmetadatadir(path):
     """
     Generate package metadata for a given directory; if it doesn't exist, then
@@ -414,6 +419,25 @@ def type2html(context, kind):
     }.get(kind)
 
     return "<span class='label label-%s'>%s</span>" % (cls, kind)
+
+
+def type2icon(context, kind):
+    kind = unicode(kind)
+    cls = {
+        'security': 'danger',
+        'bugfix': 'warning',
+        'newpackage': 'primary',
+        'enhancement': 'success',
+    }.get(kind)
+
+    fontawesome = {
+        'security': 'fa-shield',
+        'bugfix': 'fa-bug',
+        'newpackage': 'fa-archive',
+        'enhancement': 'fa-bolt',
+    }.get(kind)
+
+    return "<span class='label label-%s'><i class='fa %s'></i></span>" % (cls, fontawesome)
 
 
 def severity2html(context, severity):

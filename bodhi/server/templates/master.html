@@ -24,8 +24,10 @@
     % else:
         <title>${update.title} - Fedora Updates System</title>
     % endif
-    <link href="${request.static_url('bodhi:server/static/bootstrap/css/bootstrap.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/font-awesome-4.4.0/css/font-awesome.min.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/fonts/open-sans.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/fonts/hack.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/fonts/font-awesome.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/css/text.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/css/navbar.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/css/footer.css') }" rel="stylesheet" />
@@ -37,162 +39,153 @@
   </head>
 
   <body>
-    <div id="wrap">
-      <!-- Static navbar -->
-      <div class="navbar navbar-default navbar-fixed-top">
+      <div class="searchbar" style="display:none;">
         <div class="container">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse"
-                    data-target=".navbar-collapse">
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="${request.route_url('home')}">
-              Fedora Update System
+          <div class="row">
+            <div class="col-xs-12">
+              <form id="search" role="search" class="nav navbar-form navbar-left">
+                <div id="bloodhound" class="form-group m-b-0">
+                  <input class="typeahead form-control" name="term" type="text" placeholder="Search..." style="height:50px;background:rgba(0,0,0,0);border:0;color:white;line-height:50px;">
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="masthead">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-6">
+            <a href="${request.route_url('home')}">
+              <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}" alt="Fedora Update System" id="kojiLogo" height="40px">
             </a>
           </div>
+          <div class="col-sm-6">
+            <div class="row">
+              <nav class="navbar navbar-light p-t-0 p-b-0">
+                  <div class="container">
+                    <ul class="nav navbar-nav nav-pill pull-xs-right">
+                        % if request.user:
+                        % if request.matched_route and request.matched_route.name in ('new_update', 'new_override', 'new_stack'):
+                        <li class="nav-item dropdown active">
+                        % else:
+                        <li class="nav-item dropdown">
+                        % endif
+                          <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-plus"></span>
+                            Create
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="${request.route_url('new_update')}">
+                                New Update
+                            </a>
+                            <a class="dropdown-item" href="${request.route_url('new_override')}">
+                                New Override
+                            </a>
+                            % if request.registry.settings.get('stacks_enabled') == 'True':
+                            <a class="dropdown-item" href="${request.route_url('new_stack')}">
+                                New Stack
+                            </a>
+                            % endif
+                          </div>
+                        </li>
+                        % endif
 
-          <div class="navbar-collapse collapse">
-            <form id="search" role="search" class="nav navbar-form navbar-left">
-              <div id="bloodhound" class="form-group">
-                <input class="typeahead form-control" name="term" type="text" placeholder="Search...">
-              </div>
-            </form>
+                        % if request.matched_route and request.matched_route.name in ('metrics', 'releases', 'release', 'overrides'):
+                        <li class="nav-item dropdown active">
+                        % else:
+                        <li class="nav-item dropdown">
+                        % endif
+                          <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-tags"></span>
+                            Releases
+                          </a>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="${request.route_url('metrics')}">
+                              Overall Metrics
+                            </a>
+                            <a class="dropdown-item" href="${request.route_url('masher_status')}">
+                              Masher Status
+                            </a>
+                            % for state in request.releases:
+                            <div class="dropdown-divider"></div>
+                            % for r in request.releases[state]:
+                            <a class="dropdown-item" href="${request.route_url('releases')}${r['name']}">
+                              ${r['long_name']}
+                            </a>
+                            % endfor
+                            % endfor
+                          </div>
+                        </li>
 
-            <div class="clearfix hidden-md hidden-lg"></div>
+                        % if request.user:
+                        % if request.matched_route and request.matched_route.name == 'user' and request.user and user and request.user.name == user['name']:
+                        <li class="nav-item dropdown active">
+                        % else:
+                        <li class="nav-item dropdown">
+                        % endif
+                          <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-user"></span>
+                            <img src="${self.util.avatar(request.user.name, size=24)}"/>
+                          </a>
+                          <div class="dropdown-menu">
+                              <a class="dropdown-item" href="${request.route_url('user', name=request.user.name)}">
+                                Your Profile
+                              </a>
+                              <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
+                                Manage Alerts
+                              </a>
+                              <form id="popup_toggle" action="${request.route_url('popup_toggle')}" method="POST">
+                                % if request.matched_route:
+                                <input type="hidden" name="next" value="${request.current_route_url()}">
+                                % endif
+                              </form>
+                              <a class="dropdown-item" href="javascript:$('#popup_toggle').submit();">
+                                % if request.user.show_popups:
+                                Disable popups
+                                % else:
+                                Enable popups
+                                % endif
+                              </a>
+                              % if request.user:
+                              <a class="dropdown-item" href="${request.route_url('logout')}">
+                                Log out</a>
+                              % endif
+                          </div>
+                        </li>
+                        % endif
 
-            <ul class="nav navbar-nav navbar-right">
-              % if request.user:
-              % if request.matched_route and request.matched_route.name in ('new_update', 'new_override', 'new_stack'):
-              <li class="dropdown active">
-              % else:
-              <li class="dropdown">
-              % endif
-                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                  <span class="glyphicon glyphicon-plus"></span>
-                  Create
-                </a>
-                <ul class="dropdown-menu">
-                  <li><a href="${request.route_url('new_update')}">
-                      New Update
-                  </a></li>
-                  <li><a href="${request.route_url('new_override')}">
-                      New Override
-                  </a></li>
-                  % if request.registry.settings.get('stacks_enabled') == 'True':
-                  <li><a href="${request.route_url('new_stack')}">
-                      New Stack
-                  </a></li>
-                  % endif
-                </ul>
-              </li>
-              % endif
-
-              % if request.matched_route and request.matched_route.name in ('metrics', 'releases', 'release', 'overrides'):
-              <li class="dropdown active">
-              % else:
-              <li class="dropdown">
-              % endif
-                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                  <span class="glyphicon glyphicon-tags"></span>
-                  Releases
-                </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a href="${request.route_url('metrics')}">
-                      Overall Metrics
-                    </a>
-                  </li>
-                  <li>
-                    <a href="${request.route_url('masher_status')}">
-                      Masher Status
-                    </a>
-                  </li>
-                  % for state in request.releases:
-                  <li role="separator" class="divider"></li>
-                  % for r in request.releases[state]:
-                  <li>
-                    <a href="${request.route_url('releases')}${r['name']}">
-                      ${r['long_name']}
-                    </a>
-                  </li>
-                  % endfor
-                  % endfor
-                </ul>
-              </li>
-
-              % if request.user:
-              % if request.matched_route and request.matched_route.name == 'user' and request.user and user and request.user.name == user['name']:
-              <li class="dropdown active">
-              % else:
-              <li class="dropdown">
-              % endif
-                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                  <span class="glyphicon glyphicon-user"></span>
-                  Profile
-                </a>
-                <ul class="dropdown-menu">
-
-                  <li>
-                    <a href="${request.route_url('user', name=request.user.name)}">
-                      Your Profile
-                    </a>
-                  </li>
-                  <li>
-                    <a href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
-                      Manage Alerts
-                    </a>
-                  </li>
-                  <li>
-                    <form id="popup_toggle" action="${request.route_url('popup_toggle')}" method="POST">
-                      % if request.matched_route:
-                      <input type="hidden" name="next" value="${request.current_route_url()}">
-                      % endif
-                    </form>
-                    <a href="javascript:$('#popup_toggle').submit();">
-                      % if request.user.show_popups:
-                      Disable popups
-                      % else:
-                      Enable popups
-                      % endif
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              % endif
-
-
-              <li>
-                % if request.user:
-                <a href="${request.route_url('logout')}">
-                  <span class="glyphicon glyphicon-log-out"></span>
-                  Log out</a>
-                % elif request.matched_route:
-                <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
-                  <span class="glyphicon glyphicon-log-in"></span>
-                  Log in</a>
-                % else:
-                <a href="${request.route_url('login')}">
-                  <span class="glyphicon glyphicon-log-in"></span>
-                  Log in</a>
-                % endif
-              </li>
-            </ul>
+                        % if not request.user:
+                        <li class="nav-item">
+                          % if request.matched_route:
+                          <a class="nav-link" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
+                            <span class="glyphicon glyphicon-log-in"></span>
+                            Login</a>
+                          % else:
+                          <a class="nav-link" href="${request.route_url('login')}">
+                            <span class="glyphicon glyphicon-log-in"></span>
+                            Login</a>
+                          % endif
+                        </li>
+                        % endif
+                        <li class="nav-item">
+                          <a class="nav-link" href="javascript:void(0);" id="search-toggle">
+                            <span class="fa fa-search"></span>
+                          </a>
+                        </li>
+                    </ul>
+                  </div>
+                </nav>
+            </div>
           </div>
-        </div><!--/.nav-collapse -->
+        </div>
       </div>
-
-      <div class="container">
+    </div>
+    <div class="bodycontent p-b-3">
         ${self.body()}
-      </div>
+    </div> <!-- /bodycontent -->
 
-      <div id="ghost-cabbage">
-        <img src="${request.static_url('bodhi:server/static/img/logo-large.png')}"/>
-      </div>
-    </div> <!-- /#wrap -->
-
-    <div id="footer">
+    <div class="footer p-y-3">
       <div class="container">
         <p class="text-muted text-center"> Running
           <code>bodhi-${util.version()}</code> on
@@ -211,7 +204,7 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="${request.static_url('bodhi:server/static/jquery.flot.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/jquery.flot.stack.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/bootstrap/js/bootstrap.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/moment/moment.min.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/cabbage.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>

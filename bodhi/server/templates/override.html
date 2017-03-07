@@ -1,14 +1,13 @@
 <%namespace name="util" module="bodhi.server.util"/>
 <%inherit file="master.html"/>
-
+<div class="container">
 <div class="row">
-  <div id='js-warning' class="col-md-6 col-md-offset-3">
-    <div class=" panel panel-warning">
-      <div class="panel-heading clearfix">
-        <span class="pull-left">New Buildroot Override Form Requires JavaScript</span>
-      </div>
-      <div class="panel-body">
-        <p class="lead">This page only works with JavaScript enabled.</p>
+  <div id='js-warning' class="col-md-6 col-md-offset-3 m-t-3">
+    <div class="alert alert-warning">
+      <h3>
+        <span>New Buildroot Override Form Requires JavaScript</span>
+      </h3>
+      <div>
         <p>If you have JavaScript disabled with a plugin like NoScript, please
         disable that plugin and reload the page.  If you trust Fedora
         Infrastructure, you might find it convenient to enable JavaScript just
@@ -22,7 +21,7 @@
 
   <script>$("#js-warning").addClass('hidden');</script>
 
-  <div id="new-override-form" class="col-md-12 hidden">
+  <div id="new-override-form" class="col-md-12 hidden m-t-3">
 
     <div class="row">
       %if override is UNDEFINED:
@@ -159,6 +158,7 @@
     </div> <!-- end row -->
 
   </div>
+</div>
 </div>
 <script src="${request.static_url('bodhi:server/static/js/override_form.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/datepicker/js/bootstrap-datepicker.js')}"></script>
