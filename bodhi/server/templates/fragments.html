@@ -1,11 +1,22 @@
 <%namespace name="util" module="bodhi.server.util"/>
 
 <%def name="comment(comment, display_update=True)">
+% if comment.user.name == "bodhi":
+<div class="row">
+        <div class="col-md-10 text-muted">
+          ${util.markup(comment.text) | n}
+        </div>
+        <div class="col-md-2 text-xs-right text-muted">
+          <a href="${comment.url()}">${util.age(comment.timestamp)}</a>
+        </div>
+</div>
+% else:
 <div class="row">
   <div class="col-md-12">
-    <div class="panel panel-${util.karma2class(comment.karma)}">
-      <div class="panel-heading clearfix">
-        <span class="pull-left">
+    <!--<div class="card card-${util.karma2class(comment.karma)}">-->
+    <div class="card m-y-1">
+      <div class="card-header clearfix">
+        <span>
           % if comment.user:
           <a href="${request.route_url('user', name=comment.user.name)}">
             <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
@@ -21,67 +32,59 @@
           % endif
         </span>
 
-        <span class="pull-right">
+        <span class="pull-xs-right">
           <a href="${comment.url()}">
-            %if not display_update:
-            ${util.age(comment.timestamp)}, <small>${str(comment.timestamp).split('.')[0]} (UTC)</small>
-            % else:
             ${util.age(comment.timestamp)}
-            % endif
           </a>
         </span>
       </div>
 
-      <div class="panel-body">
-        <div class="col-md-8">
+      <div class="card-block p-b-1">
+        <div class="row">
+        <div class="col-md-12">
           ${util.markup(comment.text) | n}
         </div>
-        <div class="col-md-4 text-right">
+        <div class="col-md-12 p-t-2">
           % if comment.karma:
           <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
-          <hr />
           % endif
 
           % if comment.karma_critpath:
           <span class="nowrap">critpath: ${util.karma2html(comment.karma_critpath) | n}</span>
-          <hr />
           % endif
 
           % for feedback in comment.bug_feedback:
           % if feedback.karma:
           <span class="nowrap">${util.bug_link(feedback.bug, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
-          <hr />
           % endif
           % endfor
-        </div>
 
-        % if comment.testcase_feedback:
-        <div class="clearfix"></div>
-        <div class="col-md-12 text-right">
-          % for feedback in comment.testcase_feedback:
-          % if feedback.karma:
-          <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
-          <hr />
+          % if comment.testcase_feedback:
+            % for feedback in comment.testcase_feedback:
+            % if feedback.karma:
+            <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
+            % endif
+            % endfor
           % endif
-          % endfor
         </div>
-        % endif
 
+      </div>
       </div>
     </div>
   </div>
 </div>
+% endif
 </%def>
 
 <%def name="update(update, display_user=True, display_request=False, display_release=True, display_karma=True)">
-  <td>${util.update2html(update) | n}</td>
-  <td class="nobreak">
+  <td class="stretch-table-column">${util.update2html(update) | n}</td>
+  <td class="nowrap">
     <span title="${update['date_submitted']} UTC">
       ${util.age(update['date_submitted'], True)}
     </span>
   </td>
   %if display_user:
-  <td class="nobreak">
+  <td class="nowrap">
     <a href="${request.route_url('user', name=update['user']['name'])}">
       <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
       ${update['user']['name']}
@@ -120,13 +123,13 @@
       ${override['build']['nvr']}
     </a>
   </td>
-  <td class="nobreak">
+  <td class="nowrap">
     <span title="${override['submission_date']} UTC">
       ${util.age(override['submission_date'], True)}
     </span>
   </td>
   %if display_user:
-  <td class="nobreak">
+  <td class="nowrap">
     <a href="${request.route_url('user', name=override['submitter']['name'])}">
       <img class="img-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
       ${override['submitter']['name']}

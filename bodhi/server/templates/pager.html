@@ -1,26 +1,27 @@
 <%namespace name="util" module="bodhi.server.util"/>
 <%def name="render(page, pages)">
 <ul class="pagination pagination-sm">
+  <li class="page-item disabled"><span class="page-link" href="#">Page ${page} of ${pages}</span></li>
   % if page == 1:
-  <li class="disabled"><a href="#">&laquo;</a></li>
+  <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
   % else:
-  <li><a href="${util.page_url(1)}">&laquo;</a></li>
+  <li class="page-item"><a class="page-link" href="${util.page_url(1)}">&laquo;</a></li>
   % endif
 
   % for i in util.pages_list(page, pages):
   % if page == i:
-  <li class="active">
+  <li class="page-item active">
   % else:
-  <li>
+  <li class="page-item">
   % endif
-  <a href="${util.page_url(i)}">${i}</a>
+  <a class="page-link" href="${util.page_url(i)}">${i}</a>
   </li>
   % endfor
 
   % if page == pages:
-  <li class="disabled"><a href="#">&raquo;</a></li>
+  <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
   % else:
-  <li><a href="${util.page_url(pages)}">&raquo;</a></li>
+  <li class="page-item"><a class="page-link" href="${util.page_url(pages)}">&raquo;</a></li>
   % endif
 </ul>
 </%def>

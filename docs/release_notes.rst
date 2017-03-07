@@ -1,6 +1,22 @@
 Release notes
 =============
 
+develop
+-------
+
+Features
+^^^^^^^^
+
+* The web interface now uses the Fedora Bootstrap theme. The layout of the
+  update page has also been revamped to display the information about an update
+  in a clearer manner.
+  (`#1313 <https://github.com/fedora-infra/bodhi/issues/1313>`_).
+
+Bugs
+^^^^
+* The position of the Add Comment button is now the bottom right.
+  (`#902 <https://github.com/fedora-infra/bodhi/issues/902>`_).
+
 2.4.0
 -----
 
