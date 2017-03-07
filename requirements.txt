@@ -1,0 +1,30 @@
+arrow
+bunch
+click
+colander
+cornice<2
+cryptography
+dogpile.cache
+fedmsg[consumers]
+fedmsg-atomic-composer >= 2016.3
+kitchen
+markdown
+packagedb-cli
+# for captchas
+Pillow
+progressbar
+pyDNS
+pylibravatar
+pyramid
+pyramid_fas_openid
+pyramid_mako
+pyramid_tm
+python-bugzilla
+python-fedora
+python-openid
+simplemediawiki
+sqlalchemy
+waitress
+webhelpers
+WebOb>=1.4.1
+zope.sqlalchemy

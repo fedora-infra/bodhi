@@ -14,6 +14,38 @@ from setuptools import setup, find_packages
 import setuptools.command.egg_info
 
 
+def get_requirements(requirements_file='requirements.txt'):
+    """
+    Get the contents of a file listing the requirements.
+
+    Args:
+        requirements_file (str): path to a requirements file
+
+    Returns:
+        list: the list of requirements, or an empty list if
+              `requirements_file` could not be opened or read
+    """
+    lines = open(requirements_file).readlines()
+    dependencies = []
+    for line in lines:
+        maybe_dep = line.strip()
+        if maybe_dep.startswith('#'):
+            # Skip pure comment lines
+            continue
+        if maybe_dep.startswith('git+'):
+            # VCS reference for dev purposes, expect a trailing comment
+            # with the normal requirement
+            __, __, maybe_dep = maybe_dep.rpartition('#')
+        else:
+            # Ignore any trailing comment
+            maybe_dep, __, __ = maybe_dep.partition('#')
+        # Remove any whitespace and assume non-empty results are dependencies
+        maybe_dep = maybe_dep.strip()
+        if maybe_dep:
+            dependencies.append(maybe_dep)
+    return dependencies
+
+
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 VERSION = '2.4.0'
@@ -31,63 +63,6 @@ MAINTAINER = 'Fedora Infrastructure Team'
 MAINTAINER_EMAIL = 'infrastructure@lists.fedoraproject.org'
 PLATFORMS = ['Fedora', 'GNU/Linux']
 URL = 'https://github.com/fedora-infra/bodhi'
-
-server_requires = [
-    # push.py uses click
-    'click',
-    'pyramid',
-    'pyramid_mako',
-    'pyramid_tm',
-    'waitress',
-    'colander',
-    'cornice<2',
-
-    'python-openid',
-    'pyramid_fas_openid',
-    'packagedb-cli',
-
-    'sqlalchemy',
-    'zope.sqlalchemy',
-
-    'webhelpers',
-    'progressbar',
-
-    'bunch',
-
-    # for captchas
-    'cryptography',
-    'Pillow',
-
-    # Useful tools
-    'kitchen',
-    'python-fedora',
-    'pylibravatar',
-    'pyDNS',
-    'dogpile.cache',
-    'arrow',
-    'markdown',
-
-    # i18n, that we're not actually doing yet.
-    #'Babel',
-    #'lingua',
-
-    # External resources
-    'python-bugzilla',
-    'simplemediawiki',
-
-    # "python setup.py test" needs one of fedmsg's setup.py extra_requires
-    'fedmsg[consumers]',
-    # The masher needs fedmsg-atomic-composer
-    'fedmsg-atomic-composer >= 2016.3',
-
-    'WebOb>=1.4.1',
-    ]
-
-if sys.version_info[:3] < (2,7,0):
-    server_requires.append('importlib')
-
-if sys.version_info[:3] < (2,5,0):
-    server_requires.append('pysqlite')
 
 
 setuptools.command.egg_info.manifest_maker.template = 'BODHI_MANIFEST.in'
@@ -172,7 +147,7 @@ setup(name='bodhi-server',
       include_package_data=True,
 #      script_args=sys.argv.extend(['--template', 'TEST']),
       zip_safe=False,
-      install_requires = server_requires,
+      install_requires=get_requirements(),
       message_extractors = { '.': [
           #('**.py', 'lingua_python', None),
           #('**.mak', 'lingua_xml', None),
