@@ -25,6 +25,7 @@
       - python-bunch
       - python-click
       - python-cornice
+      - python-cornice-sphinx
       - python-devel
       - python-dogpile-cache
       - python-fedora
