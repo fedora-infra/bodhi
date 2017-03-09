@@ -12,31 +12,29 @@ distributions. It provides an interface for developers to propose updates to a d
 interface for testers to leave feedback about updates through a +1/-1 karma system.
 
 
-Features of bodhi
--------------------
+Features
+--------
 
 * Provides an interface for developers and release engineers to manage pushing out
-  package updates for multiple version releases.
-* Helps in delivering quality packages and repository sustainment with automated testing.
-* Gives community testers an interface to leave feedback about package updates.
-* Provides a framework that will allow future integrations to various other QA and
-  developer tools.
+  package updates for multiple distribution versions.
+* Generates pre-release test repositories for end users and testers to install proposed updates.
+* Gives testers an interface to leave feedback about package updates, leading to
+  higher quality package updates.
 * Announces the arrival of new packages entering the collection.
-* Bodhi publishes end-user release notes known as errata.
+* Publishes end-user release notes known as errata.
 * Generates yum repositories.
 * Queries ResultsDB for automated test results and displays them on updates.
-* Provides pre-release test updates for end user and QA folks/users who wish to test these updates.
 
 
 Links
 ^^^^^
 
-* `Online documentation <http://bodhi.readthedocs.io>`_
+* `Online documentation <https://bodhi.fedoraproject.org/docs/>`_
 *  IRC: #bodhi on Freenode
 * `Mailing list <https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/>`_
 * `Report an issue <https://github.com/fedora-infra/bodhi/issues/new>`_
 * `Source code <https://github.com/fedora-infra/bodhi>`_
-* `Fedora's production instance <https://bodhi.stg.fedoraproject.org/>`_
+* `Fedora's production instance <https://bodhi.fedoraproject.org/>`_
 * `Fedora's staging instance <https://bodhi.stg.fedoraproject.org/>`_
 
 
