@@ -9,16 +9,16 @@ Bodhi
 
 Bodhi is designed to democratize the package update testing and release process for RPM based Linux
 distributions. It provides an interface for developers to propose updates to a distribution, and an
-interface for testers to leave feedback about updates through a +1/-1 karma system..
+interface for testers to leave feedback about updates through a +1/-1 karma system.
 
 Features of bodhi
 -------------------
 
-* Provides an interface for developers and release engineers to manage pushing out 
+* Provides an interface for developers and release engineers to manage pushing out
   package updates for multiple version releases.
 * Helps in delivering quality packages and repository sustainment with automated testing.
 * Gives community testers an interface to leave feedback about package updates.
-* Provides a framework that will allow future integrations to various other QA and 
+* Provides a framework that will allow future integrations to various other QA and
   developer tools.
 * Announces the arrival of new packages entering the collection.
 * Bodhi publishes end-user release notes known as errata.
