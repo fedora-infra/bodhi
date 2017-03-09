@@ -11,6 +11,7 @@ Bodhi is designed to democratize the package update testing and release process 
 distributions. It provides an interface for developers to propose updates to a distribution, and an
 interface for testers to leave feedback about updates through a +1/-1 karma system.
 
+
 Features of bodhi
 -------------------
 
@@ -26,6 +27,7 @@ Features of bodhi
 * Queries ResultsDB for automated test results and displays them on updates.
 * Provides pre-release test updates for end user and QA folks/users who wish to test these updates.
 
+
 Links
 ^^^^^
 
@@ -36,6 +38,7 @@ Links
 * `Source code <https://github.com/fedora-infra/bodhi>`_
 * `Fedora's production instance <https://bodhi.stg.fedoraproject.org/>`_
 * `Fedora's staging instance <https://bodhi.stg.fedoraproject.org/>`_
+
 
 Contents:
 
@@ -55,4 +58,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
