@@ -28,11 +28,12 @@ And for a python3 env, run::
     python3 bootstrap.py
 """
 
-import subprocess
-import shutil
 import glob
-import sys
 import os
+import shutil
+import subprocess
+import sys
+
 
 ENVS = os.path.expanduser('~/.virtualenvs')
 VENV = 'bodhi-python{major}.{minor}'.format(
@@ -45,7 +46,7 @@ if not VENVWRAPPER:
     ENVS = os.getcwd()
 
 
-if "check_output" not in dir( subprocess ): # duck punch it in!
+if "check_output" not in dir(subprocess):  # duck punch it in!
     def f(*popenargs, **kwargs):
         if 'stdout' in kwargs:
             raise ValueError('stdout argument not allowed, it will be overridden.')
@@ -64,7 +65,7 @@ if "check_output" not in dir( subprocess ): # duck punch it in!
 def _link_system_lib(lib):
     workon = '.'
     if VENVWRAPPER:
-        workon=os.getenv("WORKON_HOME")
+        workon = os.getenv("WORKON_HOME")
     for libdir in ('lib', 'lib64'):
         location = '{libdir}/python{major}.{minor}/site-packages'.format(
             major=sys.version_info[0], minor=sys.version_info[1],
@@ -141,12 +142,8 @@ def rebuild():
     except Exception as e:
         print(unicode(e))
 
-    cmd = 'virtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
-            .format(
-                major=sys.version_info[0],
-                minor=sys.version_info[1],
-                v=VENV,
-            )
+    cmd = 'virtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'
+    cmd = cmd.format(major=sys.version_info[0], minor=sys.version_info[1], v=VENV)
     if VENVWRAPPER:
         cmd = 'mkvirtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'\
             .format(
@@ -172,7 +169,7 @@ def setup_develop():
     """ `python setup.py develop` in our virtualenv """
     workon = '.'
     if VENVWRAPPER:
-        workon=os.getenv("WORKON_HOME")
+        workon = os.getenv("WORKON_HOME")
     cmd = '{workon}/{env}/bin/python setup.py develop'.format(
         envs=ENVS, env=VENV, workon=workon)
     print(cmd)
@@ -186,7 +183,7 @@ def install_test_deps():
     """
     workon = '.'
     if VENVWRAPPER:
-        workon=os.getenv("WORKON_HOME")
+        workon = os.getenv("WORKON_HOME")
     cmd = '{workon}/{env}/bin/pip install nose-cov webtest mock'.format(
         envs=ENVS, env=VENV, workon=workon)
     print(cmd)

@@ -1,17 +1,15 @@
 import __main__
 __requires__ = __main__.__requires__ = 'WebOb>=1.4.1'
-import pkg_resources
+import pkg_resources  # noqa
 
 # The following two imports are required to shut up an
 # atexit error when running tests with python 2.7
-import logging
-import multiprocessing
-
-import os
-import sys
-
-from setuptools import setup, find_packages
-import setuptools.command.egg_info
+from setuptools import setup, find_packages  # noqa
+import logging  # noqa
+import multiprocessing  # noqa
+import os  # noqa
+import setuptools.command.egg_info  # noqa
+import sys  # noqa
 
 
 def get_requirements(requirements_file='requirements.txt'):
@@ -68,55 +66,55 @@ URL = 'https://github.com/fedora-infra/bodhi'
 setuptools.command.egg_info.manifest_maker.template = 'BODHI_MANIFEST.in'
 
 
-setup(name='bodhi',
-      version=VERSION,
-      description='bodhi common package',
-      long_description=README,
-      classifiers=CLASSIFIERS,
-      license=LICENSE,
-      maintainer=MAINTAINER,
-      maintainer_email=MAINTAINER_EMAIL,
-      platforms=PLATFORMS,
-      url=URL,
-      keywords='fedora',
-      packages=['bodhi'],
-      include_package_data=True,
-      zip_safe=False,
-      install_requires = [],
-      tests_require = [
-          'flake8',
-          'nose',
-          'nose-cov',
-          'webtest',
-          'mock'
-      ],
-      test_suite="nose.collector",
-      )
+setup(
+    name='bodhi',
+    version=VERSION,
+    description='bodhi common package',
+    long_description=README,
+    classifiers=CLASSIFIERS,
+    license=LICENSE,
+    maintainer=MAINTAINER,
+    maintainer_email=MAINTAINER_EMAIL,
+    platforms=PLATFORMS,
+    url=URL,
+    keywords='fedora',
+    packages=['bodhi'],
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=[],
+    tests_require=[
+        'flake8',
+        'nose',
+        'nose-cov',
+        'webtest',
+        'mock'
+    ],
+    test_suite="nose.collector")
 
 
 setuptools.command.egg_info.manifest_maker.template = 'CLIENT_MANIFEST.in'
 
 
-setup(name='bodhi-client',
-      version=VERSION,
-      description='bodhi client',
-      long_description=README,
-      classifiers=CLASSIFIERS,
-      license=LICENSE,
-      maintainer=MAINTAINER,
-      maintainer_email=MAINTAINER_EMAIL,
-      platforms=PLATFORMS,
-      url=URL,
-      keywords='fedora',
-      packages=['bodhi.client'],
-      include_package_data=False,
-      zip_safe=False,
-      install_requires = ['click', 'six'],
-      entry_points = """\
-      [console_scripts]
-      bodhi = bodhi.client:cli
-      """,
-      )
+setup(
+    name='bodhi-client',
+    version=VERSION,
+    description='bodhi client',
+    long_description=README,
+    classifiers=CLASSIFIERS,
+    license=LICENSE,
+    maintainer=MAINTAINER,
+    maintainer_email=MAINTAINER_EMAIL,
+    platforms=PLATFORMS,
+    url=URL,
+    keywords='fedora',
+    packages=['bodhi.client'],
+    include_package_data=False,
+    zip_safe=False,
+    install_requires=['click', 'six'],
+    entry_points="""\
+    [console_scripts]
+    bodhi = bodhi.client:cli
+    """)
 
 
 setuptools.command.egg_info.manifest_maker.template = 'SERVER_MANIFEST.in'
@@ -128,45 +126,41 @@ server_packages = find_packages(
 server_packages.remove('bodhi')
 
 
-setup(name='bodhi-server',
-      version=VERSION,
-      description='bodhi server',
-      long_description=README,
-      classifiers=CLASSIFIERS + [
-        "Framework :: Pyramid",
+setup(
+    name='bodhi-server',
+    version=VERSION,
+    description='bodhi server',
+    long_description=README,
+    classifiers=CLASSIFIERS + [
+        'Framework :: Pyramid',
         'Programming Language :: JavaScript',
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"],
-      license=LICENSE,
-      maintainer=MAINTAINER,
-      maintainer_email=MAINTAINER_EMAIL,
-      platforms=PLATFORMS,
-      url=URL,
-      keywords='web fedora pyramid',
-      packages=server_packages,
-      include_package_data=True,
-#      script_args=sys.argv.extend(['--template', 'TEST']),
-      zip_safe=False,
-      install_requires=get_requirements(),
-      message_extractors = { '.': [
-          #('**.py', 'lingua_python', None),
-          #('**.mak', 'lingua_xml', None),
-      ]},
-      entry_points = """\
-      [paste.app_factory]
-      main = bodhi.server:main
-      [console_scripts]
-      initialize_bodhi_db = bodhi.server.scripts.initializedb:main
-      bodhi-clean-old-mashes = bodhi.server.scripts.clean_old_mashes:clean_up
-      bodhi-push = bodhi.server.push:push
-      bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
-      bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
-      bodhi-approve-testing = bodhi.server.scripts.approve_testing:main
-      bodhi-manage-releases = bodhi.server.scripts.manage_releases:main
-      [moksha.consumer]
-      masher = bodhi.server.consumers.masher:Masher
-      updates = bodhi.server.consumers.updates:UpdatesHandler
-      signed = bodhi.server.consumers.signed:SignedHandler
-      """,
-      paster_plugins=['pyramid'],
-      )
+    license=LICENSE,
+    maintainer=MAINTAINER,
+    maintainer_email=MAINTAINER_EMAIL,
+    platforms=PLATFORMS,
+    url=URL,
+    keywords='web fedora pyramid',
+    packages=server_packages,
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=get_requirements(),
+    message_extractors={'.': []},
+    entry_points="""\
+    [paste.app_factory]
+    main = bodhi.server:main
+    [console_scripts]
+    initialize_bodhi_db = bodhi.server.scripts.initializedb:main
+    bodhi-clean-old-mashes = bodhi.server.scripts.clean_old_mashes:clean_up
+    bodhi-push = bodhi.server.push:push
+    bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
+    bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
+    bodhi-approve-testing = bodhi.server.scripts.approve_testing:main
+    bodhi-manage-releases = bodhi.server.scripts.manage_releases:main
+    [moksha.consumer]
+    masher = bodhi.server.consumers.masher:Masher
+    updates = bodhi.server.consumers.updates:UpdatesHandler
+    signed = bodhi.server.consumers.signed:SignedHandler
+    """,
+    paster_plugins=['pyramid'])

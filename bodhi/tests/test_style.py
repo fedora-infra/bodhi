@@ -34,12 +34,7 @@ class TestStyle(unittest.TestCase):
         slowly. This test enforces only modules that have been corrected to comply with flake8. The
         goal is that this test would one day check the entire codebase.
         """
-        enforced_paths = ['alembic', 'bodhi', 'docs', 'tools']
-
-        enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
-
         # We ignore E712, which disallows non-identity comparisons with True and False
-        flake8_command = ['flake8', '--max-line-length', '100', '--ignore=E712']
-        flake8_command.extend(enforced_paths)
+        flake8_command = ['flake8', '--max-line-length', '100', '--ignore=E712', REPO_PATH]
 
         self.assertEqual(subprocess.call(flake8_command), 0)
