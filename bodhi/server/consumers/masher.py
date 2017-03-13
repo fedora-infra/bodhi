@@ -752,24 +752,18 @@ class MasherThread(threading.Thread):
         mash_path = os.path.join(self.path, self.id)
         arch = os.listdir(mash_path)[0]
 
-        release = self.release.id_prefix.lower().replace('-', '_')
-        request = self.request.value
-        key = '%s_%s_master_repomd' % (release, request)
-        master_repomd = config.get(key)
-        if not master_repomd:
-            raise ValueError("Could not find %s in the config file" % key)
-
         repomd = os.path.join(mash_path, arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
 
+        master_repomd_url = self._get_master_repomd_url(arch)
+
         checksum = hashlib.sha1(file(repomd).read()).hexdigest()
         while True:
             try:
-                url = master_repomd % (self.release.version, arch)
-                self.log.info('Polling %s' % url)
-                masterrepomd = urllib2.urlopen(url)
+                self.log.info('Polling %s' % master_repomd_url)
+                masterrepomd = urllib2.urlopen(master_repomd_url)
             except (urllib2.URLError, urllib2.HTTPError):
                 self.log.exception('Error fetching repomd.xml')
                 time.sleep(200)
@@ -946,6 +940,38 @@ class MasherThread(threading.Thread):
                              ref=result.get('ref'),
                              commitid=result.get('commitid')),
                     force=True)
+
+    def _get_master_repomd_url(self, arch):
+        """
+        Look up the correct *_master_repomd setting in the config and use it to form the URL that
+        wait_for_sync() will use to determine when the repository has been synchronized to the
+        master mirror.
+
+        Args:
+            arch (basestring): The architecture for which a URL needs to be formed.
+
+        Returns:
+            basestring: A URL on the master mirror where the repomd.xml file should be synchronized.
+        """
+        release = self.release.id_prefix.lower().replace('-', '_')
+        request = self.request.value
+
+        # If the release has primary_arches defined in the config, we need to consider whether to
+        # use the release's *alt_master_repomd setting.
+        primary_arches = config.get(
+            '{release}_{version}_primary_arches'.format(
+                release=release, version=self.release.version))
+        if primary_arches and arch not in primary_arches.split():
+            key = '%s_%s_alt_master_repomd'
+        else:
+            key = '%s_%s_master_repomd'
+        key = key % (release, request)
+
+        master_repomd = config.get(key)
+        if not master_repomd:
+            raise ValueError("Could not find %s in the config file" % key)
+
+        return master_repomd % (self.release.version, arch)
 
 
 class MashThread(threading.Thread):

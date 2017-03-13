@@ -115,12 +115,32 @@ comps_url = https://git.fedorahosted.org/comps.git
 ##
 ## Mirror settings
 ##
+# file_url: Used in the repo metadata to set RPM URLs.
 file_url = https://download.fedoraproject.org/pub/fedora/linux/updates
-master_repomd = https://download.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
-fedora_stable_master_repomd = https://download.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
-fedora_testing_master_repomd = https://download.fedoraproject.org/pub/fedora/linux/updates/testing/%s/%s/repodata/repomd.xml
-fedora_epel_stable_master_repomd = https://download.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
-fedora_epel_testing_master_repomd = https://download.fedoraproject.org/pub/epel/testing/%s/%s/repodata/repomd.xml
+
+# {release}_{request}_master_repomd: This is used by the masher to determine when a
+#     primary architecture push has been synchronized to the master mirror for a given release and
+#     request. The masher will verify that the checksum of repomd.xml at the master URL matches the
+#     expected value, and will poll the URL until this test passes. Substitute release and request
+#     for each release id (replacing -'s with _'s) and request (stable, testing). Used for the
+#     arches listed in {release}_{version}_primary_arches when it is defined, else used for all
+#     arches. You must put two %s's in this setting - the first will be replaced with the release
+#     version and the second will be replaced with the architecture.
+fedora_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.x
+fedora_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/%s/repodata/repomd.xml
+fedora_epel_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
+fedora_epel_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/testing/%s/%s/repodata/repomd.xml
+
+# {release}_{request}_alt_master_repomd: This is used by the masher to determine when a
+#     secondary architecture push has been synchronized to the master mirror for a given release and
+#     request. The masher will verify that the checksum of repomd.xml at the master URL matches the
+#     expected value, and will poll the URL until this test passes. Substitute release and request
+#     for each release id (replacing -'s with _'s) and request (stable, testing). Used for the
+#     arches listed in {release}_{version}_secondary_arches if it is defined. You must put two %s's
+#     in this setting - the first will be replaced with the release version and the second will be
+#     replaced with the architecture.
+fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.x
+fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.x
 
 
 ## The base url of this application
@@ -131,17 +151,17 @@ base_address = http://localhost:6543/
 ## Supported update types
 update_types = bugfix enhancement security newpackage
 
-## Supported architechures
+
+## Primary architechures by release
 ##
-## To handle arch name changes between releases, you
-## can also configure bodhi to support one arch *or*
-## another. For example, EPEL5 mashes produce 'ppc'
-## repos, where EPEL6 produces 'ppc64'. To handle this
-## scenario, you can specify something like:
-##
-##   arches = ppc/ppc64
-##
-arches = x86_64 i386 armhfp
+## {release}_{version}_primary_arches: Releases that have alternative arches must define their
+##      primary arches here. Any arches found during mashing that are not present here are asssumed
+##      to be alternative arches. This is used during the wait_for_repo() step of the mash where
+##      Bodhi polls the master repo to find out whether the mash has made it to the repo or not.
+##      Bodhi looks for primary arches with the {release}_{request}_master_repomd setting above, and
+##      for alternative arches at the {release}_{request}_alt_master_repomd setting above. If this
+##      is not set, Bodhi will assume the release only has primary arches.
+fedora_26_primary_arches = armhfp x86_64
 
 ##
 ## Email setting

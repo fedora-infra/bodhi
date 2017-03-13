@@ -1135,6 +1135,97 @@ class MasherThreadBaseTestCase(base.BaseTestCase):
         buildsys.teardown_buildsystem()
 
 
+class TestMasherThread__get_master_repomd_url(MasherThreadBaseTestCase):
+    """This test class contains tests for the MasherThread._get_master_repomd_url() method."""
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_17_primary_arches': 'armhfp x86_64',
+         'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+         'fedora_testing_alt_master_repomd':
+         'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml'})
+    def test_alternative_arch(self):
+        """
+        Assert that the *_alt_master_repomd settings are used when the release does define primary
+        arches and the arch being looked up is not in the primary arch list.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+
+        url = t._get_master_repomd_url('aarch64')
+
+        self.assertEqual(
+            url,
+            'http://example.com/pub/fedora-secondary/updates/testing/17/aarch64/repodata.repomd.xml'
+        )
+
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_17_primary_arches': 'armhfp x86_64',
+         'fedora_testing_master_repomd': None,
+         'fedora_testing_alt_master_repomd': None})
+    def test_master_repomd_undefined(self):
+        """
+        Assert that a ValueError is raised when the config is missing a master_repomd config for
+        the release.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+
+        with self.assertRaises(ValueError) as exc:
+            t._get_master_repomd_url('aarch64')
+
+        self.assertEqual(unicode(exc.exception),
+                         'Could not find fedora_testing_alt_master_repomd in the config file')
+
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_17_primary_arches': 'armhfp x86_64',
+         'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+         'fedora_testing_alt_master_repomd':
+         'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml'})
+    def test_primary_arch(self):
+        """
+        Assert that the *_master_repomd settings are used when the release does define primary
+        arches and the arch being looked up is primary.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+
+        url = t._get_master_repomd_url('x86_64')
+
+        self.assertEqual(
+            url,
+            'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml'
+        )
+
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+         'fedora_testing_alt_master_repomd':
+         'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml'})
+    def test_primary_arches_undefined(self):
+        """
+        Assert that the *_master_repomd settings are used when the release does not have primary
+        arches defined in the config file.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+
+        url = t._get_master_repomd_url('aarch64')
+
+        self.assertEqual(
+            url,
+            'http://example.com/pub/fedora/linux/updates/testing/17/aarch64/repodata.repomd.xml'
+        )
+
+
 class TestMasherThread__perform_tag_actions(MasherThreadBaseTestCase):
     """This test class contains tests for the MasherThread._perform_tag_actions() method."""
     @mock.patch('bodhi.server.consumers.masher.buildsys.wait_for_tasks')
@@ -1237,16 +1328,16 @@ class TestMasherThread_update_comps(unittest.TestCase):
 
 class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
     """This test class contains tests for the MasherThread.wait_for_sync() method."""
-    @mock.patch(
-        'bodhi.server.consumers.masher.config.get',
-        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
-    )
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
     @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
                 return_value=StringIO('---\nyaml: rules'))
-    def test_checksum_match_immediately(self, urlopen, publish, get):
+    def test_checksum_match_immediately(self, urlopen, publish):
         """
         Assert correct operation when the repomd checksum matches immediately.
         """
@@ -1269,20 +1360,19 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
             mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
                       force=True)]
         publish.assert_has_calls(expected_calls)
-        get.assert_called_once_with('fedora_testing_master_repomd')
         urlopen.assert_called_once_with(
             'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
 
-    @mock.patch(
-        'bodhi.server.consumers.masher.config.get',
-        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
-    )
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
         side_effect=[StringIO('wrong'), StringIO('nope'), StringIO('---\nyaml: rules')])
-    def test_checksum_match_third_try(self, urlopen, sleep, publish, get):
+    def test_checksum_match_third_try(self, urlopen, sleep, publish):
         """
         Assert correct operation when the repomd checksum matches on the third try.
         """
@@ -1305,7 +1395,6 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
             mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
                       force=True)]
         publish.assert_has_calls(expected_calls)
-        get.assert_called_once_with('fedora_testing_master_repomd')
         expected_calls = [
             mock.call(
                 'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
@@ -1313,17 +1402,17 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         urlopen.assert_has_calls(expected_calls)
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
 
-    @mock.patch(
-        'bodhi.server.consumers.masher.config.get',
-        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
-    )
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
         side_effect=[urllib2.HTTPError('url', 404, 'Not found', {}, None),
                      StringIO('---\nyaml: rules')])
-    def test_httperror(self, urlopen, sleep, publish, get):
+    def test_httperror(self, urlopen, sleep, publish):
         """
         Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
         """
@@ -1347,7 +1436,6 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
             mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
                       force=True)]
         publish.assert_has_calls(expected_calls)
-        get.assert_called_once_with('fedora_testing_master_repomd')
         expected_calls = [
             mock.call(
                 'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
@@ -1356,13 +1444,15 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
         sleep.assert_called_once_with(200)
 
-    @mock.patch('bodhi.server.consumers.masher.config.get', return_value=None)
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd': None})
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
     @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
                 mock.MagicMock(side_effect=Exception('urlopen should not be called')))
-    def test_missing_config_key(self, publish, get):
+    def test_missing_config_key(self, publish):
         """
         Assert that a ValueError is raised when the needed *_master_repomd config is missing.
         """
@@ -1384,18 +1474,13 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
                          'Could not find fedora_testing_master_repomd in the config file')
         publish.assert_called_once_with(topic='mashtask.sync.wait',
                                         msg={'repo': t.id, 'agent': 'bowlofeggs'}, force=True)
-        get.assert_called_once_with('fedora_testing_master_repomd')
 
-    @mock.patch(
-        'bodhi.server.consumers.masher.config.get',
-        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
-    )
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
     @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
                 mock.MagicMock(side_effect=Exception('urlopen should not be called')))
-    def test_missing_repomd(self, publish, get):
+    def test_missing_repomd(self, publish):
         """
         Assert that an error is logged when the local repomd is missing.
         """
@@ -1412,21 +1497,20 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
 
         publish.assert_called_once_with(topic='mashtask.sync.wait',
                                         msg={'repo': t.id, 'agent': 'bowlofeggs'}, force=True)
-        get.assert_called_once_with('fedora_testing_master_repomd')
         t.log.error.assert_called_once_with(
             'Cannot find local repomd: %s', os.path.join(repodata, 'repomd.xml'))
 
-    @mock.patch(
-        'bodhi.server.consumers.masher.config.get',
-        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
-    )
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
         side_effect=[urllib2.URLError('it broke'),
                      StringIO('---\nyaml: rules')])
-    def test_urlerror(self, urlopen, sleep, publish, get):
+    def test_urlerror(self, urlopen, sleep, publish):
         """
         Assert that a URLError is properly caught and logged, and that the algorithm continues.
         """
@@ -1450,7 +1534,6 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
             mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
                       force=True)]
         publish.assert_has_calls(expected_calls)
-        get.assert_called_once_with('fedora_testing_master_repomd')
         expected_calls = [
             mock.call(
                 'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
