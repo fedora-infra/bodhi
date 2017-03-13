@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+from cStringIO import StringIO
 import datetime
 import json
 import os
@@ -18,6 +19,7 @@ import shutil
 import tempfile
 import time
 import unittest
+import urllib2
 import urlparse
 
 from sqlalchemy import create_engine
@@ -1231,3 +1233,228 @@ class TestMasherThread_update_comps(unittest.TestCase):
         self.masher_thread.update_comps()
         self.assertEqual(0, mock_cmd.call_count)
         self.masher_thread.log.error.assert_called_once_with('comps_url must start with https://')
+
+
+class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
+    """This test class contains tests for the MasherThread.wait_for_sync() method."""
+    @mock.patch(
+        'bodhi.server.consumers.masher.config.get',
+        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
+    )
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep',
+                mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
+                return_value=StringIO('---\nyaml: rules'))
+    def test_checksum_match_immediately(self, urlopen, publish, get):
+        """
+        Assert correct operation when the repomd checksum matches immediately.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.id = 'f26-updates-testing'
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        for arch in ['aarch64', 'x86_64']:
+            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            os.makedirs(repodata)
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write('---\nyaml: rules')
+
+        t.wait_for_sync()
+
+        expected_calls = [
+            mock.call(topic='mashtask.sync.wait', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True),
+            mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True)]
+        publish.assert_has_calls(expected_calls)
+        get.assert_called_once_with('fedora_testing_master_repomd')
+        urlopen.assert_called_once_with(
+            'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
+
+    @mock.patch(
+        'bodhi.server.consumers.masher.config.get',
+        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
+    )
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
+    @mock.patch(
+        'bodhi.server.consumers.masher.urllib2.urlopen',
+        side_effect=[StringIO('wrong'), StringIO('nope'), StringIO('---\nyaml: rules')])
+    def test_checksum_match_third_try(self, urlopen, sleep, publish, get):
+        """
+        Assert correct operation when the repomd checksum matches on the third try.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.id = 'f26-updates-testing'
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        for arch in ['aarch64', 'x86_64']:
+            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            os.makedirs(repodata)
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write('---\nyaml: rules')
+
+        t.wait_for_sync()
+
+        expected_calls = [
+            mock.call(topic='mashtask.sync.wait', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True),
+            mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True)]
+        publish.assert_has_calls(expected_calls)
+        get.assert_called_once_with('fedora_testing_master_repomd')
+        expected_calls = [
+            mock.call(
+                'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
+            for i in range(3)]
+        urlopen.assert_has_calls(expected_calls)
+        sleep.assert_has_calls([mock.call(200), mock.call(200)])
+
+    @mock.patch(
+        'bodhi.server.consumers.masher.config.get',
+        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
+    )
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
+    @mock.patch(
+        'bodhi.server.consumers.masher.urllib2.urlopen',
+        side_effect=[urllib2.HTTPError('url', 404, 'Not found', {}, None),
+                     StringIO('---\nyaml: rules')])
+    def test_httperror(self, urlopen, sleep, publish, get):
+        """
+        Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.id = 'f26-updates-testing'
+        t.log = mock.MagicMock()
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        for arch in ['aarch64', 'x86_64']:
+            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            os.makedirs(repodata)
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write('---\nyaml: rules')
+
+        t.wait_for_sync()
+
+        expected_calls = [
+            mock.call(topic='mashtask.sync.wait', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True),
+            mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True)]
+        publish.assert_has_calls(expected_calls)
+        get.assert_called_once_with('fedora_testing_master_repomd')
+        expected_calls = [
+            mock.call(
+                'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
+            for i in range(2)]
+        urlopen.assert_has_calls(expected_calls)
+        t.log.exception.assert_called_once_with('Error fetching repomd.xml')
+        sleep.assert_called_once_with(200)
+
+    @mock.patch('bodhi.server.consumers.masher.config.get', return_value=None)
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep',
+                mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
+                mock.MagicMock(side_effect=Exception('urlopen should not be called')))
+    def test_missing_config_key(self, publish, get):
+        """
+        Assert that a ValueError is raised when the needed *_master_repomd config is missing.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.id = 'f26-updates-testing'
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        for arch in ['aarch64', 'x86_64']:
+            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            os.makedirs(repodata)
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write('---\nyaml: rules')
+
+        with self.assertRaises(ValueError) as exc:
+            t.wait_for_sync()
+
+        self.assertEqual(unicode(exc.exception),
+                         'Could not find fedora_testing_master_repomd in the config file')
+        publish.assert_called_once_with(topic='mashtask.sync.wait',
+                                        msg={'repo': t.id, 'agent': 'bowlofeggs'}, force=True)
+        get.assert_called_once_with('fedora_testing_master_repomd')
+
+    @mock.patch(
+        'bodhi.server.consumers.masher.config.get',
+        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
+    )
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep',
+                mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
+                mock.MagicMock(side_effect=Exception('urlopen should not be called')))
+    def test_missing_repomd(self, publish, get):
+        """
+        Assert that an error is logged when the local repomd is missing.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.id = 'f26-updates-testing'
+        t.log = mock.MagicMock()
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        repodata = os.path.join(t.path, t.id, 'x86_64', 'repodata')
+        os.makedirs(repodata)
+
+        t.wait_for_sync()
+
+        publish.assert_called_once_with(topic='mashtask.sync.wait',
+                                        msg={'repo': t.id, 'agent': 'bowlofeggs'}, force=True)
+        get.assert_called_once_with('fedora_testing_master_repomd')
+        t.log.error.assert_called_once_with(
+            'Cannot find local repomd: %s', os.path.join(repodata, 'repomd.xml'))
+
+    @mock.patch(
+        'bodhi.server.consumers.masher.config.get',
+        return_value='http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
+    )
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
+    @mock.patch(
+        'bodhi.server.consumers.masher.urllib2.urlopen',
+        side_effect=[urllib2.URLError('it broke'),
+                     StringIO('---\nyaml: rules')])
+    def test_urlerror(self, urlopen, sleep, publish, get):
+        """
+        Assert that a URLError is properly caught and logged, and that the algorithm continues.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.id = 'f26-updates-testing'
+        t.log = mock.MagicMock()
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        for arch in ['aarch64', 'x86_64']:
+            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            os.makedirs(repodata)
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write('---\nyaml: rules')
+
+        t.wait_for_sync()
+
+        expected_calls = [
+            mock.call(topic='mashtask.sync.wait', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True),
+            mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True)]
+        publish.assert_has_calls(expected_calls)
+        get.assert_called_once_with('fedora_testing_master_repomd')
+        expected_calls = [
+            mock.call(
+                'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
+            for i in range(2)]
+        urlopen.assert_has_calls(expected_calls)
+        t.log.exception.assert_called_once_with('Error fetching repomd.xml')
+        sleep.assert_called_once_with(200)
