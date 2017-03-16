@@ -1008,14 +1008,6 @@ class Update(Base):
         if req is not None:
             up.set_request(db, req, request.user.name)
 
-        if not data['autokarma']:
-            data['stable_karma'] = None
-            data['unstable_karma'] = None
-            caveats.append({
-                'name': 'autokarma',
-                'description': 'Auto-karma requests disabled.',
-            })
-
         for key, value in data.items():
             setattr(up, key, value)
 

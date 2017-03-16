@@ -2606,8 +2606,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         self.assertEquals(up['require_bugs'], True)
         self.assertEquals(up['require_testcases'], False)
-        self.assertEquals(up['stable_karma'], None)
-        self.assertEquals(up['unstable_karma'], None)
+        self.assertEquals(up['stable_karma'], 3)
+        self.assertEquals(up['unstable_karma'], -3)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -2891,6 +2891,45 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up._composite_karma, (0, 0))
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_karma_threshold_with_disabled_autopush(self, publish, *args):
+        """Ensure Karma threshold field is not None when Autopush is disabled."""
+        build = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(build)
+        args['autokarma'] = False
+        args['stable_karma'] = 3
+        args['unstable_karma'] = -3
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = r.json_body
+        self.assertEquals(up['autokarma'], False)
+        self.assertEquals(up['stable_karma'], 3)
+        self.assertEquals(up['unstable_karma'], -3)
+
+        # Pretend it was pushed to testing
+        update = self.db.query(Update).filter_by(title=build).one()
+        update.request = None
+        update.status = UpdateStatus.testing
+        update.pushed = True
+        self.db.flush()
+
+        # Mark it as testing
+        args['edited'] = args['builds']
+
+        # Change Karma Thresholds
+        args['stable_karma'] = 4
+        args['unstable_karma'] = -4
+
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['status'], u'testing')
+        self.assertEquals(up['request'], None)
+        self.assertEquals(up['autokarma'], False)
+        self.assertEquals(up['stable_karma'], 4)
+        self.assertEquals(up['unstable_karma'], -4)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
