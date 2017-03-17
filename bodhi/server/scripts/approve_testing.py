@@ -12,8 +12,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-This script is responsible for commenting on updates after they reach the
-mandatory amount of time spent in the testing repository.
+This module generates the bodhi-approve-testing console script.
+
+Iis responsible for commenting on updates after they reach the mandatory amount of time spent in the
+testing repository.
 """
 
 import os
@@ -31,6 +33,12 @@ from ..config import config
 
 
 def usage(argv):
+    """
+    Print usage information and exit with code 1.
+
+    Args:
+        argv (list): The arguments that were passed to the CLI from sys.argv.
+    """
     cmd = os.path.basename(argv[0])
     print('usage: %s <config_uri>\n'
           '(example: "%s development.ini")' % (cmd, cmd))
@@ -38,6 +46,19 @@ def usage(argv):
 
 
 def main(argv=sys.argv):
+    """
+    Comment on updates that are eligible to be pushed to stable.
+
+    Queries for updates in the testing state that have a NULL request, looping over them looking for
+    updates that are eligible to be pushed to stable but haven't had comments from Bodhi to this
+    effect. For each such update it finds it will add a comment stating that the update may now be
+    pushed to stable.
+
+    This function is the entry point for the bodhi-approve-testing console script.
+
+    Args:
+        argv (list): A list of command line arguments. Defaults to sys.argv.
+    """
     if len(argv) != 2:
         usage(argv)
 

@@ -71,6 +71,11 @@
   pip:
       name: pyramid_debugtoolbar
 
+# This isn't packaged in Fedora yet, but there is a package review open https://bugzilla.redhat.com/show_bug.cgi?id=1409654
+- name: pip install pydocstyle
+  pip:
+      name: pydocstyle
+
 - name: Install bodhi in developer mode
   command: python /home/vagrant/bodhi/setup.py develop
   args:

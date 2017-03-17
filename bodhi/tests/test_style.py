@@ -35,3 +35,21 @@ class TestStyle(unittest.TestCase):
         flake8_command = ['flake8', '--max-line-length', '100', '--ignore=E712', REPO_PATH]
 
         self.assertEqual(subprocess.call(flake8_command), 0)
+
+    @unittest.skipUnless(os.path.exists('/usr/bin/pydocstyle'),
+                         'This test only runs if /usr/bin/pydocstyle exists.')
+    def test_code_with_pydocstyle(self):
+        """Enforce PEP-257 compliance on the codebase.
+
+        This test runs pydocstyle on a subset of the code. The bodhi code is currently undergoing a
+        change to bring all of the codebase into PEP-257 compliance, but the changes will be made
+        slowly. This test enforces only modules that have been corrected to comply with pydocstyle.
+        The goal is that this test would one day check the entire codebase.
+        """
+        enforced_paths = ['bodhi/server/scripts/approve_testing.py']
+
+        enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
+        pydocstyle_command = ['pydocstyle']
+        pydocstyle_command.extend(enforced_paths)
+
+        self.assertEqual(subprocess.call(pydocstyle_command), 0)
