@@ -29,10 +29,7 @@ class TestStyle(unittest.TestCase):
     def test_code_with_flake8(self):
         """Enforce PEP-8 compliance on the codebase.
 
-        This test runs flake8 on a subset of the code. The bodhi code is currently undergoing a
-        change to bring all of the codebase into PEP-8 compliance, but the changes will be made
-        slowly. This test enforces only modules that have been corrected to comply with flake8. The
-        goal is that this test would one day check the entire codebase.
+        This test runs flake8 on the code, and will fail if it returns a non-zero exit code.
         """
         # We ignore E712, which disallows non-identity comparisons with True and False
         flake8_command = ['flake8', '--max-line-length', '100', '--ignore=E712', REPO_PATH]
