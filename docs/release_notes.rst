@@ -33,6 +33,8 @@ Bugs
   (`#1351 <https://github.com/fedora-infra/bodhi/issues/1351>`_).
 * Initialize the bugtracker in ``main()`` instead of on import so that docs can be built without
   installing Bodhi (`#1359 <https://github.com/fedora-infra/bodhi/pulls/1359>`_).
+* Masher cleans up the old mashes at the end of every run
+  (`#1304 <https://github.com/fedora-infra/bodhi/issues/1304>`_).
 
 
 
@@ -56,6 +58,7 @@ The following contributors submitted patches for REPLACE THIS WITH A VERSION BEF
 * Ryan Lerch
 * Bianca Nenciu
 * Randy Barlow
+* Ankit Raj Ojha
 
 
 2.5.0

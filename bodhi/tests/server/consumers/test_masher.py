@@ -155,6 +155,10 @@ class TestMasher(unittest.TestCase):
 
         set_bugtracker.assert_called_once_with()
 
+    @mock.patch('bodhi.server.scripts.clean_old_mashes.NUM_TO_KEEP', 2)
+    def test_clean_up(self, clean_up):
+        self.assertEquals(len(clean_up.call_args_list), 1)
+
     @mock.patch('bodhi.server.notifications.publish')
     def test_invalid_signature(self, publish):
         """Make sure the masher ignores messages that aren't signed with the
