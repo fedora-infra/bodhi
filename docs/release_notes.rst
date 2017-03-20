@@ -16,12 +16,36 @@ Features
   (`#1313 <https://github.com/fedora-infra/bodhi/issues/1313>`_).
 * The ``bodhi`` CLI now has a ``--url`` flag that can be used to switch which Bodhi server it
   communicates with. The ``BODHI_URL`` environment can also be used to configure this flag.
+* The documentation has been reorganized.
+* The Python bindings are now documented.
+* Bodhi will now announce that karma has been reset to 0 when builds are added or removed from
+  updates (`6d6de4bc <https://github.com/fedora-infra/bodhi/commit/6d6de4bc>`_).
+* Bodhi will now announce that autokarma has been disabled when an update received negative karma
+  (`d3ccc579 <https://github.com/fedora-infra/bodhi/commit/d3ccc579>`_).
+* The docs theme is now Alabaster
+  (`57a80f42 <https://github.com/fedora-infra/bodhi/commit/57a80f42>`_).
+* The Bodhi documentation now has a description of Bodhi on the landing page
+  (`#1322 <https://github.com/fedora-infra/bodhi/issues/1322>`_).
+* The REST API is now documented
+  (`#1323 <https://github.com/fedora-infra/bodhi/issues/1323>`_).
+* The client Python bindings can now accept a ``base_url`` that doesn't end in a slash
+  (`1087939b <https://github.com/fedora-infra/bodhi/commit/1087939b>`_).
 
 
 Bugs
 ^^^^
 * The position of the Add Comment button is now the bottom right.
   (`#902 <https://github.com/fedora-infra/bodhi/issues/902>`_).
+* An unusuable ``--request`` flag has been removed from a CLI command
+  (`#1187 <https://github.com/fedora-infra/bodhi/issues/1187>`_).
+* The cursor is now a pointer when hovering over Releases button
+  (`#1296 <https://github.com/fedora-infra/bodhi/issues/1296>`_).
+* The number of days to stable is now correctly calculated on updates
+  (`#1305 <https://github.com/fedora-infra/bodhi/issues/1305>`_).
+* Fix a query regular expression so that Fedora update ids work
+  (`d5bec3fa <https://github.com/fedora-infra/bodhi/commit/d5bec3fa>`_).
+* Karma thresholds can now be set when autopush is disabled
+  (`#1033 <https://github.com/fedora-infra/bodhi/issues/1033>`_).
 
 
 Development improvements
@@ -30,6 +54,21 @@ Development improvements
 * The Vagrant development environment automatically configures the BODHI_URL environment
   variable so that the client talks to the local server instead of production or staging.
 * Test coverage is up another percentage to 82%.
+* Bodhi is now PEP-8 compliant.
+* The development environment now displays all Python warnings once.
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.5.0:
+
+* Ryan Lerch
+* Trishna Guha
+* Jeremy Cline
+* Ankit Raj Ojha
+* Ariel O. Barria
+* Randy Barlow
 
 
 2.4.0
