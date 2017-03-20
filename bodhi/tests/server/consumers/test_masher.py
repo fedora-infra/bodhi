@@ -144,6 +144,15 @@ class TestMasher(unittest.TestCase):
             update.request = UpdateRequest.stable
             session.flush()
 
+    @mock.patch('bodhi.server.consumers.masher.bugs.set_bugtracker')
+    def test___init___sets_bugtracker(self, set_bugtracker):
+        """
+        Assert that Masher.__init__() calls bodhi.server.bugs.set_bugtracker().
+        """
+        Masher(FakeHub(), db_factory=self.db_factory, mash_dir=self.tempdir)
+
+        set_bugtracker.assert_called_once_with()
+
     @mock.patch('bodhi.server.notifications.publish')
     def test_invalid_signature(self, publish):
         """Make sure the masher ignores messages that aren't signed with the

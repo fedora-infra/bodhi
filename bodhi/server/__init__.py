@@ -29,7 +29,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from bodhi.server import buildsys, ffmarkdown
+from bodhi.server import bugs, buildsys, ffmarkdown
 
 
 log = logging.getLogger(__name__)
@@ -123,7 +123,8 @@ DEFAULT_FILTERS.insert(0, exception_filter)
 
 def main(global_config, testing=None, session=None, **settings):
     """ This function returns a WSGI application """
-    # Setup our buildsystem
+    # Setup our bugtracker and buildsystem
+    bugs.set_bugtracker()
     buildsys.setup_buildsystem(settings)
 
     # Sessions & Caching

@@ -22,6 +22,7 @@ import bugzilla
 from bodhi.server.config import config
 
 
+bugtracker = None
 log = logging.getLogger('bodhi')
 
 
@@ -176,9 +177,14 @@ class Bugzilla(BugTracker):
             log.exception("Unable to alter bug #%d" % bug_id)
 
 
-if config.get('bugtracker') == 'bugzilla':
-    log.info('Using python-bugzilla')
-    bugtracker = Bugzilla()
-else:
-    log.info('Using the FakeBugTracker')
-    bugtracker = FakeBugTracker()
+def set_bugtracker():
+    """
+    Set the module-level bugtracker attribute to the correct bugtracker, based on the config.
+    """
+    global bugtracker
+    if config.get('bugtracker') == 'bugzilla':
+        log.info('Using python-bugzilla')
+        bugtracker = Bugzilla()
+    else:
+        log.info('Using the FakeBugTracker')
+        bugtracker = FakeBugTracker()

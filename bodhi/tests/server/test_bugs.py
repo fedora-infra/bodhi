@@ -219,3 +219,28 @@ class TestFakeBugTracker(unittest.TestCase):
         bt.__noop__(1, 2)
 
         debug.assert_called_once_with('__noop__((1, 2))')
+
+
+class TestSetBugtracker(unittest.TestCase):
+    """
+    Test the set_bugtracker() function.
+    """
+    @mock.patch('bodhi.server.bugs.bugtracker', None)
+    @mock.patch.dict('bodhi.server.bugs.config', {'bugtracker': 'bugzilla'})
+    def test_config_bugzilla(self):
+        """
+        Test when the config is set for bugzilla to be the bugtracker.
+        """
+        bugs.set_bugtracker()
+
+        self.assertTrue(isinstance(bugs.bugtracker, bugs.Bugzilla))
+
+    @mock.patch('bodhi.server.bugs.bugtracker', None)
+    @mock.patch.dict('bodhi.server.bugs.config', {'bugtracker': 'fake'})
+    def test_config_not_bugzilla(self):
+        """
+        Test when the config is no set for bugzilla to be the bugtracker.
+        """
+        bugs.set_bugtracker()
+
+        self.assertTrue(isinstance(bugs.bugtracker, bugs.FakeBugTracker))

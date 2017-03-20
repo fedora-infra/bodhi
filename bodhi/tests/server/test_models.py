@@ -28,7 +28,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 import cornice
 import mock
 
-from bodhi.server import models as model, buildsys, mail, util
+from bodhi.server import models as model, bugs, buildsys, mail, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
@@ -47,6 +47,7 @@ class ModelTest(object):
     attrs = {}
 
     def setUp(self):
+        bugs.set_bugtracker()
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
         engine = create_engine('sqlite://')
         Session = scoped_session(
@@ -314,8 +315,8 @@ class TestUpdate(ModelTest):
 
         eq_(update.days_to_stable, 3)
 
-    @mock.patch('bodhi.server.models.bugtracker.close')
-    @mock.patch('bodhi.server.models.bugtracker.comment')
+    @mock.patch('bodhi.server.models.bugs.bugtracker.close')
+    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
     def test_modify_bugs_stable_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to True."""
         update = self.get_update()
@@ -341,8 +342,8 @@ class TestUpdate(ModelTest):
                 for c in close.mock_calls]),
             True)
 
-    @mock.patch('bodhi.server.models.bugtracker.close')
-    @mock.patch('bodhi.server.models.bugtracker.comment')
+    @mock.patch('bodhi.server.models.bugs.bugtracker.close')
+    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
     def test_modify_bugs_stable_no_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to False."""
         update = self.get_update()
