@@ -126,7 +126,7 @@ assert result['update']['request'] == 'testing'
 
 print('Revoking request')
 result = bodhi.request(update=alias, request='revoke')
-assert result['update']['request'] == None
+assert result['update']['request'] is None
 
 print('Adding comment')
 result = bodhi.comment(update=alias, comment='yay', karma=1)
