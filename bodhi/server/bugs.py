@@ -15,10 +15,11 @@
 import logging
 import xmlrpclib
 
-from kitchen.text.converters import to_unicode
 from bunch import Bunch
-from bodhi.server.config import config
+from kitchen.text.converters import to_unicode
 import bugzilla
+
+from bodhi.server.config import config
 
 
 log = logging.getLogger('bodhi')
