@@ -36,7 +36,7 @@ from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 import fedmsg.consumers
 
-from bodhi.server import log, buildsys, notifications, mail, util
+from bodhi.server import bugs, log, buildsys, notifications, mail, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import ExtendedMetadata
@@ -126,6 +126,7 @@ Once mash is done:
             self.db_factory = db_factory
 
         buildsys.setup_buildsystem(config)
+        bugs.set_bugtracker()
         self.mash_dir = mash_dir
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')

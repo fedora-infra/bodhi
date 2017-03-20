@@ -36,7 +36,7 @@ import time
 
 import fedmsg.consumers
 
-from bodhi.server.bugs import bugtracker
+from bodhi.server import bugs as bug_module
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Bug, Update, UpdateType
@@ -67,6 +67,8 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         self.handle_bugs = bool(config.get('bodhi_email'))
         if not self.handle_bugs:
             log.warn("No bodhi_email defined; not fetching bug details")
+        else:
+            bug_module.set_bugtracker()
 
         super(UpdatesHandler, self).__init__(hub, *args, **kwargs)
         log.info('Bodhi updates handler listening on:\n'
@@ -123,7 +125,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         for bug in bugs:
             log.info("Getting RHBZ bug %r" % bug.bug_id)
             try:
-                rhbz_bug = bugtracker.getbug(bug.bug_id)
+                rhbz_bug = bug_module.bugtracker.getbug(bug.bug_id)
 
                 log.info("Updating our details for %r" % bug.bug_id)
                 bug.update_details(rhbz_bug)

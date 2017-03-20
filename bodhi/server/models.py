@@ -46,7 +46,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 from pyramid.settings import asbool
 
-from bodhi.server import buildsys, mail, notifications, log
+from bodhi.server import bugs, buildsys, mail, notifications, log
 from bodhi.server.util import (
     header, build_evr, get_nvr, flash_log, get_age, get_critpath_pkgs,
     get_rpm_header, get_age_in_days, avatar as get_avatar, tokenize,
@@ -54,7 +54,6 @@ from bodhi.server.util import (
 import bodhi.server.util
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.config import config
-from bodhi.server.bugs import bugtracker
 from bodhi.server.util import transactional_session_maker
 
 
@@ -2184,7 +2183,7 @@ class Bug(Base):
 
         This is typically called "offline" in the UpdatesHandler consumer.
         """
-        bugtracker.update_details(bug, self)
+        bugs.bugtracker.update_details(bug, self)
 
     def default_message(self, update):
         message = config['stable_bug_msg'] % (
@@ -2210,7 +2209,7 @@ class Bug(Base):
             if not comment:
                 comment = self.default_message(update)
             log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
-            bugtracker.comment(self.bug_id, comment)
+            bugs.bugtracker.comment(self.bug_id, comment)
 
     def testing(self, update):
         """
@@ -2222,7 +2221,7 @@ class Bug(Base):
             log.debug('Not modifying on parent security bug %s', self.bug_id)
         else:
             comment = self.default_message(update)
-            bugtracker.on_qa(self.bug_id, comment)
+            bugs.bugtracker.on_qa(self.bug_id, comment)
 
     def close_bug(self, update):
         # Build a mapping of package names to build versions
@@ -2230,14 +2229,14 @@ class Bug(Base):
         versions = dict([
             (get_nvr(b.nvr)[0], b.nvr) for b in update.builds
         ])
-        bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
+        bugs.bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
 
     def modified(self, update):
         """ Change the status of this bug to MODIFIED """
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying on parent security bug %s', self.bug_id)
         else:
-            bugtracker.modified(self.bug_id)
+            bugs.bugtracker.modified(self.bug_id)
 
 
 user_group_table = Table('user_group_table', Base.metadata,

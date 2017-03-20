@@ -231,7 +231,8 @@ class TestUpdatesHandlerInit(unittest.TestCase):
 
         __init__.assert_called_once_with(hub)
 
-    def test_typical_config(self):
+    @mock.patch('bodhi.server.consumers.updates.bug_module.set_bugtracker')
+    def test_typical_config(self, set_bugtracker):
         """
         Test the method with a typical config.
         """
@@ -248,3 +249,4 @@ class TestUpdatesHandlerInit(unittest.TestCase):
             h.topic,
             ['topic_prefix.environment.bodhi.update.request.testing',
              'topic_prefix.environment.bodhi.update.edit'])
+        set_bugtracker.assert_called_once_with()

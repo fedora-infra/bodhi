@@ -26,7 +26,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 import requests
 import transaction
 
-from bodhi.server import log, models
+from bodhi.server import bugs, log, models
 from bodhi.tests.server import create_update, populate
 
 
@@ -51,6 +51,7 @@ if os.environ.get('BUILD_ID'):
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
+        bugs.set_bugtracker()
         engine = create_engine(DB_PATH)
         # We want a special session that lasts longer than a transaction
         self.Session = scoped_session(
