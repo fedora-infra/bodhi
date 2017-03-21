@@ -265,7 +265,7 @@ Create a new update with multiple builds::
 Help
 ====
 
-If you find bugs in bodhi (or in the mage page), please feel free to file a bug report or a pull
+If you find bugs in bodhi (or in the man page), please feel free to file a bug report or a pull
 request::
 
     https://github.com/fedora-infra/bodhi
