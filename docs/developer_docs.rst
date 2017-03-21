@@ -11,14 +11,16 @@ Contribution guidelines
 Before you submit a pull request to Bodhi, please ensure that it meets these criteria:
 
 * All tests must pass.
-* New code should have 100% test coverage. This one is particularly important, as we don't want to
+* New code must have 100% test coverage. This one is particularly important, as we don't want to
   deploy any broken code into production.
-* New functions, methods, and classes should have docblocks that explain what the code block is, and
-  describing any parameters it accepts and what it returns (if anything).
-* New code should follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_. You can use the
+* New functions, methods, and classes must have docblocks that explain what the code block is, and
+  describing any parameters it accepts and what it returns (if anything). You can use the
+  ``pydocstyle`` utility to automatically check your code for this. There is a
+  ``bodhi.tests.test_style.TestStyle.test_code_with_pydocstyle`` test, that is slowly being expanded
+  to enforce PEP-257 across the codebase.
+* New code must follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_. You can use the
   ``flake8`` utility to automatically check your code. There is a
-  ``bodhi.tests.test_style.TestStyle.test_code_with_flake8`` test, that is slowly being expanded to
-  enforce PEP-8 across the codebase.
+  ``bodhi.tests.test_style.TestStyle.test_code_with_flake8`` to enforce this style.
 * Add an entry to ``docs/release_notes.rst`` for any changes you make that should be in release
   notes.
 * Make sure your commits are atomic. Each commit should focus on one improvement or bug fix. If you
