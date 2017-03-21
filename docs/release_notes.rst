@@ -1,5 +1,21 @@
 Release notes
 =============
+develop
+-------
+
+Features
+^^^^^^^^
+
+
+Bugs
+^^^^
+
+* The icons that we introduced in the new theme previously didn't have titles.
+  Consequently, a user might not have know what these icons meant. Now if a user
+  hovers over these icons, they get a description of what they mean, for
+  example: "This is a bugfix update" or "This update is in the critial path"
+  (`#1362 <https://github.com/fedora-infra/bodhi/issues/1362>`_).
+
 
 develop
 -------

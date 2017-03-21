@@ -437,7 +437,9 @@ def type2icon(context, kind):
         'enhancement': 'fa-bolt',
     }.get(kind)
 
-    return "<span class='label label-%s'><i class='fa %s'></i></span>" % (cls, fontawesome)
+    return "<span class='label label-%s' data-toggle='tooltip'\
+            title='This is a %s update'><i class='fa %s'></i></span> \
+            " % (cls, kind, fontawesome)
 
 
 def severity2html(context, severity):

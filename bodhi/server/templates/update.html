@@ -410,7 +410,7 @@ $(document).ready(function(){
         ${self.util.type2icon(update.type) | n}
       % endif
       % if update.critpath:
-      <span class="label label-danger"> <i class="fa fa-fire"></i></span>
+      <span data-toggle="tooltip" title="This update is in the critical path" class="label label-danger"> <i class="fa fa-fire"></i></span>
       % endif
 
       % if can_edit:
