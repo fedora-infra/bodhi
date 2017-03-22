@@ -46,7 +46,8 @@ class TestStyle(unittest.TestCase):
         slowly. This test enforces only modules that have been corrected to comply with pydocstyle.
         The goal is that this test would one day check the entire codebase.
         """
-        enforced_paths = ['bodhi/server/scripts/approve_testing.py']
+        enforced_paths = ['bodhi/server/scripts/approve_testing.py',
+                          'bodhi/server/scripts/expire_overrides.py']
 
         enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
         pydocstyle_command = ['pydocstyle']

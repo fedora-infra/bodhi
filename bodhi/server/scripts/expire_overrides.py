@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Contains the code that is used to generate the bodhi-expire-overrides server CLI."""
 
 from datetime import datetime
 import logging
@@ -28,6 +29,12 @@ from ..models import BuildrootOverride
 
 
 def usage(argv):
+    """
+    Print usage info and exit(1).
+
+    Args:
+        argv (list): The command line arguments that were passed to the CLI from sys.argv.
+    """
     cmd = os.path.basename(argv[0])
     print('usage: %s <config_uri>\n'
           '(example: "%s development.ini")' % (cmd, cmd))
@@ -35,6 +42,12 @@ def usage(argv):
 
 
 def main(argv=sys.argv):
+    """
+    Search for overrides that are past their expiration date and mark them expired.
+
+    Args:
+        argv (list): The command line arguments. Defaults to sys.argv.
+    """
     if len(argv) != 2:
         usage(argv)
 
