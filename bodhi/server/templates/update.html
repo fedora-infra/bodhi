@@ -2,6 +2,40 @@
 <%namespace name="captcha" module="bodhi.server.captcha"/>
 <%namespace name="json" module="json"/>
 
+<%def name="generateupdatetitlestring()">
+
+  % if len(update.builds) == 1:
+    % for build in update.builds:
+      ${self.util.packagename_from_nvr(build.nvr)}
+    % endfor
+  % elif len(update.builds) == 2:
+    % for build in update.builds:
+      % if loop.last:
+      and
+      % endif
+      ${self.util.packagename_from_nvr(build.nvr)}
+    % endfor
+  % elif len(update.builds) > 2:
+    % for build in update.builds:
+      % if loop.index == 0:
+      ${self.util.packagename_from_nvr(build.nvr)},
+      % elif loop.index == 1:
+      ${self.util.packagename_from_nvr(build.nvr)}
+      &amp; ${len(update.builds)-2} more
+      % endif
+    % endfor
+  % endif
+</%def>
+
+<%block name="pagetitle">
+% if update.alias:
+  ${update.alias}
+% endif
+&mdash;
+${update.type} update for ${generateupdatetitlestring()}
+&mdash; Fedora Updates System
+</%block>
+
 <link rel="alternate" type="application/atom+xml" title="New Comments on ${update.alias}" href="${request.route_url('comments_rss')}?updates=${update.alias}"/>
 
 <script type="text/javascript">
@@ -412,13 +446,11 @@ $(document).ready(function(){
       % endif
 
     </h1>
-    <h3>
-      ${update.type} update for
-      % for build in update.builds:
-        ${self.util.packagename_from_nvr(build.nvr)}
-      % endfor
+    <h4>
+      ${update.type} update
       in ${update.release.long_name}
-    </h3>
+      for ${generateupdatetitlestring()}
+    </h4>
     <div>
       Status: ${self.util.status2html(update.status) | n}
       % if 'pending' in update.status:

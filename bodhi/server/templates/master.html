@@ -19,11 +19,11 @@
     <link rel="shortcut icon" href="${request.static_url('bodhi:server/static/ico/favicon.ico')}">
 
     <base href="${request.registry.settings['base_address']}"/>
-    % if not update:
-        <title>Fedora Updates System</title>
-    % else:
-        <title>${update.title} - Fedora Updates System</title>
-    % endif
+    <title>
+      <%block name="pagetitle">
+      Fedora Updates System
+      </%block>
+    </title>
     <link href="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/open-sans.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/hack.css') }" rel="stylesheet" />
