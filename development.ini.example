@@ -126,7 +126,7 @@ file_url = https://download.fedoraproject.org/pub/fedora/linux/updates
 #     arches listed in {release}_{version}_primary_arches when it is defined, else used for all
 #     arches. You must put two %s's in this setting - the first will be replaced with the release
 #     version and the second will be replaced with the architecture.
-fedora_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.x
+fedora_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
 fedora_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/%s/repodata/repomd.xml
 fedora_epel_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
 fedora_epel_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/testing/%s/%s/repodata/repomd.xml
@@ -139,8 +139,8 @@ fedora_epel_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub
 #     arches listed in {release}_{version}_secondary_arches if it is defined. You must put two %s's
 #     in this setting - the first will be replaced with the release version and the second will be
 #     replaced with the architecture.
-fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.x
-fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.x
+fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.xml
+fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.xml
 
 
 ## The base url of this application
