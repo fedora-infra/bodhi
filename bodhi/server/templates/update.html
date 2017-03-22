@@ -282,13 +282,13 @@ $(document).ready(function() {
     var messenger = Messenger({theme: 'flat'});
     var update_id = '${update.title}';
     $("#updatebuttons #edit").attr('href',
-        '${request.route_url("update_edit", id=update.title)}');
+        '${request.route_url("update_edit", id=update.alias)}');
 
     $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
       $("#updatebuttons #" + action).click(function() {
           $("#updatebuttons a").addClass('disabled');
           cabbage.spin(); // for real!
-          var url = '${request.route_url("update_request", id=update.title)}';
+          var url = '${request.route_url("update_request", id=update.alias)}';
           $.ajax({
               url: url,
               data: {
