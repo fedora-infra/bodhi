@@ -808,7 +808,7 @@ class Update(Base):
                 # comments in reverse order, once we find one of these comments we can simply exit
                 # this loop.
                 break
-            if not comment.anonymous and comment.user.name not in users_counted:
+            if comment.karma and not comment.anonymous and comment.user.name not in users_counted:
                 # Make sure we only count the last comment this user made
                 users_counted.add(comment.user.name)
                 if comment.karma > 0:

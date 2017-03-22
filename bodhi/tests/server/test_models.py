@@ -529,6 +529,21 @@ class TestUpdate(ModelTest):
 
         eq_(self.obj._composite_karma, (0, -1))
 
+    def test__composite_karma_ignores_comments_without_karma(self):
+        """
+        Assert that _composite_karma ignores comments that don't carry karma.
+
+        See https://github.com/fedora-infra/bodhi/issues/829
+        """
+        self.obj.comment(self.db, u"It ate my ostree", -1, u'dusty')
+        self.obj.comment(self.db, u"i love it push to stable now", 1, u'ididntreallytestitlol')
+        # In bug #829, this comment would have overridden dusty's earlier -1 changing his vote to be
+        # 0.
+        self.obj.comment(self.db, u"plz no don't… my ostreeeeee!", 0, u'dusty')
+
+        # The composite karma should be 1, -1 since dusty's earlier vote should still count.
+        eq_(self.obj._composite_karma, (1, -1))
+
     def test__composite_karma_ignores_old_comments(self):
         """Assert that _composite_karma ignores karma from a user's previous responses."""
         self.obj.comment(self.db, u"I", -1, u'foo')
