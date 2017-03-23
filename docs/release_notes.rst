@@ -1,6 +1,61 @@
 Release notes
 =============
 
+develop
+-------
+
+This section is a placeholder for changes made on the develop branch before they are included in a
+release. For each change, add an entry here and make sure your name is in the Release Contributors
+section.
+
+
+Features
+^^^^^^^^
+
+* The web UI footer has been restyled to fit better with the new theme
+  (`#1366 <https://github.com/fedora-infra/bodhi/pulls/1366>`_).
+
+
+Bugs
+^^^^
+
+* Comments that don't carry karma don't count as a user's karma vote
+  (`#829 <https://github.com/fedora-infra/bodhi/issues/829>`_).
+* Update page titles are shorter now for large updates
+  (`#957 <https://github.com/fedora-infra/bodhi/issues/957>`_).
+* The web UI now uses the update alias instead of the title so editors of large updates can click
+  the edit button (`#1161 <https://github.com/fedora-infra/bodhi/issues/1161>`_).
+* Add support for alternate architectures to the MasherThread.wait_for_sync()
+  (`#1343 <https://github.com/fedora-infra/bodhi/issues/1343>`_).
+* Update pages with lots of updates look cleaner
+  (`#1351 <https://github.com/fedora-infra/bodhi/issues/1351>`_).
+* Initialize the bugtracker in ``main()`` instead of on import so that docs can be built without
+  installing Bodhi (`#1359 <https://github.com/fedora-infra/bodhi/pulls/1359>`_).
+
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* A new automated PEP-257 test has been introduced to enforce docblocks across the codebase.
+  Converting the code will take some time, but the code will be expanded to fully support PEP-257
+  eventually. A few modules have now been documented.
+* Test coverage is now 83%.
+* The Vagrant environment now has vim with a simple vim config to make sure spaces are used instead
+  of tabs (`#1372 <https://github.com/fedora-infra/bodhi/pulls/1372>`_).
+
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following contributors submitted patches for REPLACE THIS WITH A VERSION BEFORE RELEASE:
+
+* Ryan Lerch
+* Bianca Nenciu
+* Randy Barlow
+
+
 2.5.0
 -----
 
