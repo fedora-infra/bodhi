@@ -258,10 +258,12 @@ Create a new update with multiple builds::
     $ bodhi updates new --user bowlofeggs --type bugfix --notes "Fix permission issues during startup." --bugs 1393587 --close-bugs --request testing --autokarma --stable-karma 3 --unstable-karma -3 ejabberd-16.09-2.fc25,erlang-esip-1.0.8-1.fc25,erlang-fast_tls-1.0.7-1.fc25,erlang-fast_yaml-1.0.6-1.fc25,erlang-fast_xml-1.1.15-1.fc25,erlang-iconv-1.0.2-1.fc25,erlang-stringprep-1.0.6-1.fc25,erlang-stun-1.0.7-1.fc25
 
 
-Bugs
+Help
 ====
 
 If you find bugs in bodhi (or in the mage page), please feel free to file a bug report or a pull
 request::
 
     https://github.com/fedora-infra/bodhi
+
+Bodhi's documentation is available online: https://bodhi.fedoraproject.org/docs

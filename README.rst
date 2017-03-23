@@ -9,7 +9,7 @@ Documentation
 =============
 
 You can read Bodhi's documentation
-`online <https://github.com/fedora-infra/bodhi/blob/develop/docs/>`_, or by installing it on your
+`online <https://bodhi.fedoraproject.org/docs>`_, or by installing it on your
 Fedora 26 or newer system and pointing your browser at
 ``/usr/share/doc/bodhi-docs/html/index.html``::
 

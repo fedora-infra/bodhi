@@ -14,6 +14,8 @@ Features
 
 * The web UI footer has been restyled to fit better with the new theme
   (`#1366 <https://github.com/fedora-infra/bodhi/pulls/1366>`_).
+* The web UI footer has been added with the documentation link.
+  (`#1321 <https://github.com/fedora-infra/bodhi/issues/1321>`_).
 
 
 Bugs
