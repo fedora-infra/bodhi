@@ -1,0 +1,38 @@
+=====
+Bodhi
+=====
+
+Welcome to Bodhi, Fedora's update gating system.
+
+
+Documentation
+=============
+
+You can read Bodhi's documentation
+`online <https://github.com/fedora-infra/bodhi/blob/develop/docs/>`_, or by installing it on your
+Fedora 26 or newer system and pointing your browser at
+``/usr/share/doc/bodhi-docs/html/index.html``::
+
+    $ sudo dnf install bodhi-docs && firefox /usr/share/doc/bodhi-docs/html/index.html
+
+If you are interested in contributing to Bodhi, you can read the
+`developer documentation <https://github.com/fedora-infra/bodhi/blob/develop/docs/developer_docs.rst>`_.
+
+
+Meetings
+========
+
+There is a meeting every four weeks between Bodhi developers and stakeholder,
+held on IRC. If you would like to attend, you can see details here:
+
+https://apps.fedoraproject.org/calendar/meeting/4667/
+
+
+IRC
+===
+
+Come join us on `Freenode <https://freenode.net/>`_! We've got two channels:
+
+* #bodhi - We use this channel to discuss upstream bodhi development
+* #fedora-apps - We use this channel to discuss Fedora's Bodhi deployment (it is more generally
+  about all of Fedora's infrastructure applications.)
