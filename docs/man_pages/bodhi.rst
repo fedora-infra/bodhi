@@ -39,7 +39,11 @@ Most of the commands will accept these options:
 
 ``--user <username>``
 
-    Many commands accept this flag to specify which user's updates should be operated upon.
+    Many commands accept this flag to specify a Fedora username to authenticate with. The
+    username can also be provided via the ``USERNAME`` environment variable. Note that some read
+    operations such as querying updates and overrides use this same flag, but as a search parameter
+    instead of authentication (as authentication is not required for these operations). Those
+    operations do not use the ``USERNAME`` environment variable.
 
 ``--version``
 
