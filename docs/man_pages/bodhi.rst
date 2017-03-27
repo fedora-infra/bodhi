@@ -41,6 +41,11 @@ Most of the commands will accept these options:
 
     Many commands accept this flag to specify which user's updates should be operated upon.
 
+``--mine``
+
+    Some commands accept this flag instead of the ``--user <username>`` option. This uses the
+    value from the ``USERNAME`` environment variable.
+
 ``--version``
 
     Show version and exit. Not accepted by subcommands.
