@@ -26,6 +26,15 @@
             % endfor
           ]
         }
+        // About 25 labels should be printed at most.
+        let every_nth = Math.max(1, Math.round(data.labels.length / 25));
+        let every_filter = function(element, index) {
+            return index % every_nth == 0;
+        }
+        data.labels = data.labels.filter(every_filter);
+        for (let dataset of data.datasets) {
+            dataset.data = dataset.data.filter(every_filter);
+        }
         var ctx = document.getElementById("releasechart").getContext("2d");
         var myNewChart = new Chart(ctx).Line(data);
       </script>
