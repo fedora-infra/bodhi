@@ -10,6 +10,11 @@ Contribution guidelines
 
 Before you submit a pull request to Bodhi, please ensure that it meets these criteria:
 
+* You must have a `FAS account <https://admin.fedoraproject.org/accounts>`_ and you must sign the
+  `FPCA <https://fedoraproject.org/wiki/Legal:Fedora_Project_Contributor_Agreement>`_. Make sure to
+  use the same e-mail address on your FAS account as you use for your git configuration so your
+  commits can be used to lookup your FAS username. The reviewer will verify that your account is in
+  the ``cla_done`` and ``cla_fpca`` FAS groups.
 * All tests must pass.
 * New code must have 100% test coverage. This one is particularly important, as we don't want to
   deploy any broken code into production.
