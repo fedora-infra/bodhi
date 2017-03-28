@@ -20,6 +20,8 @@ Features
 
 Bugs
 ^^^^
+* Make the release graph easier to read when there are many datapoints
+  (`#1172 <https://github.com/fedora-infra/bodhi/issues/1172>`_).
 * The position of the Add Comment button is now the bottom right.
   (`#902 <https://github.com/fedora-infra/bodhi/issues/902>`_).
 
