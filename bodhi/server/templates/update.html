@@ -40,7 +40,7 @@ ${update.type} update for ${generateupdatetitlestring()}
 
 <script type="text/javascript">
   $(document).ready(function() {
-    var base_url = '${request.registry.settings["resultsdb_api_url"]}' + '/api/v1.0/';
+    var base_url = '${request.registry.settings["resultsdb_api_url"]}' + '/api/v2.0/';
 
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {
@@ -74,7 +74,7 @@ ${update.type} update for ${generateupdatetitlestring()}
     // These are the required taskotron tests
     var requirements = ${update.requirements_json | n};
 
-    var make_row = function(outcome, testcase, item, arch, time, url) {
+    var make_row = function(outcome, testcase, note, arch, time, url) {
       var icon = '<span data-toggle="tooltip" data-placement="top" ' +
         'title="' + outcome + '" ' +
         'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">' +
@@ -89,7 +89,8 @@ ${update.type} update for ${generateupdatetitlestring()}
       }
 
       if (arch != undefined) {
-        item = item + "<small>(" + arch + ")</small>";
+        testcase = testcase + "&nbsp;<span class='label label-default'>"
+          + arch + "</label>";
       }
 
       var age = '';
@@ -98,25 +99,31 @@ ${update.type} update for ${generateupdatetitlestring()}
         // https://github.com/fedora-infra/bodhi/issues/217
         var age = moment(time + ' Z').fromNow();
       }
-
-      return '<tr class="table-' + classes[outcome] + '" ' +
+      if (note == null){
+        note = '';
+      }
+      return '<tr class="row-automatedtests table-' + classes[outcome] + '" ' +
         'style="cursor: pointer;"' +
         'data-href="' + url + '">' +
         '<td>' + required + '</td>' +
         '<td>' + icon + '</td>' +
-        '<td>' + testcase + '</td>' +
-        '<td>' + item + '</td>' +
-        '<td>' + age + '</td>' +
+        '<td class="nowrap">' + testcase + '</td>' +
+        '<td class="stretch-table-column text-xs-right">' + note + '</td>' +
+        '<td class="nowrap">' + age + '</td>' +
         '</tr>';
     };
 
     var latest = {};
+    var activeResultsAjaxCalls = 0;
     var receive_resultsdb = function(data) {
+      if (data.next){
+        request_results(data.next);
+      }
+      activeResultsAjaxCalls--;
 
       // First, prune duplicate results.  For instance, some depcheck runs
       // happen multiple times on an update.  We only (imho) want to display
       // the latest ones for each arch.  So, prune like this:
-      var changed = false;
       $.each(data.data, function(i, result) {
 
         // However, we want to skip over any ABORTED results:
@@ -124,95 +131,86 @@ ${update.type} update for ${generateupdatetitlestring()}
         if (result.outcome == 'ABORTED') return;
 
         var name = result.testcase.name;
-        var arch = result.result_data.arch;
-        var item = result.result_data.item;
+        var arch = result.data.arch;
+        var item = result.data.item;
         var submit_time = new Date(result.submit_time);
-        if (latest[name] === undefined)
-          latest[name] = {};
-        if (latest[name][arch] === undefined)
-          latest[name][arch] = {};
-        if (latest[name][arch][item] === undefined) {
-          latest[name][arch][item] = result;
-          changed = true;
+
+
+        if (latest[item] === undefined)
+          latest[item] = {};
+        if (latest[item][arch] === undefined)
+          latest[item][arch] = {};
+        if (latest[item][arch][name] === undefined) {
+          latest[item][arch][name] = result;
+
+          // the latest/ api endpoint doesnt take into account multiple arches
+          // for dist.depcheck. So if we hit one of these for the first time
+          // we do a call to get the other one.
+          if (name == 'dist.depcheck'){
+            var theurl = base_url+"results?testcases=dist.depcheck&item="+item+"&type=koji_build";
+            if (arch == 'x86_64'){
+              theurl = theurl +"&arch=i386"
+            } else {
+              theurl = theurl +"&arch=x86_64"
+            }
+            request_results(theurl);
+          }
         }
-        if (new Date(latest[name][arch][item].submit_time) < submit_time) {
-          latest[name][arch][item] = result;
-          changed = true;
+        if (new Date(latest[item][arch][name].submit_time) < submit_time) {
+          latest[item][arch][name] = result;
         }
       });
 
-      // If this was the last page of data, then bail out.
-      if (data.data.length == 0) {
-        // Kill the thing showing that we're still loading data, since we're
-        // done-done now.
-        $('#resultsdb .spinner').remove();
-
-        // Furthermore, if no rows got written.. then we have no results at
-        // all!  So, hang an 'out to lunch' sign on the door.
-        if ($('#resultsdb tr:not(.warning)').length == 0) {
-          var testcase = data.href.match(/testcases\/(.*)\/results/)[1];
-          if ($.inArray(testcase, requirements) != -1) {
-            $('#resultsdb table').append(make_row(
-                  'ABSENT',
-                  testcase,
-                  'No result found',
-                  undefined,
-                  undefined,
-                  data.href
-            ));
-          }
-        }
-
-        finish();
-
-        return;
-      }
-
-      // Otherwise, go ahead an request the next page async while we render.
-      // If nothing changed as of the last page, then go ahead and bail.  Wait
-      // for the next page.
-      if (! changed) {
-        request_resultsdb_page(data.next);
-        return;
-      }
-
-      // Remove all our old rows.  Something changed, so we're going to write new ones.
-      $('#resultsdb tr').remove();
-
-      // So, let's complete pruning.  Collapse that nested structure back to a list.
+      // we have all the results. lets render them out
+      if (activeResultsAjaxCalls == 0){
       var data = [];
-      $.each(latest, function(name, obj1) {
+      var count = 0;
+      $.each(latest, function(buildname, obj1) {
+        count = count +1;
+        $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
+        "</h4><table class='table table-hover' id='buildresults"+count+
+        "'></table>")
         $.each(obj1, function(arch, obj2) {
-          $.each(obj2, function(item, result) {
-            data.push(result);
+          $.each(obj2, function(testcasename, result) {
+            $('#buildresults'+count).append(make_row(
+                result.outcome,
+                result.testcase.name,
+                result.note,
+                result.data.arch,
+                result.submit_time,
+                result.ref_url
+            ));
           });
         });
       });
 
-      // Then, once we have pruned, build a bunch of cells and render each
-      // result in the table
-      $.each(data, function(i, result) {
-        // When there are many builds in an update, the large number of taskotron results can be a
-        // problem for browsers. Only show the non-passing results in this case.
-        // See https://github.com/fedora-infra/bodhi/issues/951
-        if (builds.length < 16 || result.outcome != "PASSED") {
-            $('#resultsdb table').append(make_row(
-                result.outcome,
-                result.testcase.name,
-                result.result_data.item,
-                result.result_data.arch,
-                result.submit_time,
-                result.log_url
-            ));
-        }
-      });
-
       finish();
+    };
     };
 
     var finish = function() {
-      // Furthermore, remove the spinner if its still around.
+      // Furthermore, remove the spinners.
+      $("#tab-automatedtests .fa-spinner").remove();
       $('#resultsdb .spinner').remove();
+
+      // add the count of tests to the automated tests tab
+
+      var successcount = $('.row-automatedtests.table-success').length;
+      var warningcount = $('.row-automatedtests.table-warning').length;
+      var failedcount = $('.row-automatedtests.table-danger').length;
+
+
+      if (successcount > 0){
+      $("#tab-automatedtests").append(" <span class='label label-success'><span class='fa fa-check-circle'></span> "+successcount+"</span>");
+      }
+
+      if (warningcount > 0 ){
+        $("#tab-automatedtests").append(" <span class='label label-warning'><span class='fa fa-exclamation-circle'></span> "+warningcount+"</span>");
+      }
+
+      if (failedcount > 0 ){
+        $("#tab-automatedtests").append(" <span class='label label-danger'><span class='fa fa-minus-circle'></span> "+failedcount+"</span>");
+      }
 
       // Make each cell clickable and awesome
       $('#resultsdb tr').off().click(function(event, row) {
@@ -223,12 +221,18 @@ ${update.type} update for ${generateupdatetitlestring()}
       $('#resultsdb span').tooltip();
     }
 
-    var request_resultsdb_page = function(url) {
+
+
+    var request_results = function(url) {
       $.ajax(url, {
+        beforeSend: function(xhr) {
+          activeResultsAjaxCalls++;
+        },
         dataType: 'jsonp',
         cache: false,
         success: receive_resultsdb,
         error: function(v1, v2, v3) {
+          activeResultsAjaxCalls--;
           $('#resultsdb .spinner').remove();
           $('#resultsdb').append(
             '<h4 class="text-danger">Error getting results.</h4>');
@@ -236,44 +240,11 @@ ${update.type} update for ${generateupdatetitlestring()}
       });
     };
 
-    var receive_testcases = function(data) {
-      if (data.data.length == 0) { return; }
-      // Queue up the next page of possible testcases
-      gather_testcases(data.next);
-      // And queue up requests for the results of the testcases we already know about.
-      $.each(data.data, function(i, testcase) {
-        $.each(builds, function(j, nvr) {
-          var param = $.param({
-              type: 'koji_build',
-              item: nvr,
-          });
-          var url = base_url + 'testcases/' + testcase.name + '/results?' + param;
-          request_resultsdb_page(url);
-        });
-      });
+    $("#tab-automatedtests").append(" <span class='fa fa-spinner fa-spin'></span>");
+
+    for (index = 0, len = builds.length; index < len; ++index) {
+      request_results(base_url+"results/latest?item="+builds[index]+"&type=koji_build&testcases:like=dist.*");
     }
-
-    var gather_testcases = function(url) {
-      $.ajax(url, {
-        dataType: 'jsonp',
-        cache: false,
-        success: receive_testcases,
-        error: function(v1, v2, v3) {
-          $('#resultsdb .spinner').remove();
-          $('#resultsdb').append(
-            '<h4 class="text-danger">Error getting testcases.</h4>');
-        },
-      });
-
-    }
-
-    if (builds.length > 16) {
-	$("<h4>Large update detected: passing test results filtered.</h4>").insertBefore('#resultsdb table');
-    }
-    // Kick off a few chains of paginated queries.  One for each of the
-    // possible testcases.
-    gather_testcases(base_url + 'testcases');
-
   });
 </script>
 
@@ -334,7 +305,6 @@ $(document).ready(function(){
       url: this.url + "../comments/" + data.comment.id,
       dataType: "html",
       success: function(html) {
-        console.log(html);
         $("#comments").append(html);
       },
       error: function(html) {
@@ -485,7 +455,7 @@ $(document).ready(function(){
   % endif
 
   <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#automatedtests" role="tab">Automated Tests</a>
+    <a class="nav-link" id="tab-automatedtests" data-toggle="tab" href="#automatedtests" role="tab">Automated Tests</a>
   </li>
 
 </ul>
@@ -885,11 +855,6 @@ $(document).ready(function(){
       <div id="resultsdb">
       <h3>Automated Test Results</h3>
       <img class='spinner' src='static/img/spinner.gif'>
-      <table class="table">
-        <colgroup class='strip' span="1"></colgroup>
-        <colgroup span="1"></colgroup>
-        <colgroup span="1"></colgroup>
-      </table>
       </div>
     </div>
 
