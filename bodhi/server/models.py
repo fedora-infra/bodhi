@@ -476,12 +476,28 @@ class TestCase(Base):
 
 
 class Package(Base):
+    """
+    This model represents a package.
+
+    This model uses single-table inheritance to allow for different package types.
+
+    Attributes:
+        name (unicode): A unicode string that uniquely identifies the package.
+        requirements (unicode): A unicode string that describes the requirements of a package.
+        type (int): The polymorphic identity column. This is used to identify what Python
+            class to create when loading rows from the database.
+        builds (list): A list of :class:`Build` objects.
+        test_cases (list): A list of :class:`TestCase` objects.
+        committers (list): A list of :class:`User` objects who are committers.
+        stack_id (int): A foreign key to the :class:`Stack`
+    """
     __tablename__ = 'packages'
     __get_by__ = ('name',)
     __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds',)
 
     name = Column(UnicodeText, unique=True, nullable=False)
     requirements = Column(UnicodeText)
+    type = Column(Integer, nullable=False)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
     test_cases = relationship('TestCase', backref='package')
@@ -489,6 +505,11 @@ class Package(Base):
                               backref='packages')
 
     stack_id = Column(Integer, ForeignKey('stacks.id'))
+
+    __mapper_args__ = {
+        'polymorphic_on': type,
+        'polymorphic_identity': 0,
+    }
 
     def get_pkg_pushers(self, branch, settings):
         """ Pull users who can commit and are watching a package.
@@ -586,6 +607,14 @@ class Package(Base):
                     x += "    o %s\n" % update.get_title()
         del states
         return x
+
+
+class RpmPackage(Package):
+    """Represents a RPM package."""
+
+    __mapper_args__ = {
+        'polymorphic_identity': 1,
+    }
 
 
 class Build(Base):
