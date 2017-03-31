@@ -333,3 +333,38 @@ class TestMain(BaseTestCase):
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+
+    @patch.dict(config, [('fedora.mandatory_days_in_testing', 14)])
+    def test_subsequent_comments_after_initial_push_comment(self):
+        """
+        If a user edits an update after Bodhi comments a testing_approval_msg,
+        Bodhi should send an additional testing_approval_msg when the revised
+        update is eligible to be pushed to stable.
+
+        See https://github.com/fedora-infra/bodhi/issues/1310
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.request = None
+        update.status = models.UpdateStatus.testing
+        update.date_testing = datetime.now() - timedelta(days=14)
+        self.db.flush()
+
+        with patch(
+                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
+            approve_testing.main(['nosetests', 'some_config.ini'])
+            update.comment(self.db, u"Removed build", 0, u'bodhi')
+            approve_testing.main(['nosetests', 'some_config.ini'])
+
+        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
+        # There are 3 comments: testing_approval_msg, build change, testing_approval_msg
+        self.assertEqual(cmnts.count(), 3)
+        self.assertEqual(
+            cmnts[0].text,
+            config.get('testing_approval_msg') %
+            update.release.mandatory_days_in_testing)
+        self.assertEqual(cmnts[1].text, 'Removed build')
+        self.assertEqual(
+            cmnts[2].text,
+            config.get('testing_approval_msg') %
+            update.release.mandatory_days_in_testing)
