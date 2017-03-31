@@ -26,7 +26,7 @@ from bodhi.server.models import (
     UpdateType,
     Build,
     BuildrootOverride,
-    Package,
+    RpmPackage,
     Release,
 )
 from bodhi.server.validators import (
@@ -206,7 +206,7 @@ def query_releases_json(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Release.builds).join(Build.package)
-        query = query.filter(or_(*[Package.id == p.id for p in packages]))
+        query = query.filter(or_(*[RpmPackage.id == p.id for p in packages]))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.

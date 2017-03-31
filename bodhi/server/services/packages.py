@@ -16,7 +16,7 @@ import math
 from cornice import Service
 from sqlalchemy import func, distinct
 
-from bodhi.server.models import Package
+from bodhi.server.models import RpmPackage
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -35,20 +35,20 @@ packages = Service(name='packages', path='/packages/',
 def query_packages(request):
     db = request.db
     data = request.validated
-    query = db.query(Package)
+    query = db.query(RpmPackage)
 
     name = data.get('name')
     if name is not None:
-        query = query.filter(Package.name == name)
+        query = query.filter(RpmPackage.name == name)
 
     like = data.get('like')
     if like is not None:
-        query = query.filter(Package.name.like('%%%s%%' % like))
+        query = query.filter(RpmPackage.name.like('%%%s%%' % like))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
     count_query = query.with_labels().statement\
-        .with_only_columns([func.count(distinct(Package.name))])\
+        .with_only_columns([func.count(distinct(RpmPackage.name))])\
         .order_by(None)
     total = db.execute(count_query).scalar()
 

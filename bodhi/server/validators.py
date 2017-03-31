@@ -24,7 +24,7 @@ import rpm
 
 from . import captcha
 from . import log
-from .models import (Release, Package, Build, Update, UpdateStatus,
+from .models import (Release, RpmPackage, Build, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
                      Bug, TestCase, ReleaseState, Stack)
@@ -261,11 +261,11 @@ def validate_acls(request):
 
             buildinfo = request.buildinfo[build]
 
-            # Get the Package object
+            # Get the RpmPackage object
             package_name = buildinfo['nvr'][0]
-            package = db.query(Package).filter_by(name=package_name).first()
+            package = db.query(RpmPackage).filter_by(name=package_name).first()
             if not package:
-                package = Package(name=package_name)
+                package = RpmPackage(name=package_name)
                 db.add(package)
                 db.flush()
 
@@ -420,7 +420,7 @@ def validate_packages(request):
     validated_packages = []
 
     for p in packages:
-        package = Package.get(p, db)
+        package = RpmPackage.get(p, db)
 
         if not package:
             bad_packages.append(p)
@@ -614,7 +614,7 @@ def validate_update_id(request):
     if update:
         request.validated['update'] = update
     else:
-        package = Package.get(request.matchdict['id'], request.db)
+        package = RpmPackage.get(request.matchdict['id'], request.db)
         if package:
             query = dict(packages=package.name)
             location = request.route_url('updates', _query=query)
@@ -821,9 +821,9 @@ def _validate_override_build(request, nvr, db):
             return
 
         pkgname, version, rel = get_nvr(nvr)
-        package = Package.get(pkgname, db)
+        package = RpmPackage.get(pkgname, db)
         if not package:
-            package = Package(name=pkgname)
+            package = RpmPackage(name=pkgname)
             db.add(package)
             db.flush()
 

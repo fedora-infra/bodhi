@@ -28,7 +28,7 @@ import mock
 from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (
-    Build, BuildrootOverride, DEFAULT_DISABLE_AUTOPUSH_MESSAGE, Group, Package, Release,
+    Build, BuildrootOverride, DEFAULT_DISABLE_AUTOPUSH_MESSAGE, Group, RpmPackage, Release,
     ReleaseState, Update, UpdateRequest, UpdateStatus, UpdateType, User)
 import bodhi.tests.server.functional.base
 
@@ -281,7 +281,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_build(self, *args):
         """Test submitting a new update with a build already in the database"""
-        package = Package.get(u'bodhi', self.db)
+        package = RpmPackage.get(u'bodhi', self.db)
         self.db.add(Build(nvr=u'bodhi-2.0.0-3.fc17', package=package))
         self.db.flush()
 
@@ -293,7 +293,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_package(self, *args):
         """Test submitting a new update with a package that is already in the database."""
-        package = Package(name=u'existing-package')
+        package = RpmPackage(name=u'existing-package')
         self.db.add(package)
         self.db.flush()
         args = self.get_update(u'existing-package-2.4.1-5.fc17')
@@ -301,7 +301,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = self.app.post_json('/updates/', args)
 
         eq_(resp.json['title'], 'existing-package-2.4.1-5.fc17')
-        package = self.db.query(Package).filter_by(name=u'existing-package').one()
+        package = self.db.query(RpmPackage).filter_by(name=u'existing-package').one()
         self.assertEqual(package.name, 'existing-package')
 
     @mock.patch(**mock_valid_requirements)
@@ -312,14 +312,14 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = self.app.post_json('/updates/', args)
 
         eq_(resp.json['title'], 'missing-package-2.4.1-5.fc17')
-        package = self.db.query(Package).filter_by(name=u'missing-package').one()
+        package = self.db.query(RpmPackage).filter_by(name=u'missing-package').one()
         self.assertEqual(package.name, 'missing-package')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_cascade_package_requirements_to_update(self, publish, *args):
 
-        package = self.db.query(Package).filter_by(name=u'bodhi').one()
+        package = self.db.query(RpmPackage).filter_by(name=u'bodhi').one()
         package.requirements = u'upgradepath rpmlint'
         self.db.flush()
 
@@ -1763,7 +1763,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
             override_tag=u'f18-override',
             branch=u'f18')
         self.db.add(release)
-        pkg = Package(name=u'nethack')
+        pkg = RpmPackage(name=u'nethack')
         self.db.add(pkg)
 
         args = self.get_update('bodhi-2.0.0-2.fc17,nethack-4.0.0-1.fc18')
@@ -2495,7 +2495,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
             override_tag=u'f18-override',
             branch=u'f18')
         self.db.add(release)
-        pkg = Package(name=u'nethack')
+        pkg = RpmPackage(name=u'nethack')
         self.db.add(pkg)
 
         # A multi-release submission!!!  This should create *two* updates

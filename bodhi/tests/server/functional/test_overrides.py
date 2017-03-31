@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 
 import mock
 
-from bodhi.server.models import Build, Package, Release, User
+from bodhi.server.models import Build, RpmPackage, Release, User
 import bodhi.tests.server.functional.base
 
 
@@ -89,7 +89,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(override['notes'], 'blah blah blah')
 
     def test_list_overrides_by_packages_without_override(self):
-        self.db.add(Package(name=u'python'))
+        self.db.add(RpmPackage(name=u'python'))
         self.db.flush()
 
         res = self.app.get('/overrides/', {'packages': 'python'})
@@ -181,7 +181,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_create_override(self, publish):
         release = Release.get(u'F17', self.db)
 
-        package = Package(name=u'not-bodhi')
+        package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
         build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
                       release=release)
@@ -209,7 +209,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_duplicate_override(self, publish):
         release = Release.get(u'F17', self.db)
-        package = Package(name=u'not-bodhi')
+        package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
         build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
                       release=release)
@@ -242,14 +242,14 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
         release = Release.get(u'F17', self.db)
-        package = Package(name=u'not-bodhi')
+        package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
         build1 = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
                        release=release)
         self.db.add(build1)
         self.db.flush()
 
-        package = Package(name=u'another-not-bodhi')
+        package = RpmPackage(name=u'another-not-bodhi')
         self.db.add(package)
         build2 = Build(nvr=u'another-not-bodhi-2.0-2.fc17', package=package,
                        release=release)
@@ -288,7 +288,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_create_override_too_long(self, publish):
         release = Release.get(u'F17', self.db)
 
-        package = Package(name=u'not-bodhi')
+        package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
         build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
                       release=release)

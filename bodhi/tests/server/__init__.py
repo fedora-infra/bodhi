@@ -4,7 +4,7 @@ import mock
 import sqlalchemy
 
 from bodhi.server.models import (
-    Bug, Build, BuildrootOverride, Comment, CVE, Group, Package, Release, ReleaseState, Update,
+    Bug, Build, BuildrootOverride, Comment, CVE, Group, RpmPackage, Release, ReleaseState, Update,
     UpdateRequest, UpdateType, User, TestCase)
 
 
@@ -26,9 +26,9 @@ def create_update(session, build_nvrs, release_name=u'F17'):
     for nvr in build_nvrs:
         name, version, rel = nvr.rsplit('-', 2)
         try:
-            package = session.query(Package).filter_by(name=name).one()
+            package = session.query(RpmPackage).filter_by(name=name).one()
         except sqlalchemy.orm.exc.NoResultFound:
-            package = Package(name=name)
+            package = RpmPackage(name=name)
             session.add(package)
             user.packages.append(package)
             testcase = TestCase(name=u'Wat')

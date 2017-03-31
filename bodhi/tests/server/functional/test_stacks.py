@@ -14,7 +14,7 @@
 
 import mock
 
-from bodhi.server.models import Group, Package, Stack, User
+from bodhi.server.models import Group, RpmPackage, Stack, User
 import bodhi.tests.server.functional.base
 
 
@@ -28,7 +28,7 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     def setUp(self):
         super(TestStacksService, self).setUp()
-        package = Package(name=u'gnome-shell')
+        package = RpmPackage(name=u'gnome-shell')
         self.db.add(package)
         self.db.flush()
         self.stack = stack = Stack(name=u'GNOME', packages=[package])
@@ -52,8 +52,8 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     def test_list_stacks_with_pagination(self):
         # Create a second stack
-        pkg1 = Package(name=u'firefox')
-        pkg2 = Package(name=u'xulrunner')
+        pkg1 = RpmPackage(name=u'firefox')
+        pkg2 = RpmPackage(name=u'xulrunner')
         self.db.add(pkg1)
         self.db.add(pkg2)
         self.db.flush()
@@ -160,11 +160,11 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(body['requirements'], 'upgradepath')
 
         # Adding gnome-music to the stack should change its requirements, too.
-        package = self.db.query(Package).filter(Package.name == u'gnome-music').one()
+        package = self.db.query(RpmPackage).filter(RpmPackage.name == u'gnome-music').one()
         self.assertEquals(package.requirements, attrs['requirements'])
 
         # But not gnome-shell, since it was already in the stack.
-        package = self.db.query(Package).filter(Package.name == u'gnome-shell').one()
+        package = self.db.query(RpmPackage).filter(RpmPackage.name == u'gnome-shell').one()
         self.assertEquals(package.requirements, None)
 
     def test_delete_stack(self):

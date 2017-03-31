@@ -21,7 +21,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server import log
-from bodhi.server.models import Build, BuildrootOverride, Package, Release, User
+from bodhi.server.models import Build, BuildrootOverride, RpmPackage, Release, User
 import bodhi.server.schemas
 import bodhi.server.services.errors
 from bodhi.server.validators import (
@@ -111,7 +111,7 @@ def query_overrides(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(BuildrootOverride.build).join(Build.package)
-        query = query.filter(or_(*[Package.name == pkg.name for pkg in packages]))
+        query = query.filter(or_(*[RpmPackage.name == pkg.name for pkg in packages]))
 
     releases = data.get('releases')
     if releases is not None:

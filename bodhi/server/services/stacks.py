@@ -22,7 +22,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server import log, notifications
-from bodhi.server.models import Package, Stack, Group, User
+from bodhi.server.models import RpmPackage, Stack, Group, User
 from bodhi.server.util import tokenize
 from bodhi.server.validators import validate_packages, validate_stack, validate_requirements
 import bodhi.server.schemas
@@ -75,8 +75,8 @@ def query_stacks(request):
 
     packages = data.get('packages')
     if packages:
-        query = query.join(Package.stack)
-        query = query.filter(or_(*[Package.name == pkg.name for pkg in packages]))
+        query = query.join(RpmPackage.stack)
+        query = query.filter(or_(*[RpmPackage.name == pkg.name for pkg in packages]))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
@@ -154,12 +154,12 @@ def save_stack(request):
     # We make a special case out of packages here, since when a package is
     # added to a stack, we want to give it the same requirements as the stack
     # has. See https://github.com/fedora-infra/bodhi/issues/101
-    new, same, rem = stack.update_relationship('packages', Package, data, db)
+    new, same, rem = stack.update_relationship('packages', RpmPackage, data, db)
     if stack.requirements:
         additional = list(tokenize(stack.requirements))
 
         for name in new:
-            package = Package.get(name, db)
+            package = RpmPackage.get(name, db)
             original = package.requirements
             original = [] if not original else list(tokenize(original))
             package.requirements = " ".join(list(set(original + additional)))

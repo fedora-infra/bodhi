@@ -52,7 +52,7 @@ class TestFilterReleases(base.BaseTestCase):
         self.db.add(archived_release)
 
         # Let's add an obscure package called bodhi to the release.
-        pkg = self.db.query(models.Package).filter_by(name=u'bodhi').one()
+        pkg = self.db.query(models.RpmPackage).filter_by(name=u'bodhi').one()
         build = models.Build(nvr=u'bodhi-2.3.2-1.fc22', release=archived_release, package=pkg)
         self.db.add(build)
 
@@ -96,7 +96,7 @@ class TestFilterReleases(base.BaseTestCase):
         self.db.add(disabled_release)
         self.db.add(pending_release)
         # Let's add the bodhi package to both releases.
-        pkg = self.db.query(models.Package).filter_by(name=u'bodhi').one()
+        pkg = self.db.query(models.RpmPackage).filter_by(name=u'bodhi').one()
         disabled_build = models.Build(nvr=u'bodhi-2.3.2-1.fc21', release=disabled_release,
                                       package=pkg)
         pending_build = models.Build(nvr=u'bodhi-2.3.2-1.fc25', release=pending_release,
