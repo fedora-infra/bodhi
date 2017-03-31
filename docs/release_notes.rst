@@ -9,6 +9,14 @@ release. For each change, add an entry here and make sure your name is in the Re
 section.
 
 
+Special Instructions
+^^^^^^^^^^^^^^^^^^^^
+
+The database migrations have been trimmed in this release. To upgrade to this version of Bodhi
+from a version prior to 2.3, first upgrade to Bodhi 2.3, 2.4, or 2.5, run the database migrations,
+and then upgrade to this release.
+
+
 Features
 ^^^^^^^^
 
