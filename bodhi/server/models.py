@@ -829,17 +829,7 @@ class Update(Base):
         positive_karma = 0
         negative_karma = 0
         users_counted = set()
-        # We want to traverse the comments in reverse order so we only consider the most recent
-        # comments from any given user, and only the comments since the most recent karma reset
-        # event.
-        for comment in reversed(self.comments):
-            if (comment.user.name == u'bodhi' and
-                    ('New build' in comment.text or 'Removed build' in comment.text)):
-                # We only want to consider comments since the most recent karma reset, which happens
-                # whenever a build is added or removed from an Update. Since we are traversing the
-                # comments in reverse order, once we find one of these comments we can simply exit
-                # this loop.
-                break
+        for comment in self.comments_since_karma_reset:
             if comment.karma and not comment.anonymous and comment.user.name not in users_counted:
                 # Make sure we only count the last comment this user made
                 users_counted.add(comment.user.name)
@@ -849,6 +839,28 @@ class Update(Base):
                     negative_karma += comment.karma
 
         return positive_karma, negative_karma
+
+    @property
+    def comments_since_karma_reset(self):
+        """
+        Return the comments since the most recent karma reset event, which
+        occurs whenever a build is added or removed from an Update.
+        :return: an iterable of recent comments
+        :rtype: generator
+        """
+        # We want to traverse the comments in reverse order so we only consider
+        # the most recent comments from any given user and only the comments
+        # since the most recent karma reset event.
+        for comment in reversed(self.comments):
+            if (comment.user.name == u'bodhi' and
+                    ('New build' in comment.text or 'Removed build' in comment.text)):
+                # We only want to consider comments since the most recent karma
+                # reset, which happens whenever a build is added or removed
+                # from an Update. Since we are traversing the comments in
+                # reverse order, once we find one of these comments we can
+                # simply exit this loop.
+                break
+            yield comment
 
     @classmethod
     def new(cls, request, data):
@@ -1986,7 +1998,7 @@ class Update(Base):
                 return False
         else:
             return True
-        for comment in self.comments:
+        for comment in self.comments_since_karma_reset:
             if comment.user.name == u'bodhi' and \
                comment.text.startswith('This update has reached') and \
                'and can be pushed to stable now if the ' \
