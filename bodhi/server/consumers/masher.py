@@ -43,6 +43,7 @@ from bodhi.server.metadata import ExtendedMetadata
 from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, Base)
 from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
+from bodhi.server.scripts.clean_old_mashes import clean_up
 
 
 def checkpoint(method):
@@ -365,6 +366,7 @@ class MasherThread(threading.Thread):
 
             self.check_all_karma_thresholds()
             self.obsolete_older_updates()
+            self.clean_up()
 
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
@@ -973,6 +975,9 @@ class MasherThread(threading.Thread):
             raise ValueError("Could not find %s in the config file" % key)
 
         return master_repomd % (self.release.version, arch)
+
+    def clean_up(self):
+        pass
 
 
 class MashThread(threading.Thread):
