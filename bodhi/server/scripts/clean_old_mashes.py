@@ -11,9 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""
-This tool cleans up old mashes that are left over in mash_dir.
-"""
+"""This tool cleans up old mashes that are left over in mash_dir."""
 import collections
 
 import click
@@ -30,9 +28,7 @@ NUM_TO_KEEP = 10
 @click.command()
 @click.version_option(message='%(version)s')
 def clean_up():
-    """
-    Delete any repo mashes that are older than the newest 10 from each repo series.
-    """
+    """Delete any repo mashes that are older than the newest 10 from each repo series."""
     mash_dir = config.config['mash_dir']
 
     # This data structure will map the beginning of a group of dirs for the same repo to a list of
