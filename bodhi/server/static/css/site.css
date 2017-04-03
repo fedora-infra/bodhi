@@ -244,3 +244,26 @@ ul.updateslist li {
   display: none !important;
   visibility: hidden !important;
 }
+
+.front-count{
+  border:1px solid #ddd;
+  padding:1em;
+  text-align: left!important;
+  background-color: #f7f7f7;
+}
+
+.front-count-total{
+  font-size:3em;
+  line-height: 1em;
+  font-weight: 200;
+}
+
+.front-release{
+  border-bottom: 1px solid #eee;
+  padding-top: 1.5em;
+padding-bottom: 2em;
+}
+
+.notblue{
+  color:inherit;
+}

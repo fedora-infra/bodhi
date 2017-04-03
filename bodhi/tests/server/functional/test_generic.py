@@ -12,9 +12,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from datetime import datetime
+
 from pyramid.testing import DummyRequest
 
-from bodhi.server.models import Group, User
+from bodhi.server.models import (Group, User, Update, Release, UpdateStatus, UpdateType)
 from bodhi.server.security import remember_me
 import bodhi.tests.server.functional.base
 
@@ -100,6 +102,84 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
         res = self.app.get('/', status=200)
         self.assertIn('Log out', res)
         self.assertIn('Fedora Update System', res)
+
+    def test_home_counts(self):
+        """Test the frontpage update counts"""
+        user2 = User(name=u'dudemcpants')
+        self.db.flush()
+        self.db.add(user2)
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        addedupdates = [[UpdateStatus.pending,
+                         [[UpdateType.security, 5],
+                          [UpdateType.bugfix, 4],
+                          [UpdateType.enhancement, 3],
+                          [UpdateType.newpackage, 2]]],
+                        [UpdateStatus.testing,
+                         [[UpdateType.security, 15],
+                          [UpdateType.bugfix, 14],
+                          [UpdateType.enhancement, 13],
+                          [UpdateType.newpackage, 12]]],
+                        [UpdateStatus.stable,
+                         [[UpdateType.security, 25],
+                          [UpdateType.bugfix, 24],
+                          [UpdateType.enhancement, 23],
+                          [UpdateType.newpackage, 22]]]]
+        count = 0
+        for i in addedupdates:
+            for j in i[1]:
+                for k in range(0, j[1]):
+                    update = Update(
+                        title=u'bodhi-2.0-1%s.fc17' % (str(count)),
+                        user=user2,
+                        status=i[0],
+                        type=j[0],
+                        notes=u'Useful details!',
+                        release=release,
+                        date_submitted=datetime(1984, 11, 02),
+                        requirements=u'rpmlint',
+                        stable_karma=3,
+                        unstable_karma=-3,
+                    )
+                    self.db.add(update)
+                    self.db.flush()
+                    count = count + 1
+
+        res = self.app.get('/', status=200)
+        self.assertIn(
+            '<a href=\"http://localhost/updates/?releases=F17&amp;status=pending\">\n'
+            '          15\n'
+            '          </a>',
+            res
+        )
+        self.assertIn('<h4>updates pending</h4>', res)
+        self.assertIn('<span class="fa fa-shield"></span> 5', res)
+        # this bug update count is one more than what we generate here
+        # because there is already a single update in the test data.
+        self.assertIn('<span class="fa fa-bug"></span> 5', res)
+        self.assertIn('<span class="fa fa-bolt text-success"></span> 3', res)
+        self.assertIn('<span class="fa fa-archive"></span> 2', res)
+        self.assertIn(
+            '<a href=\"http://localhost/updates/?releases=F17&amp;status=testing\">\n'
+            '          54\n'
+            '          </a>',
+            res
+        )
+        self.assertIn('<h4>updates in testing</h4>', res)
+        self.assertIn('<span class="fa fa-shield"></span> 15', res)
+        self.assertIn('<span class="fa fa-bug"></span> 14', res)
+        self.assertIn('<span class="fa fa-bolt"></span> 13', res)
+        self.assertIn('<span class="fa fa-archive"></span> 12', res)
+        self.assertIn(
+            '<a href=\"http://localhost/updates/?releases=F17&amp;status=stable\">\n'
+            '          94\n'
+            '          </a>',
+            res
+        )
+        self.assertIn('<h4>updates in stable</h4>', res)
+        self.assertIn('<span class="fa fa-shield"></span> 25', res)
+        self.assertIn('<span class="fa fa-bug"></span> 24', res)
+        self.assertIn('<span class="fa fa-bolt"></span> 23', res)
+        self.assertIn('<span class="fa fa-archive"></span> 22', res)
 
     def test_markdown(self):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)

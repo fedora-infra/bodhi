@@ -67,6 +67,83 @@ def get_latest_updates(request, critpath, security):
     return query.limit(5).all()
 
 
+def _get_status_counts(basequery, status):
+    """
+    Return a dictionary with the counts of objects found in the basequery,
+    specified by total count, newpackage count, bugfix count, enhancement count,
+    and security count. The dictionary keys will be named with the
+    template {status}_{type}_total. For example, if status is
+    models.UpdateStatus.stable, a dictionary with the following keys would be
+    returned:
+        stable_updates_total
+        stable_newpackage_total
+        stable_bugfix_total
+        stable_enhancement_total
+        stable_security_total
+
+    Args:
+        basequery (sqlalchemy.orm.query.Query):
+            The basequery of updates we want to count and further filter on.
+        status (bodhi.server.models.UpdateStatus):
+            The update status we want to filter by in basequery
+    Return:
+        dict: A dictionary describing the counts of the updates, as described above.
+    """
+    basequery = basequery.filter(models.Update.status == status)
+    return {
+        '{}_updates_total'.format(status.description): basequery.count(),
+        '{}_newpackage_total'.format(status.description):
+            basequery.filter(models.Update.type == models.UpdateType.newpackage).count(),
+        '{}_bugfix_total'.format(status.description):
+            basequery.filter(models.Update.type == models.UpdateType.bugfix).count(),
+        '{}_enhancement_total'.format(status.description):
+            basequery.filter(models.Update.type == models.UpdateType.enhancement).count(),
+        '{}_security_total'.format(status.description):
+            basequery.filter(models.Update.type == models.UpdateType.security).count(),
+    }
+
+
+def get_update_counts(request, releaseid):
+    """
+    Returns counts for the various states and types of updates in the given release.
+
+    This function returns a dictionary that tabulates the counts of the various
+    types of Bodhi updates at the various states they can appear in. The
+    dictionary has the following keys, with pretty self-explanatory names:
+
+        pending_updates_total
+        pending_newpackage_total
+        pending_bugfix_total
+        pending_enhancement_total
+        pending_security_total
+        testing_updates_total
+        testing_newpackage_total
+        testing_bugfix_total
+        testing_enhancement_total
+        testing_security_total
+        stable_updates_total
+        stable_newpackage_total
+        stable_bugfix_total
+        stable_enhancement_total
+        stable_security_total
+
+    Args:
+        request (pyramid.util.Request): The current request
+        releaseid (basestring): The id of the Release object you would like the counts performed on
+    Returns:
+        dict: A dictionary expressing the counts, as described above.
+    """
+
+    release = models.Release.get(releaseid, request.db)
+    basequery = request.db.query(models.Update).filter(models.Update.release == release)
+    counts = {}
+    counts.update(_get_status_counts(basequery, models.UpdateStatus.pending))
+    counts.update(_get_status_counts(basequery, models.UpdateStatus.testing))
+    counts.update(_get_status_counts(basequery, models.UpdateStatus.stable))
+
+    return counts
+
+
 @view_config(route_name='home', renderer='home.html')
 def home(request):
     """ Returns data for the frontpage """
@@ -77,8 +154,12 @@ def home(request):
         top_testers = get_top_testers(request)
         critpath_updates = get_latest_updates(request, True, False)
         security_updates = get_latest_updates(request, False, True)
+        release_updates_counts = {}
+        for release in request.releases['current']:
+            release_updates_counts[release["name"]] = get_update_counts(request, release["name"])
 
         return {
+            "release_updates_counts": release_updates_counts,
             "top_testers": [(obj.__json__(r), n) for obj, n in top_testers],
             "critpath_updates": [obj.__json__(r) for obj in critpath_updates],
             "security_updates": [obj.__json__(r) for obj in security_updates],
