@@ -483,12 +483,15 @@ class Package(Base):
 
     Attributes:
         name (unicode): A unicode string that uniquely identifies the package.
-        requirements (unicode): A unicode string that describes the requirements of a package.
+        requirements (unicode): A unicode string that lists space-separated taskotron test
+            results that must pass for this package
         type (int): The polymorphic identity column. This is used to identify what Python
             class to create when loading rows from the database.
-        builds (list): A list of :class:`Build` objects.
-        test_cases (list): A list of :class:`TestCase` objects.
-        committers (list): A list of :class:`User` objects who are committers.
+        builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
+        test_cases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
+            objects.
+        committers (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`User` objects
+            who are committers.
         stack_id (int): A foreign key to the :class:`Stack`
     """
     __tablename__ = 'packages'
