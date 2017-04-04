@@ -22,10 +22,9 @@ import unittest
 import urllib2
 import urlparse
 
-from sqlalchemy import create_engine
 import mock
 
-from bodhi.server import buildsys, log
+from bodhi.server import buildsys, log, initialize_db
 from bodhi.server.config import config
 from bodhi.server.consumers.masher import Masher, MasherThread
 from bodhi.server.models import (Base, Build, BuildrootOverride, Release, ReleaseState, Update,
@@ -116,7 +115,7 @@ class TestMasher(unittest.TestCase):
                     print 'Using faitout at: %s' % db_path
             except:
                 pass
-        engine = create_engine(db_path)
+        engine = initialize_db({'sqlalchemy.url': db_path})
         Base.metadata.create_all(engine)
         self.db_factory = transactional_session_maker(engine)
 

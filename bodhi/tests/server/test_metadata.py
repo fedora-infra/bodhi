@@ -21,12 +21,9 @@ import shutil
 import tempfile
 import unittest
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 import createrepo_c
 
-from bodhi.server import log
+from bodhi.server import log, Session, initialize_db
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
                                    get_session, DevBuildsys)
 from bodhi.server.config import config
@@ -129,10 +126,8 @@ class TestExtendedMetadata(unittest.TestCase):
 
     def setUp(self):
         setup_buildsystem({'buildsystem': 'dev'})
-        engine = create_engine(DB_PATH)
-        Session = scoped_session(
-            sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))
-        Session.configure(bind=engine)
+        config = {'sqlalchemy.url': DB_PATH}
+        engine = initialize_db(config)
         log.debug('Creating all models for %s' % engine)
         Base.metadata.bind = engine
         Base.metadata.create_all(engine)

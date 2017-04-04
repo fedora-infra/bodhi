@@ -18,7 +18,6 @@ import math
 from cornice import Service
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
-import transaction
 
 from bodhi.server import log
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -373,7 +372,7 @@ def new_update(request):
         # signed handler attempting to mark the builds as signed. When we lose that race, the signed
         # handler doesn't see the Builds in the database and gives up. After that, nothing will mark
         # the builds as signed.
-        transaction.commit()
+        request.db.commit()
 
         # After we commit the transaction, we need to get the builds and releases again, since they
         # were tied to the previous session that has now been terminated.

@@ -25,9 +25,8 @@ from pyramid.exceptions import HTTPForbidden
 from pyramid.renderers import JSONP
 from pyramid.security import unauthenticated_userid
 from pyramid.settings import asbool
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 
 from bodhi.server import bugs, buildsys, ffmarkdown
 
@@ -45,19 +44,26 @@ ffmarkdown.inject()
 
 def get_db_session_for_request(request=None):
     """
-    This function returns a database session that is meant to be used for the given request. It sets
-    up the Zope transaction manager and configures the request to close the session when it is
-    completed. If you need a database session that is not tied to a request, you can use
-    bodhi.server.models.get_db_factory() to return a session generator.
+    This function returns a database session that is meant to be used for the given request.
+
+    It handles rolling back or committing the session based on whether an exception occurred or
+    not. To get a database session that's not tied to the request/response cycle, just use the
+    :data:`Session` scoped session in this module.
+
+    Args:
+        request (pyramid.request): The request object to create a session for.
+
+    Returns:
+        sqlalchemy.orm.session.Session: A database session.
     """
-    engine = engine_from_config(request.registry.settings, 'sqlalchemy.')
-    Sess = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-    Sess.configure(bind=engine)
-    session = Sess()
+    session = request.registry.sessionmaker()
 
     def cleanup(request):
-        # No need to do rollback/commit ourselves.  the zope transaction manager takes care of that
-        # for us. However, we want to explicitly close the session we opened
+        """A post-request hook that commits the database changes if no exceptions occurred."""
+        if request.exception is not None:
+            session.rollback()
+        else:
+            session.commit()
         session.close()
 
     request.add_finished_callback(cleanup)
@@ -121,6 +127,38 @@ DEFAULT_FILTERS.insert(0, exception_filter)
 # Bodhi initialization
 #
 
+#: An SQLAlchemy scoped session with an engine configured using the settings in Bodhi's server
+#: configuration file. Note that you *must* call :func:`initialize_db` before you can use this.
+Session = scoped_session(sessionmaker())
+
+
+def initialize_db(config):
+    """
+    Initialize the database using the given configuration.
+
+    This *must* be called before you can use the :data:`Session` object.
+
+    Args:
+        config (dict): The Bodhi server configuration dictionary.
+
+    Returns:
+        sqlalchemy.engine: The database engine created from the configuration.
+    """
+    #: The SQLAlchemy database engine. This is constructed using the value of
+    #: ``DB_URL`` in :data:`config``.
+    engine = engine_from_config(config, 'sqlalchemy.')
+    # When using SQLite we need to make sure foreign keys are enabled:
+    # http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html#foreign-key-support
+    if config['sqlalchemy.url'].startswith('sqlite:'):
+        event.listen(
+            engine,
+            'connect',
+            lambda db_con, con_record: db_con.execute('PRAGMA foreign_keys=ON')
+        )
+    Session.configure(bind=engine)
+    return engine
+
+
 def main(global_config, testing=None, session=None, **settings):
     """ This function returns a WSGI application """
     # Setup our bugtracker and buildsystem
@@ -146,6 +184,10 @@ def main(global_config, testing=None, session=None, **settings):
     # Plugins
     config.include('pyramid_mako')
     config.include('cornice')
+
+    # Initialize the database scoped session
+    initialize_db(settings)
+    config.registry.sessionmaker = Session.session_factory
 
     # Lazy-loaded memoized request properties
     if session:

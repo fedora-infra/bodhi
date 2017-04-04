@@ -36,11 +36,10 @@ import time
 
 import fedmsg.consumers
 
-from bodhi.server import bugs as bug_module
+from bodhi.server import initialize_db, util, bugs as bug_module
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Bug, Update, UpdateType
-from bodhi.server import models
 
 
 log = logging.getLogger('bodhi')
@@ -55,7 +54,8 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
     config_key = 'updates_handler'
 
     def __init__(self, hub, *args, **kwargs):
-        self.db_factory = models.get_db_factory()
+        engine = initialize_db(config)
+        self.db_factory = util.transactional_session_maker(engine)
 
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')

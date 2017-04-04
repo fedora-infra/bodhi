@@ -49,7 +49,6 @@
       - python-webob
       - python-webtest
       - python-zmq
-      - python-zope-sqlalchemy
       - python2-colander
       - python2-createrepo_c
       - python2-cryptography

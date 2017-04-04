@@ -17,9 +17,11 @@
 
 import unittest
 
+from sqlalchemy import exc
 import mock
 
-from bodhi.server import notifications
+from bodhi.server import notifications, Session, models
+from bodhi.tests.server import base
 
 
 class TestInit(unittest.TestCase):
@@ -81,3 +83,112 @@ class TestInit(unittest.TestCase):
         init_config = init.mock_calls[0][2]
         self.assertEqual(init_config['cert_prefix'], 'This is a real cert trust me.')
         info.assert_called_once_with('fedmsg initialized')
+
+
+@mock.patch('bodhi.server.notifications.init')
+class TestPublish(base.BaseTestCase):
+    """Tests for :func:`bodhi.server.notifications.publish`."""
+
+    def test_publish_off(self, mock_init):
+        """Assert publish doesn't populate the info dict when publishing is off."""
+        notifications.publish('demo.topic', {'such': 'important'})
+        session = Session()
+        self.assertEqual(dict(), session.info)
+        self.assertEqual(0, mock_init.call_count)
+
+    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
+    def test_publish(self, mock_init):
+        """Assert publish places the message inside the session info dict."""
+        notifications.publish('demo.topic', {'such': 'important'})
+        session = Session()
+        self.assertIn('fedmsg', session.info)
+        self.assertEqual(session.info['fedmsg']['demo.topic'], [{'such': 'important'}])
+        mock_init.assert_called_once_with()
+
+    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
+    @mock.patch('bodhi.server.notifications.fedmsg.publish')
+    def test_publish_force(self, mock_fedmsg_publish, mock_init):
+        """Assert publish with the force flag sends the message immediately."""
+        notifications.publish('demo.topic', {'such': 'important'}, force=True)
+        session = Session()
+        self.assertEqual(dict(), session.info)
+        mock_fedmsg_publish.assert_called_once_with(
+            topic='demo.topic', msg={'such': 'important'})
+        mock_init.assert_called_once_with()
+
+
+@mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
+@mock.patch('bodhi.server.notifications.init', mock.Mock())
+@mock.patch('bodhi.server.notifications.fedmsg.publish')
+class TestSendFedmsgsAfterCommit(base.BaseTestCase):
+
+    def test_no_fedmsgs(self, mock_fedmsg_publish):
+        """Assert nothing happens if messages are not explicitly published."""
+        session = Session()
+        session.add(models.Package(name=u'ejabberd'))
+        session.commit()
+
+        self.assertEqual(0, mock_fedmsg_publish.call_count)
+
+    def test_commit_aborted(self, mock_fedmsg_publish):
+        """Assert that when commits are aborted, messages aren't sent."""
+        session = Session()
+        session.add(models.Package(name=u'ejabberd'))
+        session.commit()
+
+        session.add(models.Package(name=u'ejabberd'))
+        notifications.publish('demo.topic', {'new': 'package'})
+        self.assertRaises(exc.IntegrityError, session.commit)
+        self.assertEqual(0, mock_fedmsg_publish.call_count)
+
+    def test_single_topic_one_message(self, mock_fedmsg_publish):
+        """Assert a single message for a single topic is published."""
+        session = Session()
+        session.add(models.Package(name=u'ejabberd'))
+        notifications.publish('demo.topic', {'new': 'package'})
+        session.commit()
+        mock_fedmsg_publish.assert_called_once_with(
+            topic='demo.topic', msg={'new': 'package'})
+
+    def test_empty_commit(self, mock_fedmsg_publish):
+        """Assert calling commit on a session with no changes still triggers fedmsgs."""
+        # Ensure nothing at all is in our session
+        Session.remove()
+        session = Session()
+        notifications.publish('demo.topic', {'new': 'package'})
+        session.commit()
+        mock_fedmsg_publish.assert_called_once_with(
+            topic='demo.topic', msg={'new': 'package'})
+
+    def test_repeated_commit(self, mock_fedmsg_publish):
+        """Assert queued fedmsgs are cleared between commits."""
+        session = Session()
+        notifications.publish('demo.topic', {'new': 'package'})
+        session.commit()
+        session.commit()
+        mock_fedmsg_publish.assert_called_once_with(
+            topic='demo.topic', msg={'new': 'package'})
+
+    def test_single_topic_many_messages(self, mock_fedmsg_publish):
+        """Assert many messages for a single topic are sent."""
+        session = Session()
+        notifications.publish('demo.topic', {'new': 'package'})
+        notifications.publish('demo.topic', {'newer': 'packager'})
+        session.commit()
+        self.assertEqual(2, mock_fedmsg_publish.call_count)
+        mock_fedmsg_publish.assert_any_call(
+            topic='demo.topic', msg={'new': 'package'})
+        mock_fedmsg_publish.assert_any_call(
+            topic='demo.topic', msg={'newer': 'packager'})
+
+    def test_multiple_topics(self, mock_fedmsg_publish):
+        """Assert messages with different topics are sent."""
+        session = Session()
+        notifications.publish('demo.topic', {'new': 'package'})
+        notifications.publish('other.topic', {'newer': 'packager'})
+        session.commit()
+        self.assertEqual(2, mock_fedmsg_publish.call_count)
+        mock_fedmsg_publish.assert_any_call(
+            topic='demo.topic', msg={'new': 'package'})
+        mock_fedmsg_publish.assert_any_call(
+            topic='other.topic', msg={'newer': 'packager'})

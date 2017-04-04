@@ -20,7 +20,6 @@ from datetime import datetime
 from click.testing import CliRunner
 import click
 import mock
-import transaction
 
 from bodhi.server import push
 from bodhi.server import models
@@ -298,7 +297,7 @@ class TestPush(base.BaseTestCase):
         Ensure that the push gets aborted if the user types 'n' when asked if they want to push.
         """
         cli = CliRunner()
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -327,7 +326,7 @@ class TestPush(base.BaseTestCase):
         ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
         # Make it so we have three builds we could push out so that we can ask for and verify two
         ejabberd.builds[0].signed = True
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -363,7 +362,7 @@ class TestPush(base.BaseTestCase):
         Test correct operation when the --cert-prefix flag is used.
         """
         cli = CliRunner()
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -394,7 +393,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         ejabberd.date_locked = datetime.utcnow()
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -435,7 +434,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         ejabberd.date_locked = datetime.utcnow()
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -483,7 +482,7 @@ class TestPush(base.BaseTestCase):
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         python_nose.builds[0].signed = False
         python_paste_deploy.builds[0].signed = False
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -536,7 +535,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc26'], u'F26')
         python_nose.builds[0].signed = True
         python_paste_deploy.builds[0].signed = True
-        transaction.commit()
+        self.db.commit()
         cli = CliRunner()
 
         with mock.patch('bodhi.server.push.get_db_factory',
@@ -584,7 +583,7 @@ class TestPush(base.BaseTestCase):
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_nose.request = models.UpdateRequest.stable
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -624,7 +623,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         ejabberd.date_locked = datetime.utcnow()
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -674,7 +673,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         ejabberd.date_locked = datetime.utcnow()
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -716,7 +715,7 @@ class TestPush(base.BaseTestCase):
         the glob call happens on a different directory.
         """
         cli = CliRunner()
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):
@@ -751,7 +750,7 @@ class TestPush(base.BaseTestCase):
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_nose.builds[0].signed = False
-        transaction.commit()
+        self.db.commit()
 
         with mock.patch('bodhi.server.push.get_db_factory',
                         return_value=base.TransactionalSessionMaker(self.Session)):

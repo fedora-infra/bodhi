@@ -17,11 +17,9 @@ import os
 import sys
 
 from pyramid.paster import get_appsettings, setup_logging
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 
 from ..models import Base
+from bodhi.server import initialize_db
 
 
 def usage(argv):
@@ -51,7 +49,6 @@ def main(argv=sys.argv):
     config_uri = argv[1]
     setup_logging(config_uri)
     settings = get_appsettings(config_uri)
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-    Session.configure(bind=engine)
+    engine = initialize_db(settings)
+    Base.metadata.bind = engine
     Base.metadata.create_all(engine)

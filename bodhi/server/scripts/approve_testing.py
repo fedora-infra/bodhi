@@ -22,14 +22,10 @@ import os
 import sys
 
 from pyramid.paster import get_appsettings
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
-
-import transaction
 
 from ..models import Update, UpdateStatus
 from ..config import config
+from bodhi.server import Session, initialize_db
 
 
 def usage(argv):
@@ -62,9 +58,11 @@ def main(argv=sys.argv):
     if len(argv) != 2:
         usage(argv)
 
-    db = _get_db_session(argv[1])
+    settings = get_appsettings(argv[1])
+    initialize_db(settings)
+    db = Session()
 
-    with transaction.manager:
+    try:
         testing = db.query(Update).filter_by(status=UpdateStatus.testing,
                                              request=None)
         for update in testing:
@@ -96,19 +94,9 @@ def main(argv=sys.argv):
                     config.get('testing_approval_msg') % update.release.mandatory_days_in_testing)
                 update.comment(db, text, author=u'bodhi')
 
-
-def _get_db_session(config_uri):
-    """
-    Construct and return a database session using settings from the given config_uri.
-
-    :param config_uri: A path to a config file to use to get the db settings.
-    :type  config_uri: basestring
-    :return:           A database session
-    """
-    # There are many blocks of code like this in the codebase. We should consolidate them into a
-    # single utility function as described in https://github.com/fedora-infra/bodhi/issues/1028
-    settings = get_appsettings(config_uri)
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-    Session.configure(bind=engine)
-    return Session()
+        db.commit()
+    except Exception as e:
+        print(str(e))
+        db.rollback()
+        Session.remove()
+        sys.exit(1)

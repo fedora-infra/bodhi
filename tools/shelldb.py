@@ -5,10 +5,9 @@ Used with the bodhi pshell.
     execfile('shelldb.py')
 """
 from pyramid.paster import get_appsettings
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 import sys
+
+from bodhi.server import Session, initialize_db
 
 
 config_uri = None
@@ -20,9 +19,7 @@ if not config_uri:
 
 
 settings = get_appsettings(config_uri)
-engine = engine_from_config(settings, 'sqlalchemy.')
-Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-Session.configure(bind=engine)
+initialize_db(settings)
 db = Session()
 
 

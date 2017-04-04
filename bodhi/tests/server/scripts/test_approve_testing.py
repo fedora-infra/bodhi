@@ -17,7 +17,6 @@ This module contains tests for the bodhi.server.scripts.approve_testing module.
 from datetime import datetime, timedelta
 
 from mock import patch
-import transaction
 
 from bodhi.server.config import config
 from bodhi.server import models
@@ -42,13 +41,13 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.now() - timedelta(days=7)
         self.db.flush()
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
-            # Now we will run main() again, but this time we expect Bodhi not to add any further
-            # comments.
-            approve_testing.main(['nosetests', 'some_config.ini'])
+                # Now we will run main() again, but this time we expect Bodhi not to add any
+                # further comments.
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -72,11 +71,11 @@ class TestMain(BaseTestCase):
         # Let's delete all the comments to make our assertion at the end of this simpler.
         for c in update.comments:
             self.db.delete(c)
-        transaction.commit()
+        self.db.commit()
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -96,11 +95,11 @@ class TestMain(BaseTestCase):
         # Let's delete all the comments to make our assertion at the end of this simpler.
         for c in update.comments:
             self.db.delete(c)
-        transaction.commit()
+        self.db.commit()
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -129,13 +128,13 @@ class TestMain(BaseTestCase):
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
-            # Now we will run main() again, but this time we expect Bodhi not to add any further
-            # comments.
-            approve_testing.main(['nosetests', 'some_config.ini'])
+                # Now we will run main() again, but this time we expect Bodhi not to add any
+                # further comments.
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -161,13 +160,13 @@ class TestMain(BaseTestCase):
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
-            # Now we will run main() again, but this time we expect Bodhi not to add any further
-            # comments.
-            approve_testing.main(['nosetests', 'some_config.ini'])
+                # Now we will run main() again, but this time we expect Bodhi not to add any
+                # further comments.
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -195,13 +194,13 @@ class TestMain(BaseTestCase):
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
-            # Now we will run main() again, but this time we expect Bodhi not to add any further
-            # comments.
-            approve_testing.main(['nosetests', 'some_config.ini'])
+                # Now we will run main() again, but this time we expect Bodhi not to add any
+                # further comments.
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -219,9 +218,9 @@ class TestMain(BaseTestCase):
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -243,9 +242,9 @@ class TestMain(BaseTestCase):
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -267,9 +266,9 @@ class TestMain(BaseTestCase):
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -295,9 +294,9 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.now() - timedelta(days=7)
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -319,11 +318,11 @@ class TestMain(BaseTestCase):
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
-        transaction.commit()
+        self.db.commit()
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -349,11 +348,11 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.now() - timedelta(days=14)
         self.db.flush()
 
-        with patch(
-                'bodhi.server.scripts.approve_testing._get_db_session', return_value=self.db):
-            approve_testing.main(['nosetests', 'some_config.ini'])
-            update.comment(self.db, u"Removed build", 0, u'bodhi')
-            approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
+                update.comment(self.db, u"Removed build", 0, u'bodhi')
+                approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)

@@ -21,14 +21,11 @@ import unittest
 
 from nose.tools import assert_equals, eq_, raises
 from pyramid.testing import DummyRequest
-from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 import cornice
 import mock
 
-from bodhi.server import models as model, bugs, buildsys, mail, util
+from bodhi.server import models as model, bugs, buildsys, mail, util, initialize_db, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
@@ -49,12 +46,9 @@ class ModelTest(object):
     def setUp(self):
         bugs.set_bugtracker()
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
-        engine = create_engine('sqlite://')
-        Session = scoped_session(
-            sessionmaker(extension=ZopeTransactionExtension(keep_session=True)))
-        Session.configure(bind=engine)
-        self.db = Session()
+        engine = initialize_db({'sqlalchemy.url': 'sqlite://'})
         Base.metadata.create_all(engine)
+        self.db = Session()
         try:
             new_attrs = {}
             new_attrs.update(self.attrs)

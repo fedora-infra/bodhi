@@ -27,4 +27,3 @@ sqlalchemy
 waitress
 webhelpers
 WebOb>=1.4.1
-zope.sqlalchemy

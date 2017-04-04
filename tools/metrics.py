@@ -23,10 +23,9 @@ from datetime import timedelta
 from operator import itemgetter
 import sys
 
-from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import and_
-from zope.sqlalchemy import ZopeTransactionExtension
 
+from bodhi.server import Session, initialize_db
 from bodhi.server.models import Update, Release, UpdateStatus, UpdateType
 from bodhi.server.util import header, get_critpath_pkgs
 import bodhi
@@ -45,9 +44,7 @@ def short_url(update):
 
 
 def main(releases=None):
-    engine = bodhi.server.config['sqlalchemy.url']
-    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-    Session.configure(bind=engine)
+    initialize_db(bodhi.server.config)
     db = Session()
 
     stats = {}  # {release: {'stat': ...}}

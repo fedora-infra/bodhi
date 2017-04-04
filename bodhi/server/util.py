@@ -33,16 +33,13 @@ import urllib
 from kitchen.iterutils import iterate
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 import arrow
 import colander
 import libravatar
 import markdown
 import requests
-import transaction
 
-from bodhi.server import log, buildsys
+from bodhi.server import log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
 
@@ -654,18 +651,16 @@ class TransactionalSessionMaker(object):
 
     @contextmanager
     def __call__(self):
-        Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-        Session.configure(bind=self.engine)
         session = Session()
-        transaction.begin()
         try:
             yield session
-            transaction.commit()
+            session.commit()
         except:
-            transaction.abort()
+            session.rollback()
             raise
         finally:
             session.close()
+            Session.remove()
 
 
 transactional_session_maker = TransactionalSessionMaker

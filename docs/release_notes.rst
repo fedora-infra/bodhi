@@ -17,6 +17,13 @@ from a version prior to 2.3, first upgrade to Bodhi 2.3, 2.4, or 2.5, run the da
 and then upgrade to this release.
 
 
+Dependency Adjustments
+^^^^^^^^^^^^^^^^^^^^^^
+
+* zope.sqlalchemy is no longer a required dependency
+  (`#1414 <https://github.com/fedora-infra/bodhi/pulls/1414>`_).
+
+
 Features
 ^^^^^^^^
 

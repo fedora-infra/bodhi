@@ -22,18 +22,14 @@ https://github.com/fedora-infra/bodhi/issues/576
 import os
 import sys
 import logging
-import transaction
 
 from datetime import datetime, timedelta
 
 from pyramid.paster import get_appsettings, setup_logging
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 
 from ..models import Release, ReleaseState, Update, UpdateStatus
 
-from bodhi.server import buildsys
+from bodhi.server import buildsys, Session, initialize_db
 
 
 def usage(argv):
@@ -53,15 +49,13 @@ def main(argv=sys.argv):
     log = logging.getLogger(__name__)
 
     settings = get_appsettings(config_uri)
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-    Session.configure(bind=engine)
+    initialize_db(settings)
     db = Session()
     koji = buildsys.get_session()
     one_day = timedelta(days=1)
     now = datetime.utcnow()
 
-    with transaction.manager:
+    try:
         for release in db.query(Release).filter_by(
                 state=ReleaseState.pending).all():
             log.info(release.name)
@@ -87,3 +81,9 @@ def main(argv=sys.argv):
                         if pending_testing_tag in tags:
                             log.info('Removing %s from %s' % (pending_testing_tag, build.nvr))
                             koji.untagBuild(pending_testing_tag, build.nvr)
+        db.commit()
+    except Exception as e:
+        log.error(e)
+        db.rollback()
+        Session.remove()
+        sys.exit(1)

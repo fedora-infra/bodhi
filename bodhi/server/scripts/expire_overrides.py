@@ -19,13 +19,10 @@ import os
 import sys
 
 from pyramid.paster import get_appsettings, setup_logging
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
-import transaction
 
 from ..buildsys import setup_buildsystem
 from ..models import BuildrootOverride
+from bodhi.server import Session, initialize_db
 
 
 def usage(argv):
@@ -57,14 +54,12 @@ def main(argv=sys.argv):
     log = logging.getLogger(__name__)
 
     settings = get_appsettings(config_uri)
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-    Session.configure(bind=engine)
+    initialize_db(settings)
     db = Session()
 
     setup_buildsystem(settings)
 
-    with transaction.manager:
+    try:
         now = datetime.utcnow()
 
         overrides = db.query(BuildrootOverride)
@@ -83,3 +78,9 @@ def main(argv=sys.argv):
             override.expire()
             db.add(override)
             log.info("Expired %s" % override.build.nvr)
+        db.commit()
+    except Exception as e:
+        log.error(e)
+        db.rollback()
+        Session.remove()
+        sys.exit(1)

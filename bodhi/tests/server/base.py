@@ -19,14 +19,10 @@ from contextlib import contextmanager
 import os
 import unittest
 
-from sqlalchemy import create_engine
 from sqlalchemy import event
-from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
 import requests
-import transaction
 
-from bodhi.server import bugs, log, models
+from bodhi.server import bugs, log, models, initialize_db, Session
 from bodhi.tests.server import create_update, populate
 
 
@@ -52,15 +48,13 @@ if os.environ.get('BUILD_ID'):
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
         bugs.set_bugtracker()
-        engine = create_engine(DB_PATH)
-        # We want a special session that lasts longer than a transaction
-        self.Session = scoped_session(
-            sessionmaker(bind=engine, extension=ZopeTransactionExtension(keep_session=True)))
-        log.debug('Creating all models for %s' % engine)
-        models.Base.metadata.bind = engine
-        models.Base.metadata.create_all(engine)
+        self.config = {'sqlalchemy.url': DB_PATH}
+        self.engine = initialize_db(self.config)
+        self.Session = Session
+        log.debug('Creating all models for %s' % self.engine)
+        models.Base.metadata.bind = self.engine
+        models.Base.metadata.create_all(self.engine)
         self.db = self.Session()
-        transaction.begin()
         populate(self.db)
 
         # Track sql statements in every test
@@ -69,10 +63,10 @@ class BaseTestCase(unittest.TestCase):
         def track(conn, cursor, statement, param, ctx, many):
             self.sql_statements.append(statement)
 
-        event.listen(engine, "before_cursor_execute", track)
+        event.listen(self.engine, "before_cursor_execute", track)
 
     def tearDown(self):
-        transaction.abort()
+        self.db.rollback()
         log.debug('Removing session')
         self.db.close()
         self.Session.remove()
@@ -109,12 +103,9 @@ class TransactionalSessionMaker(object):
     @contextmanager
     def __call__(self):
         session = self._Session()
-        transaction.begin()
         try:
             yield session
-            transaction.commit()
+            session.commit()
         except:
-            transaction.abort()
+            session.rollback()
             raise
-        finally:
-            session.close()

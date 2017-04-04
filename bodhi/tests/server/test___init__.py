@@ -16,6 +16,8 @@
 """This test suite contains tests for bodhi.server.__init__."""
 import mock
 
+import unittest
+
 from bodhi import server
 from bodhi.tests.server.functional import base
 
@@ -32,3 +34,13 @@ class TestMain(base.BaseWSGICase):
         server.main({}, testing='guest', session=self.db, **self.app_settings)
 
         set_bugtracker.assert_called_once_with()
+
+
+class TestGetDbSessionForRequest(unittest.TestCase):
+
+    def test_session_from_registry_sessionmaker(self):
+        """Assert the session is created using the sessionmaker in the registry."""
+        mock_request = mock.Mock()
+        session = server.get_db_session_for_request(mock_request)
+        mock_request.registry.sessionmaker.assert_called_once_with()
+        self.assertEqual(session, mock_request.registry.sessionmaker.return_value)
