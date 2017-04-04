@@ -185,6 +185,10 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         The description of the update.
 
+    ``--notes-file <path>``
+
+        A path to a file containing a description of the update.
+
     ``--bugs <bugs>``
 
         A comma separated list of bugs to associate with this update.

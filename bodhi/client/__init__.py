@@ -28,6 +28,7 @@ new_edit_options = [
     click.option('--type', default='bugfix', help='Update type', required=True,
                  type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
     click.option('--notes', help='Update description'),
+    click.option('--notes-file', help='Update description from a file'),
     click.option('--bugs', help='Comma-seperated list of bug numbers', default=''),
     click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs'),
     click.option('--request', help='Requested repository',
@@ -102,7 +103,6 @@ def updates():
 @updates.command()
 @add_options(new_edit_options)
 @click.argument('builds')
-@click.option('--notes-file', help='Update description from a file')
 @click.option('--file', help='A text file containing all the update details')
 @url_option
 def new(user, password, url, **kwargs):
@@ -125,14 +125,7 @@ def new(user, password, url, **kwargs):
     else:
         updates = client.parse_file(os.path.abspath(kwargs['file']))
 
-    if kwargs['notes_file'] is not None:
-        if kwargs['notes'] is None:
-            with open(kwargs['notes_file'], 'r') as fin:
-                kwargs['notes'] = fin.read()
-
-        else:
-            click.echo("ERROR: Cannot specify --notes and --notes-file")
-            sys.exit(1)
+    kwargs['notes'] = _get_notes(**kwargs)
 
     for update in updates:
         try:
@@ -161,6 +154,8 @@ def edit(user, password, url, **kwargs):
     """
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
+
+    kwargs['notes'] = _get_notes(**kwargs)
 
     try:
         query_param = {'updateid': kwargs['updateid']}
@@ -335,6 +330,29 @@ def download(url, **kwargs):
                     ret = subprocess.call(args)
                     if ret:
                         click.echo("WARNING: download of {0} failed!".format(build['nvr']))
+
+
+def _get_notes(**kwargs):
+    """
+    If the user provides a --notes-file, _get_notes processes the contents of the notes-file.
+    If the user does not provide a --notes-file, _get_notes() returns the notes from the kwargs.
+    One cannot specify both --notes and --notesfile. Doing so will result in an error.
+
+    Args:
+        kwargs (dict): Keyword arguments passed to us by click.
+
+    :returns: the contents of the notes file or the notes from kwargs
+    :rtype: string
+    """
+    if kwargs['notes_file'] is not None:
+        if kwargs['notes'] is None:
+            with open(kwargs['notes_file'], 'r') as fin:
+                return fin.read()
+        else:
+            click.echo("ERROR: Cannot specify --notes and --notes-file")
+            sys.exit(1)
+    else:
+        return kwargs['notes']
 
 
 @cli.group()
