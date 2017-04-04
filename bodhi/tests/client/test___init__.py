@@ -392,6 +392,61 @@ class TestEdit(unittest.TestCase):
                 'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': True,
                 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
-                'notes': u'this is an edited note', 'request': None, 'bugs': u'',
-                'unstable_karma': None, 'type': 'bugfix'})
+                'notes': u'this is an edited note', 'notes_file': None,
+                'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_notes_file(self, send_request, query):
+        """
+        Assert that a valid notes-file is properly handled in a successful updates
+        edit request.
+        """
+        runner = testing.CliRunner()
+        with runner.isolated_filesystem():
+            with open('notefile.txt', 'w') as f:
+                f.write('This is a --notes-file note!')
+
+            result = runner.invoke(
+                client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                              '--password', 's3kr3t', '--notes-file', 'notefile.txt',
+                              '--url', 'http://localhost:6543'])
+
+            self.assertEqual(result.exit_code, 0)
+            bindings_client = query.mock_calls[0][1][0]
+            query.assert_called_with(
+                bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+            bindings_client = send_request.mock_calls[0][1][0]
+            send_request.assert_called_with(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'autokarma': True, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'suggest': None, 'notes': 'This is a --notes-file note!',
+                    'notes_file': 'notefile.txt', 'request': None, 'bugs': u'',
+                    'unstable_karma': None, 'type': 'bugfix'})
+            self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    def test_notes_and_notes_file(self):
+        """
+        Assert providing both --notes-file and --notes parameters to an otherwise successful
+        updates edit request results in an error.
+        """
+        runner = testing.CliRunner()
+        with runner.isolated_filesystem():
+            with open('notefile.txt', 'w') as f:
+                f.write('This is a --notes-file note!')
+
+            result = runner.invoke(
+                client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                              '--password', 's3kr3t', '--notes', 'this is a notey note',
+                              '--notes-file', 'notefile.txt', '--url', 'http://localhost:6543'])
+
+            self.assertEqual(result.exit_code, 1)
+            self.assertEqual(result.output, u'ERROR: Cannot specify --notes and --notes-file\n')
