@@ -468,8 +468,8 @@ def request2html(context, request):
     request = unicode(request)
     cls = {
         'unpush': 'danger',
-        'obsolete': 'warning',
-        'testing': 'primary',
+        'obsolete': 'default',
+        'testing': 'warning',
         'stable': 'success',
     }.get(request)
 
