@@ -22,7 +22,7 @@ import transaction
 
 from bodhi.server import log
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.models import Update, Build, Bug, CVE, Package, UpdateRequest, ReleaseState
+from bodhi.server.models import Update, Build, Bug, CVE, RpmPackage, UpdateRequest, ReleaseState
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -217,7 +217,7 @@ def query_updates(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Update.builds).join(Build.package)
-        query = query.filter(or_(*[Package.name == pkg for pkg in packages]))
+        query = query.filter(or_(*[RpmPackage.name == pkg for pkg in packages]))
 
     package = None
     if packages and len(packages):
@@ -349,11 +349,11 @@ def new_update(request):
         releases = set()
         builds = []
 
-        # Create the Package and Build entities
+        # Create the RpmPackage and Build entities
         for nvr in data['builds']:
             name, version, release = request.buildinfo[nvr]['nvr']
             # The package will have been created by validate_acls
-            package = request.db.query(Package).filter_by(name=name).one()
+            package = request.db.query(RpmPackage).filter_by(name=name).one()
 
             build = Build.get(nvr, request.db)
 

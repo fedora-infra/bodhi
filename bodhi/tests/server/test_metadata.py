@@ -30,7 +30,7 @@ from bodhi.server import log
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
                                    get_session, DevBuildsys)
 from bodhi.server.config import config
-from bodhi.server.models import (Package, Update, Build, Base, UpdateRequest, UpdateStatus,
+from bodhi.server.models import (RpmPackage, Update, Build, Base, UpdateRequest, UpdateStatus,
                                  UpdateType)
 from bodhi.server.metadata import ExtendedMetadata
 from bodhi.server.util import mkmetadatadir
@@ -434,7 +434,7 @@ class TestExtendedMetadata(unittest.TestCase):
 
         # Create a new non-security update for the same package
         newbuild = u'bodhi-2.0-2.fc17'
-        pkg = self.db.query(Package).filter_by(name=u'bodhi').one()
+        pkg = self.db.query(RpmPackage).filter_by(name=u'bodhi').one()
         build = Build(nvr=newbuild, package=pkg)
         self.db.add(build)
         self.db.flush()
@@ -501,7 +501,7 @@ class TestExtendedMetadata(unittest.TestCase):
 
         # Create a new non-security update for the same package
         newbuild = u'bodhi-2.0-2.fc17'
-        pkg = self.db.query(Package).filter_by(name=u'bodhi').one()
+        pkg = self.db.query(RpmPackage).filter_by(name=u'bodhi').one()
         build = Build(nvr=newbuild, package=pkg)
         self.db.add(build)
         self.db.flush()

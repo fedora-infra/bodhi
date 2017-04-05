@@ -18,7 +18,7 @@ from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server.models import Update, Build, Package, Release
+from bodhi.server.models import Update, Build, RpmPackage, Release
 from bodhi.server.validators import validate_updates, validate_packages, validate_releases
 import bodhi.server.schemas
 import bodhi.server.security
@@ -68,7 +68,7 @@ def query_builds(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Build.package)
-        query = query.filter(or_(*[Package.id == p.id for p in packages]))
+        query = query.filter(or_(*[RpmPackage.id == p.id for p in packages]))
 
     releases = data.get('releases')
     if releases is not None:

@@ -18,7 +18,7 @@ from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server.models import Group, Package, Update, User
+from bodhi.server.models import Group, RpmPackage, Update, User
 from bodhi.server.validators import validate_updates, validate_packages, validate_groups
 import bodhi.server.schemas
 import bodhi.server.security
@@ -122,7 +122,7 @@ def query_users(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(User.packages)
-        query = query.filter(or_(*[Package.id == p.id for p in packages]))
+        query = query.filter(or_(*[RpmPackage.id == p.id for p in packages]))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
