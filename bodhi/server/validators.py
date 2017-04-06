@@ -24,7 +24,7 @@ import rpm
 
 from . import captcha
 from . import log
-from .models import (Release, RpmPackage, Build, Update, UpdateStatus,
+from .models import (Release, RpmPackage, Build, RpmBuild, Update, UpdateStatus,
                      UpdateRequest, UpdateSeverity, UpdateType,
                      UpdateSuggestion, User, Group, Comment,
                      Bug, TestCase, ReleaseState, Stack)
@@ -96,7 +96,7 @@ def validate_builds(request):
             # If the build is new
             if nvr not in edited:
                 # Ensure it doesn't already exist
-                build = request.db.query(Build).filter_by(nvr=nvr).first()
+                build = request.db.query(RpmBuild).filter_by(nvr=nvr).first()
                 if build and build.update is not None:
                     request.errors.add('body', 'builds',
                                        "Update for {} already exists".format(nvr))
@@ -104,7 +104,7 @@ def validate_builds(request):
         return
 
     for nvr in request.validated.get('builds', []):
-        build = request.db.query(Build).filter_by(nvr=nvr).first()
+        build = request.db.query(RpmBuild).filter_by(nvr=nvr).first()
         if build and build.update is not None:
             request.errors.add('body', 'builds',
                                "Update for {} already exists".format(nvr))
@@ -770,7 +770,7 @@ def validate_override_builds(request):
 
 def _validate_override_build(request, nvr, db):
     """ Workhorse function for validate_override_builds """
-    build = Build.get(nvr, db)
+    build = RpmBuild.get(nvr, db)
     if build is not None:
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
@@ -827,7 +827,7 @@ def _validate_override_build(request, nvr, db):
             db.add(package)
             db.flush()
 
-        build = Build(nvr=nvr, release=release, package=package)
+        build = RpmBuild(nvr=nvr, release=release, package=package)
         db.add(build)
         db.flush()
 
@@ -966,8 +966,8 @@ def validate_request(request):
         return
 
     for build in update.builds:
-        other_builds = db.query(Build).join(Update).filter(
-            and_(Build.package == build.package, Build.nvr != build.nvr, Update.status == target,
+        other_builds = db.query(RpmBuild).join(Update).filter(
+            and_(Build.package == build.package, RpmBuild.nvr != build.nvr, Update.status == target,
                  Update.release == update.release)).all()
         for other_build in other_builds:
 

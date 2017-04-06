@@ -21,7 +21,8 @@ from sqlalchemy.sql import or_
 
 from bodhi.server import log
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.models import Update, Build, Bug, CVE, RpmPackage, UpdateRequest, ReleaseState
+from bodhi.server.models import (Update, Build, Bug, CVE, RpmPackage, UpdateRequest, ReleaseState,
+                                 RpmBuild)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -225,7 +226,7 @@ def query_updates(request):
     builds = data.get('builds')
     if builds is not None:
         query = query.join(Update.builds)
-        query = query.filter(or_(*[Build.nvr == build for build in builds]))
+        query = query.filter(or_(*[RpmBuild.nvr == build for build in builds]))
 
     pushed = data.get('pushed')
     if pushed is not None:
@@ -354,11 +355,11 @@ def new_update(request):
             # The package will have been created by validate_acls
             package = request.db.query(RpmPackage).filter_by(name=name).one()
 
-            build = Build.get(nvr, request.db)
+            build = RpmBuild.get(nvr, request.db)
 
             if build is None:
                 log.debug("Adding nvr %s", nvr)
-                build = Build(nvr=nvr, package=package)
+                build = RpmBuild(nvr=nvr, package=package)
                 request.db.add(build)
                 request.db.flush()
 
@@ -381,7 +382,7 @@ def new_update(request):
         for nvr in data['builds']:
             # At this moment, we are sure the builds are in the database (that is what the commit
             # was for actually).
-            build = Build.get(nvr, request.db)
+            build = RpmBuild.get(nvr, request.db)
             builds.append(build)
             releases.add(build.release)
 

@@ -27,8 +27,8 @@ import mock
 from bodhi.server import buildsys, log, initialize_db
 from bodhi.server.config import config
 from bodhi.server.consumers.masher import Masher, MasherThread
-from bodhi.server.models import (Base, Build, BuildrootOverride, Release, ReleaseState, Update,
-                                 UpdateRequest, UpdateStatus, UpdateType, User)
+from bodhi.server.models import (Base, Build, BuildrootOverride, Release, ReleaseState, RpmBuild,
+                                 Update, UpdateRequest, UpdateStatus, UpdateType, User)
 from bodhi.server.util import mkmetadatadir, transactional_session_maker
 from bodhi.tests.server import base, populate
 
@@ -312,7 +312,7 @@ class TestMasher(unittest.TestCase):
         with self.db_factory() as session:
             firstupdate = session.query(Update).filter_by(
                 title=self.msg['body']['msg']['updates'][1]).one()
-            build = Build(nvr=otherbuild, package=firstupdate.builds[0].package)
+            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package)
             session.add(build)
             update = Update(
                 title=otherbuild, builds=[build], type=UpdateType.bugfix,
@@ -481,8 +481,7 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = Build(nvr=u'bodhi-2.0-1.fc18', release=release,
-                          package=up.builds[0].package)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -563,8 +562,7 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = Build(nvr=u'bodhi-2.0-1.fc18', release=release,
-                          package=up.builds[0].package)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -637,8 +635,7 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = Build(nvr=u'bodhi-2.0-1.fc18', release=release,
-                          package=up.builds[0].package)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -1098,7 +1095,7 @@ References:
             oldupdate.locked = False
 
             # Create a newer build
-            build = Build(nvr=otherbuild, package=oldupdate.builds[0].package)
+            build = RpmBuild(nvr=otherbuild, package=oldupdate.builds[0].package)
             session.add(build)
             update = Update(
                 title=otherbuild, builds=[build], type=UpdateType.bugfix,

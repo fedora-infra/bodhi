@@ -75,7 +75,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         hub.config = {'environment': 'environment', 'topic_prefix': 'topic_prefix'}
         self.handler = signed.SignedHandler(hub)
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch('bodhi.server.consumers.signed.RpmBuild')
     def test_consume(self, mock_build_model):
         """Assert that messages marking the build as signed updates the database"""
         build = mock_build_model.get.return_value
@@ -84,7 +84,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         self.handler.consume(self.sample_message)
         self.assertTrue(build.signed is True)
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch('bodhi.server.consumers.signed.RpmBuild')
     def test_consume_not_pending_testing_tag(self, mock_build_model):
         """
         Assert that messages whose tag don't match the pending testing tag don't update the DB
@@ -95,7 +95,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         self.handler.consume(self.sample_message)
         self.assertFalse(build.signed is True)
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch('bodhi.server.consumers.signed.RpmBuild')
     def test_consume_no_release(self, mock_build_model):
         """
         Assert that messages about builds that haven't been assigned a release don't update the DB
@@ -107,10 +107,10 @@ class TestSignedHandlerConsume(unittest.TestCase):
         self.assertFalse(build.signed is True)
 
     @mock.patch('bodhi.server.consumers.signed.log')
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch('bodhi.server.consumers.signed.RpmBuild')
     def test_consume_no_build(self, mock_build_model, mock_log):
         """Assert that messages referencing builds Bodhi doesn't know about don't update the DB"""
         mock_build_model.get.return_value = None
 
         self.handler.consume(self.sample_message)
-        mock_log.info.assert_called_with('Build was not submitted, skipping')
+        mock_log.info.assert_called_with('RpmBuild was not submitted, skipping')

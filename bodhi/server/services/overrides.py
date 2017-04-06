@@ -21,7 +21,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server import log
-from bodhi.server.models import Build, BuildrootOverride, RpmPackage, Release, User
+from bodhi.server.models import Build, BuildrootOverride, RpmPackage, Release, RpmBuild, User
 import bodhi.server.schemas
 import bodhi.server.services.errors
 from bodhi.server.validators import (
@@ -58,7 +58,7 @@ def get_override(request):
     db = request.db
     nvr = request.matchdict.get('nvr')
 
-    build = Build.get(nvr, db)
+    build = RpmBuild.get(nvr, db)
 
     if not build:
         request.errors.add('url', 'nvr', 'No such build')
@@ -122,7 +122,7 @@ def query_overrides(request):
     if like is not None:
         query = query.join(BuildrootOverride.build)
         query = query.filter(or_(*[
-            Build.nvr.like('%%%s%%' % like)
+            RpmBuild.nvr.like('%%%s%%' % like)
         ]))
 
     submitter = data.get('user')
@@ -215,7 +215,7 @@ def save_override(request):
         else:
             log.info("Editing buildroot override: %s" % edited)
 
-            edited = Build.get(edited, request.db)
+            edited = RpmBuild.get(edited, request.db)
 
             if edited is None:
                 request.errors.add('body', 'edited', 'No such build')

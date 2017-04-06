@@ -52,10 +52,10 @@ class TestFilterReleases(base.BaseTestCase):
 
         # Let's add an obscure package called bodhi to the release.
         pkg = self.db.query(models.RpmPackage).filter_by(name=u'bodhi').one()
-        build = models.Build(nvr=u'bodhi-2.3.2-1.fc22', release=archived_release, package=pkg)
+        build = models.RpmBuild(nvr=u'bodhi-2.3.2-1.fc22', release=archived_release, package=pkg)
         self.db.add(build)
 
-        # And an Update with the Build.
+        # And an Update with the RpmBuild.
         self.archived_release_update = models.Update(
             title=u'bodhi-2.3.2-1.fc22', builds=[build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=archived_release,
@@ -96,10 +96,10 @@ class TestFilterReleases(base.BaseTestCase):
         self.db.add(pending_release)
         # Let's add the bodhi package to both releases.
         pkg = self.db.query(models.RpmPackage).filter_by(name=u'bodhi').one()
-        disabled_build = models.Build(nvr=u'bodhi-2.3.2-1.fc21', release=disabled_release,
-                                      package=pkg)
-        pending_build = models.Build(nvr=u'bodhi-2.3.2-1.fc25', release=pending_release,
-                                     package=pkg)
+        disabled_build = models.RpmBuild(nvr=u'bodhi-2.3.2-1.fc21', release=disabled_release,
+                                         package=pkg)
+        pending_build = models.RpmBuild(nvr=u'bodhi-2.3.2-1.fc25', release=pending_release,
+                                        package=pkg)
         self.db.add(disabled_build)
         self.db.add(pending_build)
         # Now let's create updates for both packages.

@@ -12,7 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from bodhi.server.models import Build
+from bodhi.server.models import RpmBuild
 import bodhi.tests.server.functional.base
 
 
@@ -37,7 +37,7 @@ class TestBuildsService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         # First, stuff a second build in there
         session = self.db
-        build = Build(nvr=u'bodhi-3.0-1.fc21')
+        build = RpmBuild(nvr=u'bodhi-3.0-1.fc21')
         session.add(build)
         session.flush()
 

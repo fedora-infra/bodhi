@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 
 import mock
 
-from bodhi.server.models import Build, RpmPackage, Release, User
+from bodhi.server.models import RpmBuild, RpmPackage, Release, User
 import bodhi.tests.server.functional.base
 
 
@@ -183,8 +183,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
-        build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
-                      release=release)
+        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build)
         self.db.flush()
 
@@ -211,8 +210,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         release = Release.get(u'F17', self.db)
         package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
-        build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
-                      release=release)
+        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build)
         self.db.flush()
 
@@ -244,15 +242,13 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         release = Release.get(u'F17', self.db)
         package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
-        build1 = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
-                       release=release)
+        build1 = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build1)
         self.db.flush()
 
         package = RpmPackage(name=u'another-not-bodhi')
         self.db.add(package)
-        build2 = Build(nvr=u'another-not-bodhi-2.0-2.fc17', package=package,
-                       release=release)
+        build2 = RpmBuild(nvr=u'another-not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build2)
         self.db.flush()
 
@@ -290,8 +286,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
-        build = Build(nvr=u'not-bodhi-2.0-2.fc17', package=package,
-                      release=release)
+        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build)
         self.db.flush()
 
@@ -304,10 +299,10 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_for_newer_build(self, publish):
-        old_build = Build.get(u'bodhi-2.0-1.fc17', self.db)
+        old_build = RpmBuild.get(u'bodhi-2.0-1.fc17', self.db)
 
-        build = Build(nvr=u'bodhi-2.0-2.fc17', package=old_build.package,
-                      release=old_build.release)
+        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', package=old_build.package,
+                         release=old_build.release)
         self.db.add(build)
         self.db.flush()
 
@@ -329,7 +324,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(o['expired_date'], None)
 
-        old_build = Build.get(u'bodhi-2.0-1.fc17', self.db)
+        old_build = RpmBuild.get(u'bodhi-2.0-1.fc17', self.db)
 
         self.assertNotEquals(old_build.override['expired_date'], None)
 
@@ -344,7 +339,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         expiration_date = o['expiration_date']
         old_build_id = o['build_id']
 
-        build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
+        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release)
         self.db.add(build)
         self.db.flush()
 
@@ -365,7 +360,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_edit_unexisting_override(self):
         release = Release.get(u'F17', self.db)
 
-        build = Build(nvr=u'bodhi-2.0-2.fc17', release=release)
+        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release)
         self.db.add(build)
         self.db.flush()
 
@@ -460,7 +455,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_unexpire_override(self, publish):
         # First expire a buildroot override
         old_nvr = u'bodhi-2.0-1.fc17'
-        override = Build.get(old_nvr, self.db).override
+        override = RpmBuild.get(old_nvr, self.db).override
         override.expire()
         self.db.add(override)
         self.db.flush()

@@ -616,22 +616,141 @@ class RpmPackage(Package):
 
 
 class Build(Base):
+    """
+    This model represents a specific build of a package.
+
+    This model uses single-table inheritance to allow for different build types.
+
+    Attributes:
+        inherited (bool): The purpose of this column is unknown, and it appears to be unused. At the
+            time of this writing, there are 112,234 records with inherited set to False and 0 with
+            it set to True in the Fedora Bodhi deployment.
+        nvr (unicode): The nvr field is really a mapping to the Koji build_target.name field, and is
+            used to reference builds in Koji. It is named nvr in reference to the dash-separated
+            name-version-release Koji name for RPMs, but it is used by other types as well. At the
+            time of this writing, it was not practical to rename nvr since it is used in the REST
+            API to reference builds. Thus, it should be thought of as a Koji build identifier rather
+            than strictly as an RPM's name, version, and release.
+        package_id (int): A foreign key to the Package that this Build is part of.
+        release_id (int): A foreign key to the Release that this Build is part of.
+        signed (bool): If True, this package has been signed by robosignatory. If False, it has not
+            been signed yet.
+        update_id (int): A foreign key to the Update that this Build is part of.
+        release (sqlalchemy.orm.relationship): A relationship to the Release that this build is part
+            of.
+        type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
+            which subclass of Build to use.
+    """
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
                            'release_id', 'update_id', 'update', 'override')
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
-    epoch = Column(Integer, default=0)
     package_id = Column(Integer, ForeignKey('packages.id'))
     release_id = Column(Integer, ForeignKey('releases.id'))
-    update_id = Column(Integer, ForeignKey('updates.id'))
     signed = Column(Boolean, default=False, nullable=False)
+    update_id = Column(Integer, ForeignKey('updates.id'))
 
     release = relationship('Release', backref='builds', lazy=False)
 
+    type = Column(Integer, nullable=False)
+    __mapper_args__ = {
+        'polymorphic_on': type,
+        'polymorphic_identity': 0,
+    }
+
+    def get_url(self):
+        """
+        Return a the url to details about this build.
+
+        This method appears to be unused and incorrect.
+
+        Return:
+            str: A URL for this build.
+        """
+        return '/' + self.nvr
+
+    def get_tags(self, koji=None):
+        """
+        Return a list of koji tags for this build.
+
+        Args:
+            koji (bodhi.server.buildsys.Buildsysem or koji.ClientSession): A koji client. Defaults
+                to calling bodhi.server.buildsys.get_session().
+        Return:
+            list: A list of strings of the Koji tags on this Build.
+        """
+        if not koji:
+            koji = buildsys.get_session()
+        return [tag['name'] for tag in koji.listTags(self.nvr)]
+
+    def untag(self, koji, db):
+        """
+        Remove all known tags from this build.
+
+        Args:
+            koji (bodhi.server.buildsys.Buildsysem or koji.ClientSession): A koji client.
+            db (sqlalchemy.orm.session.Session): A database Session.
+        """
+        tag_types, tag_rels = Release.get_tags(db)
+        for tag in self.get_tags():
+            if tag in tag_rels:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+
+    def unpush(self, koji):
+        """
+        Move this build back to the candidate tag and remove any pending tags.
+
+        Args:
+            koji (bodhi.server.buildsys.Buildsysem or koji.ClientSession): A koji client.
+        """
+        log.info('Unpushing %s' % self.nvr)
+        release = self.update.release
+        for tag in self.get_tags(koji):
+            if tag == release.pending_signing_tag:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+            if tag == release.pending_testing_tag:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+            if tag == release.pending_stable_tag:
+                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                koji.untagBuild(tag, self.nvr)
+            elif tag == release.testing_tag:
+                log.info(
+                    'Moving %s from %s to %s' % (
+                        self.nvr, tag, release.candidate_tag))
+                koji.moveBuild(tag, release.candidate_tag, self.nvr)
+
+
+class RpmBuild(Build):
+    """
+    Represents an RPM build.
+
+    Note that this model uses single-table inheritance with its Build superclass.
+
+    Attributes:
+        nvr (unicode): A dash (-) separated string of an RPM's name, version, and release (e.g.
+            u'bodhi-2.5.0-1.fc26')
+        epoch (int): The RPM's epoch.
+    """
+
+    epoch = Column(Integer, default=0)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 1,
+    }
+
     @property
     def evr(self):
+        """
+        The RpmBuild's epoch, version, release, all basestrings in a 3-tuple.
+
+        Return:
+            tuple: (epoch, version, release)
+        """
         if self.epoch:
             name, version, release = get_nvr(self.nvr)
             return (str(self.epoch), version, release)
@@ -643,6 +762,14 @@ class Build(Base):
             return evr
 
     def get_latest(self):
+        """
+        Return the nvr string of the most recent evr that is less than this RpmBuild's nvr. If there
+        is no other Build, this returns None.
+
+        Return:
+            basestring or None: An nvr string, formatted like RpmBuild.nvr. If there is no other
+                Build, returns None.
+        """
         koji_session = buildsys.get_session()
 
         # Grab a list of builds tagged with ``Release.stable_tag`` release
@@ -668,13 +795,15 @@ class Build(Base):
                 break
         return latest
 
-    def get_url(self):
-        """ Return a the url to details about this build """
-        return '/' + self.nvr
-
     def get_changelog(self, timelimit=0):
         """
-        Retrieve the RPM changelog of this package since it's last update
+        Retrieve the RPM changelog of this package since it's last update, or since timelimit.
+
+        Args:
+            timelimit (int): Timestamp, specified as the number of seconds since 1970-01-01 00:00:00
+                UTC.
+        Return:
+            str: The RpmBuild's changelog.
         """
         rpm_header = get_rpm_header(self.nvr)
         descrip = rpm_header['changelogtext']
@@ -696,42 +825,6 @@ class Build(Base):
                                       descrip[i])
             i += 1
         return str
-
-    def get_tags(self, koji=None):
-        """ Return a list of koji tags for this build """
-        if not koji:
-            koji = buildsys.get_session()
-        return [tag['name'] for tag in koji.listTags(self.nvr)]
-
-    def untag(self, koji, db):
-        """Remove all known tags from this build"""
-        tag_types, tag_rels = Release.get_tags(db)
-        for tag in self.get_tags():
-            if tag in tag_rels:
-                log.info('Removing %s tag from %s' % (tag, self.nvr))
-                koji.untagBuild(tag, self.nvr)
-
-    def unpush(self, koji):
-        """
-        Move this build back to the candidate tag and remove any pending tags.
-        """
-        log.info('Unpushing %s' % self.nvr)
-        release = self.update.release
-        for tag in self.get_tags(koji):
-            if tag == release.pending_signing_tag:
-                log.info('Removing %s tag from %s' % (tag, self.nvr))
-                koji.untagBuild(tag, self.nvr)
-            if tag == release.pending_testing_tag:
-                log.info('Removing %s tag from %s' % (tag, self.nvr))
-                koji.untagBuild(tag, self.nvr)
-            if tag == release.pending_stable_tag:
-                log.info('Removing %s tag from %s' % (tag, self.nvr))
-                koji.untagBuild(tag, self.nvr)
-            elif tag == release.testing_tag:
-                log.info(
-                    'Moving %s from %s to %s' % (
-                        self.nvr, tag, release.candidate_tag))
-                koji.moveBuild(tag, release.candidate_tag, self.nvr)
 
 
 class Update(Base):
@@ -947,9 +1040,9 @@ class Update(Base):
                 if not package:
                     package = Package(name=name)
                     db.add(package)
-                b = db.query(Build).filter_by(nvr=build).first()
+                b = db.query(RpmBuild).filter_by(nvr=build).first()
                 if not b:
-                    b = Build(nvr=build, package=package)
+                    b = RpmBuild(nvr=build, package=package)
                     b.release = up.release
                     db.add(b)
 
@@ -1068,8 +1161,8 @@ class Update(Base):
         """
         caveats = []
         for build in self.builds:
-            for oldBuild in db.query(Build).join(Update).filter(
-                and_(Build.nvr != build.nvr,
+            for oldBuild in db.query(RpmBuild).join(Update).filter(
+                and_(RpmBuild.nvr != build.nvr,
                      Build.package == build.package,
                      Update.locked == False,
                      Update.release == self.release,

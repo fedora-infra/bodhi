@@ -28,8 +28,8 @@ import mock
 from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (
-    Build, BuildrootOverride, DEFAULT_DISABLE_AUTOPUSH_MESSAGE, Group, RpmPackage, Release,
-    ReleaseState, Update, UpdateRequest, UpdateStatus, UpdateType, User)
+    BuildrootOverride, DEFAULT_DISABLE_AUTOPUSH_MESSAGE, Group, RpmPackage, Release,
+    ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType, User)
 import bodhi.tests.server.functional.base
 
 
@@ -182,7 +182,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', update)
         assert 'bodhi does not have commit access to bodhi' not in res, res
-        build = self.db.query(Build).filter_by(nvr=u'bodhi-2.1-1.fc17').one()
+        build = self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.1-1.fc17').one()
         assert build.update is not None
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
@@ -282,7 +282,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_new_update_with_existing_build(self, *args):
         """Test submitting a new update with a build already in the database"""
         package = RpmPackage.get(u'bodhi', self.db)
-        self.db.add(Build(nvr=u'bodhi-2.0.0-3.fc17', package=package))
+        self.db.add(RpmBuild(nvr=u'bodhi-2.0.0-3.fc17', package=package))
         self.db.flush()
 
         args = self.get_update(u'bodhi-2.0.0-3.fc17')
@@ -405,8 +405,8 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(r.json_body['status'], 'error')
         self.assertEquals(r.json_body['errors'][0]['description'],
                           "Unable to create update.  oops!")
-        # Despite the Exception, the Build should still exist in the database
-        build = self.db.query(Build).filter(Build.nvr == u'bodhi-2.3.2-1.fc17').one()
+        # Despite the Exception, the RpmBuild should still exist in the database
+        build = self.db.query(RpmBuild).filter(RpmBuild.nvr == u'bodhi-2.3.2-1.fc17').one()
         self.assertEqual(build.package.name, 'bodhi')
 
     @mock.patch(**mock_valid_requirements)
@@ -482,7 +482,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         update['edited'] = nvr
         res = app.post_json('/updates/', update)
         assert 'bodhi does not have commit access to bodhi' not in res, res
-        build = self.db.query(Build).filter_by(nvr=nvr).one()
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         assert build.update is not None
         self.assertEquals(build.update.notes, u'testing!!!')
 
@@ -508,7 +508,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-        build = self.db.query(Build).filter_by(nvr=nvr).one()
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         eq_(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a non-provenpackager
@@ -1646,7 +1646,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertMultiLineEqual(up['comments'][-1]['text'], comment)
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(self.db.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        self.assertEquals(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
+                          None)
         self.assertEquals(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
@@ -1691,7 +1692,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
                           u'This update has been submitted for testing by guest. ')
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(self.db.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        self.assertEquals(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
+                          None)
         self.assertEquals(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
@@ -1736,7 +1738,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
                           u'This update has been submitted for testing by guest. ')
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(self.db.query(Build).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(), None)
+        self.assertEquals(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
+                          None)
         self.assertEquals(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
@@ -1816,7 +1819,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up_id = up.id
 
-        build = self.db.query(Build).filter_by(nvr=nvr).one()
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
 
         # Changing the notes should work
         args['edited'] = args['builds']
@@ -3295,7 +3298,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         oldbuild = u'bodhi-1.0-1.fc17'
 
         # Create a newer build
-        build = Build(nvr=oldbuild, package=update.builds[0].package)
+        build = RpmBuild(nvr=oldbuild, package=update.builds[0].package)
         self.db.add(build)
         update = Update(title=oldbuild, builds=[build], type=UpdateType.bugfix,
                         request=UpdateRequest.testing, notes=u'second update',

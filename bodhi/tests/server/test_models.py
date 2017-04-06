@@ -189,9 +189,9 @@ class TestPackage(ModelTest):
         assert self.obj.committers[0].name == u'lmacken'
 
 
-class TestBuild(ModelTest):
-    """Unit test case for the ``Build`` model."""
-    klass = model.Build
+class TestRpmBuild(ModelTest):
+    """Unit test case for the ``RpmBuild`` model."""
+    klass = model.RpmBuild
     attrs = dict(nvr=u"TurboGears-1.0.8-3.fc11")
 
     def do_get_dependencies(self):
@@ -234,8 +234,9 @@ class TestUpdate(ModelTest):
     def do_get_dependencies(self):
         release = model.Release(**TestRelease.attrs)
         return dict(
-            builds=[model.Build(nvr=u'TurboGears-1.0.8-3.fc11',
-                                package=model.Package(**TestPackage.attrs), release=release)],
+            builds=[model.RpmBuild(
+                nvr=u'TurboGears-1.0.8-3.fc11', package=model.Package(**TestPackage.attrs),
+                release=release)],
             bugs=[model.Bug(bug_id=1), model.Bug(bug_id=2)],
             cves=[model.CVE(cve_id=u'CVE-2009-0001')],
             release=release,
@@ -248,7 +249,7 @@ class TestUpdate(ModelTest):
         pkg = self.db.query(model.Package).filter_by(name=u'TurboGears').one()
         rel = self.db.query(model.Release).filter_by(name=u'F11').one()
         attrs.update(dict(
-            builds=[model.Build(nvr=name, package=pkg, release=rel)],
+            builds=[model.RpmBuild(nvr=name, package=pkg, release=rel)],
             release=rel))
         return self.klass(**attrs)
 
@@ -995,7 +996,7 @@ class TestBuildrootOverride(ModelTest):
 
     def do_get_dependencies(self):
         return dict(
-            build=model.Build(nvr=u'TurboGears-1.0.8-3.fc11',
-                              package=model.Package(**TestPackage.attrs),
-                              release=model.Release(**TestRelease.attrs)),
+            build=model.RpmBuild(
+                nvr=u'TurboGears-1.0.8-3.fc11', package=model.Package(**TestPackage.attrs),
+                release=model.Release(**TestRelease.attrs)),
             submitter=model.User(name=u'lmacken'))

@@ -25,7 +25,7 @@ import fedmsg.consumers
 
 from bodhi.server import initialize_db
 from bodhi.server.config import config
-from bodhi.server.models import Build
+from bodhi.server.models import RpmBuild
 from bodhi.server.util import transactional_session_maker
 
 
@@ -95,13 +95,13 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
         log.info("%s tagged into %s" % (build_nvr, tag))
 
         with self.db_factory() as session:
-            build = Build.get(build_nvr, session)
+            build = RpmBuild.get(build_nvr, session)
             if not build:
-                log.info("Build was not submitted, skipping")
+                log.info("RpmBuild was not submitted, skipping")
                 return
 
             if not build.release:
-                log.info('Build is not assigned to release, skipping')
+                log.info('RpmBuild is not assigned to release, skipping')
                 return
 
             if build.release.pending_testing_tag != tag:
@@ -111,6 +111,6 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
             # This build was moved into the pending_testing tag for the applicable release, which
             # is done by RoboSignatory to indicate that the build has been correctly signed and
             # written out. Mark it as such.
-            log.info("Build has been signed, marking")
+            log.info("RpmBuild has been signed, marking")
             build.signed = True
-            log.info("Build %s has been marked as signed" % build_nvr)
+            log.info("RpmBuild %s has been marked as signed" % build_nvr)
