@@ -245,6 +245,7 @@ ${update.type} update for ${generateupdatetitlestring()}
     for (index = 0, len = builds.length; index < len; ++index) {
       request_results(base_url+"results/latest?item="+builds[index]+"&type=koji_build&testcases:like=dist.*");
     }
+    request_results(base_url+"results/latest?item=${update.alias}&type=bodhi_update&testcases:like=update.*");
   });
 </script>
 
