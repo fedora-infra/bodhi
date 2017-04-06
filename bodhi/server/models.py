@@ -14,58 +14,43 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import os
-import re
+from collections import defaultdict
+from datetime import datetime
+from textwrap import wrap
 import copy
 import hashlib
 import json
+import os
+import re
+import rpm
 import time
 import uuid
 
-from textwrap import wrap
-from datetime import datetime
-from collections import defaultdict
-
-try:
-    # python3
-    from urllib.parse import quote
-except ImportError:
-    from urllib import quote
-
-
-from sqlalchemy import Unicode, UnicodeText, Integer, Boolean
-from sqlalchemy import DateTime, engine_from_config
-from sqlalchemy import Table, Column, ForeignKey
-from sqlalchemy import and_, or_
-from sqlalchemy.sql import text
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.orm import class_mapper
-from sqlalchemy.orm.properties import RelationshipProperty
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.types import SchemaType, TypeDecorator, Enum
+from pkgdb2client import PkgDB
 from pyramid.settings import asbool
+from simplemediawiki import MediaWiki
+from six.moves.urllib.parse import quote
+from sqlalchemy import (and_, Boolean, Column, DateTime, engine_from_config, ForeignKey, Integer,
+                        or_, Table, Unicode, UnicodeText)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import class_mapper, relationship, backref
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.properties import RelationshipProperty
+from sqlalchemy.sql import text
+from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 
-from bodhi.server import bugs, buildsys, mail, notifications, log
-from bodhi.server.util import (
-    header, build_evr, get_nvr, flash_log, get_age, get_critpath_pkgs,
-    get_rpm_header, get_age_in_days, avatar as get_avatar, tokenize,
-)
-import bodhi.server.util
-from bodhi.server.exceptions import BodhiException, LockedUpdateException
+from bodhi.server import bugs, buildsys, log, mail, notifications
 from bodhi.server.config import config
-from bodhi.server.util import transactional_session_maker
+from bodhi.server.exceptions import BodhiException, LockedUpdateException
+from bodhi.server.util import (
+    avatar as get_avatar, build_evr, flash_log, get_age, get_age_in_days, get_critpath_pkgs,
+    get_nvr, get_rpm_header, header, tokenize, transactional_session_maker)
+import bodhi.server.util
 
 
 DEFAULT_DISABLE_AUTOPUSH_MESSAGE = (
     u'Bodhi is disabling automatic push to stable due to negative karma. '
     u'The maintainer may push manually if they determine that the issue is not severe.')
-
-
-try:
-    import rpm
-except ImportError:
-    log.warning("Could not import 'rpm'")
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
@@ -527,7 +512,6 @@ class Package(Base):
         watchergroups = []
         committergroups = []
 
-        from pkgdb2client import PkgDB
         pkgdb = PkgDB(settings.get('pkgdb_url'))
         acls = pkgdb.get_package(self.name, branches=branch)
 
@@ -557,7 +541,6 @@ class Package(Base):
         start = datetime.utcnow()
         log.debug('Querying the wiki for test cases')
 
-        from simplemediawiki import MediaWiki
         wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
         cat_page = 'Category:Package %s test cases' % self.name
 
