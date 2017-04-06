@@ -601,7 +601,10 @@ def cmd(cmd, cwd=None):
     if out:
         log.debug(out)
     if err:
-        log.error(err)
+        if p.returncode == 0:
+            log.debug(err)
+        else:
+            log.error(err)
     if p.returncode != 0:
         log.error('return code %s', p.returncode)
     return out, err, p.returncode
