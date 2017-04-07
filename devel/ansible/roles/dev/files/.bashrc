@@ -16,6 +16,7 @@ alias bstart="sudo systemctl start bodhi && echo 'The Application is running on 
 alias bstop="sudo systemctl stop bodhi"
 
 function btest {
+    find /home/vagrant/bodhi -name "*.pyc" -delete;
     pushd /home/vagrant/bodhi && python setup.py nosetests $@; popd
 }
 
