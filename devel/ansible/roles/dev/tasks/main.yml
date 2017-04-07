@@ -58,9 +58,7 @@
       - python2-nose-cov
       - python2-markdown
       - python2-sphinx
-      # We can switch this to python2-sqlalchemy_schemadisplay once
-      # https://bodhi.fedoraproject.org/updates/FEDORA-2017-e54acedb77 is stable
-      - https://kojipkgs.fedoraproject.org//packages/python-sqlalchemy_schemadisplay/1.3/1.fc24/noarch/python2-sqlalchemy_schemadisplay-1.3-1.fc24.noarch.rpm
+      - python2-sqlalchemy_schemadisplay
       - python2-waitress
       - redhat-rpm-config
       - vim-enhanced
