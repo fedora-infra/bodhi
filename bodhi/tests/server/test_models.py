@@ -31,6 +31,7 @@ from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
     Base, BugKarma, get_db_factory, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType)
+from bodhi.tests.server.base import BaseTestCase
 
 
 class DummyUser(object):
@@ -85,6 +86,14 @@ class ModelTest(object):
     def test_get(self):
         for col in self.obj.__get_by__:
             eq_(self.klass.get(getattr(self.obj, col), self.db), self.obj)
+
+
+class TestQueryProperty(BaseTestCase):
+
+    def test_session(self):
+        """Assert the session the query property uses is from the scoped session."""
+        query = model.Package.query
+        self.assertTrue(Session() is query.session)
 
 
 class TestComment(unittest.TestCase):
