@@ -980,6 +980,20 @@ class Update(Base):
         return build
 
     @property
+    def mandatory_days_in_testing(self):
+        """
+        Calculate and return how many days an update should be in testing before becoming stable.
+
+        :return: The number of mandatory days in testing.
+        :rtype:  int
+        """
+        if self.critpath:
+            return int(config.get('critpath.stable_after_days_without_negative_karma'))
+
+        days = self.release.mandatory_days_in_testing
+        return days if days else 0
+
+    @property
     def karma(self):
         """
         Calculate and return the karma for the Update.
@@ -1481,7 +1495,7 @@ class Update(Base):
             else:
                 # If we haven't met the stable karma requirements, check if it
                 # has met the mandatory time-in-testing requirements
-                if self.release.mandatory_days_in_testing:
+                if self.mandatory_days_in_testing:
                     if not self.met_testing_requirements and \
                        not self.meets_testing_requirements:
                         if self.release.id_prefix == "FEDORA-EPEL":
@@ -2127,6 +2141,8 @@ class Update(Base):
         If this release does not have a mandatory testing requirement, then
         simply return True.
         """
+        num_days = self.mandatory_days_in_testing
+
         if self.critpath:
             # Ensure there is no negative karma. We're looking at the sum of
             # each users karma for this update, which takes into account
@@ -2138,10 +2154,8 @@ class Update(Base):
             for karma in feedback.values():
                 if karma < 0:
                     return False
-            num_days = int(config.get('critpath.stable_after_days_without_negative_karma'))
             return self.days_in_testing >= num_days
 
-        num_days = self.release.mandatory_days_in_testing
         if not num_days:
             return True
 
@@ -2166,7 +2180,7 @@ class Update(Base):
         If this release does not have a mandatory testing requirement, then
         simply return True.
         """
-        min_num_days = self.release.mandatory_days_in_testing
+        min_num_days = self.mandatory_days_in_testing
         if min_num_days:
             if not self.meets_testing_requirements:
                 return False
@@ -2190,7 +2204,7 @@ class Update(Base):
         mandatory_days_in_testing or longer."""
         if not self.meets_testing_requirements and self.date_testing:
             return (
-                self.release.mandatory_days_in_testing -
+                self.mandatory_days_in_testing -
                 (datetime.utcnow() - self.date_testing).days)
         return 0
 
