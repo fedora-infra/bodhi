@@ -22,7 +22,10 @@ import json
 from sqlalchemy.sql import or_
 import click
 
-from bodhi.server.models import Build, get_db_factory, Release, ReleaseState, Update, UpdateRequest
+from bodhi.server import initialize_db
+from bodhi.server.config import config
+from bodhi.server.models import Build, Release, ReleaseState, Update, UpdateRequest
+from bodhi.server.util import transactional_session_maker
 import bodhi.server.notifications
 
 
@@ -59,7 +62,8 @@ def push(username, cert_prefix, **kwargs):
 
     update_titles = None
 
-    with get_db_factory()() as session:
+    db_factory = transactional_session_maker(initialize_db(config))
+    with db_factory() as session:
         updates = []
         # If we're resuming a push
         if resume:

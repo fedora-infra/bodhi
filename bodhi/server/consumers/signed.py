@@ -23,7 +23,10 @@ import pprint
 
 import fedmsg.consumers
 
-from bodhi.server.models import Build, get_db_factory
+from bodhi.server import initialize_db
+from bodhi.server.config import config
+from bodhi.server.models import Build
+from bodhi.server.util import transactional_session_maker
 
 
 log = logging.getLogger('bodhi')
@@ -38,7 +41,7 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
     config_key = 'signed_handler'
 
     def __init__(self, hub, *args, **kwargs):
-        self.db_factory = get_db_factory()
+        self.db_factory = transactional_session_maker(initialize_db(config))
 
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
