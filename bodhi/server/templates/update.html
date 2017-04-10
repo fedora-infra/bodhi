@@ -116,9 +116,6 @@ ${update.type} update for ${generateupdatetitlestring()}
     var latest = {};
     var activeResultsAjaxCalls = 0;
     var receive_resultsdb = function(data) {
-      if (data.next){
-        request_results(data.next);
-      }
       activeResultsAjaxCalls--;
 
       // First, prune duplicate results.  For instance, some depcheck runs
@@ -147,7 +144,7 @@ ${update.type} update for ${generateupdatetitlestring()}
           // for dist.depcheck. So if we hit one of these for the first time
           // we do a call to get the other one.
           if (name == 'dist.depcheck'){
-            var theurl = base_url+"results?testcases=dist.depcheck&item="+item+"&type=koji_build";
+            var theurl = base_url+"results?testcases=dist.depcheck&item="+item+"&type=koji_build&limit=1";
             if (arch == 'x86_64'){
               theurl = theurl +"&arch=i386"
             } else {
