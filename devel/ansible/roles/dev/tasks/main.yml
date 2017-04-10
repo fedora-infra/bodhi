@@ -46,7 +46,6 @@
       - python-simplemediawiki
       - python-sqlalchemy
       - python-webhelpers
-      - python-webob
       - python-webtest
       - python-zmq
       - python2-colander

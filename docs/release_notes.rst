@@ -22,6 +22,8 @@ Dependency Adjustments
 
 * zope.sqlalchemy is no longer a required dependency
   (`#1414 <https://github.com/fedora-infra/bodhi/pulls/1414>`_).
+* WebOb is no longer a directly required dependency, though it is still indirectly required through
+  pyramid.
 
 
 Features
