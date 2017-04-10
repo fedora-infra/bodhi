@@ -360,6 +360,52 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].release.name, u'F11')
         eq_(self.obj.builds[0].package.name, u'TurboGears')
 
+    def test_mandatory_days_in_testing_critpath(self):
+        """
+        The Update.mandatory_days_in_testing method should be the configured value
+        for critpath if it is a critpath update.
+        """
+        update = self.obj
+        update.critpath = True
+
+        # Configured value.
+        expected = int(config.get('critpath.stable_after_days_without_negative_karma'))
+
+        eq_(update.mandatory_days_in_testing, expected)
+
+    def test_mandatory_days_in_testing(self):
+        """
+        The Update.mandatory_days_in_testing method should be a positive integer if the
+        mandatory_days_in_testing attribute of release is not truthy.
+        """
+        update = self.obj
+
+        eq_(update.mandatory_days_in_testing, 7)
+
+    @mock.patch.dict('bodhi.server.models.config', {'fedora.mandatory_days_in_testing': '0'})
+    def test_mandatory_days_in_testing_false(self):
+        """
+        The Update.mandatory_days_in_testing method should be 0 if the
+        mandatory_days_in_testing attribute of release is not truthy.
+        """
+        update = self.obj
+
+        eq_(update.mandatory_days_in_testing, 0)
+
+    def test_days_to_stable_critpath(self):
+        """
+        The Update.days_to_stable() method should return a positive integer depending
+        on the configuration.
+        """
+        update = self.get_update()
+        update.critpath = True
+        update.date_testing = datetime.utcnow() + timedelta(days=-4)
+
+        criptath_days_to_stable = int(
+            config.get('critpath.stable_after_days_without_negative_karma'))
+
+        eq_(update.days_to_stable, criptath_days_to_stable - 4)
+
     def test_days_to_stable_meets_testing_requirements(self):
         """
         The Update.days_to_stable() method should return 0 if Update.meets_testing_requirements()
