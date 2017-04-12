@@ -391,21 +391,32 @@ class BodhiClient(OpenIdBaseClient):
                     yield update
 
     @staticmethod
-    def override_str(override):
+    def override_str(override, minimal=True):
         """ Return a string representation of a given override dictionary.
 
         :arg override: An override dictionary.
+        :kwarg minimal: Return a minimal one-line representation of the update.
 
         """
         if isinstance(override, six.string_types):
             return override
 
-        # TODO -- make this fancy.
-        return "{submitter}'s {build} override (expires {expiry})".format(
-            submitter=override['submitter']['name'],
-            build=override['build']['nvr'],
-            expiry=override['expiration_date'],
-        )
+        if minimal:
+            return "{submitter}'s {build} override (expires {expiry})".format(
+                submitter=override['submitter']['name'],
+                build=override['build']['nvr'],
+                expiry=override['expiration_date'],
+            )
+
+        val = "%s\n%s\n%s\n" % ('=' * 60, '\n'.join(
+            textwrap.wrap(override['build']['nvr'].replace(',', ', '), width=60,
+                          initial_indent=' ' * 5, subsequent_indent=' ' * 5)), '=' * 60)
+        val += "  Submitter: {}\n".format(override['submitter']['name'])
+        val += "  Expiration Date: {}\n".format(override['expiration_date'])
+        val += "  Notes: {}\n".format(override['notes'])
+        val += "  Expired: {}".format(override['expired_date'] is not None)
+
+        return val
 
     def update_str(self, update, minimal=False):
         """ Return a string representation of a given update dictionary.

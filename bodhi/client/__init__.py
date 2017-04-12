@@ -432,14 +432,14 @@ def print_resp(resp, client):
         click.echo(client.update_str(resp))
     elif 'overrides' in resp:
         if len(resp.overrides) == 1:
-            click.echo(client.override_str(resp.overrides[0]))
+            click.echo(client.override_str(resp.overrides[0], minimal=False))
         else:
             for override in resp.overrides:
                 click.echo(client.override_str(override).strip())
         click.echo(
             '%s overrides found (%d shown)' % (resp.total, len(resp.overrides)))
     elif 'build' in resp:
-        click.echo(client.override_str(resp))
+        click.echo(client.override_str(resp, minimal=False))
     elif 'comment' in resp:
         click.echo('The following comment was added to %s' % resp.comment['update'].title)
         click.echo(resp.comment.text)
