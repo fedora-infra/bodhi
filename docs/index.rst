@@ -46,7 +46,7 @@ Contents:
    man_pages/index
    python_bindings
    developer_docs
-   rest_api/index
+   server_api/index
    release_notes
 
 
