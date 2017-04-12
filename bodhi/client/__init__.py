@@ -22,41 +22,6 @@ import click
 
 from bodhi.client import bindings
 
-new_edit_options = [
-    click.option('--user', envvar='USERNAME'),
-    click.option('--password', prompt=True, hide_input=True),
-    click.option('--type', default='bugfix', help='Update type', required=True,
-                 type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
-    click.option('--notes', help='Update description'),
-    click.option('--notes-file', help='Update description from a file'),
-    click.option('--bugs', help='Comma-seperated list of bug numbers', default=''),
-    click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs'),
-    click.option('--request', help='Requested repository',
-                 type=click.Choice(['testing', 'stable', 'unpush'])),
-    click.option('--autokarma', default=True, is_flag=True, help='Enable karma automatism'),
-    click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
-    click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
-    click.option('--suggest', help='Post-update user suggestion',
-                 type=click.Choice(['logout', 'reboot'])),
-    click.option('--staging', help='Use the staging bodhi instance',
-                 is_flag=True, default=False)]
-
-
-def add_options(options):
-    """ Given a list of click options this creates a decorator that
-    will return a function used to add the options to a click command.
-    :param options: a list of click.options decorator.
-    """
-    def _add_options(func):
-        """ Given a click command and a list of click options this will
-        return the click command decorated with all the options in the list.
-        :param func: a click command function.
-        """
-        for option in reversed(options):
-            func = option(func)
-        return func
-    return _add_options
-
 
 def _warn_if_url_and_staging_set(ctx, param, value):
     """
@@ -81,6 +46,79 @@ url_option = click.option('--url', envvar='BODHI_URL', default=bindings.BASE_URL
                           help=('URL of a Bodhi server. Ignored if --staging is set. Can be set '
                                 'with BODHI_URL environment variable'),
                           callback=_warn_if_url_and_staging_set)
+
+
+new_edit_options = [
+    click.option('--user', envvar='USERNAME'),
+    click.option('--password', prompt=True, hide_input=True),
+    click.option('--type', default='bugfix', help='Update type', required=True,
+                 type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
+    click.option('--notes', help='Update description'),
+    click.option('--notes-file', help='Update description from a file'),
+    click.option('--bugs', help='Comma-seperated list of bug numbers', default=''),
+    click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs'),
+    click.option('--request', help='Requested repository',
+                 type=click.Choice(['testing', 'stable', 'unpush'])),
+    click.option('--autokarma', default=True, is_flag=True, help='Enable karma automatism'),
+    click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
+    click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
+    click.option('--suggest', help='Post-update user suggestion',
+                 type=click.Choice(['logout', 'reboot'])),
+    click.option('--staging', help='Use the staging bodhi instance',
+                 is_flag=True, default=False)]
+
+
+# Common options for the overrides save and edit command
+save_edit_options = [
+    click.argument('nvr'),
+    click.option('--duration', default=7, type=click.INT,
+                 help='Number of days the override should exist.'),
+    click.option('--notes', default="No explanation given...",
+                 help='Notes on why this override is in place.'),
+    click.option('--user', envvar='USERNAME'),
+    click.option('--password', prompt=True, hide_input=True),
+    click.option('--staging', help='Use the staging bodhi instance',
+                 is_flag=True, default=False),
+    url_option]
+
+
+def add_options(options):
+    """ Given a list of click options this creates a decorator that
+    will return a function used to add the options to a click command.
+    :param options: a list of click.options decorator.
+    """
+    def _add_options(func):
+        """ Given a click command and a list of click options this will
+        return the click command decorated with all the options in the list.
+        :param func: a click command function.
+        """
+        for option in reversed(options):
+            func = option(func)
+        return func
+    return _add_options
+
+
+def _save_override(url, user, password, staging, edit=False, **kwargs):
+    """
+    Helper function to create or edit a buildroot override.
+
+    Args:
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        user (unicode): The username to authenticate as.
+        password (unicode): The user's password.
+        staging (bool): Whether to use the staging server or not.
+        edit (bool): Set to True to edit an existing buildroot override.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+
+    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
+    resp = client.save_override(nvr=kwargs['nvr'],
+                                duration=kwargs['duration'],
+                                notes=kwargs['notes'],
+                                edit=edit,
+                                expired=kwargs.get('expire', False))
+    print_resp(resp, client)
 
 
 @click.group()
@@ -386,34 +424,38 @@ def query_buildroot_overrides(url, user=None, **kwargs):
 
 
 @overrides.command('save')
-@click.argument('nvr')
-@click.option('--duration', default=7, type=click.INT,
-              help='Number of days the override should exist.')
-@click.option('--notes', default="No explanation given...",
-              help='Notes on why this override is in place.')
-@click.option('--user', envvar='USERNAME')
-@click.option('--password', prompt=True, hide_input=True)
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
-@url_option
-def save_buildroot_overrides(nvr, duration, notes, user, password, staging, url):
+@add_options(save_edit_options)
+def save_buildroot_overrides(user, password, url, staging, **kwargs):
     """
-    Create or modify a buildroot override.
+    Create a buildroot override.
 
     Args:
-        nvr (unicode): The NVR of the update you wish to submit as a buildroot override.
-        duration (int): The number of days you wish the override to be active for.
-        notes (unicode): Notes to leave on the override.
         user (unicode): The username to authenticate as.
         password (unicode): The user's password.
-        staging (bool): Whether to use the staging server or not.
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
+        staging (bool): Whether to use the staging server or not.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
-    resp = client.save_override(nvr=nvr, duration=duration, notes=notes)
-    print_resp(resp, client)
+    _save_override(url=url, user=user, password=password, staging=staging, **kwargs)
+
+
+@overrides.command('edit')
+@add_options(save_edit_options)
+@click.option('--expire', help='Expire the override', is_flag=True, default=False)
+def edit_buildroot_overrides(user, password, url, staging, **kwargs):
+    """
+    Edit a buildroot override.
+
+    Args:
+        user (unicode): The username to authenticate as.
+        password (unicode): The user's password.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        staging (bool): Whether to use the staging server or not.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    _save_override(url=url, user=user, password=password, staging=staging, edit=True, **kwargs)
 
 
 def print_resp(resp, client):

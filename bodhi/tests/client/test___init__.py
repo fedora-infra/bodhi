@@ -295,9 +295,7 @@ class TestSaveBuilrootOverrides(unittest.TestCase):
              'http://localhost:6543/'])
 
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(
-            result.output,
-            "bowlofeggs's js-tag-it-2.0-1.fc25 override (expires 2017-03-07 23:05:31)\n")
+        self.assertEqual(result.output, client_test_data.EXPECTED_OVERRIDES_OUTPUT)
         bindings_client = send_request.mock_calls[0][1][0]
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
@@ -450,3 +448,39 @@ class TestEdit(unittest.TestCase):
 
             self.assertEqual(result.exit_code, 1)
             self.assertEqual(result.output, u'ERROR: Cannot specify --notes and --notes-file\n')
+
+
+class TestEditBuilrootOverrides(unittest.TestCase):
+    """
+    Test the edit_buildroot_overrides() function.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_EXPIRED_OVERRIDE_MUNCH, autospec=True)
+    def test_expired_override(self, send_request):
+        """
+        Assert that a successful overrides edit request expires the request
+        when --expired flag is set.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit_buildroot_overrides,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--url',
+             'http://localhost:6543/', '--notes', 'This is an expired override', '--expire'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, client_test_data.EXPECTED_EXPIRED_OVERRIDES_OUTPUT)
+        bindings_client = send_request.mock_calls[0][1][0]
+        # datetime is a C extension that can't be mocked, so let's just assert that the time is
+        # about a week away.
+        expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
+        self.assertTrue((datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5))
+        send_request.assert_called_once_with(
+            bindings_client, 'overrides/', verb='POST', auth=True,
+            data={
+                'expiration_date': expire_time, 'notes': u'This is an expired override',
+                'nvr': u'js-tag-it-2.0-1.fc25', 'edited': u'js-tag-it-2.0-1.fc25',
+                'csrf_token': 'a_csrf_token', 'expired': True})
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')

@@ -191,9 +191,9 @@ class TestBodhiClient_override_str(unittest.TestCase):
     """
     Test the BodhiClient.override_str() method.
     """
-    def test_with_dict(self):
+    def test_with_min_dict(self):
         """
-        Test override_str() with a dict argument.
+        Test override_str() with a dict argument and minimal set to true.
         """
         override = {
             'submitter': {'name': 'bowlofeggs'}, 'build': {'nvr': 'python-pyramid-1.5.6-3.el7'},
@@ -203,6 +203,19 @@ class TestBodhiClient_override_str(unittest.TestCase):
 
         self.assertEqual(override,
                          "bowlofeggs's python-pyramid-1.5.6-3.el7 override (expires 2017-02-24)")
+
+    def test_with_dict(self):
+        """
+        Test override_str() with a dict argument.
+        """
+        override = {
+            'submitter': {'name': 'bowlofeggs'}, 'build': {'nvr': 'js-tag-it-2.0-1.fc25'},
+            'expiration_date': '2017-03-07 23:05:31', 'notes': 'No explanation given...',
+            'expired_date': None}
+
+        override = bindings.BodhiClient.override_str(override, minimal=False)
+
+        self.assertEqual(override, client_test_data.EXPECTED_OVERRIDES_OUTPUT.rstrip())
 
     def test_with_str(self):
         """
@@ -457,9 +470,9 @@ class TestBodhiClient_save_override(unittest.TestCase):
         client.send_request = mock.MagicMock(return_value='return_value')
         client.csrf_token = 'a token'
         now = datetime.utcnow()
-
-        response = client.save_override('python-pyramid-1.5.6-3.el7', 2,
-                                        'This is needed to build bodhi-2.4.0.')
+        response = client.save_override(nvr='python-pyramid-1.5.6-3.el7',
+                                        duration=2,
+                                        notes='This is needed to build bodhi-2.4.0.')
 
         self.assertEqual(response, 'return_value')
         actual_expiration = client.send_request.mock_calls[0][2]['data']['expiration_date']
@@ -467,7 +480,7 @@ class TestBodhiClient_save_override(unittest.TestCase):
             'overrides/', verb='POST', auth=True,
             data={'nvr': 'python-pyramid-1.5.6-3.el7',
                   'expiration_date': actual_expiration,
-                  'notes': 'This is needed to build bodhi-2.4.0.', 'csrf_token': 'a token'})
+                  'csrf_token': 'a token', 'notes': 'This is needed to build bodhi-2.4.0.'})
         # Since we can't mock utcnow() since it's a C extension, let's just make sure the expiration
         # date sent is within 5 minutes of the now variable. It would be surprising if it took more
         # than 5 minutes to start the function and execute its first instruction!

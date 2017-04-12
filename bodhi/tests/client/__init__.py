@@ -78,6 +78,14 @@ EXAMPLE_OVERRIDE_MUNCH = Munch({
         u'openid': None, u'name': u'bowlofeggs', u'show_popups': True, u'id': 2897, u'avatar': None,
         u'groups': [Munch({u'name': u'packager'})], u'email': u'email@example.com'})})
 
+EXAMPLE_EXPIRED_OVERRIDE_MUNCH = Munch({
+    u'build_id': 108570, u'submission_date': u'2017-02-28 23:05:32', u'caveats': [],
+    u'nvr': u'js-tag-it-2.0-1.fc25', u'expiration_date': u'2017-03-07 23:05:31',
+    u'notes': u'This is an expired override', u'submitter_id': 2897,
+    u'build': Munch({u'epoch': 0, u'nvr': u'js-tag-it-2.0-1.fc25', u'signed': True}),
+    u'expired_date': '2017-03-07 23:05:31', u'submitter': Munch({
+        u'openid': None, u'name': u'bowlofeggs', u'show_popups': True, u'id': 2897, u'avatar': None,
+        u'groups': [Munch({u'name': u'packager'})], u'email': u'email@example.com'})})
 
 EXAMPLE_QUERY_MUNCH = Munch({
     u'chrome': True,
@@ -498,4 +506,22 @@ EXPECTED_UPDATE_OUTPUT = u"""===================================================
              notes.
 
   http://example.com/tests/updates/FEDORA-EPEL-2016-3081a94111
+"""
+
+EXPECTED_OVERRIDES_OUTPUT = u"""============================================================
+     js-tag-it-2.0-1.fc25
+============================================================
+  Submitter: bowlofeggs
+  Expiration Date: 2017-03-07 23:05:31
+  Notes: No explanation given...
+  Expired: False
+"""
+
+EXPECTED_EXPIRED_OVERRIDES_OUTPUT = u"""============================================================
+     js-tag-it-2.0-1.fc25
+============================================================
+  Submitter: bowlofeggs
+  Expiration Date: 2017-03-07 23:05:31
+  Notes: This is an expired override
+  Expired: True
 """

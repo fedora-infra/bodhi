@@ -1,6 +1,24 @@
 Release notes
 =============
 
+2.7.0
+-----
+
+Features
+^^^^^^^^
+
+* The bodhi CLI now supports editing an override.
+  (`#1049 <https://github.com/fedora-infra/bodhi/issues/1049>`_)
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following contributors submitted patches for Bodhi 2.7.0:
+
+* Clement Verna
+
+
 2.6.0
 -----
 
