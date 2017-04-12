@@ -39,7 +39,7 @@ from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.sql import text
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 
-from bodhi.server import bugs, buildsys, log, mail, notifications
+from bodhi.server import bugs, buildsys, log, mail, notifications, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
@@ -162,12 +162,24 @@ class DeclEnumType(SchemaType, TypeDecorator):
 
 
 class BodhiBase(object):
-    """ Our custom model base class """
-    __exclude_columns__ = ('id',)  # List of columns to exclude from JSON
-    __include_extras__ = tuple()  # List of methods or attrs to include in JSON
-    __get_by__ = ()  # Columns that get() will query
+    """
+    Base class for the SQLAlchemy model base class.
+
+    Attributes:
+        __exclude_columns__ (tuple): A list of columns to exclude from JSON
+        __include_extras__ (tuple): A list of methods or attrs to include in JSON
+        __get_by__ (tuple): A list of columns that :meth:`.get` will query.
+        id (int): An integer id that serves as the default primary key.
+        query (sqlalchemy.orm.query.Query): a class property which produces a
+            Query object against the class and the current Session when called.
+    """
+    __exclude_columns__ = ('id',)
+    __include_extras__ = tuple()
+    __get_by__ = ()
 
     id = Column(Integer, primary_key=True)
+
+    query = Session.query_property()
 
     @classmethod
     def get(cls, id, db):
