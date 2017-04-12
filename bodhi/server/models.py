@@ -30,8 +30,8 @@ from pkgdb2client import PkgDB
 from pyramid.settings import asbool
 from simplemediawiki import MediaWiki
 from six.moves.urllib.parse import quote
-from sqlalchemy import (and_, Boolean, Column, DateTime, engine_from_config, ForeignKey, Integer,
-                        or_, Table, Unicode, UnicodeText)
+from sqlalchemy import (and_, Boolean, Column, DateTime, ForeignKey, Integer, or_, Table, Unicode,
+                        UnicodeText)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref
 from sqlalchemy.orm.exc import NoResultFound
@@ -44,7 +44,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_age, get_age_in_days, get_critpath_pkgs,
-    get_nvr, get_rpm_header, header, tokenize, transactional_session_maker)
+    get_nvr, get_rpm_header, header, tokenize)
 import bodhi.server.util
 
 
@@ -2453,15 +2453,3 @@ class Stack(Base):
     # Many-to-many relationships
     groups = relationship("Group", secondary=stack_group_table, backref='stacks')
     users = relationship("User", secondary=stack_user_table, backref='stacks')
-
-
-def get_db_factory():
-    """
-    This function generates and returns a database factory that can be used for non-request
-    transactions. You can instantiate the class returned by this function to get a database
-    session that you can use with a context manager. If you wish to get a database session for a
-    request, see bodhi.server.get_db_session_for_request().
-    """
-    engine = engine_from_config(config, 'sqlalchemy.')
-    Base.metadata.create_all(engine)
-    return transactional_session_maker(engine)

@@ -299,7 +299,7 @@ class TestPush(base.BaseTestCase):
         cli = CliRunner()
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='n')
 
@@ -328,7 +328,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.builds[0].signed = True
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(
                 push.push,
@@ -364,7 +364,7 @@ class TestPush(base.BaseTestCase):
         cli = CliRunner()
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(
                 push.push, ['--username', 'bowlofeggs', '--cert-prefix', 'some_prefix'], input='y')
@@ -395,7 +395,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.date_locked = datetime.utcnow()
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
@@ -436,7 +436,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.date_locked = datetime.utcnow()
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
@@ -484,7 +484,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy.builds[0].signed = False
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
@@ -538,7 +538,7 @@ class TestPush(base.BaseTestCase):
         self.db.commit()
         cli = CliRunner()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             # We will specify that we want F25 and F26, which should exclude the F17 updates we've
             # been pushing in all the other tests. We'll leave the F off of 26 and lowercase the f
@@ -585,7 +585,7 @@ class TestPush(base.BaseTestCase):
         python_nose.request = models.UpdateRequest.stable
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--request', 'testing'],
                                 input='y')
@@ -625,7 +625,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.date_locked = datetime.utcnow()
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'], input='y\ny')
 
@@ -675,7 +675,7 @@ class TestPush(base.BaseTestCase):
         ejabberd.date_locked = datetime.utcnow()
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'],
                                 input='n\ny\ny')
@@ -717,7 +717,7 @@ class TestPush(base.BaseTestCase):
         cli = CliRunner()
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--staging'], input='y')
 
@@ -752,7 +752,7 @@ class TestPush(base.BaseTestCase):
         python_nose.builds[0].signed = False
         self.db.commit()
 
-        with mock.patch('bodhi.server.push.get_db_factory',
+        with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 

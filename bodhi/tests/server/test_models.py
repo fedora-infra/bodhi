@@ -25,11 +25,11 @@ from sqlalchemy.exc import IntegrityError
 import cornice
 import mock
 
-from bodhi.server import models as model, bugs, buildsys, mail, util, initialize_db, Session
+from bodhi.server import models as model, bugs, buildsys, mail, initialize_db, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
-    Base, BugKarma, get_db_factory, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
+    Base, BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType)
 
 
@@ -95,18 +95,6 @@ class TestComment(unittest.TestCase):
         https://github.com/fedora-infra/bodhi/issues/949.
         """
         self.assertEqual(model.Comment.__table__.columns['text'].nullable, False)
-
-
-class TestGetDBFactory(unittest.TestCase):
-    """
-    This class contains tests for the get_db_factory() function.
-    """
-    def test_return_type(self):
-        """
-        """
-        Session = get_db_factory()
-
-        self.assertEqual(type(Session), util.TransactionalSessionMaker)
 
 
 class TestRelease(ModelTest):
