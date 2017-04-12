@@ -2,6 +2,12 @@
 Bodhi Server APIs
 =================
 
+fedmsg API
+==========
+
+The fedmsgs bodhi sends
+`are documented by the Fedora fedmsg project <https://fedora-fedmsg.readthedocs.io/en/latest/topics.html#bodhi>`_.
+
 
 REST API
 ========
