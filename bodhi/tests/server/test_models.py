@@ -192,7 +192,7 @@ class TestPackage(ModelTest):
 class TestBuild(ModelTest):
     """Unit test case for the ``Build`` model."""
     klass = model.Build
-    attrs = dict(nvr=u"TurboGears-1.0.8-3.fc11", inherited=False)
+    attrs = dict(nvr=u"TurboGears-1.0.8-3.fc11")
 
     def do_get_dependencies(self):
         return dict(release=model.Release(**TestRelease.attrs),
