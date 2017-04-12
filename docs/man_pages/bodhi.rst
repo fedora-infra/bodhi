@@ -90,6 +90,13 @@ The ``overrides`` command allows users to manage build overrides.
 
         Notes on why this override is in place.
 
+``bodhi overrides edit [options] <nvr>``
+
+    Edit the build root given by ``<nvr>`` as a buildroot override. The ``edit`` subcommand supports
+    the same options than the ``save`` command and also the following option:
+
+    ``--expire``
+        Force an override to the expired state.
 
 Updates
 =======

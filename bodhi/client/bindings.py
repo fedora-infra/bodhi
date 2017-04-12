@@ -273,7 +273,7 @@ class BodhiClient(OpenIdBaseClient):
                   'csrf_token': self.csrf()})
 
     @errorhandled
-    def save_override(self, nvr, duration, notes):
+    def save_override(self, nvr, duration, notes, edit=False, expired=False):
         """ Save a buildroot override.
 
         This entails either creating a new buildroot override, or editing an
@@ -283,18 +283,22 @@ class BodhiClient(OpenIdBaseClient):
         :kwarg duration: Number of days from now that this override should
             expire.
         :kwarg notes: Notes about why this override is in place.
+        :kwargs edit: A boolean to edit an existing override.
+        :kwargs expired: A boolean to expire an override.
 
         """
         expiration_date = datetime.datetime.utcnow() + \
             datetime.timedelta(days=duration)
-
-        return self.send_request(
-            'overrides/', verb='POST', auth=True, data={
-                'nvr': nvr,
+        data = {'nvr': nvr,
                 'expiration_date': expiration_date,
                 'notes': notes,
-                'csrf_token': self.csrf(),
-            })
+                'csrf_token': self.csrf()}
+        if edit:
+            data['edited'] = nvr
+        if expired:
+            data['expired'] = expired
+        return self.send_request(
+            'overrides/', verb='POST', auth=True, data=data)
 
     @errorhandled
     def list_overrides(self, user=None):
