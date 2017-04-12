@@ -51,6 +51,16 @@ class BodhiConfig(dict):
             self.load_config()
         return super(BodhiConfig, self).get(*args, **kw)
 
+    def pop(self, *args, **kw):
+        if not self.loaded:
+            self.load_config()
+        return super(BodhiConfig, self).pop(*args, **kw)
+
+    def copy(self, *args, **kw):
+        if not self.loaded:
+            self.load_config()
+        return super(BodhiConfig, self).copy(*args, **kw)
+
     def load_config(self):
         configfile = get_configfile()
         self.update(get_appsettings(configfile))

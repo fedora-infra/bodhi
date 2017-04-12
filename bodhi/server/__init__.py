@@ -144,9 +144,10 @@ def initialize_db(config):
     Returns:
         sqlalchemy.engine: The database engine created from the configuration.
     """
-    #: The SQLAlchemy database engine. This is constructed using the value of
-    #: ``DB_URL`` in :data:`config``.
-    engine = engine_from_config(config, 'sqlalchemy.')
+    # The SQLAlchemy database engine. This is constructed using the value of
+    # ``DB_URL`` in :data:`config``. Note: A copy is provided since ``engine_from_config``
+    # uses ``pop``.
+    engine = engine_from_config(config.copy(), 'sqlalchemy.')
     # When using SQLite we need to make sure foreign keys are enabled:
     # http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html#foreign-key-support
     if config['sqlalchemy.url'].startswith('sqlite:'):
