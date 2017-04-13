@@ -242,7 +242,14 @@ ${update.type} update for ${generateupdatetitlestring()}
     for (index = 0, len = builds.length; index < len; ++index) {
       request_results(base_url+"results/latest?item="+builds[index]+"&type=koji_build&testcases:like=dist.*");
     }
-    request_results(base_url+"results/latest?item=${update.alias}&type=bodhi_update&testcases:like=update.*");
+
+    var oqaquery = "?item=${update.alias}&type=bodhi_update&testcases:like=update.*&since=";
+    % if update.date_modified:
+    oqaquery += "${update.date_modified.isoformat()}";
+    % else:
+    oqaquery += "${update.date_submitted.isoformat()}";
+    % endif
+    request_results(base_url+"results/latest"+oqaquery);
   });
 </script>
 
