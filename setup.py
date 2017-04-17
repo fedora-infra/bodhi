@@ -13,7 +13,7 @@ README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
-    'pyramid',
+    'pyramid<1.5',  # pyramid-1.5 won't fly on epel7 due to webob versions.
     'pyramid_mako',
     'pyramid_beaker',
     'pyramid_debugtoolbar',
