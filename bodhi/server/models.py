@@ -828,6 +828,76 @@ class RpmBuild(Build):
 
 
 class Update(Base):
+    """
+    This model represents an update.
+
+    Attributes:
+        title (unicode): The update's title which uniquely identifies the update.
+            This is generally an ordered list of the build NVRs contained in the
+            update.
+        autokarma (bool): A boolean that indicates whether or not the update will
+            be automatically pushed when the stable_karma threshold is reached.
+        stable_karma (int): A positive integer that indicates the amount of "good"
+            karma the update must receive before being automatically marked as stable.
+        unstable_karma (int): A positive integer that indicates the amount of "bad"
+            karma the update must receive before being automatically marked as unstable.
+        requirements (unicode): A list of taskotron tests that must pass for this
+            update to be considered stable.
+        require_bugs (bool): Indicates whether or not positive feedback needs to be
+            provided for the associated bugs before the update can be considered
+            stable.
+        require_testcases (bool): Indicates whether or not the update requires that
+            positive feedback be given on all associated wiki test cases before the
+            update can pass to stable. If the update has no associated wiki test cases,
+            this option has no effect.
+        notes (unicode): Notes about the update. This is a human-readable field that
+            describes what the update is for (e.g. the bugs it fixes).
+        type (EnumSymbol): The type of the update (e.g. enhancement, bugfix, etc). It
+            must be one of the values defined in :class:`UpdateType`.
+        status (EnumSymbol): The current status of the update. Possible values include
+            'pending' to indicate it is not yet in a repository, 'testing' to indicate it
+            is in the testing repository, etc. It must be one of the values defined in
+            :class:`UpdateStatus`.
+        request (EnumSymbol): The requested status of the update. This must be one of the
+            values defined in :class:`UpdateRequest` or ``None``.
+        severity (EnumSymbol): The update's severity. This must be one of the values defined
+            in :class:`UpdateSeverity`.
+        suggest (EnumSymbol): Suggested action a user should take after applying the update.
+            This must be one of the values defined in :class:`UpdateSuggestion`.
+        locked (bool): Indicates whether or not the update is locked and un-editable.
+            This is usually set by the masher because the update is going through a state
+            transition.
+        pushed (bool): Indicates whether or not the update has been pushed to its requested
+            repository.
+        critpath (bool): Indicates whether or not the update is for a "critical path"
+            :class:`Package`. Critical path packages are packages that are required for
+            basic functionality. For example, the kernel :class:`RpmPackage` is a critical
+            path package.
+        close_bugs (bool): Indicates whether the Bugzilla bugs that this update is related
+            to should be closed automatically when the update is pushed to stable.
+        date_submitted (DateTime): The date that the update was created.
+        date_modified (DateTime): The date the update was last modified or ``None``.
+        date_approved (DateTime): The date the update was approved or ``None``.
+        date_pushed (DateTime): The date the update was pushed or ``None``.
+        date_testing (DateTime): The date the update was placed into the testing repository
+            or ``None``.
+        date_stable (DateTime): The date the update was placed into the stable repository or
+            ``None``.
+        date_locked (DateTime): The date the update was locked or ``None``.
+        alias (unicode): The update alias (e.g. FEDORA-EPEL-2009-12345).
+        old_updateid (unicode): The legacy update ID which has been deprecated.
+        release_id (int): A foreign key to the releases ``id``.
+        release (Release): The ``Release`` object this update relates to via the ``release_id``.
+        comments (sqlalchemy.orm.collections.InstrumentedList): A list of the :class:`Comment`
+            objects for this update.
+        builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects
+            contained in this update.
+        bugs (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Bug` objects
+            associated with this update.
+        cves (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`CVE` objects
+            associated with this update.
+        user_id (int): A foreign key to the :class:`User` that created this update.
+    """
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id', 'cves')
     __include_extras__ = ('meets_testing_requirements', 'url',)
