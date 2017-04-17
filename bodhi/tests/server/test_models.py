@@ -162,9 +162,7 @@ class TestPackage(ModelTest):
 
     def test_wiki_test_cases(self):
         """Test querying the wiki for test cases"""
-
         # Mock out mediawiki so we don't do network calls in our tests
-        import simplemediawiki
         response = {
             'query': {
                 'categorymembers': [{
@@ -172,18 +170,13 @@ class TestPackage(ModelTest):
                 }],
             }
         }
-        original = simplemediawiki.MediaWiki
-        simplemediawiki.MediaWiki = MockWiki(response)
 
         # Now, our actual test.
-        try:
+        with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
             config['query_wiki_test_cases'] = True
             pkg = model.Package(name=u'gnome-shell')
             pkg.fetch_test_cases(self.db)
             assert pkg.test_cases
-        finally:
-            # Restore things
-            simplemediawiki.MediaWiki = original
 
     def test_committers(self):
         assert self.obj.committers[0].name == u'lmacken'
