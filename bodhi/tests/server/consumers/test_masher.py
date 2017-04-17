@@ -1365,8 +1365,16 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
             mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
                       force=True)]
         publish.assert_has_calls(expected_calls)
-        urlopen.assert_called_once_with(
-            'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
+        self.assertEqual(urlopen.call_count, 1)
+        # Since os.listdir() isn't deterministic about the order of the items it returns, the test
+        # won't be deterministic about which of these URLs get called. However, either one of them
+        # would be correct so we will just assert that one of them is called.
+        expected_calls = [
+            mock.call('http://example.com/pub/fedora/linux/updates/testing/17/x86_64/'
+                      'repodata.repomd.xml'),
+            mock.call('http://example.com/pub/fedora/linux/updates/testing/17/aarch64/'
+                      'repodata.repomd.xml')]
+        self.assertTrue(urlopen.mock_calls[0] in expected_calls)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
@@ -1400,9 +1408,13 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
             mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
                       force=True)]
         publish.assert_has_calls(expected_calls)
+        # Since os.listdir() isn't deterministic about the order of the items it returns, the test
+        # won't be deterministic about which of arch URL gets used. However, either one of them
+        # would be correct so we will just assert that the one that is used is used correctly.
+        arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
-            mock.call(
-                'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
+            mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
+                      '{}/repodata.repomd.xml'.format(arch))
             for i in range(3)]
         urlopen.assert_has_calls(expected_calls)
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
@@ -1441,9 +1453,13 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
             mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
                       force=True)]
         publish.assert_has_calls(expected_calls)
+        # Since os.listdir() isn't deterministic about the order of the items it returns, the test
+        # won't be deterministic about which of arch URL gets used. However, either one of them
+        # would be correct so we will just assert that the one that is used is used correctly.
+        arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
-            mock.call(
-                'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
+            mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
+                      '{}/repodata.repomd.xml'.format(arch))
             for i in range(2)]
         urlopen.assert_has_calls(expected_calls)
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
@@ -1539,9 +1555,13 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
             mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
                       force=True)]
         publish.assert_has_calls(expected_calls)
+        # Since os.listdir() isn't deterministic about the order of the items it returns, the test
+        # won't be deterministic about which of arch URL gets used. However, either one of them
+        # would be correct so we will just assert that the one that is used is used correctly.
+        arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
-            mock.call(
-                'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml')
+            mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
+                      '{}/repodata.repomd.xml'.format(arch))
             for i in range(2)]
         urlopen.assert_has_calls(expected_calls)
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
