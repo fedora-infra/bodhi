@@ -1,27 +1,25 @@
 Release notes
 =============
 
-develop
--------
+2.6.0
+-----
 
-This section is a placeholder for changes made on the develop branch before they are included in a
-release. For each change, add an entry here and make sure your name is in the Release Contributors
-section.
-
-
-Special Instructions
+Special instructions
 ^^^^^^^^^^^^^^^^^^^^
 
-The database migrations have been trimmed in this release. To upgrade to this version of Bodhi
-from a version prior to 2.3, first upgrade to Bodhi 2.3, 2.4, or 2.5, run the database migrations,
-and then upgrade to this release.
+#. The database migrations have been trimmed in this release. To upgrade to this version of Bodhi
+   from a version prior to 2.3, first upgrade to Bodhi 2.3, 2.4, or 2.5, run the database
+   migrations, and then upgrade to this release.
+#. Bodhi cookies now expire, but cookies created before 2.6.0 will not automatically expire. To
+   expire all existing cookies so that only expiring tickets exist, you will need to change
+   ``authtkt.secret`` to a new value in your settings file.
 
 
-Dependency Adjustments
+Dependency adjustments
 ^^^^^^^^^^^^^^^^^^^^^^
 
 * zope.sqlalchemy is no longer a required dependency
-  (`#1414 <https://github.com/fedora-infra/bodhi/pulls/1414>`_).
+  (`#1414 <https://github.com/fedora-infra/bodhi/pull/1414>`_).
 * WebOb is no longer a directly required dependency, though it is still indirectly required through
   pyramid.
 
@@ -30,11 +28,32 @@ Features
 ^^^^^^^^
 
 * The web UI footer has been restyled to fit better with the new theme
-  (`#1366 <https://github.com/fedora-infra/bodhi/pulls/1366>`_).
-* The web UI footer has been added with the documentation link.
+  (`#1366 <https://github.com/fedora-infra/bodhi/pull/1366>`_).
+* A link to documentation has been added to the web UI footer
   (`#1321 <https://github.com/fedora-infra/bodhi/issues/1321>`_).
-* The bodhi CLI now supports editing an update using the update id.
-  (`#937 <https://github.com/fedora-infra/bodhi/issues/937>`_)
+* The bodhi CLI now supports editing updates
+  (`#937 <https://github.com/fedora-infra/bodhi/issues/937>`_).
+* The CLI's ``USERNAME`` environment variable is now documented, and its ``--user`` flag is
+  clarified (`28dd380a <https://github.com/fedora-infra/bodhi/commit/28dd380a>`_).
+* The icons that we introduced in the new theme previously didn't have titles.
+  Consequently, a user might not have know what these icons meant. Now if a user
+  hovers over these icons, they get a description of what they mean, for
+  example: "This is a bugfix update" or "This update is in the critial path"
+  (`#1362 <https://github.com/fedora-infra/bodhi/issues/1362>`_).
+* Update pages with lots of updates look cleaner
+  (`#1351 <https://github.com/fedora-infra/bodhi/issues/1351>`_).
+* Update page titles are shorter now for large updates
+  (`#957 <https://github.com/fedora-infra/bodhi/issues/957>`_).
+* Add support for alternate architectures to the MasherThread.wait_for_sync()
+  (`#1343 <https://github.com/fedora-infra/bodhi/issues/1343>`_).
+* Update lists now also include type icons next to the updates
+  (`5983d99c <https://github.com/fedora-infra/bodhi/commit/5983d99c>`_).
+* Testing updates use a consistent label color now
+  (`62330644 <https://github.com/fedora-infra/bodhi/commit/62330644>`_).
+* openQA results are now displayed in the web ui
+  (`450dbafe <https://github.com/fedora-infra/bodhi/commit/450dbafe>`_).
+* Bodhi cookies now expire. There is a new ``authtkt.timeout`` setting that sets Bodhi's session
+  lifetime, defaulting to 1 day.
 
 
 Bugs
@@ -42,22 +61,18 @@ Bugs
 
 * Comments that don't carry karma don't count as a user's karma vote
   (`#829 <https://github.com/fedora-infra/bodhi/issues/829>`_).
-* Update page titles are shorter now for large updates
-  (`#957 <https://github.com/fedora-infra/bodhi/issues/957>`_).
 * The web UI now uses the update alias instead of the title so editors of large updates can click
   the edit button (`#1161 <https://github.com/fedora-infra/bodhi/issues/1161>`_).
-* Add support for alternate architectures to the MasherThread.wait_for_sync()
-  (`#1343 <https://github.com/fedora-infra/bodhi/issues/1343>`_).
-* Update pages with lots of updates look cleaner
-  (`#1351 <https://github.com/fedora-infra/bodhi/issues/1351>`_).
 * Initialize the bugtracker in ``main()`` instead of on import so that docs can be built without
-  installing Bodhi (`#1359 <https://github.com/fedora-infra/bodhi/pulls/1359>`_).
-* The icons that we introduced in the new theme previously didn't have titles.
-  Consequently, a user might not have know what these icons meant. Now if a user
-  hovers over these icons, they get a description of what they mean, for
-  example: "This is a bugfix update" or "This update is in the critial path"
-  (`#1362 <https://github.com/fedora-infra/bodhi/issues/1362>`_).
-
+  installing Bodhi (`#1359 <https://github.com/fedora-infra/bodhi/pull/1359>`_).
+* Make the release graph easier to read when there are many datapoints
+  (`#1172 <https://github.com/fedora-infra/bodhi/issues/1172>`_).
+* Optimize the JavaScript that loads automated test results from ResultsDB
+  (`#983 <https://github.com/fedora-infra/bodhi/issues/983>`_).
+* Bodhi's testing approval comment now respects the karma reset event
+  (`#1310 <https://github.com/fedora-infra/bodhi/issues/1310>`_).
+* ``pop`` and ``copy`` now lazily load the configuration
+  (`#1423 <https://github.com/fedora-infra/bodhi/issues/1423>`_).
 
 
 Development improvements
@@ -66,21 +81,36 @@ Development improvements
 * A new automated PEP-257 test has been introduced to enforce docblocks across the codebase.
   Converting the code will take some time, but the code will be expanded to fully support PEP-257
   eventually. A few modules have now been documented.
-* Test coverage is now 83%.
+* Test coverage is now 84%.
 * The Vagrant environment now has vim with a simple vim config to make sure spaces are used instead
-  of tabs (`#1372 <https://github.com/fedora-infra/bodhi/pulls/1372>`_).
-
+  of tabs (`#1372 <https://github.com/fedora-infra/bodhi/pull/1372>`_).
+* The Package database model has been converted into a single-table inheritance model, which will
+  aid in adding multi-type support to Bodhi. A new RpmPackage model has been added.
+  (`#1392 <https://github.com/fedora-infra/bodhi/pull/1392>`_).
+* The database initialization code is unified
+  (`e9a26042 <https://github.com/fedora-infra/bodhi/commit/e9a26042>`_).
+* The base model class now has a helpful query property
+  (`8167f262 <https://github.com/fedora-infra/bodhi/commit/8167f262>`_).
+* .pyc files are now removed when running the tests in the dev environment
+  (`9e9adb61 <https://github.com/fedora-infra/bodhi/commit/9e9adb61>`_).
+* An unused inherited column has been dropped from the builds table
+  (`e8a95b12 <https://github.com/fedora-infra/bodhi/commit/e8a95b12>`_).
 
 
 Release contributors
 ^^^^^^^^^^^^^^^^^^^^
 
-The following contributors submitted patches for REPLACE THIS WITH A VERSION BEFORE RELEASE:
+The following contributors submitted patches for Bodhi 2.6.0:
 
+* Jeremy Cline
 * Ryan Lerch
-* Bianca Nenciu
-* Randy Barlow
 * Clement Verna
+* Caleigh Runge-Hottman
+* Bianca Nenciu
+* Adam Williamson
+* Ankit Raj Ojha
+* Jason Taylor
+* Randy Barlow
 
 
 2.5.0
@@ -116,8 +146,6 @@ Features
 
 Bugs
 ^^^^
-* Make the release graph easier to read when there are many datapoints
-  (`#1172 <https://github.com/fedora-infra/bodhi/issues/1172>`_).
 * The position of the Add Comment button is now the bottom right.
   (`#902 <https://github.com/fedora-infra/bodhi/issues/902>`_).
 * An unusuable ``--request`` flag has been removed from a CLI command
