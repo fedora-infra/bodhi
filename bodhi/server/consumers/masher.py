@@ -29,6 +29,7 @@ import time
 import urllib2
 from collections import defaultdict
 from datetime import datetime
+import sys
 
 from fedmsg_atomic_composer.composer import AtomicComposer
 from fedmsg_atomic_composer.config import config as atomic_config
@@ -252,6 +253,9 @@ class MasherThread(threading.Thread):
             'completed_repos': []
         }
         self.success = False
+
+        reload(sys)
+        sys.setdefaultencoding('utf8')
 
     def run(self):
         try:
