@@ -209,6 +209,106 @@ class TestRpmBuild(ModelTest):
         eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
 
 
+class TestUpdateValidateBuilds(BaseTestCase):
+    """Tests for the :class:`Update` validator for builds."""
+
+    def setUp(self):
+        super(TestUpdateValidateBuilds, self).setUp()
+        self.package = model.Package(name='the-greatest-package')
+        self.update = model.Update(
+            title='The best update of all time.',
+            user=model.User.query.filter_by(name=u'guest').one(),
+            request=model.UpdateRequest.testing,
+            notes=u'Useless details!',
+            release=model.Release.query.filter_by(name=u'F17').one(),
+            date_submitted=datetime(1984, 11, 02),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+            type=UpdateType.bugfix
+        )
+
+    def test_no_builds(self):
+        """Assert when the first build is appended, the validator passes."""
+        build = model.Build(
+            nvr='the-greatest-package-1.0.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        self.update.builds.append(build)
+
+    def test_same_build_types(self):
+        """Assert when all builds are the same type, validation passes."""
+        build1 = model.RpmBuild(
+            nvr='the-greatest-package-1.0.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        build2 = model.RpmBuild(
+            nvr='the-greatest-package-1.1.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        self.update.builds += [build1, build2]
+
+    def test_different_build_types(self):
+        """Assert when all builds are a different type, validation fails."""
+        build1 = model.Build(
+            nvr='the-greatest-package-1.0.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        build2 = model.RpmBuild(
+            nvr='the-greatest-package-1.1.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        self.update.builds.append(build1)
+        self.assertRaises(ValueError, self.update.builds.append, build2)
+
+    def test_backref_no_builds(self):
+        """Assert when the first build is appended via a backref, the validator passes."""
+        build = model.Build(
+            nvr='the-greatest-package-1.0.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        build.update = self.update
+
+    def test_backref_same_build_types(self):
+        """Assert when all builds are the same type and set via backref validation passes."""
+        build1 = model.RpmBuild(
+            nvr='the-greatest-package-1.0.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        build2 = model.RpmBuild(
+            nvr='the-greatest-package-1.1.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        build1.update = self.update
+        build2.update = self.update
+
+    def test_backref_different_build_types(self):
+        """Assert when builds differ in type and are set via backref validation passes."""
+        build1 = model.Build(
+            nvr='the-greatest-package-1.0.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        build2 = model.RpmBuild(
+            nvr='the-greatest-package-1.1.0-fc17.1',
+            package_id=self.package.id,
+            release_id=self.update.release.id,
+        )
+        build1.update = self.update
+        with self.assertRaises(ValueError) as cm:
+            build2.update = self.update
+
+        self.assertEqual(str(cm.exception), u'An update must contain builds of the same type.')
+
+
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update

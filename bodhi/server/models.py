@@ -33,7 +33,7 @@ from six.moves.urllib.parse import quote
 from sqlalchemy import (and_, Boolean, Column, DateTime, ForeignKey, Integer, or_, Table, Unicode,
                         UnicodeText)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import class_mapper, relationship, backref
+from sqlalchemy.orm import class_mapper, relationship, backref, validates
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.sql import text
@@ -960,6 +960,24 @@ class Update(Base):
     cves = relationship('CVE', secondary=update_cve_table, backref='updates')
 
     user_id = Column(Integer, ForeignKey('users.id'))
+
+    @validates('builds')
+    def validate_builds(self, key, build):
+        """
+        Validates builds being appended to ensure they are all the same type.
+
+        Args:
+            key (str): The field's key, which is un-used in this validator.
+            build (Build): The build object which was appended to the list
+                of builds.
+
+        Raises:
+            ValueError: If the build being appended is not the same type as the
+                existing builds.
+        """
+        if not all([type(b) is type(build) for b in self.builds]):
+            raise ValueError(u'An update must contain builds of the same type.')
+        return build
 
     @property
     def karma(self):
