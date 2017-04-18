@@ -2496,6 +2496,24 @@ class Group(Base):
 
 
 class BuildrootOverride(Base):
+    """
+    This model represents a Koji buildroot override.
+
+    A buildroot override is a way to add a build to the Koji buildroot (the set of packages used
+    to build a package) manually. Normally, builds are only available after they are pushed to
+    "stable", but this allows a build to be added to the buildroot immediately. This is useful
+    for updates that depend on each other to be built.
+
+    Attributes:
+        notes (unicode): A text field that holds arbitrary notes about the buildroot override.
+        submission_date (DateTime): The date that the buildroot override was submitted.
+        expiration_date (DateTime): The date that the buildroot override expires.
+        expired_date (DateTime): The date that the buildroot override expired.
+        build_id (int): The primary key of the :class:`Build` this override is related to.
+        build (Build): The :class:`Build` object this override is related to.
+        submitter_id (int): The primary key of the :class:`User` this override was created by.
+        submitter (User): The :class:`User` this override was created by.
+    """
     __tablename__ = 'buildroot_overrides'
     __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
