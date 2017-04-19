@@ -219,9 +219,11 @@ def main(global_config, testing=None, session=None, **settings):
         # use a permissive security policy while running unit tests
         config.testing_securitypolicy(userid=testing, permissive=True)
     else:
+        timeout = int(settings.get('authtkt.timeout', '86400'))
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
             settings['authtkt.secret'], callback=groupfinder,
-            secure=asbool(settings['authtkt.secure']), hashalg='sha512'))
+            secure=asbool(settings['authtkt.secure']), hashalg='sha512', timeout=timeout,
+            max_age=timeout))
         config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # Frontpage

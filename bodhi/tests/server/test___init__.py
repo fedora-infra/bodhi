@@ -16,6 +16,7 @@
 """This test suite contains tests for bodhi.server.__init__."""
 import mock
 
+from pyramid import authentication, authorization
 import unittest
 
 from bodhi import server
@@ -26,6 +27,51 @@ class TestMain(base.BaseWSGICase):
     """
     Assert correct behavior from the main() function.
     """
+    @mock.patch('bodhi.server.Configurator.set_authentication_policy')
+    @mock.patch('bodhi.server.Configurator.set_authorization_policy')
+    def test_authtkt_timeout_defined(self, set_authorization_policy, set_authentication_policy):
+        """Ensure that main() uses the setting when authtkt.timeout is defined in settings."""
+        with mock.patch.dict(
+                self.app_settings,
+                {'authtkt.timeout': '10', 'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
+            server.main({}, **self.app_settings)
+
+        policy = set_authentication_policy.mock_calls[0][1][0]
+        self.assertTrue(isinstance(policy, authentication.AuthTktAuthenticationPolicy))
+        self.assertEqual(policy.callback, server.groupfinder)
+        self.assertEqual(policy.cookie.hashalg, 'sha512')
+        self.assertEqual(policy.cookie.max_age, 10)
+        self.assertEqual(policy.cookie.secure, True)
+        self.assertEqual(policy.cookie.secret, 'hunter2')
+        self.assertEqual(policy.cookie.timeout, 10)
+        set_authentication_policy.assert_called_once_with(policy)
+        # Ensure that the ACLAuthorizationPolicy was used
+        policy = set_authorization_policy.mock_calls[0][1][0]
+        self.assertTrue(isinstance(policy, authorization.ACLAuthorizationPolicy))
+        set_authorization_policy.assert_called_once_with(policy)
+
+    @mock.patch('bodhi.server.Configurator.set_authentication_policy')
+    @mock.patch('bodhi.server.Configurator.set_authorization_policy')
+    def test_authtkt_timeout_undefined(self, set_authorization_policy, set_authentication_policy):
+        """Ensure that main() uses a default if authtkt.timeout is undefined in settings."""
+        with mock.patch.dict(
+                self.app_settings, {'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
+            server.main({}, **self.app_settings)
+
+        policy = set_authentication_policy.mock_calls[0][1][0]
+        self.assertTrue(isinstance(policy, authentication.AuthTktAuthenticationPolicy))
+        self.assertEqual(policy.callback, server.groupfinder)
+        self.assertEqual(policy.cookie.hashalg, 'sha512')
+        self.assertEqual(policy.cookie.max_age, 86400)
+        self.assertEqual(policy.cookie.secure, True)
+        self.assertEqual(policy.cookie.secret, 'hunter2')
+        self.assertEqual(policy.cookie.timeout, 86400)
+        set_authentication_policy.assert_called_once_with(policy)
+        # Ensure that the ACLAuthorizationPolicy was used
+        policy = set_authorization_policy.mock_calls[0][1][0]
+        self.assertTrue(isinstance(policy, authorization.ACLAuthorizationPolicy))
+        set_authorization_policy.assert_called_once_with(policy)
+
     @mock.patch('bodhi.server.bugs.set_bugtracker')
     def test_calls_set_bugtracker(self, set_bugtracker):
         """
