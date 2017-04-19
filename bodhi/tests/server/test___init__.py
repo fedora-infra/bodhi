@@ -14,10 +14,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for bodhi.server.__init__."""
-import mock
+import unittest
 
 from pyramid import authentication, authorization
-import unittest
+import mock
 
 from bodhi import server
 from bodhi.tests.server.functional import base
