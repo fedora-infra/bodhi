@@ -31,7 +31,7 @@ from pyramid.settings import asbool
 from simplemediawiki import MediaWiki
 from six.moves.urllib.parse import quote
 from sqlalchemy import (and_, Boolean, Column, DateTime, ForeignKey, Integer, or_, Table, Unicode,
-                        UnicodeText)
+                        UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
 from sqlalchemy.orm.exc import NoResultFound
@@ -495,7 +495,7 @@ class Package(Base):
     __get_by__ = ('name',)
     __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds',)
 
-    name = Column(UnicodeText, unique=True, nullable=False)
+    name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
     type = Column(Integer, nullable=False)
 
@@ -510,6 +510,10 @@ class Package(Base):
         'polymorphic_on': type,
         'polymorphic_identity': 0,
     }
+
+    __table_args__ = (
+        UniqueConstraint('name', 'type', name='packages_name_and_type_key'),
+    )
 
     def get_pkg_pushers(self, branch, settings):
         """ Pull users who can commit and are watching a package.

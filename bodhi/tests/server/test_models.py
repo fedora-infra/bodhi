@@ -148,6 +148,28 @@ class MockWiki(object):
         return self.response
 
 
+class TestPackageUniqueConstraints(BaseTestCase):
+    """Tests for the Package model's uniqueness constraints."""
+
+    def test_two_package_different_types(self):
+        """Assert two different package types with the same name is fine."""
+        package1 = model.Package(name=u'python-requests')
+        package2 = model.RpmPackage(name=u'python-requests')
+
+        self.db.add(package1)
+        self.db.add(package2)
+        self.db.flush()
+
+    def test_two_package_same_type(self):
+        """Assert two packages of the same type with the same name is *not* fine."""
+        package1 = model.RpmPackage(name=u'python-requests')
+        package2 = model.RpmPackage(name=u'python-requests')
+
+        self.db.add(package1)
+        self.db.add(package2)
+        self.assertRaises(IntegrityError, self.db.flush)
+
+
 class TestPackage(ModelTest):
     """Unit test case for the ``Package`` model."""
     klass = model.Package
