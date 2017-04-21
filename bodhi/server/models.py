@@ -76,10 +76,10 @@ class EnumSymbol(object):
         return "<%s>" % self.name
 
     def __unicode__(self):
-        return unicode(self.description)
+        return unicode(self.value)
 
     def __json__(self, request=None):
-        return self.description
+        return self.value
 
 
 class EnumMeta(type):
@@ -307,6 +307,11 @@ metadata = Base.metadata
 ##
 #  Enumerated type declarations
 ##
+class ContentType(DeclEnum):
+    base = 'base', 'Base'
+    rpm = 'rpm', 'RPM'
+    module = 'module', 'Module'
+
 
 class UpdateStatus(DeclEnum):
     pending = 'pending', 'pending'
@@ -497,7 +502,7 @@ class Package(Base):
 
     name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
-    type = Column(Integer, nullable=False)
+    type = Column(ContentType.db_type(), nullable=False)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
     test_cases = relationship('TestCase', backref='package')
@@ -508,7 +513,7 @@ class Package(Base):
 
     __mapper_args__ = {
         'polymorphic_on': type,
-        'polymorphic_identity': 0,
+        'polymorphic_identity': ContentType.base,
     }
 
     __table_args__ = (
@@ -593,6 +598,31 @@ class Package(Base):
 
         log.debug('Finished querying for test cases in %s', datetime.utcnow() - start)
 
+    @validates('builds')
+    def validate_builds(self, key, build):
+        """
+        Validates builds being appended to ensure they are all the same type as the Package.
+
+        This method checks to make sure that all the builds on self.builds have their type attribute
+        equal to self.type. The goal is to make sure that Builds of a specific type are only ever
+        associated with Packages of the same type and vice-versa. For example, RpmBuilds should only
+        ever associate with RpmPackages and never with ModulePackages.
+
+        Args:
+            key (str): The field's key, which is un-used in this validator.
+            build (Build): The build object which was appended to the list
+                of builds.
+
+        Raises:
+            ValueError: If the build being appended is not the same type as the package.
+        """
+        if build.type != self.type:
+            raise ValueError(
+                (u"A {} Build cannot be associated with a {} Package. A Package's builds must be "
+                 u"the same type as the package.").format(
+                     build.type.description, self.type.description))
+        return build
+
     def __str__(self):
         x = header(self.name)
         states = {'pending': [], 'testing': [], 'stable': []}
@@ -611,11 +641,17 @@ class Package(Base):
         return x
 
 
+class ModulePackage(Package):
+    """Represents a Module package."""
+    __mapper_args__ = {
+        'polymorphic_identity': ContentType.module,
+    }
+
+
 class RpmPackage(Package):
     """Represents a RPM package."""
-
     __mapper_args__ = {
-        'polymorphic_identity': 1,
+        'polymorphic_identity': ContentType.rpm,
     }
 
 
@@ -658,10 +694,10 @@ class Build(Base):
 
     release = relationship('Release', backref='builds', lazy=False)
 
-    type = Column(Integer, nullable=False)
+    type = Column(ContentType.db_type(), nullable=False)
     __mapper_args__ = {
         'polymorphic_on': type,
-        'polymorphic_identity': 0,
+        'polymorphic_identity': ContentType.base,
     }
 
     def get_url(self):
@@ -729,6 +765,20 @@ class Build(Base):
                 koji.moveBuild(tag, release.candidate_tag, self.nvr)
 
 
+class ModuleBuild(Build):
+    """
+    Represents a Module build.
+
+    Note that this model uses single-table inheritance with its Build superclass.
+
+    Attributes:
+        nvr (unicode): A unique Koji identifier for the module build.
+    """
+    __mapper_args__ = {
+        'polymorphic_identity': ContentType.module,
+    }
+
+
 class RpmBuild(Build):
     """
     Represents an RPM build.
@@ -744,7 +794,7 @@ class RpmBuild(Build):
     epoch = Column(Integer, default=0)
 
     __mapper_args__ = {
-        'polymorphic_identity': 1,
+        'polymorphic_identity': ContentType.rpm,
     }
 
     @property

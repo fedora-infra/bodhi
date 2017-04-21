@@ -113,7 +113,7 @@ class TestPublish(base.BaseTestCase):
         expected_msg = {
             u'some_package': {
                 u'name': u'so good',
-                u'type': 0,
+                u'type': 'base',
                 u'requirements': None,
                 u'stack': None,
                 u'stack_id': None,

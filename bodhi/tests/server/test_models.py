@@ -170,10 +170,107 @@ class TestPackageUniqueConstraints(BaseTestCase):
         self.assertRaises(IntegrityError, self.db.flush)
 
 
-class TestPackage(ModelTest):
-    """Unit test case for the ``Package`` model."""
-    klass = model.Package
+class TestModulePackage(ModelTest, unittest.TestCase):
+    """Unit test case for the ``ModulePackage`` model."""
+    klass = model.ModulePackage
     attrs = dict(name=u"TurboGears")
+
+    def do_get_dependencies(self):
+        return dict(
+            committers=[model.User(name=u'lmacken')]
+        )
+
+    def setUp(self):
+        super(TestModulePackage, self).setUp()
+        self.package = model.ModulePackage(name=u'the-greatest-package')
+        self.db.add(self.package)
+
+    def test_adding_rpmbuild(self):
+        """Assert that validation fails when adding a RpmBuild."""
+        build1 = model.ModuleBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.RpmBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+        self.package.builds.append(build1)
+
+        with self.assertRaises(ValueError) as exc_context:
+            self.package.builds.append(build2)
+
+        self.assertEqual(
+            unicode(exc_context.exception),
+            ("A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package."))
+
+    def test_adding_list_of_module_and_rpmbuild(self):
+        """Assert that validation fails when adding a ModuleBuild and RpmBuild via a list."""
+        build1 = model.ModuleBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.RpmBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+
+        with self.assertRaises(ValueError) as exc_context:
+            self.package.builds = [build1, build2]
+
+        self.assertEqual(
+            unicode(exc_context.exception),
+            ("A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package."))
+
+    def test_backref_no_builds(self):
+        """Assert that a ModuleBuild can be appended via a backref."""
+        build = model.ModuleBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build.package = self.package
+
+        # This should not raise any Exception.
+        self.db.flush()
+
+    def test_backref_rpmbuild(self):
+        """Assert that adding an RpmBuild via backref fails validation."""
+        build1 = model.ModuleBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.RpmBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+        build1.package = self.package
+
+        with self.assertRaises(ValueError) as exc_context:
+            build2.package = self.package
+
+        self.assertEqual(
+            unicode(exc_context.exception),
+            ("A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package."))
+
+    def test_backref_second_modulebuild(self):
+        """Assert that two ModuleBuilds can be appended via backrefs."""
+        build1 = model.ModuleBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.ModuleBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+        build1.package = self.package
+        build2.package = self.package
+
+        # This should not raise any Exception.
+        self.db.flush()
+
+    def test_no_builds(self):
+        """Assert that one ModuleBuild can be appended."""
+        build = model.ModuleBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        self.package.builds.append(build)
+
+        # This should not raise any Exception.
+        self.db.flush()
+
+    def test_same_build_types(self):
+        """Assert that two builds of the module type can be added and that validation passes."""
+        build1 = model.ModuleBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.ModuleBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+        self.package.builds += [build1, build2]
+
+        # This should not raise any Exception.
+        self.db.flush()
+
+
+class TestRpmPackage(ModelTest, unittest.TestCase):
+    """Unit test case for the ``Package`` model."""
+    klass = model.RpmPackage
+    attrs = dict(name=u"TurboGears")
+
+    def setUp(self):
+        super(TestRpmPackage, self).setUp()
+        self.package = model.RpmPackage(name=u'the-greatest-package')
+        self.db.add(self.package)
 
     def do_get_dependencies(self):
         return dict(
@@ -194,12 +291,75 @@ class TestPackage(ModelTest):
         # Now, our actual test.
         with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
             config['query_wiki_test_cases'] = True
-            pkg = model.Package(name=u'gnome-shell')
+            pkg = model.RpmPackage(name=u'gnome-shell')
             pkg.fetch_test_cases(self.db)
             assert pkg.test_cases
 
+    def test_adding_modulebuild(self):
+        """Assert that validation fails when adding a ModuleBuild."""
+        build1 = model.RpmBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.ModuleBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+        self.package.builds.append(build1)
+
+        with self.assertRaises(ValueError) as exc_context:
+            self.package.builds.append(build2)
+
+        self.assertEqual(
+            unicode(exc_context.exception),
+            ("A Module Build cannot be associated with a RPM Package. A Package's "
+             "builds must be the same type as the package."))
+
+    def test_backref_no_builds(self):
+        """Assert that a RpmBuild can be appended via a backref."""
+        build = model.RpmBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build.package = self.package
+
+        # This should not raise any Exception.
+        self.db.flush()
+
+    def test_backref_modulebuild(self):
+        """Assert that adding a ModuleBuild via backref fails validation."""
+        build1 = model.RpmBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.ModuleBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+        build1.package = self.package
+
+        with self.assertRaises(ValueError) as exc_context:
+            build2.package = self.package
+
+        self.assertEqual(
+            unicode(exc_context.exception),
+            ("A Module Build cannot be associated with a RPM Package. A Package's "
+             "builds must be the same type as the package."))
+
+    def test_backref_second_modulebuild(self):
+        """Assert that two RpmBuilds can be appended via backrefs."""
+        build1 = model.RpmBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.RpmBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+        build1.package = self.package
+        build2.package = self.package
+
+        # This should not raise any Exception.
+        self.db.flush()
+
     def test_committers(self):
         assert self.obj.committers[0].name == u'lmacken'
+
+    def test_no_builds(self):
+        """Assert that one RpmBuild can be appended."""
+        build = model.RpmBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        self.package.builds.append(build)
+
+        # This should not raise any Exception.
+        self.db.flush()
+
+    def test_same_build_types(self):
+        """Assert that two builds of the RPM type can be added and that validation passes."""
+        build1 = model.RpmBuild(nvr=u'the-greatest-package-1.0.0-fc17.1')
+        build2 = model.RpmBuild(nvr=u'the-greatest-package-1.1.0-fc17.1')
+        self.package.builds += [build1, build2]
+
+        # This should not raise any Exception.
+        self.db.flush()
 
 
 class TestRpmBuild(ModelTest):
@@ -209,7 +369,7 @@ class TestRpmBuild(ModelTest):
 
     def do_get_dependencies(self):
         return dict(release=model.Release(**TestRelease.attrs),
-                    package=model.Package(**TestPackage.attrs))
+                    package=model.RpmPackage(**TestRpmPackage.attrs))
 
     def test_release_relation(self):
         eq_(self.obj.release.name, u"F11")
@@ -234,7 +394,7 @@ class TestUpdateValidateBuilds(BaseTestCase):
 
     def setUp(self):
         super(TestUpdateValidateBuilds, self).setUp()
-        self.package = model.Package(name='the-greatest-package')
+        self.package = model.RpmPackage(name='the-greatest-package')
         self.update = model.Update(
             title='The best update of all time.',
             user=model.User.query.filter_by(name=u'guest').one(),
@@ -348,7 +508,7 @@ class TestUpdate(ModelTest):
         release = model.Release(**TestRelease.attrs)
         return dict(
             builds=[model.RpmBuild(
-                nvr=u'TurboGears-1.0.8-3.fc11', package=model.Package(**TestPackage.attrs),
+                nvr=u'TurboGears-1.0.8-3.fc11', package=model.RpmPackage(**TestRpmPackage.attrs),
                 release=release)],
             bugs=[model.Bug(bug_id=1), model.Bug(bug_id=2)],
             cves=[model.CVE(cve_id=u'CVE-2009-0001')],
@@ -359,7 +519,7 @@ class TestUpdate(ModelTest):
         """Return an Update instance for testing."""
         attrs = self.attrs.copy()
         attrs['title'] = name
-        pkg = self.db.query(model.Package).filter_by(name=u'TurboGears').one()
+        pkg = self.db.query(model.RpmPackage).filter_by(name=u'TurboGears').one()
         rel = self.db.query(model.Release).filter_by(name=u'F11').one()
         attrs.update(dict(
             builds=[model.RpmBuild(nvr=name, package=pkg, release=rel)],
@@ -1156,6 +1316,6 @@ class TestBuildrootOverride(ModelTest):
     def do_get_dependencies(self):
         return dict(
             build=model.RpmBuild(
-                nvr=u'TurboGears-1.0.8-3.fc11', package=model.Package(**TestPackage.attrs),
+                nvr=u'TurboGears-1.0.8-3.fc11', package=model.RpmPackage(**TestRpmPackage.attrs),
                 release=model.Release(**TestRelease.attrs)),
             submitter=model.User(name=u'lmacken'))
