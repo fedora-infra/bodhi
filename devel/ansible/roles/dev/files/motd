@@ -1,15 +1,16 @@
 
 Welcome to the Bodhi development environment! Here are some helpful commands:
 
-bdocs:    Build Bodhi's documentation.
-blog:     View Bodhi's log.
-brestart: Restart the Bodhi service.
-bstart:   Start the Bodhi service.
-bstop:    Stop the Bodhi service.
-btest:    Run Bodhi's test suite.
+bdocs:      Build Bodhi's documentation.
+blog:       View Bodhi's log.
+brestart:   Restart the Bodhi service.
+bstart:     Start the Bodhi service.
+bstop:      Stop the Bodhi service.
+btest:      Run Bodhi's test suite.
+bteststyle: Run just the flake8 code style tests.
+
 
 The BODHI_URL environment variable is set to http://localhost:6543 so the
 bodhi client will use the local development server.
 
 Happy hacking!
-
