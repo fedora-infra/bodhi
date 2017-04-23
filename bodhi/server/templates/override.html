@@ -160,9 +160,9 @@
   </div>
 </div>
 </div>
-<script src="${request.static_url('bodhi:server/static/js/override_form.js')}"></script>
-<script src="${request.static_url('bodhi:server/static/datepicker/js/bootstrap-datepicker.js')}"></script>
-<link href="${request.static_url('bodhi:server/static/datepicker/css/datepicker.css')}" rel="stylesheet" />
+<script src="${request.static_url('bodhi:server/static/js/override_form.js')}?bodhi=${self.util.version()}"></script>
+<script src="${request.static_url('bodhi:server/static/datepicker/js/bootstrap-datepicker.js')}?bodhi=${self.util.version()}"></script>
+<link href="${request.static_url('bodhi:server/static/datepicker/css/datepicker.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
 <script>
 $(document).ready(function() {
     var now = new Date();

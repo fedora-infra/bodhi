@@ -1,10 +1,10 @@
 <%inherit file="master.html"/>
 
-<script src="${request.static_url('bodhi:server/static/js/newsfeed.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/js/newsfeed.js')}?bodhi=${self.util.version()}"></script>
 <div class="container p-t-2">
 <div class="row">
   <div id="newsfeed" class="col-md-6">
-    <img src="${request.static_url('bodhi:server/static/img/spinner.gif')}"
+    <img src="${request.static_url('bodhi:server/static/img/spinner.gif')}?bodhi=${self.util.version()}"
          alt="Loading..."
          id="loader" />
     <div id="datagrepper-widget"></div>

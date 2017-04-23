@@ -9,6 +9,9 @@ Features
 
 * The bodhi CLI now supports editing an override.
   (`#1049 <https://github.com/fedora-infra/bodhi/issues/1049>`_)
+* Added GET parameter to static resources' URL to avoid using outdated cached
+  versions.
+  (`#1424 <https://github.com/fedora-infra/bodhi/issues/1424>`_)
 
 
 Release contributors
@@ -17,6 +20,7 @@ Release contributors
 The following contributors submitted patches for Bodhi 2.7.0:
 
 * Clement Verna
+* Bianca Nenciu
 
 
 2.6.0
