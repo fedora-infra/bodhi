@@ -144,16 +144,6 @@ def updates():
 @click.option('--file', help='A text file containing all the update details')
 @url_option
 def new(user, password, url, **kwargs):
-    """
-    Create a new update.
-
-    Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
 
@@ -180,16 +170,6 @@ def new(user, password, url, **kwargs):
 @click.argument('updateid')
 @url_option
 def edit(user, password, url, **kwargs):
-    """
-    Edit an existing update.
-
-    Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
 
@@ -241,14 +221,6 @@ def edit(user, password, url, **kwargs):
               is_flag=True, default=False)
 @url_option
 def query(url, **kwargs):
-    """
-    Query updates based on flags.
-
-    Args:
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     resp = client.query(**kwargs)
     print_resp(resp, client)
@@ -263,20 +235,6 @@ def query(url, **kwargs):
               is_flag=True, default=False)
 @url_option
 def request(update, state, user, password, url, **kwargs):
-    """
-    Change an update's request to the given state.
-
-    Args:
-        update (unicode): The update you wish to modify.
-        state (unicode): The state you wish to change the update's request to. Valid options are
-                         testing, stable, obsolete, unpush, and revoke.
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        staging (bool): Whether to use the staging server or not.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
 
@@ -298,20 +256,6 @@ def request(update, state, user, password, url, **kwargs):
               is_flag=True, default=False)
 @url_option
 def comment(update, text, karma, user, password, url, **kwargs):
-    """
-    Comment on an update.
-
-    Args:
-        update (unicode): The update you wish to modify.
-        text (unicode): The text of the comment you wish to leave on the update.
-        karma (int): The karma you wish to leave on the update. Must be +1, 0, or -1.
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        staging (bool): Whether to use the staging server or not.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
     resp = client.comment(update, text, karma)
@@ -326,15 +270,6 @@ def comment(update, text, karma, user, password, url, **kwargs):
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
 @url_option
 def download(url, **kwargs):
-    """
-    Download the builds for an update.
-
-    Args:
-        staging (bool): Whether to use the staging server or not.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     del(kwargs['staging'])
     # At this point we need to have reduced the kwargs dict to only our
@@ -408,16 +343,6 @@ def overrides():
               is_flag=True, default=False)
 @url_option
 def query_buildroot_overrides(url, user=None, **kwargs):
-    """
-    Query the buildroot overrides.
-
-    Args:
-        user (unicode): If supplied, overrides for this user will be queried.
-        staging (bool): Whether to use the staging server or not.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     resp = client.list_overrides(user=user)
     print_resp(resp, client)
@@ -426,17 +351,6 @@ def query_buildroot_overrides(url, user=None, **kwargs):
 @overrides.command('save')
 @add_options(save_edit_options)
 def save_buildroot_overrides(user, password, url, staging, **kwargs):
-    """
-    Create a buildroot override.
-
-    Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        staging (bool): Whether to use the staging server or not.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     _save_override(url=url, user=user, password=password, staging=staging, **kwargs)
 
 
@@ -444,17 +358,6 @@ def save_buildroot_overrides(user, password, url, staging, **kwargs):
 @add_options(save_edit_options)
 @click.option('--expire', help='Expire the override', is_flag=True, default=False)
 def edit_buildroot_overrides(user, password, url, staging, **kwargs):
-    """
-    Edit a buildroot override.
-
-    Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        staging (bool): Whether to use the staging server or not.
-        kwargs (dict): Other keyword arguments passed to us by click.
-    """
     _save_override(url=url, user=user, password=password, staging=staging, edit=True, **kwargs)
 
 

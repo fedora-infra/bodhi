@@ -9,6 +9,8 @@ Features
 
 * The bodhi CLI now supports editing an override.
   (`#1049 <https://github.com/fedora-infra/bodhi/issues/1049>`_)
+* Remove noisy docblocks that end up in --help text.
+  (`#1457 <https://github.com/fedora-infra/bodhi/issues/1457>`_)
 
 
 Release contributors
@@ -17,6 +19,7 @@ Release contributors
 The following contributors submitted patches for Bodhi 2.7.0:
 
 * Clement Verna
+* Bianca Nenciu
 
 
 2.6.0
