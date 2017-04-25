@@ -1,0 +1,11 @@
+[Unit]
+Description=fedmsg tail
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=vagrant
+ExecStart=/usr/bin/fedmsg-tail
+
+[Install]
+WantedBy=multi-user.target

@@ -5,6 +5,8 @@
       state: present
   with_items:
       - createrepo_c
+      - fedmsg-hub
+      - fedmsg-relay
       - freetype-devel
       - gcc
       - git
@@ -55,6 +57,7 @@
       - python2-createrepo_c
       - python2-cryptography
       - python2-fedmsg-atomic-composer
+      - python2-fedmsg-commands
       - python2-fedmsg-consumers
       - python2-flake8
       - python2-nose-cov
@@ -106,11 +109,14 @@
   args:
       chdir: /home/vagrant/bodhi
 
-- name: Install the systemd unit
+- name: Install the systemd unit files
   copy:
-      src: bodhi.service
-      dest: /etc/systemd/system/bodhi.service
+      src: "{{ item }}"
+      dest: /etc/systemd/system/{{ item }}
       mode: 0644
+  with_items:
+      - bodhi.service
+      - fedmsg-tail.service
 
 - name: Install the .bashrc
   copy:
@@ -134,8 +140,38 @@
       dest: /etc/motd
       mode: 0644
 
+- name: Remove default fedmsg endpoints
+  file: path=/etc/fedmsg.d/endpoints.py state=absent
+
+- name: Remove default fedmsg ssl config
+  file: path=/etc/fedmsg.d/ssl.py state=absent
+
+- name: Link the bodhi fedmsg config
+  file:
+    src: /home/vagrant/bodhi/fedmsg.d/bodhi.py
+    dest: /etc/fedmsg.d/bodhi.py
+    state: link
+
 - name: Start and enable the bodhi service
   service:
       name: bodhi
+      state: started
+      enabled: yes
+
+- name: Start and enable the fedmsg-hub service
+  service:
+      name: fedmsg-hub
+      state: started
+      enabled: yes
+
+- name: Start and enable the fedmsg-relay service
+  service:
+      name: fedmsg-relay
+      state: started
+      enabled: yes
+
+- name: Start and enable the fedmsg-tail service
+  service:
+      name: fedmsg-tail
       state: started
       enabled: yes
