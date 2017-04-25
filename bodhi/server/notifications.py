@@ -65,16 +65,19 @@ def send_fedmsgs_after_commit(session):
         session (sqlalchemy.orm.session.Session): The session that was committed.
     """
     if 'fedmsg' in session.info:
+        _log.debug('Emitting all queued fedmsgs for %r', session)
         # Initialize right before we try to publish, but only if we haven't
         # initialized for this thread already.
         if not fedmsg_is_initialized():
             init()
 
         for topic, messages in session.info['fedmsg'].items():
-            _log.info('emitting {n} fedmsgs to the "{topic}" topic.'.format(
-                n=len(messages), topic=topic))
+            _log.debug('emitting %d fedmsgs to the "%s" topic queued by %r',
+                       len(messages), topic, session)
             for msg in messages:
                 fedmsg.publish(topic=topic, msg=msg)
+                _log.debug('Emitted a fedmsg, %r, on the "%s" topic, queued by %r',
+                           msg, topic, session)
             # Tidy up after ourselves so a second call to commit on this session won't
             # send the same messages again.
             del session.info['fedmsg'][topic]
@@ -92,7 +95,7 @@ def publish(topic, msg, force=False):
     immediately.
     """
     if not bodhi.server.config.config.get('fedmsg_enabled'):
-        bodhi.server.log.warn("fedmsg disabled.  not sending %r" % topic)
+        _log.warn("fedmsg disabled.  not sending %r" % topic)
         return
 
     # Initialize right before we try to publish, but only if we haven't
@@ -101,7 +104,7 @@ def publish(topic, msg, force=False):
         init()
 
     if force:
-        bodhi.server.log.debug("fedmsg skipping transaction and sending %r" % topic)
+        _log.debug("fedmsg skipping transaction and sending %r" % topic)
         fedmsg.publish(topic=topic, msg=msg)
     else:
         # We need to do this to ensure all the SQLAlchemy objects that could be in the messages
@@ -114,9 +117,10 @@ def publish(topic, msg, force=False):
         # When commit is called on it, the :func:`send_fedmsgs_after_commit` is triggered.
         session = Session()
         if 'fedmsg' not in session.info:
+            _log.debug('Adding a dictionary for fedmsg storage to %r', session)
             session.info['fedmsg'] = collections.defaultdict(list)
         session.info['fedmsg'][topic].append(msg_dict)
-        bodhi.server.log.debug("fedmsg enqueueing %r" % topic)
+        _log.debug('Enqueuing a fedmsg, %r, for topic "%s" on %r', msg_dict, topic, session)
 
 
 def fedmsg_is_initialized():
