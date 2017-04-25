@@ -655,9 +655,15 @@ class TransactionalSessionMaker(object):
         try:
             yield session
             session.commit()
-        except:
-            session.rollback()
-            raise
+        except Exception as e:
+            # It is possible for session.rolback() to raise Exceptions, so we will wrap it in an
+            # Exception handler as well so we can log the rollback failure and still raise the
+            # original Exception.
+            try:
+                session.rollback()
+            except:
+                log.exception('An Exception was raised while rolling back a transaction.')
+            raise e
         finally:
             session.close()
             Session.remove()
