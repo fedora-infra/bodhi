@@ -11,14 +11,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import subprocess
+import unittest
 
 import mock
-import unittest
-import subprocess
+
+from bodhi.server import util
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
-from bodhi.server.util import (get_critpath_pkgs, get_nvr, markup,
-                               get_rpm_header, cmd, sorted_builds, TransactionalSessionMaker)
 
 
 class TestUtils(object):
@@ -35,12 +35,12 @@ class TestUtils(object):
 
     def test_get_critpath_pkgs(self):
         """Ensure the pkgdb's critpath API works"""
-        pkgs = get_critpath_pkgs()
+        pkgs = util.get_critpath_pkgs()
         assert 'kernel' in pkgs, pkgs
 
     def test_get_nvr(self):
         """Assert the correct return value and type from get_nvr()."""
-        result = get_nvr(u'ejabberd-16.12-3.fc26')
+        result = util.get_nvr(u'ejabberd-16.12-3.fc26')
 
         assert result == ('ejabberd', '16.12', '3.fc26')
         for element in result:
@@ -49,7 +49,7 @@ class TestUtils(object):
     def test_markup(self):
         """Ensure we escape HTML"""
         text = '<b>bold</b>'
-        html = markup(None, text)
+        html = util.markup(None, text)
         assert html == (
             "<div class='markdown'>"
             '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>'
@@ -57,12 +57,12 @@ class TestUtils(object):
         ), html
 
     def test_rpm_header(self):
-        h = get_rpm_header('')
+        h = util.get_rpm_header('')
         assert h['name'] == 'libseccomp', h
 
     def test_cmd_failure(self):
         try:
-            cmd('false')
+            util.cmd('false')
             assert False
         except Exception:
             pass
@@ -70,7 +70,7 @@ class TestUtils(object):
     def test_sorted_builds(self):
         new = 'bodhi-2.0-1.fc24'
         old = 'bodhi-1.5-4.fc24'
-        b1, b2 = sorted_builds([new, old])
+        b1, b2 = util.sorted_builds([new, old])
         assert b1 == new, b1
         assert b2 == old, b2
 
@@ -88,7 +88,7 @@ class TestCMDFunctions(unittest.TestCase):
         mock_popen_obj = mock_popen.return_value
         mock_popen_obj.communicate.return_value = ('output', 'error')
         mock_popen_obj.returncode = 1
-        cmd('/bin/echo', '"home/imgs/catpix"')
+        util.cmd('/bin/echo', '"home/imgs/catpix"')
         mock_popen.assert_called_once_with(['/bin/echo'], cwd='"home/imgs/catpix"',
                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         mock_error.assert_any_call('error')
@@ -106,7 +106,7 @@ class TestCMDFunctions(unittest.TestCase):
         mock_popen_obj = mock_popen.return_value
         mock_popen_obj.communicate.return_value = ('output', None)
         mock_popen_obj.returncode = 0
-        cmd('/bin/echo', '"home/imgs/catpix"')
+        util.cmd('/bin/echo', '"home/imgs/catpix"')
         mock_popen.assert_called_once_with(['/bin/echo'], cwd='"home/imgs/catpix"',
                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         mock_error.assert_not_called()
@@ -124,7 +124,7 @@ class TestCMDFunctions(unittest.TestCase):
         mock_popen_obj = mock_popen.return_value
         mock_popen_obj.communicate.return_value = ('output', 'error')
         mock_popen_obj.returncode = 0
-        cmd('/bin/echo', '"home/imgs/catpix"')
+        util.cmd('/bin/echo', '"home/imgs/catpix"')
         mock_popen.assert_called_once_with(['/bin/echo'], cwd='"home/imgs/catpix"',
                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         mock_error.assert_not_called()
@@ -143,7 +143,7 @@ class TestTransactionalSessionMaker(unittest.TestCase):
         __call__() should log the failure to roll back, and then close and remove the Session, and
         should raise the original Exception again.
         """
-        tsm = TransactionalSessionMaker()
+        tsm = util.TransactionalSessionMaker()
         exception = ValueError("u can't do that lol")
         # Now let's make it super bad by having rollback raise an Exception
         Session.return_value.rollback.side_effect = IOError("lol now u can't connect to the db")
@@ -169,7 +169,7 @@ class TestTransactionalSessionMaker(unittest.TestCase):
         If the wrapped code raises an Exception, __call__() should roll back the transaction, and
         close and remove the Session, and should raise the original Exception again.
         """
-        tsm = TransactionalSessionMaker()
+        tsm = util.TransactionalSessionMaker()
         exception = ValueError("u can't do that lol")
 
         with self.assertRaises(ValueError) as exc_context:
@@ -192,7 +192,7 @@ class TestTransactionalSessionMaker(unittest.TestCase):
         __call__() should commit the transaction, and close and remove the Session upon a successful
         operation.
         """
-        tsm = TransactionalSessionMaker()
+        tsm = util.TransactionalSessionMaker()
 
         with tsm():
             pass
