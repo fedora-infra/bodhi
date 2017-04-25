@@ -62,7 +62,8 @@ def push(username, cert_prefix, **kwargs):
 
     update_titles = None
 
-    db_factory = transactional_session_maker(initialize_db(config))
+    initialize_db(config)
+    db_factory = transactional_session_maker()
     with db_factory() as session:
         updates = []
         # If we're resuming a push

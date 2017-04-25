@@ -121,7 +121,7 @@ Once mash is done:
             settings = get_appsettings(config_uri)
             engine = engine_from_config(settings, 'sqlalchemy.')
             Base.metadata.create_all(engine)
-            self.db_factory = transactional_session_maker(engine)
+            self.db_factory = transactional_session_maker()
         else:
             self.db_factory = db_factory
 

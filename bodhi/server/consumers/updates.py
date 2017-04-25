@@ -54,8 +54,8 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
     config_key = 'updates_handler'
 
     def __init__(self, hub, *args, **kwargs):
-        engine = initialize_db(config)
-        self.db_factory = util.transactional_session_maker(engine)
+        initialize_db(config)
+        self.db_factory = util.transactional_session_maker()
 
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')

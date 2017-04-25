@@ -117,7 +117,7 @@ class TestMasher(unittest.TestCase):
                 pass
         engine = initialize_db({'sqlalchemy.url': db_path})
         Base.metadata.create_all(engine)
-        self.db_factory = transactional_session_maker(engine)
+        self.db_factory = transactional_session_maker()
 
         with self.db_factory() as session:
             populate(session)

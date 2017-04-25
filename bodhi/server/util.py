@@ -649,9 +649,6 @@ def taskotron_results(settings, entity='results', **kwargs):
 
 class TransactionalSessionMaker(object):
     """Provide a transactional scope around a series of operations."""
-    def __init__(self, engine):
-        self.engine = engine
-
     @contextmanager
     def __call__(self):
         session = Session()

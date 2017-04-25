@@ -41,7 +41,8 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
     config_key = 'signed_handler'
 
     def __init__(self, hub, *args, **kwargs):
-        self.db_factory = transactional_session_maker(initialize_db(config))
+        initialize_db(config)
+        self.db_factory = transactional_session_maker()
 
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
