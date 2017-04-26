@@ -565,6 +565,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
                             status=200)
 
         eq_(res.json_body['update']['request'], None)
+        # We need to re-fetch the update from the database since the post calls committed the
+        # transaction.
+        update = self.db.query(Update).filter_by(title=nvr).one()
         eq_(update.request, None)
         eq_(update.status, UpdateStatus.obsolete)
 
@@ -1819,8 +1822,6 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up_id = up.id
 
-        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-
         # Changing the notes should work
         args['edited'] = args['builds']
         args['notes'] = 'Some new notes'
@@ -1838,6 +1839,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
                       r['errors'])
         up = self.db.query(Update).get(up_id)
         self.assertEquals(up.notes, 'Some new notes')
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         self.assertEquals(up.builds, [build])
 
         # Changing the request should fail
@@ -1853,6 +1855,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
             r['errors'])
         up = self.db.query(Update).get(up_id)
         self.assertEquals(up.notes, 'Some new notes')
+        # We need to re-retrieve the build since we started a new transaction in the call to
+        # /updates
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         self.assertEquals(up.builds, [build])
         self.assertEquals(up.request, None)
 
@@ -2237,21 +2242,21 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         # Checks failure for requesting to stable push before the update reaches stable karma
         up.comment(self.db, u'Not working', author=u'ralph', karma=0)
-        up = Update.get(nvr, self.db)
         self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=400)
+        up = Update.get(nvr, self.db)
         self.assertEquals(up.request, None)
         self.assertEquals(up.status, UpdateStatus.testing)
 
         # Checks Success for requesting to stable push after the update reaches stable karma
         up.comment(self.db, u'LGTM', author=u'ralph', karma=1)
-        up = Update.get(nvr, self.db)
         self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=200)
+        up = Update.get(nvr, self.db)
         self.assertEquals(up.request, UpdateRequest.stable)
         self.assertEquals(up.status, UpdateStatus.testing)
 
@@ -2467,6 +2472,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
         up = body['updates'][0]
+        # We need to refetch the update since the call to /updates/ committed the transaction.
+        upd = self.db.query(Update).filter(Update.alias.isnot(None)).first()
         self.assertEquals(up['title'], upd.title)
         self.assertEquals(up['alias'], upd.alias)
 
@@ -2474,6 +2481,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
         up = body['updates'][0]
+        # We need to refetch the update since the call to /updates/ committed the transaction.
+        upd = self.db.query(Update).filter(Update.alias.isnot(None)).first()
         self.assertEquals(up['title'], upd.title)
 
         res = self.app.get('/updates/', {"updateid": 'BLARG'})

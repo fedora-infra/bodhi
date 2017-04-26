@@ -25,11 +25,11 @@ from sqlalchemy.exc import IntegrityError
 import cornice
 import mock
 
-from bodhi.server import models as model, bugs, buildsys, mail, initialize_db, Session
+from bodhi.server import models as model, buildsys, mail
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
-    Base, BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
+    BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType)
 from bodhi.tests.server.base import BaseTestCase
 
@@ -38,32 +38,28 @@ class DummyUser(object):
     name = 'guest'
 
 
-class ModelTest(object):
+class ModelTest(BaseTestCase):
     """Base unit test case for the models."""
 
     klass = None
     attrs = {}
+    _populate_db = False
 
     def setUp(self):
-        bugs.set_bugtracker()
+        super(ModelTest, self).setUp()
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
-        engine = initialize_db({'sqlalchemy.url': 'sqlite://'})
-        Base.metadata.create_all(engine)
-        self.db = Session()
-        try:
-            new_attrs = {}
-            new_attrs.update(self.attrs)
-            new_attrs.update(self.do_get_dependencies())
-            self.obj = self.klass(**new_attrs)
-            self.db.add(self.obj)
-            self.db.flush()
-            return self.obj
-        except:
-            self.db.rollback()
-            raise
-
-    def tearDown(self):
-        self.db.close()
+        if type(self) != ModelTest:
+            try:
+                new_attrs = {}
+                new_attrs.update(self.attrs)
+                new_attrs.update(self.do_get_dependencies())
+                self.obj = self.klass(**new_attrs)
+                self.db.add(self.obj)
+                self.db.flush()
+                return self.obj
+            except:
+                self.db.rollback()
+                raise
 
     def do_get_dependencies(self):
         """ Use this method to pull in other objects that need to be
@@ -81,11 +77,13 @@ class ModelTest(object):
 
     def test_json(self):
         """ Ensure our models can return valid JSON """
-        assert json.dumps(self.obj.__json__())
+        if type(self) != ModelTest:
+            assert json.dumps(self.obj.__json__())
 
     def test_get(self):
-        for col in self.obj.__get_by__:
-            eq_(self.klass.get(getattr(self.obj, col), self.db), self.obj)
+        if type(self) != ModelTest:
+            for col in self.obj.__get_by__:
+                eq_(self.klass.get(getattr(self.obj, col), self.db), self.obj)
 
 
 class TestQueryProperty(BaseTestCase):
@@ -93,7 +91,7 @@ class TestQueryProperty(BaseTestCase):
     def test_session(self):
         """Assert the session the query property uses is from the scoped session."""
         query = model.Package.query
-        self.assertTrue(Session() is query.session)
+        self.assertTrue(self.db is query.session)
 
 
 class TestComment(unittest.TestCase):
