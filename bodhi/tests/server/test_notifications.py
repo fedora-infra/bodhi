@@ -89,6 +89,7 @@ class TestInit(unittest.TestCase):
 class TestPublish(base.BaseTestCase):
     """Tests for :func:`bodhi.server.notifications.publish`."""
 
+    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': False})
     def test_publish_off(self, mock_init):
         """Assert publish doesn't populate the info dict when publishing is off."""
         notifications.publish('demo.topic', {'such': 'important'})
@@ -103,9 +104,9 @@ class TestPublish(base.BaseTestCase):
         session = Session()
         self.assertIn('fedmsg', session.info)
         self.assertEqual(session.info['fedmsg']['demo.topic'], [{'such': 'important'}])
-        mock_init.assert_called_once_with()
 
     @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
+    @mock.patch('bodhi.server.notifications.fedmsg_is_initialized', mock.Mock(return_value=False))
     @mock.patch('bodhi.server.notifications.fedmsg.publish')
     def test_publish_force(self, mock_fedmsg_publish, mock_init):
         """Assert publish with the force flag sends the message immediately."""

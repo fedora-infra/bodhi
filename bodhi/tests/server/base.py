@@ -46,16 +46,20 @@ if os.environ.get('BUILD_ID'):
 
 
 class BaseTestCase(unittest.TestCase):
+    _populate_db = True
+
     def setUp(self):
         bugs.set_bugtracker()
         self.config = {'sqlalchemy.url': DB_PATH}
         self.engine = initialize_db(self.config)
+        Session.configure(bind=self.engine, expire_on_commit=False)
         self.Session = Session
         log.debug('Creating all models for %s' % self.engine)
         models.Base.metadata.bind = self.engine
         models.Base.metadata.create_all(self.engine)
         self.db = self.Session()
-        populate(self.db)
+        if self._populate_db:
+            populate(self.db)
 
         # Track sql statements in every test
         self.sql_statements = []

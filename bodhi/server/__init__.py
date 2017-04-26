@@ -188,13 +188,14 @@ def main(global_config, testing=None, session=None, **settings):
 
     # Initialize the database scoped session
     initialize_db(settings)
-    config.registry.sessionmaker = Session.session_factory
 
     # Lazy-loaded memoized request properties
     if session:
-        config.add_request_method(lambda _: session, 'db', reify=True)
+        config.registry.sessionmaker = lambda: session
     else:
-        config.add_request_method(get_db_session_for_request, 'db', reify=True)
+        config.registry.sessionmaker = Session
+
+    config.add_request_method(get_db_session_for_request, 'db', reify=True)
 
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)

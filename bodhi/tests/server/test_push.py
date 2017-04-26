@@ -305,7 +305,15 @@ class TestPush(base.BaseTestCase):
 
         # The exit code is 1 when the push is aborted.
         self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, TEST_ABORT_PUSH_EXPECTED_OUTPUT)
+
+        # This is a terribly dirty hack that strips an SQLAlchemy warning about calling configure
+        # on a scoped session with existing sessions. This should ultimately be fixed by making
+        # sure there are no sessions when the CLI is invoked (since it calls configure)
+        if 'scoped session' in result.output:
+            doctored_output = result.output.split('\n', 2)[2]
+        else:
+            doctored_output = result.output
+        self.assertEqual(doctored_output, TEST_ABORT_PUSH_EXPECTED_OUTPUT)
         self.assertEqual(publish.call_count, 0)
 
         # The updates should not be locked
@@ -317,8 +325,9 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_builds_flag(self, publish):
+    def test_builds_flag(self, publish, mock_init):
         """
         Assert correct operation when the --builds flag is given.
         """
@@ -378,12 +387,13 @@ class TestPush(base.BaseTestCase):
                  'resume': False, 'agent': 'bowlofeggs'},
             force=True)
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
     @mock.patch('bodhi.server.push.json.load', return_value={'updates': ['ejabberd-16.09-4.fc17']})
-    def test_locked_updates(self, load, glob, publish, mock_file):
+    def test_locked_updates(self, load, glob, publish, mock_file, mock_init):
         """
         Test correct operation when there are some locked updates.
         """
@@ -400,6 +410,7 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
         self.assertEqual(result.exit_code, 0)
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_EXPECTED_OUTPUT)
         glob.assert_called_once_with('/mnt/koji/mash/updates/MASHING-*')
         publish.assert_called_once_with(
@@ -418,12 +429,13 @@ class TestPush(base.BaseTestCase):
             self.assertTrue(u.locked)
             self.assertTrue(u.date_locked <= datetime.utcnow())
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
     @mock.patch('bodhi.server.push.json.load', return_value={'updates': ['bodhi-2.0-1.fc17']})
-    def test_locked_updates_not_in_a_push(self, load, glob, publish, mock_file):
+    def test_locked_updates_not_in_a_push(self, load, glob, publish, mock_file, mock_init):
         """
         Test correct operation when there are some locked updates that aren't in a push.
         """
@@ -441,6 +453,7 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
         self.assertEqual(result.exit_code, 0)
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         # The packages might be printed in any order and the order isn't important. So let's compare
         # the output with the package list removed to make sure that it is correct.
         self.assertEqual(
@@ -501,8 +514,9 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_releases_flag(self, publish):
+    def test_releases_flag(self, publish, mock_init):
         """
         Assert correct operation from the --releases flag.
         """
@@ -547,6 +561,7 @@ class TestPush(base.BaseTestCase):
                                 input='y')
 
         self.assertEqual(result.exit_code, 0)
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
             topic='masher.start',
@@ -573,8 +588,9 @@ class TestPush(base.BaseTestCase):
         self.assertTrue(f26_python_paste_deploy.locked)
         self.assertTrue(f26_python_paste_deploy.date_locked <= datetime.utcnow())
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_request_flag(self, publish):
+    def test_request_flag(self, publish, mock_init):
         """
         Assert that the --request flag works correctly.
         """
@@ -591,6 +607,7 @@ class TestPush(base.BaseTestCase):
                                 input='y')
 
         self.assertEqual(result.exit_code, 0)
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_REQUEST_FLAG_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
             topic='masher.start',
@@ -607,12 +624,13 @@ class TestPush(base.BaseTestCase):
         self.assertTrue(python_paste_deploy.locked)
         self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
     @mock.patch('bodhi.server.push.json.load', return_value={'updates': [u'ejabberd-16.09-4.fc17']})
-    def test_resume_flag(self, load, glob, publish, mock_file):
+    def test_resume_flag(self, load, glob, publish, mock_file, mock_init):
         """
         Test correct operation when the --resume flag is given.
         """
@@ -630,6 +648,7 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'], input='y\ny')
 
         self.assertEqual(result.exit_code, 0)
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RESUME_FLAG_EXPECTED_OUTPUT)
         glob.assert_called_once_with('/mnt/koji/mash/updates/MASHING-*')
         publish.assert_called_once_with(
@@ -652,6 +671,7 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init', mock.Mock())
     @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
@@ -704,12 +724,13 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.file', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.push.glob.glob',
                 return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
     @mock.patch('bodhi.server.push.json.load', return_value={'updates': [u'ejabberd-16.09-4.fc17']})
-    def test_staging_flag(self, load, glob, publish, mock_file):
+    def test_staging_flag(self, load, glob, publish, mock_file, mock_init):
         """
         Test correct operation when the --staging flag is given. The main thing that matters is that
         the glob call happens on a different directory.
@@ -722,6 +743,7 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--staging'], input='y')
 
         self.assertEqual(result.exit_code, 0)
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_STAGING_FLAG_EXPECTED_OUTPUT)
         glob.assert_called_once_with('/var/cache/bodhi/mashing/MASHING-*')
         publish.assert_called_once_with(
@@ -740,8 +762,9 @@ class TestPush(base.BaseTestCase):
             self.assertTrue(u.locked)
             self.assertTrue(u.date_locked <= datetime.utcnow())
 
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_unsigned_updates_skipped(self, publish):
+    def test_unsigned_updates_skipped(self, publish, mock_init):
         """
         Unsigned updates should get skipped.
         """
@@ -756,6 +779,7 @@ class TestPush(base.BaseTestCase):
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_UNSIGNED_UPDATES_SKIPPED_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
