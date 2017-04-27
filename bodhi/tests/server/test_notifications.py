@@ -107,6 +107,27 @@ class TestPublish(base.BaseTestCase):
 
     @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
     @mock.patch('bodhi.server.notifications.fedmsg_is_initialized', mock.Mock(return_value=False))
+    def test_publish_sqlalchemy_object(self, mock_init):
+        """Assert publish places the message inside the session info dict."""
+        Session.remove()
+        expected_msg = {
+            u'some_package': {
+                u'name': u'so good',
+                u'type': 0,
+                u'requirements': None,
+                u'stack': None,
+                u'stack_id': None,
+            }
+        }
+        package = models.Package(name='so good')
+        notifications.publish('demo.topic', {'some_package': package})
+        session = Session()
+        self.assertIn('fedmsg', session.info)
+        self.assertEqual(session.info['fedmsg']['demo.topic'], [expected_msg])
+        mock_init.assert_called_once_with()
+
+    @mock.patch('bodhi.server.notifications.fedmsg_is_initialized', mock.Mock(return_value=False))
+    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
     @mock.patch('bodhi.server.notifications.fedmsg.publish')
     def test_publish_force(self, mock_fedmsg_publish, mock_init):
         """Assert publish with the force flag sends the message immediately."""

@@ -13,6 +13,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import collections
+import json
 import logging
 import socket
 
@@ -103,12 +104,18 @@ def publish(topic, msg, force=False):
         bodhi.server.log.debug("fedmsg skipping transaction and sending %r" % topic)
         fedmsg.publish(topic=topic, msg=msg)
     else:
+        # We need to do this to ensure all the SQLAlchemy objects that could be in the messages
+        # are turned into JSON before the session is removed and expires the objects loaded with
+        # it. The JSON is decoded again because the fedmsg API doesn't state it accepts strings.
+        # An issue has been filed about this: https://github.com/fedora-infra/fedmsg/issues/407.
+        json_msg = fedmsg.encoding.dumps(msg)
+        msg_dict = json.loads(json_msg)
         # This gives us the thread-local session which we'll use to stash the fedmsg.
         # When commit is called on it, the :func:`send_fedmsgs_after_commit` is triggered.
         session = Session()
         if 'fedmsg' not in session.info:
             session.info['fedmsg'] = collections.defaultdict(list)
-        session.info['fedmsg'][topic].append(msg)
+        session.info['fedmsg'][topic].append(msg_dict)
         bodhi.server.log.debug("fedmsg enqueueing %r" % topic)
 
 
