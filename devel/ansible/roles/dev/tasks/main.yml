@@ -14,6 +14,7 @@
       - libffi-devel
       - libjpeg-devel
       - libjpeg-turbo-devel
+      - nmap-ncat
       - openssl-devel
       - packagedb-cli
       - pcaro-hermit-fonts
@@ -29,6 +30,7 @@
       - python-devel
       - python-dogpile-cache
       - python-fedora
+      - python-ipdb
       - python-kitchen
       - python-librepo
       - python-mock
@@ -43,6 +45,7 @@
       - python-pyramid-mako
       - python-pyramid-fas-openid
       - python-pyramid-tm
+      - python-rpdb
       - python-simplemediawiki
       - python-sqlalchemy
       - python-webhelpers
