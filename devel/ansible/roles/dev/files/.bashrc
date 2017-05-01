@@ -16,6 +16,7 @@ alias bshell="pshell /home/vagrant/bodhi/development.ini"
 alias bstart="sudo systemctl start bodhi && echo 'The Application is running on http://localhost:6543'"
 alias bstop="sudo systemctl stop bodhi"
 alias bteststyle="pushd /home/vagrant/bodhi && nosetests -sx ~/bodhi/bodhi/tests/test_style.py; popd"
+alias bfedmsg="sudo journalctl -u fedmsg-tail"
 
 function btest {
     find /home/vagrant/bodhi -name "*.pyc" -delete;
