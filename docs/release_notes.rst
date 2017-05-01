@@ -19,6 +19,33 @@ The following contributors submitted patches for Bodhi 2.7.0:
 * Clement Verna
 
 
+2.6.1
+-----
+
+This release fixes 4 issues with three commits.
+
+
+Bugs
+^^^^
+
+* Web requests now use the correct session for transactions
+  (`#1470 <https://github.com/fedora-infra/bodhi/issues/1470>`_,
+  `#1473 <https://github.com/fedora-infra/bodhi/issues/1473>`_).
+* fedmsgs are now converted to dictionaries before queuing
+  (`#1472 <https://github.com/fedora-infra/bodhi/issues/1472>`_).
+* Error messages are still logged if rolling back the transaction raises an Exception
+  (`#1475 <https://github.com/fedora-infra/bodhi/issues/1475>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following contributors submitted patches for Bodhi 2.6.1:
+
+* Jeremy Cline
+* Randy Barlow
+
+
 2.6.0
 -----
 
