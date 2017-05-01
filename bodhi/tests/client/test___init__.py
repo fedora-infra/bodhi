@@ -449,6 +449,68 @@ class TestEdit(unittest.TestCase):
             self.assertEqual(result.exit_code, 1)
             self.assertEqual(result.output, u'ERROR: Cannot specify --notes and --notes-file\n')
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_update_title(self, send_request):
+        """
+        Assert that we can successfully edit an update using the update title.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['drupal7-i18n-1.17-1.fc26', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--notes', 'this is an edited note',
+                          '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_with(
+            bindings_client, 'updates/', auth=True, verb='POST',
+            data={
+                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': True,
+                'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None,
+                'notes': u'this is an edited note', 'notes_file': None,
+                'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
+
+    def test_wrong_update_title_argument(self):
+        """
+         Assert that an error is given if the edit update argument given is not an update id
+         nor an update title.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['drupal7-i18n-1.17-1', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--notes', 'this is an edited note',
+                          '--url', 'http://localhost:6543'])
+        self.assertEqual(result.exit_code, 2)
+        expected = u'Usage: edit [OPTIONS] UPDATE\n\n' \
+                   u'Error: Invalid value for "update": ' \
+                   u'Please provide an Update ID or an Update Title\n'
+
+        self.assertEqual(result.output, expected)
+
+    def test_wrong_update_id_argument(self):
+        """
+         Assert that an error is given if the edit update argument given is not an update id
+         nor an update title.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-20-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--notes', 'this is an edited note',
+                          '--url', 'http://localhost:6543'])
+        self.assertEqual(result.exit_code, 2)
+        expected = u'Usage: edit [OPTIONS] UPDATE\n\n' \
+                   u'Error: Invalid value for "update": ' \
+                   u'Please provide an Update ID or an Update Title\n'
+
+        self.assertEqual(result.output, expected)
+
 
 class TestEditBuilrootOverrides(unittest.TestCase):
     """

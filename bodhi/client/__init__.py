@@ -17,6 +17,7 @@ import platform
 import subprocess
 import sys
 import traceback
+import re
 
 import click
 
@@ -175,13 +176,26 @@ def new(user, password, url, **kwargs):
             traceback.print_exc()
 
 
+def _validate_edit_update(ctx, param, value):
+    """
+    Callback used by click to validate the update argument given to the updates edit command.
+    the update argument can only be update id or update title
+    """
+    if re.search(bindings.UPDATE_ID_RE, value)\
+       or re.search(bindings.UPDATE_TITLE_RE, value):
+        return value
+    else:
+        raise click.BadParameter("Please provide an Update ID or an Update Title")
+
+
 @updates.command()
 @add_options(new_edit_options)
-@click.argument('updateid')
+@click.argument('update', callback=_validate_edit_update)
 @url_option
 def edit(user, password, url, **kwargs):
     """
     Edit an existing update.
+    The update argument can be an update id or the update title.
 
     Args:
         user (unicode): The username to authenticate as.
@@ -196,10 +210,13 @@ def edit(user, password, url, **kwargs):
     kwargs['notes'] = _get_notes(**kwargs)
 
     try:
-        query_param = {'updateid': kwargs['updateid']}
-        del(kwargs['updateid'])
-        resp = client.query(**query_param)
-        title = resp['updates'][0]['title']
+        if re.search(bindings.UPDATE_ID_RE, kwargs['update']):
+            query_param = {'updateid': kwargs['update']}
+            resp = client.query(**query_param)
+            title = resp['updates'][0]['title']
+        elif re.search(bindings.UPDATE_TITLE_RE, kwargs['update']):
+            title = kwargs['update']
+        del(kwargs['update'])
         kwargs['builds'] = title
         kwargs['edited'] = title
 
