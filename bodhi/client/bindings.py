@@ -46,6 +46,9 @@ BASE_URL = 'https://bodhi.fedoraproject.org/'
 STG_BASE_URL = 'https://bodhi.stg.fedoraproject.org/'
 STG_OPENID_API = 'https://id.stg.fedoraproject.org/api/v1/'
 
+UPDATE_ID_RE = r'FEDORA-(EPEL-)?\d{4,4}'
+UPDATE_TITLE_RE = r'(\.el|\.fc)\d\d?'
+
 
 class BodhiClientException(FedoraClientError):
     pass
@@ -235,9 +238,9 @@ class BodhiClient(OpenIdBaseClient):
         if 'package' in kwargs:
             # for Bodhi 1, 'package' could be a package name, build, or
             # update ID, so try and figure it out
-            if re.search(r'(\.el|\.fc)\d\d?', kwargs['package']):
+            if re.search(UPDATE_TITLE_RE, kwargs['package']):
                 kwargs['builds'] = kwargs['package']
-            elif re.search(r'FEDORA-(EPEL-)?\d{4,4}', kwargs['package']):
+            elif re.search(UPDATE_ID_RE, kwargs['package']):
                 kwargs['updateid'] = kwargs['package']
             else:
                 kwargs['packages'] = kwargs['package']

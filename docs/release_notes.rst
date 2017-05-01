@@ -9,6 +9,8 @@ Features
 
 * The bodhi CLI now supports editing an override.
   (`#1049 <https://github.com/fedora-infra/bodhi/issues/1049>`_)
+* The bodhi CLI now supports editing an update using the update title.
+  (`#1409 <https://github.com/fedora-infra/bodhi/issues/1409>`_)
 
 
 Release contributors

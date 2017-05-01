@@ -179,9 +179,9 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         A path to a file containing all the update details.
 
-``bodhi updates edit [options] <updateid>``
+``bodhi updates edit [options] <update>``
 
-    Edit an existing bodhi update, given an update id. The
+    Edit an existing bodhi update, given an update id or an update title. The
     ``edit`` subcommand supports the following options:
 
     ``--type [security | bugfix | enhancement | newpackage]``
