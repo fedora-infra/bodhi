@@ -2,7 +2,7 @@ from __future__ import with_statement
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, pool, event
 
 from bodhi.server.config import config as bodhi_config
 from bodhi.server.models import Base
@@ -43,6 +43,8 @@ def run_migrations_offline():
     context.configure(url=url)
 
     with context.begin_transaction():
+        if config.get_main_option('bdr').strip().lower() == 'true':
+            context.execute('SET LOCAL bdr.permit_ddl_locking = true')
         context.run_migrations()
 
 
@@ -57,6 +59,12 @@ def run_migrations_online():
         config.get_section(config.config_ini_section),
         prefix='sqlalchemy.',
         poolclass=pool.NullPool)
+
+    if config.get_main_option('bdr').strip().lower() == 'true':
+        def enable_bdr(connection, connection_record):
+            with connection.cursor() as cursor:
+                cursor.execute('SET LOCAL bdr.permit_ddl_locking = true')
+        event.listen(engine, 'connect', enable_bdr)
 
     connection = engine.connect()
     context.configure(
