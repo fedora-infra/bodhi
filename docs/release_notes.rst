@@ -9,6 +9,8 @@ Features
 
 * The bodhi CLI now supports editing an override.
   (`#1049 <https://github.com/fedora-infra/bodhi/issues/1049>`_)
+* Makes search case-insensitive.
+  (`#997 <https://github.com/fedora-infra/bodhi/issues/997>`_)
 
 
 Release contributors
@@ -17,6 +19,7 @@ Release contributors
 The following contributors submitted patches for Bodhi 2.7.0:
 
 * Clement Verna
+* Bianca Nenciu
 
 
 2.6.1
