@@ -74,7 +74,7 @@ ${update.type} update for ${generateupdatetitlestring()}
     // These are the required taskotron tests
     var requirements = ${update.requirements_json | n};
 
-    var make_row = function(outcome, testcase, note, arch, time, url) {
+    var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
       var icon = '<span data-toggle="tooltip" data-placement="top" ' +
         'title="' + outcome + '" ' +
         'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">' +
@@ -91,6 +91,11 @@ ${update.type} update for ${generateupdatetitlestring()}
       if (arch != undefined) {
         testcase = testcase + "&nbsp;<span class='label label-default'>"
           + arch + "</label>";
+      }
+
+      if (flavor) {
+        testcase = testcase + "&nbsp;<span class='label label-default'>"
+          + flavor + "</label>";
       }
 
       var age = '';
@@ -128,6 +133,14 @@ ${update.type} update for ${generateupdatetitlestring()}
         if (result.outcome == 'ABORTED') return;
 
         var name = result.testcase.name;
+        // we want to stash results by scenario when there is one, use name
+        // when there isn't
+        var scenario = result.testcase.name;
+        if (result.data.scenario) {
+            scenario = result.data.scenario[0];
+        }
+        // note: these are actually single-item arrays, though this doesn't
+        // seem to break anything
         var arch = result.data.arch;
         var item = result.data.item;
         var submit_time = new Date(result.submit_time);
@@ -137,12 +150,13 @@ ${update.type} update for ${generateupdatetitlestring()}
           latest[item] = {};
         if (latest[item][arch] === undefined)
           latest[item][arch] = {};
-        if (latest[item][arch][name] === undefined) {
-          latest[item][arch][name] = result;
+        if (latest[item][arch][scenario] === undefined) {
+          latest[item][arch][scenario] = result;
 
-          // the latest/ api endpoint doesnt take into account multiple arches
-          // for dist.depcheck. So if we hit one of these for the first time
-          // we do a call to get the other one.
+          // the latest/ api endpoint doesn't take into account 'scenarios'
+          // like "same testcase different arch" (depcheck) or "same testcase
+          // different flavor" (openQA). So we have to know about these and
+          // on the first hit, query the other 'scenario'.
           if (name == 'dist.depcheck'){
             var theurl = base_url+"results?testcases=dist.depcheck&item="+item+"&type=koji_build&limit=1";
             if (arch == 'x86_64'){
@@ -152,9 +166,25 @@ ${update.type} update for ${generateupdatetitlestring()}
             }
             request_results(theurl);
           }
+          else if (name.startsWith('update.base')) {
+            // unfortunately we don't report the flavor to rdb, so we have to
+            // do this in a silly way involving knowledge about 'scenario'
+            // and the flavors that exist for update tests. this all sucks and
+            // we need a better 'scenario' implementation.
+            var otherscen;
+            var theurl = base_url+"results?testcases="+name+"&item="+item+"&type=bodhi_update&limit=1";
+            if (scenario.includes("updates-server")) {
+              otherscen = scenario.replace("updates-server", "updates-workstation");
+            }
+            else {
+              otherscen = scenario.replace("updates-workstation", "updates-server");
+            }
+            theurl = theurl+"&scenario="+otherscen;
+            request_results(theurl);
+          }
         }
-        if (new Date(latest[item][arch][name].submit_time) < submit_time) {
-          latest[item][arch][name] = result;
+        if (new Date(latest[item][arch][scenario].submit_time) < submit_time) {
+          latest[item][arch][scenario] = result;
         }
       });
 
@@ -168,14 +198,23 @@ ${update.type} update for ${generateupdatetitlestring()}
         "</h4><table class='table table-hover' id='buildresults"+count+
         "'></table>")
         $.each(obj1, function(arch, obj2) {
-          $.each(obj2, function(testcasename, result) {
+          $.each(obj2, function(scenario, result) {
+            var flavor;
+            if (scenario.includes("updates-server")) {
+              flavor = "server";
+            }
+            else if (scenario.includes("updates-workstation")) {
+              flavor = "workstation";
+            }
             $('#buildresults'+count).append(make_row(
                 result.outcome,
                 result.testcase.name,
                 result.note,
+                // note: this is a single-item array
                 result.data.arch,
                 result.submit_time,
-                result.ref_url
+                result.ref_url,
+                flavor
             ));
           });
         });
