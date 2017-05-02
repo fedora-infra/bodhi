@@ -4,6 +4,7 @@ Welcome to the Bodhi development environment! Here are some helpful commands:
 bdocs:      Build Bodhi's documentation.
 blog:       View Bodhi's log.
 brestart:   Restart the Bodhi service.
+bshell:     Get a handy python shell initialized with Bodhi models.
 bstart:     Start the Bodhi service.
 bstop:      Stop the Bodhi service.
 btest:      Run Bodhi's test suite.
