@@ -314,7 +314,7 @@ ${update.notes}
   </div>
 </div>
 </div>
-<script src="${request.static_url('bodhi:server/static/js/update_form.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/js/update_form.js')}?bodhi=${self.util.version()}"></script>
 <script>$("#js-warning").hide();$("#new-update-form").show();</script>
 <script> $(document).ready(function() { $('.panel-heading > span, dt').tooltip(); }); </script>
 % if not update:

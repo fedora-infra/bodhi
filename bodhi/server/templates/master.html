@@ -16,7 +16,7 @@
     <!-- Only allow websockets connections to fedoraproject.org. -->
     <meta http-equiv="Content-Security-Policy" content="connect-src ${request.registry.settings['cors_connect_src']}">
 
-    <link rel="shortcut icon" href="${request.static_url('bodhi:server/static/ico/favicon.ico')}">
+    <link rel="shortcut icon" href="${request.static_url('bodhi:server/static/ico/favicon.ico')}?bodhi=${self.util.version()}">
 
     <base href="${request.registry.settings['base_address']}"/>
     <title>
@@ -24,18 +24,18 @@
       Fedora Updates System
       </%block>
     </title>
-    <link href="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/fonts/open-sans.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/fonts/hack.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/fonts/font-awesome.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/text.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/navbar.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/footer.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/site.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/datagrepper-feed.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/panel.css') }" rel="stylesheet" />
-    <script src="${request.static_url('bodhi:server/static/js/jquery-1.10.2.min.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/js/Chart-0.2.0.min.js')}"></script>
+    <link href="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/fonts/open-sans.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/fonts/hack.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/fonts/font-awesome.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/text.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/navbar.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/footer.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/site.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/datagrepper-feed.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/css/panel.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:server/static/js/jquery-1.10.2.min.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/Chart-0.2.0.min.js')}?bodhi=${self.util.version()}"></script>
   </head>
 
   <body>
@@ -57,7 +57,7 @@
         <div class="row">
           <div class="col-sm-6">
             <a href="${request.route_url('home')}">
-              <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}" alt="Fedora Update System" id="kojiLogo" height="40px">
+              <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}?bodhi=${self.util.version()}" alt="Fedora Update System" id="kojiLogo" height="40px">
             </a>
           </div>
           <div class="col-sm-6">
@@ -208,23 +208,23 @@
     </div>
 
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="${request.static_url('bodhi:server/static/jquery.flot.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/jquery.flot.stack.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/moment/moment.min.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/js/cabbage.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/js/site.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/jquery.flot.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/jquery.flot.stack.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/moment/moment.min.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/cabbage.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/forms.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/site.js')}?bodhi=${self.util.version()}"></script>
     % if request.user and request.user.show_popups:
-    <script src="${request.static_url('bodhi:server/static/js/live.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/live.js')}?bodhi=${self.util.version()}"></script>
     % endif
-    <script src="${request.static_url('bodhi:server/static/messenger/js/messenger.min.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/messenger/js/messenger-theme-flat.js')}"></script>
-    <link href="${request.static_url('bodhi:server/static/messenger/css/messenger.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
-    <script src="${request.static_url('bodhi:server/static/js/typeahead.bundle.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/js/search.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/js/konami.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/messenger/js/messenger.min.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/messenger/js/messenger-theme-flat.js')}?bodhi=${self.util.version()}"></script>
+    <link href="${request.static_url('bodhi:server/static/messenger/css/messenger.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/messenger/css/messenger-theme-flat.css')}?bodhi=${self.util.version()}" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:server/static/js/typeahead.bundle.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/search.js')}?bodhi=${self.util.version()}"></script>
+    <script src="${request.static_url('bodhi:server/static/js/konami.js')}?bodhi=${self.util.version()}"></script>
 
     % if 'fedmenu.url' in request.registry.settings:
     <script src="${request.registry.settings.get('fedmenu.url')}/js/fedora-libravatar.js"></script>
