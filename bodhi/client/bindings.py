@@ -35,8 +35,9 @@ import re
 import textwrap
 
 import six
+import click
 
-from fedora.client import OpenIdBaseClient, FedoraClientError
+from fedora.client import OpenIdBaseClient, FedoraClientError, AuthError
 import fedora.client.openidproxyclient
 
 
@@ -319,7 +320,12 @@ class BodhiClient(OpenIdBaseClient):
     def csrf(self):
         if not self.csrf_token:
             if not self.has_cookies():
-                self.login(self.username, self.password)
+                try:
+                    self.login(self.username, self.password)
+                except AuthError:
+                    click.echo("wrong password, please try again",
+                               err=True)
+                    sys.exit(1)
             self.csrf_token = self.send_request(
                 'csrf', verb='GET', auth=True)['csrf_token']
         return self.csrf_token
