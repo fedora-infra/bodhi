@@ -701,9 +701,9 @@ class TestBodhiClient_save_override(unittest.TestCase):
         self.assertTrue((actual_expiration - expected_expiration) < timedelta(minutes=5))
 
 
-class TestBodhiClient_Resource(unittest.TestCase):
+class TestBodhiClient_request(unittest.TestCase):
     """
-    This class contains tests for BodhiClient.resource().
+    This class contains tests for BodhiClient.request().
     """
     @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
     @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
