@@ -620,7 +620,7 @@ class TestErrorhandled(unittest.TestCase):
         with self.assertRaises(bindings.BodhiClientException) as exc:
             im_gonna_fail_but_ill_be_cool_about_it(1, y=2, z=3)
 
-        self.assertEqual(exc.exception.message, 'insert\ncoin(s)')
+        self.assertEqual(str(exc.exception), 'insert\ncoin(s)')
 
     def test_success(self):
         """
@@ -651,7 +651,7 @@ class TestErrorhandled(unittest.TestCase):
         with self.assertRaises(bindings.BodhiClientException) as exc:
             im_gonna_fail_and_i_wont_be_cool_about_it(1, 2, z=3)
 
-        self.assertEqual(exc.exception.message, 'An unhandled error occurred in the BodhiClient')
+        self.assertEqual(str(exc.exception), 'An unhandled error occurred in the BodhiClient')
 
 
 class TestUpdateNotFound(unittest.TestCase):
