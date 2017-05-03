@@ -24,7 +24,7 @@ from bodhi.client import bindings
 
 new_edit_options = [
     click.option('--user', envvar='USERNAME'),
-    click.option('--password', prompt=True, hide_input=True),
+    click.option('--password', hide_input=True),
     click.option('--type', default='bugfix', help='Update type', required=True,
                  type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
     click.option('--notes', help='Update description'),
@@ -220,7 +220,7 @@ def query(url, **kwargs):
 @click.argument('update')
 @click.argument('state')
 @click.option('--user', envvar='USERNAME')
-@click.option('--password', prompt=True, hide_input=True)
+@click.option('--password', hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @url_option
@@ -255,7 +255,7 @@ def request(update, state, user, password, url, **kwargs):
 @click.argument('text')
 @click.option('--karma', default=0, type=click.INT, help='The karma for this comment (+1/0/-1)')
 @click.option('--user', envvar='USERNAME')
-@click.option('--password', prompt=True, hide_input=True)
+@click.option('--password', hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @url_option
@@ -392,7 +392,7 @@ def query_buildroot_overrides(url, user=None, **kwargs):
 @click.option('--notes', default="No explanation given...",
               help='Notes on why this override is in place.')
 @click.option('--user', envvar='USERNAME')
-@click.option('--password', prompt=True, hide_input=True)
+@click.option('--password', hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @url_option
