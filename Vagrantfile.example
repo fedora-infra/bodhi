@@ -15,8 +15,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  config.vm.box = "f25-cloud-libvirt"
 
  # Forward traffic on the host to the development server on the guest.
- # You can change the host port that is forwarded to 5000 on the guest
- # if you have other services listening on your host's port 80.
  config.vm.network "forwarded_port", guest: 6543, host: 6543
 
  # This is an optional plugin that, if installed, updates the host's /etc/hosts
