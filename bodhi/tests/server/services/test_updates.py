@@ -29,7 +29,8 @@ from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (
     BuildrootOverride, Group, RpmPackage, Release,
-    ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType, User)
+    ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
+    User, CiStatus)
 import bodhi.tests.server.functional.base
 
 
@@ -614,6 +615,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
+        build.ci_status = CiStatus.passed
         eq_(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a non-provenpackager
@@ -703,6 +705,211 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         app = TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/updates/%s' % str(nvr), status=200)
         eq_(res.json_body['can_edit'], False)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_provenpackager_request_update_queued_in_ci(self, publish, *args):
+        """Ensure provenpackagers cannot request changes for any update which
+        CI status is `queued`"""
+        nvr = u'bodhi-2.1-1.fc17'
+        user = User(name=u'bob')
+        self.db.add(user)
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+        self.app_settings['ci.required'] = True
+
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        up_data = self.get_update(nvr)
+        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', up_data)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
+        build.ci_status = CiStatus.queued
+        eq_(build.update.request, UpdateRequest.testing)
+
+        # Try and submit the update to stable as a provenpackager
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=app.get('/csrf').json_body['csrf_token'])
+        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        # Ensure we can't push it until it passed CI
+        eq_(res.json_body['status'], 'error')
+        eq_(res.json_body['errors'][0]['description'],
+            'Requirement not met CI did not pass on this update')
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_provenpackager_request_update_running_in_ci(self, publish, *args):
+        """Ensure provenpackagers cannot request changes for any update which
+        CI status is `running`"""
+        nvr = u'bodhi-2.1-1.fc17'
+        user = User(name=u'bob')
+        self.db.add(user)
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+        self.app_settings['ci.required'] = True
+
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        up_data = self.get_update(nvr)
+        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', up_data)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
+        build.ci_status = CiStatus.running
+        eq_(build.update.request, UpdateRequest.testing)
+
+        # Try and submit the update to stable as a provenpackager
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=app.get('/csrf').json_body['csrf_token'])
+        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        # Ensure we can't push it until it passed CI
+        eq_(res.json_body['status'], 'error')
+        eq_(res.json_body['errors'][0]['description'],
+            'Requirement not met CI did not pass on this update')
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_provenpackager_request_update_failed_ci(self, publish, *args):
+        """Ensure provenpackagers cannot request changes for any update which
+        CI status is `failed`"""
+        nvr = u'bodhi-2.1-1.fc17'
+        user = User(name=u'bob')
+        self.db.add(user)
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+        self.app_settings['ci.required'] = True
+
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        up_data = self.get_update(nvr)
+        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', up_data)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
+        build.ci_status = CiStatus.failed
+        eq_(build.update.request, UpdateRequest.testing)
+
+        # Try and submit the update to stable as a provenpackager
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=app.get('/csrf').json_body['csrf_token'])
+        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        # Ensure we can't push it until it passed CI
+        eq_(res.json_body['status'], 'error')
+        eq_(res.json_body['errors'][0]['description'],
+            'Requirement not met CI did not pass on this update')
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_provenpackager_request_update_ignored_by_ci(self, publish, *args):
+        """Ensure provenpackagers can request changes for any update which
+        CI status is `ignored`"""
+        nvr = u'bodhi-2.1-1.fc17'
+        user = User(name=u'bob')
+        self.db.add(user)
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+        self.app_settings['ci.required'] = True
+
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        up_data = self.get_update(nvr)
+        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', up_data)
+        assert 'does not have commit access to bodhi' not in res, res
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
+        build.ci_status = CiStatus.ignored
+        eq_(build.update.request, UpdateRequest.testing)
+
+        # Try and submit the update to stable as a provenpackager
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=app.get('/csrf').json_body['csrf_token'])
+        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        # Ensure the reason we cannot push isn't CI this time
+        eq_(res.json_body['status'], 'error')
+        eq_(res.json_body['errors'][0]['description'],
+            config.get('not_yet_tested_msg'))
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_provenpackager_request_update_waiting_on_ci(self, publish, *args):
+        """Ensure provenpackagers cannot request changes for any update which
+        CI status is `waiting`"""
+        nvr = u'bodhi-2.1-1.fc17'
+        user = User(name=u'bob')
+        self.db.add(user)
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+        self.app_settings['ci.required'] = True
+
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        up_data = self.get_update(nvr)
+        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', up_data)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
+        build.ci_status = CiStatus.waiting
+        eq_(build.update.request, UpdateRequest.testing)
+
+        # Try and submit the update to stable as a provenpackager
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=app.get('/csrf').json_body['csrf_token'])
+        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        # Ensure we can't push it until it passed CI
+        eq_(res.json_body['status'], 'error')
+        eq_(res.json_body['errors'][0]['description'],
+            'Requirement not met CI did not pass on this update')
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_provenpackager_request_update_with_none_ci(self, publish, *args):
+        """Ensure provenpackagers can request changes for any update which
+        CI status is `None`"""
+        nvr = u'bodhi-2.1-1.fc17'
+        user = User(name=u'bob')
+        self.db.add(user)
+        group = self.db.query(Group).filter_by(name=u'provenpackager').one()
+        user.groups.append(group)
+        self.app_settings['ci.required'] = True
+
+        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        up_data = self.get_update(nvr)
+        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+        res = app.post_json('/updates/', up_data)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
+        build.ci_status = None
+        eq_(build.update.request, UpdateRequest.testing)
+
+        # Try and submit the update to stable as a provenpackager
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=app.get('/csrf').json_body['csrf_token'])
+        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        # Ensure the reason we can't push is not CI
+        eq_(res.json_body['status'], 'error')
+        eq_(res.json_body['errors'][0]['description'],
+            config.get('not_yet_tested_msg'))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -2355,6 +2562,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = Update.get(nvr, self.db)
         up.status = UpdateStatus.testing
         up.request = None
+        eq_(len(up.builds), 1)
+        up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
 
         # Checks failure for requesting to stable push before the update reaches stable karma
@@ -2392,6 +2601,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
+        eq_(len(up.builds), 1)
+        up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
@@ -2415,6 +2626,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.status = UpdateStatus.pending
         up.request = None
         up.release.state = ReleaseState.archived
+        eq_(len(up.builds), 1)
+        up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
@@ -2436,6 +2649,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
+        eq_(len(up.builds), 1)
+        up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
@@ -2458,6 +2673,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
+        eq_(len(up.builds), 1)
+        up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
         eq_(up.days_in_testing, 7)
         eq_(up.meets_testing_requirements, True)
@@ -2482,6 +2699,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         up.comment(self.db, u'This update has been pushed to stable', author=u'bodhi')
+        eq_(len(up.builds), 1)
+        up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
         eq_(up.days_in_testing, 14)
         eq_(up.meets_testing_requirements, True)
@@ -2510,6 +2729,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
+        eq_(len(up.builds), 1)
+        up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
         eq_(up.days_in_testing, 14)
         eq_(up.meets_testing_requirements, True)
@@ -2654,7 +2875,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(len(r.json['bugs']), 1)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
-        # Pretend it was pushed to testing
+        # Pretend it was pushed to testing and tested
         update = self.db.query(Update).filter_by(title=build).one()
         update.request = None
         update.status = UpdateStatus.testing
@@ -2713,7 +2934,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(up['stable_karma'], 3)
         self.assertEquals(up['unstable_karma'], -3)
 
-        # Pretend it was pushed to testing
+        # Pretend it was pushed to testing and tested
         update = self.db.query(Update).filter_by(title=build).one()
         update.request = None
         update.status = UpdateStatus.testing
@@ -2749,7 +2970,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = r.json_body
         self.assertEquals(up['type'], u'newpackage')
 
-        # Pretend it was pushed to testing
+        # Pretend it was pushed to testing and tested
         update = self.db.query(Update).filter_by(title=build).one()
         update.request = None
         update.status = UpdateStatus.testing
@@ -2780,7 +3001,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
-        # Mark it as testing and give it 2 karma
+        # Mark it as testing, tested and give it 2 karma
         upd = Update.get(nvr, self.db)
         upd.status = UpdateStatus.testing
         upd.request = None
@@ -2814,7 +3035,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
-        # Mark it as testing
+        # Mark it as testing and as tested
         upd = Update.get(nvr, self.db)
         upd.status = UpdateStatus.testing
         upd.request = None

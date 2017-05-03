@@ -320,6 +320,32 @@ def status2html(context, status):
     return "<span class='label label-%s'>%s</span>" % (cls, status)
 
 
+def ci_status2html(context, status):
+    """ Convert the specified status into a html string used to present the
+    CI status in a human friendly way.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        status (unicode): The description of the CI status
+
+    Returns:
+        unicode: A human friendly HTML label of the CI status
+
+    """
+    cls = {
+        'Ignored': 'success',
+        'Running': 'warning',
+        'Passed': 'success',
+        'Failed': 'danger',
+        'Queued': 'info',
+        'Waiting': 'info',
+        'None': 'primary',
+    }[str(status)]
+    if status is None:
+        status = 'not running'
+    return u"<span class='label label-%s'>Tests %s</span>" % (cls, status)
+
+
 def state2class(context, state):
     state = unicode(state)
     cls = {

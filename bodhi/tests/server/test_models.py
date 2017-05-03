@@ -31,7 +31,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
-    UpdateSuggestion, UpdateType)
+    UpdateSuggestion, UpdateType, CiStatus)
 from bodhi.tests.server.base import BaseTestCase
 
 
@@ -591,7 +591,7 @@ class TestUpdate(ModelTest):
         return dict(
             builds=[model.RpmBuild(
                 nvr=u'TurboGears-1.0.8-3.fc11', package=model.RpmPackage(**TestRpmPackage.attrs),
-                release=release)],
+                release=release, ci_status=CiStatus.passed)],
             bugs=[model.Bug(bug_id=1), model.Bug(bug_id=2)],
             cves=[model.CVE(cve_id=u'CVE-2009-0001')],
             release=release,
@@ -627,6 +627,62 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].nvr, u'TurboGears-1.0.8-3.fc11')
         eq_(self.obj.builds[0].release.name, u'F11')
         eq_(self.obj.builds[0].package.name, u'TurboGears')
+
+    def test_ci_status_ignored(self):
+        """Test the ci_status property when all Builds have their ci_status set to ignored."""
+        self.obj.builds[0].ci_status = CiStatus.ignored
+        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.ignored)
+        self.obj.builds.append(second_build)
+
+        self.assertEqual(self.obj.ci_status, CiStatus.ignored)
+
+    def test_ci_status_none(self):
+        """Test the ci_status property when all Builds have their ci_status set to None."""
+        self.obj.builds[0].ci_status = None
+        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=None)
+        self.obj.builds.append(second_build)
+
+        self.assertEqual(self.obj.ci_status, None)
+
+    def test_ci_status_one_failed(self):
+        """Test the ci_status property when one Build passed and the other failed."""
+        self.obj.builds[0].ci_status = CiStatus.passed
+        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.failed)
+        self.obj.builds.append(second_build)
+
+        self.assertEqual(self.obj.ci_status, CiStatus.failed)
+
+    def test_ci_status_one_queued(self):
+        """Test the ci_status property when one Build passed and the other is queued."""
+        self.obj.builds[0].ci_status = CiStatus.passed
+        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.queued)
+        self.obj.builds.append(second_build)
+
+        self.assertEqual(self.obj.ci_status, CiStatus.queued)
+
+    def test_ci_status_one_running(self):
+        """Test the ci_status property when one Build passed and the other is running."""
+        self.obj.builds[0].ci_status = CiStatus.passed
+        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.running)
+        self.obj.builds.append(second_build)
+
+        self.assertEqual(self.obj.ci_status, CiStatus.running)
+
+    def test_ci_status_passed(self):
+        """Test the ci_status property when all Builds have their ci_status set to passed."""
+        self.obj.builds[0].ci_status = CiStatus.passed
+        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.passed)
+        self.obj.builds.append(second_build)
+
+        self.assertEqual(self.obj.ci_status, CiStatus.passed)
+
+    def test_ci_status_waiting(self):
+        """Test the ci_status property when all Builds have their ci_status set to waiting."""
+        self.obj.builds[0].ci_status = CiStatus.waiting
+        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.waiting)
+        self.obj.builds.append(second_build)
+
+        self.assertEqual(self.obj.ci_status, CiStatus.waiting)
 
     def test_content_type(self):
         eq_(self.obj.content_type, model.ContentType.rpm)
@@ -716,6 +772,97 @@ class TestUpdate(ModelTest):
         eq_(update.meets_testing_requirements, False)
 
         eq_(update.days_to_stable, 3)
+
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    def test_ci_failed_no_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False if the
+        builds of an update did not pass CI.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.stable_karma = 1
+        update.builds[0].ci_status = CiStatus.failed
+        update.comment(self.db, u'I found $100 after applying this update.', karma=1,
+                       author=u'bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, False)
+
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    def test_ci_queued_no_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False if the
+        builds of an update did not pass CI.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.stable_karma = 1
+        update.builds[0].ci_status = CiStatus.queued
+        update.comment(self.db, u'I found $100 after applying this update.', karma=1,
+                       author=u'bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, False)
+
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    def test_ci_running_no_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False if the
+        builds of an update did not pass CI.
+        """
+        self.config['ci.required'] = True
+        update = self.obj
+        update.autokarma = False
+        update.stable_karma = 1
+        update.builds[0].ci_status = CiStatus.running
+        update.comment(self.db, u'I found $100 after applying this update.', karma=1,
+                       author=u'bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, False)
+
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    def test_ci_missing_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False if the
+        builds of an update did not pass CI.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.stable_karma = 1
+        update.builds[0].ci_status = None
+        update.comment(self.db, u'I found $100 after applying this update.', karma=1,
+                       author=u'bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, True)
+
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    def test_ci_waiting_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False if the
+        builds of an update did not pass CI.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.stable_karma = 1
+        update.builds[0].ci_status = CiStatus.waiting
+        update.comment(self.db, u'I found $100 after applying this update.', karma=1,
+                       author=u'bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, False)
+
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': False})
+    def test_ci_ci_required_off(self):
+        """
+        The Update.meets_testing_requirements() should return False if the
+        builds of an update did not pass CI.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.stable_karma = 1
+        update.builds[0].ci_status = CiStatus.running
+        update.comment(self.db, u'I found $100 after applying this update.', karma=1,
+                       author=u'bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        eq_(update.meets_testing_requirements, True)
 
     @mock.patch('bodhi.server.models.bugs.bugtracker.close')
     @mock.patch('bodhi.server.models.bugs.bugtracker.comment')

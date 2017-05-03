@@ -409,6 +409,41 @@ class TestUtils(unittest.TestCase):
         splitspacestring = util.splitter("build-0.1 build-0.2")
         self.assertEqual(splitspacestring, ['build-0.1', 'build-0.2'])
 
+    def test_ci_status2html_ignored(self):
+        """ Test the ci_status2html method with a status: Ignored. """
+        output = util.ci_status2html(None, 'Ignored')
+        assert output == "<span class='label label-success'>Tests Ignored</span>"
+
+    def test_ci_status2html_running(self):
+        """ Test the ci_status2html method with a status: Running. """
+        output = util.ci_status2html(None, 'Running')
+        assert output == "<span class='label label-warning'>Tests Running</span>"
+
+    def test_ci_status2html_passed(self):
+        """ Test the ci_status2html method with a status: Passed. """
+        output = util.ci_status2html(None, 'Passed')
+        assert output == "<span class='label label-success'>Tests Passed</span>"
+
+    def test_ci_status2html_failed(self):
+        """ Test the ci_status2html method with a status: Failed. """
+        output = util.ci_status2html(None, 'Failed')
+        assert output == "<span class='label label-danger'>Tests Failed</span>"
+
+    def test_ci_status2html_queued(self):
+        """ Test the ci_status2html method with a status: Queued. """
+        output = util.ci_status2html(None, 'Queued')
+        assert output == "<span class='label label-info'>Tests Queued</span>"
+
+    def test_ci_status2html_waiting(self):
+        """ Test the ci_status2html method with a status: Waiting. """
+        output = util.ci_status2html(None, 'Waiting')
+        assert output == "<span class='label label-info'>Tests Waiting</span>"
+
+    def test_ci_status2html_missing(self):
+        """ Test the ci_status2html method with a status: None. """
+        output = util.ci_status2html(None, None)
+        assert output == "<span class='label label-primary'>Tests not running</span>"
+
 
 class TestCMDFunctions(unittest.TestCase):
     @mock.patch('bodhi.server.log.debug')

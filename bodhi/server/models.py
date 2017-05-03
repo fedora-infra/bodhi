@@ -374,6 +374,23 @@ class UpdateStatus(DeclEnum):
     processing = 'processing', 'processing'
 
 
+class CiStatus(DeclEnum):
+    """ This class lists the different status the ci_status flag can have. """
+    # None: Updates created while bodhi has the configuration key `ci.required` not set to True
+    # waiting: Updates created while bodhi has the configuration key `ci.required` set to True
+    waiting = 'waiting', 'Waiting'
+    # ignored: a message from the CI system said that this build is ignored
+    ignored = 'ignored', 'Ignored'
+    # queued: a message from the CI system said that the tests for this build have been queued
+    queued = 'queued', 'Queued'
+    # running: a message from the CI system said that the tests for this build are running
+    running = 'running', 'Running'
+    # passed: a message from the CI system said that the tests for this build have passed
+    passed = 'passed', 'Passed'
+    # failed: a message from the CI system said that the tests for this build have been failed
+    failed = 'failed', 'Failed'
+
+
 class UpdateType(DeclEnum):
     bugfix = 'bugfix', 'bugfix'
     security = 'security', 'security'
@@ -770,6 +787,9 @@ class Build(Base):
             of.
         type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
             which subclass of Build to use.
+        ci_status (EnumSymbol): The CI status of the update. This must be one of the values
+            defined in :class:`CiStatus` or ``None``. None indicates that CI was not enabled when
+            the update was created.
     """
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
@@ -781,6 +801,8 @@ class Build(Base):
     release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
     update_id = Column(Integer, ForeignKey('updates.id'))
+    ci_status = Column(CiStatus.db_type(), default=None, nullable=True)
+    ci_url = Column(UnicodeText, default=None, nullable=True)
 
     release = relationship('Release', backref='builds', lazy=False)
 
@@ -1269,6 +1291,12 @@ class Update(Base):
         log.debug("Triggering db flush for new update.")
         db.flush()
 
+        if config.get('ci.required'):
+            log.debug(
+                'CI required is enforced, marking the build as waiting on CI')
+            for build in up.builds:
+                build.ci_status = CiStatus.waiting
+
         log.debug("Done with Update.new(...)")
         return up, caveats
 
@@ -1414,6 +1442,52 @@ class Update(Base):
         """
         if self.builds:
             return self.builds[0].type
+
+    @property
+    def ci_passed(self):
+        """
+        Returns a boolean representing if all the builds associated with
+        this update are ignored or have passed their CI testing.
+
+        Returns:
+            bool: Returns True if the Update's ci_status property is None, ignored, or passed.
+                Otherwise it returns False.
+        """
+        if self.ci_status in (
+                None, CiStatus.ignored, CiStatus.passed):
+            return True
+        return False
+
+    @property
+    def ci_status(self):
+        """
+        Returns a label representing if all the builds associated with
+        this update are ignored or have passed their CI testing.
+
+        This will return None when bodhi is configured with the configuration
+        key `ci.required` not set to True (ie: when CI support is not enabled).
+
+        Returns:
+            bodhi.server.models.CiStatus or None: The overall status of this update.
+        """
+        ci_status = set([
+            build.ci_status for build in self.builds
+            if build.ci_status is not None
+        ])
+        if ci_status == set():
+            return None
+        if ci_status == set([CiStatus.ignored]):
+            return CiStatus.ignored
+        if ci_status == set([CiStatus.passed]):
+            return CiStatus.passed
+        if ci_status == set([CiStatus.waiting]):
+            return CiStatus.waiting
+        if CiStatus.failed in ci_status:
+            return CiStatus.failed
+        if CiStatus.running in ci_status:
+            return CiStatus.running
+        if CiStatus.queued in ci_status:
+            return CiStatus.queued
 
     def obsolete_older_updates(self, db):
         """Obsolete any older pending/testing updates.
@@ -2208,6 +2282,9 @@ class Update(Base):
                     return False, "Required task %s returned %s" % (
                         latest['testcase']['name'], latest['outcome'])
 
+        if config.get('ci.required') and not self.ci_passed:
+            return False, "CI did not pass on this update"
+
         # TODO - check require_bugs and require_testcases also?
 
         return True, "All checks pass."
@@ -2307,6 +2384,9 @@ class Update(Base):
         simply return True.
         """
         num_days = self.mandatory_days_in_testing
+
+        if config.get('ci.required') and not self.ci_passed:
+            return False
 
         if self.critpath:
             # Ensure there is no negative karma. We're looking at the sum of

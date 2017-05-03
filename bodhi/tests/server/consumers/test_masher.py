@@ -28,7 +28,8 @@ from bodhi.server import buildsys, log, initialize_db
 from bodhi.server.config import config
 from bodhi.server.consumers.masher import Masher, MasherThread
 from bodhi.server.models import (Base, Build, BuildrootOverride, Release, ReleaseState, RpmBuild,
-                                 Update, UpdateRequest, UpdateStatus, UpdateType, User)
+                                 Update, CiStatus, UpdateRequest, UpdateStatus, UpdateType,
+                                 User)
 from bodhi.server.util import mkmetadatadir, transactional_session_maker
 from bodhi.tests.server import base, populate
 
@@ -481,7 +482,9 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
+            build = RpmBuild(
+                nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+                ci_status=CiStatus.passed)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -562,7 +565,9 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
+            build = RpmBuild(
+                nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+                ci_status=CiStatus.passed)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -635,7 +640,9 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
+            build = RpmBuild(
+                nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+                ci_status=CiStatus.passed)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',

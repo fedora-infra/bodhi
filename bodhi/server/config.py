@@ -323,6 +323,12 @@ class BodhiConfig(dict):
         'captcha.ttl': {
             'value': 300,
             'validator': int},
+        'ci.required': {
+            'value': False,
+            'validator': _validate_bool},
+        'ci.url': {
+            'value': '',
+            'validator': unicode},
         'compose_atomic_trees': {
             'value': False,
             'validator': _validate_bool},
