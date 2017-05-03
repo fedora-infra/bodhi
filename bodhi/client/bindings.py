@@ -36,7 +36,7 @@ import textwrap
 
 import six
 
-from fedora.client import OpenIdBaseClient, FedoraClientError
+from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError
 import fedora.client.openidproxyclient
 
 
@@ -63,7 +63,23 @@ def errorhandled(method):
     """ A decorator for BodhiClient that raises exceptions on failure. """
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
-        result = method(*args, **kwargs)
+        try:
+            result = method(*args, **kwargs)
+        except AuthError:
+            # An AuthError can be raised for three different reasons:
+            #
+            # 0) The password is wrong.
+            # 1) The session cookies are expired. fedora.python does not handle this automatically.
+            # 2) The session cookies are not expired, but are no longer valid (for example, this can
+            #    happen if the server's auth secret has changed.)
+            #
+            # We don't know the difference between the cases here, but case #1 is fairly common and
+            # we can work around it and case #2 by removing the session cookies and csrf token and
+            # retrying the request. If the password is wrong, the second attempt will also fail but
+            # we won't guard it and the AuthError will still be raised.
+            args[0]._session.cookies.clear()
+            args[0].csrf_token = None
+            result = method(*args, **kwargs)
 
         if 'errors' not in result:
             return result

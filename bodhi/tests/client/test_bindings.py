@@ -609,6 +609,66 @@ class TestErrorhandled(unittest.TestCase):
 
         self.assertEqual(exc.exception.message, 'insert\ncoin(s)')
 
+    def test_retry_on_auth_failure_failure(self):
+        """
+        Test the decorator when the wrapped method raises an AuthError the second time it is run.
+
+        This test ensures that the decorator will give up after one retry if the wrapped method
+        raises a fedora.client.AuthError, raising the AuthError in question.
+
+        This test was written to assert the fix for
+        https://github.com/fedora-infra/bodhi/issues/1474
+        """
+        a_fake_self = mock.MagicMock()
+        a_fake_self.csrf_token = 'some_token'
+        a_fake_self.call_count = 0
+
+        @bindings.errorhandled
+        def wrong_password_lol(a_fake_self):
+            a_fake_self.call_count = a_fake_self.call_count + 1
+            raise fedora.client.AuthError('wrong password lol')
+
+        with self.assertRaises(fedora.client.AuthError) as exc:
+            # Wrong password always fails, so the second call should allow the Exception to be
+            # raised.
+            wrong_password_lol(a_fake_self)
+
+        self.assertEqual(exc.exception.message, 'wrong password lol')
+        a_fake_self._session.cookies.clear.assert_called_once_with()
+        self.assertTrue(a_fake_self.csrf_token is None)
+        self.assertEqual(a_fake_self.call_count, 2)
+
+    def test_retry_on_auth_failure_success(self):
+        """
+        Test the decorator when the wrapped method raises an AuthError the first time it is run.
+
+        This test ensures that the decorator will retry the wrapped method if it raises a
+        fedora.client.AuthError, after clearing cookies and the csrf token.
+
+        This test was written to assert the fix for
+        https://github.com/fedora-infra/bodhi/issues/1474
+        """
+        a_fake_self = mock.MagicMock()
+        a_fake_self.csrf_token = 'some_token'
+        a_fake_self.call_count = 0
+
+        @bindings.errorhandled
+        def wrong_password_lol(a_fake_self):
+            a_fake_self.call_count = a_fake_self.call_count + 1
+
+            # Fail on the first call with an AuthError to simulate bad session cookies.
+            if a_fake_self.call_count == 1:
+                raise fedora.client.AuthError('wrong password lol')
+
+            return 'here you go'
+
+        # No Exception should be raised.
+        wrong_password_lol(a_fake_self)
+
+        a_fake_self._session.cookies.clear.assert_called_once_with()
+        self.assertTrue(a_fake_self.csrf_token is None)
+        self.assertEqual(a_fake_self.call_count, 2)
+
     def test_success(self):
         """
         Test the decorator for the success case.
