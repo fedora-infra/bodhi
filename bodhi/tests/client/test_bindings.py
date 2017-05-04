@@ -88,11 +88,197 @@ class TestBodhiClient_comment(unittest.TestCase):
                   'email': True, 'csrf_token': 'a token'})
 
 
+class TestBodhiClient__init_username(unittest.TestCase):
+    """Test the BodhiClient._init_username() method."""
+    TEST_EMPTY_OBJECT_SESSION_CACHE = '{}'
+    TEST_FAILED_SESSION_CACHE = '{"https://bodhi.fedoraproject.org/:bowlofeggs": []}'
+    TEST_HOT_SESSION_CACHE = '{"https://bodhi.fedoraproject.org/:bowlofeggs": [["stuff", "login"]]}'
+    TEST_OTHER_SESSION_CACHE = '{"https://other_domain/:bowlofeggs": [["stuff", "login"]]}'
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_auth_cache_empty(self, exists, _load_cookies, mock_raw_input, mock_open):
+        """
+        Test the method when there is no username, the session cache exists, and the session cache
+        is 0 bytes.
+        """
+        exists.return_value = True
+        mock_open.side_effect = mock.mock_open(read_data='')
+        mock_raw_input.return_value = 'pongou'
+        client = bindings.BodhiClient()
+
+        client._init_username()
+
+        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 1)
+        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(client.username, 'pongou')
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_auth_cache_empty_object(self, exists, _load_cookies, mock_raw_input, mock_open):
+        """
+        Test the method when there is no username, the session cache exists, and the session cache
+        is an empty object.
+        """
+        exists.return_value = True
+        mock_open.side_effect = mock.mock_open(read_data=self.TEST_EMPTY_OBJECT_SESSION_CACHE)
+        mock_raw_input.return_value = 'pongou'
+        client = bindings.BodhiClient()
+
+        client._init_username()
+
+        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 1)
+        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(client.username, 'pongou')
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_auth_cache_failed(self, exists, _load_cookies, mock_raw_input, mock_open):
+        """
+        Test the method when there is no username, the session cache exists, and the session cache
+        is missing the cookies.
+        """
+        exists.return_value = True
+        mock_open.side_effect = mock.mock_open(read_data=self.TEST_FAILED_SESSION_CACHE)
+        mock_raw_input.return_value = 'pongou'
+        client = bindings.BodhiClient()
+
+        client._init_username()
+
+        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 1)
+        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(client.username, 'pongou')
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_auth_cache_hot(self, exists, _load_cookies, mock_raw_input, mock_open):
+        """
+        Test the method when there is no username, the session cache exists, and the session cache
+        has cookies.
+        """
+        exists.return_value = True
+        mock_open.side_effect = mock.mock_open(read_data=self.TEST_HOT_SESSION_CACHE)
+        client = bindings.BodhiClient()
+
+        client._init_username()
+
+        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 0)
+        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(client.username, 'bowlofeggs')
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.json.loads')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_auth_cache_loop(self, exists, loads, _load_cookies, mock_raw_input, mock_open):
+        """
+        Test the method when there is no username, the session cache exists, and the session cache
+        has cookies but iteration is needed to find them.
+        """
+        def fake_keys():
+            return [
+                'http://wrong_host:wrong', 'also:wrong',
+                'https://bodhi.fedoraproject.org/:correct',
+                'https://bodhi.fedoraproject.org/:shouldntgethere']
+
+        exists.return_value = True
+        loads.return_value.keys.side_effect = fake_keys
+        mock_open.side_effect = mock.mock_open(read_data=self.TEST_HOT_SESSION_CACHE)
+        client = bindings.BodhiClient()
+
+        client._init_username()
+
+        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        loads.assert_called_once_with(self.TEST_HOT_SESSION_CACHE)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 0)
+        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(client.username, 'correct')
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_auth_cache_missing(self, exists, _load_cookies, mock_raw_input, mock_open):
+        """
+        Test the method when there is no username and the session cache doesn't exist.
+        """
+        exists.return_value = False
+        mock_raw_input.return_value = 'pongou'
+        client = bindings.BodhiClient()
+
+        client._init_username()
+
+        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 1)
+        self.assertEqual(mock_open.call_count, 0)
+        self.assertEqual(client.username, 'pongou')
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_auth_cache_other_domain(self, exists, _load_cookies, mock_raw_input, mock_open):
+        """
+        Test the method when there is no username, the session cache exists, and the session cache
+        has cookies but they are for a different domain.
+        """
+        exists.return_value = True
+        mock_open.side_effect = mock.mock_open(read_data=self.TEST_OTHER_SESSION_CACHE)
+        mock_raw_input.return_value = 'pongou'
+        client = bindings.BodhiClient()
+
+        client._init_username()
+
+        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 1)
+        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(client.username, 'pongou')
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_username_set(self, exists, _load_cookies, mock_raw_input, mock_open):
+        """
+        Test the method when the username is set.
+        """
+        client = bindings.BodhiClient(username='coolbeans')
+
+        client._init_username()
+
+        self.assertEqual(exists.call_count, 0)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 0)
+        self.assertEqual(mock_open.call_count, 0)
+        self.assertEqual(client.username, 'coolbeans')
+
+
 class TestBodhiClient_csrf(unittest.TestCase):
     """
     Test the BodhiClient.csrf() method.
     """
-    def test_with_csrf_token(self):
+    @mock.patch('bodhi.client.bindings.BodhiClient._init_username')
+    def test_with_csrf_token(self, _init_username):
         """
         Test the method when csrf_token is set.
         """
@@ -104,11 +290,21 @@ class TestBodhiClient_csrf(unittest.TestCase):
 
         self.assertEqual(csrf, 'a token')
         self.assertEqual(client.send_request.call_count, 0)
+        # No need to init the username since we already have a token.
+        self.assertEqual(_init_username.call_count, 0)
 
-    def test_without_csrf_token_with_cookies(self):
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_without_csrf_token_with_cookies(self, exists, _load_cookies, mock_raw_input,
+                                             mock_open):
         """
         Test the method when csrf_token is not set and has_cookies() returns True.
         """
+        exists.return_value = True
+        mock_open.side_effect = mock.mock_open(
+            read_data=TestBodhiClient__init_username.TEST_HOT_SESSION_CACHE)
         client = bindings.BodhiClient()
         client.has_cookies = mock.MagicMock(return_value=True)
         client.login = mock.MagicMock(return_value='login successful')
@@ -121,12 +317,23 @@ class TestBodhiClient_csrf(unittest.TestCase):
         client.has_cookies.assert_called_once_with()
         self.assertEqual(client.login.call_count, 0)
         client.send_request.assert_called_once_with('csrf', verb='GET', auth=True)
+        # Ensure that _init_username() was called and did its thing.
+        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 0)
+        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
+        self.assertEqual(client.username, 'bowlofeggs')
 
-    def test_without_csrf_token_without_cookies(self):
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_without_csrf_token_without_cookies(self, exists, _load_cookies, mock_raw_input,
+                                                mock_open):
         """
         Test the method when csrf_token is not set and has_cookies() returns False.
         """
-        client = bindings.BodhiClient(username='bowlofeggs', password='illnevertell')
+        client = bindings.BodhiClient(username='pongou', password='illnevertell')
         client.has_cookies = mock.MagicMock(return_value=False)
         client.login = mock.MagicMock(return_value='login successful')
         client.send_request = mock.MagicMock(return_value={'csrf_token': 'a great token'})
@@ -136,8 +343,14 @@ class TestBodhiClient_csrf(unittest.TestCase):
         self.assertEqual(csrf, 'a great token')
         self.assertEqual(client.csrf_token, 'a great token')
         client.has_cookies.assert_called_once_with()
-        client.login.assert_called_once_with('bowlofeggs', 'illnevertell')
+        client.login.assert_called_once_with('pongou', 'illnevertell')
         client.send_request.assert_called_once_with('csrf', verb='GET', auth=True)
+        # Ensure that _init_username() didn't do anything since a username was given.
+        self.assertEqual(exists.call_count, 0)
+        self.assertEqual(_load_cookies.mock_calls, [mock.call()])
+        self.assertEqual(mock_raw_input.call_count, 0)
+        self.assertEqual(mock_open.call_count, 0)
+        self.assertEqual(client.username, 'pongou')
 
 
 class TestBodhiClient_latest_builds(unittest.TestCase):

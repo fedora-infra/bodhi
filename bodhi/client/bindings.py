@@ -29,6 +29,7 @@ This module provides Python bindings to the Bodhi REST API.
 import datetime
 import functools
 import getpass
+import json
 import logging
 import os
 import re
@@ -324,9 +325,48 @@ class BodhiClient(OpenIdBaseClient):
             params['user'] = user
         return self.send_request('overrides/', verb='GET', params=params)
 
+    def _init_username(self):
+        """
+        Check to see if the username attribute on self is set, and set if if it is not.
+
+        If the username is already set on self, return.
+
+        If the username is not already set on self, attempt to find if there is a username that has
+        successfully authenticated in the Fedora session file. If that doesn't work, fall back to
+        prompting the terminal for a username. Once the username has been set, re-run
+        self._load_cookies() so we can re-use the user's last session.
+        """
+        if not self.username:
+            if os.path.exists(fedora.client.openidbaseclient.b_SESSION_FILE):
+                with open(fedora.client.openidbaseclient.b_SESSION_FILE) as session_cache:
+                    try:
+                        sc = json.loads(session_cache.read())
+                    except ValueError:
+                        # If the session cache can't be decoded as JSON, it could be corrupt or
+                        # empty. Either way we can't use it, so let's just pretend it's empty.
+                        sc = {}
+                for key in sc.keys():
+                    if key.startswith(self.base_url) and sc[key]:
+                        self.username = key.split('{}:'.format(self.base_url))[1]
+                        break
+
+            if not self.username:
+                self.username = raw_input('Username: ')
+
+            self._load_cookies()
+
     @errorhandled
     def csrf(self):
+        """
+        Return the CSRF token if alread aquired, otherwise login, get a CSRF, cache it, and return.
+
+        If there is already a CSRF token, this method returns it.
+
+        If there is not, this method ensures that we know the username, logs in if we aren't already
+        logged in aquires and caches a CSRF token, and returns it.
+        """
         if not self.csrf_token:
+            self._init_username()
             if not self.has_cookies():
                 self.login(self.username, self.password)
             self.csrf_token = self.send_request(
