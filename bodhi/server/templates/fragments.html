@@ -77,7 +77,7 @@
 </%def>
 
 <%def name="update(update, display_user=True, display_request=False, display_release=True, display_karma=True)">
-  <td class="stretch-table-column">${util.update2html(update) | n} ${util.type2icon(update['type'])|n} </td>
+  <td class="stretch-table-column">${util.type2icon(update['type'])|n} ${util.update2html(update)|n}</td>
   <td class="nowrap">
     <span title="${update['date_submitted']} UTC">
       ${util.age(update['date_submitted'], True)}
