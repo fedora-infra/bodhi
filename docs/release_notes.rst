@@ -21,6 +21,32 @@ The following contributors submitted patches for Bodhi 2.7.0:
 * Clement Verna
 
 
+2.6.2
+-----
+
+This release focused on CLI authentication issues. One of the issues requires users to also update
+their python-fedora installation to at least 0.9.0.
+
+
+Bugs
+^^^^
+
+* The CLI is now able to appropriately handle expiring sessions
+  (`#1474 <https://github.com/fedora-infra/bodhi/issues/1474>`_).
+* The CLI now only prompts for a password when needed
+  (`#1500 <https://github.com/fedora-infra/bodhi/pull/1500>`_).
+* Don't traceback if the user doesn't use the ``--user`` flag
+  (`#1505 <https://github.com/fedora-infra/bodhi/pull/1505>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following contributors submitted patches for Bodhi 2.6.2:
+
+* Randy Barlow
+
+
 2.6.1
 -----
 
