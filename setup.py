@@ -46,7 +46,7 @@ def get_requirements(requirements_file='requirements.txt'):
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-VERSION = '2.6.1'
+VERSION = '2.6.2'
 # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
@@ -110,7 +110,7 @@ setup(
     packages=['bodhi.client'],
     include_package_data=False,
     zip_safe=False,
-    install_requires=['click', 'six'],
+    install_requires=['click', 'python-fedora >= 0.9.0', 'six'],
     entry_points="""\
     [console_scripts]
     bodhi = bodhi.client:cli
