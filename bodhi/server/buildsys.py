@@ -143,6 +143,11 @@ class DevBuildsys(Buildsystem):
     def getTaskInfo(self, task):
         return {'state': koji.TASK_STATES['CLOSED']}
 
+    def getTaskRequest(self, task_id):
+        return [
+            u'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a',
+            'f17-candidate', {}]
+
     def listPackages(self):
         return [
             {'package_id': 2625, 'package_name': 'nethack'},

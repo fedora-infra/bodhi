@@ -778,6 +778,9 @@ class Build(Base):
             time of this writing, it was not practical to rename nvr since it is used in the REST
             API to reference builds. Thus, it should be thought of as a Koji build identifier rather
             than strictly as an RPM's name, version, and release.
+        scm_url (unicode): An SCM URL to a commit of the spec file that this build was generated
+            from. For example,
+            git://pkgs.fedoraproject.org/rpms/bodhi?#34e14931464563b7d549816d1a2324c9af444d8e
         package_id (int): A foreign key to the Package that this Build is part of.
         release_id (int): A foreign key to the Release that this Build is part of.
         signed (bool): If True, this package has been signed by robosignatory. If False, it has not
@@ -797,6 +800,7 @@ class Build(Base):
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
+    scm_url = Column(Unicode(256), unique=True, nullable=True)
     package_id = Column(Integer, ForeignKey('packages.id'))
     release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
@@ -822,6 +826,22 @@ class Build(Base):
             str: A URL for this build.
         """
         return '/' + self.nvr
+
+    def get_scm_url(self):
+        """
+        Return the SCM commit URL for this build from koji.
+
+        Returns:
+            basestring or None: The URL of the commit for this build, or None if there was an error
+                communicating with Koji.
+        """
+        try:
+            koji = buildsys.get_session()
+            build = koji.getBuild(self.nvr)
+            return koji.getTaskRequest(build['task_id'])[0]
+        except Exception:
+            log.exception('Error retrieving the scm_url from Koji for Build {}.'.format(self.nvr))
+            return None
 
     def get_tags(self, koji=None):
         """

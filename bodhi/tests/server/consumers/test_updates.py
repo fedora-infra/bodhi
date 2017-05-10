@@ -21,7 +21,7 @@ import unittest
 import mock
 import sqlalchemy
 
-from bodhi.server import exceptions, util
+from bodhi.server import exceptions, models, util
 from bodhi.server.consumers import updates
 from bodhi.tests.server import base
 
@@ -116,6 +116,67 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(fetch_test_cases.call_count, 1)
         self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][1],
                                    sqlalchemy.orm.session.Session))
+
+    @mock.patch('bodhi.server.buildsys.DevBuildsys.getTaskRequest', side_effect=IOError("oh no"))
+    def test_scm_url_fail(self, getTaskRequest):
+        """Test that the scm_url is added when communication with Koji fails."""
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        message = {
+            'topic': 'bodhi.update.request.testing',
+            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'}}}}
+
+        h.consume(message)
+
+        b = models.Build.query.filter(models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+        # Since we could not communicate with Koji, the scm_url should still be None.
+        self.assertEqual(b.scm_url, None)
+        getTaskRequest.assert_called_once_with(127621)
+
+    @mock.patch('bodhi.server.models.Build.get_scm_url')
+    def test_scm_url_present(self, get_scm_url):
+        """Test that the scm_url is left alone when it's already set in the database."""
+        b = models.Build.query.filter(models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+        b.scm_url = u'git://some.cool.host/rpms/neat#master'
+        self.db.commit()
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        message = {
+            'topic': 'bodhi.update.request.testing',
+            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'}}}}
+
+        h.consume(message)
+
+        b = models.Build.query.filter(models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+        # Since the scm_url was already set on the build, it shouldn't have changed and we shouldn't
+        # have asked koji about it.
+        self.assertEqual(b.scm_url, 'git://some.cool.host/rpms/neat#master')
+        self.assertEqual(get_scm_url.call_count, 0)
+
+    def test_scm_url_success(self):
+        """Test that the scm_url is added when communication with Koji is successful."""
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        message = {
+            'topic': 'bodhi.update.request.testing',
+            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'}}}}
+
+        h.consume(message)
+
+        b = models.Build.query.filter(models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+        # The scm_url should be set to the value from the DevBuildsys fake call.
+        self.assertEqual(
+            b.scm_url,
+            'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a')
 
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')

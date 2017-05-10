@@ -153,6 +153,7 @@ setup(
     main = bodhi.server:main
     [console_scripts]
     initialize_bodhi_db = bodhi.server.scripts.initializedb:main
+    bodhi-babysit-ci-status = bodhi.server.scripts.babysit_ci_status:babysit
     bodhi-clean-old-mashes = bodhi.server.scripts.clean_old_mashes:clean_up
     bodhi-push = bodhi.server.push:push
     bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main

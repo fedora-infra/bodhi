@@ -22,7 +22,7 @@ import unittest
 from sqlalchemy import event
 import requests
 
-from bodhi.server import bugs, log, models, initialize_db, Session
+from bodhi.server import bugs, buildsys, log, models, initialize_db, Session
 from bodhi.tests.server import create_update, populate
 
 
@@ -50,6 +50,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         bugs.set_bugtracker()
+        buildsys.setup_buildsystem({'buildsystem': 'dev'})
         self.config = {'sqlalchemy.url': DB_PATH}
         self.engine = initialize_db(self.config)
         Session.configure(bind=self.engine, expire_on_commit=False)

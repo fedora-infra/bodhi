@@ -444,6 +444,33 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         assert rv == (['ralph', 'mikeb', 'mprahl'], []), rv
 
 
+class TestBuild(ModelTest):
+    """Test class for the ``Build`` model."""
+    klass = model.Build
+    attrs = dict(nvr=u"TurboGears-1.0.8-3.fc11")
+
+    @mock.patch('bodhi.server.buildsys.DevBuildsys.getTaskRequest', side_effect=IOError("oh no"))
+    @mock.patch('bodhi.server.models.log.exception')
+    def test_get_scm_url_failure(self, exception, getTaskRequest):
+        """Test the get_scm_url method when we are unable to communicate with Koji."""
+        url = self.obj.get_scm_url()
+
+        # Since we received an IOError, the url should be None.
+        self.assertEqual(url, None)
+        exception.assert_called_once_with(
+            'Error retrieving the scm_url from Koji for Build TurboGears-1.0.8-3.fc11.')
+        getTaskRequest.assert_called_once_with(127621)
+
+    def test_get_scm_url_success(self):
+        """Test the get_scm_url method when we are able to communicate with Koji."""
+        url = self.obj.get_scm_url()
+
+        # We should just get the URL that the DevBuildsys gives us from getTaskRequest().
+        self.assertEqual(
+            url,
+            'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a')
+
+
 class TestRpmBuild(ModelTest):
     """Unit test case for the ``RpmBuild`` model."""
     klass = model.RpmBuild
