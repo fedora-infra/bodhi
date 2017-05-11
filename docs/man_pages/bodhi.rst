@@ -45,6 +45,11 @@ Most of the commands will accept these options:
     instead of authentication (as authentication is not required for these operations). Those
     operations do not use the ``USERNAME`` environment variable.
 
+``--mine``
+
+    Some commands accept this flag instead of the ``--user <username>`` option. This uses the
+    value from the ``USERNAME`` environment variable.
+
 ``--version``
 
     Show version and exit. Not accepted by subcommands.

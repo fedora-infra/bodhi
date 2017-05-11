@@ -421,6 +421,8 @@ def overrides():
 @overrides.command('query')
 @click.option('--user', default=None,
               help='Updates submitted by a specific user')
+@click.option('--mine', 'user', flag_value=os.getenv('USERNAME'),
+              help='Updates submitted by current user')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @url_option
