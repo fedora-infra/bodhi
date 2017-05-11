@@ -24,3 +24,5 @@ function btest {
 
 export BODHI_URL="http://localhost:6543/"
 export PYTHONWARNINGS="once"
+
+cd bodhi
