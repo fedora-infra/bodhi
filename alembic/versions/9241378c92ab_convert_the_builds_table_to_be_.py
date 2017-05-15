@@ -15,9 +15,11 @@ down_revision = '12d3e8695f90'
 
 def upgrade():
     """Add the type column to the builds table."""
-    # The default of ``1`` is the RPM Build type.
-    op.add_column('builds', sa.Column('type', sa.Integer(), nullable=False, server_default=u'1'))
-    op.alter_column('builds', 'type', server_default=None)
+    builds = sa.sql.table('builds', sa.sql.column('type', sa.Integer()))
+    op.add_column('builds', sa.Column('type', sa.Integer(), nullable=True))
+    # The type 1 is the RPM Build type.
+    op.execute(builds.update().values({'type': 1}))
+    op.alter_column('builds', 'type', nullable=False)
 
 
 def downgrade():
