@@ -27,6 +27,7 @@ import os
 import threading
 import time
 import urllib2
+import subprocess
 from collections import defaultdict
 from datetime import datetime
 
@@ -902,6 +903,36 @@ class MasherThread(threading.Thread):
         mashed_repos = dict([('-'.join(os.path.basename(repo).split('-')[:-1]), repo)
                              for repo in self.state['completed_repos']])
         for tag, mash_path in mashed_repos.items():
+            #  TODO: Find out the actual values for the tag
+            #  also for the code below, should we use the mash_path instead
+            #  of current_workdir?
+            #  * Pungi config repos hsa $arch, does it matter in bodhi?
+            #  * Do we need any other config files in the pungi-fedora config directory before we fireup the pungi
+            if tag.find('f26') != -1:  # This is a F26 build
+                current_workdir = os.path.join(self.path, self.id)
+                repo_dir = os.path.join(current_workdir, "pungi-fedora")
+                branch = "f26"
+                git_checkout(repo_dir, "https://pagure.io/pungi-fedora", branch)
+                # Prepare the Repo URL
+                dirpath = os.path.join(current_workdir, tag)[9:]
+                url = "https://kojipkgs.fedoraproject.org/{0}/$arch/".format(dirpath)
+                pungi_config_file = os.path.join(repo_dir, "fedora-atomic.conf")
+                with open(pungi_config_file) as fobj:
+                    lines = fobj.readlines()
+
+                idx = 0  # The place to insert the new repo path
+                for i, line in enumerate(lines):
+                    if line.find('"source_repo_from": [ "Cloud",') != -1:
+                        idx = i
+                        break
+                if idx != 0:
+                    lines.insert(idx + 1, url)
+                # Now we update to write the new config file
+                with open(pungi_config_file, "w") as fobj:
+                    fobj.write("".join(lines))
+                cmd = "pungi-koji --notification-script=/usr/bin/pungi-fedmsg-notification --config={0}".format(pungi_config_file)
+                system(cmd)
+
             if tag not in atomic_config['releases']:
                 log.warn('Cannot find atomic configuration for %r', tag)
                 continue
@@ -1006,3 +1037,24 @@ class MashThread(threading.Thread):
         else:
             self.success = True
         return out, err, returncode
+
+def system(cmd):
+    """
+    Invoke a shell command.
+    :returns: A tuple of output, err message, and return code
+    """
+    ret = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+    out, err = ret.communicate()
+    return out, err, ret.returncode
+
+
+def git_checkout(dirpath, url, branch):
+    """Checks out the given url in the directory and given branch    
+    :param dirpath: Path to checkout  
+    :param url: URL to clone
+    :param branch: The branch to checkout
+    :return: None
+    """
+    cmd = "git clone -b %s %s %s" % (branch, url, dirpath)
+    system(cmd)
