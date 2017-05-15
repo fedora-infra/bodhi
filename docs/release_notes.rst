@@ -8,9 +8,36 @@ Features
 ^^^^^^^^
 
 * The bodhi CLI now supports editing an override.
-  (`#1049 <https://github.com/fedora-infra/bodhi/issues/1049>`_)
+  (`#1049 <https://github.com/fedora-infra/bodhi/issues/1049>`_).
+* The Update model is now capable of being associated with different Build types
+  (`#1394 <https://github.com/fedora-infra/bodhi/issues/1394>`_).
 * The bodhi CLI now supports editing an update using the update title.
-  (`#1409 <https://github.com/fedora-infra/bodhi/issues/1409>`_)
+  (`#1409 <https://github.com/fedora-infra/bodhi/issues/1409>`_).
+* The web UI now uses Fedora 26 in its example text instead of Fedora 20
+  (`ec0c619a <https://github.com/fedora-infra/bodhi/commit/ec0c619a>`_).
+* The Build model is now polymorphic to support non-RPM content
+  (`#1393 <https://github.com/fedora-infra/bodhi/issues/1393>`_).
+
+
+Bugs
+^^^^
+
+* Correctly calculate days to stable for critical path updates
+  (`#1386 <https://github.com/fedora-infra/bodhi/issues/1386>`_).
+* Bodhi now logs some messages at into instead of error
+  (`#1412 <https://github.com/fedora-infra/bodhi/issues/1412>`_).
+* Only show openQA results since last update modification
+  (`#1435 <https://github.com/fedora-infra/bodhi/issues/1435>`_).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* SQL queries are no longer logged by default.
+* fedmsgs are now viewable in the development environment.
+* There is a new test to ensure there is only one Alembic head.
+* There is a new bash alias, bteststyle, that runs the code style tests.
+* The BuildrootOverride model is now documented.
 
 
 Release contributors
@@ -19,6 +46,13 @@ Release contributors
 The following contributors submitted patches for Bodhi 2.7.0:
 
 * Clement Verna
+* Jeremy Cline
+* Bianca Nenciu
+* Caleigh Runge-Hottman
+* Adam Williamson
+* Robert Scheck
+* Ryan Lerch
+* Randy Barlow
 
 
 2.6.2
