@@ -202,6 +202,17 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
             "</div>"
         )
 
+    def test_markdown_with_fenced_code_block(self):
+        res = self.app.get('/markdown', {
+            'text': '```\nsudo dnf install bodhi\n```',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            "<div class='markdown'>"
+            '<pre><code>sudo dnf install bodhi\n</code></pre>\n'
+            "</div>"
+        )
+
     def test_metrics(self):
         res = self.app.get('/metrics')
         self.assertIn('$.plot', res)

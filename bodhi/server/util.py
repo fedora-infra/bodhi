@@ -327,7 +327,8 @@ def hostname(context=None):
 
 def markup(context, text):
     return markdown.markdown(text, safe_mode="replace",
-                             html_replacement_text="--RAW HTML NOT ALLOWED--")
+                             html_replacement_text="--RAW HTML NOT ALLOWED--",
+                             extensions=['markdown.extensions.fenced_code'])
 
 
 def status2html(context, status):
