@@ -495,6 +495,38 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(up.comments[-1].text, expected_comment)
 
 
+class TestEditUpdateForm(bodhi.tests.server.functional.base.BaseWSGICase):
+
+    def test_edit_with_permission(self):
+        """
+        Test a logged in User with permissions on the update can see the form
+        """
+        resp = self.app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit')
+        self.assertIn('Editing an update requires JavaScript', resp)
+
+    def test_edit_without_permission(self):
+        """
+        Test a logged in User without permissions on the update can't see the form
+        """
+        app = TestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
+        resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=400)
+        self.assertIn('anonymous does not have commit access to bodhi', resp)
+
+    def test_edit_not_loggedin(self):
+        """
+        Test a non logged in User can't see the form
+        """
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=403)
+        self.assertIn('<h1>403 <small>Forbidden</small></h1>', resp)
+        self.assertIn('<p class="lead">Access was denied to this resource.</p>', resp)
+
+
 class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     def test_home_html(self):

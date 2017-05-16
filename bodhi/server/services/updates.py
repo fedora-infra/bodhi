@@ -97,7 +97,11 @@ def get_update(request):
 
 
 @update_edit.get(accept="text/html", renderer="new_update.html",
-                 error_handler=bodhi.server.services.errors.html_handler)
+                 error_handler=bodhi.server.services.errors.html_handler,
+                 permission='edit',
+                 validators=(
+                     validate_acls,
+                 ))
 def get_update_for_editing(request):
     """Return a single update from an id, title, or alias for the edit form"""
     return dict(
