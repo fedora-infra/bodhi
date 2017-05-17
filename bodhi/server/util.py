@@ -435,7 +435,7 @@ def type2icon(context, kind):
     }.get(kind)
 
     return "<span class='label label-%s' data-toggle='tooltip'\
-            title='This is a %s update'><i class='fa %s'></i></span> \
+            title='This is a %s update'><i class='fa fa-fw %s'></i></span> \
             " % (cls, kind, fontawesome)
 
 
