@@ -23,7 +23,6 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.exceptions import HTTPForbidden
 from pyramid.renderers import JSONP
-from pyramid.security import unauthenticated_userid
 from pyramid.settings import asbool
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -79,7 +78,7 @@ def get_cacheregion(request):
 
 def get_user(request):
     from bodhi.server.models import User
-    userid = unauthenticated_userid(request)
+    userid = request.unauthenticated_userid
     if userid is not None:
         user = request.db.query(User).filter_by(name=unicode(userid)).first()
         # Why munch?  https://github.com/fedora-infra/bodhi/issues/473

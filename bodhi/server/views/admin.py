@@ -12,7 +12,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from pyramid.security import effective_principals
 from cornice import Service
 
 from bodhi.server import log
@@ -27,5 +26,5 @@ admin_service = Service(name='admin', path='/admin/',
 def admin(request):
     user = request.user
     log.info('%s logged into admin panel' % user.name)
-    principals = effective_principals(request)
+    principals = request.effective_principals
     return {'user': user.name, 'principals': principals}

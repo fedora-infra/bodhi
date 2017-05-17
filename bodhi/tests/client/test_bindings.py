@@ -859,7 +859,7 @@ class TestErrorhandled(unittest.TestCase):
             # raised.
             wrong_password_lol(a_fake_self)
 
-        self.assertEqual(exc.exception.message, 'wrong password lol')
+        self.assertEqual(str(exc.exception), 'wrong password lol')
         a_fake_self._session.cookies.clear.assert_called_once_with()
         self.assertTrue(a_fake_self.csrf_token is None)
         self.assertEqual(a_fake_self.call_count, 2)
