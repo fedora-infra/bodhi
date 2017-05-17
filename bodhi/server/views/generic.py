@@ -17,7 +17,6 @@ import sqlalchemy as sa
 
 import cornice.errors
 
-from pyramid.security import authenticated_userid
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
@@ -91,7 +90,7 @@ def home(request):
 @view_config(route_name='new_update', renderer='new_update.html')
 def new_update(request):
     """ Returns the new update form """
-    user = authenticated_userid(request)
+    user = request.authenticated_userid
     if not user:
         raise HTTPForbidden("You must be logged in.")
     return dict(
@@ -187,7 +186,7 @@ def masher_status(request):
 def new_override(request):
     """ Returns the new buildroot override form """
     nvr = request.params.get('nvr')
-    user = authenticated_userid(request)
+    user = request.authenticated_userid
     if not user:
         raise HTTPForbidden("You must be logged in.")
     return dict(nvr=nvr)
@@ -196,7 +195,7 @@ def new_override(request):
 @view_config(route_name='popup_toggle', request_method='POST')
 def popup_toggle(request):
     # Get the user
-    userid = authenticated_userid(request)
+    userid = request.authenticated_userid
     if userid is None:
         raise HTTPForbidden("You must be logged in.")
     user = request.db.query(models.User).filter_by(name=unicode(userid)).first()

@@ -16,7 +16,6 @@ import math
 
 from cornice import Service
 from pyramid.exceptions import HTTPForbidden
-from pyramid.security import authenticated_userid
 from pyramid.view import view_config
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
@@ -186,7 +185,7 @@ def delete_stack(request):
 @view_config(route_name='new_stack', renderer='new_stack.html')
 def new_stack(request):
     """ Returns the new stack form """
-    user = authenticated_userid(request)
+    user = request.authenticated_userid
     if not user:
         raise HTTPForbidden("You must be logged in.")
     return dict()
