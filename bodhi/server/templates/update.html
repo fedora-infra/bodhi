@@ -456,6 +456,14 @@ $(document).ready(function(){
             <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-arrow-circle-left"></span> Unpush</a>
           % endif
           </div>
+        % else:
+          <div id='updatebuttons' class="btn-group pull-right" role="group" aria-label="...">
+            <button class="btn btn-sm btn-primary" disabled data-placement="bottom"
+                    data-toggle="tooltip" data-placement="bottom"
+                    title="Update is locked and cannot be edited. Locking of an update usually occurs when a push is in progress.">
+              <span class="fa fa-pencil"></span> Edit
+            </button>
+          </div>
         % endif
       % endif
 
