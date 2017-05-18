@@ -406,7 +406,7 @@ $(document).ready(function(){
   <div class="col-md-12">
     <h1>
       % if update.locked and update.date_locked:
-          <span class="fa fa-lock text-muted" aria-hidden="true" data-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
+          <span class="fa fa-fw fa-lock text-muted" aria-hidden="true" data-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
           </span>
           <span class="sr-only">Locked</span>
       % endif
@@ -424,36 +424,36 @@ $(document).ready(function(){
         ${self.util.type2icon(update.type) | n}
       % endif
       % if update.critpath:
-      <span data-toggle="tooltip" title="This update is in the critical path" class="label label-danger"> <i class="fa fa-fire"></i></span>
+      <span data-toggle="tooltip" title="This update is in the critical path" class="label label-danger"> <i class="fa fa-fw fa-fire"></i></span>
       % endif
 
       % if can_edit:
         % if not update.locked:
           <div id='updatebuttons' class="btn-group pull-right" role="group" aria-label="...">
           % if not update.pushed:
-            <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-pencil"></span> Edit</a>
+            <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.request is None:
               % if update.status.description != 'testing':
-              <a id='testing' class="btn btn-sm btn-success"><span class="fa fa-arrow-circle-right"></span> Push to Testing</a>
+              <a id='testing' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Testing</a>
               % endif
               % if update.status.description not in ['stable', 'obsolete']:
-                <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-arrow-circle-right"></span> Push to Stable</a>
+                <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Stable</a>
               % endif
             % else:
-              <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-arrow-circle-left"></span> Revoke</a>
+              <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
             % endif
           % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in [group.name for group in request.user.groups])):
-            <a id='edit' class="btn btn-sm btn-default"><span class="fa fa-pencil"></span> Edit</a>
+            <a id='edit' class="btn btn-sm btn-default"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.critpath and getattr(update.request, 'description', None) != 'stable':
               % if update.critpath_approved:
-                <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-arrow-circle-right"></span> Push to Stable</a>
+                <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Stable</a>
               % endif
             % elif update.meets_testing_requirements and getattr(update.request, 'description', None) != 'stable':
-              <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-arrow-circle-right"></span> Push to Stable</a>
+              <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Stable</a>
             % elif update.stable_karma not in (0, None) and update.karma >= update.stable_karma and not update.autokarma and getattr(update.request, 'description', None) != 'stable':
-              <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-arrow-circle-right"></span> Push to Stable</a>
+              <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Stable</a>
             % endif
-            <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-arrow-circle-left"></span> Unpush</a>
+            <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
           % endif
           </div>
         % endif
