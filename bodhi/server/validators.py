@@ -369,6 +369,19 @@ def validate_acls(request):
         if has_access:
             continue
 
+        # Make sure the user is in the mandatory packager groups. This is a
+        # safeguard in the event a user has commit access on the ACL system
+        # but isn't part of the mandatory groups.
+        mandatory_groups = request.registry.settings[
+            'mandatory_packager_groups'].split()
+        for mandatory_group in mandatory_groups:
+            if mandatory_group not in user_groups:
+                error = ('{0} is not a member of "{1}", which is a '
+                         'mandatory packager group').format(
+                    user.name, mandatory_group)
+                request.errors.add('body', 'builds', error)
+                return
+
         if acl_system == 'pkgdb':
             try:
                 people, groups = package.get_pkg_pushers(
@@ -381,6 +394,24 @@ def validate_acls(request):
                                    "Unable to access the Package "
                                    "Database to check ACLs. Please "
                                    "try again later.")
+                return
+        elif acl_system == 'pagure':
+            try:
+                committers, groups = package.get_pkg_committers_from_pagure()
+                people = committers
+            except RuntimeError as error:
+                # If it's a RuntimeError, then the error will be logged
+                # and we can return the error to the user as is
+                log.error(error)
+                request.errors.add('body', 'builds', unicode(error))
+                return
+            except Exception as error:
+                # This is an unexpected error, so let's log it and give back
+                # a generic error to the user
+                log.exception(error)
+                error_msg = ('Unable to access Pagure to check ACLs. '
+                             'Please try again later.')
+                request.errors.add('body', 'builds', error_msg)
                 return
         elif acl_system == 'dummy':
             people = (['ralph', 'bowlofeggs', 'guest'], ['guest'])

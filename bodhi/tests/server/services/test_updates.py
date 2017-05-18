@@ -163,7 +163,14 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         res = app.post_json('/updates/', self.get_update(u'bodhi-2.1-1.fc17'),
                             status=400)
-        assert 'bodhi does not have commit access to bodhi' in res, res
+        expected_error = {
+            "location": "body",
+            "name": "builds",
+            "description": ("bodhi is not a member of \"packager\", which is a"
+                            " mandatory packager group")
+        }
+        assert expected_error in res.json_body['errors'], \
+            res.json_body['errors']
         self.assertEquals(publish.call_args_list, [])
 
     @mock.patch(**mock_taskotron_results)
@@ -503,11 +510,14 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         nvr = u'bodhi-2.1-1.fc17'
 
         user = User(name=u'lloyd')
+        user2 = User(name=u'ralph')
         self.db.add(user)
-        self.db.add(User(name=u'ralph'))  # Add a non proventester
+        self.db.add(user2)  # Add a packager but not proventester
         self.db.flush()
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
+        group2 = self.db.query(Group).filter_by(name=u'packager').one()
+        user2.groups.append(group2)
 
         app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
@@ -535,12 +545,15 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         "Ensure provenpackagers can change the request for any update"
         nvr = u'bodhi-2.1-1.fc17'
         user = User(name=u'bob')
+        user2 = User(name=u'ralph')
         self.db.add(user)
-        self.db.add(User(name=u'ralph'))  # Add a non proventester
+        self.db.add(user2)  # Add a packager but not proventester
         self.db.add(User(name=u'someuser'))  # An unrelated user with no privs
         self.db.flush()
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
+        group2 = self.db.query(Group).filter_by(name=u'packager').one()
+        user2.groups.append(group2)
 
         app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)

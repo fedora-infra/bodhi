@@ -44,7 +44,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_pkgs,
-    get_nvr, get_rpm_header, header, tokenize)
+    get_nvr, get_rpm_header, header, tokenize, pagure_api_get)
 import bodhi.server.util
 
 
@@ -611,6 +611,45 @@ class Package(Base):
                             committers.append(name)
 
         return (committers, watchers), (committergroups, watchergroups)
+
+    def get_pkg_committers_from_pagure(self):
+        """
+        Pull users who can commit and are watching a package in Pagure.
+
+        Return two two-tuples of lists:
+        * The first tuple is for usernames.  The second tuple is for groups.
+        * The first list of the tuple is for committers. The second is for
+          watchers.
+        """
+        pagure_url = config.get(
+            'pagure_url', 'https://src.fedoraproject.org/pagure/')
+        # Pagure uses plural names for its namespaces such as "rpms"
+        namespace = self.type.name + 's'
+        package_pagure_url = '{0}/api/0/{1}/{2}'.format(
+            pagure_url.rstrip('/'), namespace, self.name)
+        package_json = pagure_api_get(package_pagure_url)
+
+        committers = set()
+        for access_type in ['owner', 'admin', 'commit']:
+            committers = committers | set(
+                package_json['access_users'][access_type])
+        for access_type in ['admin', 'commit']:
+            # We resolve the group membership here since these are Pagure
+            # groups, and not FAS groups. Bodhi understands the latter but not
+            # the former.
+            for group_name in package_json['access_groups'][access_type]:
+                group_pagure_url = '{0}/api/0/group/{1}'.format(
+                    config['pagure_url'].rstrip('/'), group_name)
+                group_json = pagure_api_get(group_pagure_url)
+                committers = committers | set(group_json['members'])
+
+        # The first list contains users with commit access. The second list is
+        # supposed to contain groups with commit access. Since Pagure uses
+        # Pagure groups, which Bodhi doesn't understand, the code above
+        # resolves the group membership. That is why the second list is empty.
+        # These return values maintain compatibility with other functions such
+        # as get_pkg_pushers.
+        return list(committers), []
 
     def fetch_test_cases(self, db):
         """ Get a list of test cases from the wiki """
