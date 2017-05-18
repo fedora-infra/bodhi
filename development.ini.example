@@ -451,7 +451,7 @@ authtkt.secret = changethisinproduction!
 session.secret = ChangeThisSecret!!1
 authtkt.secure = false
 # How long should an authorization ticket be valid for, in seconds? Defaults to one day.
-# authtkt.timeout = 86400
+authtkt.timeout = 2592000
 
 # pyramid_beaker
 session.type = file
