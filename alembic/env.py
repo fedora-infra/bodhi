@@ -1,8 +1,9 @@
 from __future__ import with_statement
 from logging.config import fileConfig
+import logging
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool, event
+from sqlalchemy import engine_from_config, pool, exc
 
 from bodhi.server.config import config as bodhi_config
 from bodhi.server.models import Base
@@ -25,6 +26,7 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+_log = logging.getLogger('alembic.env')
 
 
 def run_migrations_offline():
@@ -43,7 +45,11 @@ def run_migrations_offline():
     context.configure(url=url)
 
     with context.begin_transaction():
-        if config.get_main_option('bdr').strip().lower() == 'true':
+        # If the configuration indicates this script is for a Postgres-BDR database,
+        # then we need to acquire the global DDL lock before migrating.
+        postgres_bdr = config.get_main_option('offline_postgres_bdr')
+        if postgres_bdr is not None and postgres_bdr.strip().lower() == 'true':
+            _log.info('Emitting SQL to allow for global DDL locking with BDR')
             context.execute('SET LOCAL bdr.permit_ddl_locking = true')
         context.run_migrations()
 
@@ -60,19 +66,22 @@ def run_migrations_online():
         prefix='sqlalchemy.',
         poolclass=pool.NullPool)
 
-    if config.get_main_option('bdr').strip().lower() == 'true':
-        def enable_bdr(connection, connection_record):
-            with connection.cursor() as cursor:
-                cursor.execute('SET LOCAL bdr.permit_ddl_locking = true')
-        event.listen(engine, 'connect', enable_bdr)
-
     connection = engine.connect()
     context.configure(
         connection=connection,
         target_metadata=target_metadata)
 
     try:
+        try:
+            connection.execute('SHOW bdr.permit_ddl_locking')
+            postgres_bdr = True
+        except exc.ProgrammingError:
+            # bdr.permit_ddl_locking is an unknown option, so this isn't a BDR database
+            postgres_bdr = False
         with context.begin_transaction():
+            if postgres_bdr:
+                _log.info('Emitting SQL to allow for global DDL locking with BDR')
+                connection.execute('SET LOCAL bdr.permit_ddl_locking = true')
             context.run_migrations()
     finally:
         connection.close()
