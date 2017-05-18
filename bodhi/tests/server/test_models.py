@@ -386,6 +386,62 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         # This should not raise any Exception.
         self.db.flush()
 
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_get_pkg_committers_from_pagure(self, mock_get):
+        """ Ensure that the package commiters can be found using the Pagure
+        API.
+        """
+        mock_get.return_value.status_code = 200
+        json_one = {
+            "access_groups": {
+                "admin": [],
+                "commit": ['factory2'],
+                "ticket": []
+            },
+            "access_users": {
+                "admin": [],
+                "commit": [],
+                "owner": [
+                    "mprahl"
+                ],
+                "ticket": ["jsmith"]
+            },
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1494947106",
+            "description": "Python",
+            "fullname": "rpms/python",
+            "id": 2,
+            "milestones": {},
+            "name": "python",
+            "namespace": "rpms",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Matt Prahl",
+                "name": "mprahl"
+            }
+        }
+        json_two = {
+            "creator": {
+                "fullname": "Ralph Bean",
+                "name": "ralph"
+            },
+            "date_created": "1495035052",
+            "description": "Factory 2.0 Developers",
+            "display_name": "factory2",
+            "group_type": "user",
+            "members": [
+                "ralph",
+                "mikeb"
+            ],
+            "name": "factory2"
+        }
+        mock_get.return_value.json.side_effect = [json_one, json_two]
+        rv = self.package.get_pkg_committers_from_pagure()
+        assert rv == (['ralph', 'mikeb', 'mprahl'], []), rv
+
 
 class TestRpmBuild(ModelTest):
     """Unit test case for the ``RpmBuild`` model."""

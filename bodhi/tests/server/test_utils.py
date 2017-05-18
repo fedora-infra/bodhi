@@ -38,6 +38,277 @@ class TestUtils(object):
         pkgs = util.get_critpath_pkgs()
         assert 'kernel' in pkgs, pkgs
 
+    @mock.patch('bodhi.server.util.requests.get')
+    @mock.patch.dict(util.config, {
+        'critpath.type': 'pdc',
+        'pdc_url': 'http://domain.local'
+    })
+    def test_get_critpath_pkgs_pdc_error(self, mock_get):
+        """ Ensure an error is thrown in Bodhi if there is an error in PDC
+        getting the critpath packages.
+        """
+        mock_get.return_value.status_code = 500
+        mock_get.return_value.json.return_value = \
+            {'error': 'some error'}
+        try:
+            util.get_critpath_pkgs('f25')
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+        # We are not testing the whole error message because there is no
+        # guarantee of the ordering of the GET parameters.
+        assert 'Bodhi failed to get a resource from PDC' in actual_error
+        assert 'The status code was "500".' in actual_error
+
+    @mock.patch('bodhi.server.util.requests.get')
+    @mock.patch.dict(util.config, {
+        'critpath.type': 'pdc',
+        'pdc_url': 'http://domain.local'
+    })
+    def test_get_critpath_pkgs_pdc_success(self, mock_get):
+        """ Ensure that critpath packages can be found using PDC.
+        """
+        pdc_url = \
+            'http://domain.local/rest_api/v1/component-branches/?page_size=1'
+        pdc_next_url = '{0}&page=2'.format(pdc_url)
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.side_effect = [
+            {
+                'count': 2,
+                'next': pdc_next_url,
+                'previous': None,
+                'results': [
+                    {
+                        'active': True,
+                        'critical_path': True,
+                        'global_component': 'gcc',
+                        'id': 6,
+                        'name': 'f26',
+                        'slas': [],
+                        'type': 'rpm'
+                    }
+                ]
+            },
+            {
+                'count': 2,
+                'next': None,
+                'previous': pdc_url,
+                'results': [
+                    {
+                        'active': True,
+                        'critical_path': True,
+                        'global_component': 'python',
+                        'id': 7,
+                        'name': 'f26',
+                        'slas': [],
+                        'type': 'rpm'
+                    }
+                ]
+            }
+        ]
+        pkgs = util.get_critpath_pkgs('f26')
+        assert 'python' in pkgs and 'gcc' in pkgs, pkgs
+        # At least make sure it called the next url to cycle through the pages.
+        # We can't verify all the calls made because the URL GET parameters
+        # in the URL may have different orders based on the system/Python
+        # version.
+        mock_get.assert_called_with(pdc_next_url, timeout=60)
+        # Verify there were two GET requests made and two .json() calls
+        assert mock_get.call_count == 2, mock_get.call_count
+        assert mock_get.return_value.json.call_count == 2, \
+            mock_get.return_value.json.call_count
+
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_pagure_api_get(self, mock_get):
+        """ Ensure that an API request to Pagure works as expected.
+        """
+        mock_get.return_value.status_code = 200
+        expected_json = {
+            "access_groups": {
+                "admin": [],
+                "commit": [],
+                "ticket": []
+            },
+            "access_users": {
+                "admin": [],
+                "commit": [],
+                "owner": [
+                    "mprahl"
+                ],
+                "ticket": []
+            },
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1494947106",
+            "description": "Python",
+            "fullname": "rpms/python",
+            "id": 2,
+            "milestones": {},
+            "name": "python",
+            "namespace": "rpms",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Matt Prahl",
+                "name": "mprahl"
+            }
+        }
+        mock_get.return_value.json.return_value = expected_json
+        rv = util.pagure_api_get('http://domain.local/api/0/rpms/python')
+        assert rv == expected_json, rv
+
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_pagure_api_get_non_500_error(self, mock_get):
+        """ Ensure that an API request to Pagure that raises an error that is
+        not a 500 error returns the actual error message from the JSON.
+        """
+        mock_get.return_value.status_code = 404
+        mock_get.return_value.json.return_value = {
+            "error": "Project not found",
+            "error_code": "ENOPROJECT"
+        }
+        try:
+            util.pagure_api_get('http://domain.local/api/0/rpms/python')
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to get a resource from Pagure at the following URL '
+            '"http://domain.local/api/0/rpms/python". The status code was '
+            '"404". The error was "Project not found".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_pagure_api_get_500_error(self, mock_get):
+        """ Ensure that an API request to Pagure that triggers a 500 error
+        raises the expected error message.
+        """
+        mock_get.return_value.status_code = 500
+        try:
+            util.pagure_api_get('http://domain.local/api/0/rpms/python')
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to get a resource from Pagure at the following URL '
+            '"http://domain.local/api/0/rpms/python". The status code was '
+            '"500".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_pagure_api_get_non_500_error_no_json(self, mock_get):
+        """ Ensure that an API request to Pagure that raises an error that is
+        not a 500 error and has no JSON returns an error.
+        """
+        mock_get.return_value.status_code = 404
+        mock_get.return_value.json.side_effect = ValueError('Not JSON')
+        try:
+            util.pagure_api_get('http://domain.local/api/0/rpms/python')
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to get a resource from Pagure at the following URL '
+            '"http://domain.local/api/0/rpms/python". The status code was '
+            '"404". The error was "".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_pdc_api_get(self, mock_get):
+        """ Ensure that an API request to PDC works as expected.
+        """
+        mock_get.return_value.status_code = 200
+        expected_json = {
+            "count": 1,
+            "next": None,
+            "previous": None,
+            "results": [
+                {
+                    "id": 1,
+                    "sla": "security_fixes",
+                    "branch": {
+                        "id": 1,
+                        "name": "2.7",
+                        "global_component": "python",
+                        "type": "rpm",
+                        "active": True,
+                        "critical_path": True
+                    },
+                    "eol": "2018-04-27"
+                }
+            ]
+        }
+        mock_get.return_value.json.return_value = expected_json
+        rv = util.pdc_api_get(
+            'http://domain.local/rest_api/v1/component-branch-slas/')
+        assert rv == expected_json, rv
+
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_pdc_api_get_500_error(self, mock_get):
+        """ Ensure that an API request to PDC that triggers a 500 error
+        raises the expected error message.
+        """
+        mock_get.return_value.status_code = 500
+        try:
+            util.pdc_api_get(
+                'http://domain.local/rest_api/v1/component-branch-slas/')
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to get a resource from PDC at the following URL '
+            '"http://domain.local/rest_api/v1/component-branch-slas/". The '
+            'status code was "500".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_pdc_api_get_non_500_error(self, mock_get):
+        """ Ensure that an API request to PDC that raises an error that is
+        not a 500 error returns the returned JSON.
+        """
+        mock_get.return_value.status_code = 404
+        mock_get.return_value.json.return_value = {
+            "detail": "Not found."
+        }
+        try:
+            util.pdc_api_get(
+                'http://domain.local/rest_api/v1/component-branch-slas/3/')
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to get a resource from PDC at the following URL '
+            '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
+            'status code was "404". The error was '
+            '"{\'detail\': \'Not found.\'}".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_pdc_api_get_non_500_error_no_json(self, mock_get):
+        """ Ensure that an API request to PDC that raises an error that is
+        not a 500 error and has no JSON returns an error.
+        """
+        mock_get.return_value.status_code = 404
+        mock_get.return_value.json.side_effect = ValueError('Not JSON')
+        try:
+            util.pdc_api_get(
+                'http://domain.local/rest_api/v1/component-branch-slas/3/')
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to get a resource from PDC at the following URL '
+            '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
+            'status code was "404". The error was "".')
+        assert actual_error == expected_error, actual_error
+
     def test_get_nvr(self):
         """Assert the correct return value and type from get_nvr()."""
         result = util.get_nvr(u'ejabberd-16.12-3.fc26')

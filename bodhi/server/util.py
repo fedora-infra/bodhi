@@ -177,6 +177,8 @@ def get_critpath_pkgs(collection='master'):
         results = pkgdb.get_critpath_packages(branches=collection)
         if collection in results['pkgs']:
             critpath_pkgs = results['pkgs'][collection]
+    elif critpath_type == 'pdc':
+        critpath_pkgs = get_critpath_pkgs_from_pdc(collection)
     else:
         critpath_pkgs = config.get('critpath_pkgs', '').split()
     return critpath_pkgs
@@ -655,3 +657,96 @@ def sort_severity(value):
     }
 
     return value_map.get(value, 99)
+
+
+def get_critpath_pkgs_from_pdc(branch):
+    """
+    Searches PDC for critical path packages based on the specified branch.
+    :param branch: string representing the branch
+    :param component_type: string representing the component type to get
+    critpath packages for. This only affects queries to PDC.
+    :return: a list of critical path packages
+    """
+    pdc_api_url = '{}/rest_api/v1/component-branches/'.format(
+        config.get('pdc_url', 'https://pdc.fedoraproject.org/').rstrip('/'))
+    query_args = urllib.urlencode({
+        'active': 'true',
+        'critical_path': 'true',
+        'name': branch,
+        'page_size': 100,
+        'type': 'rpm'
+    })
+    pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, query_args)
+
+    critpath_pkgs_set = set()
+    while True:
+        pdc_request_json = pdc_api_get(pdc_api_url_with_args)
+
+        for branch_rv in pdc_request_json['results']:
+            critpath_pkgs_set.add(branch_rv['global_component'])
+
+        if pdc_request_json['next']:
+            pdc_api_url_with_args = pdc_request_json['next']
+        else:
+            # There are no more results to iterate through
+            break
+    return list(critpath_pkgs_set)
+
+
+def api_get(api_url, service_name, error_key=None):
+    """
+    A wrapper to get API resources with some error handling.
+    :param api_url: a string of the URL to query
+    :param service_name: a string of the service name to use in error messages
+    :param error_key: a string of the key that holds the error message in the
+    JSON body. If this is set to None, the whole JSON will be used as the
+    error message.
+    :return: dictionary of the returned JSON or a RuntimeError
+    """
+    base_error_msg = (
+        'Bodhi failed to get a resource from {0} at the following URL '
+        '"{1}". The status code was "{2}".')
+    rv = requests.get(api_url, timeout=60)
+
+    if rv.status_code == 200:
+        return rv.json()
+    elif rv.status_code == 500:
+        # There will be no JSON with an error message here
+        error_msg = base_error_msg.format(
+            service_name, api_url, rv.status_code)
+        log.error(error_msg)
+        raise RuntimeError(error_msg)
+    else:
+        # If it's not a 500 error, we can assume that the API returned an error
+        # message in JSON that we can log
+        try:
+            rv_error = rv.json()
+            if error_key is not None:
+                rv_error = rv_error.get(error_key)
+        except ValueError:
+            rv_error = ''
+        error_msg = base_error_msg.format(
+            service_name, api_url, rv.status_code)
+        error_msg = '{0} The error was "{1}".'.format(error_msg, rv_error)
+        log.error(error_msg)
+        raise RuntimeError(error_msg)
+
+
+def pagure_api_get(pagure_api_url):
+    """
+    A wrapper to get API resources from Pagure.
+    :param pagure_api_url: a string of the URL to query
+    :return: JSON of the API resource(s) or a RuntimeError
+    """
+    return api_get(pagure_api_url, service_name='Pagure', error_key='error')
+
+
+def pdc_api_get(pdc_api_url):
+    """
+    A wrapper to get API resources from PDC.
+    :param pdc_api_url: a string of the URL to query
+    :return: JSON of the API resource(s) or a RuntimeError
+    """
+    # There is no error_key specified because the error key is not consistent
+    # based on the error message
+    return api_get(pdc_api_url, service_name='PDC')
