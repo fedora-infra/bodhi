@@ -26,3 +26,4 @@ html-docs
 masher/
 Vagrantfile
 .dnf-cache/
+.idea
