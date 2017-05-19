@@ -13,9 +13,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from datetime import datetime
+import copy
 
 from pyramid.testing import DummyRequest
+from webtest import TestApp
 
+from bodhi.server import main
 from bodhi.server.models import (Group, User, Update, Release, UpdateStatus, UpdateType)
 from bodhi.server.security import remember_me
 import bodhi.tests.server.functional.base
@@ -306,8 +309,101 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertIn('f17-updates-testing', body)
         self.assertIn('f17-updates-testing-pending', body)
         self.assertIn('f17-override', body)
-        self.assertEquals(body['f17-updates'], 'TurboGears-1.0.2.2-2.fc7')
+        self.assertEquals(body['f17-updates'], 'TurboGears-1.0.2.2-2.fc17')
+
+    def test_candidate(self):
+        res = self.app.get('/latest_candidates')
+        body = res.json_body
+        self.assertEquals(body, [])
+
+        res = self.app.get('/latest_candidates', {'package': 'TurboGears'})
+        body = res.json_body
+        self.assertEquals(len(body), 2)
+        self.assertEquals(body[0]['nvr'], 'TurboGears-1.0.2.2-2.fc17')
+        self.assertEquals(body[0]['id'], 16058)
+        self.assertEquals(body[1]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEquals(body[1]['id'], 16059)
+
+        res = self.app.get('/latest_candidates', {'package': 'TurboGears', 'testing': True})
+        body = res.json_body
+        self.assertEquals(len(body), 3)
+        self.assertEquals(body[0]['nvr'], 'TurboGears-1.0.2.2-2.fc17')
+        self.assertEquals(body[0]['id'], 16058)
+        self.assertEquals(body[1]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEquals(body[1]['id'], 16059)
+        self.assertEquals(body[2]['nvr'], 'TurboGears-1.0.2.2-4.fc17')
+        self.assertEquals(body[2]['id'], 16060)
 
     def test_version(self):
         res = self.app.get('/api_version')
         self.assertIn('version', res.json_body)
+
+    def test_masher_status(self):
+        """Test that the masher status page displays"""
+        res = self.app.get('/masher/')
+        self.assertIn('<h1>Bodhi Masher Activity</h1>', res)
+
+    def test_popup_toggle(self):
+        """Check that the toggling of pop-up notifications works"""
+        # first we check that popups are enabled by default
+        res = self.app.get('/')
+        self.assertIn('Disable popups', res)
+
+        # toggle popups off
+        self.app.post('/popup_toggle')
+
+        # now check popups are off
+        res = self.app.get('/')
+        self.assertIn('Enable popups', res)
+
+        # test that the unlogged in user cannot toggle popups
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        res = app.post('/popup_toggle', status=403)
+        self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
+        self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
+
+    def test_new_override_form(self):
+        """Test the New Override form page"""
+
+        # Test that the New Override form shows when logged in
+        res = self.app.get('/overrides/new')
+        self.assertIn('<span>New Buildroot Override Form Requires JavaScript</span>', res)
+
+        # Test that the unlogged in user cannot see the New Override form
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        res = app.get('/overrides/new', status=403)
+        self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
+        self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
+
+    def test_new_update_form(self):
+        """Test the new update Form page"""
+
+        # Test that a logged in user sees the New Update form
+        res = self.app.get('/updates/new')
+        self.assertIn('Creating a new update requires JavaScript', res)
+
+        # Test that the unlogged in user cannot see the New Update form
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        res = app.get('/updates/new', status=403)
+        self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
+        self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
+
+    def test_api_version(self):
+        """Test the API Version JSON call"""
+        res = self.app.get('/api_version')
+        self.assertIn(str(bodhi.server.util.version()), res)

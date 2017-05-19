@@ -79,6 +79,10 @@ class DevBuildsys(Buildsystem):
     __tagged__ = {}
     __rpms__ = []
 
+    def __init__(self):
+        self.multicall = False
+        self.multicallresult = []
+
     @classmethod
     def clear(cls):
         cls.__untag__ = []
@@ -88,7 +92,7 @@ class DevBuildsys(Buildsystem):
         cls.__rpms__ = []
 
     def multiCall(self):
-        return []
+        return self.multicallresult
 
     def moveBuild(self, from_tag, to_tag, build, *args, **kw):
         log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
@@ -116,13 +120,18 @@ class DevBuildsys(Buildsystem):
             {'package_id': 2625, 'package_name': 'nethack'},
         ]
 
-    def getBuild(self, build='TurboGears-1.0.2.2-2.fc7', other=False):
+    def getBuild(self, build='TurboGears-1.0.2.2-2.fc17', other=False, testing=False):
+        theid = 16058
+        if other and not testing:
+            theid = 16059
+        elif other and testing:
+            theid = 16060
         data = {'build_id': 16058,
                 'completion_time': '2007-08-24 23:26:10.890319',
                 'creation_event_id': 151517,
                 'creation_time': '2007-08-24 19:38:29.422344',
                 'epoch': None,
-                'id': 16059 if other else 16058,
+                'id': theid,
                 'owner_id': 388,
                 'owner_name': 'lmacken',
                 'package_id': 8,
@@ -135,8 +144,12 @@ class DevBuildsys(Buildsystem):
 
         for token in release_tokens:
             if token.startswith("fc"):
-                tag = "f%s-updates-testing" % token.replace("fc", "")
-                break
+                if testing:
+                    tag = "f%s-updates-testing" % token.replace("fc", "")
+                    break
+                else:
+                    tag = "f%s-updates-candidate" % token.replace("fc", "")
+                    break
 
             if token.startswith("el"):
                 tag = "dist-%sE-epel-testing-candidate" % token.replace("el", "")
@@ -146,7 +159,10 @@ class DevBuildsys(Buildsystem):
             raise ValueError("Couldn't determine dist for build '%s'" % build)
 
         if other:
-            release_tokens[0] = str(int(release_tokens[0]) + 1)
+            if testing:
+                release_tokens[0] = str(int(release_tokens[0]) + 2)
+            else:
+                release_tokens[0] = str(int(release_tokens[0]) + 1)
             release = ".".join(release_tokens)
             build = "%s-%s-%s" % (name, version, release)
 
@@ -167,9 +183,9 @@ class DevBuildsys(Buildsystem):
                  'epoch': None,
                  'id': 62330,
                  'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.2-2.fc7',
+                 'nvr': 'TurboGears-1.0.2.2-2.fc17',
                  'payloadhash': '6787febe92434a9be2a8f309d0e2014e',
-                 'release': '2.fc7',
+                 'release': '2.fc17',
                  'size': 761742,
                  'version': '1.0.2.2'},
                 {'arch': 'noarch',
@@ -179,15 +195,15 @@ class DevBuildsys(Buildsystem):
                  'epoch': None,
                  'id': 62331,
                  'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.2-2.fc7',
+                 'nvr': 'TurboGears-1.0.2.2-2.fc17',
                  'payloadhash': 'f3ec9bdce453816f94283a15a47cb952',
-                 'release': '2.fc7',
+                 'release': '2.fc17',
                  'size': 1993385,
                  'version': '1.0.2.2'},
                 ]
         if id == 16059:  # for updateinfo.xml tests
-            rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc7'
-            rpms[0]['release'] = rpms[1]['release'] = '3.fc7'
+            rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc17'
+            rpms[0]['release'] = rpms[1]['release'] = '3.fc17'
         rpms += DevBuildsys.__rpms__
         return rpms
 
@@ -216,17 +232,24 @@ class DevBuildsys(Buildsystem):
 
     def listTagged(self, tag, *args, **kw):
         builds = []
-        for build in [self.getBuild(), self.getBuild(other=True)]:
+        for build in [self.getBuild(),
+                      self.getBuild(other=True),
+                      self.getBuild(other=True, testing=True)]:
             if build['nvr'] in self.__untag__:
                 log.debug('Pruning koji build %s' % build['nvr'])
                 continue
-            else:
+            elif build['tag_name'] == tag:
                 builds.append(build)
         for build in DevBuildsys.__tagged__:
             for tag_ in DevBuildsys.__tagged__[build]:
                 if tag_ == tag:
                     builds.append(self.getBuild(build))
-        return builds
+        log.debug(builds)
+        if self.multicall:
+            for build in builds:
+                self.multicallresult.append([[build]])
+        else:
+            return builds
 
     def getLatestBuilds(self, *args, **kw):
         return [self.getBuild()]
