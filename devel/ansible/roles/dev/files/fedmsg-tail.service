@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 User=vagrant
-ExecStart=/usr/bin/fedmsg-tail
+ExecStart=/usr/bin/fedmsg-tail --really-pretty
 
 [Install]
 WantedBy=multi-user.target
