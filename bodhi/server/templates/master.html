@@ -82,7 +82,7 @@
                             <a class="dropdown-item" href="${request.route_url('new_override')}">
                                 New Override
                             </a>
-                            % if request.registry.settings.get('stacks_enabled') == 'True':
+                            % if request.registry.settings.get('stacks_enabled') == True:
                             <a class="dropdown-item" href="${request.route_url('new_stack')}">
                                 New Stack
                             </a>

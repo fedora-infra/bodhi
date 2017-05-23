@@ -23,13 +23,14 @@ from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
 from pyramid.httpexceptions import HTTPFound
 
 from bodhi.server import log, models
+from bodhi.server.config import config
 import bodhi.server.util
 
 
 def get_top_testers(request):
     db = request.db
-    blacklist = request.registry.settings.get('stats_blacklist').split()
-    days = int(request.registry.settings.get('top_testers_timeframe', 7))
+    blacklist = config.get('stats_blacklist')
+    days = config.get('top_testers_timeframe')
     start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
 
     query = db.query(

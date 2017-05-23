@@ -1322,14 +1322,6 @@ class TestMasherThread_update_comps(unittest.TestCase):
         self.assertEqual(calls, mock_cmd.call_args_list)
         mock_exists.assert_called_once_with('/some/path')
 
-    @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path',
-                                                         'comps_url': 'http://example.com/'})
-    @mock.patch('bodhi.server.consumers.masher.util.cmd')
-    def test_comps_unsafe_http_url(self, mock_cmd):
-        self.masher_thread.update_comps()
-        self.assertEqual(0, mock_cmd.call_count)
-        self.masher_thread.log.error.assert_called_once_with('comps_url must start with https://')
-
 
 class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
     """This test class contains tests for the MasherThread.wait_for_sync() method."""

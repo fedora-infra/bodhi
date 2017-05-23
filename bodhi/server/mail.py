@@ -182,7 +182,7 @@ To reply to this comment, please visit the URL at the bottom of this mail
 """,
         'fields': lambda agent, x: {
             'package': x.title,
-            'comment': x.comments[-1],
+            'comment': x.comments[-1].text,
             'updatestr': unicode(x)
         }
     },
@@ -463,7 +463,7 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     if headers:
         for key, value in headers.items():
             msg.append('%s: %s' % (key, to_bytes(value)))
-    msg.append('X-Bodhi: %s' % config.get('default_email_domain'))
+    msg.append('X-Bodhi: %s' % to_bytes(config.get('default_email_domain')))
     msg += ['Subject: %s' % subject, '', body_text]
     body = to_bytes('\r\n'.join(msg))
 
@@ -500,7 +500,7 @@ def send(to, msg_type, update, sender=None, agent=None):
             headers["References"] = initial_message_id
             headers["In-Reply-To"] = initial_message_id
 
-    subject_template = '[Fedora Update] %s[%s] %s'
+    subject_template = u'[Fedora Update] %s[%s] %s'
     for person in iterate(to):
         subject = subject_template % (critpath, msg_type, update.title)
         fields = MESSAGES[msg_type]['fields'](agent, update)

@@ -21,20 +21,24 @@ import mock
 import PIL.Image
 
 from bodhi.server import captcha
+from bodhi.server.config import config
+
+
+class TestDecrypt(unittest.TestCase):
+    """Test the decrypt function."""
+    @mock.patch.dict(config, {'captcha.secret': 'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='})
+    def test_decrypt_from_encrypt(self):
+        """Ensure that decrypt can decrypt what encrypt generated."""
+        plaintext = "don't let eve see this!"
+        bobs_message = captcha.encrypt(plaintext, config)
+
+        result = captcha.decrypt(bobs_message, config)
+
+        self.assertEqual(result, plaintext)
 
 
 class TestJPEGGenerator(unittest.TestCase):
     """This test class contains tests for the jpeg_generator() function."""
-    def test_with_defaults(self):
-        """Test the jpeg_generator with default settings."""
-        img = captcha.jpeg_generator('42 + 7', {})
-
-        img.verify()
-        self.assertTrue(isinstance(img, PIL.Image.Image))
-        # Ensure the image is the default size
-        self.assertEqual(img.size, (300, 80))
-        self.assertEqual(img.mode, 'RGB')
-
     @mock.patch('bodhi.server.captcha.ImageDraw.Draw')
     @mock.patch('bodhi.server.captcha.ImageFont.truetype')
     @mock.patch('bodhi.server.captcha.random.randint')

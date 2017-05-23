@@ -653,7 +653,7 @@ $(document).ready(function(){
                 </div>
               </div>
 
-              % if not request.user and request.registry.settings.get('captcha.secret', None):
+              % if not request.user and request.registry.settings.get('captcha.secret'):
               <%
                 captcha_key, captcha_url = captcha.generate_captcha(request)
               %>

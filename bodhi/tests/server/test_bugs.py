@@ -168,6 +168,19 @@ class TestBugzilla(unittest.TestCase):
         self.assertTrue(return_value is bz._bz.getbug.return_value)
         bz._bz.getbug.assert_called_once_with(1411188)
 
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_modified_product_skipped(self, info):
+        """Test the modified() method when the bug's product is not in the bz_products config."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'not fedora!'
+
+        bz.modified(1411188)
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        info.assert_called_once_with("Skipping 'not fedora!' bug")
+        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
+
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_on_qa_failure(self, exception):
         """

@@ -12,8 +12,8 @@
     <script>
         $(document).ready(function() {
           generate_newsfeed(
-            "${request.registry.settings.get('datagrepper_url', 'https://apps.fedoraproject.org/datagrepper')}",
-            ${str([idx.strip() for idx in request.registry.settings.get('badge_ids', '').split('|') if idx.strip()]) | n});
+            "${request.registry.settings.get('datagrepper_url')}",
+            ${str(request.registry.settings.get('badge_ids')) | n});
         });
     </script>
   </div>-->

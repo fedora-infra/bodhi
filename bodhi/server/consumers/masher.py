@@ -632,9 +632,6 @@ class MasherThread(threading.Thread):
         self.log.info("Updating comps")
         comps_dir = config.get('comps_dir')
         comps_url = config.get('comps_url')
-        if not comps_url.startswith('https://'):
-            self.log.error('comps_url must start with https://')
-            return
 
         if not os.path.exists(comps_dir):
             util.cmd(['git', 'clone', comps_url, comps_dir], os.path.dirname(comps_dir))
@@ -1031,7 +1028,7 @@ class MashThread(threading.Thread):
         self.log = log
         self.success = False
         mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile} {tag}'
-        mash_conf = config.get('mash_conf', '/etc/mash/mash.conf')
+        mash_conf = config.get('mash_conf')
         if os.path.exists(previous):
             mash_cmd += ' -p {}'.format(previous)
         self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,

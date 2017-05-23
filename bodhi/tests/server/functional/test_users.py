@@ -12,7 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from pyramid.settings import asbool
+import mock
 
 from bodhi.server.config import config
 from bodhi.server.models import Update, User
@@ -41,12 +41,10 @@ class TestUsersService(bodhi.tests.server.functional.base.BaseWSGICase):
         url = 'https://apps.fedoraproject.org/img/icons/bodhi-24.png'
         self.assertEquals(res.json_body['user']['avatar'], url)
 
+    @mock.patch.dict(config, {'libravatar_enabled': True})
     def test_get_single_avatar(self):
         res = self.app.get('/users/guest')
         self.assertEquals(res.json_body['user']['name'], 'guest')
-
-        if not asbool(config.get('libravatar_enabled', True)):
-            return
 
         base = 'https://seccdn.libravatar.org/avatar/'
         h = 'eb48e08cc23bcd5961de9541ba5156c385cd39799e1dbf511477aa4d4d3a37e7'

@@ -21,6 +21,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server import log, notifications
+from bodhi.server.config import config
 from bodhi.server.models import RpmPackage, Stack, Group, User
 from bodhi.server.util import tokenize
 from bodhi.server.validators import validate_packages, validate_stack, validate_requirements
@@ -145,7 +146,7 @@ def save_stack(request):
     # assume they mean *really*, no requirements so we leave the value null.
     reqs = data['requirements']
     if reqs is None:
-        stack.requirements = unicode(request.registry.settings.get('site_requirements'))
+        stack.requirements = config.get('site_requirements')
     elif reqs:
         stack.requirements = reqs
 

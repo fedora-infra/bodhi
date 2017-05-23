@@ -20,6 +20,7 @@ from pyramid import authentication, authorization
 import mock
 
 from bodhi import server
+from bodhi.server.config import config
 from bodhi.tests.server.functional import base
 
 
@@ -80,6 +81,15 @@ class TestMain(base.BaseWSGICase):
         server.main({}, testing='guest', session=self.db, **self.app_settings)
 
         set_bugtracker.assert_called_once_with()
+
+    @mock.patch.dict('bodhi.server.config.config', {'test': 'changeme'})
+    def test_settings(self):
+        """Ensure that passed settings make their way into the Bodhi config."""
+        self.app_settings.update({'test': 'setting'})
+
+        server.main({}, testing='guest', session=self.db, **self.app_settings)
+
+        self.assertEqual(config['test'], 'setting')
 
 
 class TestGetDbSessionForRequest(unittest.TestCase):

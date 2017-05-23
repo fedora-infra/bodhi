@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
+import unittest
+
 import mock
 from cornice.errors import Errors
 
@@ -23,14 +25,31 @@ from bodhi.tests.server.base import BaseTestCase
 from bodhi.server import models
 
 
+class TestGetValidRequirements(unittest.TestCase):
+    """Test the _get_valid_requirements() function."""
+    @mock.patch('bodhi.server.util.requests.get')
+    def test__get_valid_requirements(self, get):
+        """Test normal operation."""
+        get.return_value.status_code = 200
+        get.return_value.json.side_effect = [
+            {'next': '/something?', 'data': [{'name': 'one'}, {'name': 'two'}]},
+            {'next': None, 'data': []}]
+
+        result = list(validators._get_valid_requirements(None))
+
+        self.assertEqual(result, ['one', 'two'])
+
+
+@mock.patch.dict(
+    'bodhi.server.validators.config',
+    {'pagure_url': u'http://domain.local', 'admin_packager_groups': [u'provenpackager'],
+     'mandatory_packager_groups': [u'packager']})
 class TestValidateAcls(BaseTestCase):
     """ Test the validate_acls() function.
     """
-    def get_mock_request(self, acl_system):
+    def get_mock_request(self):
         """
         A helper function that creates a mock request.
-        :param acl_system: a string representing the acl_system to set in the
-        configuration.
         :return: a Mock object representing a request
         """
         update = self.db.query(models.Update).filter_by(
@@ -39,12 +58,6 @@ class TestValidateAcls(BaseTestCase):
         mock_request = mock.Mock()
         mock_request.user = user
         mock_request.db = self.db
-        mock_request.registry.settings = {
-            'acl_system': acl_system,
-            'pagure_url': 'http://domain.local',
-            'admin_packager_groups': 'provenpackager',
-            'mandatory_packager_groups': 'packager'
-        }
         mock_request.errors = Errors()
         mock_request.validated = {'update': update}
         mock_request.buildinfo = {'bodhi-2.0-1.fc17': {}}
@@ -55,16 +68,18 @@ class TestValidateAcls(BaseTestCase):
     # elsewhere.
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
     def test_validate_acls_pagure(self, mock_gpcfp):
         """ Test validate_acls when the acl system is Pagure.
         """
-        mock_request = self.get_mock_request('pagure')
+        mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 0, mock_request.errors
         mock_gpcfp.assert_called_once()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['tbrady'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
     def test_validate_acls_pagure_proven_packager(self, mock_gpcfp):
         """ Test validate_acls when the acl system is Pagure when the user is
         a proven packager but doesn't have access through Pagure.
@@ -75,13 +90,14 @@ class TestValidateAcls(BaseTestCase):
         user.groups.pop(0)
         user.groups.append(group)
         self.db.flush()
-        mock_request = self.get_mock_request('pagure')
+        mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 0, mock_request.errors
         mock_gpcfp.assert_not_called()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
     def test_validate_acls_pagure_not_a_packager(self, mock_gpcfp):
         """ Test validate_acls when the acl system is Pagure when the user is
         not a packager but has access through Pagure. This should not be
@@ -90,7 +106,7 @@ class TestValidateAcls(BaseTestCase):
         user = self.db.query(models.User).filter_by(id=1).one()
         user.groups.pop(0)
         self.db.flush()
-        mock_request = self.get_mock_request('pagure')
+        mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         error = [{
             'location': 'body',
@@ -103,11 +119,12 @@ class TestValidateAcls(BaseTestCase):
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['tbrady'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
     def test_validate_acls_pagure_no_commit_access(self, mock_gpcfp):
         """ Test validate_acls when the acl system is Pagure when the user is
         a packager but doesn't have access through Pagure.
         """
-        mock_request = self.get_mock_request('pagure')
+        mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         error = [{
             'location': 'body',
@@ -119,11 +136,12 @@ class TestValidateAcls(BaseTestCase):
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
     def test_validate_acls_pagure_runtime_error(self, mock_gpcfp):
         """ Test validate_acls when the acl system is Pagure and a RuntimeError
         is raised.
         """
-        mock_request = self.get_mock_request('pagure')
+        mock_request = self.get_mock_request()
         mock_gpcfp.side_effect = RuntimeError('some error')
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 1, mock_request.errors
@@ -137,11 +155,12 @@ class TestValidateAcls(BaseTestCase):
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
     def test_validate_acls_pagure_exception(self, mock_gpcfp):
         """ Test validate_acls when the acl system is Pagure and an exception
         that isn't a RuntimeError is raised.
         """
-        mock_request = self.get_mock_request('pagure')
+        mock_request = self.get_mock_request()
         mock_gpcfp.side_effect = ValueError('some error')
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 1, mock_request.errors
@@ -154,18 +173,20 @@ class TestValidateAcls(BaseTestCase):
         assert mock_request.errors == expected_error, mock_request.errors
         mock_gpcfp.assert_called_once()
 
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     def test_validate_acls_dummy(self):
         """ Test validate_acls when the acl system is dummy.
         """
-        mock_request = self.get_mock_request('dummy')
+        mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 0, mock_request.errors
 
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'nonexistent'})
     def test_validate_acls_invalid_acl_system(self):
         """ Test validate_acls when the acl system is invalid.
         This will ensure that the user does not have rights.
         """
-        mock_request = self.get_mock_request('nonexistent')
+        mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         error = [{
             'location': 'body',

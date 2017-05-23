@@ -23,11 +23,11 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.exceptions import HTTPForbidden
 from pyramid.renderers import JSONP
-from pyramid.settings import asbool
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from bodhi.server import bugs, buildsys, ffmarkdown
+from bodhi.server.config import config as bodhi_config
 
 
 log = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ def get_db_session_for_request(request=None):
 
 def get_cacheregion(request):
     region = make_region()
-    region.configure_from_config(request.registry.settings, "dogpile.cache.")
+    region.configure_from_config(bodhi_config, "dogpile.cache.")
     return region
 
 
@@ -160,33 +160,45 @@ def initialize_db(config):
 
 
 def main(global_config, testing=None, session=None, **settings):
-    """ This function returns a WSGI application """
+    """ This function returns a WSGI application.
+
+    Args:
+        global_config (dict): A dictionary with two keys: __file__, a path to the ini file, and
+            here, the path to the code.
+        testing (bool or None): Whether or not we are in testing mode.
+        session (sqlalchemy.orm.session.Session or None): If given, the session will be used instead
+            of building a new one.
+        settings (dictionary): Unused.
+    Returns:
+        pyramid.router.Router: A WSGI app.
+    """
+    if settings:
+        bodhi_config.load_config(settings)
+
     # Setup our bugtracker and buildsystem
     bugs.set_bugtracker()
-    buildsys.setup_buildsystem(settings)
+    buildsys.setup_buildsystem(bodhi_config)
 
     # Sessions & Caching
     from pyramid.session import SignedCookieSessionFactory
-    session_factory = SignedCookieSessionFactory(settings['session.secret'])
+    session_factory = SignedCookieSessionFactory(bodhi_config['session.secret'])
 
     # Construct a list of all groups we're interested in
-    default = ' '.join([settings.get(key, '') for key in [
-        'important_groups',
-        'admin_packager_groups',
-        'mandatory_packager_groups',
-        'admin_groups',
-    ]])
+    default = []
+    for key in ('important_groups', 'admin_packager_groups', 'mandatory_packager_groups',
+                'admin_groups'):
+        default.extend(bodhi_config.get(key))
     # pyramid_fas_openid looks for this setting
-    settings['openid.groups'] = settings.get('openid.groups', default).split()
+    bodhi_config['openid.groups'] = bodhi_config.get('openid.groups', default)
 
-    config = Configurator(settings=settings, session_factory=session_factory)
+    config = Configurator(settings=bodhi_config, session_factory=session_factory)
 
     # Plugins
     config.include('pyramid_mako')
     config.include('cornice')
 
     # Initialize the database scoped session
-    initialize_db(settings)
+    initialize_db(bodhi_config)
 
     # Lazy-loaded memoized request properties
     if session:
@@ -219,10 +231,10 @@ def main(global_config, testing=None, session=None, **settings):
         # use a permissive security policy while running unit tests
         config.testing_securitypolicy(userid=testing, permissive=True)
     else:
-        timeout = int(settings.get('authtkt.timeout', '86400'))
+        timeout = bodhi_config.get('authtkt.timeout')
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
-            settings['authtkt.secret'], callback=groupfinder,
-            secure=asbool(settings['authtkt.secure']), hashalg='sha512', timeout=timeout,
+            bodhi_config['authtkt.secret'], callback=groupfinder,
+            secure=bodhi_config['authtkt.secure'], hashalg='sha512', timeout=timeout,
             max_age=timeout))
         config.set_authorization_policy(ACLAuthorizationPolicy())
 

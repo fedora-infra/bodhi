@@ -20,6 +20,7 @@ from bodhi.tests.server.base import BaseTestCase, DB_NAME, DB_PATH, FAITOUT
 
 class BaseWSGICase(BaseTestCase):
     app_settings = {
+        'authtkt.secret': 'sssshhhhhh',
         'sqlalchemy.url': DB_PATH,
         'mako.directories': 'bodhi:server/templates',
         'session.type': 'memory',
@@ -40,6 +41,7 @@ class BaseWSGICase(BaseTestCase):
         'admin_packager_groups': 'provenpackager',
         'mandatory_packager_groups': 'packager',
         'critpath_pkgs': 'kernel',
+        'critpath.num_admin_approvals': 0,
         'bugtracker': 'dummy',
         'stats_blacklist': 'bodhi autoqa',
         'system_users': 'bodhi autoqa',

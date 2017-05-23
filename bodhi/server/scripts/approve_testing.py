@@ -79,7 +79,7 @@ def main(argv=sys.argv):
             if update.stable_karma not in (0, None) and update.karma >= update.stable_karma \
                     and not update.autokarma and update.meets_testing_requirements:
                 print('%s now reaches stable karma threshold' % update.title)
-                text = unicode(config.get('testing_approval_msg_based_on_karma'))
+                text = config.get('testing_approval_msg_based_on_karma')
                 update.comment(db, text, author=u'bodhi')
                 continue
 

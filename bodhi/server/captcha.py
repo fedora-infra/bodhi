@@ -50,15 +50,14 @@ def math_generator(plainkey, settings):
 
 def jpeg_generator(plainkey, settings):
     image_size = image_width, image_height = (
-        int(settings.get('captcha.image_width', 300)),
-        int(settings.get('captcha.image_height', 80)),
+        settings.get('captcha.image_width'),
+        settings.get('captcha.image_height'),
     )
-    default_font = '/usr/share/fonts/liberation/LiberationMono-Regular.ttf'
-    font_path = settings.get('captcha.font_path', default_font)
-    font_size = int(settings.get('captcha.font_size', 36))
-    font_color = settings.get('captcha.font_color', '#000000')
-    background_color = settings.get('captcha.background_color', '#ffffff')
-    padding = int(settings.get('captcha.padding', 5))
+    font_path = settings.get('captcha.font_path')
+    font_size = settings.get('captcha.font_size')
+    font_color = settings.get('captcha.font_color')
+    background_color = settings.get('captcha.background_color')
+    padding = settings.get('captcha.padding')
 
     img = Image.new('RGB', image_size, color=background_color)
 
@@ -171,7 +170,7 @@ def encrypt(plaintext, settings):
 
 
 def decrypt(ciphertext, settings):
-    ttl = int(settings['captcha.ttl'])
+    ttl = settings['captcha.ttl']
     secret = settings['captcha.secret']
     engine = cryptography.fernet.Fernet(secret)
 

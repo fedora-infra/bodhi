@@ -30,13 +30,13 @@ from .models import User, Group
 def admin_only_acl(request):
     """Generate our admin-only ACL"""
     return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
-            request.registry.settings['admin_groups'].split()] + \
+            request.registry.settings['admin_groups']] + \
            [DENY_ALL]
 
 
 def packagers_allowed_acl(request):
     """Generate an ACL for update submission"""
-    groups = request.registry.settings['mandatory_packager_groups'].split()
+    groups = request.registry.settings['mandatory_packager_groups']
     return [
         (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
     ] + [DENY_ALL]

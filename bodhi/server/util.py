@@ -30,7 +30,6 @@ import urllib
 
 from kitchen.iterutils import iterate
 from pyramid.i18n import TranslationStringFactory
-from pyramid.settings import asbool
 import arrow
 import bleach
 import colander
@@ -177,7 +176,7 @@ def get_critpath_components(collection='master', component_type='rpm'):
         critpath_components = get_critpath_components_from_pdc(
             collection, component_type)
     else:
-        critpath_components = config.get('critpath_pkgs', '').split()
+        critpath_components = config.get('critpath_pkgs')
     return critpath_components
 
 
@@ -244,8 +243,8 @@ def avatar(context, username, size):
     @request.cache.cache_on_arguments()
     def work(username, size):
         openid = "http://%s.id.fedoraproject.org/" % username
-        if asbool(config.get('libravatar_enabled', True)):
-            if asbool(config.get('libravatar_dns', False)):
+        if config.get('libravatar_enabled'):
+            if config.get('libravatar_dns'):
                 return libravatar.libravatar_url(
                     openid=openid,
                     https=https,
@@ -466,7 +465,7 @@ def update2html(context, update):
 
     url = request.route_url('update', id=alias or title)
     settings = request.registry.settings
-    max_length = int(settings.get('max_update_length_for_ui', 30))
+    max_length = settings.get('max_update_length_for_ui')
     if len(title) > max_length:
         title = title[:max_length] + "..."
     return link(url, title)
@@ -516,9 +515,7 @@ def bug_link(context, bug, short=False):
 
 
 def testcase_link(context, test, short=False):
-    settings = context['request'].registry
-    default = 'https://fedoraproject.org/wiki/'
-    url = settings.get('test_case_base_url', default) + test.name
+    url = config.get('test_case_base_url') + test.name
     display = test.name.replace('QA:Testcase ', '')
     link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
     if not short:
@@ -672,7 +669,7 @@ def get_critpath_components_from_pdc(branch, component_type='rpm'):
     :return: a list of critical path packages
     """
     pdc_api_url = '{}/rest_api/v1/component-branches/'.format(
-        config.get('pdc_url', 'https://pdc.fedoraproject.org/').rstrip('/'))
+        config.get('pdc_url').rstrip('/'))
     query_args = urllib.urlencode({
         'active': 'true',
         'critical_path': 'true',

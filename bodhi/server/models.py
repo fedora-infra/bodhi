@@ -27,7 +27,6 @@ import time
 import uuid
 
 from pkgdb2client import PkgDB
-from pyramid.settings import asbool
 from simplemediawiki import MediaWiki
 from six.moves.urllib.parse import quote
 from sqlalchemy import (and_, Boolean, Column, DateTime, ForeignKey, Integer, or_, Table, Unicode,
@@ -621,8 +620,7 @@ class Package(Base):
         * The first list of the tuple is for committers. The second is for
           watchers.
         """
-        pagure_url = config.get(
-            'pagure_url', 'https://src.fedoraproject.org/pagure/')
+        pagure_url = config.get('pagure_url')
         # Pagure uses plural names for its namespaces such as "rpms"
         namespace = self.type.name + 's'
         package_pagure_url = '{0}/api/0/{1}/{2}'.format(
@@ -653,13 +651,13 @@ class Package(Base):
 
     def fetch_test_cases(self, db):
         """ Get a list of test cases from the wiki """
-        if not asbool(config.get('query_wiki_test_cases')):
+        if not config.get('query_wiki_test_cases'):
             return
 
         start = datetime.utcnow()
         log.debug('Querying the wiki for test cases')
 
-        wiki = MediaWiki(config.get('wiki_url', 'https://fedoraproject.org/w/api.php'))
+        wiki = MediaWiki(config.get('wiki_url'))
         cat_page = 'Category:Package %s test cases' % self.name
 
         def list_categorymembers(wiki, cat_page, limit=500):
@@ -1139,7 +1137,7 @@ class Update(Base):
         :rtype:  int
         """
         if self.critpath:
-            return int(config.get('critpath.stable_after_days_without_negative_karma'))
+            return config.get('critpath.stable_after_days_without_negative_karma')
 
         days = self.release.mandatory_days_in_testing
         return days if days else 0
@@ -1637,8 +1635,8 @@ class Update(Base):
                     stern_note = stern_note % (
                         config.get('critpath.min_karma'),
                         config.get('critpath.num_admin_approvals'),
-                        (int(config.get('critpath.min_karma')) -
-                            int(config.get('critpath.num_admin_approvals'))),
+                        (config.get('critpath.min_karma') -
+                            config.get('critpath.num_admin_approvals')),
                         config.get('critpath.stable_after_days_without_negative_karma'))
                     notes.append(stern_note)
 
@@ -2006,7 +2004,7 @@ class Update(Base):
 
             log.info("Updated %s karma to %d" % (self.title, self.karma))
 
-            if check_karma and author not in config.get('system_users').split():
+            if check_karma and author not in config.get('system_users'):
                 try:
                     self.check_karma_thresholds(session, u'bodhi')
                 except LockedUpdateException:
@@ -2038,7 +2036,7 @@ class Update(Base):
         session.flush()
 
         # Publish to fedmsg
-        if author not in config.get('system_users').split():
+        if author not in config.get('system_users'):
             notifications.publish(topic='update.comment', msg=dict(
                 comment=comment.__json__(anonymize=True),
                 agent=author,
@@ -2208,8 +2206,7 @@ class Update(Base):
         if self.autokarma and self._composite_karma[1] != 0:
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
-            text = unicode(config.get(
-                'disable_automatic_push_to_stable', DEFAULT_DISABLE_AUTOPUSH_MESSAGE))
+            text = config.get('disable_automatic_push_to_stable', DEFAULT_DISABLE_AUTOPUSH_MESSAGE)
             self.comment(db, text, author=u'bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
             if self.autokarma:
@@ -2275,8 +2272,8 @@ class Update(Base):
             if num_admin_approvals is not None and min_karma:
                 return self.num_admin_approvals >= int(num_admin_approvals) and \
                     self.karma >= int(min_karma)
-        return self.num_admin_approvals >= int(config.get('critpath.num_admin_approvals', 2)) and \
-            self.karma >= int(config.get('critpath.min_karma', 2))
+        return self.num_admin_approvals >= config.get('critpath.num_admin_approvals') and \
+            self.karma >= config.get('critpath.min_karma')
 
     @property
     def meets_testing_requirements(self):
@@ -2369,7 +2366,7 @@ class Update(Base):
         for comment in self.comments:
             if comment.karma != 1:
                 continue
-            admin_groups = config.get('admin_groups').split()
+            admin_groups = config.get('admin_groups')
             for group in comment.user.groups:
                 if group.name in admin_groups:
                     approvals += 1

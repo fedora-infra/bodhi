@@ -51,6 +51,7 @@ from .util import (
     tokenize,
     taskotron_results,
 )
+from bodhi.server.config import config
 
 
 csrf_error_message = """CSRF tokens do not match.  This happens if you have
@@ -96,7 +97,6 @@ def validate_nvrs(request):
 
 def validate_builds(request):
     edited = request.validated.get('edited')
-    settings = request.registry.settings
     user = User.get(request.user.name, request.db)
 
     if not request.validated.get('builds', []):
@@ -112,7 +112,7 @@ def validate_builds(request):
 
         # Allow admins to edit stable updates
         user_groups = set([group.name for group in user.groups])
-        admin_groups = set(settings['admin_packager_groups'].split())
+        admin_groups = set(config['admin_packager_groups'])
         if not user_groups & admin_groups:
             if up.status is UpdateStatus.stable:
                 request.errors.add('body', 'builds',
@@ -236,7 +236,6 @@ def validate_acls(request):
         return
     db = request.db
     user = User.get(request.user.name, request.db)
-    settings = request.registry.settings
     committers = []
     watchers = []
     groups = []
@@ -354,12 +353,12 @@ def validate_acls(request):
         # Now that we know the release and the package associated with this
         # build, we can ask our ACL system about it..
 
-        acl_system = settings.get('acl_system')
+        acl_system = config.get('acl_system')
         user_groups = [group.name for group in user.groups]
         has_access = False
 
         # Allow certain groups to push updates for any package
-        admin_groups = settings['admin_packager_groups'].split()
+        admin_groups = config['admin_packager_groups']
         for group in admin_groups:
             if group in user_groups:
                 log.debug('{} is in {} admin group'.format(user.name, group))
@@ -372,8 +371,7 @@ def validate_acls(request):
         # Make sure the user is in the mandatory packager groups. This is a
         # safeguard in the event a user has commit access on the ACL system
         # but isn't part of the mandatory groups.
-        mandatory_groups = request.registry.settings[
-            'mandatory_packager_groups'].split()
+        mandatory_groups = config['mandatory_packager_groups']
         for mandatory_group in mandatory_groups:
             if mandatory_group not in user_groups:
                 error = ('{0} is not a member of "{1}", which is a '
@@ -385,7 +383,7 @@ def validate_acls(request):
         if acl_system == 'pkgdb':
             try:
                 people, groups = package.get_pkg_pushers(
-                    release.branch, settings)
+                    release.branch, config)
                 committers, watchers = people
                 groups, notify_groups = groups
             except Exception, e:
@@ -920,8 +918,7 @@ def validate_expiration_date(request):
                            'Expiration date in the past')
         return
 
-    settings = request.registry.settings
-    days = int(settings.get('buildroot_limit', 31))
+    days = config.get('buildroot_limit')
     limit = now + timedelta(days=days)
     if expiration_date > limit:
         request.errors.add('body', 'expiration_date',
@@ -934,7 +931,6 @@ def validate_expiration_date(request):
 def validate_captcha(request):
     """ A validator for our captcha. """
 
-    settings = request.registry.settings
     data = request.validated
 
     email = data.get('email', None)
@@ -944,7 +940,7 @@ def validate_captcha(request):
     key = data.pop('captcha_key')
     value = data.pop('captcha_value')
 
-    if anonymous and settings.get('captcha.secret'):
+    if anonymous and config.get('captcha.secret'):
         if not key:
             request.errors.add('body', 'captcha_key',
                                'You must provide a captcha_key.')
@@ -994,7 +990,7 @@ def validate_stack(request):
 
 def _get_valid_requirements(request):
     """ Returns a list of valid testcases from taskotron. """
-    for testcase in taskotron_results(request.registry.settings, 'testcases'):
+    for testcase in taskotron_results(config, 'testcases'):
         yield testcase['name']
 
 

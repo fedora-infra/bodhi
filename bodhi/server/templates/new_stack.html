@@ -106,7 +106,7 @@
             % if stack is not UNDEFINED:
                          value="${stack.requirements}"
             % else:
-                         value="${request.registry.settings.get('site_requirements', '')}"
+                         value="${request.registry.settings.get('site_requirements')}"
             % endif
                          placeholder="An optional list of Taskotron checks required for updates of this stack.">
               </div>

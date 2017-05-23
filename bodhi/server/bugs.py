@@ -59,7 +59,7 @@ class Bugzilla(BugTracker):
 
     def _connect(self):
         user = config.get('bodhi_email')
-        password = config.get('bodhi_password', None)
+        password = config.get('bodhi_password')
         url = config.get("bz_server")
         log.info("Using BZ URL %s" % url)
         if user and password:
@@ -167,7 +167,7 @@ class Bugzilla(BugTracker):
     def modified(self, bug_id):
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.product not in config.get('bz_products', '').split(','):
+            if bug.product not in config.get('bz_products'):
                 log.info("Skipping %r bug" % bug.product)
                 return
             if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
