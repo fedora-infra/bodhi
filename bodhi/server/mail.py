@@ -182,7 +182,7 @@ To reply to this comment, please visit the URL at the bottom of this mail
 """,
         'fields': lambda agent, x: {
             'package': x.title,
-            'comment': x.comments[-1].text,
+            'comment': x.comments[-1],
             'updatestr': unicode(x)
         }
     },

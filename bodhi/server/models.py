@@ -47,11 +47,6 @@ from bodhi.server.util import (
 import bodhi.server.util
 
 
-DEFAULT_DISABLE_AUTOPUSH_MESSAGE = (
-    u'Bodhi is disabling automatic push to stable due to negative karma. '
-    u'The maintainer may push manually if they determine that the issue is not severe.')
-
-
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
 
 class EnumSymbol(object):
@@ -2206,7 +2201,7 @@ class Update(Base):
         if self.autokarma and self._composite_karma[1] != 0:
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
-            text = config.get('disable_automatic_push_to_stable', DEFAULT_DISABLE_AUTOPUSH_MESSAGE)
+            text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author=u'bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
             if self.autokarma:
