@@ -18,6 +18,19 @@ alias bstop="sudo systemctl stop bodhi"
 alias bteststyle="pushd /home/vagrant/bodhi && nosetests -sx ~/bodhi/bodhi/tests/test_style.py; popd"
 alias bfedmsg="sudo journalctl -u fedmsg-tail"
 
+
+function bresetdb {
+    bstop;
+    sudo runuser -l postgres -c "psql -c \"DROP DATABASE bodhi2\"";
+    sudo runuser -l postgres -c 'createdb bodhi2';
+    xzcat /tmp/bodhi2.dump.xz | sudo runuser -l postgres -c 'psql bodhi2';
+    pushd /home/vagrant/bodhi;
+    alembic upgrade head;
+    popd;
+    bstart;
+}
+
+
 function btest {
     find /home/vagrant/bodhi -name "*.pyc" -delete;
     pushd /home/vagrant/bodhi && python setup.py nosetests $@; popd
