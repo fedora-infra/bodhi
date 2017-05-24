@@ -67,14 +67,8 @@ You can ssh into your running Vagrant box like this::
     $ vagrant ssh
 
 Once you are inside the development environment, there are a helpful set of commands in your
-``.bashrc``:
-
-* ``bdocs``: Build Bodhi's documentation.
-* ``blog``: View Bodhi's log.
-* ``brestart``: Restart the Bodhi service.
-* ``bstart``: Start the Bodhi service.
-* ``bstop``: Stop the Bodhi service.
-* ``btest``: Run Bodhi's test suite.
+``.bashrc`` that will be printed to the screen via the ``/etc/motd`` file. Be sure to familiarize
+yourself with these.
 
 Keep in mind that all ``vagrant`` commands should be run with your current working directory set to
 your Bodhi checkout. The code from your development host will be mounted in ``/home/vagrant/bodhi``
