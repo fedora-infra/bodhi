@@ -47,9 +47,13 @@ class TestStyle(unittest.TestCase):
         The goal is that this test would one day check the entire codebase.
         """
         enforced_paths = [
-            'bodhi/server/scripts/__init__.py', 'bodhi/server/scripts/approve_testing.py',
-            'bodhi/server/scripts/clean_old_mashes.py', 'bodhi/server/scripts/expire_overrides.py',
-            'bodhi/server/scripts/initializedb.py', 'bodhi/server/scripts/untag_branched.py']
+            'bodhi/server/consumers/__init__.py',
+            'bodhi/server/scripts/__init__.py',
+            'bodhi/server/scripts/approve_testing.py',
+            'bodhi/server/scripts/clean_old_mashes.py',
+            'bodhi/server/scripts/expire_overrides.py',
+            'bodhi/server/scripts/initializedb.py',
+            'bodhi/server/scripts/untag_branched.py']
 
         enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
         pydocstyle_command = ['pydocstyle']
