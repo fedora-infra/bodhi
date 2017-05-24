@@ -1,6 +1,17 @@
 Release notes
 =============
 
+NEXT
+----
+
+Features
+^^^^^^^^
+
+* The API and fedmsg messages now support non-RPM content
+  (`#1325 <https://github.com/fedora-infra/bodhi/issues/1325>`_ and
+  `#1326 <https://github.com/fedora-infra/bodhi/issues/1326>`_).
+
+
 2.7.0
 -----
 

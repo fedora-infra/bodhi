@@ -21,8 +21,16 @@ from sqlalchemy.sql import or_
 
 from bodhi.server import log
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.models import (Update, Build, Bug, CVE, RpmPackage, UpdateRequest, ReleaseState,
-                                 RpmBuild)
+from bodhi.server.models import (
+    Update,
+    Bug,
+    ContentType,
+    CVE,
+    UpdateRequest,
+    ReleaseState,
+    Build,
+    Package,
+)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -217,7 +225,7 @@ def query_updates(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(Update.builds).join(Build.package)
-        query = query.filter(or_(*[RpmPackage.name == pkg for pkg in packages]))
+        query = query.filter(or_(*[Package.name == pkg for pkg in packages]))
 
     package = None
     if packages and len(packages):
@@ -226,7 +234,7 @@ def query_updates(request):
     builds = data.get('builds')
     if builds is not None:
         query = query.join(Update.builds)
-        query = query.filter(or_(*[RpmBuild.nvr == build for build in builds]))
+        query = query.filter(or_(*[Build.nvr == build for build in builds]))
 
     pushed = data.get('pushed')
     if pushed is not None:
@@ -277,6 +285,11 @@ def query_updates(request):
     type = data.get('type')
     if type is not None:
         query = query.filter(Update.type == type)
+
+    content_type = data.get('content_type')
+    if content_type is not None:
+        query = query.join(Update.builds)
+        query = query.filter(Build.type == content_type)
 
     user = data.get('user')
     if user is not None:
@@ -349,17 +362,23 @@ def new_update(request):
         releases = set()
         builds = []
 
-        # Create the RpmPackage and Build entities
+        # Create the Package and Build entities
         for nvr in data['builds']:
             name, version, release = request.buildinfo[nvr]['nvr']
             # The package will have been created by validate_acls
-            package = request.db.query(RpmPackage).filter_by(name=name).one()
+            package = request.db.query(Package).filter_by(name=name).one()
 
-            build = RpmBuild.get(nvr, request.db)
+            # Figure out what kind of build this should be.
+            # (Note, this can possibly raise a NotImplementedError, but the
+            # error should have been caught earlier in the validator when
+            # inferring the Package type.)
+            build_class = ContentType.infer_content_class(
+                base=Build, build=request.buildinfo[nvr]['info'])
+            build = build_class.get(nvr, request.db)
 
             if build is None:
-                log.debug("Adding nvr %s", nvr)
-                build = RpmBuild(nvr=nvr, package=package)
+                log.debug("Adding nvr %s, type %r", nvr, build_class)
+                build = build_class(nvr=nvr, package=package)
                 request.db.add(build)
                 request.db.flush()
 
@@ -382,7 +401,7 @@ def new_update(request):
         for nvr in data['builds']:
             # At this moment, we are sure the builds are in the database (that is what the commit
             # was for actually).
-            build = RpmBuild.get(nvr, request.db)
+            build = Build.get(nvr, request.db)
             builds.append(build)
             releases.add(build.release)
 

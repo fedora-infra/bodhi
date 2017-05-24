@@ -265,6 +265,38 @@ class BodhiBase(object):
             columns.append(col.name)
         return columns
 
+    @classmethod
+    def find_polymorphic_child(cls, identity):
+        """ Find a child of a polymorphic base class.
+
+        For example, given the base Package class and the 'rpm' identity, this
+        class method should return the RpmPackage class.
+
+        This is accomplished by iterating over all classes in scope.
+        Limiting that to only those which are an extension of the given base
+        class.  Among those, return the one whose polymorphic_identity matches
+        the value given.  If none are found, then raise a NameError.
+
+        Arguments:
+        identity -- An instance of EnumSymbol used to identify the child.
+        """
+
+        if not isinstance(identity, EnumSymbol):
+            raise TypeError("%r is not an instance of EnumSymbol" % identity)
+
+        if 'polymorphic_on' not in getattr(cls, '__mapper_args__', {}):
+            raise KeyError("%r is not a polymorphic model." % cls)
+
+        classes = (c for c in globals().values() if isinstance(c, type))
+        children = (c for c in classes if issubclass(c, cls))
+        for child in children:
+            candidate = child.__mapper_args__.get('polymorphic_identity')
+            if candidate is identity:
+                return child
+
+        error = "Found no child of %r with identity %r"
+        raise NameError(error % (cls, identity))
+
     def update_relationship(self, name, model, data, db):
         """Add items to or remove items from a many-to-many relationship
 
@@ -311,6 +343,32 @@ class ContentType(DeclEnum):
     base = 'base', 'Base'
     rpm = 'rpm', 'RPM'
     module = 'module', 'Module'
+
+    @classmethod
+    def infer_content_class(cls, base, build):
+        """ Given a base class and a build from koji, identify and return the child
+        class associated with the appropriate ContentType.
+
+        For example, given the Package base class and a normal koji build, return
+        the RpmPackage model class. Or, given the Build base class and a container
+        build, return the ContainerBuild model class.
+
+        Arguments:
+        base -- A base model class.
+        build -- A dict of information from the build system (koji).
+        """
+
+        # Default value.  Overridden below if we find markers in the build info
+        identity = cls.rpm
+
+        extra = build.get('extra') or {}
+        if 'module' in extra.get('typeinfo', {}):
+            identity = cls.module
+        elif 'container_koji_task_id' in extra:
+            # TODO - implement containers as yet another content type someday.
+            raise NotImplementedError("Inferred type 'container' is unhandled.")
+
+        return base.find_polymorphic_child(identity)
 
 
 class UpdateStatus(DeclEnum):
@@ -1308,6 +1366,15 @@ class Update(Base):
         if not self.release.pending_signing_tag:
             return True
         return all([build.signed for build in self.builds])
+
+    @property
+    def content_type(self):
+        """ Return the ContentType associated with this Update.
+
+        If the update has no builds, this evaluates to `None`.
+        """
+        if self.builds:
+            return self.builds[0].type.value
 
     def obsolete_older_updates(self, db):
         """Obsolete any older pending/testing updates.
@@ -2311,6 +2378,8 @@ class Update(Base):
         result['submitter'] = result['user']['name']
         # Include the karma total in the results
         result['karma'] = self.karma
+        # Also, the Update content_type (derived from the builds content_types)
+        result['content_type'] = self.content_type
 
         # For https://github.com/fedora-infra/bodhi/issues/270, throw the JSON
         # of the test cases in our output as well but take extra care to

@@ -130,6 +130,7 @@ class DevBuildsys(Buildsystem):
                 'completion_time': '2007-08-24 23:26:10.890319',
                 'creation_event_id': 151517,
                 'creation_time': '2007-08-24 19:38:29.422344',
+                'extra': None,
                 'epoch': None,
                 'id': theid,
                 'owner_id': 388,
@@ -143,6 +144,24 @@ class DevBuildsys(Buildsystem):
         release_tokens = release.split(".")
 
         for token in release_tokens:
+            # Starting to hardcode some dev buildsys bits for docker.
+            # See https://github.com/fedora-infra/bodhi/pull/1543
+            if token.endswith("container"):
+                tag = "f%s-updates-testing" % token.replace("fc", "").replace("container", "")
+                data['extra'] = {
+                    'container_koji_task_id': 19708268,
+                    'image': {},
+                }
+                break
+
+            # Hardcoding for modules in the dev buildsys
+            if token.startswith("2017"):
+                tag = "f17-updates-testing"
+                data['extra'] = {
+                    'typeinfo': {'module': {'more': 'mbs stuff goes here'}}
+                }
+                break
+
             if token.startswith("fc"):
                 if testing:
                     tag = "f%s-updates-testing" % token.replace("fc", "")
@@ -154,7 +173,6 @@ class DevBuildsys(Buildsystem):
             if token.startswith("el"):
                 tag = "dist-%sE-epel-testing-candidate" % token.replace("el", "")
                 break
-
         else:
             raise ValueError("Couldn't determine dist for build '%s'" % build)
 
@@ -216,6 +234,16 @@ class DevBuildsys(Buildsystem):
                  'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True, 'name': 'dist-5E-epel',
                  'perm': None, 'perm_id': None}]
+        elif '-master-' in build:
+            # Hardcoding for modules in the dev buildsys
+            result = [
+                {'arches': 'x86_64', 'id': 15, 'locked': True,
+                 'name': 'f17-updates-candidate'},
+                {'arches': 'x86_64', 'id': 16, 'locked': True,
+                 'name': 'f17-updates-testing'},
+                {'arches': 'x86_64', 'id': 17, 'locked': True,
+                 'name': 'f17'},
+            ]
         else:
             release = build.split('.')[-1].replace('fc', 'f')
             result = [

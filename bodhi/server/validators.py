@@ -15,7 +15,7 @@
 from datetime import datetime, timedelta
 
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotImplemented
 from sqlalchemy.sql import or_, and_
 import colander
 import koji
@@ -24,11 +24,33 @@ import rpm
 
 from . import captcha
 from . import log
-from .models import (Release, RpmPackage, Build, RpmBuild, Update, UpdateStatus,
-                     UpdateRequest, UpdateSeverity, UpdateType,
-                     UpdateSuggestion, User, Group, Comment,
-                     Bug, TestCase, ReleaseState, Stack)
-from .util import get_nvr, splitter, tokenize, taskotron_results
+from .models import (
+    Build,
+    Bug,
+    Comment,
+    ContentType,
+    Group,
+    Package,
+    Release,
+    RpmBuild,
+    RpmPackage,
+    ReleaseState,
+    Stack,
+    TestCase,
+    Update,
+    UpdateStatus,
+    UpdateRequest,
+    UpdateSeverity,
+    UpdateType,
+    UpdateSuggestion,
+    User,
+)
+from .util import (
+    get_nvr,
+    splitter,
+    tokenize,
+    taskotron_results,
+)
 
 
 csrf_error_message = """CSRF tokens do not match.  This happens if you have
@@ -52,16 +74,20 @@ def cache_nvrs(request, build):
     if build not in request.buildinfo:
         request.buildinfo[build] = {}
     name, version, release = get_nvr(build)
-    request.buildinfo[build]['nvr'] = name, version, release
+
     if '' in (name, version, release):
         raise ValueError
+
+    request.buildinfo[build]['nvr'] = name, version, release
+    # Cram some extra information in there, used later to infer type.
+    request.buildinfo[build]['info'] = request.koji.getBuild(build)
 
 
 def validate_nvrs(request):
     for build in request.validated.get('builds', []):
         try:
             cache_nvrs(request, build)
-        except:
+        except ValueError:
             request.validated['builds'] = []
             request.errors.add('body', 'builds', 'Build not in '
                                'name-version-release format: %s' % build)
@@ -96,7 +122,7 @@ def validate_builds(request):
             # If the build is new
             if nvr not in edited:
                 # Ensure it doesn't already exist
-                build = request.db.query(RpmBuild).filter_by(nvr=nvr).first()
+                build = request.db.query(Build).filter_by(nvr=nvr).first()
                 if build and build.update is not None:
                     request.errors.add('body', 'builds',
                                        "Update for {} already exists".format(nvr))
@@ -261,11 +287,25 @@ def validate_acls(request):
 
             buildinfo = request.buildinfo[build]
 
-            # Get the RpmPackage object
+            # Figure out what kind of package this should be
+            try:
+                package_class = ContentType.infer_content_class(
+                    base=Package, build=buildinfo['info'])
+            except Exception as e:
+                error = 'Unable to infer content_type.  %r' % e.message
+                log.exception(error)
+                request.errors.add('body', 'builds', error)
+                if isinstance(e, NotImplementedError):
+                    request.errors.status = HTTPNotImplemented.code
+                return
+
+            # Get the Package object
             package_name = buildinfo['nvr'][0]
-            package = db.query(RpmPackage).filter_by(name=package_name).first()
+            package = package_class.query.filter_by(name=package_name).first()
             if not package:
-                package = RpmPackage(name=package_name)
+                log.debug("Adding package %s, type %r",
+                          package_name, package_class)
+                package = package_class(name=package_name)
                 db.add(package)
                 db.flush()
 
@@ -401,6 +441,7 @@ def validate_enums(request):
                         ("status", UpdateStatus),
                         ("suggest", UpdateSuggestion),
                         ("type", UpdateType),
+                        ("content_type", ContentType),
                         ("state", ReleaseState)):
         value = request.validated.get(param)
         if value is None:
@@ -420,7 +461,7 @@ def validate_packages(request):
     validated_packages = []
 
     for p in packages:
-        package = RpmPackage.get(p, db)
+        package = Package.get(p, db)
 
         if not package:
             bad_packages.append(p)
@@ -614,7 +655,7 @@ def validate_update_id(request):
     if update:
         request.validated['update'] = update
     else:
-        package = RpmPackage.get(request.matchdict['id'], request.db)
+        package = Package.get(request.matchdict['id'], request.db)
         if package:
             query = dict(packages=package.name)
             location = request.route_url('updates', _query=query)

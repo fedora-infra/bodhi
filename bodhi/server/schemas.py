@@ -17,8 +17,15 @@ import re
 import colander
 
 from bodhi.server import util
-from bodhi.server.models import (ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
-                                 UpdateSuggestion, UpdateType)
+from bodhi.server.models import (
+    ContentType,
+    ReleaseState,
+    UpdateRequest,
+    UpdateSeverity,
+    UpdateStatus,
+    UpdateSuggestion,
+    UpdateType,
+)
 from bodhi.server.validators import validate_csrf_token
 
 
@@ -522,6 +529,13 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         location="querystring",
         missing=None,
         validator=colander.OneOf(UpdateType.values()),
+    )
+
+    content_type = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(ContentType.values()),
     )
 
     user = colander.SchemaNode(
