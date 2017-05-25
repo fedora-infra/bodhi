@@ -3,7 +3,8 @@
 <script src="${request.static_url('bodhi:server/static/js/newsfeed.js')}"></script>
 <div class="container p-t-2">
 <div class="row">
-  <div id="newsfeed" class="col-md-6">
+
+  <!--<div id="newsfeed" class="col-md-6">
     <img src="${request.static_url('bodhi:server/static/img/spinner.gif')}"
          alt="Loading..."
          id="loader" />
@@ -15,9 +16,85 @@
             ${str([idx.strip() for idx in request.registry.settings.get('badge_ids', '').split('|') if idx.strip()]) | n});
         });
     </script>
-  </div>
+  </div>-->
 
-  <div class="col-md-6">
+  % for r in request.releases['current']:
+  <div class="col-md-12 front-release">
+    <h3><a class="notblue" href="${request.route_url('releases')}${r['name']}">
+${r['long_name']}</a></h3>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="front-count">
+        <div class="front-count-total">
+          <a href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending">
+          ${release_updates_counts[r['name']]['pending_updates_total']}
+          </a>
+        </div>
+        <h4>updates pending</h4>
+          <a class="text-danger" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=security">
+            <span class="fa fa-shield"></span> ${release_updates_counts[r['name']]['pending_security_total']}
+          </a>
+          <a class="text-warning" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=bugfix">
+            <span class="fa fa-bug"></span> ${release_updates_counts[r['name']]['pending_bugfix_total']}
+          </a>
+          <a class="text-success" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=enhancement">
+            <span class="fa fa-bolt text-success"></span> ${release_updates_counts[r['name']]['pending_enhancement_total']}
+          </a>
+          <a class="text-primary" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=newpackage">
+            <span class="fa fa-archive"></span> ${release_updates_counts[r['name']]['pending_newpackage_total']}
+          </a>
+      </div>
+      </div>
+      <div class="col-md-4">
+        <div class="front-count">
+        <div class="front-count-total">
+          <a href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing">
+          ${release_updates_counts[r['name']]['testing_updates_total']}
+          </a>
+          </div>
+        <h4>updates in testing</h4>
+        <a class="text-danger" title="Security updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing&amp;type=security">
+          <span class="fa fa-shield"></span> ${release_updates_counts[r['name']]['testing_security_total']}
+        </a>
+        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing&amp;type=bugfix">
+          <span class="fa fa-bug"></span> ${release_updates_counts[r['name']]['testing_bugfix_total']}
+        </a>
+        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing&amp;type=enhancement">
+          <span class="fa fa-bolt"></span> ${release_updates_counts[r['name']]['testing_enhancement_total']}
+        </a>
+        <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing&amp;type=newpackage">
+          <span class="fa fa-archive"></span> ${release_updates_counts[r['name']]['testing_newpackage_total']}
+        </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="front-count">
+        <div class="front-count-total">
+          <a href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable">
+          ${release_updates_counts[r['name']]['stable_updates_total']}
+          </a>
+        </div>
+        <h4>updates in stable</h4>
+        <a class="text-danger" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=security">
+        <span class="fa fa-shield"></span> ${release_updates_counts[r['name']]['stable_security_total']}
+        </a>
+        <a class="text-warning" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=bugfix">
+        <span class="fa fa-bug"></span> ${release_updates_counts[r['name']]['stable_bugfix_total']}
+        </a>
+        <a class="text-success" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=enhancement">
+        <span class="fa fa-bolt"></span> ${release_updates_counts[r['name']]['stable_enhancement_total']}
+        </a>
+        <a class="text-primary" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=newpackage">
+        <span class="fa fa-archive"></span> ${release_updates_counts[r['name']]['stable_newpackage_total']}
+        </a>
+      </div>
+      </div>
+    </div>
+  </div>
+  % endfor
+
+
+  <div class="col-md-12">
           <div class="card">
             <div class="card-header">
               <span><strong>This week's top testers</strong></span>
