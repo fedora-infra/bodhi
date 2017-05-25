@@ -1408,9 +1408,12 @@ class Update(Base):
         """ Return the ContentType associated with this Update.
 
         If the update has no builds, this evaluates to `None`.
+
+        Returns:
+            ContentType or None: The content type of this Update or None.
         """
         if self.builds:
-            return self.builds[0].type.value
+            return self.builds[0].type
 
     def obsolete_older_updates(self, db):
         """Obsolete any older pending/testing updates.
@@ -2414,7 +2417,7 @@ class Update(Base):
         # Include the karma total in the results
         result['karma'] = self.karma
         # Also, the Update content_type (derived from the builds content_types)
-        result['content_type'] = self.content_type
+        result['content_type'] = self.content_type.value if self.content_type else None
 
         # For https://github.com/fedora-infra/bodhi/issues/270, throw the JSON
         # of the test cases in our output as well but take extra care to

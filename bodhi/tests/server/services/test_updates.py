@@ -530,6 +530,23 @@ class TestEditUpdateForm(bodhi.tests.server.functional.base.BaseWSGICase):
 
 class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
+    def test_content_type(self):
+        """Assert that the content type is displayed in the update template."""
+        res = self.app.get('/updates/bodhi-2.0-1.fc17', status=200, headers={'Accept': 'text/html'})
+
+        self.assertTrue(
+            ('<strong>Content Type</strong>\n                </div>\n                <div>\n'
+             '                  RPM') in res.text)
+
+    def test_content_type_none(self):
+        """Assert that the content type being None doesn't blow up the update template."""
+        u = Update.query.filter(Update.title == u'bodhi-2.0-1.fc17').one()
+        u.builds = []
+        self.db.commit()
+        res = self.app.get('/updates/bodhi-2.0-1.fc17', status=200, headers={'Accept': 'text/html'})
+
+        self.assertTrue('RPM' not in res.text)
+
     def test_home_html(self):
         resp = self.app.get('/', headers={'Accept': 'text/html'})
         self.assertIn('Fedora Updates System', resp)

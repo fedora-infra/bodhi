@@ -607,6 +607,12 @@ class TestUpdate(ModelTest):
             release=rel))
         return self.klass(**attrs)
 
+    def test___json___with_no_builds(self):
+        """Test the __json__() method when there are no Builds."""
+        self.obj.builds = []
+
+        eq_(self.obj.__json__()['content_type'], None)
+
     def test_autokarma_not_nullable(self):
         """Assert that the autokarma column does not allow NULL values.
 
@@ -622,7 +628,7 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].package.name, u'TurboGears')
 
     def test_content_type(self):
-        eq_(self.obj.content_type, 'rpm')
+        eq_(self.obj.content_type, model.ContentType.rpm)
 
     def test_mandatory_days_in_testing_critpath(self):
         """

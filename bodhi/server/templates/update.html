@@ -688,6 +688,17 @@ $(document).ready(function(){
           <div class="card">
             <div class="card-block">
 
+              % if update.content_type:
+              <div class="p-b-1">
+                <div>
+                  <strong>Content Type</strong>
+                </div>
+                <div>
+                  ${update.content_type.description | n}
+                </div>
+              </div>
+              % endif
+
               <div class="p-b-1">
                 <div>
                   <strong>Status</strong>
