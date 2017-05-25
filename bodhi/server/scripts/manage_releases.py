@@ -12,10 +12,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-managereleases.py create --name F23 --long-name "Fedora 23" --id-prefix FEDORA --version 23 \
---branch f23 --dist-tag f23 --stable-tag f23-updates --testing-tag f23-updates-testing \
---candidate-tag f23-updates-candidate --pending-stable-tag f23-updates-pending \
---pending-testing-tag f23-updates-testing-pending --override-tag f23-override --state pending
+This script is used to create and manage releases in Bodhi.
+
+Here is an example of creatig a release:
+
+    managereleases.py create --name F23 --long-name "Fedora 23" --id-prefix FEDORA --version 23
+    --branch f23 --dist-tag f23 --stable-tag f23-updates --testing-tag f23-updates-testing
+    --candidate-tag f23-updates-candidate --pending-stable-tag f23-updates-pending
+    --pending-testing-tag f23-updates-testing-pending --override-tag f23-override --state pending
 """
 
 import sys
@@ -28,6 +32,7 @@ from fedora.client.bodhi import Bodhi2Client
 
 @click.group()
 def main():
+    """Create and manage releases in Bodhi."""
     pass
 
 
@@ -54,6 +59,7 @@ def main():
                                             'archived']),
               help='The state of the release')
 def create(username, password, **kwargs):
+    """Create a release."""
     client = Bodhi2Client(username=username, password=password)
     kwargs['csrf_token'] = client.csrf()
 
@@ -84,6 +90,7 @@ def create(username, password, **kwargs):
                                             'archived']),
               help='The state of the release')
 def edit(username, password, **kwargs):
+    """Edit an existing release."""
     client = Bodhi2Client(username=username, password=password)
     csrf = client.csrf()
 
@@ -118,6 +125,7 @@ def edit(username, password, **kwargs):
 @main.command()
 @click.argument('name')
 def info(name):
+    """Retrieve and print info about a named release."""
     client = Bodhi2Client()
 
     res = client.send_request('releases/%s' % name, verb='GET', auth=False)
@@ -131,6 +139,14 @@ def info(name):
 
 
 def save(client, **kwargs):
+    """
+    Save a new or edited release.
+
+    Args:
+        client (bodhi.client.bindings.Bodhi2Client): The Bodhi client to use for the request.
+        kwargs (dict): The parameters to send with the request.
+    """
+    print type(client)
     res = client.send_request('releases/', verb='POST', auth=True,
                               data=kwargs)
 
@@ -143,23 +159,35 @@ def save(client, **kwargs):
 
 
 def print_release(release):
-        print("  Name:                %s" % release['name'])
-        print("  Long Name:           %s" % release['long_name'])
-        print("  Version:             %s" % release['version'])
-        print("  Branch:              %s" % release['branch'])
-        print("  ID Prefix:           %s" % release['id_prefix'])
-        print("  Dist Tag:            %s" % release['dist_tag'])
-        print("  Stable Tag:          %s" % release['stable_tag'])
-        print("  Testing Tag:         %s" % release['testing_tag'])
-        print("  Candidate Tag:       %s" % release['candidate_tag'])
-        print("  Pending Signing Tag: %s" % release['pending_signing_tag'])
-        print("  Pending Testing Tag: %s" % release['pending_testing_tag'])
-        print("  Pending Stable Tag:  %s" % release['pending_stable_tag'])
-        print("  Override Tag:        %s" % release['override_tag'])
-        print("  State:               %s" % release['state'])
+    """
+    Print a given release to the terminal.
+
+    Args:
+        release (munch.Munch): The release to be printed.
+    """
+    print("  Name:                %s" % release['name'])
+    print("  Long Name:           %s" % release['long_name'])
+    print("  Version:             %s" % release['version'])
+    print("  Branch:              %s" % release['branch'])
+    print("  ID Prefix:           %s" % release['id_prefix'])
+    print("  Dist Tag:            %s" % release['dist_tag'])
+    print("  Stable Tag:          %s" % release['stable_tag'])
+    print("  Testing Tag:         %s" % release['testing_tag'])
+    print("  Candidate Tag:       %s" % release['candidate_tag'])
+    print("  Pending Signing Tag: %s" % release['pending_signing_tag'])
+    print("  Pending Testing Tag: %s" % release['pending_testing_tag'])
+    print("  Pending Stable Tag:  %s" % release['pending_stable_tag'])
+    print("  Override Tag:        %s" % release['override_tag'])
+    print("  State:               %s" % release['state'])
 
 
 def print_errors(data):
+    """
+    Print errors to the terminal and exit with code 1.
+
+    Args:
+        errors (munch.Munch): The errors to be formatted and printed.
+    """
     for error in data['errors']:
         print("ERROR: %s" % error['description'])
 
