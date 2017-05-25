@@ -18,7 +18,6 @@ Random functions that don't fit elsewhere
 
 from collections import defaultdict
 from contextlib import contextmanager
-from datetime import datetime
 from os.path import join, dirname, basename, isfile
 import collections
 import functools
@@ -55,13 +54,6 @@ _ = TranslationStringFactory('bodhi')
 def header(x):
     """Display a given message as a heading."""
     return u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
-
-
-def pluralize(val, name):
-    """
-    Returns name if val == 1, or returns name with an 's' appended to the end if val != 1.
-    """
-    return val == 1 and name or "%ss" % name
 
 
 def get_rpm_header(nvr, tries=0):
@@ -111,27 +103,6 @@ def mkmetadatadir(path):
     if not os.path.isdir(path):
         os.makedirs(path)
     subprocess.check_call(['createrepo_c', '--xz', '--database', '--quiet', path])
-
-
-def get_age(date):
-    age = datetime.utcnow() - date
-    if age.days == 0:
-        if age.seconds < 60:
-            return "%d %s" % (age.seconds, pluralize(age.seconds, "second"))
-        minutes = int(age.seconds / 60)
-        if minutes >= 60:
-            hours = int(minutes / 60)
-            return "%d %s" % (hours, pluralize(hours, "hour"))
-        return "%d %s" % (minutes, pluralize(minutes, "minute"))
-    return "%d %s" % (age.days, pluralize(age.days, "day"))
-
-
-def get_age_in_days(date):
-    if date:
-        age = datetime.utcnow() - date
-        return age.days
-    else:
-        return 0
 
 
 def flash_log(msg):
