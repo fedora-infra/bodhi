@@ -990,7 +990,8 @@ def validate_stack(request):
 
 def _get_valid_requirements(request):
     """ Returns a list of valid testcases from taskotron. """
-    for testcase in taskotron_results(config, 'testcases'):
+    for testcase in taskotron_results(config, 'testcases',
+                                      max_queries=None, limit=100):
         yield testcase['name']
 
 

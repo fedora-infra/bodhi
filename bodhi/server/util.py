@@ -623,27 +623,40 @@ def tokenize(string):
                     yield token
 
 
-def taskotron_results(settings, entity='results', **kwargs):
-    """ Given an update object, yield resultsdb results. """
-    url = settings['resultsdb_api_url'] + "/api/v1.0/" + entity
+def taskotron_results(settings, entity='results/latest', max_queries=10, **kwargs):
+    """ Yield resultsdb results using query arguments.
+
+    :param str entity: The API endpoint to use, see resultsdb documentation.
+    :param int max_queries: The maximum number of queries to perform (pages
+        to retrieve). So ``1`` means just a single page. ``None`` or ``0``
+        means no limit. Please note some tests might have thousands of results
+        in the database and it's very reasonable to limit queries (thus the
+        default value).
+    :param kwargs: Any args that will be passed to resultsdb to specify what
+        results to retrieve.
+    """
+    max_queries = max_queries or 0
+    url = settings['resultsdb_api_url'] + "/api/v2.0/" + entity
     if kwargs:
         url = url + "?" + urllib.urlencode(kwargs)
     data = True
+    queries = 0
 
     try:
-        while data:
+        while data and url:
             log.debug("Grabbing %r" % url)
             response = requests.get(url)
             if response.status_code != 200:
                 raise IOError("status code was %r" % response.status_code)
             json = response.json()
-            url, data = json['next'], json['data']
-            for datum in data:
-                # Skip ABORTED results
-                # https://github.com/fedora-infra/bodhi/issues/167
-                if entity == 'results' and datum.get('outcome') == 'ABORTED':
-                    continue
+            for datum in json['data']:
                 yield datum
+
+            url = json.get('next')
+            queries += 1
+            if queries >= max_queries and url:
+                log.warn('Too many result pages, aborting at: %r' % url)
+                break
     except Exception:
         log.exception("Problem talking to %r" % url)
 
