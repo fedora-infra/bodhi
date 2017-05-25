@@ -43,7 +43,7 @@ from bodhi.server import bugs, buildsys, log, mail, notifications, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
-    avatar as get_avatar, build_evr, flash_log, get_age, get_age_in_days, get_critpath_pkgs,
+    avatar as get_avatar, build_evr, flash_log, get_critpath_pkgs,
     get_nvr, get_rpm_header, header, tokenize)
 import bodhi.server.util
 
@@ -1823,24 +1823,6 @@ class Update(Base):
                 session.save(cve)
                 self.cves.append(cve)
         session.flush()
-
-    def get_pushed_age(self):
-        return get_age(self.date_pushed)
-
-    def get_submitted_age(self):
-        return get_age(self.date_submitted)
-
-    def get_pushed_color(self):
-        age = get_age_in_days(self.date_pushed)
-        if age == 0 or self.karma < 0:
-            color = '#ff0000'  # red
-        elif age < 4:
-            color = '#ff6600'  # orange
-        elif age < 7:
-            color = '#ffff00'  # yellow
-        else:
-            color = '#00ff00'  # green
-        return color
 
     def obsolete_if_unstable(self, db):
         """
