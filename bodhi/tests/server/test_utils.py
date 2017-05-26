@@ -15,6 +15,7 @@ import subprocess
 import unittest
 
 import mock
+import pkgdb2client
 
 from bodhi.server import util
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
@@ -33,17 +34,40 @@ class TestUtils(object):
         assert config.get('sqlalchemy.url'), config
         assert config['sqlalchemy.url'], config
 
-    def test_get_critpath_pkgs(self):
+    def test_get_critpath_components(self):
         """Ensure the pkgdb's critpath API works"""
-        pkgs = util.get_critpath_pkgs()
+        pkgs = util.get_critpath_components()
         assert 'kernel' in pkgs, pkgs
+
+    @mock.patch.object(pkgdb2client.PkgDB, 'get_critpath_packages')
+    @mock.patch.dict(util.config, {
+        'critpath.type': 'pkgdb',
+        'pkgdb_url': 'http://domain.local'
+    })
+    def test_get_critpath_components_pkgdb_success(self, mock_get_critpath):
+        """ Ensure that critpath packages can be found using PkgDB.
+        """
+        # A subset of critpath packages
+        critpath_pkgs = [
+            'pth',
+            'xorg-x11-server-utils',
+            'giflib',
+            'basesystem'
+        ]
+        mock_get_critpath.return_value = {
+            'pkgs': {
+                'f20': critpath_pkgs
+            }
+        }
+        pkgs = util.get_critpath_components('f20')
+        assert critpath_pkgs == pkgs, pkgs
 
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
         'critpath.type': 'pdc',
         'pdc_url': 'http://domain.local'
     })
-    def test_get_critpath_pkgs_pdc_error(self, mock_get):
+    def test_get_critpath_components_pdc_error(self, mock_get):
         """ Ensure an error is thrown in Bodhi if there is an error in PDC
         getting the critpath packages.
         """
@@ -51,7 +75,7 @@ class TestUtils(object):
         mock_get.return_value.json.return_value = \
             {'error': 'some error'}
         try:
-            util.get_critpath_pkgs('f25')
+            util.get_critpath_components('f25')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
             actual_error = unicode(error)
@@ -60,12 +84,26 @@ class TestUtils(object):
         assert 'Bodhi failed to get a resource from PDC' in actual_error
         assert 'The status code was "500".' in actual_error
 
+    @mock.patch('bodhi.server.util.log')
+    @mock.patch.dict(util.config, {
+        'critpath.type': 'dummy',
+    })
+    def test_get_critpath_components_not_pdc_not_rpm(self, mock_log):
+        """ Ensure a warning is logged when the critpath system is not pdc
+        and the type of components to search for is not rpm.
+        """
+        pkgs = util.get_critpath_components('f25', 'module')
+        assert 'kernel' in pkgs, pkgs
+        warning = ('The critpath.type of "module" does not support searching '
+                   'for non-RPM components')
+        mock_log.warning.assert_called_once_with(warning)
+
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
         'critpath.type': 'pdc',
         'pdc_url': 'http://domain.local'
     })
-    def test_get_critpath_pkgs_pdc_success(self, mock_get):
+    def test_get_critpath_components_pdc_success(self, mock_get):
         """ Ensure that critpath packages can be found using PDC.
         """
         pdc_url = \
@@ -106,7 +144,7 @@ class TestUtils(object):
                 ]
             }
         ]
-        pkgs = util.get_critpath_pkgs('f26')
+        pkgs = util.get_critpath_components('f26')
         assert 'python' in pkgs and 'gcc' in pkgs, pkgs
         # At least make sure it called the next url to cycle through the pages.
         # We can't verify all the calls made because the URL GET parameters

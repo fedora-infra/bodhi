@@ -167,21 +167,32 @@ class memoized(object):
 
 
 @memoized
-def get_critpath_pkgs(collection='master'):
-    """Return a list of critical path packages for a given collection"""
-    critpath_pkgs = []
+def get_critpath_components(collection='master', component_type='rpm'):
+    """ Return a list of critical path packages for a given collection.
+    :param collection: a string representing the collection/branch to search.
+    for
+    :param component_type: a string representing the component type to search
+    for. This only affects PDC queries.
+    :return: a list of critpath components
+    """
+    critpath_components = []
     critpath_type = config.get('critpath.type')
+    if critpath_type != 'pdc' and component_type != 'rpm':
+        log.warning('The critpath.type of "{0}" does not support searching for'
+                    ' non-RPM components'.format(component_type))
+
     if critpath_type == 'pkgdb':
         from pkgdb2client import PkgDB
         pkgdb = PkgDB(config.get('pkgdb_url'))
         results = pkgdb.get_critpath_packages(branches=collection)
         if collection in results['pkgs']:
-            critpath_pkgs = results['pkgs'][collection]
+            critpath_components = results['pkgs'][collection]
     elif critpath_type == 'pdc':
-        critpath_pkgs = get_critpath_pkgs_from_pdc(collection)
+        critpath_components = get_critpath_components_from_pdc(
+            collection, component_type)
     else:
-        critpath_pkgs = config.get('critpath_pkgs', '').split()
-    return critpath_pkgs
+        critpath_components = config.get('critpath_pkgs', '').split()
+    return critpath_components
 
 
 class Singleton(object):
@@ -659,7 +670,7 @@ def sort_severity(value):
     return value_map.get(value, 99)
 
 
-def get_critpath_pkgs_from_pdc(branch):
+def get_critpath_components_from_pdc(branch, component_type='rpm'):
     """
     Searches PDC for critical path packages based on the specified branch.
     :param branch: string representing the branch
@@ -674,7 +685,7 @@ def get_critpath_pkgs_from_pdc(branch):
         'critical_path': 'true',
         'name': branch,
         'page_size': 100,
-        'type': 'rpm'
+        'type': component_type
     })
     pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, query_args)
 

@@ -25,7 +25,7 @@ from sqlalchemy.exc import IntegrityError
 import cornice
 import mock
 
-from bodhi.server import models as model, buildsys, mail
+from bodhi.server import models as model, buildsys, mail, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
@@ -758,6 +758,97 @@ class TestUpdate(ModelTest):
             True)
         # No bugs should have been closed
         eq_(close.call_count, 0)
+
+    @mock.patch('bodhi.server.util.requests.get')
+    @mock.patch.dict(util.config, {
+        'critpath.type': 'pdc',
+        'pdc_url': 'http://domain.local'
+    })
+    def test_contains_critpath_component(self, mock_get):
+        """ Verifies that the static function of contains_critpath_component
+        determines that one of the builds has a critpath component.
+        """
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            'count': 2,
+            'next': None,
+            'previous': None,
+            'results': [
+                {
+                    'active': True,
+                    'critical_path': True,
+                    'global_component': 'gcc',
+                    'id': 6,
+                    'name': 'f11',
+                    'slas': [],
+                    'type': 'rpm'
+                },
+                {
+                    'active': True,
+                    'critical_path': True,
+                    'global_component': 'TurboGears',
+                    'id': 7,
+                    'name': 'f11',
+                    'slas': [],
+                    'type': 'rpm'
+                }
+            ]
+        }
+        update = self.get_update()
+        self.assertTrue(update.contains_critpath_component(
+            update.builds, update.release.name))
+
+    @mock.patch('bodhi.server.util.requests.get')
+    @mock.patch.dict(util.config, {
+        'critpath.type': 'pdc',
+        'pdc_url': 'http://domain.local'
+    })
+    def test_contains_critpath_component_not_critpath(self, mock_get):
+        """ Verifies that the static function of contains_critpath_component
+        determines that none of the builds are critpath components.
+        """
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            'count': 2,
+            'next': None,
+            'previous': None,
+            'results': [
+                {
+                    'active': True,
+                    'critical_path': True,
+                    'global_component': 'gcc',
+                    'id': 6,
+                    'name': 'f25',
+                    'slas': [],
+                    'type': 'rpm'
+                },
+                {
+                    'active': True,
+                    'critical_path': True,
+                    'global_component': 'python',
+                    'id': 7,
+                    'name': 'f25',
+                    'slas': [],
+                    'type': 'rpm'
+                }
+            ]
+        }
+        update = self.get_update()
+        # Use a different release here for additional testing and to avoid
+        # caching from the previous test
+        update.release = model.Release(
+            name=u'fc25', long_name=u'Fedora 25',
+            id_prefix=u'FEDORA', dist_tag=u'dist-fc25',
+            stable_tag=u'dist-fc25-updates',
+            testing_tag=u'dist-fc25-updates-testing',
+            candidate_tag=u'dist-fc25-updates-candidate',
+            pending_signing_tag=u'dist-fc25-updates-testing-signing',
+            pending_testing_tag=u'dist-fc25-updates-testing-pending',
+            pending_stable_tag=u'dist-fc25-updates-pending',
+            override_tag=u'dist-fc25-override',
+            branch=u'fc25', version=u'25')
+        self.assertFalse(update.contains_critpath_component(
+            update.builds, update.release.name))
 
     def test_unpush_build(self):
         eq_(len(self.obj.builds), 1)
