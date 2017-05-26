@@ -43,7 +43,7 @@ from bodhi.server import bugs, buildsys, log, mail, notifications, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
-    avatar as get_avatar, build_evr, flash_log, get_critpath_pkgs,
+    avatar as get_avatar, build_evr, flash_log, get_critpath_components,
     get_nvr, get_rpm_header, header, tokenize, pagure_api_get)
 import bodhi.server.util
 
@@ -639,7 +639,7 @@ class Package(Base):
             # the former.
             for group_name in package_json['access_groups'][access_type]:
                 group_pagure_url = '{0}/api/0/group/{1}'.format(
-                    config['pagure_url'].rstrip('/'), group_name)
+                    pagure_url.rstrip('/'), group_name)
                 group_json = pagure_api_get(group_pagure_url)
                 committers = committers | set(group_json['members'])
 
@@ -1201,6 +1201,26 @@ class Update(Base):
                 break
             yield comment
 
+    @staticmethod
+    def contains_critpath_component(builds, release_name):
+        """
+        Determines if there is a critpath component in the builds passed in.
+        :param builds: a list of Build objects
+        :param release_name: a string representing the name of the release
+        such as "f25"
+        :return: a boolean determining if the update contains a critpath
+        component
+        """
+        for build in builds:
+            # This function call is cached, so there is no need to optimize
+            # it here.
+            critpath_components = get_critpath_components(
+                release_name.lower(), build.package.type.value)
+            if build.package.name in critpath_components:
+                return True
+
+        return False
+
     @classmethod
     def new(cls, request, data):
         """ Create a new update """
@@ -1208,18 +1228,9 @@ class Update(Base):
         user = User.get(request.user.name, request.db)
         data['user'] = user
         data['title'] = ' '.join([b.nvr for b in data['builds']])
-
         caveats = []
-
-        critical = False
-        critpath_pkgs = get_critpath_pkgs(data['release'].name.lower())
-        if critpath_pkgs:
-            for build in data['builds']:
-                if build.package.name in critpath_pkgs:
-                    critical = True
-                    break
-
-        data['critpath'] = critical
+        data['critpath'] = cls.contains_critpath_component(
+            data['builds'], data['release'].name)
 
         # Create the Bug entities, but don't talk to rhbz yet.  We do that
         # offline in the UpdatesHandler fedmsg consumer now.
@@ -1326,15 +1337,8 @@ class Update(Base):
                     # an override
                     db.delete(b)
 
-        critical = False
-        critpath_pkgs = get_critpath_pkgs(up.release.name.lower())
-        if critpath_pkgs:
-            for build in up.builds:
-                if build.package.name in critpath_pkgs:
-                    critical = True
-                    break
-
-        data['critpath'] = critical
+        data['critpath'] = cls.contains_critpath_component(
+            up.builds, up.release.name)
 
         del(data['builds'])
 

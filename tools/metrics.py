@@ -27,7 +27,7 @@ from sqlalchemy.sql import and_
 
 from bodhi.server import Session, initialize_db
 from bodhi.server.models import Update, Release, UpdateStatus, UpdateType
-from bodhi.server.util import header, get_critpath_pkgs
+from bodhi.server.util import header, get_critpath_components
 import bodhi
 
 
@@ -56,7 +56,7 @@ def main(releases=None):
         if releases and release.name not in releases:
             continue
         updates = db.query(Update).filter_by(release=release)
-        critpath_pkgs = get_critpath_pkgs(release.name.lower())
+        critpath_pkgs = get_critpath_components(release.name.lower())
         total = updates.count()
         if not total:
             continue
