@@ -98,22 +98,22 @@ class TestAddUpdate(base.BaseTestCase):
         self.assertEquals(
             pkg.src,
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/SRPMS/T/'
-             'TurboGears-1.0.2.2-2.fc7.src.rpm'))
+             'TurboGears-1.0.2.2-2.fc17.src.rpm'))
         self.assertEquals(pkg.version, '1.0.2.2')
         self.assertFalse(pkg.reboot_suggested)
         self.assertEquals(pkg.arch, 'src')
-        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc7.src.rpm')
+        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
         pkg = col.packages[1]
         self.assertEquals(pkg.epoch, '0')
         self.assertEquals(pkg.name, 'TurboGears')
         self.assertEquals(
             pkg.src,
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/i386/T/'
-             'TurboGears-1.0.2.2-2.fc7.noarch.rpm'))
+             'TurboGears-1.0.2.2-2.fc17.noarch.rpm'))
         self.assertEquals(pkg.version, '1.0.2.2')
         self.assertFalse(pkg.reboot_suggested)
         self.assertEquals(pkg.arch, 'noarch')
-        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc7.noarch.rpm')
+        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
 
 
 class TestExtendedMetadata(unittest.TestCase):
@@ -272,11 +272,11 @@ class TestExtendedMetadata(unittest.TestCase):
         self.assertEquals(
             pkg.src,
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/T/'
-             'TurboGears-1.0.2.2-2.fc7.src.rpm'))
+             'TurboGears-1.0.2.2-2.fc17.src.rpm'))
         self.assertEquals(pkg.version, '1.0.2.2')
         self.assertFalse(pkg.reboot_suggested)
         self.assertEquals(pkg.arch, 'src')
-        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc7.src.rpm')
+        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
 
     def test_extended_metadata_updating(self):
         update = self.db.query(Update).one()
