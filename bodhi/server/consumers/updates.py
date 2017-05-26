@@ -46,14 +46,30 @@ log = logging.getLogger('bodhi')
 
 
 class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
-    """The Bodhi Updates Handler.
-
-    A fedmsg listener waiting for messages from the frontend about new updates.
-
     """
+    Perform background tasks when updates are created or edited.
+
+    This fedmsg listener waits for messages from the frontend about new or edited updates, and
+    performs background tasks such as modifying Bugzilla issues (and loading information from
+    Bugzilla so we can display it to the user) and looking up wiki test cases.
+
+    Attributes:
+        db_factory (bodhi.server.util.TransactionalSessionMaker): A context manager that yields a
+            database session.
+        handle_bugs (bool): If True, interact with Bugzilla. Else do not.
+        topic (list): A list of strings that indicate which fedmsg topics this consumer listens to.
+    """
+
     config_key = 'updates_handler'
 
     def __init__(self, hub, *args, **kwargs):
+        """
+        Initialize the UpdatesHandler, subscribing it to the appropriate topics.
+
+        Args:
+            hub (moksha.hub.hub.CentralMokshaHub): The hub this handler is consuming messages from.
+                It is used to look up the hub config.
+        """
         initialize_db(config)
         self.db_factory = util.transactional_session_maker()
 
@@ -75,6 +91,12 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
                  '%s' % pprint.pformat(self.topic))
 
     def consume(self, message):
+        """
+        Process the given message, updating relevant bugs and test cases.
+
+        Args:
+            message (munch.Munch): A fedmsg about a new or edited update.
+        """
         msg = message['body']['msg']
         topic = message['topic']
         alias = msg['update'].get('alias')
@@ -111,12 +133,32 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         log.info("Updates Handler done with %s, %s" % (alias, topic))
 
     def fetch_test_cases(self, session, update):
-        """ Query the wiki for test cases for each package """
+        """
+        Query the wiki for test cases for each package on the given update.
+
+        Args:
+            session (sqlalchemy.orm.session.Session): A database session.
+            update (bodhi.server.models.Update): The update's builds are iterated upon to find test
+                cases for their associated Packages..
+        """
         for build in update.builds:
             build.package.fetch_test_cases(session)
 
     def work_on_bugs(self, session, update, bugs):
+        """
+        Iterate the list of bugs, retrieving information from Bugzilla and modifying them.
 
+        Iterate the given list of bugs associated with the given update. For each bug, retrieve
+        details from Bugzilla, comment on the bug to let watchers know about the update, and mark
+        the bug as MODIFIED. If the bug is a security issue, mark the update as a security update.
+
+        If handle_bugs is not True, return and do nothing.
+
+        Args:
+            session (sqlalchemy.orm.session.Session): A database session.
+            update (bodhi.server.models.Update): The update that the bugs are associated with.
+            bugs (list): A list of bodhi.server.models.Bug instances that we wish to act on.
+        """
         if not self.handle_bugs:
             log.warn("Not configured to handle bugs")
             return
