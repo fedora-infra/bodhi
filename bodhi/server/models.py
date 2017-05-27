@@ -2299,11 +2299,11 @@ class Update(Base):
         if self.locked:
             log.debug('%s locked. Ignoring karma thresholds.' % self.title)
             raise LockedUpdateException
-        # Return if the status of the update is not in testing
-        if self.status != UpdateStatus.testing:
+        # Return if the status of the update is not in testing or pending
+        if self.status not in (UpdateStatus.testing, UpdateStatus.pending):
             return
         # If an update receives negative karma disable autopush
-        if self.autokarma and self._composite_karma[1] != 0:
+        if self.autokarma and self._composite_karma[1] != 0 and self.status is UpdateStatus.testing:
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
             text = config.get('disable_automatic_push_to_stable')
@@ -2323,11 +2323,14 @@ class Update(Base):
                     "%s update has reached the stable karma threshold and can be pushed to "
                     "stable now if the maintainer wishes") % self.title)
         elif self.unstable_karma and self.karma <= self.unstable_karma:
-            log.info("Automatically unpushing %s" % self.title)
-            self.obsolete(db)
-            notifications.publish(
-                topic='update.karma.threshold.reach',
-                msg=dict(update=self, status='unstable'))
+            if self.status is UpdateStatus.pending and not self.autokarma:
+                pass
+            else:
+                log.info("Automatically unpushing %s" % self.title)
+                self.obsolete(db)
+                notifications.publish(
+                    topic='update.karma.threshold.reach',
+                    msg=dict(update=self, status='unstable'))
 
     @property
     def builds_json(self):
