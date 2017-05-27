@@ -2191,6 +2191,83 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    def test_pending_update_on_stable_karma_reached_autopush_enabled(self, publish, *args):
+        """ Ensure that pending update directly requests for stable if
+        it hits stable karma before reaching testing state """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 2
+        args['unstable_karma'] = -2
+        self.app.post_json('/updates/', args)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.pending
+        self.db.flush()
+
+        up.comment(self.db, u'WFM', author=u'dustymabe', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        self.assertEquals(up.karma, 2)
+        self.assertEquals(up.request, UpdateRequest.stable)
+        self.assertEquals(up.status, UpdateStatus.pending)
+
+    @mock.patch(**mock_valid_requirements)
+    def test_pending_update_on_stable_karma_not_reached(self, publish, *args):
+        """ Ensure that pending update does not directly request for stable
+        if it does not hit stable karma before reaching testing state """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 2
+        args['unstable_karma'] = -2
+        self.app.post_json('/updates/', args)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.pending
+        self.db.flush()
+
+        up.comment(self.db, u'WFM', author=u'dustymabe', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        self.assertEquals(up.karma, 1)
+        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEquals(up.status, UpdateStatus.pending)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_pending_update_on_stable_karma_reached_autopush_disabled(self, publish, *args):
+        """ Ensure that pending update has option to request for stable directly
+        if it hits stable karma before reaching testing state """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = False
+        args['stable_karma'] = 2
+        args['unstable_karma'] = -2
+        self.app.post_json('/updates/', args)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.pending
+        self.db.flush()
+
+        up.comment(self.db, u'WFM', author=u'dustymabe', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        self.assertEquals(up.karma, 2)
+        self.assertEquals(up.status, UpdateStatus.pending)
+
+        text = unicode(config.get('testing_approval_msg_based_on_karma'))
+        up.comment(self.db, text, author=u'bodhi')
+        self.assertIn('pushed to stable now if the maintainer wishes', up.comments[-1]['text'])
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion_locked_with_open_request(self, publish, *args):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
