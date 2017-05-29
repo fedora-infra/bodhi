@@ -37,7 +37,7 @@ def get_top_testers(request):
         sa.func.count(models.User.comments).label(u'count_1')
     ).join(models.Comment)
     query = query\
-        .order_by(u'count_1 desc')\
+        .order_by(sa.text(u'count_1 desc'))\
         .filter(models.Comment.timestamp > start_time)
 
     for user in blacklist:
