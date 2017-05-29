@@ -994,7 +994,7 @@ class TestUpdate(ModelTest):
             pass
         eq_(self.obj.request, UpdateRequest.testing)
         eq_(self.obj.status, UpdateStatus.pending)
-        eq_(e.message, config.get('not_yet_tested_msg'))
+        eq_(str(e), config.get('not_yet_tested_msg'))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_set_request_stable_after_week_in_testing(self, publish):
