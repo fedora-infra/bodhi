@@ -424,13 +424,16 @@ def new_update(request):
         # Create the Package and Build entities
         for nvr in data['builds']:
             name, version, release = request.buildinfo[nvr]['nvr']
-            # The package will have been created by validate_acls
-            package = request.db.query(Package).filter_by(name=name).one()
 
-            # Figure out what kind of build this should be.
+            # Figure out what kind of package this should be.
             # (Note, this can possibly raise a NotImplementedError, but the
             # error should have been caught earlier in the validator when
-            # inferring the Package type.)
+            # inferring the Package type and creating the Package in the validator.)
+            package_class = ContentType.infer_content_class(
+                base=Package, build=request.buildinfo[nvr]['info'])
+            package = request.db.query(package_class).filter_by(name=name).one()
+
+            # Also figure out the build type and create the build if absent.
             build_class = ContentType.infer_content_class(
                 base=Build, build=request.buildinfo[nvr]['info'])
             build = build_class.get(nvr, request.db)
