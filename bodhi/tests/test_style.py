@@ -48,6 +48,7 @@ class TestStyle(unittest.TestCase):
         """
         enforced_paths = [
             'bodhi/server/consumers/__init__.py',
+            'bodhi/server/consumers/updates.py',
             'bodhi/server/scripts/__init__.py',
             'bodhi/server/scripts/approve_testing.py',
             'bodhi/server/scripts/clean_old_mashes.py',
@@ -56,7 +57,7 @@ class TestStyle(unittest.TestCase):
             'bodhi/server/scripts/untag_branched.py']
 
         enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
-        pydocstyle_command = ['pydocstyle']
+        pydocstyle_command = ['pydocstyle', '--add-ignore=D413']
         pydocstyle_command.extend(enforced_paths)
 
         self.assertEqual(subprocess.call(pydocstyle_command), 0)
