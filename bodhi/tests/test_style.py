@@ -48,6 +48,7 @@ class TestStyle(unittest.TestCase):
         """
         enforced_paths = [
             'bodhi/server/consumers/__init__.py',
+            'bodhi/server/consumers/signed.py',
             'bodhi/server/consumers/updates.py',
             'bodhi/server/scripts/',
             'bodhi/server/views/search.py']

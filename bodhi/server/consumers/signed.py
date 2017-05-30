@@ -36,11 +36,18 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
     """The Bodhi Signed Handler.
 
     A fedmsg listener waiting for messages from koji about builds being tagged.
-
     """
+
     config_key = 'signed_handler'
 
     def __init__(self, hub, *args, **kwargs):
+        """
+        Initialize the SignedHandler, configuring its topic and database.
+
+        Args:
+            hub (moksha.hub.hub.CentralMokshaHub): The hub this handler is consuming messages from.
+                It is used to look up the hub config.
+        """
         initialize_db(config)
         self.db_factory = transactional_session_maker()
 
@@ -56,7 +63,7 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
 
     def consume(self, message):
         """
-        The method called when a fedmsg arrives with the configured topic.
+        Handle fedmsgs arriving with the configured topic.
 
         This marks a build as signed if it is assigned to the pending testing release tag.
 
