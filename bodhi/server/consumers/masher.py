@@ -668,6 +668,7 @@ class MasherThread(threading.Thread):
             raise Exception
 
     def complete_requests(self):
+        """Mark all the updates as pushed using Update.request_complete()."""
         self.log.info("Running post-request actions on updates")
         for update in self.updates:
             if update.request:
@@ -679,6 +680,9 @@ class MasherThread(threading.Thread):
         """Add an package to the digest dictionary.
 
         {'release-id': {'build nvr': body text for build, ...}}
+
+        Args:
+            update (bodhi.server.models.Update): The update to add to the dict.
         """
         prefix = update.release.long_name
         if prefix not in self.testing_digest:
@@ -880,6 +884,18 @@ class MasherThread(threading.Thread):
         return updates
 
     def get_unapproved_critpath_updates(self, release):
+        """
+        Return a list of unapproved critical path updates for the given release.
+
+        Builds a query for critical path updates that are testing and do not have a request, and
+        then returns a list of the query results reverse sorted by the number of days they have been
+        in testing.
+
+        Args:
+            release (basestring): The long_name of the Release to be queried.
+        Return:
+            list: The list of unapproved critical path updates for the given release.
+        """
         release = self.db.query(Release).filter_by(long_name=release).one()
         updates = self.db.query(Update).filter_by(
             critpath=True,
@@ -891,13 +907,21 @@ class MasherThread(threading.Thread):
         return updates
 
     def sort_by_days_in_testing(self, updates):
+        """
+        Sort the given updates by the number of days they have been in testing, reversed.
+
+        Args:
+            updates (iterable): The updates to be sorted.
+        Return:
+            list: The sorted updates.
+        """
         updates = list(updates)
         updates.sort(key=lambda update: update.days_in_testing, reverse=True)
         return updates
 
     @checkpoint
     def compose_atomic_trees(self):
-        """Compose Atomic OSTrees for each tag that we mashed"""
+        """Compose Atomic OSTrees for each tag that we mashed."""
         composer = AtomicComposer()
         mashed_repos = dict([('-'.join(os.path.basename(repo).split('-')[:-1]), repo)
                              for repo in self.state['completed_repos']])
@@ -944,6 +968,8 @@ class MasherThread(threading.Thread):
 
     def _get_master_repomd_url(self, arch):
         """
+        Return the master repomd URL for the given arch.
+
         Look up the correct *_master_repomd setting in the config and use it to form the URL that
         wait_for_sync() will use to determine when the repository has been synchronized to the
         master mirror.
@@ -976,8 +1002,30 @@ class MasherThread(threading.Thread):
 
 
 class MashThread(threading.Thread):
+    """
+    A Thread that performs the subprocess call to mash.
+
+    Attributes:
+        log (logging.Logger): A logger for the thread to use.
+        mash_cmd (basestring): The command to run, including arguments.
+        name (basestring): The tag being mashed. This is set so that the thread name will appear in
+            the logs.
+        success (bool): True if the subprocess finished with exit code 0, False if the process is
+            still running or exited with a non-0 exit code.
+        tag (basestring): The tag being mashed.
+    """
 
     def __init__(self, tag, outputdir, comps, previous, log):
+        """
+        Initialize the MashThread.
+
+        Args:
+            tag (basestring): The tag to mash.
+            outputdir (basestring): The mash output directory.
+            comps (basestring): A path to a compsfile to be used during the mash.
+            previous (basestring): The path to the previous mash for this tag.
+            log (logging.Logger): A logger for the MashThread to use.
+        """
         super(MashThread, self).__init__()
         self.tag = tag
         self.log = log
@@ -993,6 +1041,7 @@ class MashThread(threading.Thread):
         self.name = tag
 
     def run(self):
+        """Perform the mash in a subprocess."""
         start = time.time()
         self.log.info('Mashing %s', self.tag)
         out, err, returncode = util.cmd(self.mash_cmd)
