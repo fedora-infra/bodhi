@@ -11,6 +11,12 @@ Features
   (`#1325 <https://github.com/fedora-infra/bodhi/issues/1325>`_ and
   `#1326 <https://github.com/fedora-infra/bodhi/issues/1326>`_).
 
+New Dependencies
+^^^^^^^^^^^^^^^^
+
+* Bodhi now uses Bleach to sanitize markdown input from the user.
+  python-bleach 1.x is a new dependency in this release of Bodhi.
+
 
 2.7.0
 -----
