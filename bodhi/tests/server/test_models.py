@@ -15,6 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test suite for bodhi.server.models"""
 from datetime import datetime, timedelta
+from HTMLParser import HTMLParser
 import json
 import time
 import unittest
@@ -875,6 +876,20 @@ class TestUpdate(ModelTest):
 
     def test_title(self):
         eq_(self.obj.title, u'TurboGears-1.0.8-3.fc11')
+
+    def test_beautify_title(self):
+        update = self.get_update()
+        rpm_build = update.builds[0]
+        eq_(update.beautify_title(), u'TurboGears')
+
+        update.builds.append(rpm_build)
+        eq_(update.beautify_title(), u'TurboGears and TurboGears')
+
+        update.builds.append(rpm_build)
+        eq_(update.beautify_title(), u'TurboGears, TurboGears, and 1 more')
+
+        p = HTMLParser()
+        eq_(p.unescape(update.beautify_title(amp=True)), u'TurboGears, TurboGears, & 1 more')
 
     def test_pkg_str(self):
         """ Ensure str(pkg) is correct """

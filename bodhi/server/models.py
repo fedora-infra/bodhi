@@ -43,7 +43,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
-    get_nvr, get_rpm_header, header, tokenize, pagure_api_get)
+    get_nvr, get_rpm_header, header, packagename_from_nvr, tokenize, pagure_api_get)
 import bodhi.server.util
 
 
@@ -1544,6 +1544,30 @@ class Update(Base):
                     elif feedback.karma < 0:
                         bad += 1
         return bad * -1, good
+
+    def beautify_title(self, amp=False):
+        """Will shorten the title according to its length.
+
+        This is used mostly in subject of a update notification email and
+        displaying the title in html. If there are 3 or more builds per title
+        the title be:
+
+            "package1, package, 2 and XXX more"
+
+        If the "amp" parameter is specified it will replace the and with and
+        &amp; html entity
+        """
+        if len(self.builds) > 2:
+            title = ", ".join([packagename_from_nvr(self, build.nvr) for build in self.builds[:2]])
+            if amp:
+                title += ", &amp; "
+            else:
+                title += ", and "
+            title += str(len(self.builds) - 2)
+            title += " more"
+            return title
+        else:
+            return " and ".join([packagename_from_nvr(self, build.nvr) for build in self.builds])
 
     def assign_alias(self):
         """Return a randomly-suffixed update ID.

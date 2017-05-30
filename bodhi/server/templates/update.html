@@ -2,37 +2,12 @@
 <%namespace name="captcha" module="bodhi.server.captcha"/>
 <%namespace name="json" module="json"/>
 
-<%def name="generateupdatetitlestring()">
-
-  % if len(update.builds) == 1:
-    % for build in update.builds:
-      ${self.util.packagename_from_nvr(build.nvr)}
-    % endfor
-  % elif len(update.builds) == 2:
-    % for build in update.builds:
-      % if loop.last:
-      and
-      % endif
-      ${self.util.packagename_from_nvr(build.nvr)}
-    % endfor
-  % elif len(update.builds) > 2:
-    % for build in update.builds:
-      % if loop.index == 0:
-      ${self.util.packagename_from_nvr(build.nvr)},
-      % elif loop.index == 1:
-      ${self.util.packagename_from_nvr(build.nvr)}
-      &amp; ${len(update.builds)-2} more
-      % endif
-    % endfor
-  % endif
-</%def>
-
 <%block name="pagetitle">
 % if update.alias:
   ${update.alias}
 % endif
 &mdash;
-${update.type} update for ${generateupdatetitlestring()}
+${update.type} update for ${update.beautify_title(amp=True) | n}
 &mdash; Fedora Updates System
 </%block>
 
@@ -471,7 +446,7 @@ $(document).ready(function(){
     <h4>
       ${update.type} update
       in ${update.release.long_name}
-      for ${generateupdatetitlestring()}
+      for ${update.beautify_title(amp=True) | n}
     </h4>
     <div>
       Status: ${self.util.status2html(update.status) | n}
