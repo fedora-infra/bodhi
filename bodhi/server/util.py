@@ -33,6 +33,7 @@ from kitchen.iterutils import iterate
 from pyramid.i18n import TranslationStringFactory
 from pyramid.settings import asbool
 import arrow
+import bleach
 import colander
 import libravatar
 import markdown
@@ -310,9 +311,23 @@ def hostname(context=None):
 
 
 def markup(context, text):
-    return markdown.markdown(text, safe_mode="replace",
-                             html_replacement_text="--RAW HTML NOT ALLOWED--",
-                             extensions=['markdown.extensions.fenced_code'])
+    """
+    Return HTML from a markdown string
+
+    Args:
+        context (mako.runtime.Context)
+        text (basestring): markdown text to be converted to HTML
+
+    Return:
+        basestring: HTML representation of the markdown text
+    """
+
+    # previously, we used the Safe Mode in python-markdown to strip all HTML
+    # tags. Safe Mode is deprecated, so we now use Bleach to sanitize all HTML
+    # tags before running it through the markdown parser
+    sanitized_text = bleach.clean(text, tags=[])
+
+    return markdown.markdown(sanitized_text, extensions=['markdown.extensions.fenced_code'])
 
 
 def status2html(context, status):

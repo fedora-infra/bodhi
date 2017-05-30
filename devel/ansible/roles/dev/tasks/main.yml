@@ -24,6 +24,7 @@
       - python
       - python-alembic
       - python-arrow
+      - python-bleach
       - python-bugzilla
       - python-bunch
       - python-click

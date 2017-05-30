@@ -198,7 +198,7 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(
             res.json_body['html'],
             "<div class='markdown'>"
-            '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>'
+            '<p>&lt;b&gt;bold&lt;/b&gt;</p>'
             "</div>"
         )
 

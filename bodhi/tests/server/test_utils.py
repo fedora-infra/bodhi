@@ -363,7 +363,7 @@ class TestUtils(object):
         html = util.markup(None, text)
         assert html == (
             "<div class='markdown'>"
-            '<p>--RAW HTML NOT ALLOWED--bold--RAW HTML NOT ALLOWED--</p>'
+            '<p>&lt;b&gt;bold&lt;/b&gt;</p>'
             "</div>"
         ), html
 
