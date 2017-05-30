@@ -34,8 +34,10 @@ class TestUtils(object):
         assert config.get('sqlalchemy.url'), config
         assert config['sqlalchemy.url'], config
 
-    def test_get_critpath_components(self):
-        """Ensure the pkgdb's critpath API works"""
+    def test_get_critpath_components_dummy(self):
+        """ Ensure that critpath packages can be found using the hardcoded
+        list.
+        """
         pkgs = util.get_critpath_components()
         assert 'kernel' in pkgs, pkgs
 
