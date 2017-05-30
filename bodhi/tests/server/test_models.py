@@ -94,6 +94,31 @@ class TestQueryProperty(BaseTestCase):
         self.assertTrue(self.db is query.session)
 
 
+class TestPolymorphicDiscovery(BaseTestCase):
+
+    def test_find_child_for_rpm(self):
+        subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
+        eq_(subclass, model.RpmPackage)
+        subclass = model.Build.find_polymorphic_child(model.ContentType.rpm)
+        eq_(subclass, model.RpmBuild)
+        subclass = model.Package.find_polymorphic_child(model.ContentType.module)
+        eq_(subclass, model.ModulePackage)
+        subclass = model.Build.find_polymorphic_child(model.ContentType.module)
+        eq_(subclass, model.ModuleBuild)
+
+    @raises(NameError)
+    def test_find_child_with_bad_identity(self):
+        model.Package.find_polymorphic_child(model.UpdateType.security)
+
+    @raises(KeyError)
+    def test_find_child_with_bad_base_class(self):
+        model.Update.find_polymorphic_child(model.ContentType.rpm)
+
+    @raises(TypeError)
+    def test_find_child_with_badly_typed_argument(self):
+        model.Update.find_polymorphic_child("whatever")
+
+
 class TestComment(unittest.TestCase):
     def test_text_not_nullable(self):
         """Assert that the text column does not allow NULL values.
@@ -539,6 +564,9 @@ class TestUpdate(ModelTest):
         eq_(self.obj.builds[0].nvr, u'TurboGears-1.0.8-3.fc11')
         eq_(self.obj.builds[0].release.name, u'F11')
         eq_(self.obj.builds[0].package.name, u'TurboGears')
+
+    def test_content_type(self):
+        eq_(self.obj.content_type, 'rpm')
 
     def test_mandatory_days_in_testing_critpath(self):
         """
