@@ -46,6 +46,7 @@ release = Service(name='release', path='/releases/{name}',
                   cors_origins=bodhi.server.security.cors_origins_ro)
 releases = Service(name='releases', path='/releases/',
                    description='Fedora Releases',
+                   acl=bodhi.server.security.admin_only_acl,
                    # Note, this 'rw' is not a typo.  the @comments service has
                    # a ``post`` section at the bottom.
                    cors_origins=bodhi.server.security.cors_origins_rw)
@@ -230,7 +231,7 @@ def query_releases_json(request):
 
 
 @releases.post(schema=bodhi.server.schemas.SaveReleaseSchema,
-               acl=bodhi.server.security.admin_only_acl, renderer='json',
+               permission='admin', renderer='json',
                error_handler=bodhi.server.services.errors.json_handler,
                validators=(validate_tags, validate_enums)
                )

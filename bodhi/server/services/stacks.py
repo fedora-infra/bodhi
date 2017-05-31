@@ -30,12 +30,14 @@ import bodhi.server.services.errors
 
 
 stack = Service(name='stack', path='/stacks/{name}',
+                acl=bodhi.server.security.packagers_allowed_acl,
                 validators=(validate_stack,),
                 description='Bodhi Stacks',
                 # Note, this 'rw' is not a typo.  there are deletes and posts.
                 cors_origins=bodhi.server.security.cors_origins_rw)
 stacks = Service(name='stacks', path='/stacks/',
                  description='Bodhi Stacks',
+                 acl=bodhi.server.security.packagers_allowed_acl,
                  # Not a typo.  there are deletes and posts in here.
                  cors_origins=bodhi.server.security.cors_origins_rw)
 
@@ -99,7 +101,7 @@ def query_stacks(request):
 
 
 @stacks.post(schema=bodhi.server.schemas.SaveStackSchema,
-             acl=bodhi.server.security.packagers_allowed_acl,
+             permission='edit',
              validators=(validate_requirements,), renderer='json',
              error_handler=bodhi.server.services.errors.json_handler)
 def save_stack(request):
@@ -170,7 +172,7 @@ def save_stack(request):
     return dict(stack=stack)
 
 
-@stack.delete(acl=bodhi.server.security.packagers_allowed_acl, renderer='json',
+@stack.delete(permission='edit', renderer='json',
               error_handler=bodhi.server.services.errors.json_handler)
 def delete_stack(request):
     """Delete a stack"""
