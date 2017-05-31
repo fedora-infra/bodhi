@@ -39,6 +39,7 @@ override = Service(name='override', path='/overrides/{nvr}',
 
 overrides = Service(name='overrides', path='/overrides/',
                     description='Buildroot Overrides',
+                    acl=bodhi.server.security.packagers_allowed_acl,
                     # Note, this 'rw' is not a typo.  the @comments service has
                     # a ``post`` section at the bottom.
                     cors_origins=bodhi.server.security.cors_origins_rw)
@@ -155,7 +156,7 @@ def query_overrides(request):
 
 
 @overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema,
-                acl=bodhi.server.security.packagers_allowed_acl,
+                permission='edit',
                 accept=("application/json", "text/json"), renderer='json',
                 error_handler=bodhi.server.services.errors.json_handler,
                 validators=(
@@ -163,7 +164,7 @@ def query_overrides(request):
                     validate_expiration_date,
                 ))
 @overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema,
-                acl=bodhi.server.security.packagers_allowed_acl,
+                permission='edit',
                 accept=("application/javascript"), renderer="jsonp",
                 error_handler=bodhi.server.services.errors.jsonp_handler,
                 validators=(
