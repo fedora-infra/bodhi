@@ -181,13 +181,6 @@ def get_critpath_components(collection='master', component_type='rpm'):
     return critpath_components
 
 
-class Singleton(object):
-    def __new__(cls, *args, **kw):
-        if '_instance' not in cls.__dict__:
-            cls._instance = object.__new__(cls)
-        return cls._instance
-
-
 def sanity_check_repodata(myurl):
     """
     Sanity check the repodata for a given repository.
