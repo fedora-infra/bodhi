@@ -31,6 +31,7 @@
       - python-cornice
       - python-cornice-sphinx
       - python-devel
+      - python3-diff-cover
       - python-dogpile-cache
       - python-fedora
       - python-ipdb
