@@ -57,8 +57,22 @@ class TestUtils(object):
         ), html
 
     def test_rpm_header(self):
-        h = util.get_rpm_header('')
+        h = util.get_rpm_header('libseccomp')
         assert h['name'] == 'libseccomp', h
+
+    def test_rpm_header_exception(self):
+        try:
+            util.get_rpm_header('raise-exception')
+            assert False
+        except Exception:
+            pass
+
+    def test_rpm_header_not_found(self):
+        try:
+            util.get_rpm_header("do-not-find-anything")
+            assert False
+        except ValueError:
+            pass
 
     def test_cmd_failure(self):
         try:
