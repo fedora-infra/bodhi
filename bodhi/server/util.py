@@ -18,7 +18,6 @@ Random functions that don't fit elsewhere
 
 from collections import defaultdict
 from contextlib import contextmanager
-from os.path import join, dirname, basename, isfile
 import collections
 import functools
 import hashlib
@@ -108,20 +107,6 @@ def mkmetadatadir(path):
 def flash_log(msg):
     """ Flash and log a given message """
     log.debug(msg)
-
-
-def get_repo_tag(repo):
-    """ Pull the koji tag from the given mash repo """
-    mashconfig = join(dirname(config.get('mash_conf')),
-                      basename(repo) + '.mash')
-    if isfile(mashconfig):
-        mashconfig = file(mashconfig, 'r')
-        lines = mashconfig.readlines()
-        mashconfig.close()
-        return filter(lambda x: x.startswith('tag ='), lines)[0].split()[-1]
-    else:
-        log.error("Cannot find mash configuration for %s: %s" % (repo,
-                                                                 mashconfig))
 
 
 def build_evr(build):
