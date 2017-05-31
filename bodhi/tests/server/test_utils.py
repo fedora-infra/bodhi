@@ -21,7 +21,7 @@ from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
 
 
-class TestUtils(object):
+class TestUtils(unittest.TestCase):
 
     def setUp(self):
         setup_buildsystem({'buildsystem': 'dev'})
@@ -87,6 +87,16 @@ class TestUtils(object):
         b1, b2 = util.sorted_builds([new, old])
         assert b1 == new, b1
         assert b2 == old, b2
+
+    def test_splitter(self):
+        splitlist = util.splitter(["build-0.1", "build-0.2"])
+        self.assertEqual(splitlist, ['build-0.1', 'build-0.2'])
+
+        splitcommastring = util.splitter("build-0.1, build-0.2")
+        self.assertEqual(splitcommastring, ['build-0.1', 'build-0.2'])
+
+        splitspacestring = util.splitter("build-0.1 build-0.2")
+        self.assertEqual(splitspacestring, ['build-0.1', 'build-0.2'])
 
 
 class TestCMDFunctions(unittest.TestCase):
