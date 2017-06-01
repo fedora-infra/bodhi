@@ -34,7 +34,7 @@ Features
   (`#1049 <https://github.com/fedora-infra/bodhi/issues/1049>`_).
 * The Update model is now capable of being associated with different Build types
   (`#1394 <https://github.com/fedora-infra/bodhi/issues/1394>`_).
-* The bodhi CLI now supports editing an update using the update title.
+* The bodhi CLI now supports editing an update using the update alias.
   (`#1409 <https://github.com/fedora-infra/bodhi/issues/1409>`_).
 * The web UI now uses Fedora 26 in its example text instead of Fedora 20
   (`ec0c619a <https://github.com/fedora-infra/bodhi/commit/ec0c619a>`_).
@@ -47,7 +47,7 @@ Bugs
 
 * Correctly calculate days to stable for critical path updates
   (`#1386 <https://github.com/fedora-infra/bodhi/issues/1386>`_).
-* Bodhi now logs some messages at into instead of error
+* Bodhi now logs some messages at info instead of error
   (`#1412 <https://github.com/fedora-infra/bodhi/issues/1412>`_).
 * Only show openQA results since last update modification
   (`#1435 <https://github.com/fedora-infra/bodhi/issues/1435>`_).
