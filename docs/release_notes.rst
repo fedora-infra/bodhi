@@ -4,6 +4,12 @@ Release notes
 NEXT
 ----
 
+Deprecation
+^^^^^^^^^^^
+
+The ``/search/packages`` API call has been deprecated.
+
+
 Features
 ^^^^^^^^
 
