@@ -510,7 +510,8 @@ class TestEditUpdateForm(bodhi.tests.server.functional.base.BaseWSGICase):
         """
         app = TestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
         resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=400)
-        self.assertIn('anonymous does not have commit access to bodhi', resp)
+        self.assertIn(
+            'anonymous is not a member of "packager", which is a mandatory packager group', resp)
 
     def test_edit_not_loggedin(self):
         """
