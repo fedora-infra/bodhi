@@ -11,6 +11,7 @@
       - gcc
       - git
       - graphviz
+      - httpie
       - koji
       - liberation-mono-fonts
       - libffi-devel
