@@ -9,6 +9,7 @@ fi
 # export SYSTEMD_PAGER=
 
 shopt -s expand_aliases
+alias bdiff-cover="btest; diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100"
 alias bdocs="pushd /home/vagrant/bodhi/docs && make html && make man; popd"
 alias blog="sudo journalctl -u bodhi"
 alias brestart="sudo systemctl restart bodhi && echo 'The Application is running on http://localhost:6543'"

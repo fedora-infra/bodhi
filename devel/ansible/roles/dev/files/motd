@@ -1,16 +1,17 @@
 
 Welcome to the Bodhi development environment! Here are some helpful commands:
 
-bdocs:      Build Bodhi's documentation.
-bfedmsg:    Display the log of Bodhi's fedmsgs.
-blog:       View Bodhi's log. (Support all the systemctl options, such as -lf)
-bresetdb:   Drop and reimport the database.
-brestart:   Restart the Bodhi service.
-bshell:     Get a handy python shell initialized with Bodhi models.
-bstart:     Start the Bodhi service.
-bstop:      Stop the Bodhi service.
-btest:      Run Bodhi's test suite.
-bteststyle: Run just the flake8 code style tests.
+bdiff-cover: Run btest and then run diff-cover against the develop branch
+bdocs:       Build Bodhi's documentation.
+bfedmsg:     Display the log of Bodhi's fedmsgs.
+blog:        View Bodhi's log. (Support all the systemctl options, such as -lf)
+bresetdb:    Drop and reimport the database.
+brestart:    Restart the Bodhi service.
+bshell:      Get a handy python shell initialized with Bodhi models.
+bstart:      Start the Bodhi service.
+bstop:       Stop the Bodhi service.
+btest:       Run Bodhi's test suite.
+bteststyle:  Run just the flake8 code style tests.
 
 
 The BODHI_URL environment variable is set to http://localhost:6543 so the

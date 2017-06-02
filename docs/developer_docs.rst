@@ -13,7 +13,9 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
 * All tests must pass.
 * New code must have 100% test coverage. This one is particularly important, as we don't want to
   deploy any broken code into production. After you've run `btest`, you can verify your new code's
-  test coverage with `diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100`.
+  test coverage with `bdiff-cover` in the Vagrant environment, or
+  `diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100` if you are not using
+  Vagrant.
 * New functions, methods, and classes must have docblocks that explain what the code block is, and
   describing any parameters it accepts and what it returns (if anything). You can use the
   ``pydocstyle`` utility to automatically check your code for this. There is a
