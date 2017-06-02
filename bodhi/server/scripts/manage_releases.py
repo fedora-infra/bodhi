@@ -27,7 +27,7 @@ import munch
 
 import click
 
-from fedora.client.bodhi import Bodhi2Client
+from bodhi.client.bindings import BodhiClient
 
 
 @click.group()
@@ -60,7 +60,7 @@ def main():
               help='The state of the release')
 def create(username, password, **kwargs):
     """Create a release."""
-    client = Bodhi2Client(username=username, password=password)
+    client = BodhiClient(username=username, password=password)
     kwargs['csrf_token'] = client.csrf()
 
     save(client, **kwargs)
@@ -91,7 +91,7 @@ def create(username, password, **kwargs):
               help='The state of the release')
 def edit(username, password, **kwargs):
     """Edit an existing release."""
-    client = Bodhi2Client(username=username, password=password)
+    client = BodhiClient(username=username, password=password)
     csrf = client.csrf()
 
     edited = kwargs.pop('name')
@@ -126,7 +126,7 @@ def edit(username, password, **kwargs):
 @click.argument('name')
 def info(name):
     """Retrieve and print info about a named release."""
-    client = Bodhi2Client()
+    client = BodhiClient()
 
     res = client.send_request('releases/%s' % name, verb='GET', auth=False)
 
@@ -143,7 +143,7 @@ def save(client, **kwargs):
     Save a new or edited release.
 
     Args:
-        client (bodhi.client.bindings.Bodhi2Client): The Bodhi client to use for the request.
+        client (bodhi.client.bindings.BodhiClient): The Bodhi client to use for the request.
         kwargs (dict): The parameters to send with the request.
     """
     print type(client)
