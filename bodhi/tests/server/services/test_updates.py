@@ -54,7 +54,7 @@ mock_taskotron_results = {
     'target': 'bodhi.server.util.taskotron_results',
     'return_value': [{
         "outcome": "PASSED",
-        "result_data": {},
+        "data": {},
         "testcase": {"name": "rpmlint"}
     }],
 }
@@ -63,7 +63,7 @@ mock_failed_taskotron_results = {
     'target': 'bodhi.server.util.taskotron_results',
     'return_value': [{
         "outcome": "FAILED",
-        "result_data": {},
+        "data": {},
         "testcase": {"name": "rpmlint"}
     }],
 }

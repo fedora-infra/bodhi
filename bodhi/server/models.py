@@ -2254,6 +2254,9 @@ class Update(Base):
         requirements = tokenize(self.requirements or '')
         requirements = list(requirements)
 
+        if not requirements:
+            return True, "All checks pass."
+
         try:
             # https://github.com/fedora-infra/bodhi/issues/362
             since = self.last_modified.isoformat().rsplit('.', 1)[0]
@@ -2266,7 +2269,7 @@ class Update(Base):
             # query results for this update
             query = dict(type='bodhi_update', item=self.alias, since=since,
                          testcases=','.join(requirements))
-            results = bodhi.server.util.taskotron_results(settings, **query)
+            results = list(bodhi.server.util.taskotron_results(settings, **query))
 
             # query results for each build
             # retrieve timestamp for each build so that queries can be optimized
@@ -2277,15 +2280,20 @@ class Update(Base):
             buildinfos = koji.multiCall()
 
             for index, build in enumerate(self.builds):
-                buildinfo = buildinfos[index]
-                if not isinstance(buildinfo, dict):
-                    log.warn("Koji build info doesn't seem correct: %r",
-                             buildinfo)
+                multicall_response = buildinfos[index]
+                if (not isinstance(multicall_response, list) or
+                        not isinstance(multicall_response[0], dict)):
+                    msg = ("Error retrieving data from Koji for %r: %r" %
+                           build.nvr, multicall_response)
+                    log.error(msg)
+                    raise TypeError(msg)
+
+                buildinfo = multicall_response[0]
                 ts = datetime.utcfromtimestamp(buildinfo['completion_ts']).isoformat()
 
                 query = dict(type='koji_build', item=build.nvr, since=ts,
                              testcases=','.join(requirements))
-                build_results = bodhi.server.util.taskotron_results(settings, **query)
+                build_results = list(bodhi.server.util.taskotron_results(settings, **query))
                 results.extend(build_results)
 
         except Exception as e:

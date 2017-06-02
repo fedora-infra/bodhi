@@ -15,6 +15,7 @@
 from threading import Lock
 import logging
 import time
+from functools import wraps
 
 import koji
 
@@ -25,7 +26,23 @@ _buildsystem = None
 _koji_hub = None
 
 
-class Buildsystem:
+def multicall_enabled(func):
+    '''Decorator to enable multicall handling for DevBuildsys methods'''
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if not self.multicall:
+            return func(self, *args, **kwargs)
+
+        # disable multicall during execution, so that inner func calls to other
+        # methods don't append their results as well
+        self._multicall = False
+        result = func(self, *args, **kwargs)
+        self.multicall_result.append([result])
+        self._multicall = True
+    return wrapper
+
+
+class Buildsystem(object):
     """
     The parent for our buildsystem.  Not only does this help us keep track of
     the functionality that we expect from our buildsystem, but it also alows
@@ -80,8 +97,17 @@ class DevBuildsys(Buildsystem):
     __rpms__ = []
 
     def __init__(self):
-        self.multicall = False
-        self.multicallresult = []
+        self._multicall = False
+        self.multicall_result = []
+
+    @property
+    def multicall(self):
+        return self._multicall
+
+    @multicall.setter
+    def multicall(self, value):
+        self._multicall = value
+        self.multicall_result = []
 
     @classmethod
     def clear(cls):
@@ -92,7 +118,9 @@ class DevBuildsys(Buildsystem):
         cls.__rpms__ = []
 
     def multiCall(self):
-        return self.multicallresult
+        result = self.multicall_result
+        self.multicall = False
+        return result
 
     def moveBuild(self, from_tag, to_tag, build, *args, **kw):
         log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
@@ -120,6 +148,7 @@ class DevBuildsys(Buildsystem):
             {'package_id': 2625, 'package_name': 'nethack'},
         ]
 
+    @multicall_enabled
     def getBuild(self, build='TurboGears-1.0.2.2-2.fc17', other=False, testing=False):
         theid = 16058
         if other and not testing:
@@ -128,6 +157,7 @@ class DevBuildsys(Buildsystem):
             theid = 16060
         data = {'build_id': 16058,
                 'completion_time': '2007-08-24 23:26:10.890319',
+                'completion_ts': 1187997970,
                 'creation_event_id': 151517,
                 'creation_time': '2007-08-24 19:38:29.422344',
                 'extra': None,
@@ -258,6 +288,7 @@ class DevBuildsys(Buildsystem):
                 result += [{'name': tag}]
         return result
 
+    @multicall_enabled
     def listTagged(self, tag, *args, **kw):
         builds = []
         for build in [self.getBuild(),
@@ -273,11 +304,7 @@ class DevBuildsys(Buildsystem):
                 if tag_ == tag:
                     builds.append(self.getBuild(build))
         log.debug(builds)
-        if self.multicall:
-            for build in builds:
-                self.multicallresult.append([[build]])
-        else:
-            return builds
+        return builds
 
     def getLatestBuilds(self, *args, **kw):
         return [self.getBuild()]
