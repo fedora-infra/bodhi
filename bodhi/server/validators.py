@@ -988,10 +988,19 @@ def validate_stack(request):
         request.errors.status = HTTPNotFound.code
 
 
-def _get_valid_requirements(request):
-    """ Returns a list of valid testcases from taskotron. """
+def _get_valid_requirements(request, requirements):
+    """ Returns a list of valid testcases from taskotron.
+    :param requirements: requested requirements (testcases)
+    :type requirements: list of str
+    :returns: subset of requested requirements which actually exist in taskotron
+    """
+    if not requirements:
+        return
+
+    testcases = ','.join(requirements)
     for testcase in taskotron_results(config, 'testcases',
-                                      max_queries=None, limit=100):
+                                      max_queries=None, limit=100,
+                                      name=testcases):
         yield testcase['name']
 
 
@@ -1002,15 +1011,14 @@ def validate_requirements(request):
         request.validated['requirements'] = None
         return
 
-    requirements = tokenize(requirements)
-    valid_requirements = _get_valid_requirements(request)
+    requirements = list(tokenize(requirements))
+    valid_requirements = _get_valid_requirements(request, requirements)
 
     for requirement in requirements:
         if requirement not in valid_requirements:
             request.errors.add(
                 'querystring', 'requirements',
-                'Invalid requirement specified: %s.  Must be one of %s' % (
-                    requirement, ", ".join(valid_requirements)))
+                "Required check doesn't exist : %s" % requirement)
             request.errors.status = HTTPBadRequest.code
             return
 
