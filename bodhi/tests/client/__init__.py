@@ -99,6 +99,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
     u'updates': [{
         u'alias': u'FEDORA-2017-c95b33872d',
         u'autokarma': True,
+        u'content_type': u'rpm',
         u'bugs': [{
             u'bug_id': 1420605,
             u'feedback': [],
@@ -479,31 +480,33 @@ EXAMPLE_UPDATE_MUNCH = Munch({
         u'long_name': u'Fedora EPEL 7', u'state': u'current', u'version': u'7',
         u'override_tag': u'epel7-override', u'branch': u'epel7', u'id_prefix': u'FEDORA-EPEL',
         u'pending_testing_tag': u'epel7-testing-pending', u'stable_tag': u'epel7',
-        u'candidate_tag': u'epel7-testing-candidate'}), u'date_stable': u'2016-10-21 13:23:01'})
+        u'candidate_tag': u'epel7-testing-candidate'}), u'date_stable': u'2016-10-21 13:23:01',
+    u'content_type': u'rpm'})
 
 
 # EXAMPLE_UPDATE_MUNCH is expected to generate this output in update_str
 EXPECTED_UPDATE_OUTPUT = u"""================================================================================
      bodhi-2.2.4-1.el7
 ================================================================================
-  Update ID: FEDORA-EPEL-2016-3081a94111
-    Release: Fedora EPEL 7
-     Status: stable
-       Type: bugfix
-      Karma: 0
-  Autokarma: True  [-3, 3]
-      Notes: Update to 2.2.4. Release notes available at https://github.com
-           : /fedora-infra/bodhi/releases/tag/2.2.4
-  Submitter: bowlofeggs
-  Submitted: 2016-10-05 18:10:22
-   Comments: bodhi - 2016-10-05 18:10:22 (karma 0)
-             This update has been submitted for testing by
-             bowlofeggs.
-             bodhi - 2016-10-05 18:10:27 (karma 0)
-             This update has obsoleted [bodhi-2.2.3-1.el7](https://
-             bodhi.fedoraproject.org/updates/FEDORA-
-             EPEL-2016-a0eb4cc41f), and has inherited its bugs and
-             notes.
+   Update ID: FEDORA-EPEL-2016-3081a94111
+Content Type: rpm
+     Release: Fedora EPEL 7
+      Status: stable
+        Type: bugfix
+       Karma: 0
+   Autokarma: True  [-3, 3]
+       Notes: Update to 2.2.4. Release notes available at https://github.com
+            : /fedora-infra/bodhi/releases/tag/2.2.4
+   Submitter: bowlofeggs
+   Submitted: 2016-10-05 18:10:22
+    Comments: bodhi - 2016-10-05 18:10:22 (karma 0)
+              This update has been submitted for testing by
+              bowlofeggs.
+              bodhi - 2016-10-05 18:10:27 (karma 0)
+              This update has obsoleted [bodhi-2.2.3-1.el7](https:/
+              /bodhi.fedoraproject.org/updates/FEDORA-
+              EPEL-2016-a0eb4cc41f), and has inherited its bugs and
+              notes.
 
   http://example.com/tests/updates/FEDORA-EPEL-2016-3081a94111
 """

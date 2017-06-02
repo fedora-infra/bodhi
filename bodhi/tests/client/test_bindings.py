@@ -783,6 +783,44 @@ class TestBodhiClient_request(unittest.TestCase):
 
 class TestBodhiClient_update_str(unittest.TestCase):
     """This test contains tests for BodhiClient.update_str."""
+    @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH,
+        {'bugs': [{'bug_id': 1234, 'title': 'it broke'}, {'bug_id': 1235, 'title': 'halp'}]})
+    def test_bugs(self):
+        """Ensure correct output when there are bugs on the update."""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertEqual(
+            text,
+            client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+                '[-3, 3]', '[-3, 3]\n        Bugs: 1234 - it broke\n            : 1235 - halp'))
+
+    def test_minimal(self):
+        """Ensure correct output when minimal is True."""
+        client = bindings.BodhiClient()
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
+
+        expected_output = (' bodhi-2.2.4-1.el7                     rpm    bugfix       stable    '
+                           '2016-10-21')
+        self.assertEqual(text, expected_output)
+
+    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'request': 'stable'})
+    def test_request_stable(self):
+        """Ensure correct output when the update is request stable."""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertEqual(
+            text,
+            client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+                '[-3, 3]', '[-3, 3]\n     Request: stable'))
+
     def test_with_autokarma_set(self):
         """
         Ensure correct operation when autokarma is True, and stable/unstable karmas are set.

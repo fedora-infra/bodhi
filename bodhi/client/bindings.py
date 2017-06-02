@@ -204,6 +204,7 @@ class BodhiClient(OpenIdBaseClient):
     def query(self, **kwargs):
         """ Query bodhi for a list of updates.
 
+        :kwarg content_type: A content type (rpm, module) to limit the query to.
         :kwarg releases: A list of releases that you wish to query updates for.
         :kwarg status: The update status (``pending``, ``testing``, ``stable``,
             ``obsolete``, ``unpushed``, ``processing``)
@@ -494,9 +495,9 @@ class BodhiClient(OpenIdBaseClient):
             val = ""
             date = update['date_pushed'] and update['date_pushed'].split()[0] \
                 or update['date_submitted'].split()[0]
-            val += ' %-43s  %-11s  %-8s  %10s ' % (update['builds'][0]['nvr'],
-                                                   update['type'],
-                                                   update['status'], date)
+            val += ' %-37s %-6s %-11s  %-8s  %10s' % (
+                update['builds'][0]['nvr'], update['content_type'], update['type'],
+                update['status'], date)
             for build in update['builds'][1:]:
                 val += '\n %s' % build['nvr']
             return val
@@ -504,48 +505,50 @@ class BodhiClient(OpenIdBaseClient):
             textwrap.wrap(update['title'].replace(',', ', '), width=80,
                           initial_indent=' ' * 5, subsequent_indent=' ' * 5)), '=' * 80)
         if update['alias']:
-            val += "  Update ID: %s\n" % update['alias']
-        val += """    Release: %s
-     Status: %s
-       Type: %s
-      Karma: %d
-  Autokarma: %s  [%s, %s]""" % (
-            update['release']['long_name'], update['status'], update['type'], update['karma'],
-            update['autokarma'], update['unstable_karma'], update['stable_karma'])
+            val += "   Update ID: %s\n" % update['alias']
+        val += """Content Type: %s
+     Release: %s
+      Status: %s
+        Type: %s
+       Karma: %d
+   Autokarma: %s  [%s, %s]""" % (
+            update['content_type'], update['release']['long_name'], update['status'],
+            update['type'], update['karma'], update['autokarma'], update['unstable_karma'],
+            update['stable_karma'])
         if update['request'] is not None:
-            val += "\n    Request: %s" % update['request']
+            val += "\n     Request: %s" % update['request']
         if len(update['bugs']):
             bugs = ''
             i = 0
             for bug in update['bugs']:
-                bugstr = '%s%s - %s\n' % (i and ' ' * 11 + ': ' or '',
+                bugstr = '%s%s - %s\n' % (i and ' ' * 12 + ': ' or '',
                                           bug['bug_id'], bug['title'])
                 bugs += '\n'.join(textwrap.wrap(bugstr, width=67,
                                                 subsequent_indent=' ' * 11 + ': ')) + '\n'
                 i += 1
             bugs = bugs[:-1]
-            val += "\n       Bugs: %s" % bugs
+            val += "\n        Bugs: %s" % bugs
         if update['notes']:
             notes = textwrap.wrap(update['notes'], width=67,
-                                  subsequent_indent=' ' * 11 + ': ')
-            val += "\n      Notes: %s" % '\n'.join(notes)
+                                  subsequent_indent=' ' * 12 + ': ')
+            val += "\n       Notes: %s" % '\n'.join(notes)
         val += """
-  Submitter: %s
-  Submitted: %s\n""" % (update['user']['name'], update['date_submitted'])
+   Submitter: %s
+   Submitted: %s\n""" % (update['user']['name'], update['date_submitted'])
         if len(update['comments']):
-            val += "   Comments: "
+            val += "    Comments: "
             comments = []
             for comment in update['comments']:
                 if comment['anonymous']:
                     anonymous = " (unauthenticated)"
                 else:
                     anonymous = ""
-                comments.append("%s%s%s - %s (karma %s)" % (' ' * 13,
+                comments.append("%s%s%s - %s (karma %s)" % (' ' * 14,
                                 comment['user']['name'], anonymous,
                                 comment['timestamp'], comment['karma']))
                 if comment['text']:
-                    text = textwrap.wrap(comment['text'], initial_indent=' ' * 13,
-                                         subsequent_indent=' ' * 13, width=67)
+                    text = textwrap.wrap(comment['text'], initial_indent=' ' * 14,
+                                         subsequent_indent=' ' * 14, width=67)
                     comments.append('\n'.join(text))
             val += '\n'.join(comments).lstrip() + '\n'
         if update['alias']:
