@@ -325,6 +325,12 @@ f7.post_beta.mandatory_days_in_testing = 7
 f7.post_beta.critpath.num_admin_approvals = 0
 f7.post_beta.critpath.min_karma = 2
 
+##
+## Buildroot Override
+##
+
+# Maximum number of days a buildroot override may expire in, from creation time.
+# buildroot_limit = 31
 
 ##
 ## Groups
