@@ -109,7 +109,7 @@ class TestNew(unittest.TestCase):
 
         result = runner.invoke(
             client.new,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'bodhi-2.2.4-1.el7',
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
              '--url', 'http://localhost:6543'])
 
         self.assertEqual(result.exit_code, 0)
@@ -388,7 +388,7 @@ class TestEdit(unittest.TestCase):
             bindings_client, 'updates/', auth=True, verb='POST',
             data={
                 'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': True,
+                'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': False,
                 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
                 'notes': u'this is an edited note', 'notes_file': None,
                 'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
@@ -425,7 +425,7 @@ class TestEdit(unittest.TestCase):
                 data={
                     'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'autokarma': True, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'suggest': None, 'notes': 'This is a --notes-file note!',
                     'notes_file': 'notefile.txt', 'request': None, 'bugs': u'',
                     'unstable_karma': None, 'type': 'bugfix'})
@@ -470,7 +470,7 @@ class TestEdit(unittest.TestCase):
             bindings_client, 'updates/', auth=True, verb='POST',
             data={
                 'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': True,
+                'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': False,
                 'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None,
                 'notes': u'this is an edited note', 'notes_file': None,
                 'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})

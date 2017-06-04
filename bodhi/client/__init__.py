@@ -60,7 +60,7 @@ new_edit_options = [
     click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs'),
     click.option('--request', help='Requested repository',
                  type=click.Choice(['testing', 'stable', 'unpush'])),
-    click.option('--autokarma', default=True, is_flag=True, help='Enable karma automatism'),
+    click.option('--autokarma', is_flag=True, help='Enable karma automatism'),
     click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
     click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
     click.option('--suggest', help='Post-update user suggestion',
