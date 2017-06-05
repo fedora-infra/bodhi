@@ -11,7 +11,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import webtest
 
+from bodhi import server
 from bodhi.server.models import Release, ReleaseState, Update
 import bodhi.tests.server.functional.base
 
@@ -38,6 +40,23 @@ class TestReleasesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     def test_404(self):
         self.app.get('/releases/watwatwat', status=404)
+
+    def test_anonymous_cant_edit_release(self):
+        """Ensure that an unauthenticated user cannot edit a release, since only an admin should."""
+        name = u"F22"
+        # Create a new app so we are the anonymous user.
+        app = webtest.TestApp(server.main({}, session=self.db, **self.app_settings))
+        res = app.get('/releases/%s' % name, status=200)
+        r = res.json_body
+        r["edited"] = name
+        r["state"] = "current"
+        r["csrf_token"] = self.get_csrf_token()
+
+        # The anonymous user should receive a 403.
+        res = app.post("/releases/", r, status=403)
+
+        r = self.db.query(Release).filter(Release.name == name).one()
+        self.assertEquals(r.state, ReleaseState.disabled)
 
     def test_get_single_release_by_lower(self):
         res = self.app.get('/releases/f22')

@@ -21,6 +21,7 @@ from bodhi.tests.server.base import BaseTestCase, DB_NAME, DB_PATH, FAITOUT
 class BaseWSGICase(BaseTestCase):
     app_settings = {
         'authtkt.secret': 'sssshhhhhh',
+        'authtkt.secure': False,
         'sqlalchemy.url': DB_PATH,
         'mako.directories': 'bodhi:server/templates',
         'session.type': 'memory',
