@@ -120,7 +120,7 @@ class TestPolymorphicDiscovery(BaseTestCase):
         model.Update.find_polymorphic_child("whatever")
 
 
-class TestComment(unittest.TestCase):
+class TestComment(BaseTestCase):
     def test_text_not_nullable(self):
         """Assert that the text column does not allow NULL values.
 
@@ -128,6 +128,29 @@ class TestComment(unittest.TestCase):
         https://github.com/fedora-infra/bodhi/issues/949.
         """
         self.assertEqual(model.Comment.__table__.columns['text'].nullable, False)
+
+    def test_get_unigue_testcase_feedback(self):
+        update = self.create_update(
+            (u'bodhi-2.3.3-1.fc24', u'python-fedora-atomic-composer-2016.3-1.fc24'))
+        package = update.builds[0].package
+        test1 = model.TestCase(name=u"Test 1", package=package)
+        test2 = model.TestCase(name=u"Test 2", package=package)
+        test3 = model.TestCase(name=u"Test 2", package=package)
+        testcase_feedback = [{'testcase': test1, 'karma': 1},
+                             {'testcase': test2, 'karma': 1},
+                             {'testcase': test3, 'karma': 1}]
+        update.comment(session=self.db, text=u"test", karma=1, author=u"test",
+                       testcase_feedback=testcase_feedback)
+        comments = update.comments
+        feedback = comments[0].unique_testcase_feedback
+
+        feedback_titles = [f.testcase.name for f in feedback]
+        feedback_titles_expected = [u"Test 1", u"Test 2"]
+        feedback_karma_sum = sum([f.karma for f in feedback])
+
+        eq_(len(feedback), 2)
+        eq_(sorted(feedback_titles), sorted(feedback_titles_expected))
+        eq_(feedback_karma_sum, 2)
 
 
 class TestRelease(ModelTest):
@@ -1769,6 +1792,25 @@ class TestUpdate(ModelTest):
         self.assertFalse(result)
         self.assertIn("Failed retrieving requirements results:", reason)
         self.assertIn("Error retrieving data from Koji for", reason)
+
+    def test_test_cases_with_no_dupes(self):
+        update = self.get_update(name=u"FullTestCasesWithNoDupes")
+        package = update.builds[0].package
+        test1 = model.TestCase(name=u"Test 1", package=package)
+        test2 = model.TestCase(name=u"Test 2", package=package)
+        model.TestCase(name=u"Test 2", package=package)
+
+        tests = update.full_test_cases
+        test_names = update.test_cases
+
+        expected = [test1, test2]
+        expected_names = [u"Test 1", u"Test 2"]
+
+        eq_(len(tests), len(expected))
+        eq_(sorted(tests), sorted(expected))
+
+        eq_(len(test_names), len(expected_names))
+        eq_(sorted(test_names), sorted(expected_names))
 
 
 class TestUser(ModelTest):

@@ -60,7 +60,7 @@
           % endfor
 
           % if comment.testcase_feedback:
-            % for feedback in comment.testcase_feedback:
+            % for feedback in comment.unique_testcase_feedback:
             % if feedback.karma:
             <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
             % endif
