@@ -574,7 +574,7 @@ class Package(Base):
     type = Column(ContentType.db_type(), nullable=False)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
-    test_cases = relationship('TestCase', backref='package')
+    test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")
     committers = relationship('User', secondary=user_package_table,
                               backref='packages')
 
@@ -696,7 +696,7 @@ class Package(Base):
             log.debug('Found the following unit tests: %s', members)
             return members
 
-        for test in list_categorymembers(wiki, cat_page):
+        for test in set(list_categorymembers(wiki, cat_page)):
             case = db.query(TestCase).filter_by(name=test).first()
             if not case:
                 case = TestCase(name=test, package=self)
@@ -1632,7 +1632,7 @@ class Update(Base):
             if comment.user.name in seen:
                 continue
             seen.add(comment.user.name)
-            for feedback in comment.testcase_feedback:
+            for feedback in comment.unique_testcase_feedback:
                 if feedback.testcase == testcase:
                     if feedback.karma > 0:
                         good += 1
@@ -2543,8 +2543,11 @@ class Update(Base):
     def full_test_cases(self):
         tests = set()
         for build in self.builds:
+            test_names = set()
             for test in build.package.test_cases:
-                tests.add(test)
+                if test.name not in test_names:
+                    test_names.add(test.name)
+                    tests.add(test)
         return sorted(list(tests))
 
     @property
@@ -2641,6 +2644,21 @@ class Comment(Base):
     def url(self):
         url = '/updates/' + self.update.title + '#comment-' + str(self.id)
         return url
+
+    @property
+    def unique_testcase_feedback(self):
+        """This will filter out duplicates for testcases. It will return the
+        correct number of testcases in testcase_feedbacks as a list.
+        """
+        feedbacks = self.testcase_feedback
+        unique_feedbacks = set()
+        filtered_feedbacks = list()
+        for feedback in feedbacks:
+            if feedback.testcase.name not in unique_feedbacks:
+                unique_feedbacks.add(feedback.testcase.name)
+                filtered_feedbacks.append(feedback)
+
+        return filtered_feedbacks
 
     def __json__(self, *args, **kwargs):
         result = super(Comment, self).__json__(*args, **kwargs)
