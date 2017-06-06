@@ -27,13 +27,18 @@ import munch
 
 import click
 
-from bodhi.client.bindings import BodhiClient
+from bodhi.client import bindings
 
 
 @click.group()
 def main():
     """Create and manage releases in Bodhi."""
     pass
+
+
+url_option = click.option(
+    '--url', envvar='BODHI_URL', default=bindings.BASE_URL,
+    help=('URL of a Bodhi server. Can be set with BODHI_URL environment variable'))
 
 
 @main.command()
@@ -58,9 +63,10 @@ def main():
 @click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
                                             'archived']),
               help='The state of the release')
-def create(username, password, **kwargs):
+@url_option
+def create(username, password, url, **kwargs):
     """Create a release."""
-    client = BodhiClient(username=username, password=password)
+    client = bindings.BodhiClient(base_url=url, username=username, password=password)
     kwargs['csrf_token'] = client.csrf()
 
     save(client, **kwargs)
@@ -89,9 +95,10 @@ def create(username, password, **kwargs):
 @click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
                                             'archived']),
               help='The state of the release')
-def edit(username, password, **kwargs):
+@url_option
+def edit(username, password, url, **kwargs):
     """Edit an existing release."""
-    client = BodhiClient(username=username, password=password)
+    client = bindings.BodhiClient(base_url=url, username=username, password=password)
     csrf = client.csrf()
 
     edited = kwargs.pop('name')
@@ -124,9 +131,10 @@ def edit(username, password, **kwargs):
 
 @main.command()
 @click.argument('name')
-def info(name):
+@url_option
+def info(name, url):
     """Retrieve and print info about a named release."""
-    client = BodhiClient()
+    client = bindings.BodhiClient(base_url=url)
 
     res = client.send_request('releases/%s' % name, verb='GET', auth=False)
 
@@ -146,7 +154,6 @@ def save(client, **kwargs):
         client (bodhi.client.bindings.BodhiClient): The Bodhi client to use for the request.
         kwargs (dict): The parameters to send with the request.
     """
-    print type(client)
     res = client.send_request('releases/', verb='POST', auth=True,
                               data=kwargs)
 
