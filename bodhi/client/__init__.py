@@ -236,6 +236,8 @@ def edit(user, password, url, **kwargs):
               help='Query only critical path packages')
 @click.option('--cves', help='Query by CVE id')
 @click.option('--packages', help='Query by package name(s)')
+@click.option('--content-type', help='Query updates based on content type',
+              type=click.Choice(['rpm', 'module']))  # And someday, container.
 @click.option('--pushed', is_flag=True, default=None,
               help='Filter by pushed updates')
 @click.option('--pushed-since',

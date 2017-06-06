@@ -156,6 +156,7 @@ class TestQuery(unittest.TestCase):
             params={
                 'approved_since': None, 'status': None, 'locked': None,
                 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
+                'content_type': None,
                 'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
                 'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
                 'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,

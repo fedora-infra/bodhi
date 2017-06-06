@@ -13,9 +13,11 @@ The ``/search/packages`` API call has been deprecated.
 Features
 ^^^^^^^^
 
-* The API and fedmsg messages now support non-RPM content
-  (`#1325 <https://github.com/fedora-infra/bodhi/issues/1325>`_ and
-  `#1326 <https://github.com/fedora-infra/bodhi/issues/1326>`_).
+* The API, fedmsg messages, bindings, and CLI now support non-RPM content (
+  `#1325 <https://github.com/fedora-infra/bodhi/issues/1325>`_,
+  `#1326 <https://github.com/fedora-infra/bodhi/issues/1326>`_,
+  `#1327 <https://github.com/fedora-infra/bodhi/issues/1327>`_, and
+  `#1328 <https://github.com/fedora-infra/bodhi/issues/1328>`_)
 
 New Dependencies
 ^^^^^^^^^^^^^^^^
