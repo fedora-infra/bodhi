@@ -249,6 +249,10 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for updates related to the given bugs, given as a comma-separated list.
 
+    ``--content-type <content_type>``
+
+        Query for updates of a given content type: either rpm, module, or (in the future) container.
+
     ``--critpath``
 
         Query for updates submitted for the critical path.
