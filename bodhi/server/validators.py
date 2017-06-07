@@ -291,7 +291,7 @@ def validate_acls(request):
                 package_class = ContentType.infer_content_class(
                     base=Package, build=buildinfo['info'])
             except Exception as e:
-                error = 'Unable to infer content_type.  %r' % e.message
+                error = 'Unable to infer content_type.  %r' % str(e)
                 log.exception(error)
                 request.errors.add('body', 'builds', error)
                 if isinstance(e, NotImplementedError):

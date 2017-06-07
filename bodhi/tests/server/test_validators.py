@@ -53,7 +53,7 @@ class TestValidateAcls(BaseTestCase):
         :return: a Mock object representing a request
         """
         update = self.db.query(models.Update).filter_by(
-            title='bodhi-2.0-1.fc17').one()
+            title=u'bodhi-2.0-1.fc17').one()
         user = self.db.query(models.User).filter_by(id=1).one()
         mock_request = mock.Mock()
         mock_request.user = user
@@ -86,7 +86,7 @@ class TestValidateAcls(BaseTestCase):
         """
         user = self.db.query(models.User).filter_by(id=1).one()
         group = self.db.query(models.Group).filter_by(
-            name='provenpackager').one()
+            name=u'provenpackager').one()
         user.groups.pop(0)
         user.groups.append(group)
         self.db.flush()
