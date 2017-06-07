@@ -2255,7 +2255,7 @@ class Update(Base):
         requirements = list(requirements)
 
         if not requirements:
-            return True, "All checks pass."
+            return True, "No checks required."
 
         try:
             # https://github.com/fedora-infra/bodhi/issues/362
@@ -2284,7 +2284,7 @@ class Update(Base):
                 if (not isinstance(multicall_response, list) or
                         not isinstance(multicall_response[0], dict)):
                     msg = ("Error retrieving data from Koji for %r: %r" %
-                           build.nvr, multicall_response)
+                           (build.nvr, multicall_response))
                     log.error(msg)
                     raise TypeError(msg)
 
@@ -2312,8 +2312,8 @@ class Update(Base):
                 arch = result['data'].get('arch', ['noarch'])[0]
                 by_arch[arch].append(result)
 
-            for arch, results in by_arch.items():
-                latest = results[0]  # resultsdb results are ordered chronologically
+            for arch, result in by_arch.items():
+                latest = relevant[0]  # resultsdb results are ordered chronologically
                 if latest['outcome'] not in ['PASSED', 'INFO']:
                     return False, "Required task %s returned %s" % (
                         latest['testcase']['name'], latest['outcome'])

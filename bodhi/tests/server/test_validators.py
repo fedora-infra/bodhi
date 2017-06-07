@@ -35,9 +35,19 @@ class TestGetValidRequirements(unittest.TestCase):
             {'next': '/something?', 'data': [{'name': 'one'}, {'name': 'two'}]},
             {'next': None, 'data': []}]
 
-        result = list(validators._get_valid_requirements(None))
+        result = list(validators._get_valid_requirements(request=None,
+                                                         requirements=['one', 'two']))
 
         self.assertEqual(result, ['one', 'two'])
+
+    @mock.patch('bodhi.server.util.taskotron_results')
+    def test_no_requirements(self, mock_taskotron_results):
+        """Empty requirements means empty output"""
+        result = list(validators._get_valid_requirements(request=None,
+                                                         requirements=[]))
+
+        mock_taskotron_results.assert_not_called()
+        self.assertEqual(result, [])
 
 
 @mock.patch.dict(
