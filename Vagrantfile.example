@@ -58,7 +58,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         domain.cpus = 4
         domain.graphics_type = "spice"
         # The unit tests use a lot of RAM.
-        domain.memory = 4096
+        domain.memory = 5120
         domain.video_type = "qxl"
 
         # Uncomment the following line if you would like to enable libvirt's unsafe cache
