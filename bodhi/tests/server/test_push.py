@@ -468,8 +468,8 @@ class TestPush(base.BaseTestCase):
         glob.assert_called_once_with('/mnt/koji/mash/updates/MASHING-*')
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'updates': ['python-nose-1.3.7-11.fc17', 'python-paste-deploy-1.5.2-8.fc17',
-                             'ejabberd-16.09-4.fc17'],
+            msg={'updates': ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17',
+                             'python-paste-deploy-1.5.2-8.fc17'],
                  'resume': False, 'agent': 'bowlofeggs'},
             force=True)
         mock_file.assert_called_once_with('/mnt/koji/mash/updates/MASHING-f17-updates')
