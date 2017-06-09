@@ -119,6 +119,12 @@ class Bugzilla(BugTracker):
         """
         Close the bug given by bug_id, mark it as fixed in the given versions,
         and add a comment.
+
+        Args:
+            bug_id (int): The ID of the bug you wish to close.
+            versions (dict): A mapping of package names to nvrs of those packages that close the
+                bug.
+            comment (basestring): A comment to leave on the bug when closing it.
         """
         args = {'comment': comment}
         try:
