@@ -1119,7 +1119,8 @@ class Update(Base):
     # One-to-many relationships
     comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
                             order_by='Comment.timestamp')
-    builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined')
+    builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined',
+                          order_by='Build.nvr')
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
