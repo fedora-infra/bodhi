@@ -1632,6 +1632,117 @@ class TestUpdate(ModelTest):
 
         get_template.assert_called_with(update, u'fedora_epel_errata_template')
 
+    def test_check_requirements_empty(self):
+        '''Empty requirements are OK'''
+        update = self.obj
+        settings = {'resultsdb_api_url': ''}
+
+        for req in ['', None]:
+            update.requirements = req
+
+            result, reason = update.check_requirements(None, settings)
+
+            self.assertTrue(result)
+            self.assertEqual(reason, "No checks required.")
+
+    @mock.patch('bodhi.server.models.Update.last_modified',
+                new_callable=mock.PropertyMock)
+    def test_check_requirements_no_last_modified(self, mock_last_modified):
+        '''Missing last_modified should fail the check'''
+        update = self.obj
+        mock_last_modified.return_value = None
+        update.requirements = 'rpmlint abicheck'
+        settings = {'resultsdb_api_url': ''}
+
+        result, reason = update.check_requirements(None, settings)
+
+        self.assertFalse(result)
+        self.assertIn("Failed to determine last_modified", reason)
+
+    @mock.patch('bodhi.server.util.taskotron_results')
+    def test_check_requirements_query_error(self, mock_taskotron_results):
+        '''Error during retrieving results should fail'''
+        update = self.obj
+        update.requirements = 'rpmlint abicheck'
+        settings = {'resultsdb_api_url': ''}
+        mock_taskotron_results.side_effect = Exception('Query failed')
+
+        result, reason = update.check_requirements(None, settings)
+
+        self.assertFalse(result)
+        self.assertIn("Failed retrieving requirements results", reason)
+
+    @mock.patch('bodhi.server.util.taskotron_results')
+    def test_check_requirements_no_results(self, mock_taskotron_results):
+        '''No results for a testcase means fail'''
+        update = self.obj
+        update.requirements = 'rpmlint abicheck'
+        settings = {'resultsdb_api_url': ''}
+        results = [{'testcase': {'name': 'rpmlint'},
+                    'data': {},
+                    'outcome': 'PASSED'}]
+        mock_taskotron_results.return_value = iter(results)
+
+        result, reason = update.check_requirements(None, settings)
+
+        self.assertFalse(result)
+        self.assertEqual("No result found for required testcase abicheck",
+                         reason)
+
+    @mock.patch('bodhi.server.util.taskotron_results')
+    def test_check_requirements_failed_results(self, mock_taskotron_results):
+        '''Failed results for a testcase means fail'''
+        update = self.obj
+        update.requirements = 'rpmlint abicheck'
+        settings = {'resultsdb_api_url': ''}
+        results = [{'testcase': {'name': 'rpmlint'},
+                    'data': {},
+                    'outcome': 'FAILED'}]
+        mock_taskotron_results.return_value = iter(results)
+
+        result, reason = update.check_requirements(None, settings)
+
+        self.assertFalse(result)
+        self.assertEqual("Required task rpmlint returned FAILED",
+                         reason)
+
+    @mock.patch('bodhi.server.util.taskotron_results')
+    def test_check_requirements_pass(self, mock_taskotron_results):
+        '''All testcases pass means pass'''
+        update = self.obj
+        update.requirements = 'rpmlint abicheck'
+        settings = {'resultsdb_api_url': ''}
+        results = [{'testcase': {'name': 'rpmlint'},
+                    'data': {},
+                    'outcome': 'PASSED'},
+                   {'testcase': {'name': 'abicheck'},
+                    'data': {},
+                    'outcome': 'PASSED'}]
+        mock_taskotron_results.return_value = iter(results)
+
+        result, reason = update.check_requirements(None, settings)
+
+        self.assertTrue(result)
+        self.assertEqual("All checks pass.", reason)
+
+    @mock.patch('bodhi.server.util.taskotron_results')
+    @mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall')
+    def test_check_requirements_koji_error(self, mock_multiCall,
+                                           mock_taskotron_results):
+        '''Koji error means fail'''
+        update = self.obj
+        update.requirements = 'rpmlint abicheck'
+        settings = {'resultsdb_api_url': ''}
+        results = []
+        mock_taskotron_results.return_value = iter(results)
+        mock_multiCall.return_value = [{'error code': 'error description'}]
+
+        result, reason = update.check_requirements(None, settings)
+
+        self.assertFalse(result)
+        self.assertIn("Failed retrieving requirements results:", reason)
+        self.assertIn("Error retrieving data from Koji for", reason)
+
 
 class TestUser(ModelTest):
     klass = model.User

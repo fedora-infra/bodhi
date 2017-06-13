@@ -498,7 +498,7 @@ class BodhiConfig(dict):
             'value': 'CHANGEME',
             'validator': _validate_secret},
         'site_requirements': {
-            'value': 'depcheck upgradepath',
+            'value': 'dist.rpmdeplint dist.upgradepath',
             'validator': unicode},
         'smtp_server': {
             'value': None,

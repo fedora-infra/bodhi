@@ -258,15 +258,15 @@ def latest_candidates(request):
                 koji.listTagged(release.pending_testing_tag, **kwargs)
                 koji.listTagged(release.pending_signing_tag, **kwargs)
 
-        builds = koji.multiCall() or []  # Protect against None
+        response = koji.multiCall() or []  # Protect against None
 
-        for build in builds:
-            if isinstance(build, dict):
+        for taglist in response:
+            if isinstance(taglist, dict):
                 continue
-            if build and build[0] and build[0][0]:
+            for build in taglist[0]:
                 item = {
-                    'nvr': build[0][0]['nvr'],
-                    'id': build[0][0]['id'],
+                    'nvr': build['nvr'],
+                    'id': build['id'],
                 }
                 # Prune duplicates
                 # https://github.com/fedora-infra/bodhi/issues/450

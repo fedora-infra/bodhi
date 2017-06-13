@@ -54,7 +54,7 @@ mock_taskotron_results = {
     'target': 'bodhi.server.util.taskotron_results',
     'return_value': [{
         "outcome": "PASSED",
-        "result_data": {},
+        "data": {},
         "testcase": {"name": "rpmlint"}
     }],
 }
@@ -63,7 +63,7 @@ mock_failed_taskotron_results = {
     'target': 'bodhi.server.util.taskotron_results',
     'return_value': [{
         "outcome": "FAILED",
-        "result_data": {},
+        "data": {},
         "testcase": {"name": "rpmlint"}
     }],
 }
@@ -153,7 +153,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         update = self.get_update()
         update['requirements'] = 'rpmlint silly-dilly'
         res = self.app.post_json('/updates/', update, status=400)
-        assert 'Invalid requirement' in res, res
+        assert "Required check doesn't exist" in res, res
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')

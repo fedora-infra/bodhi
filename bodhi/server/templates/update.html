@@ -103,10 +103,6 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       // the latest ones for each arch.  So, prune like this:
       $.each(data.data, function(i, result) {
 
-        // However, we want to skip over any ABORTED results:
-        // https://github.com/fedora-infra/bodhi/issues/167
-        if (result.outcome == 'ABORTED') return;
-
         var name = result.testcase.name;
         // we want to stash results by scenario when there is one, use name
         // when there isn't
@@ -257,12 +253,8 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       request_results(base_url+"results/latest?item="+builds[index]+"&type=koji_build&testcases:like=dist.*");
     }
 
-    var oqaquery = "?item=${update.alias}&type=bodhi_update&testcases:like=update.*&since=";
-    % if update.date_modified:
-    oqaquery += "${update.date_modified.isoformat()}";
-    % else:
-    oqaquery += "${update.date_submitted.isoformat()}";
-    % endif
+    var oqaquery = "?item=${update.alias}&type=bodhi_update&"+
+                   "testcases:like=update.*&since=${update.last_modified.isoformat()}";
     request_results(base_url+"results/latest"+oqaquery);
   });
 </script>

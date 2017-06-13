@@ -2254,31 +2254,66 @@ class Update(Base):
         requirements = tokenize(self.requirements or '')
         requirements = list(requirements)
 
+        if not requirements:
+            return True, "No checks required."
+
         try:
             # https://github.com/fedora-infra/bodhi/issues/362
             since = self.last_modified.isoformat().rsplit('.', 1)[0]
         except Exception as e:
+            log.exception("Failed to determine last_modified from %r : %r",
+                          self.last_modified, e.message)
             return False, "Failed to determine last_modified: %r" % e.message
 
         try:
-            query = dict(title=self.title, since=since)
-            results = bodhi.server.util.taskotron_results(settings, **query)
-        except IOError as e:
-            return False, "Failed to talk to taskotron: %r" % e.message
+            # query results for this update
+            query = dict(type='bodhi_update', item=self.alias, since=since,
+                         testcases=','.join(requirements))
+            results = list(bodhi.server.util.taskotron_results(settings, **query))
+
+            # query results for each build
+            # retrieve timestamp for each build so that queries can be optimized
+            koji = buildsys.get_session()
+            koji.multicall = True
+            for build in self.builds:
+                koji.getBuild(build.nvr)
+            buildinfos = koji.multiCall()
+
+            for index, build in enumerate(self.builds):
+                multicall_response = buildinfos[index]
+                if (not isinstance(multicall_response, list) or
+                        not isinstance(multicall_response[0], dict)):
+                    msg = ("Error retrieving data from Koji for %r: %r" %
+                           (build.nvr, multicall_response))
+                    log.error(msg)
+                    raise TypeError(msg)
+
+                buildinfo = multicall_response[0]
+                ts = datetime.utcfromtimestamp(buildinfo['completion_ts']).isoformat()
+
+                query = dict(type='koji_build', item=build.nvr, since=ts,
+                             testcases=','.join(requirements))
+                build_results = list(bodhi.server.util.taskotron_results(settings, **query))
+                results.extend(build_results)
+
+        except Exception as e:
+            log.exception("Failed retrieving requirements results: %r", e.message)
+            return False, "Failed retrieving requirements results: %r" % e.message
 
         for testcase in requirements:
             relevant = [result for result in results
                         if result['testcase']['name'] == testcase]
 
             if not relevant:
-                return False, 'No result found for required %s' % testcase
+                return False, 'No result found for required testcase %s' % testcase
 
             by_arch = defaultdict(list)
-            for r in relevant:
-                by_arch[r['result_data'].get('arch', ['noarch'])[0]].append(r)
+            for result in relevant:
+                arch = result['data'].get('arch', ['noarch'])[0]
+                by_arch[arch].append(result)
 
-            for arch, results in by_arch.items():
-                latest = results[0]  # TODO - do these need to be sorted still?
+            for arch, result in by_arch.items():
+                latest = relevant[0]  # resultsdb results are ordered chronologically
                 if latest['outcome'] not in ['PASSED', 'INFO']:
                     return False, "Required task %s returned %s" % (
                         latest['testcase']['name'], latest['outcome'])
@@ -2342,7 +2377,7 @@ class Update(Base):
         """ Return the last time this update was edited or created.
 
         This gets used specifically by taskotron/resultsdb queries so we only
-        query for depcheck runs that occur *after* the last time this update
+        query for test runs that occur *after* the last time this update
         (in its current form) was in play.
         """
 

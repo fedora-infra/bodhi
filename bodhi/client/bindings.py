@@ -165,8 +165,8 @@ class BodhiClient(OpenIdBaseClient):
         :kwarg severity: The severity of this update (``urgent``, ``high``,
             ``medium``, ``low``)
         :kwarg requirements: A list of required Taskotron tests that must pass
-            for this update to reach stable. (``depcheck``, ``upgradepath``,
-            ``rpmlint``)
+            for this update to reach stable. (e.g. ``dist.rpmdeplint``,
+            ``dist.upgradepath``, ``dist.rpmlint``, etc)
         :kwarg require_bugs: A boolean to require that all of the bugs in your
             update have been confirmed by testers.
         :kwarg require_testcases: A boolean to require that this update passes
