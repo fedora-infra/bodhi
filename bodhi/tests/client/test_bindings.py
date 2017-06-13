@@ -987,3 +987,73 @@ class TestUpdateNotFound(unittest.TestCase):
         self.assertEqual(unicode(exc.update), u'bodhi-2.2.4-1.el7')
         self.assertEqual(type(unicode(exc.update)), unicode)
         self.assertEqual(unicode(exc), 'Update not found: bodhi-2.2.4-1.el7')
+
+
+class TestBodhiClient_parse_file(unittest.TestCase):
+    """
+    Test the BodhiClient.parse_file() method.
+    """
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_parsing_valid_file(self, exists, _load_cookies, mock_open):
+        """
+        Test parsing a valid update template file
+        """
+        s = [
+            "[fedora-workstation-backgrounds-1.1-1.fc26]\n",
+            "# bugfix, security, enhancement, newpackage (required)\n",
+            "type=bugfix\n",
+            "\n",
+            "# testing, stable\n",
+            "request=testing\n",
+            "\n",
+            "# Bug numbers: 1234,9876\n",
+            "bugs=123456,43212\n",
+            "\n",
+            "# Here is where you give an explanation of your update.\n",
+            "notes=Initial Release\n",
+            "\n",
+            "# Enable request automation based on the stable/unstable karma thresholds\n",
+            "autokarma=True\n",
+            "stable_karma=3\n",
+            "unstable_karma=-3\n",
+            "\n",
+            "# Automatically close bugs when this marked as stable\n",
+            "close_bugs=True\n",
+            "\n",
+            "# Suggest that users restart after update\n",
+            "suggest_reboot=False\n",
+            ""]
+        exists.return_value = True
+        mock_open.return_value.readline.side_effect = s
+
+        client = bindings.BodhiClient()
+        updates = client.parse_file("sad")
+        
+        self.assertEqual(len(updates), 1)
+        self.assertEqual(len(updates[0]), 12)
+        self.assertEqual(updates[0]['close_bugs'], True)
+        self.assertEqual(updates[0]['unstable_karma'], '-3')
+        self.assertEqual(updates[0]['severity'], 'unspecified')
+        self.assertEqual(updates[0]['stable_karma'], '3')
+        self.assertEqual(updates[0]['builds'], 'fedora-workstation-backgrounds-1.1-1.fc26')
+        self.assertEqual(updates[0]['autokarma'], 'True')
+        self.assertEqual(updates[0]['suggest'], 'unspecified')
+        self.assertEqual(updates[0]['notes'], 'Initial Release')
+        self.assertEqual(updates[0]['request'], 'testing')
+        self.assertEqual(updates[0]['bugs'], '123456,43212')
+        self.assertEqual(updates[0]['type_'], 'bugfix')
+        self.assertEqual(updates[0]['type'], 'bugfix')
+
+    def test_parsing_nonexistant_file(self):
+        """
+        Test trying to parse a file that doesnt exist
+        """
+        client = bindings.BodhiClient()
+
+        with self.assertRaises(ValueError) as exc:
+            client.parse_file("/tmp/bodhi-test-parsefile2")
+
+        self.assertEqual(unicode(exc.exception),
+                         'No such file or directory: /tmp/bodhi-test-parsefile2')
